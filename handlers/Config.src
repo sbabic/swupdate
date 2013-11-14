@@ -1,0 +1,47 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+menu "Image Handlers"
+
+INSERT
+
+config UBIVOL
+	bool "ubivol"
+	default n
+	help
+	  ubi is the default format for NAND device.
+	  Say Y if you have NAND or you use UBI on
+	  your system.
+
+config CFI
+	bool "cfi"
+	default n
+	help
+	  For NOR flashes (including SPI-NOR), flash must
+	  be erased using MTD ioctl.
+
+config RAW
+	bool "raw"
+	default n
+	help
+	  This is a simple handler that simply copies
+	  into the destination.
+
+config LUASCRIPTHANDLER
+	bool "luascript"
+	depends on LUA
+	default n
+	help
+	  Handler to be called for pre- and post scripts
+	  written in LUA.
+
+config UBOOT
+	bool "uboot"
+	default n
+	help
+	  Enable it to change U-Boot environment
+	  during the installation process.
+
+endmenu

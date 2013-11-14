@@ -1,0 +1,33 @@
+menu "Parser Features"
+
+config LIBCONFIG
+	bool "libconfig"
+	default y
+	help
+	  Use libconfig to parse the configuration file.
+	  This is the default parser.
+
+config LUAEXTERNAL
+	bool "lua"
+	depends on LUA
+	default n
+	help
+	  call an external parser written in LUA.
+
+
+config SETSWDESCRIPTION
+	bool "set file description name"
+	default n
+	help
+	  Set it if you want to change the name of
+	  the default software descritpion file.
+	  If not set, default file name is "sw-description"
+
+config SWDESCRIPTION
+	string "descritption file"
+	depends on SETSWDESCRIPTION
+	help
+	   File extracted from the image containing
+	   the description (meta) of the images.
+	   This file, after extraction, is passed to the parser.
+endmenu

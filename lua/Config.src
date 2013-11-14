@@ -1,0 +1,16 @@
+# DO NOT EDIT. This file is generated from Config.src
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+menu "LUA Features"
+
+
+config LUA
+	bool "lua"
+	default y
+	help
+	  Enable LUA interpreter.
+
+endmenu

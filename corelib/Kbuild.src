@@ -1,0 +1,9 @@
+libs-y		+= libcore/
+
+INSERT
+
+lib-y			+= installer.o
+lib-$(CONFIG_LUA)	+= lua_interface.o
+lib-$(CONFIG_WEBSERVER)	+= network_ipc.o \
+			   network_thread.o \
+			   stream_interface.o

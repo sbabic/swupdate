@@ -1,0 +1,8 @@
+libs-y				+= libparser/
+
+lib-y:=
+
+INSERT
+
+lib-$(CONFIG_LIBCONFIG)		+= parse_config.o
+lib-$(CONFIG_LUAEXTERNAL)	+= parse_external.o

@@ -1,0 +1,167 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+mainmenu "Swupdate Configuration"
+
+config HAVE_DOT_CONFIG
+	bool
+	default y
+
+menu "Swupdate Settings"
+
+menu "General Configuration"
+
+config SCRIPTS
+	bool "enable pre and postinstall scripts"
+	default y
+	help
+	  Enabling this option, the installer will run
+	  pre- and postinstall scripts, if they are present
+	  in the image. For security reason, this option
+	  can be switched off.
+
+config HW_COMPATIBILITY
+	bool "check for hardware / software compatibility"
+	default n
+	help
+	  If enabled, check if the hardware revision
+	  supports the softwrae version. Detecting the hardware
+	  revision is very board specific, and it cannot be generalized.
+	  For this reason, the software expects that the detected
+	  version is written into a file by a previous software.
+
+config HW_COMPATIBILITY_FILE
+	string "File with detected hardare revisions"
+	depends on HW_COMPATIBILITY
+	default "/etc/hwrevision"
+	help
+	  File where to read the detected hardware revsion
+	  that must be compared with the software version.
+	  The file has simple entries (one per line) in the
+	  format of "major.minor".
+
+# These are auto-selected by other options
+
+config FEATURE_SYSLOG
+	bool #No description makes it a hidden option
+	default n
+	#help
+	#  This option is auto-selected when you select any applet which may
+	#  send its output to syslog. You do not need to select it manually.
+
+endmenu
+
+menu 'Build Options'
+
+config STATIC
+	bool "Build swupdate as a static binary (no shared libs)"
+	default n
+	help
+	  If you want to build a static BusyBox binary, which does not
+	  use or require any shared libraries, then enable this option.
+	  This can cause BusyBox to be considerably larger, so you should
+	  leave this option false unless you have a good reason (i.e.
+	  your target platform does not support shared libraries, or
+	  you are building an initrd which doesn't need anything but
+	  BusyBox, etc).
+
+	  Most people will leave this set to 'N'.
+
+config CROSS_COMPILER_PREFIX
+	string "Cross Compiler prefix"
+	default ""
+	help
+	  If you want to build BusyBox with a cross compiler, then you
+	  will need to set this to the cross-compiler prefix, for example,
+	  "i386-uclibc-".
+
+	  Note that CROSS_COMPILE environment variable or
+	  "make CROSS_COMPILE=xxx ..." will override this selection.
+
+	  Native builds leave this empty.
+
+config SYSROOT
+	string "Path to sysroot"
+	default ""
+	help
+	  If you want to build BusyBox with a cross compiler, then you
+	  might also need to specify where /usr/include and /usr/lib
+	  will be found.
+
+	  For example, BusyBox can be built against an installed
+	  Android NDK, platform version 9, for ARM ABI with
+
+	  CONFIG_SYSROOT=/opt/android-ndk/platforms/android-9/arch-arm
+
+	  Native builds leave this empty.
+
+config EXTRA_CFLAGS
+	string "Additional CFLAGS"
+	default ""
+	help
+	  Additional CFLAGS to pass to the compiler verbatim.
+
+config EXTRA_LDFLAGS
+	string "Additional LDFLAGS"
+	default ""
+	help
+	  Additional LDFLAGS to pass to the linker verbatim.
+
+config EXTRA_LDLIBS
+	string "Additional LDLIBS"
+	default ""
+	help
+	  Additional LDLIBS to pass to the linker with -l.
+
+endmenu
+
+menu 'Debugging Options'
+
+config DEBUG
+	bool "Build Swupdate with extra Debugging symbols"
+	default n
+	help
+	  Say Y here if you wish to examine BusyBox internals while applets are
+	  running. This increases the size of the binary considerably, and
+	  should only be used when doing development. If you are doing
+	  development and want to debug BusyBox, answer Y.
+
+	  Most people should answer N.
+
+config DEBUG_PESSIMIZE
+	bool "Disable compiler optimizations"
+	default n
+	depends on DEBUG
+	help
+	  The compiler's optimization of source code can eliminate and reorder
+	  code, resulting in an executable that's hard to understand when
+	  stepping through it with a debugger. This switches it off, resulting
+	  in a much bigger executable that more closely matches the source
+	  code.
+
+config WERROR
+	bool "Abort compilation on any warning"
+	default n
+	help
+	  Selecting this will add -Werror to gcc command line.
+
+	  Most people should answer N.
+
+endmenu
+
+endmenu
+
+config WEBSERVER
+	bool "Enable webserver"
+	default n
+	help
+	  Enable update from remote using a webserver on the target.
+
+source mongoose/Config.in
+
+source archival/Config.in
+source parser/Config.in
+source handlers/Config.in
+source lua/Config.in

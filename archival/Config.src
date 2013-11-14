@@ -1,0 +1,32 @@
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+menu "Archival Features"
+
+INSERT
+
+config CPIO
+	bool "cpio"
+	default y
+	help
+	  cpio is an archival utility program used to create, modify, and
+	  extract contents from archives.
+	  cpio has 110 bytes of overheads for every stored file.
+
+	  This implementation of cpio can extract cpio archives created in the
+	  "newc" or "crc" format, it cannot create or modify them.
+
+	  Unless you have a specific application which requires cpio, you
+	  should probably say N here.
+
+config GUNZIP
+	bool "gunzip"
+	default y
+	help
+	  gunzip is used to decompress archives created by gzip.
+	  You can use the `-t' option to test the integrity of
+	  an archive, without decompressing it.
+
+endmenu

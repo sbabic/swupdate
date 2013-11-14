@@ -1,0 +1,46 @@
+# DO NOT EDIT. This file is generated from Config.src
+#
+# For a description of the syntax of this configuration file,
+# see scripts/kbuild/config-language.txt.
+#
+
+menu "Webserver Features"
+depends on WEBSERVER
+
+
+config MONGOOSE
+	bool "mongoose"
+	default n
+	help
+	  Enable mongoose webserver.
+
+menu "Mongoose Feature"
+depends on MONGOOSE
+
+config MONGOOSELUA
+	bool "lua interpreter"
+	depends on LUA
+	default y
+	help
+	  It allows to use LUA scripts as CGI interpreter.
+
+config MONGOOSESQL
+	bool "sqlite"
+	default y
+	help
+	   SQL support into mongoose
+
+config MONGOOSEIPV6
+	bool "ipv6"
+	default y
+	help
+	   It enables ipv6 support into mongoose
+
+config MONGOOSESSL
+	bool "ssl"
+	default y
+	help
+	   It enables SSL support into mongoose
+endmenu
+
+endmenu
