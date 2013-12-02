@@ -14,6 +14,21 @@ config LUAEXTERNAL
 	help
 	  call an external parser written in LUA.
 
+config SETEXTPARSERNAME
+	bool "Set external parser name"
+	depends on LUAEXTERNAL
+	default n
+	help
+	  Set to define own path and filename for the
+	  external parser, else default lua-tools/extparser.lua
+	  will be used.
+
+config EXTPARSERNAME
+	string "External parser file name"
+	depends on SETEXTPARSERNAME
+	help
+	  Lua script to be executed for parsing
+	  the sw-description file.
 
 config SETSWDESCRIPTION
 	bool "set file description name"
@@ -24,7 +39,7 @@ config SETSWDESCRIPTION
 	  If not set, default file name is "sw-description"
 
 config SWDESCRIPTION
-	string "descritption file"
+	string "description file"
 	depends on SETSWDESCRIPTION
 	help
 	   File extracted from the image containing

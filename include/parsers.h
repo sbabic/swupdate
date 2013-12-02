@@ -29,7 +29,7 @@
 #ifndef CONFIG_SETSWDESCRIPTION
 #define SW_DESCRIPTION_FILENAME	"sw-description"
 #else
-#define SW_DESCRIPTION_FILENAME	(CONFIG_SWDESCRIPTION)
+#define SW_DESCRIPTION_FILENAME	CONFIG_SWDESCRIPTION
 #endif
 
 int parse(struct swupdate_cfg *swcfg, const char *filename);
