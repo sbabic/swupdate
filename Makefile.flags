@@ -125,6 +125,8 @@ endif
 # lua
 ifneq ($(CONFIG_LUA),)
 CFLAGS += -I$(srctree)/lua
+LDLIBS += dl
+LDFLAGS += -Wl,-E
 endif
 # mongoose webserver
 ifneq ($(CONFIG_MONGOOSE),)
