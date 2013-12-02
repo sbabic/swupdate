@@ -42,11 +42,12 @@ static void get_field(const config_setting_t *e, const char *path, char *dest, s
 	if (config_setting_lookup_string(e, path, &str))
 		strncpy(dest, str, n);
 }
-		
+
+#ifdef CONFIG_HW_COMPATIBILITY
 /*
  * Check if the software can run on the hardware
  */
-static void parse_hw_compatibility(config_t *cfg, struct swupdate_cfg *swcfg)
+static int parse_hw_compatibility(config_t *cfg, struct swupdate_cfg *swcfg)
 {
 	const config_setting_t *setting, *hw;
 	int count, i;
@@ -57,6 +58,7 @@ static void parse_hw_compatibility(config_t *cfg, struct swupdate_cfg *swcfg)
 	setting = config_lookup(cfg, "software.hardware-compatibility");
 	if (setting == NULL) {
 		ERROR("HW compatibility not found\n");
+		return -1;
 	}
 
 	count = config_setting_length(setting);
@@ -69,8 +71,10 @@ static void parse_hw_compatibility(config_t *cfg, struct swupdate_cfg *swcfg)
 			continue;
  
 		hwrev = (struct hw_type *)calloc(1, sizeof(struct hw_type));
-		if (!hwrev)
+		if (!hwrev) {
 			ERROR("No memory: malloc failed\n");
+			return -1;
+		}
 
 		p = strchr(s, '.');
 		hwrev->major = strtoul(s, NULL, 10);
@@ -81,7 +85,15 @@ static void parse_hw_compatibility(config_t *cfg, struct swupdate_cfg *swcfg)
 				hwrev->minor);
 		}
 	}
+
+	return 0;
 }
+#else
+static int parse_hw_compatibility(config_t *cfg, struct swupdate_cfg *swcfg)
+{
+	return 0;
+}
+#endif
 
 static void parse_partitions(config_t *cfg, struct swupdate_cfg *swcfg)
 {
@@ -197,8 +209,10 @@ static void parse_uboot(config_t *cfg, struct swupdate_cfg *swcfg)
 			continue;
 
 		uboot = (struct uboot_var *)calloc(1, sizeof(struct uboot_var));	
-		if (!uboot)
+		if (!uboot) {
 			ERROR( "No memory: malloc failed\n");
+			return;
+		}
 
 		GET_FIELD(elem, "name", uboot->varname);
 		GET_FIELD(elem, "value", uboot->value);
@@ -280,8 +294,10 @@ static void parse_files(config_t *cfg, struct swupdate_cfg *swcfg)
 			continue;
 
 		file = (struct img_type *)calloc(1, sizeof(struct img_type));
-		if (!file)
+		if (!file) {
 			ERROR( "No memory: malloc failed\n");
+			return;
+		}
 
 		GET_FIELD(elem, "filename", file->fname);
 		GET_FIELD(elem, "path", file->path);
@@ -318,10 +334,12 @@ int parse_cfg (struct swupdate_cfg *swcfg, const char *filename)
 			config_error_line(&cfg), config_error_text(&cfg));
 		config_destroy(&cfg);
 		ERROR(" ..exiting\n");
+		return -1;
 	}
 
 	if (!config_lookup_string(&cfg, "software.version", &str)) {
 		ERROR("Missing version in configuration file\n");
+		return -1;
 	} else {
 		strncpy(swcfg->version, str, sizeof(swcfg->version));
 
