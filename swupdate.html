@@ -1,0 +1,782 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Sw-Management on embedded systems &mdash; Embedded Software Update Documentation 0.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Embedded Software Update Documentation 0.1.0 documentation" href="index.html" />
+    <link rel="prev" title="History" href="history.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="history.html" title="History"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Embedded Software Update Documentation 0.1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="sw-management-on-embedded-systems">
+<h1>Sw-Management on embedded systems<a class="headerlink" href="#sw-management-on-embedded-systems" title="Permalink to this headline">¶</a></h1>
+<p>Embedded Systems become more and more complex,
+and their software reflects the augmentity complexity.
+New features and fixes let much more as desirable that
+the software on an embedded system can be updated
+in a absolutely reliable way.</p>
+<p>On a linux-based system, we can find in most cases
+the following elements:
+- the bootloader.
+- the kernel and the DT (Device Tree) file.
+- the root filesystem
+- other filesystems, mounted at a later point
+- customer data, in raw format or on a filesystem
+- application specific software. For example, firmware
+to be downloaded on connected microcontrollers, and so on.</p>
+<p>Generally speaking, in most cases it is required to update
+kernel and root filesystem, preserving user data - but cases vary.</p>
+<p>In only a few cases it is required to update the bootloader,
+too. In fact, updating the bootloader is quite always risky,
+because a failure in the update breaks the board.
+Restoring a broken board is possible in some cases,
+but this is not left in most cases to the end user
+and the system must be sent back to the manufacturer.</p>
+<p>There are a lot of different concepts about updating
+the software. I like to expone some of them, and then
+explain why I have implemented this project.</p>
+<div class="section" id="updating-through-the-bootloader">
+<h2>Updating through the bootloader<a class="headerlink" href="#updating-through-the-bootloader" title="Permalink to this headline">¶</a></h2>
+<p>Bootloaders do much more as simply start the kernel.
+They have their own shell and can be managed using
+a processor&#8217;s peripheral, in most cases a serial line.
+They are often scriptable, letting possible to implement
+some kind of software update mechanism.</p>
+<p>However, I found some drawbacks in this approach, that
+let me search for another solution, based on an application
+running on Linux:</p>
+<div class="section" id="bootloader-have-limited-access-to-peripherals">
+<h3>Bootloader have limited access to peripherals.<a class="headerlink" href="#bootloader-have-limited-access-to-peripherals" title="Permalink to this headline">¶</a></h3>
+<p>Not all peripherals supported by the kernel are
+available with the bootloader. When it makes sense to add
+support to the kernel, because the peripheral is then available
+by the main application, it does not always make sense to duplicate
+the effort to port the driver to the bootloader.</p>
+</div>
+<div class="section" id="bootloader-s-drivers-are-not-updated">
+<h3>Bootloader&#8217;s drivers are not updated<a class="headerlink" href="#bootloader-s-drivers-are-not-updated" title="Permalink to this headline">¶</a></h3>
+<p>Bootloader&#8217;s drivers are mostly ported from the Linux kernel,
+but due to adaptations they are not later fixed or synchronized
+with the kernel, while bug fixes flow regularly in the Linux kernel.
+Some peripherals can then work in a not reliable ways,
+and fixing the issues can be not easy. Drivers in boot loaders
+are more or less a fork of the respective drivers in kernel.</p>
+<p>As example, the UBI / UBIFS for NAND devices contains a lot of
+fixes in the kernel, that are not ported back to the bootloaders.
+The same can be found for the USB stack. The effort to support
+new peripherals or protocols is better to be used for the kernel
+as for the bootloaders.</p>
+</div>
+<div class="section" id="reduced-filesystems">
+<h3>Reduced filesystems<a class="headerlink" href="#reduced-filesystems" title="Permalink to this headline">¶</a></h3>
+<p>The number of supported filesystems is limited and
+porting a filesystem to the bootloader requires high effort.</p>
+</div>
+<div class="section" id="network-support-is-limited">
+<h3>Network support is limited<a class="headerlink" href="#network-support-is-limited" title="Permalink to this headline">¶</a></h3>
+<p>Network stack is limited, generally an update is possible via
+UDP but not via TCP.</p>
+</div>
+<div class="section" id="interaction-with-the-operator">
+<h3>Interaction with the operator<a class="headerlink" href="#interaction-with-the-operator" title="Permalink to this headline">¶</a></h3>
+<p>It is difficult to expone an interface to the operator,
+such as a GUI with a browser or on a display.</p>
+<p>A complex logic can be easier implemented inside an application
+else in the bootloader. Extending the bootloader becomes complicated
+because the whole range of services and libraries are not available.</p>
+</div>
+<div class="section" id="bootloader-s-update-advantages">
+<h3>Bootloader&#8217;s update advantages<a class="headerlink" href="#bootloader-s-update-advantages" title="Permalink to this headline">¶</a></h3>
+<p>However, this approach has some advantages,too:
+- software for update is generally simpler.
+- smaller footprint: a standalone application only for
+software management requires an own kernel and a root filesystem.
+Even if their size can be trimmed dropping what is not required
+for updating the software, their size is not negligible.</p>
+</div>
+</div>
+<div class="section" id="updating-through-a-package-manager">
+<h2>Updating through a package manager<a class="headerlink" href="#updating-through-a-package-manager" title="Permalink to this headline">¶</a></h2>
+<p>All Linux distributions are updating with a package manager.
+Why is it not suitable for embedded ?</p>
+<p>I cannot say it cannot be used, but there is an important drawback
+using this approach. Embedded systems are well tested
+with a specific software. Using a package manager
+can put weirdness because the software itself
+is not anymore &#8220;atomic&#8221;, but split into a long
+list of packages. How can be assured that an application
+with library version x.y works, and also with different
+versions of the same library ? How can be successful tested ?</p>
+<p>For a manufacturer, it is generally better to say that
+a new release of software (well tested by his test
+engineers) is released, and the new software (or firmware)
+is available for updating. Splitting in packages can
+generate nightmare and high effort for the testers.</p>
+</div>
+<div class="section" id="strategies-for-an-application-doing-software-upgrade">
+<h2>Strategies for an application doing software upgrade<a class="headerlink" href="#strategies-for-an-application-doing-software-upgrade" title="Permalink to this headline">¶</a></h2>
+<p>Instead of using the bootloader, an application can take
+into charge to upgrade the system. The application can
+use all services provided by the OS. The proposed solution
+is then a stand-alone software, that follow customer rules and
+performs checks to determine if a software is installable,
+and then install the software on the desired storage.</p>
+<p>The application can detect if the provided new software
+is suitable for the hardware, and it is can also check if
+the software is released by a verified authority. The range
+of features can grow from small system to a complex one,
+including the possibility to have pre- and post- install
+scripts, and so on.</p>
+<p>Different strategies can be used, depending on the system&#8217;s
+resources. I am listing some of them.</p>
+<div class="section" id="double-copy-with-fallback">
+<h3>Double copy with fallback<a class="headerlink" href="#double-copy-with-fallback" title="Permalink to this headline">¶</a></h3>
+<p>If there are enough place on the storage to save
+two copies of the whole software, it is possible to guarantee
+that there is always a working copy even if the software update
+is interrupted.</p>
+<p>Each copy must contain the kernel, the root filesystem, and each
+further component that can be updated. It is required
+a mechanism to identify which version is running. A sinergy
+with the bootloader is often necessary, because the bootloader must
+decide which copy should be started. Again, it must be possible
+to switch between the two copies.
+After a reboot, the boot loader decides which copy should run.</p>
+<p>The most evident drawback is the amount of required space. The
+available space for each copy is less than half the size
+of the storage. However, an update is always safe even in case of power off.</p>
+<p>This project supports this strategy. The application as part of this project
+should be installed in the rootfilesystem and started
+or triggered as required. There is no
+need of an own kernel, because the two copies guarantees that
+it is always possible to upgrade the not running copy.</p>
+</div>
+<div class="section" id="single-copy-running-as-standalone-image">
+<h3>Single copy - running as standalone image<a class="headerlink" href="#single-copy-running-as-standalone-image" title="Permalink to this headline">¶</a></h3>
+<p>The software upgrade application consists of kernel (maybe reduced
+dropping not required drivers) and a small root filesystem, with the application
+and its libraries. The whole size is much less than a single copy of
+the system software. Depending on set up, I get sizes from 2.5 until 8 MB
+for the standalone root filesystem. If the size is very important on small
+systems, it becomes negligible on systems with a lot of storage
+or big NANDs.</p>
+<p>The system can be put in &#8220;upgrade&#8221; mode, simply signalling to the
+bootloader that the upgrading software must be started. The way
+can differ, for example setting a bootloader environment or using
+and external GPIO.</p>
+<p>The bootloader starts the upgrading software, booting the
+swupdate kernel and the initrd image as rootfilesystem. Because it runs in RAM,
+it is possible to upgrade the whole storage. Differently as in the
+double-copy strategy, the systems must reboot to put itself in
+update mode.</p>
+<p>This concept consumes less space in storage as having two copies, but
+it is not power off safe. However, it can be guaranteed that
+the system goes automatically in upgrade mode when the productivity
+software is not found or corrupted, as when the upgrade process
+was interrupted.</p>
+<img alt="_images/single_copy_layout.png" src="_images/single_copy_layout.png" />
+<p>In fact, it is possible to consider
+the upgrade procedure as a transaction, and only after the successful
+upgrade the new software is set as &#8220;bootable&#8221;. With these considerations,
+an upgrade with this strategy is safe: it is always guaranteed that the
+system boots and it is ready to get a new software, if the old one
+is corrupted or cannot run.</p>
+<p>swupdate is mainly used in this configuration. The receipes for Yocto
+generates a initrd image containing the swupdate application, that is
+automatically started after mounting the root filesystem.</p>
+<img alt="_images/swupdate_single.png" src="_images/swupdate_single.png" />
+</div>
+</div>
+</div>
+<div class="section" id="swupdate-software-update-for-embedded-system">
+<h1>SWUPDATE: software update for embedded system<a class="headerlink" href="#swupdate-software-update-for-embedded-system" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>This project is thought to help to update an embedded
+system from a storage media or from network. However,
+it should be mainly considered as a framework, where
+further protocols or installers (in swupdate they are called handlers)
+can be easily added to the application.</p>
+<p>One use case is to update from an external local media, as
+USB-Pen or SD-Card. In this case, the update is done
+without any intervention by an operator: it is thought
+as &#8220;one-key-update&#8221;, and the software is started at reset
+simply pressing a key (or in any way that can be recognized
+by the target), making all checks automatically. At the end,
+the updating process reports only the status to the operator
+(successful or failed).</p>
+<p>The output can be displayed on a LCD using the framebuffer
+device or directed to a serial line (Linux console).</p>
+<p>It is generally used in the single copy approach, running
+in a initrd (receipes are provided to generate with Yocto).
+However, it is possible to use it in a double-copy approach.</p>
+<p>If started for a remote update, swupdate starts an embedded
+Webserver and waits for requests. The operator must upload
+a suitable image, that swupdate checks and then install.
+All output is notified to the operator&#8217;s browser via AJAX
+notifications.</p>
+<div class="section" id="single-image-delivery">
+<h3>Single image delivery<a class="headerlink" href="#single-image-delivery" title="Permalink to this headline">¶</a></h3>
+<p>The main concept is that the manufacturer delivers a single
+big image. All single images are packed together (cpio was chosen
+for its simplicity and because can be streamed) together with
+an additional file (sw-description), that contains meta
+information about each single image.</p>
+<p>The format of sw-description can be customized: swupdate can be
+configured to use its internal parser (based on libconfig), or calling
+an external parser in LUA.</p>
+<img alt="_images/image_format.png" src="_images/image_format.png" />
+<p>Changing the rules to accept images with an external parser,
+let to extend to new image types and how they are installed.
+In fact, the scope of the parser is to retrieve which single
+images must be installed and how.
+swupdate implements &#8220;handlers&#8221; to install a single image:
+there are handlers to install images into UBI volumes,
+or to a SD card, a CFI Flash, and so on. It is then easy to
+add an own handler if a very special installer is required.</p>
+<p>For example we can think at a project with a main processor and
+one or several microcontrollers. Let&#8217;s say for simplicity that
+the main processor communicates with the microcontrollers via
+UARTS using a proprietary protocol. The software on the microcontrollers
+can be updated using the proprietary protocol.</p>
+<p>It is possible to extend swupdate writing a handler, that implements
+the part of the proprietary protocol to perform the upgrade
+on the microcontroller. The parser must recognize which image must be
+installed with the new handler, and swupdate will call the handler
+during the installation process.</p>
+</div>
+<div class="section" id="handling-configuration-differences">
+<h3>Handling configuration differences<a class="headerlink" href="#handling-configuration-differences" title="Permalink to this headline">¶</a></h3>
+<p>The concept can be extended to deliver a single image
+containing the release for multiple devices. Each device has its own
+kernel, dtb and root filesystem, or they can share some parts.</p>
+<p>Currently this is managed (and already used in a real project) by
+writing an own parser, that checks which images must be installed
+after recognizing which is the device where software is running.</p>
+<p>Because the external parser can be written in LUA and it is
+completely customizable, everybody can set his own rules.
+For this specific example, the sw-description is written in XML format,
+with tags identifying the images for each device. To run it, the liblxp
+library is needed.</p>
+<div class="highlight-python"><pre>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;software version="1.0"&gt;
+  &lt;name&gt;Update Image&lt;/name&gt;
+  &lt;version&gt;1.0.0&lt;/version&gt;
+  &lt;description&gt;Firmware for XXXXX Project&lt;/description&gt;
+
+  &lt;images&gt;
+    &lt;image device="firstdevice" version="0.9"&gt;
+      &lt;stream name="dev1-uImage" type="ubivol" volume="kernel" /&gt;
+      &lt;stream name="dev1.dtb" type="ubivol" volume="dtb" /&gt;
+      &lt;stream name="dev1-rootfs.ubifs" type="ubivol" volume="rootfs"/&gt;
+      &lt;stream name="dev1-uboot-env" type="uboot" /&gt;
+      &lt;stream name="raw_vfat" type="raw" dest="/dev/mmcblk0p4" /&gt;
+      &lt;stream name="sdcard.lua" type="lua" /&gt;
+    &lt;/image&gt;
+
+    &lt;image device="seconddevice" version="0.9"&gt;
+      &lt;stream name="dev2-uImage" type="ubivol" volume="kernel" /&gt;
+      &lt;stream name="dev2.dtb" rev="0.9" type="ubivol" volume="dtb" /&gt;
+      &lt;stream name="dev2-rootfs.ubifs" type="ubivol" volume="rootfs"/&gt;
+    &lt;/image&gt;
+  &lt;/images&gt;
+&lt;/software&gt;</pre>
+</div>
+<p>The parser for this is in the /examples directory.
+By identifying which is the running device, the parser return
+a table containing the images that must be installed and their associated
+handlers.
+By reading the delivered image, swupdate will ignore all images that
+are not in the list processed by the parser. In this way, it is possible
+to have a single delivered image for the update of multiple devices.</p>
+</div>
+<div class="section" id="streaming-feature">
+<h3>Streaming feature<a class="headerlink" href="#streaming-feature" title="Permalink to this headline">¶</a></h3>
+<p>Even if not yet fully implemented, swupdate is thought to be able
+to stream the received image directly into the target, without
+any temporyry copy. In fact, the single installer (handler) receive
+as input the file descriptor set at the beginning of the image
+that must be installed.</p>
+<p>The reason why this feature is not yet fully implemented and some parts
+are temporary extracted into /tmp is due to the fact that it is then not
+possible to make checks on the whole delivered software before installing.
+By streaming, it can happen that only a part is delivered, for example because
+the network connection is suddenly broken. At the moment, the images making
+a software release for a device are extracted from the stream and copied into
+/tmp, and then a check runs before installing.</p>
+<p>The temporary copy is done only when updated from network. When the image
+is stored on an external storage, there is no need of that copy.</p>
+</div>
+</div>
+<div class="section" id="main-features">
+<h2>Main Features<a class="headerlink" href="#main-features" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>check if a image is available. The image is built
+in a specified format (cpio) and it must contain
+a file describing the software that must be updated.</li>
+<li>swupdate is thought to update UBI volumes (mainly for NAND, but not only)
+and images on devices. Passing a whole image can still be updated
+as a partition on the SD card, or a MTD partition.</li>
+<li>new partition schema. This is bound with UBI volume.
+swupdate can recreate UBI volumes, resizing them and
+copying the new software. A special UBI volume with the name &#8220;data&#8221;
+is saved and restored after repartitioning with all data
+it contains,  to maintain user&#8217;s data.</li>
+<li>support for compressed images, using the zlib library.
+tarball (tgz file) are supported.</li>
+<li>support for partitioned USB-pen or unpartitioned (mainly
+used by Windows).</li>
+<li>support for updating a single file inside a filesystem.
+The filesystem where to put the file must be described.</li>
+<li>chechksum for the single components of an image</li>
+<li>use a structured language to describe the image. This is done
+using the <a class="reference external" href="http://www.hyperrealm.com/libconfig/">libconfig</a> library as default parser, that uses a
+JSON-like description.</li>
+</ul>
+<ul class="simple">
+<li>use custom&#8217;s choice for the description of the image. It is
+possible to write an own parser using the LUA language.
+An example using a XML description in LUS is provided
+in the examples directory.</li>
+<li>Support for setting / erasing U-Boot variables</li>
+<li>Support for preinstall scripts. They run before updating the images</li>
+<li>Support for postinstall scripts. They run after updating the images.</li>
+<li>Network installer using an embedded Webserver (Mongoose Server
+was choosen, in the version under LUA license). A different
+Webserver can be used.</li>
+<li>Can be configured to check for compatibility between software and hardware
+revisions. The software image must contain an entry declaring on which
+HW revision the software is allowed to run.
+swupdate refuses to install if the compatibility is not verified.</li>
+<li>support for image extraction. A manufacturer can require to have
+a single image that contains the software for more as one device.
+This simplifies the manufacturer&#8217;s management and reduces
+their administrative costs having a single software product.
+swupdate receives the software as stream without temporary storing,
+and extracts only the required components for the device
+to be installed.</li>
+<li>Features are enabled / disabled using &#8220;make menuconfig&#8221;.
+(Kbuild is inherited from busybox project)</li>
+</ul>
+</div>
+<div class="section" id="configuration-and-installaion">
+<h2>Configuration and installaion<a class="headerlink" href="#configuration-and-installaion" title="Permalink to this headline">¶</a></h2>
+<p>swupdate is configurable via &#8220;make menu config&#8221;. The small footprint
+is reached using the internal parser and disabling the webserver.</p>
+<p>To compile, you have to follow the steps:</p>
+<ul>
+<li><p class="first">configure the options</p>
+<blockquote>
+<div><p>make menuconfig</p>
+</div></blockquote>
+</li>
+<li><p class="first">generate the code</p>
+<blockquote>
+<div><p>make</p>
+</div></blockquote>
+</li>
+</ul>
+<p>To cross-compile, set the CC and CXX variables before running make.
+It is also possible to set the cross-compiler prefix as option with
+make menuconfig.</p>
+<p>The result is the binary &#8220;swupdate&#8221;.</p>
+<p>To start it expecting the image from a file:</p>
+<div class="highlight-python"><pre>swupdate -i &lt;filename&gt;</pre>
+</div>
+<p>To start with the embedded webserver:</p>
+<div class="highlight-python"><pre>swupdate -w "&lt;webserver options"</pre>
+</div>
+<p>The main important parameter for the webserver is &#8220;document_root&#8221;.</p>
+<div class="highlight-python"><pre>swupdate -w "-document_root ./www"</pre>
+</div>
+<p>The embedded webserver is taken from the Mongoose project (last release
+with LUA license). Additional paramters can be found in mongoose
+documentation.
+This uses as website the pages delivered with the code. Of course,
+they can be customized and replaced. The website uses AJAX to communicate
+with swupdate, and to show the progress of the update to the operator.</p>
+<p>The default port of the Webserver is 8080. You can then connect to the target with:</p>
+<div class="highlight-python"><pre>http://&lt;target_ip&gt;:8080</pre>
+</div>
+<p>If it works, the start page should be displayed as in next figure.</p>
+<img alt="_images/website.png" src="_images/website.png" />
+<p>If a correct image is downloaded, swupdate starts to process the received image.
+All notifications are sent back to the browser. swupdate provides a mechanism
+to send to a receiver the progress of the installation. In fact, swupdate
+takes a list of objects that registers itself with the application
+and they will be informed any time the application calls the notify() function.
+This allows also for self-written handlers to inform the upper layers about
+error conditions or simply return the status. It is then simply to add
+own receivers to implement customized way to display the results: displaying
+on a LCD (if the target has one), or sending back to another device via
+network.
+An example of the notifications sent back to the browser is in the next figure:</p>
+<img alt="_images/webprogress.png" src="_images/webprogress.png" />
+</div>
+<div class="section" id="changes-in-bootloader-code">
+<h2>Changes in bootloader code<a class="headerlink" href="#changes-in-bootloader-code" title="Permalink to this headline">¶</a></h2>
+<p>The swupdate consists of kernel and a root filesystem
+(image) that must be started by the bootloader.
+In case using U-Boot, the following mechanism can be implemented:</p>
+<ul class="simple">
+<li>U-Boot checks if a sw update is required (check gpio, serial console, etc.).</li>
+<li>the script &#8220;altbootcmd&#8221; sets the rules to start swupdate</li>
+<li>in case swupdate is required, u-boot run the script &#8220;altbootcmd&#8221;</li>
+</ul>
+<p>There are further enhancement that can be optionally integrated
+into u-boot to make the system safer. The most important I will
+suggest is to add support for boot counter in u-boot (documentation
+is in U-Boot docs). This allows U-Boot to track for attempts to
+successfully run the application, and if the boot counter is
+greater as a limit, can start automatically swupdate to replace
+a corrupt software.</p>
+</div>
+<div class="section" id="building-a-single-image">
+<h2>Building a single image<a class="headerlink" href="#building-a-single-image" title="Permalink to this headline">¶</a></h2>
+<p>cpio is used as container for its simplicity. The resulting image is very
+simple to be built.
+The file describing the images (&#8220;sw-description&#8221;, but the name can be configured)
+must be the first file in the cpio archive.</p>
+<p>To produce an image, a script like this can be used:</p>
+<div class="highlight-python"><pre>CONTAINER_VER="1.0"
+PRODUCT_NAME="my-software"
+FILES="sw-description image1.ubifs  \
+       image2.gz.u-boot uImage.bin myfile sdcard.img"
+for i in $FILES;do
+        echo $i;done | cpio -ov -H crc &gt;  ${PRODUCT_NAME}_${CONTAINER_VER}.swu</pre>
+</div>
+<p>The single images can be put in any order inside the cpio container, with the exception
+of sw-description, that must be the first one.</p>
+<div class="section" id="format-of-the-sw-description-file-using-libconfig">
+<h3>Format of the sw-description file using libconfig<a class="headerlink" href="#format-of-the-sw-description-file-using-libconfig" title="Permalink to this headline">¶</a></h3>
+<p>Using the default parser, sw-description follows the rule described
+in the libconfig manual.
+The following example explains better the implemented tags:</p>
+<div class="highlight-python"><pre>software =
+{
+        version = "0.1.0";
+
+        hardware-compatibility: [ "1.0", "1.2", "1.3"];
+
+        /* partitions tag is used to resize UBI partitions */
+        partitions: ( /* UBI Volumes */
+                {
+                        name = "rootfs";
+                        size = 104896512; /* in bytes */
+                },
+                {
+                        name = "data";
+                        size = 50448384; /* in bytes */
+                }
+        );
+
+
+        images: (
+                {
+                        filename = "rootfs.ubifs";
+                        volume = "rootfs";
+                },
+                {
+                        filename = "swupdate.ext3.gz.u-boot";
+                        volume = "fs_recovery";
+                },
+                {
+                        filename = "sdcard.ext3.gz";
+                        device = "/dev/mmcblk0p1";
+                        compressed = true;
+                },
+                {
+                        filename = "bootlogo.bmp";
+                        volume = "splash";
+                },
+                {
+                        filename = "uImage.bin";
+                        volume = "kernel";
+                }
+        );
+
+        files: (
+                {
+                        filename = "README";
+                        path = "/README";
+                        device = "/dev/mmcblk0p1";
+                        filesystem = "vfat"
+                }
+        );
+
+        scripts: (
+                {
+                        filename = "erase_at_end";
+                        type = "postinstall";
+                },
+                {
+                        filename = "display_info";
+                        type = "preinstall";
+                }
+        );
+
+        uboot: (
+                {
+                        name = "vram";
+                        value = "4M";
+                },
+                {
+                        name = "addfb";
+                        value = "setenv bootargs ${bootargs} vram=6M omapfb.vram=1:2M,2:2M,3:2M omapdss.def_disp=lcd"
+                }
+        );
+
+}</pre>
+</div>
+<p>The single tags have this meaning:</p>
+<p>hardware-compatibility: [ &#8220;major.minor&#8221;, &#8220;major.minor&#8221;, ... ]</p>
+<p>Example:</p>
+<blockquote>
+<div>hardware-compatibility: [ &#8220;1.0&#8221;, &#8220;1.2&#8221;, &#8220;1.3&#8221;];</div></blockquote>
+<p>This means that the software is compatible with HW-Revisions
+1.0, 1.2 and 1.3, but not for 1.1 or other version not explicitely
+listed here.</p>
+<dl class="docutils">
+<dt>partitions: (</dt>
+<dd><dl class="first last docutils">
+<dt>{</dt>
+<dd>name = &lt;volume name&gt;;
+size = &lt;size in bytes&gt;;</dd>
+</dl>
+</dd>
+</dl>
+<p>);</p>
+<p>The volume &#8220;data&#8221;, if present, is handled in a special way to save and restore
+its data.</p>
+<dl class="docutils">
+<dt>images (</dt>
+<dd><dl class="first docutils">
+<dt>{</dt>
+<dd>filename = &lt;Name in CPIO Archive&gt;;
+volume = &lt;destination volume&gt;;</dd>
+</dl>
+<p class="last">}</p>
+</dd>
+<dt>or:</dt>
+<dd><dl class="first docutils">
+<dt>{</dt>
+<dd>filename = &lt;Name in CPIO Archive&gt;;
+device = &lt;device node &gt;;</dd>
+</dl>
+<p class="last">}</p>
+</dd>
+</dl>
+<p>The first format allows to update UBI-Volume. If &#8220;device&#8221; is given,
+the image &#8220;filename&#8221; is copied into the specified device.</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>files: (</dt>
+<dd><dl class="first docutils">
+<dt>{</dt>
+<dd>filename = &lt;Name in CPIO Archive&gt;;
+path = &lt;path in filesystem&gt;;
+device = &lt;device node &gt;;
+filesystem = &lt;filesystem for mount&gt;;</dd>
+</dl>
+<p class="last">}</p>
+</dd>
+</dl>
+<p>);</p>
+</div></blockquote>
+<p>Entries in &#8220;files&#8221; section are managed as single files. The attribute
+&#8220;path&#8221; and &#8220;filesystem&#8221; are mandatory. Sw-Update copies the file in the path
+specified after mounting the device.</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>scripts: (</dt>
+<dd><dl class="first docutils">
+<dt>{</dt>
+<dd>filename = &lt;Name in CPIO Archive&gt;;
+type = [&#8220;preinstall&#8221; | &#8220;postinstall&#8221;];</dd>
+</dl>
+<p class="last">},</p>
+</dd>
+</dl>
+<p>);</p>
+</div></blockquote>
+<p>Scripts runs in the order they are put into the sw-description file.
+The result of a script is valuated by sw-update, that stops the update
+with an error if the result is &lt;&gt; 0.</p>
+<p>Scripts are shell scripts, that can be run by the busybox shell. They are
+copied into a temporary directory before execution and their name must
+be unique inside the same cpio archive.</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>uboot: (</dt>
+<dd><dl class="first docutils">
+<dt>{</dt>
+<dd>name = &lt;Name der Variabel&gt;;
+value = &lt;Wert für die Variabel&gt;;</dd>
+</dl>
+<p class="last">},</p>
+</dd>
+</dl>
+<p>)</p>
+</div></blockquote>
+</div>
+<div class="section" id="running-sw-update">
+<h3>Running sw-update<a class="headerlink" href="#running-sw-update" title="Permalink to this headline">¶</a></h3>
+<p>A run of swupdate consists mainly of the following steps:</p>
+<ul class="simple">
+<li>check for media (USB-pen)</li>
+<li>check for an image file. The extension must be .swu</li>
+<li>extracts sw-description from the image and verifies it
+It parses sw-description creating a raw description in RAM
+about the activities that must be performed.</li>
+<li>Reads the cpio archive and proofs the checksum of each single file
+sw-update stops if the archive is not complete verified</li>
+<li>check for hardware-software compatibility, if any,
+reading hardware revision from hardware and matching
+with the table in sw-description.</li>
+<li>check that all components described in sw-description are
+really in the cpio archive.</li>
+<li>modify partitions, if required. This consists in a resize
+of UBI volumes, not a resize of MTD partition.
+A volume with the name &#8220;data&#8221; is saved and restored after
+resizing.</li>
+<li>runs pre-install scripts</li>
+<li>iterates through all images and call the corresponding
+handler for installing on target.</li>
+<li>runs post-install scripts</li>
+<li>update u-boot environment, if changes are specified
+in sw-description.</li>
+<li>reports the status to the operator (stdout)</li>
+</ul>
+<p>The first step that fails, stops the entire procedure and
+an error is reported.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Sw-Management on embedded systems</a><ul>
+<li><a class="reference internal" href="#updating-through-the-bootloader">Updating through the bootloader</a><ul>
+<li><a class="reference internal" href="#bootloader-have-limited-access-to-peripherals">Bootloader have limited access to peripherals.</a></li>
+<li><a class="reference internal" href="#bootloader-s-drivers-are-not-updated">Bootloader&#8217;s drivers are not updated</a></li>
+<li><a class="reference internal" href="#reduced-filesystems">Reduced filesystems</a></li>
+<li><a class="reference internal" href="#network-support-is-limited">Network support is limited</a></li>
+<li><a class="reference internal" href="#interaction-with-the-operator">Interaction with the operator</a></li>
+<li><a class="reference internal" href="#bootloader-s-update-advantages">Bootloader&#8217;s update advantages</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#updating-through-a-package-manager">Updating through a package manager</a></li>
+<li><a class="reference internal" href="#strategies-for-an-application-doing-software-upgrade">Strategies for an application doing software upgrade</a><ul>
+<li><a class="reference internal" href="#double-copy-with-fallback">Double copy with fallback</a></li>
+<li><a class="reference internal" href="#single-copy-running-as-standalone-image">Single copy - running as standalone image</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#swupdate-software-update-for-embedded-system">SWUPDATE: software update for embedded system</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a><ul>
+<li><a class="reference internal" href="#single-image-delivery">Single image delivery</a></li>
+<li><a class="reference internal" href="#handling-configuration-differences">Handling configuration differences</a></li>
+<li><a class="reference internal" href="#streaming-feature">Streaming feature</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#main-features">Main Features</a></li>
+<li><a class="reference internal" href="#configuration-and-installaion">Configuration and installaion</a></li>
+<li><a class="reference internal" href="#changes-in-bootloader-code">Changes in bootloader code</a></li>
+<li><a class="reference internal" href="#building-a-single-image">Building a single image</a><ul>
+<li><a class="reference internal" href="#format-of-the-sw-description-file-using-libconfig">Format of the sw-description file using libconfig</a></li>
+<li><a class="reference internal" href="#running-sw-update">Running sw-update</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="history.html"
+                        title="previous chapter">History</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/swupdate.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="history.html" title="History"
+             >previous</a> |</li>
+        <li><a href="index.html">Embedded Software Update Documentation 0.1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Stefano Babic.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
