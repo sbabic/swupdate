@@ -1,0 +1,4 @@
+Documentation is written in Restructured Text.
+
+To generate the documentation in other format,
+you need laTex and sphinx.

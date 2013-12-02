@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<software version="1.0">
+        <name>Update Image</name>
+        <version>1.0.0</version>
+        <description>Firmware for My Project</description>
+
+        <images>
+                <image device="device-1" version="0.9">
+                        <stream name="uImage" type="ubivol" volume="kernel" mtdname="Kernel" />
+                        <stream name="device-1.dtb" type="ubivol" volume="dtb" mtdname="Kernel" />
+                        <stream name="device1-rootfs.ubifs" type="ubivol" volume="rootfs" mtdname="File System" />
+                        <stream name="uboot-env" type="uboot" />
+                        <stream name="raw_vfat" type="raw" dest="/dev/mmcblk0p4" />
+                        <stream name="sdcard.lua" type="lua" />
+                 </image>
+
+                <image device="device-2" version="0.9">
+                        <stream name="device-2.dtb" rev="0.9" type="ubivol" volume = "dtb"/>
+                        <stream name="device2-uImage" rev="0.9"  type="ubivol" volume = "kernel"/>
+                        <stream name="cramfs.img" rev="0.9"  type="ubivol" volume = "rootfs" />
+                 </image>
+                 
+                <image device="device-3" version="0.9">
+                        <stream name="dev3_0.9.dtb" rev="0.9" type="ubivol" volume = "dtb"/>
+                        <stream name="dev3_0.9.kernel" rev="0.9" type="ubivol" volume = "kernel"/>
+                        <stream name="dev3_0.9.fs" rev="0.9" type="ubivol" volume = "rootfs" />
+                 </image>
+
+         </images>
+
+</software>

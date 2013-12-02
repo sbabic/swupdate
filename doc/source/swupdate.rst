@@ -58,11 +58,17 @@ Bootloader's drivers are not updated
 ------------------------------------
 
 Bootloader's drivers are mostly ported from the Linux kernel,
-but due to adaptations they are not fixed or synchronized
-with the kernel, while fixes flow regularly in the Linux kernel.
-Some peripheral can then work in a not reliable ways,
+but due to adaptations they are not later fixed or synchronized
+with the kernel, while bug fixes flow regularly in the Linux kernel.
+Some peripherals can then work in a not reliable ways,
 and fixing the issues can be not easy. Drivers in boot loaders
 are more or less a fork of the respective drivers in kernel.
+
+As example, the UBI / UBIFS for NAND devices contains a lot of
+fixes in the kernel, that are not ported back to the bootloaders.
+The same can be found for the USB stack. The effort to support
+new peripherals or protocols is better to be used for the kernel
+as for the bootloaders.
 
 Reduced filesystems
 -------------------
@@ -72,7 +78,7 @@ porting a filesystem to the bootloader requires high effort.
 Network support is limited
 --------------------------
 Network stack is limited, generally an update is possible via
-UDP but not with TCP.
+UDP but not via TCP.
 
 Interaction with the operator
 -----------------------------
@@ -80,15 +86,9 @@ Interaction with the operator
 It is difficult to expone an interface to the operator,
 such as a GUI with a browser or on a display.
 
-A complex logic can be easier implemented with an application
+A complex logic can be easier implemented inside an application
 else in the bootloader. Extending the bootloader becomes complicated
 because the whole range of services and libraries are not available.
-
-As example, the UBI / UBIFS for NAND devices contains a lot of
-fixes in the kernel, that are not ported back to the bootloaders.
-The same can be found for the USB stack. The effort to support
-new peripherals or protocols is better to be used for the kernel
-as for the bootloaders.
 
 Bootloader's update advantages
 ------------------------------
@@ -145,7 +145,7 @@ Double copy with fallback
 -------------------------
 
 If there are enough place on the storage to save
-two copies of the whole sofware, it is possible to guarantee
+two copies of the whole software, it is possible to guarantee
 that there is always a working copy even if the software update
 is interrupted.
 
@@ -155,6 +155,7 @@ a mechanism to identify which version is running. A sinergy
 with the bootloader is often necessary, because the bootloader must
 decide which copy should be started. Again, it must be possible
 to switch between the two copies.
+After a reboot, the boot loader decides which copy should run.
 
 The most evident drawback is the amount of required space. The
 available space for each copy is less than half the size
@@ -182,33 +183,49 @@ bootloader that the upgrading software must be started. The way
 can differ, for example setting a bootloader environment or using
 and external GPIO.
 
-The bootloader starts the upgrading software, starting the
+The bootloader starts the upgrading software, booting the
 swupdate kernel and the initrd image as rootfilesystem. Because it runs in RAM,
-it is possible to upgrade the whole storage.
+it is possible to upgrade the whole storage. Differently as in the
+double-copy strategy, the systems must reboot to put itself in
+update mode.
 
 This concept consumes less space in storage as having two copies, but
 it is not power off safe. However, it can be guaranteed that
 the system goes automatically in upgrade mode when the productivity
 software is not found or corrupted, as when the upgrade process
-was interrupted. In fact, it is possible to consider
+was interrupted.
+
+
+.. image:: images/single_copy_layout.png
+
+In fact, it is possible to consider
 the upgrade procedure as a transaction, and only after the successful
 upgrade the new software is set as "bootable". With these considerations,
 an upgrade with this strategy is safe: it is always guaranteed that the
 system boots and it is ready to get a new software, if the old one
 is corrupted or cannot run.
 
+swupdate is mainly used in this configuration. The receipes for Yocto
+generates a initrd image containing the swupdate application, that is
+automatically started after mounting the root filesystem.
+
+.. image:: images/swupdate_single.png
+
 =============================================
 SWUPDATE: software update for embedded system
 =============================================
 
+Overview
+========
+
 This project is thought to help to update an embedded
-system using a media (USB Pen), or from network. However,
+system from a storage media or from network. However,
 it should be mainly considered as a framework, where
-further protocols or installers can be added easy to
-the application.
+further protocols or installers (in swupdate they are called handlers)
+can be easily added to the application.
 
 One use case is to update from an external local media, as
-USB-Pen or SD-CArd. In this case, the update is done
+USB-Pen or SD-Card. In this case, the update is done
 without any intervention by an operator: it is thought
 as "one-key-update", and the software is started at reset
 simply pressing a key (or in any way that can be recognized
@@ -223,20 +240,132 @@ It is generally used in the single copy approach, running
 in a initrd (receipes are provided to generate with Yocto).
 However, it is possible to use it in a double-copy approach.
 
-If started in the network setup, swupdate starts an embedded
+If started for a remote update, swupdate starts an embedded
 Webserver and waits for requests. The operator must upload
 a suitable image, that swupdate checks and then install.
-All output is notified to the operator's browser via AJAX.
+All output is notified to the operator's browser via AJAX 
+notifications.
+
+Single image delivery
+---------------------
+
+The main concept is that the manufacturer delivers a single
+big image. All single images are packed together (cpio was chosen
+for its simplicity and because can be streamed) together with
+an additional file (sw-description), that contains meta
+information about each single image.
+
+The format of sw-description can be customized: swupdate can be
+configured to use its internal parser (based on libconfig), or calling
+an external parser in LUA.
+
+
+
+.. image:: images/image_format.png
+
+
+Changing the rules to accept images with an external parser,
+let to extend to new image types and how they are installed.
+In fact, the scope of the parser is to retrieve which single
+images must be installed and how.
+swupdate implements "handlers" to install a single image:
+there are handlers to install images into UBI volumes,
+or to a SD card, a CFI Flash, and so on. It is then easy to
+add an own handler if a very special installer is required.
+
+For example we can think at a project with a main processor and
+one or several microcontrollers. Let's say for simplicity that
+the main processor communicates with the microcontrollers via
+UARTS using a proprietary protocol. The software on the microcontrollers
+can be updated using the proprietary protocol.
+
+It is possible to extend swupdate writing a handler, that implements
+the part of the proprietary protocol to perform the upgrade
+on the microcontroller. The parser must recognize which image must be
+installed with the new handler, and swupdate will call the handler
+during the installation process.
+
+Handling configuration differences
+----------------------------------
+
+The concept can be extended to deliver a single image
+containing the release for multiple devices. Each device has its own
+kernel, dtb and root filesystem, or they can share some parts.
+
+Currently this is managed (and already used in a real project) by
+writing an own parser, that checks which images must be installed
+after recognizing which is the device where software is running.
+
+Because the external parser can be written in LUA and it is
+completely customizable, everybody can set his own rules.
+For this specific example, the sw-description is written in XML format,
+with tags identifying the images for each device. To run it, the liblxp
+library is needed.
+
+::
+
+	<?xml version="1.0" encoding="UTF-8"?>
+	<software version="1.0">
+	  <name>Update Image</name>
+	  <version>1.0.0</version>
+	  <description>Firmware for XXXXX Project</description>
+
+	  <images>
+	    <image device="firstdevice" version="0.9">
+	      <stream name="dev1-uImage" type="ubivol" volume="kernel" />
+	      <stream name="dev1.dtb" type="ubivol" volume="dtb" />
+	      <stream name="dev1-rootfs.ubifs" type="ubivol" volume="rootfs"/>
+	      <stream name="dev1-uboot-env" type="uboot" />
+	      <stream name="raw_vfat" type="raw" dest="/dev/mmcblk0p4" />
+	      <stream name="sdcard.lua" type="lua" />
+	    </image>
+
+	    <image device="seconddevice" version="0.9">
+	      <stream name="dev2-uImage" type="ubivol" volume="kernel" />
+	      <stream name="dev2.dtb" rev="0.9" type="ubivol" volume="dtb" />
+	      <stream name="dev2-rootfs.ubifs" type="ubivol" volume="rootfs"/>
+	    </image>
+	  </images>
+	</software>
+
+
+The parser for this is in the /examples directory.
+By identifying which is the running device, the parser return
+a table containing the images that must be installed and their associated
+handlers.
+By reading the delivered image, swupdate will ignore all images that
+are not in the list processed by the parser. In this way, it is possible
+to have a single delivered image for the update of multiple devices.
+
+Streaming feature
+-----------------
+
+Even if not yet fully implemented, swupdate is thought to be able
+to stream the received image directly into the target, without
+any temporyry copy. In fact, the single installer (handler) receive
+as input the file descriptor set at the beginning of the image
+that must be installed.
+
+The reason why this feature is not yet fully implemented and some parts
+are temporary extracted into /tmp is due to the fact that it is then not
+possible to make checks on the whole delivered software before installing.
+By streaming, it can happen that only a part is delivered, for example because
+the network connection is suddenly broken. At the moment, the images making
+a software release for a device are extracted from the stream and copied into
+/tmp, and then a check runs before installing.
+
+The temporary copy is done only when updated from network. When the image
+is stored on an external storage, there is no need of that copy.
 
 Main Features
---------------
+=============
 
 - check if a image is available. The image is built
   in a specified format (cpio) and it must contain
   a file describing the software that must be updated.
 
 - swupdate is thought to update UBI volumes (mainly for NAND, but not only)
-  and images in devices. Passing a whole image can still be updated
+  and images on devices. Passing a whole image can still be updated
   as a partition on the SD card, or a MTD partition.
 
 - new partition schema. This is bound with UBI volume.
@@ -254,7 +383,7 @@ Main Features
 - support for updating a single file inside a filesystem.
   The filesystem where to put the file must be described.
 
-- performs chechksum for the single components of an image
+- chechksum for the single components of an image
 
 - use a structured language to describe the image. This is done
   using the libconfig_ library as default parser, that uses a
@@ -267,9 +396,6 @@ Main Features
   An example using a XML description in LUS is provided
   in the examples directory.
 
-- Allow to have a list of read-only devices / volumes that are not
-  allowed to be updated (for example, bootloader, inventory data, etc.)
-
 - Support for setting / erasing U-Boot variables
 
 - Support for preinstall scripts. They run before updating the images
@@ -277,7 +403,7 @@ Main Features
 - Support for postinstall scripts. They run after updating the images.
 
 - Network installer using an embedded Webserver (Mongoose Server
-  was choosen, in the last version under LUA license). A different
+  was choosen, in the version under LUA license). A different
   Webserver can be used.
 
 - Can be configured to check for compatibility between software and hardware
@@ -296,45 +422,106 @@ Main Features
 - Features are enabled / disabled using "make menuconfig".
   (Kbuild is inherited from busybox project)
 
+Configuration and installaion
+=============================
+
+swupdate is configurable via "make menu config". The small footprint
+is reached using the internal parser and disabling the webserver.
+
+To compile, you have to follow the steps:
+
+- configure the options
+
+	make menuconfig
+
+- generate the code
+
+	make
+
+To cross-compile, set the CC and CXX variables before running make.
+It is also possible to set the cross-compiler prefix as option with
+make menuconfig.
+
+The result is the binary "swupdate". 
+
+To start it expecting the image from a file:
+
+::
+
+	        swupdate -i <filename>
+
+To start with the embedded webserver:
+
+::
+
+	         swupdate -w "<webserver options"
+
+The main important parameter for the webserver is "document_root".
+
+::
+
+	         swupdate -w "-document_root ./www"
+
+The embedded webserver is taken from the Mongoose project (last release
+with LUA license). Additional paramters can be found in mongoose
+documentation.
+This uses as website the pages delivered with the code. Of course,
+they can be customized and replaced. The website uses AJAX to communicate
+with swupdate, and to show the progress of the update to the operator.
+
+The default port of the Webserver is 8080. You can then connect to the target with:
+
+
+::
+
+	http://<target_ip>:8080
+
+If it works, the start page should be displayed as in next figure.
+
+.. image:: images/website.png
+
+If a correct image is downloaded, swupdate starts to process the received image.
+All notifications are sent back to the browser. swupdate provides a mechanism
+to send to a receiver the progress of the installation. In fact, swupdate
+takes a list of objects that registers itself with the application
+and they will be informed any time the application calls the notify() function.
+This allows also for self-written handlers to inform the upper layers about
+error conditions or simply return the status. It is then simply to add
+own receivers to implement customized way to display the results: displaying
+on a LCD (if the target has one), or sending back to another device via
+network.
+An example of the notifications sent back to the browser is in the next figure:
+
+.. image:: images/webprogress.png
+
 Changes in bootloader code
---------------------------
+==========================
 
 The swupdate consists of kernel and a root filesystem
 (image) that must be started by the bootloader.
 In case using U-Boot, the following mechanism can be implemented:
 
-U-Boot checks if a sw update is required (check gpio,
-serial console, etc.). In case it is required, modifies
-the variable "bootcmd" to start the swupdate kernel.
+- U-Boot checks if a sw update is required (check gpio, serial console, etc.).
+- the script "altbootcmd" sets the rules to start swupdate
+- in case swupdate is required, u-boot run the script "altbootcmd"
 
-Format for the image
---------------------
+There are further enhancement that can be optionally integrated
+into u-boot to make the system safer. The most important I will
+suggest is to add support for boot counter in u-boot (documentation
+is in U-Boot docs). This allows U-Boot to track for attempts to
+successfully run the application, and if the boot counter is
+greater as a limit, can start automatically swupdate to replace
+a corrupt software.
+
+Building a single image
+=======================
 
 cpio is used as container for its simplicity. The resulting image is very
 simple to be built.
-The image requires a file describing in details the single parts. This file
-has a fix name ("sw-description") and must be the first file in the cpio archive.
+The file describing the images ("sw-description", but the name can be configured)
+must be the first file in the cpio archive.
 
-
-
-      +-----------------+
-      | sw-description  |
-      +-----------------+
-      |     Kernel      |
-      |                 |
-      +-----------------+
-      |     Image 1     |
-      +-----------------+
-      |     Image2      |
-      |                 |
-      +-----------------+
-      |     Image n     |
-      +-----------------+
-
-
-
-
-Then to produce an image, a script like this can be used:
+To produce an image, a script like this can be used:
 
 ::
 
@@ -353,8 +540,9 @@ of sw-description, that must be the first one.
 Format of the sw-description file using libconfig
 -------------------------------------------------
 
-sw-description follows the rule described in the libconfig manual. The
-following example explains better the tags that are 
+Using the default parser, sw-description follows the rule described
+in the libconfig manual.
+The following example explains better the implemented tags:
 
 ::
 
@@ -364,6 +552,7 @@ following example explains better the tags that are
 
 		hardware-compatibility: [ "1.0", "1.2", "1.3"];
 
+		/* partitions tag is used to resize UBI partitions */
 		partitions: ( /* UBI Volumes */
 			{
 				name = "rootfs";
@@ -433,6 +622,8 @@ following example explains better the tags that are
 
 	}
 
+The single tags have this meaning:
+
 hardware-compatibility: [ "major.minor", "major.minor", ... ]
 
 Example:
@@ -454,7 +645,7 @@ partitions: (
 The volume "data", if present, is handled in a special way to save and restore
 its data.
 
-imeges (
+images (
 	{
 		filename = <Name in CPIO Archive>;
 		volume = <destination volume>;
@@ -511,7 +702,7 @@ Running sw-update
 A run of swupdate consists mainly of the following steps:
 
 - check for media (USB-pen)
-- check for an image file. The extension must be .mcx
+- check for an image file. The extension must be .swu
 - extracts sw-description from the image and verifies it
   It parses sw-description creating a raw description in RAM
   about the activities that must be performed.
@@ -527,10 +718,8 @@ A run of swupdate consists mainly of the following steps:
   A volume with the name "data" is saved and restored after
   resizing.
 - runs pre-install scripts
-- iterates through all images and save them according to
-  sw-descripotion (in UBI volume, in devices, etc.)
-- iterates through all "files" from sw-description and
-  save them after mounting the filesystem specified.
+- iterates through all images and call the corresponding
+  handler for installing on target.
 - runs post-install scripts
 - update u-boot environment, if changes are specified
   in sw-description.
