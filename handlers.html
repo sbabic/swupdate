@@ -1,0 +1,180 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Handlers &mdash; Embedded Software Update Documentation 0.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Embedded Software Update Documentation 0.1.0 documentation" href="index.html" />
+    <link rel="next" title="Help and support" href="help_and_support.html" />
+    <link rel="prev" title="SWUPDATE: software update for embedded system" href="swupdate.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="help_and_support.html" title="Help and support"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="swupdate.html" title="SWUPDATE: software update for embedded system"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Embedded Software Update Documentation 0.1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="handlers">
+<h1>Handlers<a class="headerlink" href="#handlers" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>It is quite difficult to foresee all possible installation cases.
+Instead of trying to find all use cases, swupdate let the
+developer free to add his own installer (that is, a new <strong>handler</strong>),
+that must be responsibleto install an image of a certain type.
+An image is marked to be of a defined type to be installed with
+a specific handler.</p>
+<p>The parser make the connection between &#8216;image type&#8217; nad &#8216;handler&#8217;.
+It fills a table containing the list of images to be installed
+with the required handler to execute the installation. Each image
+can have a different installer.</p>
+</div>
+<div class="section" id="supplied-handlers">
+<h2>Supplied handlers<a class="headerlink" href="#supplied-handlers" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>In mainline there are the handler for the most common cases. They includes:</dt>
+<dd><ul class="first last simple">
+<li>NOR flashes</li>
+<li>UBI volumes</li>
+<li>raw devices, such as a SD Card partition</li>
+<li>U-Boot environment</li>
+<li>LUA scripts</li>
+</ul>
+</dd>
+</dl>
+<p>For example, if an image is marked to be updated into a UBI volume,
+the parser must fill a supplied table setting &#8220;ubi&#8221; as required handler,
+and filling the other fields required for this handler: name of volume, size,
+and so on.</p>
+<div class="highlight-python"><pre>int my_handler(struct img_type *img,
+        void __attribute__ ((__unused__)) *data)</pre>
+</div>
+<p>The most important parameter is the pointer to a struct img_type. It describes
+a single image and inform the handler where the image must be installed. The
+file descriptor of the incoming stream set to the start of the image to be installed is also
+part of the structure.</p>
+<p>The handler developer registers his own handler with a call to:</p>
+<div class="highlight-python"><pre>__attribute__((constructor))
+void my_handler_init(void)
+{
+        register_handler("mytype", my_handler, data);
+}</pre>
+</div>
+<p>swupdate uses the gcc constructors, and all supplied handlers are registered
+when swupdate is initialized.</p>
+<p>register_handler has the syntax:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">register_handler</span><span class="p">(</span><span class="n">my_image_type</span><span class="p">,</span> <span class="n">my_handler</span><span class="p">,</span> <span class="n">data</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Where:</p>
+<ul class="simple">
+<li>my_image_type : string identifying the own new image type.</li>
+<li>my_handler : pointer to the installer to be registered.</li>
+<li>data : an optional pointer to an own structure, that swupdate
+saves in the handlers&#8217; list and pass to the handler when it will
+be executed.</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Handlers</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#supplied-handlers">Supplied handlers</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="swupdate.html"
+                        title="previous chapter">SWUPDATE: software update for embedded system</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="help_and_support.html"
+                        title="next chapter">Help and support</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/handlers.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="help_and_support.html" title="Help and support"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="swupdate.html" title="SWUPDATE: software update for embedded system"
+             >previous</a> |</li>
+        <li><a href="index.html">Embedded Software Update Documentation 0.1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Stefano Babic.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

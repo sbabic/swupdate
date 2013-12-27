@@ -1,0 +1,167 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>SWUPDATE: roadmap &mdash; Embedded Software Update Documentation 0.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Embedded Software Update Documentation 0.1.0 documentation" href="index.html" />
+    <link rel="prev" title="Help and support" href="help_and_support.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="help_and_support.html" title="Help and support"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Embedded Software Update Documentation 0.1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="swupdate-roadmap">
+<h1>SWUPDATE: roadmap<a class="headerlink" href="#swupdate-roadmap" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="swupdate-s-roadmap">
+<h2>swupdate&#8217;s roadmap<a class="headerlink" href="#swupdate-s-roadmap" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="main-goal">
+<h3>Main goal<a class="headerlink" href="#main-goal" title="Permalink to this headline">¶</a></h3>
+<p>First goal is to reach a quite big audience, making
+swupdate suitable for a large number of products.
+This will help to build a community around the project
+itself.</p>
+</div>
+<div class="section" id="security-features">
+<h3>Security features<a class="headerlink" href="#security-features" title="Permalink to this headline">¶</a></h3>
+<p>There is currently no check if the images to be installed
+are coming from a verified source. Any image originally built
+according to the rules in the documentation is accepted.</p>
+<p>However, there is some draft for using signed images. This will
+guarantee that only images from an autenticated source (that is
+the manufacturer of the product) can be installed on the target.</p>
+</div>
+<div class="section" id="handlers-desired">
+<h3>Handlers desired<a class="headerlink" href="#handlers-desired" title="Permalink to this headline">¶</a></h3>
+<p>Surely the implemented handlers cover the majority of cases. Anyway,
+new methods can be considered, and new handlers can be added to mainline
+to support special ways. For example, downloading an image to a separate
+microprocessor/microcontroller, downloading a bitstream to a FPGA,
+and so on.</p>
+</div>
+<div class="section" id="handlers-installable-as-plugin-at-runtime">
+<h3>Handlers installable as plugin at runtime<a class="headerlink" href="#handlers-installable-as-plugin-at-runtime" title="Permalink to this headline">¶</a></h3>
+<p>The project supports LUA as script language for pre- and postinstall
+script. It will be easy to add a way for installing a handler at runtime
+written in LUA, allowing to expand swupdate to the cases not covered
+in the design phase of a product.</p>
+<p>Of course, this issue is related to the security features: it must be
+ensured that only verified handlers can be added to the system to avoid
+that malware can get the control of the target.</p>
+</div>
+<div class="section" id="images-fully-streamed">
+<h3>Images fully streamed<a class="headerlink" href="#images-fully-streamed" title="Permalink to this headline">¶</a></h3>
+<p>In case of remote update, swupdate extracts relevant images
+from the stream and copy them into /tmp before calling the handlers.
+This guarantee that an update is initiated only if all parts are present and correct.
+However, on some systems with less resources, the amount of RAM
+to copy the images could be not enough, for example if the filesystem on
+an attached SD Card must be updated. In this case, it will help if the images
+are installed directly as stream by the corresponding handler, without temporary
+copies. The API of the handlers is already thought to support a full stream
+(the file descriptor of the stream is passed to the handler and set to the start
+of the image to be installed).</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">SWUPDATE: roadmap</a><ul>
+<li><a class="reference internal" href="#swupdate-s-roadmap">swupdate&#8217;s roadmap</a><ul>
+<li><a class="reference internal" href="#main-goal">Main goal</a></li>
+<li><a class="reference internal" href="#security-features">Security features</a></li>
+<li><a class="reference internal" href="#handlers-desired">Handlers desired</a></li>
+<li><a class="reference internal" href="#handlers-installable-as-plugin-at-runtime">Handlers installable as plugin at runtime</a></li>
+<li><a class="reference internal" href="#images-fully-streamed">Images fully streamed</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="help_and_support.html"
+                        title="previous chapter">Help and support</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/roadmap.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="help_and_support.html" title="Help and support"
+             >previous</a> |</li>
+        <li><a href="index.html">Embedded Software Update Documentation 0.1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Stefano Babic.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

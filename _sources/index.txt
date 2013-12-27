@@ -1,15 +1,17 @@
-.. SW Specifications master file.
+.. _contents:
 
 ############################################
-Welcome to SW Specifications's Documentation
+SWUpdate Documentation
 ############################################
 
 .. toctree::
    :maxdepth: 2
    
-   history.rst
+   overview.rst
    swupdate.rst
-   
+   handlers.rst
+   help_and_support.rst
+   roadmap.rst
 
 Indices and tables
 ==================
