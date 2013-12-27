@@ -130,7 +130,7 @@ html_theme = u'default'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = [u'_static']
+#html_static_path = [u'_static']
 
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
@@ -152,7 +152,7 @@ html_static_path = [u'_static']
 #html_domain_indices = True
 
 # If false, no index is generated.
-#html_use_index = True
+html_use_index = True
 
 # If true, the index is split into individual pages for each letter.
 #html_split_index = False
@@ -175,7 +175,7 @@ html_static_path = [u'_static']
 #html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'SWSpecificationsdoc'
+htmlhelp_basename = 'SWUpdatedoc'
 
 
 # -- Options for LaTeX output --------------------------------------------------
@@ -227,7 +227,7 @@ latex_use_parts = False
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [('index', 'HFC-SWSpecifications', u'Hand Foot Cloth SW Specifications', [u'Stefano Babic'], 1)]
+man_pages = [('index', 'Swupdate', u'Swupdate Documentation', [u'Stefano Babic'], 1)]
 
 
 # -- Additional options --------------------------------------------------------
