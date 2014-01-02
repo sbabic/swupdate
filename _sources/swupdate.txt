@@ -292,7 +292,14 @@ In case using U-Boot, the following mechanism can be implemented:
 - the script "altbootcmd" sets the rules to start swupdate
 - in case swupdate is required, u-boot run the script "altbootcmd"
 
-There are further enhancement that can be optionally integrated
+Is it safe to change U-Boot environment ? Well, it is, but U-Boot must
+be configured correctly. U-Boot supports two copies of the environment
+to be power-off safe during a an evironment update. The board's
+configuration file must have defined CONFIG_ENV_OFFSET_REDUND or
+CONFIG_ENV_ADDR_REDUND. Check in U-Boot documentation for these
+constants and how to use them.
+
+There are a further enhancement that can be optionally integrated
 into u-boot to make the system safer. The most important I will
 suggest is to add support for boot counter in u-boot (documentation
 is in U-Boot docs). This allows U-Boot to track for attempts to

@@ -59,14 +59,16 @@ New features and fixes let much more as desirable that
 the software on an embedded system can be updated
 in a absolutely reliable way.</p>
 <p>On a linux-based system, we can find in most cases
-the following elements:
-- the bootloader.
-- the kernel and the DT (Device Tree) file.
-- the root filesystem
-- other filesystems, mounted at a later point
-- customer data, in raw format or on a filesystem
-- application specific software. For example, firmware
-to be downloaded on connected microcontrollers, and so on.</p>
+the following elements:</p>
+<ul class="simple">
+<li>the bootloader.</li>
+<li>the kernel and the DT (Device Tree) file.</li>
+<li>the root filesystem</li>
+<li>other filesystems, mounted at a later point</li>
+<li>customer data, in raw format or on a filesystem</li>
+<li>application specific software. For example, firmware
+to be downloaded on connected microcontrollers, and so on.</li>
+</ul>
 <p>Generally speaking, in most cases it is required to update
 kernel and root filesystem, preserving user data - but cases vary.</p>
 <p>In only a few cases it is required to update the bootloader,
@@ -147,7 +149,7 @@ Why is it not suitable for embedded ?</p>
 using this approach. Embedded systems are well tested
 with a specific software. Using a package manager
 can put weirdness because the software itself
-is not anymore &#8220;atomic&#8221;, but split into a long
+is not anymore <em>atomic</em>, but split into a long
 list of packages. How can be assured that an application
 with library version x.y works, and also with different
 versions of the same library ? How can be successful tested ?</p>
@@ -156,13 +158,19 @@ a new release of software (well tested by his test
 engineers) is released, and the new software (or firmware)
 is available for updating. Splitting in packages can
 generate nightmare and high effort for the testers.</p>
+<p>The ease of replacing single files can speed up the development,
+but it is a software-versions nightmare at the customer site.
+If a customer report a bug, how can it is possible that software
+is &#8220;version 2.5&#8221; when a patch for some files were sent previously
+to the customer ?</p>
+<p>An atomic update is generally a must feature for an embedded system.</p>
 </div>
 <div class="section" id="strategies-for-an-application-doing-software-upgrade">
 <h2>Strategies for an application doing software upgrade<a class="headerlink" href="#strategies-for-an-application-doing-software-upgrade" title="Permalink to this headline">¶</a></h2>
 <p>Instead of using the bootloader, an application can take
 into charge to upgrade the system. The application can
 use all services provided by the OS. The proposed solution
-is then a stand-alone software, that follow customer rules and
+is a stand-alone software, that follow customer rules and
 performs checks to determine if a software is installable,
 and then install the software on the desired storage.</p>
 <p>The application can detect if the provided new software
@@ -178,7 +186,7 @@ resources. I am listing some of them.</p>
 <p>If there are enough place on the storage to save
 two copies of the whole software, it is possible to guarantee
 that there is always a working copy even if the software update
-is interrupted.</p>
+is interrupted or a power off occurs..</p>
 <p>Each copy must contain the kernel, the root filesystem, and each
 further component that can be updated. It is required
 a mechanism to identify which version is running.</p>
@@ -217,16 +225,17 @@ or big NANDs.</p>
 bootloader that the upgrading software must be started. The way
 can differ, for example setting a bootloader environment or using
 and external GPIO.</p>
-<p>The bootloader starts the upgrading software, booting the
+<p>The bootloader starts &#8220;swupdate&#8221;, booting the
 swupdate kernel and the initrd image as rootfilesystem. Because it runs in RAM,
 it is possible to upgrade the whole storage. Differently as in the
 double-copy strategy, the systems must reboot to put itself in
 update mode.</p>
 <p>This concept consumes less space in storage as having two copies, but
-it is not power off safe. However, it can be guaranteed that
+it does not guarantee a falback without updating again the software.
+However, it can be guaranteed that
 the system goes automatically in upgrade mode when the productivity
-software is not found or corrupted, as when the upgrade process
-was interrupted.</p>
+software is not found or corrupted, as well as when the upgrade process
+is interrupted for some reason.</p>
 <img alt="_images/single_copy_layout.png" src="_images/single_copy_layout.png" />
 <p>In fact, it is possible to consider
 the upgrade procedure as a transaction, and only after the successful
@@ -253,7 +262,8 @@ identify the possible causes of failures.</p>
 <ul class="simple">
 <li>damage / corrupted image during installing.
 swupdate is able to recognize it and the update process
-is interrupted.</li>
+is interrupted. The old software is preserved and nothing
+is really copied into the target&#8217;s storage.</li>
 <li>corrupted image in the storage (flash)</li>
 <li>remote update interrupted due to communication problem.</li>
 <li>power-failure</li>
@@ -267,9 +277,9 @@ with success, the variable is erased. If the update ends with an error, recovery
 has the value &#8220;failed&#8221;.</p>
 <p>When an update is interrupted, independently from the cause, the bootloader
 recognizes it because the recovery_status variable is in &#8220;progress&#8221; or &#8220;failed&#8221;.
-The boot loader can then start again swupdate to load again the new software
-(single-copy case) or not switch the application&#8217;s copies and run the old one
-as before (double-copy case).</p>
+The boot loader can then start again swupdate to load again the software
+(single-copy case) or and run the old copy of the application
+(double-copy case).</p>
 </div>
 </div>
 
