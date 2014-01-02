@@ -10,13 +10,14 @@ in a absolutely reliable way.
 
 On a linux-based system, we can find in most cases
 the following elements:
+
 - the bootloader.
 - the kernel and the DT (Device Tree) file.
 - the root filesystem
 - other filesystems, mounted at a later point
 - customer data, in raw format or on a filesystem
 - application specific software. For example, firmware
-to be downloaded on connected microcontrollers, and so on.
+  to be downloaded on connected microcontrollers, and so on.
 
 Generally speaking, in most cases it is required to update
 kernel and root filesystem, preserving user data - but cases vary.
@@ -72,11 +73,13 @@ as for the bootloaders.
 
 Reduced filesystems
 -------------------
+
 The number of supported filesystems is limited and
 porting a filesystem to the bootloader requires high effort.
 
 Network support is limited
 --------------------------
+
 Network stack is limited, generally an update is possible via
 UDP but not via TCP.
 
@@ -109,7 +112,7 @@ I cannot say it cannot be used, but there is an important drawback
 using this approach. Embedded systems are well tested
 with a specific software. Using a package manager
 can put weirdness because the software itself
-is not anymore "atomic", but split into a long
+is not anymore *atomic*, but split into a long
 list of packages. How can be assured that an application
 with library version x.y works, and also with different
 versions of the same library ? How can be successful tested ?
@@ -120,6 +123,14 @@ engineers) is released, and the new software (or firmware)
 is available for updating. Splitting in packages can
 generate nightmare and high effort for the testers.
 
+The ease of replacing single files can speed up the development,
+but it is a software-versions nightmare at the customer site.
+If a customer report a bug, how can it is possible that software
+is "version 2.5" when a patch for some files were sent previously
+to the customer ?
+
+An atomic update is generally a must feature for an embedded system.
+
 
 Strategies for an application doing software upgrade
 ====================================================
@@ -127,7 +138,7 @@ Strategies for an application doing software upgrade
 Instead of using the bootloader, an application can take
 into charge to upgrade the system. The application can
 use all services provided by the OS. The proposed solution
-is then a stand-alone software, that follow customer rules and
+is a stand-alone software, that follow customer rules and
 performs checks to determine if a software is installable,
 and then install the software on the desired storage.
 
@@ -147,7 +158,7 @@ Double copy with fallback
 If there are enough place on the storage to save
 two copies of the whole software, it is possible to guarantee
 that there is always a working copy even if the software update
-is interrupted.
+is interrupted or a power off occurs..
 
 Each copy must contain the kernel, the root filesystem, and each
 further component that can be updated. It is required
@@ -197,17 +208,18 @@ bootloader that the upgrading software must be started. The way
 can differ, for example setting a bootloader environment or using
 and external GPIO.
 
-The bootloader starts the upgrading software, booting the
+The bootloader starts "swupdate", booting the
 swupdate kernel and the initrd image as rootfilesystem. Because it runs in RAM,
 it is possible to upgrade the whole storage. Differently as in the
 double-copy strategy, the systems must reboot to put itself in
 update mode.
 
 This concept consumes less space in storage as having two copies, but
-it is not power off safe. However, it can be guaranteed that
+it does not guarantee a falback without updating again the software.
+However, it can be guaranteed that
 the system goes automatically in upgrade mode when the productivity
-software is not found or corrupted, as when the upgrade process
-was interrupted.
+software is not found or corrupted, as well as when the upgrade process
+is interrupted for some reason.
 
 
 .. image:: images/single_copy_layout.png
@@ -240,7 +252,8 @@ We can at least group some of the common causes:
 
 - damage / corrupted image during installing.
   swupdate is able to recognize it and the update process
-  is interrupted.
+  is interrupted. The old software is preserved and nothing
+  is really copied into the target's storage.
 
 - corrupted image in the storage (flash)
 
@@ -259,7 +272,7 @@ has the value "failed".
 
 When an update is interrupted, independently from the cause, the bootloader
 recognizes it because the recovery_status variable is in "progress" or "failed".
-The boot loader can then start again swupdate to load again the new software
-(single-copy case) or not switch the application's copies and run the old one
-as before (double-copy case).
+The boot loader can then start again swupdate to load again the software
+(single-copy case) or and run the old copy of the application
+(double-copy case).
 
