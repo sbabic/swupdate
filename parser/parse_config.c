@@ -169,15 +169,10 @@ static void parse_scripts(config_t *cfg, struct swupdate_cfg *swcfg)
 		}
 
 		GET_FIELD(elem, "filename", script->fname);
-		if (!config_setting_lookup_string(elem, "type", &str)) {
-			ERROR("Type not defined for script %s\n", script->fname);
-			free(script);
-			return;
-		}
 		script->is_script = 1;
 
 		/* Scripts must be written in LUA */
-		strcpy(script->type, "luascript");
+		strcpy(script->type, "lua");
 		LIST_INSERT_HEAD(&swcfg->scripts, script, next);
 
 		TRACE("Found Script: %s %s\n",

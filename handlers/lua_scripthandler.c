@@ -76,7 +76,7 @@ static int start_lua_script(struct img_type *img, void *data)
 	if (luaL_loadfile(L, filename)) {
 		ERROR("ERROR loading %s", filename);
 		lua_close(L);
-		return 1;
+		return -1;
 	}
 
 	ret = lua_pcall(L, 0, 0, 0);
@@ -85,7 +85,7 @@ static int start_lua_script(struct img_type *img, void *data)
 		ERROR("ERROR preparing LUA script %s %d",
 			filename, ret);
 		lua_close(L);
-		return 1;
+		return -1;
 	}
 
 	lua_getglobal(L, fnname);
@@ -96,7 +96,7 @@ static int start_lua_script(struct img_type *img, void *data)
 		LUAstackDump(L);
 		ERROR("ERROR Calling LUA script %s", filename);
 		lua_close(L);
-		return 1;
+		return -1;
 	}
 
 	if (lua_type(L, 1) == LUA_TBOOLEAN)
@@ -104,7 +104,7 @@ static int start_lua_script(struct img_type *img, void *data)
 
 	if (lua_type(L, 2) == LUA_TSTRING) {
 		output = lua_tostring(L, 2);
-		TRACE("Script output %s script end", output);
+		TRACE("Script output: %s script end", output);
 	}
 
 	lua_close(L);

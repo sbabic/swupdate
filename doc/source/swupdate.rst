@@ -395,11 +395,9 @@ The following example explains better the implemented tags:
 		scripts: (
 			{
 				filename = "erase_at_end";
-				type = "postinstall";
 		 	},
 			{
 				filename = "display_info";
-				type = "preinstall";
 			}
 		);
 
@@ -476,7 +474,6 @@ specified after mounting the device.
 	scripts: (
 		{
 			filename = <Name in CPIO Archive>;
-			type = ["preinstall" | "postinstall"];
 	 	},
 	);
 
@@ -484,9 +481,23 @@ Scripts runs in the order they are put into the sw-description file.
 The result of a script is valuated by sw-update, that stops the update
 with an error if the result is <> 0.
 
-Scripts are shell scripts, that can be run by the busybox shell. They are
-copied into a temporary directory before execution and their name must
+Scripts are LUA scripts and they are run using the internal interpreter.
+They are copied into a temporary directory before execution and their name must
 be unique inside the same cpio archive.
+Scripts must have at least one of the following functions:
+
+::
+	function preinst()
+
+swupdate scans for all scripts and check for a preinst function. It is
+called before installing the images.
+
+
+::
+	function postnst()
+
+swupdate scans for all scripts and check for a postinst function. It is
+called after installing the images.
 
 ::
 
