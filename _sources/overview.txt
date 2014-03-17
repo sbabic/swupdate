@@ -276,3 +276,56 @@ The boot loader can then start again swupdate to load again the software
 (single-copy case) or and run the old copy of the application
 (double-copy case).
 
+Power Failure
+-------------
+
+If a power off occurs, it must be guaranteed that the system is able
+to work again - starting again swupdate or restoring an old copy of the software.
+
+Generally, the behavior can be split according to the chosen scenario:
+
+- single copy: swupdate is interrupted and the update transaction did not end
+with a success. The bootloader is able to start swupdate again, having the
+possibility to update the software again.
+
+- double copy: swupdate did not switch between stand-by and current copy.
+The same version of software, that was not touched by the update, is
+started again.
+
+
+What about upgrading swupdate itself ?
+-------------------------------------
+
+swupdate is thought to be used in the whole development process, replacing
+customized process to update the software during the development. Before going into production,
+swupdate is well tested for a project.
+
+If swupdate itself should be update, the update cannot be safe if there is only
+one copy of swupdate in the storage. Safe update can be guaranteed only if
+swupdate is duplicated.
+
+There are some ways to circumvent this issue if swupdate is part of the
+upgraded image:
+
+- have two copies of swupdate
+- take the risk, but have a rescue procedure using the bootloader.
+
+What about upgrading the Bootloader ?
+-------------------------------------
+
+Updating the bootloader is in most cases a one-way process. On most SOCs, there is no possibility
+to have multiple copies of the bootloader, and when U-Boot is broken,
+the board does not simply boot.
+
+Some SOCs allow to have multiple copies of the
+bootloader. But again, there is no general solution for this because it
+is *very* hardware specific.
+
+In my experience, most targets do not allow to update the bootloader. It
+is very uncommon that the bootloader must be updated when the product
+is ready for production.
+
+It is different is if the U-Boot environment mus be updated, that is a
+common praxis. U-Boot provides a double copy of the whole environment,
+and updating the environment from swupdate is power-off safe. Other bootloaders
+can or cannot have this feature.

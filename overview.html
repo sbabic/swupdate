@@ -280,6 +280,53 @@ recognizes it because the recovery_status variable is in &#8220;progress&#8221; 
 The boot loader can then start again swupdate to load again the software
 (single-copy case) or and run the old copy of the application
 (double-copy case).</p>
+<div class="section" id="power-failure">
+<h3>Power Failure<a class="headerlink" href="#power-failure" title="Permalink to this headline">¶</a></h3>
+<p>If a power off occurs, it must be guaranteed that the system is able
+to work again - starting again swupdate or restoring an old copy of the software.</p>
+<p>Generally, the behavior can be split according to the chosen scenario:</p>
+<ul class="simple">
+<li>single copy: swupdate is interrupted and the update transaction did not end</li>
+</ul>
+<p>with a success. The bootloader is able to start swupdate again, having the
+possibility to update the software again.</p>
+<ul class="simple">
+<li>double copy: swupdate did not switch between stand-by and current copy.</li>
+</ul>
+<p>The same version of software, that was not touched by the update, is
+started again.</p>
+</div>
+<div class="section" id="what-about-upgrading-swupdate-itself">
+<h3>What about upgrading swupdate itself ?<a class="headerlink" href="#what-about-upgrading-swupdate-itself" title="Permalink to this headline">¶</a></h3>
+<p>swupdate is thought to be used in the whole development process, replacing
+customized process to update the software during the development. Before going into production,
+swupdate is well tested for a project.</p>
+<p>If swupdate itself should be update, the update cannot be safe if there is only
+one copy of swupdate in the storage. Safe update can be guaranteed only if
+swupdate is duplicated.</p>
+<p>There are some ways to circumvent this issue if swupdate is part of the
+upgraded image:</p>
+<ul class="simple">
+<li>have two copies of swupdate</li>
+<li>take the risk, but have a rescue procedure using the bootloader.</li>
+</ul>
+</div>
+<div class="section" id="what-about-upgrading-the-bootloader">
+<h3>What about upgrading the Bootloader ?<a class="headerlink" href="#what-about-upgrading-the-bootloader" title="Permalink to this headline">¶</a></h3>
+<p>Updating the bootloader is in most cases a one-way process. On most SOCs, there is no possibility
+to have multiple copies of the bootloader, and when U-Boot is broken,
+the board does not simply boot.</p>
+<p>Some SOCs allow to have multiple copies of the
+bootloader. But again, there is no general solution for this because it
+is <em>very</em> hardware specific.</p>
+<p>In my experience, most targets do not allow to update the bootloader. It
+is very uncommon that the bootloader must be updated when the product
+is ready for production.</p>
+<p>It is different is if the U-Boot environment mus be updated, that is a
+common praxis. U-Boot provides a double copy of the whole environment,
+and updating the environment from swupdate is power-off safe. Other bootloaders
+can or cannot have this feature.</p>
+</div>
 </div>
 </div>
 
@@ -307,7 +354,12 @@ The boot loader can then start again swupdate to load again the software
 <li><a class="reference internal" href="#single-copy-running-as-standalone-image">Single copy - running as standalone image</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#something-went-wrong">Something went wrong ?</a></li>
+<li><a class="reference internal" href="#something-went-wrong">Something went wrong ?</a><ul>
+<li><a class="reference internal" href="#power-failure">Power Failure</a></li>
+<li><a class="reference internal" href="#what-about-upgrading-swupdate-itself">What about upgrading swupdate itself ?</a></li>
+<li><a class="reference internal" href="#what-about-upgrading-the-bootloader">What about upgrading the Bootloader ?</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
