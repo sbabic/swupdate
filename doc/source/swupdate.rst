@@ -1,5 +1,5 @@
 =============================================
-SWUPDATE: software update for embedded system
+swupdate: software update for embedded system
 =============================================
 
 Overview
@@ -468,7 +468,7 @@ the image "filename" is copied into the specified device.
 	);
 
 Entries in "files" section are managed as single files. The attribute
-"path" and "filesystem" are mandatory. Sw-Update copies the file in the path
+"path" and "filesystem" are mandatory. swupdate copies the file in the path
 specified after mounting the device.
 
 ::
@@ -481,7 +481,7 @@ specified after mounting the device.
 	);
 
 Scripts runs in the order they are put into the sw-description file.
-The result of a script is valuated by sw-update, that stops the update
+The result of a script is valuated by swupdate, that stops the update
 with an error if the result is <> 0.
 
 Scripts are shell scripts, that can be run by the busybox shell. They are
@@ -497,7 +497,7 @@ be unique inside the same cpio archive.
 		},
 	)
 
-Running sw-update
+Running swupdate
 -----------------
 
 A run of swupdate consists mainly of the following steps:
@@ -508,7 +508,7 @@ A run of swupdate consists mainly of the following steps:
   It parses sw-description creating a raw description in RAM
   about the activities that must be performed.
 - Reads the cpio archive and proofs the checksum of each single file
-  sw-update stops if the archive is not complete verified
+  swupdate stops if the archive is not complete verified
 - check for hardware-software compatibility, if any,
   reading hardware revision from hardware and matching
   with the table in sw-description.

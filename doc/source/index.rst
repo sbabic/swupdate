@@ -1,7 +1,7 @@
 .. _contents:
 
 ############################################
-SWUpdate Documentation
+swupdate Documentation
 ############################################
 
 .. toctree::
