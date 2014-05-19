@@ -168,91 +168,13 @@ static int flash_install_image(struct img_type *img)
 	return 0;
 }
 
-int flash_verify_image(char *partition, char *filename) {
-	int fd_mtd, fd_inst;
-	struct stat bufstat;
-	char mtd_device[LINESIZE];
-	uint8_t *buf_mtd, *buf_inst;
-	unsigned long nbytes, nwritten, totalwritten;
-	int ret;
-
-	/* open both files (install image, MTD partition) */
-	if (stat(filename, &bufstat) != 0) {
-		TRACE(" %s not found or wrong", filename);
-		return -1;
-	}
-	if (flash_get_mtd_number(partition, mtd_device, LINESIZE))
-		return -1;
-
-	if ((fd_mtd = open(mtd_device, O_RDWR)) < 0) {
-		TRACE( "%s: %s: %s", __func__, mtd_device, strerror(errno));
-		return -1;
-	}
-	if ((fd_inst = open(filename, O_RDONLY)) < 0) {
-		TRACE( "%s: %s: %s", __func__, filename, strerror(errno));
-		close(fd_mtd);
-		return -1;
-	}
-
-	/* allocate two buffers */
-	buf_inst = malloc(BUFF_SIZE);
-	if (! buf_inst) {
-		TRACE("malloc returns no memory");
-		return -ENOMEM;
-	}
-	buf_mtd = malloc(BUFF_SIZE);
-	if (! buf_mtd) {
-		TRACE("malloc returns no memory");
-		return -ENOMEM;
-	}
-
-	/* read back from MTD, compare against the install image */
-	totalwritten = 0;
-	while ((ret = read(fd_inst, buf_inst, BUFF_SIZE)) > 0) {
-		nbytes = ret;
-
-		nwritten = read(fd_mtd, buf_mtd, nbytes);
-		if (nwritten != nbytes) {
-			TRACE("Failure verifying the flash (read): %s", partition);
-			nbytes = -1;
-			break;
-		}
-		if (memcmp(buf_inst, buf_mtd, nbytes) != 0) {
-			TRACE("Failure verifying the flash (cmp): %s", partition);
-			nbytes = -1;
-			break;
-		}
-
-		totalwritten += nwritten;
-	}
-
-	/* cleanup resources */
-	close(fd_inst);
-	close(fd_mtd);
-	free(buf_inst);
-	free(buf_mtd);
-
-	/* post process the comparison result */
-	if (ret < 0) {
-		TRACE("Failure reading from file: %s", partition);
-		return -1;
-	}
-	return 0;
-}
-
 static int install_flash_image(struct img_type *img,
 	void __attribute__ ((__unused__)) *data)
 {
 	char filename[64];
-	libmtd_t mtd_desc;
+	struct flash_description *flash = get_flash_info();
 
 	snprintf(filename, sizeof(filename), "%s%s", TMPDIR, img->fname);
-
-	mtd_desc = libmtd_open();
-	if (mtd_desc == NULL) {
-		TRACE("can't initialize libmtd");
-		return -1;
-	}
 
 	if(flash_partition_erase(img->device,
 		filename)) {
