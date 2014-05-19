@@ -47,7 +47,7 @@ struct mtd_ubi_info {
 	int scanned;
 };
 
-struct nand_partition {
+struct flash_description {
 	libubi_t libubi;
 	libmtd_t libmtd;
 	struct ubi_info ubi_info;
@@ -63,8 +63,10 @@ void ubi_umount(const char *mntpoint);
 int scan_mtd_devices (void);
 void mtd_cleanup (void);
 void mtd_init(void);
-struct nand_partition *get_flash_info(void);
+struct flash_description *get_flash_info(void);
 struct ubi_part *search_volume(const char *str, struct ubilist *list);
 #endif
+
+extern struct flash_description *get_flash_info(void);
 
 #endif

@@ -50,6 +50,13 @@
 /* Tree derived from the configuration file */
 static struct swupdate_cfg swcfg;
 
+/* Global MTD configuration */
+static struct flash_description flashdesc;
+
+struct flash_description *get_flash_info(void) {
+	return &flashdesc;
+}
+
 static struct option long_options[] = {
 	{"verbose", no_argument, NULL, 'v'},
 	{"image", required_argument, NULL, 'i'},
@@ -177,6 +184,7 @@ int main(int argc, char **argv)
 	int opt_w = 0;
 #endif
 
+	memset(&flashdesc, 0, sizeof(flashdesc));
 	memset(main_options, 0, sizeof(main_options));
 	strcpy(main_options, "vhi:");
 #ifdef CONFIG_WEBSERVER

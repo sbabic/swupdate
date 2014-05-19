@@ -37,13 +37,7 @@
 #include "ubi_partition.h"
 #include "util.h"
 
-static struct nand_partition nand_flash;
-
 void ubi_handler(void);
-
-struct nand_partition *get_flash_info(void) {
-	return &nand_flash;
-}
 
 struct ubi_part *search_volume(const char *str, struct ubilist *list)
 {
@@ -127,7 +121,7 @@ static int update_volume(libubi_t libubi, int fdsw, struct img_type *img,
 
 void mtd_init(void)
 {
-	struct nand_partition *flash = get_flash_info();
+	struct flash_description *flash = get_flash_info();
 	flash->libmtd = libmtd_open();
 	if (flash->libmtd == NULL) {
 		if (errno == 0)
@@ -139,7 +133,7 @@ void mtd_init(void)
 int scan_mtd_devices (void)
 {
 	int err;
-	struct nand_partition *flash = get_flash_info();
+	struct flash_description *flash = get_flash_info();
 	struct mtd_info *mtd_info = &flash->mtd;
 	libmtd_t libmtd = flash->libmtd;
 	int i;
@@ -175,7 +169,7 @@ void mtd_cleanup (void)
 	int i;
 	struct ubilist *list;
 	struct ubi_part *vol;
-	struct nand_partition *flash = get_flash_info();
+	struct flash_description *flash = get_flash_info();
 
 	for (i = flash->mtd.lowest_mtd_num; i <= flash->mtd.highest_mtd_num; i++) {
 		list = &flash->mtd_info[i].ubi_partitions;
@@ -194,7 +188,7 @@ void mtd_cleanup (void)
 static int install_ubivol_image(struct img_type *img,
 	void __attribute__ ((__unused__)) *data)
 {
-	struct nand_partition *flash = get_flash_info();
+	struct flash_description *flash = get_flash_info();
 	struct mtd_info *mtd = &flash->mtd;
 	struct mtd_ubi_info *mtd_info;
 	struct ubi_part *ubivol;
@@ -224,7 +218,7 @@ static int install_ubivol_image(struct img_type *img,
 
 void ubi_init(void)
 {
-	struct nand_partition *nand = get_flash_info();
+	struct flash_description *nand = get_flash_info();
 	int err;
 	libubi_t libubi;
 
@@ -251,7 +245,7 @@ void ubi_init(void)
 
 void scan_ubi_partitions(int mtd)
 {
-	struct nand_partition *nand = get_flash_info();
+	struct flash_description *nand = get_flash_info();
 	int err;
 	libubi_t libubi = nand->libubi;
 	struct ubi_part *ubi_part;
@@ -317,7 +311,7 @@ void scan_ubi_partitions(int mtd)
 static int adjust_partitions(struct img_type *cfg,
 	void __attribute__ ((__unused__)) *data)
 {
-	struct nand_partition *nandubi = get_flash_info();
+	struct flash_description *nandubi = get_flash_info();
 	struct img_type *part;
 	struct ubi_part *ubivol, *nextitem, *datavol = NULL;
 	struct ubi_mkvol_request req;
@@ -524,7 +518,6 @@ void ubi_umount(const char *mntpoint)
 __attribute__((constructor))
 void ubi_handler(void)
 {
-	memset(&nand_flash, 0, sizeof(nand_flash));
 	register_handler("ubivol", install_ubivol_image, NULL);
 	register_handler("ubipartition", adjust_partitions, NULL);
 }
