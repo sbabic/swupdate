@@ -31,7 +31,6 @@
 #include <dirent.h>
 #include "swupdate.h"
 #include "util.h"
-#include "flash.h"
 #include "fw_env.h"
 
 /*

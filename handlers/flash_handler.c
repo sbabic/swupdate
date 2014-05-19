@@ -38,7 +38,6 @@
 #include <mtd/mtd-user.h>
 #include "swupdate.h"
 #include "handler.h"
-#include "flash.h"
 #include "util.h"
 
 #define PROCMTD	"/proc/mtd"
@@ -87,6 +86,7 @@ static int flash_partition_erase(char *partition, char *filename)
 	int fd;
 	char mtd_device[LINESIZE];
 	mtd_info_t meminfo;
+	struct mtd_dev_info mtd;
 	erase_info_t erase;
 
 	if (flash_get_mtd_number(partition, mtd_device, LINESIZE))
@@ -244,8 +244,15 @@ static int install_flash_image(struct img_type *img,
 	void __attribute__ ((__unused__)) *data)
 {
 	char filename[64];
+	libmtd_t mtd_desc;
 
 	snprintf(filename, sizeof(filename), "%s%s", TMPDIR, img->fname);
+
+	mtd_desc = libmtd_open();
+	if (mtd_desc == NULL) {
+		TRACE("can't initialize libmtd");
+		return -1;
+	}
 
 	if(flash_partition_erase(img->device,
 		filename)) {
