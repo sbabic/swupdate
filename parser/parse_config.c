@@ -252,16 +252,26 @@ static void parse_images(config_t *cfg, struct swupdate_cfg *swcfg)
 		GET_FIELD(elem, "filename", image->fname);
 		GET_FIELD(elem, "volume", image->volname);
 		GET_FIELD(elem, "device", image->device);
-		if (image->volname)
-			strcpy(image->type, "ubivol");
+		GET_FIELD(elem, "type", image->type);
+
+		/* if the handler is not explicit set, try to find the right one */
+		if (!strlen(image->type)) {
+			if (strlen(image->volname))
+				strcpy(image->type, "ubivol");
+			else if (strlen(image->device))
+				strcpy(image->type, "raw");
+		}
+
 		if (!config_setting_lookup_bool(elem, "compressed", &image->compressed))
 			image->compressed = 0;
 
-		TRACE("Found %sImage: %s in %s : %s\n",
+		TRACE("Found %sImage: %s in %s : %s for handler %s\n",
 			image->compressed ? "compressed " : "",
 			image->fname,
 			strlen(image->volname) ? "volume" : "device",
-			strlen(image->volname) ? image->volname : image->device);
+			strlen(image->volname) ? image->volname : image->device,
+			strlen(image->type) ? image->type : "NOT FOUND"
+			);
  
 		LIST_INSERT_HEAD(&swcfg->images, image, next);
 	}
