@@ -89,7 +89,8 @@ static int parse_hw_compatibility(config_t *cfg, struct swupdate_cfg *swcfg)
 	return 0;
 }
 #else
-static int parse_hw_compatibility(config_t *cfg, struct swupdate_cfg *swcfg)
+static int parse_hw_compatibility(config_t __attribute__ ((__unused__))  *cfg,
+		struct swupdate_cfg __attribute__ ((__unused__)) *swcfg)
 {
 	return 0;
 }
