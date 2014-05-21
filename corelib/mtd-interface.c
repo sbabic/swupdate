@@ -44,13 +44,29 @@ void mtd_init(void)
 	}
 }
 
+static void ubi_insert_blacklist(int index, struct flash_description *flash)
+{
+	struct mtd_info *mtd = &flash->mtd;
+
+	if (index >= mtd->lowest_mtd_num && index <= mtd->highest_mtd_num) {
+		flash->mtd_info[index].skipubi = 1;
+	}
+}
+
 int scan_mtd_devices (void)
 {
 	int err;
 	struct flash_description *flash = get_flash_info();
 	struct mtd_info *mtd_info = &flash->mtd;
 	libmtd_t libmtd = flash->libmtd;
-	int i;
+	char blacklist[100] = { 0 };
+	char *token;
+	char *saveptr;
+	int i, index;
+
+#if defined(CONFIG_UBIBLACKLIST)
+	strncpy(blacklist, CONFIG_UBIBLACKLIST, sizeof(blacklist));
+#endif
 
 	if (!libmtd) {
 		ERROR("MTD is not present on the target");
@@ -62,6 +78,22 @@ int scan_mtd_devices (void)
 			ERROR("MTD is not present on the board");
 		return 0;
 	}
+	token = strtok_r(blacklist, " ", &saveptr);
+	if (token) {
+		errno = 0;
+		index = strtoul(token, NULL, 10);
+		if (errno == 0) {
+			ubi_insert_blacklist(index, flash);
+
+			while ((token = strtok_r(NULL, " ", &saveptr))) {
+				errno = 0;
+				index = strtoul(token, NULL, 10);
+				if (errno != 0)
+					break;
+				ubi_insert_blacklist(index, flash);
+			}
+		}
+	}
 
 	for (i = mtd_info->lowest_mtd_num;
 	     i <= mtd_info->highest_mtd_num; i++) {
@@ -70,9 +102,10 @@ int scan_mtd_devices (void)
 		err = mtd_get_dev_info1(libmtd, i, &flash->mtd_info[i].mtd);
 		if (err) {
 			TRACE("No information from MTD%d", i);
+			continue;
 		}
-
-		scan_ubi_partitions(i);
+		if (!flash->mtd_info[i].skipubi)
+			scan_ubi_partitions(i);
 	}
 
 	return mtd_info->mtd_dev_cnt;

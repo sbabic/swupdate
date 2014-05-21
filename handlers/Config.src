@@ -15,12 +15,23 @@ config UBIVOL
 	  Say Y if you have NAND or you use UBI on
 	  your system.
 
+config UBIBLACKLIST
+	string "List of MTD devices to be excluded for UBI"
+	depends on UBIVOL
+	help
+	  Define a list of MTD devices that are excluded
+	  by scan_mtd_device. The devices are still available
+	  as raw devices.
+	  The list can be set as a string with the mtd numbers.
+	  Examples: "0 1 2"
+	  This excludes mtd0-mtd1-mtd2 to be searched for UBI volumes
+
 config CFI
 	bool "cfi"
 	default n
 	help
-	  For NOR flashes (including SPI-NOR), flash must
-	  be erased using MTD ioctl.
+	  Handler to store images in flash in raw mode,
+	  without UBI
 
 config RAW
 	bool "raw"
