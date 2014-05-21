@@ -46,7 +46,7 @@
 #include "swupdate.h"
 #include "util.h"
 #include "handler.h"
-#include "ubi_partition.h"
+#include "flash.h"
 #include "parsers.h"
 #include "network_ipc.h"
 #include "network_interface.h"

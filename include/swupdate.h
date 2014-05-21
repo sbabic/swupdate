@@ -24,9 +24,7 @@
 #define _SWUPDATE_H
 
 #include <sys/queue.h>
-#ifdef CONFIG_UBIVOL
-#include "ubi_partition.h"
-#endif
+#include "flash.h"
 
 #define BANNER "Swupdate v" SWU_VER
 

@@ -34,7 +34,7 @@
 #include <mtd/mtd-user.h>
 #include "swupdate.h"
 #include "handler.h"
-#include "ubi_partition.h"
+#include "flash.h"
 #include "util.h"
 
 void ubi_handler(void);
@@ -148,33 +148,6 @@ static int install_ubivol_image(struct img_type *img,
 				&ubivol->vol_info);
 	return ret;
 
-}
-
-void ubi_init(void)
-{
-	struct flash_description *nand = get_flash_info();
-	int err;
-	libubi_t libubi;
-
-	libubi = libubi_open();
-	if (!libubi) {
-		if (errno == 0)
-			ERROR("UBI is not present in the system");
-		ERROR("cannot open libubi");
-		return;
-	}
-
-	nand->libubi = libubi;
-
-	err = ubi_get_info(libubi, &nand->ubi_info);
-	if (err) {
-		ERROR("cannot get UBI information");
-		return;
-	}
-
-	if (nand->ubi_info.ctrl_major == -1) {
-		ERROR("MTD attach/detach feature is not supported by your kernel");
-	}
 }
 
 void scan_ubi_partitions(int mtd)

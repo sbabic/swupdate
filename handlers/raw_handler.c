@@ -35,7 +35,7 @@
 #include <mtd/mtd-user.h>
 #include "swupdate.h"
 #include "handler.h"
-#include "ubi_partition.h"
+#include "flash.h"
 #include "util.h"
 
 void raw_handler(void);

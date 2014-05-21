@@ -29,7 +29,6 @@
 #include <sys/queue.h>
 #include <unistd.h>
 #include <errno.h>
-#include "ubi_partition.h"
 #include "util.h"
 #include "flash.h"
 
@@ -41,6 +40,33 @@ void mtd_init(void)
 		if (errno == 0)
 			ERROR("MTD is not present in the system");
 		ERROR("cannot open libmtd");
+	}
+}
+
+void ubi_init(void)
+{
+	struct flash_description *nand = get_flash_info();
+	int err;
+	libubi_t libubi;
+
+	libubi = libubi_open();
+	if (!libubi) {
+		if (errno == 0)
+			ERROR("UBI is not present in the system");
+		ERROR("cannot open libubi");
+		return;
+	}
+
+	nand->libubi = libubi;
+
+	err = ubi_get_info(libubi, &nand->ubi_info);
+	if (err) {
+		ERROR("cannot get UBI information");
+		return;
+	}
+
+	if (nand->ubi_info.ctrl_major == -1) {
+		ERROR("MTD attach/detach feature is not supported by your kernel");
 	}
 }
 
@@ -104,8 +130,10 @@ int scan_mtd_devices (void)
 			TRACE("No information from MTD%d", i);
 			continue;
 		}
+#if defined(CONFIG_UBIVOL)
 		if (!flash->mtd_info[i].skipubi)
 			scan_ubi_partitions(i);
+#endif
 	}
 
 	return mtd_info->mtd_dev_cnt;
