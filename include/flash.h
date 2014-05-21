@@ -32,6 +32,8 @@ void mtd_init(void);
 int scan_mtd_devices (void);
 void mtd_cleanup (void);
 
-#define isNand(d) (d.type == MTD_NANDFLASH || d.type == MTD_MLCNANDFLASH)
+#define isNand(flash, index) \
+	(flash->mtd_info[index].mtd.type == MTD_NANDFLASH || \
+	 flash->mtd_info[index].mtd.type == MTD_MLCNANDFLASH)
 
 #endif

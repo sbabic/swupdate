@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008
+ * (C) Copyright 2014
  * Stefano Babic, DENX Software Engineering, sbabic@denx.de.
  *
  * See file CREDITS for list of people who contributed to this
@@ -27,6 +27,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <errno.h>
 #include <string.h>
 #include <stdarg.h>
@@ -39,6 +40,7 @@
 #include "swupdate.h"
 #include "handler.h"
 #include "util.h"
+#include "flash.h"
 
 #define PROCMTD	"/proc/mtd"
 #define BUFF_SIZE	8192
@@ -46,94 +48,274 @@
 
 void flash_handler(void);
 
-int flash_get_mtd_number(char *partition_name, char *mtd_device, unsigned int len)
-{
-	FILE *fp;
-	char line[LINESIZE];
-	unsigned int i, baselen, found = 0;
+/*
+ * Note: the functions here are derived directly
+ * with minor changes from mtd-utils.
+ */
 
-	fp = fopen(PROCMTD, "r");
-	if (fp == NULL) {
-		TRACE("Impossible to open %s", PROCMTD);
-		return -1;
-	}
-	strncpy(mtd_device, "/dev/", len);
-	baselen = strlen(mtd_device);
-	while (fgets(line, LINESIZE, fp) != NULL && !found) {
-		if (!strstr(line, partition_name))
-			continue;
-		for (i = 0; i < strlen(line); i++) {
-			/* returns if the buffer is too small */
-			if (i == len) 
-				return -EINVAL;
-			if (line[i] != ':')
-				mtd_device[i + baselen] = line[i];
-			else {
-				mtd_device[i + baselen] = '\0';
-				break;
-			}
-		}
-		found = 1;
-	}
-	fclose(fp);
-	return (-(!found));
-}
-
-static int flash_partition_erase(char *partition, char *filename)
+static int flash_erase(int mtdnum)
 {
-	struct stat sb;
-	off_t erasetotalsize;
 	int fd;
 	char mtd_device[LINESIZE];
-	mtd_info_t meminfo;
-	struct mtd_dev_info mtd;
-	erase_info_t erase;
+	struct mtd_dev_info *mtd;
+	int noskipbad = 0;
+	int unlock = 0;
+	unsigned int eb, eb_start, eb_cnt;
+	struct flash_description *flash = get_flash_info();
 
-	if (flash_get_mtd_number(partition, mtd_device, LINESIZE))
-		return -1;
+	if  (!mtd_dev_present(flash->libmtd, mtdnum)) {
+			TRACE("MTD %d does not exist\n", mtdnum);
+			return -ENODEV;
+	}
+	mtd = &flash->mtd_info[mtdnum].mtd;
+	snprintf(mtd_device, sizeof(mtd_device), "/dev/mtd%d", mtdnum);
 
 	if ((fd = open(mtd_device, O_RDWR)) < 0) {
 		TRACE( "%s: %s: %s", __func__, mtd_device, strerror(errno));
-		return -1;
-	}
-
-	if (ioctl(fd, MEMGETINFO, &meminfo) != 0) {
-		TRACE( "%s: %s: unable to get MTD device info", __func__, mtd_device);
-		close(fd);
-		return -1;
+		return -ENODEV;
 	}
 
 	/*
 	 * prepare to erase all of the MTD partition,
-	 * limit the erase operation to the file's size when known,
-	 * don't start erasing if the file exceeds the partition
 	 */
-	erase.length = meminfo.erasesize;
-	erasetotalsize = meminfo.size;
-	if ((stat(filename, &sb) == 0) && (S_ISREG(sb.st_mode))) {
-		if ((unsigned int)sb.st_size > meminfo.size) {
-			TRACE( "%s: %s: image file larger than partition", __func__, mtd_device);
-			close(fd);
-			return -1;
+	eb_start = 0;
+	eb_cnt = (mtd->size / mtd->eb_size) - eb_start;
+	for (eb = 0; eb < eb_start + eb_cnt; eb++) {
+
+		/* Always skip bad sectors */
+		if (!noskipbad) {
+			int ret = mtd_is_bad(mtd, fd, eb);
+			if (ret > 0) {
+				continue;
+			} else if (ret < 0) {
+				if (errno == EOPNOTSUPP) {
+					noskipbad = 1;
+				} else {
+					TRACE("%s: MTD get bad block failed", mtd_device);
+					return -EFAULT;
+				}
+			}
 		}
-		erasetotalsize = sb.st_size;
-		erasetotalsize += meminfo.erasesize - 1;
-		erasetotalsize /= meminfo.erasesize;
-		erasetotalsize *= meminfo.erasesize;
+
+		if (unlock) {
+			if (mtd_unlock(mtd, fd, eb) != 0) {
+				TRACE("%s: MTD unlock failure", mtd_device);
+				continue;
+			}
+		}
+
+		if (mtd_erase(flash->libmtd, mtd, fd, eb) != 0) {
+			TRACE("%s: MTD Erase failure", mtd_device);
+			return -EFAULT;
+		}
 	}
 
-	for (erase.start = 0; erase.start < (unsigned int)erasetotalsize; erase.start += meminfo.erasesize) {
-		if (ioctl(fd, MEMERASE, &erase) != 0) {
-			TRACE( "\n%s: %s: MTD Erase failure: %s", __func__, mtd_device, strerror(errno));
-			continue;
-		}
-	}
 	close(fd);
 
 	return 0;
 }
 
-static int flash_install_image(struct img_type *img)
+/*
+ * Writing to the NAND must take into account ECC errors
+ * and BAD sectors.
+ * This is not required for NOR flashes
+ * The function reassembles nandwrite from mtd-utils
+ * dropping all options that are not required here.
+ */
+
+static void erase_buffer(void *buffer, size_t size)
+{
+	const uint8_t kEraseByte = 0xff;
+
+	if (buffer != NULL && size > 0)
+		memset(buffer, kEraseByte, size);
+}
+
+static int flash_write_nand(int mtdnum, struct img_type *img)
+{
+	char mtd_device[LINESIZE];
+	struct flash_description *flash = get_flash_info();
+	struct mtd_dev_info *mtd = &flash->mtd_info[mtdnum].mtd;
+	int pagelen;
+	bool baderaseblock = false;
+	long long imglen = 0;
+	long long blockstart = -1;
+	long long offs;
+	unsigned char *filebuf = NULL;
+	size_t filebuf_max = 0;
+	size_t filebuf_len = 0;
+	long long mtdoffset = 0;
+	int ifd = img->fdin;
+	int fd = -1;
+	bool failed = true;
+	int ret;
+	unsigned char *writebuf = NULL;
+
+	pagelen = mtd->min_io_size;
+	imglen = img->size;
+	snprintf(mtd_device, sizeof(mtd_device), "/dev/mtd%d", mtdnum);
+
+	if ((imglen / pagelen) * mtd->min_io_size > mtd->size) {
+		TRACE("Image %s does not fit into mtd%d\n", img->fname, mtdnum);
+		return -EIO;
+	}
+	filebuf_max = mtd->eb_size / mtd->min_io_size * pagelen;
+	filebuf = calloc(1, filebuf_max);
+	erase_buffer(filebuf, filebuf_max);
+
+	if ((fd = open(mtd_device, O_RDWR)) < 0) {
+		TRACE( "%s: %s: %s", __func__, mtd_device, strerror(errno));
+		return -ENODEV;
+	}
+
+	/*
+	 * Get data from input and write to the device while there is
+	 * still input to read and we are still within the device
+	 * bounds. Note that in the case of standard input, the input
+	 * length is simply a quasi-boolean flag whose values are page
+	 * length or zero.
+	 */
+	while ((imglen > 0 || writebuf < filebuf + filebuf_len)
+		&& mtdoffset < mtd->size) {
+		/*
+		 * New eraseblock, check for bad block(s)
+		 * Stay in the loop to be sure that, if mtdoffset changes because
+		 * of a bad block, the next block that will be written to
+		 * is also checked. Thus, we avoid errors if the block(s) after the
+		 * skipped block(s) is also bad
+		 */
+		while (blockstart != (mtdoffset & (~mtd->eb_size + 1))) {
+			blockstart = mtdoffset & (~mtd->eb_size + 1);
+			offs = blockstart;
+
+			/*
+			 * if writebuf == filebuf, we are rewinding so we must
+			 * not reset the buffer but just replay it
+			 */
+			if (writebuf != filebuf) {
+				erase_buffer(filebuf, filebuf_len);
+				filebuf_len = 0;
+				writebuf = filebuf;
+			}
+
+			baderaseblock = false;
+
+			do {
+				ret = mtd_is_bad(mtd, fd, offs / mtd->eb_size);
+				if (ret < 0) {
+					TRACE("mtd%d: MTD get bad block failed", mtdnum);
+					goto closeall;
+				} else if (ret == 1) {
+					baderaseblock = true;
+				}
+
+				if (baderaseblock) {
+					mtdoffset = blockstart + mtd->eb_size;
+
+					if (mtdoffset > mtd->size) {
+						TRACE("too many bad blocks, cannot complete request");
+						goto closeall;
+					}
+				}
+
+				offs +=  mtd->eb_size; 
+			} while (offs < blockstart + mtd->eb_size);
+		}
+
+		/* Read more data from the input if there isn't enough in the buffer */
+		if (writebuf + mtd->min_io_size > filebuf + filebuf_len) {
+			size_t readlen = mtd->min_io_size;
+			size_t alreadyread = (filebuf + filebuf_len) - writebuf;
+			size_t tinycnt = alreadyread;
+			ssize_t cnt = 0;
+
+			while (tinycnt < readlen) {
+				cnt = read(ifd, writebuf + tinycnt, readlen - tinycnt);
+				if (cnt == 0) { /* EOF */
+					break;
+				} else if (cnt < 0) {
+					perror("File I/O error on input");
+					goto closeall;
+				}
+				tinycnt += cnt;
+			}
+
+			/* No padding needed - we are done */
+			if (tinycnt == 0) {
+				imglen = 0;
+				break;
+			}
+
+			/* Padding */
+			if (tinycnt < readlen) {
+				erase_buffer(writebuf + tinycnt, readlen - tinycnt);
+			}
+
+			filebuf_len += readlen - alreadyread;
+
+			imglen -= tinycnt - alreadyread;
+
+		}
+
+		/* Write out data */
+		ret = mtd_write(flash->libmtd, mtd, fd, mtdoffset / mtd->eb_size,
+				mtdoffset % mtd->eb_size,
+				writebuf,
+				mtd->min_io_size,
+				NULL,
+				0,
+				MTD_OPS_PLACE_OOB);
+		if (ret) {
+			long long i;
+			if (errno != EIO) {
+				TRACE("mtd%d: MTD write failure", mtdnum);
+				goto closeall;
+			}
+
+			/* Must rewind to blockstart if we can */
+			writebuf = filebuf;
+
+			fprintf(stderr, "Erasing failed write from %#08llx to %#08llx\n",
+				blockstart, blockstart + mtd->eb_size - 1);
+			for (i = blockstart; i < blockstart + mtd->eb_size; i += mtd->eb_size) {
+				if (mtd_erase(flash->libmtd, mtd, fd, i / mtd->eb_size)) {
+					int errno_tmp = errno;
+					TRACE("mtd%d: MTD Erase failure", mtdnum);
+					if (errno_tmp != EIO)
+						goto closeall;
+				}
+			}
+
+			TRACE("Marking block at %08llx bad\n",
+					mtdoffset & (~mtd->eb_size + 1));
+			if (mtd_mark_bad(mtd, fd, mtdoffset / mtd->eb_size)) {
+				TRACE("mtd%d: MTD Mark bad block failure", mtdnum);
+				goto closeall;
+			}
+			mtdoffset = blockstart + mtd->eb_size;
+
+			continue;
+		}
+		mtdoffset += mtd->min_io_size;
+		writebuf += pagelen;
+	}
+	failed = false;
+
+closeall:
+	free(filebuf);
+	close(fd);
+
+	if (failed) {
+		TRACE("Installing image %s into mtd%d failed\n",
+			img->fname,
+			mtdnum);
+		return -1;
+	}
+
+	return 0;
+}
+
+static int flash_write_nor(int mtdnum, struct img_type *img)
 {
 	int fdout;
 	char mtd_device[LINESIZE];
@@ -141,10 +323,14 @@ static int flash_install_image(struct img_type *img)
 	int ret;
 	uint32_t checksum;
 	long unsigned int dummy = 0;
+	struct flash_description *flash = get_flash_info();
 
-	if (flash_get_mtd_number(img->device, mtd_device, LINESIZE))
-		return -1;
+	if  (!mtd_dev_present(flash->libmtd, mtdnum)) {
+		TRACE("MTD %d does not exist\n", mtdnum);
+		return -ENODEV;
+	}
 
+	snprintf(mtd_device, sizeof(mtd_device), "/dev/mtd%d", mtdnum);
 	if ((fdout = open(mtd_device, O_RDWR)) < 0) {
 		TRACE( "%s: %s: %s", __func__, mtd_device, strerror(errno));
 		return -1;
@@ -168,22 +354,40 @@ static int flash_install_image(struct img_type *img)
 	return 0;
 }
 
+static int flash_write_image(int mtdnum, struct img_type *img)
+{
+	struct flash_description *flash = get_flash_info();
+
+	if (!isNand(flash, mtdnum))
+		return flash_write_nor(mtdnum, img);
+
+	return flash_write_nand(mtdnum, img);
+}
+
 static int install_flash_image(struct img_type *img,
 	void __attribute__ ((__unused__)) *data)
 {
 	char filename[64];
-	struct flash_description *flash = get_flash_info();
+	int mtdnum, ret;
 
 	snprintf(filename, sizeof(filename), "%s%s", TMPDIR, img->fname);
+	ret = sscanf(img->device, "mtd%d", &mtdnum);
+	if (ret <= 0)
+		ret = sscanf(img->device, "/dev/mtd%d", &mtdnum);
 
-	if(flash_partition_erase(img->device,
-		filename)) {
-		TRACE("I cannot erasing %s partition",
+	if (ret <= 0) {
+		TRACE("Wrong MTD device in description: %s",
+			img->device);
+		return -1;
+	}
+
+	if(flash_erase(mtdnum)) {
+		TRACE("I cannot erasing %s",
 			img->device);
 		return -1;
 	}
 	TRACE("Copying %s", img->fname);
-	if (flash_install_image(img)) {
+	if (flash_write_image(mtdnum, img)) {
 		TRACE("I cannot copy %s into %s partition",
 			img->fname,
 			img->device);
