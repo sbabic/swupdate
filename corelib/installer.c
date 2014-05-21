@@ -53,7 +53,6 @@
 static void extract_script(int fd, struct imglist *head, const char *dest)
 {
 	struct img_type *script;
-	char buf[64]; 
 	int fdout;
 
 	LIST_FOREACH(script, head, next) {
@@ -64,7 +63,7 @@ static void extract_script(int fd, struct imglist *head, const char *dest)
 		snprintf(script->extract_file, sizeof(script->extract_file), "%s%s",
 				dest, script->fname);
 
-		fdout = openfileoutput(buf);
+		fdout = openfileoutput(script->extract_file);
 		extract_next_file(fd, fdout, script->offset, 0);
 		close(fdout);
 	}
