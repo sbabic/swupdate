@@ -106,7 +106,10 @@ static int install_from_file(char *fname)
 	}
 
 	pos = extract_sw_description(fdsw);
-	parse(&swcfg, TMPDIR SW_DESCRIPTION_FILENAME);
+	ret = parse(&swcfg, TMPDIR SW_DESCRIPTION_FILENAME);
+	if (ret) {
+		exit(1);
+	}
 
 	TRACE("Board HW Revision %d.%d\n", hwrev.major, hwrev.minor);
 
