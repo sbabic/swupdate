@@ -44,6 +44,7 @@
 #include "network_interface.h"
 #include "handler.h"
 #include "installer.h"
+#include "flash.h"
 
 #define MODULE_NAME	"swupdate"
 
