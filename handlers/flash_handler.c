@@ -71,7 +71,7 @@ static int flash_erase(int mtdnum)
 	snprintf(mtd_device, sizeof(mtd_device), "/dev/mtd%d", mtdnum);
 
 	if ((fd = open(mtd_device, O_RDWR)) < 0) {
-		TRACE( "%s: %s: %s", __func__, mtd_device, strerror(errno));
+		ERROR( "%s: %s: %s", __func__, mtd_device, strerror(errno));
 		return -ENODEV;
 	}
 
@@ -91,7 +91,7 @@ static int flash_erase(int mtdnum)
 				if (errno == EOPNOTSUPP) {
 					noskipbad = 1;
 				} else {
-					TRACE("%s: MTD get bad block failed", mtd_device);
+					ERROR("%s: MTD get bad block failed", mtd_device);
 					return -EFAULT;
 				}
 			}
@@ -105,7 +105,7 @@ static int flash_erase(int mtdnum)
 		}
 
 		if (mtd_erase(flash->libmtd, mtd, fd, eb) != 0) {
-			TRACE("%s: MTD Erase failure", mtd_device);
+			ERROR("%s: MTD Erase failure", mtd_device);
 			return -EFAULT;
 		}
 	}
@@ -156,7 +156,7 @@ static int flash_write_nand(int mtdnum, struct img_type *img)
 	snprintf(mtd_device, sizeof(mtd_device), "/dev/mtd%d", mtdnum);
 
 	if ((imglen / pagelen) * mtd->min_io_size > mtd->size) {
-		TRACE("Image %s does not fit into mtd%d\n", img->fname, mtdnum);
+		ERROR("Image %s does not fit into mtd%d\n", img->fname, mtdnum);
 		return -EIO;
 	}
 	filebuf_max = mtd->eb_size / mtd->min_io_size * pagelen;
@@ -164,7 +164,7 @@ static int flash_write_nand(int mtdnum, struct img_type *img)
 	erase_buffer(filebuf, filebuf_max);
 
 	if ((fd = open(mtd_device, O_RDWR)) < 0) {
-		TRACE( "%s: %s: %s", __func__, mtd_device, strerror(errno));
+		ERROR( "%s: %s: %s", __func__, mtd_device, strerror(errno));
 		return -ENODEV;
 	}
 
@@ -203,7 +203,7 @@ static int flash_write_nand(int mtdnum, struct img_type *img)
 			do {
 				ret = mtd_is_bad(mtd, fd, offs / mtd->eb_size);
 				if (ret < 0) {
-					TRACE("mtd%d: MTD get bad block failed", mtdnum);
+					ERROR("mtd%d: MTD get bad block failed", mtdnum);
 					goto closeall;
 				} else if (ret == 1) {
 					baderaseblock = true;
@@ -213,7 +213,7 @@ static int flash_write_nand(int mtdnum, struct img_type *img)
 					mtdoffset = blockstart + mtd->eb_size;
 
 					if (mtdoffset > mtd->size) {
-						TRACE("too many bad blocks, cannot complete request");
+						ERROR("too many bad blocks, cannot complete request");
 						goto closeall;
 					}
 				}
@@ -234,7 +234,7 @@ static int flash_write_nand(int mtdnum, struct img_type *img)
 				if (cnt == 0) { /* EOF */
 					break;
 				} else if (cnt < 0) {
-					perror("File I/O error on input");
+					ERROR("File I/O error on input");
 					goto closeall;
 				}
 				tinycnt += cnt;
@@ -268,15 +268,13 @@ static int flash_write_nand(int mtdnum, struct img_type *img)
 		if (ret) {
 			long long i;
 			if (errno != EIO) {
-				TRACE("mtd%d: MTD write failure", mtdnum);
+				ERROR("mtd%d: MTD write failure", mtdnum);
 				goto closeall;
 			}
 
 			/* Must rewind to blockstart if we can */
 			writebuf = filebuf;
 
-			fprintf(stderr, "Erasing failed write from %#08llx to %#08llx\n",
-				blockstart, blockstart + mtd->eb_size - 1);
 			for (i = blockstart; i < blockstart + mtd->eb_size; i += mtd->eb_size) {
 				if (mtd_erase(flash->libmtd, mtd, fd, i / mtd->eb_size)) {
 					int errno_tmp = errno;
@@ -289,7 +287,7 @@ static int flash_write_nand(int mtdnum, struct img_type *img)
 			TRACE("Marking block at %08llx bad\n",
 					mtdoffset & (~mtd->eb_size + 1));
 			if (mtd_mark_bad(mtd, fd, mtdoffset / mtd->eb_size)) {
-				TRACE("mtd%d: MTD Mark bad block failure", mtdnum);
+				ERROR("mtd%d: MTD Mark bad block failure", mtdnum);
 				goto closeall;
 			}
 			mtdoffset = blockstart + mtd->eb_size;
@@ -306,7 +304,7 @@ closeall:
 	close(fd);
 
 	if (failed) {
-		TRACE("Installing image %s into mtd%d failed\n",
+		ERROR("Installing image %s into mtd%d failed\n",
 			img->fname,
 			mtdnum);
 		return -1;
@@ -326,19 +324,19 @@ static int flash_write_nor(int mtdnum, struct img_type *img)
 	struct flash_description *flash = get_flash_info();
 
 	if  (!mtd_dev_present(flash->libmtd, mtdnum)) {
-		TRACE("MTD %d does not exist\n", mtdnum);
+		ERROR("MTD %d does not exist\n", mtdnum);
 		return -ENODEV;
 	}
 
 	snprintf(mtd_device, sizeof(mtd_device), "/dev/mtd%d", mtdnum);
 	if ((fdout = open(mtd_device, O_RDWR)) < 0) {
-		TRACE( "%s: %s: %s", __func__, mtd_device, strerror(errno));
+		ERROR( "%s: %s: %s", __func__, mtd_device, strerror(errno));
 		return -1;
 	}
 
 	buf = (char *)malloc(BUFF_SIZE);
 	if (!buf) {
-		TRACE("malloc returns no memory");
+		ERROR("malloc returns no memory");
 		return -ENOMEM;
 	}
 
@@ -347,7 +345,7 @@ static int flash_write_nor(int mtdnum, struct img_type *img)
 
 	/* tell 'nbytes == 0' (EOF) from 'nbytes < 0' (read error) */
 	if (ret < 0) {
-		TRACE("Failure installing into: %s", img->device);
+		ERROR("Failure installing into: %s", img->device);
 		return -1;
 	}
 	close(fdout);
@@ -376,19 +374,19 @@ static int install_flash_image(struct img_type *img,
 		ret = sscanf(img->device, "/dev/mtd%d", &mtdnum);
 
 	if (ret <= 0) {
-		TRACE("Wrong MTD device in description: %s",
+		ERROR("Wrong MTD device in description: %s",
 			img->device);
 		return -1;
 	}
 
 	if(flash_erase(mtdnum)) {
-		TRACE("I cannot erasing %s",
+		ERROR("I cannot erasing %s",
 			img->device);
 		return -1;
 	}
 	TRACE("Copying %s", img->fname);
 	if (flash_write_image(mtdnum, img)) {
-		TRACE("I cannot copy %s into %s partition",
+		ERROR("I cannot copy %s into %s partition",
 			img->fname,
 			img->device);
 		return -1;
