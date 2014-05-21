@@ -44,6 +44,7 @@ struct mtd_ubi_info {
 	struct ubilist ubi_partitions;
 	struct ubi_attach_request req;
 	struct mtd_dev_info mtd;
+	int skipubi;
 	int scanned;
 };
 
@@ -60,7 +61,6 @@ void scan_ubi_partitions(int mtd);
 void ubi_init(void);
 void ubi_mount(struct ubi_vol_info *vol, const char *mntpoint);
 void ubi_umount(const char *mntpoint);
-int scan_mtd_devices (void);
 void mtd_cleanup (void);
 void mtd_init(void);
 struct flash_description *get_flash_info(void);

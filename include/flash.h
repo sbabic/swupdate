@@ -25,8 +25,13 @@
 #ifndef _FLASH_PART_H
 #define _FLASH_PART_H
 
+#include <mtd/libmtd.h>
+#include "mtd_config.h"
+
 void mtd_init(void);
 int scan_mtd_devices (void);
 void mtd_cleanup (void);
+
+#define isNand(d) (d.type == MTD_NANDFLASH || d.type == MTD_MLCNANDFLASH)
 
 #endif
