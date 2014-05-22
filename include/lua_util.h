@@ -26,6 +26,7 @@
 #ifndef _LUA_UTIL_H
 #define _LUA_UTIL_H
 
+#ifdef CONFIG_LUA
 #include "lua.h"
 #include "lauxlib.h"
 #include "lualib.h"
@@ -33,5 +34,11 @@
 
 void LUAstackDump (lua_State *L);
 int run_lua_script(char *script, char *function, char *parms);
+void image2table(lua_State* L, struct img_type *img);
+void lua_handlers_init(void);
+
+#else
+#define lua_handlers_init(x)
+#endif
 
 #endif

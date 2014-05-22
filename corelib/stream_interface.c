@@ -151,16 +151,19 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 				break;
 			}
 
+			snprintf(output_file, sizeof(output_file), "%s%s", TMPDIR, fdh.filename);
 			LIST_FOREACH(img, &software->images, next) {
 				if (strcmp(fdh.filename, img->fname) == 0) {
 					skip = 0;
 					img->provided = 1;
 					img->size = (unsigned int)fdh.size;
+					strncpy(img->extract_file,
+						output_file,
+						sizeof(img->extract_file));
 					break;
 				}
 			}
 
-			snprintf(output_file, sizeof(output_file), "%s%s", TMPDIR, fdh.filename);
 			TRACE("Found file:\n\tfilename %s\n\tsize %d %s",
 				fdh.filename,
 				(unsigned int)fdh.size,
@@ -170,6 +173,7 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 			offset = 0;
 			if (!skip) {
 				fdout = openfileoutput(output_file);
+
 				if (fdout < 0)
 					return -1;
 			}

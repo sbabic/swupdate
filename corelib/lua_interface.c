@@ -98,3 +98,59 @@ int run_lua_script(char *script, char *function, char *parms)
 
 }
 
+/**
+ * @brief convert a image description struct to a lua table
+ *
+ * @param L [inout] the lua stack
+ * @param software [in] the software struct
+ */
+void image2table(lua_State* L, struct img_type *img) {
+	if (L && img) {
+		lua_newtable (L);
+		lua_pushstring(L, "filename");
+		lua_pushstring(L, img->fname);
+		lua_settable(L, -3);
+		lua_pushstring(L, "volname");
+		lua_pushstring(L, img->volname);
+		lua_settable(L, -3);
+		lua_pushstring(L, "type");
+		lua_pushstring(L, img->type);
+		lua_settable(L, -3);
+
+		lua_pushstring(L, "device");
+		lua_pushstring(L, img->device);
+		lua_settable(L, -3);
+		lua_pushstring(L, "path");
+		lua_pushstring(L, img->path);
+		lua_settable(L, -3);
+		lua_pushstring(L, "extracted");
+		lua_pushstring(L, img->extract_file);
+		lua_settable(L, -3);
+
+		lua_pushstring(L, "required");
+		lua_pushboolean(L, img->required);
+		lua_settable(L, -3);
+
+		lua_pushstring(L, "compressed");
+		lua_pushboolean(L, img->compressed);
+		lua_settable(L, -3);
+		lua_pushstring(L, "required");
+		lua_pushboolean(L, img->required);
+		lua_settable(L, -3);
+		lua_pushstring(L, "provided");
+		lua_pushboolean(L, img->provided);
+		lua_settable(L, -3);
+		lua_pushstring(L, "is_script");
+		lua_pushboolean(L, img->is_script);
+		lua_settable(L, -3);
+		lua_pushstring(L, "offset");
+		lua_pushnumber(L, (double)img->offset);
+		lua_settable(L, -3);
+		lua_pushstring(L, "size");
+		lua_pushnumber(L, (double)img->size);
+		lua_settable(L, -3);
+		lua_pushstring(L, "checksum");
+		lua_pushnumber(L, (double)img->checksum);
+		lua_settable(L, -3);
+	}
+}

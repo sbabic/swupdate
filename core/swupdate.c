@@ -44,6 +44,7 @@
 #include "handler.h"
 #include "installer.h"
 #include "flash.h"
+#include "lua_util.h"
 
 #define MODULE_NAME	"swupdate"
 
@@ -228,6 +229,7 @@ int main(int argc, char **argv)
 		}
 	}
 	swupdate_init(&swcfg);
+	lua_handlers_init();
 	print_registered_handlers();
 	notify_init();
 
