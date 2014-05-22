@@ -246,9 +246,11 @@ off_t extract_sw_description(int fd)
 			SW_DESCRIPTION_FILENAME,
 			fdh.filename,
 			SW_DESCRIPTION_FILENAME);
+		return -1;
 	}
 	if ((strlen(TMPDIR) + strlen(fdh.filename)) > sizeof(output_file)) {
 		ERROR("File Name too long : %s\n", fdh.filename);
+		return -1;
 	}
 	strncpy(output_file, TMPDIR, sizeof(output_file));
 	strcat(output_file, fdh.filename);
@@ -276,7 +278,6 @@ off_t extract_sw_description(int fd)
 			(unsigned long)checksum, fdh.chksum);
 		return -1;
 	}
-
 
 	return offset;
 }
@@ -307,9 +308,11 @@ off_t extract_next_file(int fd, int fdout, off_t start, int compressed)
 	uint32_t checksum = 0;
 	unsigned long offset = start;
 
-	if (lseek(fd, offset, SEEK_SET) < 0)
+	if (lseek(fd, offset, SEEK_SET) < 0) {
 		ERROR("CPIO file corrupted : %s\n",
 		strerror(errno));
+		return -1;
+	}
 
 	if (extract_cpio_header(fd, &fdh, &offset)) {
 		ERROR("CPIO Header wrong\n");
