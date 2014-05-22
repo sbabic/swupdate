@@ -204,6 +204,7 @@ int run_prepost_scripts(struct swupdate_cfg *sw, script_fn type)
 	return 0;
 }
 
+#ifndef CONFIG_NOCLEANUP
 void cleanup_files(struct swupdate_cfg *software) {
 	char fn[64];
 	struct img_type *img;
@@ -229,8 +230,7 @@ void cleanup_files(struct swupdate_cfg *software) {
 
 	snprintf(fn, sizeof(fn), "%s%s", TMPDIR, SW_DESCRIPTION_FILENAME);
 	unlink(fn);
-
-	return;
 }
+#endif
 
 

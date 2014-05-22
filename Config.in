@@ -149,6 +149,16 @@ config WERROR
 
 	  Most people should answer N.
 
+config NOCLEANUP
+	bool "Do not remove temporary files after execution"
+	default n
+	help
+	  After each run, temporary files are removed from
+	  /tmp to restart in a clean state. For debugging purpose,
+	  it helps to check the consistency of the file extracted
+	  by swupdate.
+	  For production, answer N.
+
 endmenu
 
 endmenu
