@@ -87,12 +87,10 @@ static void usage(char *programname)
 
 static int install_from_file(char *fname)
 {
-	struct hw_type hwrev;
 	int fdsw;
 	off_t pos;
 	int ret;
 
-	get_hw_revision(&hwrev);
 
 	if (!strlen(fname)) {
 		ERROR("Image not found...please reboot\n");
@@ -111,7 +109,6 @@ static int install_from_file(char *fname)
 		exit(1);
 	}
 
-	TRACE("Board HW Revision %d.%d\n", hwrev.major, hwrev.minor);
 
 #ifdef HW_COMPATIBILITY
 	if (check_hw_compatibility(&swcfg)) {
@@ -181,6 +178,7 @@ int main(int argc, char **argv)
 	int c;
 	char fname[MAX_IMAGE_FNAME];
 	int opt_i = 0;
+	struct hw_type hwrev;
 #ifdef CONFIG_WEBSERVER
 	char weboptions[1024];
 	char **av = NULL;
@@ -228,6 +226,10 @@ int main(int argc, char **argv)
 			break;
 		}
 	}
+
+	if(!get_hw_revision(&hwrev))
+		TRACE("Board HW Revision %d.%d\n", hwrev.major, hwrev.minor);
+
 	swupdate_init(&swcfg);
 	lua_handlers_init();
 	print_registered_handlers();

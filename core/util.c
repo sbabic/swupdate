@@ -132,7 +132,7 @@ int isDirectoryEmpty(const char *dirname)
  * This function is strict bounded with the hardware
  * It reads some GPIOs to get the hardware revision
  */
-void get_hw_revision(struct hw_type *hw)
+int get_hw_revision(struct hw_type *hw)
 {
 	FILE *fp;
 #ifdef HW_COMPATIBILITY_FILE
@@ -145,15 +145,18 @@ void get_hw_revision(struct hw_type *hw)
 	 * check if there is a file containing theHW revision number
 	 */
 
+	hw->major = 0;
+	hw->minor = 0;
+
 	fp = fopen(HW_FILE, "r");
-	if (fp != NULL) {
-		if (fscanf(fp, "%d.%d", &hw->major, &hw->minor) == EOF) {
-			hw->major = 0;
-			hw->minor = 0;
-		}
-		fclose(fp);
-		return;
-	}
+	if (!fp)
+		return -1;
+
+	if (fscanf(fp, "%d.%d", &hw->major, &hw->minor) == EOF)
+		return -1;
+	fclose(fp);
+
+	return 0;
 }
 
 /*
@@ -163,8 +166,11 @@ void get_hw_revision(struct hw_type *hw)
 int check_hw_compatibility(struct swupdate_cfg *cfg)
 {
 	struct hw_type *hw, hwrev;
+	int ret;
 
-	get_hw_revision(&hwrev);
+	ret = get_hw_revision(&hwrev);
+	if (ret < 0)
+		return -1;
 
 	LIST_FOREACH(hw, &cfg->hardware, next) {
 		if ((hw->major == hwrev.major) && (hw->minor == hwrev.minor))

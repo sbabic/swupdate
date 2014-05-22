@@ -118,6 +118,6 @@ void notify_init(void);
 char **splitargs(char *args, int *argc);
 void freeargs (char **argv);
 int isDirectoryEmpty(const char *dirname);
-void get_hw_revision(struct hw_type *hw);
+int get_hw_revision(struct hw_type *hw);
 int check_hw_compatibility(struct swupdate_cfg *cfg);
 #endif
