@@ -43,6 +43,23 @@ void mtd_init(void)
 	}
 }
 
+int get_mtd_from_device(char *s) {
+	int ret;
+	int mtdnum;
+
+	if (!s)
+		return -1;
+
+	ret = sscanf(s, "mtd%d", &mtdnum);
+	if (ret <= 0)
+		ret = sscanf(s, "/dev/mtd%d", &mtdnum);
+
+	if (ret <= 0)
+		return -1;
+
+	return mtdnum;
+}
+
 void ubi_init(void)
 {
 	struct flash_description *nand = get_flash_info();

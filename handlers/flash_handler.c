@@ -366,14 +366,12 @@ static int install_flash_image(struct img_type *img,
 	void __attribute__ ((__unused__)) *data)
 {
 	char filename[64];
-	int mtdnum, ret;
+	int mtdnum;
 
 	snprintf(filename, sizeof(filename), "%s%s", TMPDIR, img->fname);
-	ret = sscanf(img->device, "mtd%d", &mtdnum);
-	if (ret <= 0)
-		ret = sscanf(img->device, "/dev/mtd%d", &mtdnum);
+	mtdnum= get_mtd_from_device(img->device);
 
-	if (ret <= 0) {
+	if (mtdnum < 0) {
 		ERROR("Wrong MTD device in description: %s",
 			img->device);
 		return -1;
