@@ -85,6 +85,23 @@ static void usage(char *programname)
 	       programname);
 }
 
+static int check_provided(struct imglist *list)
+{
+	int ret = 0;
+	struct img_type *p;
+
+	for (p = list->lh_first; p != NULL;
+		p = p->next.le_next) {
+		if (!p->provided) {
+			ERROR("Requested file not found in image: %s", \
+				p->fname);
+			ret = -1;
+		}
+	}
+
+	return ret;
+}
+
 static int install_from_file(char *fname)
 {
 	int fdsw;
@@ -123,9 +140,11 @@ static int install_from_file(char *fname)
 	 * Check if all files described in sw-description
 	 * are in the image
 	 */
-	CHECK_PROVIDED(struct img_type, swcfg.images);
-	CHECK_PROVIDED(struct img_type, swcfg.files);
-	CHECK_PROVIDED(struct img_type, swcfg.scripts);
+	ret = check_provided(&swcfg.images);
+	ret |= check_provided(&swcfg.files);
+	ret |= check_provided(&swcfg.scripts);
+	if (ret)
+		exit(1);
 
 #if defined(CONFIG_UBIVOL)
 	/* Attach MTD for UBI */

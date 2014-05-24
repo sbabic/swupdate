@@ -120,18 +120,6 @@ struct swupdate_cfg {
 	} \
 } while(0)
 
-#define CHECK_PROVIDED(type, list) do { \
-	type *p; \
-	for (p = list.lh_first; p != NULL; \
-		p = p->next.le_next) { \
-		if (!p->provided) { \
-			ERROR("Requested file not found in image: %s", \
-				p->fname); \
-		} \
-	} \
-} while(0)
-
-
 off_t extract_sw_description(int fd);
 off_t extract_next_file(int fd, int fdout, off_t offset, int compressed);
 off_t cpio_scan(int fd, struct swupdate_cfg *cfg, off_t start);
