@@ -61,6 +61,7 @@ struct img_type {
 	int compressed;
 	int is_script;
 	int is_partitioner;
+	long long partsize;
 	int fdin;	/* Used for streaming file */
 	off_t offset;	/* offset in cpio file */
 	long long size;

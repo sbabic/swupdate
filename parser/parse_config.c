@@ -123,7 +123,15 @@ static void parse_partitions(config_t *cfg, struct swupdate_cfg *swcfg)
 		GET_FIELD(elem, "device", partition->device);
 		strncpy(partition->type, "ubipartition", sizeof(partition->type));
 		partition->is_partitioner = 1;
-		if (!config_setting_lookup_int64(elem, "size", &partition->size)) {
+
+		partition->provided = 1;
+
+		if (!partition->volname || !partition->device) {
+			ERROR("Partition incompleted in description file");
+			return;
+		}
+
+		if (!config_setting_lookup_int64(elem, "size", &partition->partsize)) {
 			ERROR("Size not set for partition %s\n", partition->volname);
 			free (partition);
 			return;
@@ -131,9 +139,9 @@ static void parse_partitions(config_t *cfg, struct swupdate_cfg *swcfg)
 
 		TRACE("Partition: %s new size %lld bytes\n",
 			partition->volname,
-			partition->size);
+			partition->partsize);
  
-		LIST_INSERT_HEAD(&swcfg->partitions, partition, next);
+		LIST_INSERT_HEAD(&swcfg->images, partition, next);
 	}
 }
 
@@ -355,10 +363,16 @@ int parse_cfg (struct swupdate_cfg *swcfg, const char *filename)
 	/* Now parse the single elements */
 	parse_hw_compatibility(&cfg, swcfg);
 	parse_images(&cfg, swcfg);
-	parse_partitions(&cfg, swcfg);
 	parse_scripts(&cfg, swcfg);
 	parse_uboot(&cfg, swcfg);
 	parse_files(&cfg, swcfg);
+
+	/*
+	 * Move the partitions at the beginning to be processed
+	 * before other images
+	 */
+	parse_partitions(&cfg, swcfg);
+
 	config_destroy(&cfg);
 
 	return 0;

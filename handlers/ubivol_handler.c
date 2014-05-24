@@ -215,186 +215,97 @@ void scan_ubi_partitions(int mtd)
 	mtd_info->scanned = 1;
 }
 
-static int adjust_partitions(struct img_type *cfg,
+static int adjust_volume(struct img_type *cfg,
 	void __attribute__ ((__unused__)) *data)
 {
 	struct flash_description *nandubi = get_flash_info();
-	struct img_type *part;
-	struct ubi_part *ubivol, *nextitem, *datavol = NULL;
+	struct ubi_part *ubivol;
 	struct ubi_mkvol_request req;
 	struct mtd_ubi_info *mtd_info;
-	struct ubi_rnvol_req rnvol;
-	struct ubi_vol_info vol;
+	int mtdnum;
 	char node[64];
 	int err;
-
-
-	/* Check if a new partition table is required */
-	if (!cfg)
-		return -1;
+	struct flash_description *flash = get_flash_info();
 
 	/*
 	 * Partition are adjusted only in one MTD device
 	 * Other MTD are not touched
 	 */
-	mtd_info = &nandubi->mtd_info[MTD_FS_DEVICE];
+	mtdnum = get_mtd_from_device(cfg->device);
+	if (mtdnum < 0 || !mtd_dev_present(flash->libmtd, mtdnum)) {
+		ERROR("%s does not exist: partitioning not possible",
+			cfg->device);
+		return -ENODEV;
+	}
+
+	mtd_info = &nandubi->mtd_info[mtdnum];
 
 	/*
 	 * First remove all volumes but "data"
 	 */
 	ubivol = mtd_info->ubi_partitions.lh_first;
-	while (ubivol != NULL) {
+	for(ubivol = mtd_info->ubi_partitions.lh_first;
+		ubivol != NULL;
+		ubivol = ubivol->next.le_next) {
 		/* Do not drop data partition */
-		if (strcmp(ubivol->vol_info.name, UBI_DATA_VOLNAME) == 0) {
-			datavol = ubivol;
-			ubivol = ubivol->next.le_next;
-			continue;
+		if (strcmp(ubivol->vol_info.name, cfg->volname) == 0) {
+			break;
 		}
+	}
+
+	if (ubivol) {
+		/* Check if size is changed */
+		if (ubivol->vol_info.data_bytes == cfg->partsize)
+			return 0;
 
 		snprintf(node, sizeof(node), "/dev/ubi%d", ubivol->vol_info.dev_num);
 		err = ubi_rmvol(nandubi->libubi, node, ubivol->vol_info.vol_id);
 		if (err) {
 			ERROR("Volume %s cannot be dropped", ubivol->vol_info.name);
-			exit(1);
+			return -1;
 		}
 		TRACE("Removed UBI Volume %s\n", ubivol->vol_info.name);
 
-		nextitem = LIST_NEXT(ubivol, next);
 		LIST_REMOVE(ubivol, next);
 		free(ubivol);
-		ubivol = nextitem;
 	}
 
 	/* We do not need a volume to get the right node */
 	snprintf(node, sizeof(node), "/dev/ubi%d", mtd_info->dev_info.dev_num);
 
-	/* Check if DATA partition must be adjusted */
-	for ( part = cfg; part != NULL; part = part->next.le_next) {
-		if (strcmp(part->volname, UBI_DATA_VOLNAME) == 0) {
-			break;
-		}
-	}
-
-	/*
-	 * Saves the data volumes adjusting the partition size.
-	 * Because the partition can be shrinked, due to limitations
-	 * changing UBIFS size the following procedure is implemented:
-	 *
-	 * - creates a volume with the size specified in the description file
-	 *   this volume assumes the name "datacpy"
-	 * - mount both "data" and "datacpy"
-	 * - copy all files from "data" to "datacpy"
-	 * - rename both volumes in one shot exchanging their names
-	 *   "datacpy" becomes "data", "data" becomes "datacpy"
-	 * - drop volume "datacpy" (partition with old size)
-	 */
-	if ( (part != NULL) && (part->size != datavol->vol_info.data_bytes) ) {
-		TRACE("New \"data\" size : from %lld to %lld bytes\n",
-			datavol->vol_info.data_bytes,
-			part->size);
-
-		/* A new size is requested, create a new vol */
-		memset(&req, 0, sizeof(req));
-		req.vol_type = UBI_DYNAMIC_VOLUME;
-		req.vol_id = UBI_VOL_NUM_AUTO;
-		req.alignment = 1;
-
-		req.bytes = part->size;
-		req.name = UBI_DATACPY_VOLNAME;
-		err = ubi_mkvol(nandubi->libubi, node, &req);
-		if (err < 0)
-			ERROR("cannot create UBIvolume %s of %lld bytes",
-				req.name, req.bytes);
-
-		/* we have now two volumes, copy all data from the old one */
-		err = ubi_get_vol_info1(nandubi->libubi,
-			mtd_info->dev_info.dev_num, req.vol_id,
-			&vol);
-		if (err)
-			ERROR("cannot get information about newly created UBI volume");
-		ubi_mount(&datavol->vol_info, DATASRC_DIR);
-		ubi_mount(&vol, DATADST_DIR);
-		if (!isDirectoryEmpty(DATASRC_DIR)) {
-			err = system("cp -r " DATASRC_DIR "/* " DATADST_DIR);
-			if (err)
-				ERROR("DATA cannot be copied : %s",
-					strerror(errno));
-		} else {
-			TRACE("\"data\" is empty, skipping copy...\n");
-		}
-
-		/* Now switch the two copies, the new one becomes active */
-		ubi_umount(DATASRC_DIR);
-		ubi_umount(DATADST_DIR);
-		rnvol.ents[0].vol_id = datavol->vol_info.vol_id;
-		rnvol.ents[0].name_len = strlen(UBI_DATACPY_VOLNAME);
-		strcpy(rnvol.ents[0].name, UBI_DATACPY_VOLNAME);
-		rnvol.ents[1].vol_id = vol.vol_id;
-		rnvol.ents[1].name_len = strlen(UBI_DATA_VOLNAME);
-		strcpy(rnvol.ents[1].name, UBI_DATA_VOLNAME);
-		rnvol.count = 2;
-		err = ubi_rnvols(nandubi->libubi, node, &rnvol);
-		if (err) {
-			ERROR("Cannot rename partitions %s %s : %s",
-				UBI_DATACPY_VOLNAME, UBI_DATA_VOLNAME,
-				strerror(errno));
-			return err;
-		}
-
-		/* Drop the old partition */
-		strncpy(vol.name, UBI_DATA_VOLNAME, UBI_VOL_NAME_MAX);
-		err = ubi_rmvol(nandubi->libubi, node, datavol->vol_info.vol_id);
-		if (err) {
-			ERROR("Volume id %d(%s) cannot be dropped",
-				datavol->vol_info.vol_id,
-				UBI_DATACPY_VOLNAME);
-			return err;
-		}
-
-
-		/* Update ubi_vol_info for the "data" partition */
-		memcpy(&datavol->vol_info, &vol, sizeof(datavol->vol_info));
-	}
-
 	/*
 	 * Creates all other partitions as specified in the description file
 	 * Volumes are empty, and they are filled later by the update procedure
 	 */
-	for (part = cfg ; part != NULL;
-		part = part->next.le_next) {
-		if (strcmp(part->volname, UBI_DATA_VOLNAME) == 0) {
-			continue;
-		}
-		memset(&req, 0, sizeof(req));
-		req.vol_type = UBI_DYNAMIC_VOLUME;
-		req.vol_id = UBI_VOL_NUM_AUTO;
-		req.alignment = 1;
-		req.bytes = part->size;
-		req.name = part->volname;
-		err = ubi_mkvol(nandubi->libubi, node, &req);
-		if (err < 0) {
-			ERROR("cannot create UBIvolume %s of %lld bytes",
-				req.name, req.bytes);
-			return err;
-		}
-
-		ubivol = (struct ubi_part *)calloc(1, sizeof(struct ubi_part));
-		if (!ubivol) {
-			ERROR("No memory: malloc failed\n");
-			return err;
-		}
-		err = ubi_get_vol_info1(nandubi->libubi,
-			mtd_info->dev_info.dev_num, req.vol_id,
-			&ubivol->vol_info);
-		if (err) {
-			ERROR("cannot get information about "
-				"newly created UBI volume");
-			return err;
-		}
-		LIST_INSERT_HEAD(&mtd_info->ubi_partitions, ubivol, next);
-		TRACE("Created Volume %s of %lld bytes\n",
+	memset(&req, 0, sizeof(req));
+	req.vol_type = UBI_DYNAMIC_VOLUME;
+	req.vol_id = UBI_VOL_NUM_AUTO;
+	req.alignment = 1;
+	req.bytes = cfg->partsize;
+	req.name = cfg->volname;
+	err = ubi_mkvol(nandubi->libubi, node, &req);
+	if (err < 0) {
+		ERROR("cannot create UBIvolume %s of %lld bytes",
 			req.name, req.bytes);
+		return err;
 	}
+
+	ubivol = (struct ubi_part *)calloc(1, sizeof(struct ubi_part));
+	if (!ubivol) {
+		ERROR("No memory: malloc failed\n");
+		return -ENOMEM;
+	}
+	err = ubi_get_vol_info1(nandubi->libubi,
+		mtd_info->dev_info.dev_num, req.vol_id,
+		&ubivol->vol_info);
+	if (err) {
+		ERROR("cannot get information about "
+			"newly created UBI volume");
+		return err;
+	}
+	LIST_INSERT_HEAD(&mtd_info->ubi_partitions, ubivol, next);
+	TRACE("Created UBI Volume %s of %lld bytes\n",
+		req.name, req.bytes);
 
 	return 0;
 }
@@ -426,5 +337,5 @@ __attribute__((constructor))
 void ubi_handler(void)
 {
 	register_handler("ubivol", install_ubivol_image, NULL);
-	register_handler("ubipartition", adjust_partitions, NULL);
+	register_handler("ubipartition", adjust_volume, NULL);
 }
