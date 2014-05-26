@@ -39,11 +39,21 @@ static int install_uboot_environment(struct img_type *img,
 	void __attribute__ ((__unused__)) *data)
 {
 	int ret;
+	int fdout;
+	uint32_t checksum = 0;
+	unsigned long dummy;
 	char buf[64];
 
 	char filename[64];
+	struct stat statbuf;
 
 	snprintf(filename, sizeof(filename), "%s%s", TMPDIR, img->fname);
+	ret = stat(filename, &statbuf);
+	if (ret) {
+		fdout = openfileoutput(filename);
+		ret = copyfile(img->fdin, fdout, img->size, &dummy, 0, 0, &checksum);
+		close(fdout);
+	}
 
 	ret = fw_parse_script(filename);
 
