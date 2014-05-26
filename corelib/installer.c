@@ -113,10 +113,8 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 	struct stat buf;
 	struct filehdr fdh;
 
-#if defined(CONFIG_UBIVOL)
 	mtd_cleanup();
 	scan_mtd_devices();
-#endif
 
 	/* Extract all scripts, preinstall scripts must be run now */
 	if (fromfile)

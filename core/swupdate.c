@@ -144,18 +144,6 @@ static int install_from_file(char *fname)
 	if (ret)
 		exit(1);
 
-#if defined(CONFIG_UBIVOL)
-	/* Attach MTD for UBI */
-	mtd_init();
-	ubi_init();
-
-	mtd_cleanup();
-	scan_mtd_devices();
-#endif
-
-	/* Adjust partitions, if required */
-	//adjust_partitions(swcfg.partitions.lh_first, NONE);
-
 	/* copy images */
 	ret = install_images(&swcfg, fdsw, 1);
 
@@ -188,6 +176,11 @@ static void swupdate_init(struct swupdate_cfg *sw)
 	mkdir(SCRIPTS_DIR, 0777);
 	mkdir(DATASRC_DIR, 0777);
 	mkdir(DATADST_DIR, 0777);
+
+	mtd_init();
+	ubi_init();
+
+	mtd_cleanup();
 }
 
 int main(int argc, char **argv)
