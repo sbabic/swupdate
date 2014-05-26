@@ -27,7 +27,9 @@
  * See included "fw_env.config" sample file
  * for notes on configuration.
  */
-#define CONFIG_FILE     "/tmp/fw_env.config"
+#ifndef CONFIG_UBOOT_FWENV
+#define CONFIG_UBOOT_ENV     "/etc/fw_env.config"
+#endif
 
 #define HAVE_REDUND /* For systems with 2 env sectors */
 #define DEVICE1_NAME      "/dev/mtd1"

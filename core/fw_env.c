@@ -211,7 +211,7 @@ static int flash_io (int mode);
 static char *envmatch (char * s1, char * s2);
 static int parse_config (void);
 
-#if defined(CONFIG_FILE)
+#if defined(CONFIG_UBOOT_FWENV)
 static int get_config (char *);
 #endif
 static inline ulong getenvsize (void)
@@ -1232,9 +1232,9 @@ static int parse_config (void)
 {
 	struct stat st;
 
-#if defined(CONFIG_FILE)
+#if defined(CONFIG_UBOOT_FWENV)
 	/* Fills in DEVNAME(), ENVSIZE(), DEVESIZE(). Or don't. */
-	if (get_config ((char *)CONFIG_FILE)) {
+	if (get_config ((char *)CONFIG_UBOOT_FWENV)) {
 		fprintf (stderr,
 			"Cannot parse config file: %s\n", strerror (errno));
 		return -1;
@@ -1285,7 +1285,7 @@ static int parse_config (void)
 	return 0;
 }
 
-#if defined(CONFIG_FILE)
+#if defined(CONFIG_UBOOT_FWENV)
 static int get_config (char *fname)
 {
 	FILE *fp;

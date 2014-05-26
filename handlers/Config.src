@@ -55,4 +55,14 @@ config UBOOT
 	  Enable it to change U-Boot environment
 	  during the installation process.
 
+config UBOOT_FWENV
+	string "U-Boot Environment Configuration file"
+	depends on UBOOT
+	default "/etc/fw_env.config"
+	help
+	  This is the file described in U-Boot documentation
+	  in the tools directory. It tells to the user space
+	  where U-Boot environment is saved, that is, on which
+	  MTD device.
+
 endmenu
