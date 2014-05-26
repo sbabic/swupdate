@@ -127,12 +127,10 @@ static int install_from_file(char *fname)
 	}
 
 
-#ifdef HW_COMPATIBILITY
 	if (check_hw_compatibility(&swcfg)) {
 		ERROR("SW not compatible with hardware\n");
 		exit(1);
 	}
-#endif
 
 	cpio_scan(fdsw, &swcfg, pos);
 

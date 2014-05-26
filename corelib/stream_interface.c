@@ -133,12 +133,10 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 				TRACE("Compatible SW not found");
 				return -1;
 			}
-#ifdef HW_COMPATIBILITY
-			if (check_hw_compatibility(&swcfg)) {
+			if (check_hw_compatibility(software)) {
 				ERROR("SW not compatible with hardware\n");
 				return -1;
 			}
-#endif
 			status = STREAM_DATA;
 			break;
 

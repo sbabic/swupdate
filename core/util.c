@@ -163,19 +163,28 @@ int get_hw_revision(struct hw_type *hw)
  * The HW revision of the board *MUST* be inserted
  * in the sw-description file
  */
+#ifdef CONFIG_HW_COMPATIBILITY
 int check_hw_compatibility(struct swupdate_cfg *cfg)
 {
-	struct hw_type *hw, hwrev;
+	struct hw_type hwrev, *hw;
 	int ret;
 
 	ret = get_hw_revision(&hwrev);
 	if (ret < 0)
 		return -1;
 
+	TRACE("Hardware Revision: %d.%d", hwrev.major, hwrev.minor);
 	LIST_FOREACH(hw, &cfg->hardware, next) {
-		if ((hw->major == hwrev.major) && (hw->minor == hwrev.minor))
+		if (hw && (hw->major == hwrev.major) && (hw->minor == hwrev.minor))
 			return 0;
 	}
 
 	return -1;
 }
+#else
+int check_hw_compatibility(struct swupdate_cfg
+		__attribute__ ((__unused__)) *cfg)
+{
+	return 0;
+}
+#endif
