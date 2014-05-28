@@ -39,7 +39,7 @@
 
 void ubi_handler(void);
 
-struct ubi_part *search_volume(const char *str, struct ubilist *list)
+static struct ubi_part *search_volume(const char *str, struct ubilist *list)
 {
 	struct ubi_part *vol;
 

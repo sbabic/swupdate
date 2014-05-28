@@ -64,7 +64,6 @@ struct flash_description {
 void scan_ubi_partitions(int mtd);
 void ubi_mount(struct ubi_vol_info *vol, const char *mntpoint);
 void ubi_umount(const char *mntpoint);
-struct ubi_part *search_volume(const char *str, struct ubilist *list);
 #endif
 
 void mtd_init(void);
