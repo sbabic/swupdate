@@ -27,6 +27,7 @@
 #include <mtd/mtd-user.h>
 #include <sys/types.h>
 #include <sys/queue.h>
+#include <sys/mount.h>
 #include <unistd.h>
 #include <errno.h>
 #include "util.h"
@@ -154,6 +155,93 @@ int scan_mtd_devices (void)
 	}
 
 	return mtd_info->mtd_dev_cnt;
+}
+
+void scan_ubi_partitions(int mtd)
+{
+	struct flash_description *nand = get_flash_info();
+	int err;
+	libubi_t libubi = nand->libubi;
+	struct ubi_part *ubi_part;
+	struct mtd_ubi_info *mtd_info;
+	int i;
+
+	if (mtd < 0 || mtd > MAX_MTD_DEVICES)
+		ERROR("wrong MTD device /dev/mtd%d", mtd);
+
+	mtd_info = &nand->mtd_info[mtd];
+	LIST_INIT(&mtd_info->ubi_partitions);
+
+	/*
+	 * The program is called directly after a boot,
+	 * and a detach is not required. However,
+	 * detaching at the beginning allows consecutive
+	 * start of the program itself
+	 */
+	ubi_detach_mtd(libubi, DEFAULT_CTRL_DEV, mtd);
+
+	mtd_info->req.dev_num = UBI_DEV_NUM_AUTO;
+	mtd_info->req.mtd_num = mtd;
+	mtd_info->req.vid_hdr_offset = 0;
+	mtd_info->req.mtd_dev_node = NULL;
+
+	err = ubi_attach(libubi, DEFAULT_CTRL_DEV, &mtd_info->req);
+	if (err) {
+		TRACE("cannot attach mtd%d - maybe not a NAND or raw device", mtd);
+		return;
+	}
+
+	err = ubi_get_dev_info1(libubi, mtd_info->req.dev_num, &mtd_info->dev_info);
+	if (err) {
+		TRACE("cannot get information about UBI device %d", mtd_info->req.dev_num);
+		return;
+	}
+
+	for (i = mtd_info->dev_info.lowest_vol_id;
+	     i <= mtd_info->dev_info.highest_vol_id; i++) {
+		ubi_part = (struct ubi_part *)calloc(1, sizeof(struct ubi_part));
+		if (!ubi_part)
+			ERROR("No memory: malloc failed\n");
+
+		err = ubi_get_vol_info1(libubi, mtd_info->dev_info.dev_num, i, &ubi_part->vol_info);
+		if (err == -1) {
+			if (errno == ENOENT)
+				continue;
+
+			TRACE("libubi failed to probe volume %d on ubi%d",
+					  i, mtd_info->dev_info.dev_num);
+			return;
+		}
+
+		LIST_INSERT_HEAD(&mtd_info->ubi_partitions, ubi_part, next);
+		TRACE("mtd%d:\tVolume found : \t%s",
+			mtd,
+			ubi_part->vol_info.name);
+	}
+
+	mtd_info->scanned = 1;
+}
+
+void ubi_mount(struct ubi_vol_info *vol, const char *mntpoint)
+{
+	int ret;
+	char node[64];
+
+	snprintf(node, sizeof(node), "/dev/ubi%d_%d",
+		vol->dev_num,
+		vol->vol_id);
+
+	ret = mount(node, mntpoint,
+                 "ubifs", 0, NULL);
+
+	if (ret)
+		ERROR("UBIFS cannot be mounted : device %s volume %s on %s : %s",
+			node, vol->name, mntpoint, strerror(errno));
+}
+
+void ubi_umount(const char *mntpoint)
+{
+	umount(mntpoint);
 }
 
 void mtd_cleanup (void)
