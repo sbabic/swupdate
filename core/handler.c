@@ -32,12 +32,13 @@
 #include <sys/fcntl.h>
 #include "swupdate.h"
 #include "handler.h"
+#include "lua_util.h"
 
 #define MAX_INSTALLER_HANDLER	64
 struct installer_handler supported_types[MAX_INSTALLER_HANDLER];
 static unsigned long nr_installers = 0;
 
-#ifdef CONFIG_LUA
+#ifdef CONFIG_HANDLER_IN_LUA
 #include "lua_util.h"
 static lua_State *gL = NULL;
 
@@ -201,6 +202,8 @@ void lua_handlers_init(void)
 		printf ("Unable to register Lua context for callbacks\n");
 	}
 }
+#else
+void lua_handlers_init(void) {}
 #endif
 
 int register_handler(const char *desc, 

@@ -48,6 +48,14 @@ config LUASCRIPTHANDLER
 	  Handler to be called for pre- and post scripts
 	  written in LUA.
 
+config HANDLER_IN_LUA
+	bool "Handlers in LUA"
+	depends on LUASCRIPTHANDLER
+	default n
+	help
+	  Allow to write own handlers in LUA.
+	  They are loaded at the start-up.
+
 config UBOOT
 	bool "uboot"
 	default n
