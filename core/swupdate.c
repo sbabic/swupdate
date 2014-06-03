@@ -179,8 +179,6 @@ static void swupdate_init(struct swupdate_cfg *sw)
 
 	mtd_init();
 	ubi_init();
-
-	mtd_cleanup();
 }
 
 int main(int argc, char **argv)

@@ -57,7 +57,7 @@ struct flash_description {
 	libmtd_t libmtd;
 	struct ubi_info ubi_info;
 	struct mtd_info mtd;
-	struct mtd_ubi_info mtd_info[MAX_MTD_DEVICES];
+	struct mtd_ubi_info *mtd_info;
 };
 
 #if defined(CONFIG_UBIVOL)

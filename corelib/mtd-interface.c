@@ -122,6 +122,16 @@ int scan_mtd_devices (void)
 			ERROR("MTD is not present on the board");
 		return 0;
 	}
+
+	/* Allocate memory to store MTD infos */
+	flash->mtd_info = (struct mtd_ubi_info *)calloc(
+				mtd_info->highest_mtd_num + 1,
+				sizeof(struct mtd_ubi_info));
+	if (!flash->mtd_info) {
+		ERROR("No enough memory for MTD structures");
+		return -ENOMEM;
+	}
+
 	token = strtok_r(blacklist, " ", &saveptr);
 	if (token) {
 		errno = 0;
@@ -251,16 +261,19 @@ void mtd_cleanup (void)
 	struct ubi_part *vol;
 	struct flash_description *flash = get_flash_info();
 
-	for (i = flash->mtd.lowest_mtd_num; i <= flash->mtd.highest_mtd_num; i++) {
-		list = &flash->mtd_info[i].ubi_partitions;
-		LIST_FOREACH(vol, list, next) {
-			LIST_REMOVE(vol, next);
-			free(vol);
+	if (flash->mtd_info) {
+		for (i = flash->mtd.lowest_mtd_num; i <= flash->mtd.highest_mtd_num; i++) {
+			list = &flash->mtd_info[i].ubi_partitions;
+			LIST_FOREACH(vol, list, next) {
+				LIST_REMOVE(vol, next);
+				free(vol);
+			}
 		}
+		free(flash->mtd_info);
+		flash->mtd_info = NULL;
 	}
 
 	/* Do not clear libraries handles */
 	memset(&flash->ubi_info, 0, sizeof(struct ubi_info));
 	memset(&flash->mtd, 0, sizeof(struct mtd_info));
-	memset(&flash->mtd_info, 0, sizeof(flash->mtd_info));
 }
