@@ -112,7 +112,7 @@ if test -n "$GC_SECTIONS"; then
 fi
 
 # Sanitize lib list (dups, extra spaces etc)
-LDLIBS=`echo "$LDLIBS" | xargs -n1 | sort | uniq | xargs`
+LDLIBS=`echo "$LDLIBS" | xargs -n1 | uniq | xargs`
 
 # First link with all libs. If it fails, bail out
 echo "Trying libraries: $LDLIBS"
