@@ -106,6 +106,12 @@ CFLAGS += --sysroot=$(CONFIG_SYSROOT)
 export SYSROOT=$(CONFIG_SYSROOT)
 endif
 
+# lua
+ifneq ($(CONFIG_LUA),)
+LDLIBS += lua dl
+LDFLAGS += -Wl,-E
+endif
+
 # Android has no separate crypt library
 # gcc-4.2.1 fails if we try to feed C source on stdin:
 #  echo 'int main(void){return 0;}' | $(CC) $(CFLAGS) -lcrypt -o /dev/null -xc -
@@ -122,12 +128,6 @@ ifeq ($(CONFIG_LIBCONFIG),y)
 LDLIBS += config
 endif
 
-# lua
-ifneq ($(CONFIG_LUA),)
-CFLAGS += -I$(srctree)/lua
-LDLIBS += dl
-LDFLAGS += -Wl,-E
-endif
 # mongoose webserver
 ifneq ($(CONFIG_MONGOOSE),)
 LDLIBS += pthread crypto

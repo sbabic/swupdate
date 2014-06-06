@@ -42,6 +42,12 @@ config HW_COMPATIBILITY_FILE
 	  The file has simple entries (one per line) in the
 	  format of "major.minor".
 
+config LUA
+	bool "lua"
+	default y
+	help
+	  Enable LUA interpreter.
+
 # These are auto-selected by other options
 
 config FEATURE_SYSLOG
@@ -174,4 +180,3 @@ source mongoose/Config.in
 source archival/Config.in
 source parser/Config.in
 source handlers/Config.in
-source lua/Config.in

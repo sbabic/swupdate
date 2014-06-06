@@ -468,7 +468,6 @@ libs-y		:= \
 		archival/ \
 		corelib/ \
 		parser/ \
-		lua/ \
 		mongoose/ \
 
 #handlers/ \
