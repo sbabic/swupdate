@@ -31,9 +31,11 @@ config UBIVIDOFFSET
 	depends on UBIVOL
 	default 0
 	help
-	  Force UBI to set a VID header offset to be 2048 bytes instead of the value
-	  reported by the kernel. In other words, you may ask UBI to avoid using sub-pages.
-	  This is not recommended since this will require more storage overhead, but may be useful
+	  Force UBI to set a VID header offset to be 2048 bytes
+	  instead of the value reported by the kernel.
+	  In other words, you may ask UBI to avoid using sub-pages.
+	  This is not recommended since this will require
+	  more storage overhead, but may be useful
 	  if your NAND driver incorrectly reports that it can handle
 	  sub-page accesses when it should not.
 
