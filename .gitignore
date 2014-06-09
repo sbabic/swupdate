@@ -37,6 +37,9 @@ swupdate_unstripped*
 #
 
 *.depend*
+include/autoconf.h
+include/config/
+doc/build
 
 # stgit generated dirs
 patches-*
