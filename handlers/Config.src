@@ -26,6 +26,18 @@ config UBIBLACKLIST
 	  Examples: "0 1 2"
 	  This excludes mtd0-mtd1-mtd2 to be searched for UBI volumes
 
+config UBIVIDOFFSET
+	int "VID Header Offset"
+	depends on UBIVOL
+	default 0
+	help
+	  Force UBI to set a VID header offset to be 2048 bytes instead of the value
+	  reported by the kernel. In other words, you may ask UBI to avoid using sub-pages.
+	  This is not recommended since this will require more storage overhead, but may be useful
+	  if your NAND driver incorrectly reports that it can handle
+	  sub-page accesses when it should not.
+
+
 config CFI
 	bool "cfi"
 	default n

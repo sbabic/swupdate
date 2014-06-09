@@ -192,7 +192,11 @@ void scan_ubi_partitions(int mtd)
 
 	mtd_info->req.dev_num = UBI_DEV_NUM_AUTO;
 	mtd_info->req.mtd_num = mtd;
+#if CONFIG_UBIVIDOFFSET
+	mtd_info->req.vid_hdr_offset = CONFIG_UBIVIDOFFSET;
+#else
 	mtd_info->req.vid_hdr_offset = 0;
+#endif
 	mtd_info->req.mtd_dev_node = NULL;
 
 	err = ubi_attach(libubi, DEFAULT_CTRL_DEV, &mtd_info->req);
