@@ -30,10 +30,6 @@
 int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile);
 int run_prepost_scripts(struct swupdate_cfg *sw, script_fn type);
 
-#ifndef CONFIG_NOCLEANUP
 void cleanup_files(struct swupdate_cfg *software);
-#else
-#define cleanup_files(x)
-#endif
 
 #endif

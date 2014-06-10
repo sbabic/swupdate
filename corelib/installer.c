@@ -202,7 +202,15 @@ int run_prepost_scripts(struct swupdate_cfg *sw, script_fn type)
 	return 0;
 }
 
+
+static void remove_sw_file(char *fname)
+{
 #ifndef CONFIG_NOCLEANUP
+	/* yes, "best effort", the files need not necessarily exist */
+	unlink(fname);
+#endif
+}
+
 void cleanup_files(struct swupdate_cfg *software) {
 	char fn[64];
 	struct img_type *img;
@@ -211,14 +219,14 @@ void cleanup_files(struct swupdate_cfg *software) {
 	LIST_FOREACH(img, &software->images, next) {
 		if (img->fname[0]) {
 			snprintf(fn, sizeof(fn), "%s%s", TMPDIR, img->fname);
-			unlink(fn);	/* yes, "best effort", the files need not necessarily exist */
+			remove_sw_file(fn);
 		}
 		LIST_REMOVE(img, next);
 	}
 	LIST_FOREACH(img, &software->scripts, next) {
 		if (img->fname[0]) {
 			snprintf(fn, sizeof(fn), "%s%s", TMPDIR, img->fname);
-			unlink(fn);	/* yes, "best effort", the files need not necessarily exist */
+			remove_sw_file(fn);
 		}
 		LIST_REMOVE(img, next);
 	}
@@ -227,8 +235,7 @@ void cleanup_files(struct swupdate_cfg *software) {
 	}
 
 	snprintf(fn, sizeof(fn), "%s%s", TMPDIR, SW_DESCRIPTION_FILENAME);
-	unlink(fn);
+	remove_sw_file(fn);
 }
-#endif
 
 
