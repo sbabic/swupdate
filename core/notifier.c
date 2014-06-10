@@ -82,19 +82,19 @@ static void console_notifier (RECOVERY_STATUS status, int error, const char *msg
 	char current[80];
 	switch(status) {
 	case IDLE:
-		strncpy(current, "No update running : ", sizeof(current));
+		strncpy(current, "No SWUPDATE running : ", sizeof(current));
 		break;
 	case START:
-		strncpy(current, "Recovery started : ", sizeof(current));
+		strncpy(current, "SWUPDATE started : ", sizeof(current));
 		break;
 	case RUN:
-		strncpy(current, "Recovery running : ", sizeof(current));
+		strncpy(current, "SWUPDATE running : ", sizeof(current));
 		break;
 	case SUCCESS:
-		strncpy(current, "Recovery successful !", sizeof(current));
+		strncpy(current, "SWUPDATE successful !", sizeof(current));
 		break;
 	case FAILURE:
-		snprintf(current, sizeof(current), "Recovery failed [%d]", error);
+		snprintf(current, sizeof(current), "SWUPDATE failed [%d]", error);
 		break;
 	}
 

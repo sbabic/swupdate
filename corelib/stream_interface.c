@@ -321,7 +321,7 @@ int network_initializer(int argc, char *argv[], struct swupdate_cfg *software)
 				 * that it is not required to start recovery again
 				 */
 				fw_set_one_env("recovery_status", "");
-				notify(SUCCESS, RECOVERY_NO_ERROR, "Recovery successful !");
+				notify(SUCCESS, RECOVERY_NO_ERROR, "SWUPDATE successful !");
 				inst.last_install = SUCCESS;
 			}
 		} else {
