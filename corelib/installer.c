@@ -129,8 +129,8 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 	LIST_FOREACH(img, &sw->images, next) {
 		hnd = find_handler(img);
 		if (!hnd) {
-			TRACE("IMAGE TYPE %s not supported", img->type);
-			break;
+			TRACE("Image Type %s not supported", img->type);
+			return -1;
 		}
 		TRACE("Found installer for stream %s %s", img->fname, hnd->desc);
 
