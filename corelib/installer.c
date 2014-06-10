@@ -203,7 +203,7 @@ int run_prepost_scripts(struct swupdate_cfg *sw, script_fn type)
 }
 
 
-static void remove_sw_file(char *fname)
+static void remove_sw_file(char __attribute__ ((__unused__)) *fname)
 {
 #ifndef CONFIG_NOCLEANUP
 	/* yes, "best effort", the files need not necessarily exist */
