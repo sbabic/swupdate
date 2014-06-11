@@ -9,6 +9,7 @@ swupdate Documentation
    
    overview.rst
    swupdate.rst
+   sw-description.rst
    handlers.rst
    help_and_support.rst
    roadmap.rst
