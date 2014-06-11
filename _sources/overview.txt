@@ -3,40 +3,40 @@ Software Management on embedded systems
 =======================================
 
 Embedded Systems become more and more complex,
-and their software reflects the augmentity complexity.
+and their software reflects the augmented complexity.
 New features and fixes let much more as desirable that
 the software on an embedded system can be updated
 in a absolutely reliable way.
 
-On a linux-based system, we can find in most cases
+On a Linux-based system, we can find in most cases
 the following elements:
 
-- the bootloader.
+- the boot loader.
 - the kernel and the DT (Device Tree) file.
-- the root filesystem
-- other filesystems, mounted at a later point
-- customer data, in raw format or on a filesystem
+- the root file system
+- other file systems, mounted at a later point
+- customer data, in raw format or on a file system
 - application specific software. For example, firmware
   to be downloaded on connected microcontrollers, and so on.
 
 Generally speaking, in most cases it is required to update
-kernel and root filesystem, preserving user data - but cases vary.
+kernel and root file system, preserving user data - but cases vary.
 
-In only a few cases it is required to update the bootloader,
-too. In fact, updating the bootloader is quite always risky,
+In only a few cases it is required to update the boot loader,
+too. In fact, updating the boot loader is quite always risky,
 because a failure in the update breaks the board.
 Restoring a broken board is possible in some cases,
 but this is not left in most cases to the end user
 and the system must be sent back to the manufacturer.
 
 There are a lot of different concepts about updating
-the software. I like to expone some of them, and then
+the software. I like to expose some of them, and then
 explain why I have implemented this project.
 
-Updating through the bootloader
-===============================
+Updating through the boot loader
+================================
 
-Bootloaders do much more as simply start the kernel.
+Boot loaders do much more as simply start the kernel.
 They have their own shell and can be managed using
 a processor's peripheral, in most cases a serial line.
 They are often scriptable, letting possible to implement
@@ -46,19 +46,19 @@ However, I found some drawbacks in this approach, that
 let me search for another solution, based on an application
 running on Linux:
 
-Bootloader have limited access to peripherals.
-----------------------------------------------
+Boot loader have limited access to peripherals.
+-----------------------------------------------
 
 Not all peripherals supported by the kernel are
-available with the bootloader. When it makes sense to add
+available with the boot loader. When it makes sense to add
 support to the kernel, because the peripheral is then available
 by the main application, it does not always make sense to duplicate
-the effort to port the driver to the bootloader.
+the effort to port the driver to the boot loader.
 
-Bootloader's drivers are not updated
-------------------------------------
+Boot loader's drivers are not updated
+-------------------------------------
 
-Bootloader's drivers are mostly ported from the Linux kernel,
+Boot loader's drivers are mostly ported from the Linux kernel,
 but due to adaptations they are not later fixed or synchronized
 with the kernel, while bug fixes flow regularly in the Linux kernel.
 Some peripherals can then work in a not reliable ways,
@@ -66,16 +66,16 @@ and fixing the issues can be not easy. Drivers in boot loaders
 are more or less a fork of the respective drivers in kernel.
 
 As example, the UBI / UBIFS for NAND devices contains a lot of
-fixes in the kernel, that are not ported back to the bootloaders.
+fixes in the kernel, that are not ported back to the boot loaders.
 The same can be found for the USB stack. The effort to support
 new peripherals or protocols is better to be used for the kernel
-as for the bootloaders.
+as for the boot loaders.
 
-Reduced filesystems
--------------------
+Reduced file systems
+--------------------
 
-The number of supported filesystems is limited and
-porting a filesystem to the bootloader requires high effort.
+The number of supported file systems is limited and
+porting a file system to the boot loader requires high effort.
 
 Network support is limited
 --------------------------
@@ -86,19 +86,19 @@ UDP but not via TCP.
 Interaction with the operator
 -----------------------------
 
-It is difficult to expone an interface to the operator,
+It is difficult to expose an interface to the operator,
 such as a GUI with a browser or on a display.
 
 A complex logic can be easier implemented inside an application
-else in the bootloader. Extending the bootloader becomes complicated
+else in the boot loader. Extending the boot loader becomes complicated
 because the whole range of services and libraries are not available.
 
-Bootloader's update advantages
-------------------------------
+Boot loader's update advantages
+-------------------------------
 However, this approach has some advantages,too:
 
 - software for update is generally simpler.
-- smaller footprint: a standalone application only for software management requires an own kernel and a root filesystem.
+- smaller footprint: a standalone application only for software management requires an own kernel and a root file system.
   Even if their size can be trimmed dropping what is not required
   for updating the software, their size is not negligible.
 
@@ -135,7 +135,7 @@ An atomic update is generally a must feature for an embedded system.
 Strategies for an application doing software upgrade
 ====================================================
 
-Instead of using the bootloader, an application can take
+Instead of using the boot loader, an application can take
 into charge to upgrade the system. The application can
 use all services provided by the OS. The proposed solution
 is a stand-alone software, that follow customer rules and
@@ -160,7 +160,7 @@ two copies of the whole software, it is possible to guarantee
 that there is always a working copy even if the software update
 is interrupted or a power off occurs..
 
-Each copy must contain the kernel, the root filesystem, and each
+Each copy must contain the kernel, the root file system, and each
 further component that can be updated. It is required
 a mechanism to identify which version is running.
 
@@ -169,14 +169,14 @@ the application software will trigger it when an update is required.
 Duty of swupdate is to update the stand-by copy, leaving the
 running copy of the software untouched.
 
-A sinergy with the bootloader is often necessary, because the bootloader must
+A synergy with the boot loader is often necessary, because the boot loader must
 decide which copy should be started. Again, it must be possible
 to switch between the two copies.
 After a reboot, the boot loader decides which copy should run.
 
 .. image:: images/double_copy_layout.png
 
-Check the chapter about bootloader to see which mechanisms can be
+Check the chapter about boot loader to see which mechanisms can be
 implemented to guarantee that the target is not broken after an update.
 
 The most evident drawback is the amount of required space. The
@@ -184,38 +184,38 @@ available space for each copy is less than half the size
 of the storage. However, an update is always safe even in case of power off.
 
 This project supports this strategy. The application as part of this project
-should be installed in the rootfilesystem and started
+should be installed in the root file system and started
 or triggered as required. There is no
 need of an own kernel, because the two copies guarantees that
 it is always possible to upgrade the not running copy.
 
-swupdate will set U-Boot's variable to signal the bootloader
+swupdate will set U-Boot's variable to signal the boot loader
 that a new image is successfully installed.
 
 Single copy - running as standalone image
 -----------------------------------------
 
 The software upgrade application consists of kernel (maybe reduced
-dropping not required drivers) and a small root filesystem, with the application
+dropping not required drivers) and a small root file system, with the application
 and its libraries. The whole size is much less than a single copy of
 the system software. Depending on set up, I get sizes from 2.5 until 8 MB
-for the standalone root filesystem. If the size is very important on small
+for the standalone root file system. If the size is very important on small
 systems, it becomes negligible on systems with a lot of storage
 or big NANDs.
 
-The system can be put in "upgrade" mode, simply signalling to the
-bootloader that the upgrading software must be started. The way
-can differ, for example setting a bootloader environment or using
+The system can be put in "upgrade" mode, simply signaling to the
+boot loader that the upgrading software must be started. The way
+can differ, for example setting a boot loader environment or using
 and external GPIO.
 
-The bootloader starts "swupdate", booting the
-swupdate kernel and the initrd image as rootfilesystem. Because it runs in RAM,
+The boot loader starts "swupdate", booting the
+swupdate kernel and the initrd image as root file system. Because it runs in RAM,
 it is possible to upgrade the whole storage. Differently as in the
 double-copy strategy, the systems must reboot to put itself in
 update mode.
 
 This concept consumes less space in storage as having two copies, but
-it does not guarantee a falback without updating again the software.
+it does not guarantee a fallback without updating again the software.
 However, it can be guaranteed that
 the system goes automatically in upgrade mode when the productivity
 software is not found or corrupted, as well as when the upgrade process
@@ -230,13 +230,13 @@ upgrade the new software is set as "bootable". With these considerations,
 an upgrade with this strategy is safe: it is always guaranteed that the
 system boots and it is ready to get a new software, if the old one
 is corrupted or cannot run.
-With U-Boot as bootloader, swupdate is able to manage U-Boot's environment
+With U-Boot as boot loader, swupdate is able to manage U-Boot's environment
 setting variables to indicate the start and the end of a transaction and
 that the storage contains a valid software.
 
-swupdate is mainly used in this configuration. The receipes for Yocto
+swupdate is mainly used in this configuration. The recipes for Yocto
 generates a initrd image containing the swupdate application, that is
-automatically started after mounting the root filesystem.
+automatically started after mounting the root file system.
 
 .. image:: images/swupdate_single.png
 
@@ -245,7 +245,7 @@ Something went wrong ?
 
 Many things can go wrong, and it must be guaranteed that the system
 is able to run again and maybe able to reload a new software to fix
-a damaged image. swupdate works together with the U-Boot bootloader to
+a damaged image. swupdate works together with the U-Boot boot loader to
 identify the possible causes of failures.
 
 We can at least group some of the common causes:
@@ -270,7 +270,7 @@ When swupdate starts, it sets recovery_status to "progress". After an update is 
 with success, the variable is erased. If the update ends with an error, recovery_status
 has the value "failed".
 
-When an update is interrupted, independently from the cause, the bootloader
+When an update is interrupted, independently from the cause, the boot loader
 recognizes it because the recovery_status variable is in "progress" or "failed".
 The boot loader can then start again swupdate to load again the software
 (single-copy case) or and run the old copy of the application
@@ -285,7 +285,7 @@ to work again - starting again swupdate or restoring an old copy of the software
 Generally, the behavior can be split according to the chosen scenario:
 
 - single copy: swupdate is interrupted and the update transaction did not end
-with a success. The bootloader is able to start swupdate again, having the
+with a success. The boot loader is able to start swupdate again, having the
 possibility to update the software again.
 
 - double copy: swupdate did not switch between stand-by and current copy.
@@ -294,7 +294,7 @@ started again.
 
 
 What about upgrading swupdate itself ?
--------------------------------------
+--------------------------------------
 
 swupdate is thought to be used in the whole development process, replacing
 customized process to update the software during the development. Before going into production,
@@ -308,24 +308,24 @@ There are some ways to circumvent this issue if swupdate is part of the
 upgraded image:
 
 - have two copies of swupdate
-- take the risk, but have a rescue procedure using the bootloader.
+- take the risk, but have a rescue procedure using the boot loader.
 
-What about upgrading the Bootloader ?
--------------------------------------
+What about upgrading the Boot loader ?
+--------------------------------------
 
-Updating the bootloader is in most cases a one-way process. On most SOCs, there is no possibility
-to have multiple copies of the bootloader, and when U-Boot is broken,
+Updating the boot loader is in most cases a one-way process. On most SOCs, there is no possibility
+to have multiple copies of the boot loader, and when U-Boot is broken,
 the board does not simply boot.
 
 Some SOCs allow to have multiple copies of the
-bootloader. But again, there is no general solution for this because it
+boot loader. But again, there is no general solution for this because it
 is *very* hardware specific.
 
-In my experience, most targets do not allow to update the bootloader. It
-is very uncommon that the bootloader must be updated when the product
+In my experience, most targets do not allow to update the boot loader. It
+is very uncommon that the boot loader must be updated when the product
 is ready for production.
 
 It is different is if the U-Boot environment mus be updated, that is a
-common praxis. U-Boot provides a double copy of the whole environment,
-and updating the environment from swupdate is power-off safe. Other bootloaders
+common practice. U-Boot provides a double copy of the whole environment,
+and updating the environment from swupdate is power-off safe. Other boot loaders
 can or cannot have this feature.

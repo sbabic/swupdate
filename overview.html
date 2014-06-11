@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
@@ -15,7 +13,7 @@
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '',
+        URL_ROOT:    './',
         VERSION:     '0.1.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
@@ -26,8 +24,8 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="Embedded Software Update Documentation 0.1.0 documentation" href="index.html" />
-    <link rel="next" title="SWUPDATE: software update for embedded system" href="swupdate.html" />
-    <link rel="prev" title="SWUpdate Documentation" href="index.html" /> 
+    <link rel="next" title="swupdate: software update for embedded system" href="swupdate.html" />
+    <link rel="prev" title="swupdate Documentation" href="index.html" /> 
   </head>
   <body>
     <div class="related">
@@ -37,10 +35,10 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="swupdate.html" title="SWUPDATE: software update for embedded system"
+          <a href="swupdate.html" title="swupdate: software update for embedded system"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="index.html" title="SWUpdate Documentation"
+          <a href="index.html" title="swupdate Documentation"
              accesskey="P">previous</a> |</li>
         <li><a href="index.html">Embedded Software Update Documentation 0.1.0 documentation</a> &raquo;</li> 
       </ul>
@@ -54,35 +52,35 @@
   <div class="section" id="software-management-on-embedded-systems">
 <h1>Software Management on embedded systems<a class="headerlink" href="#software-management-on-embedded-systems" title="Permalink to this headline">¶</a></h1>
 <p>Embedded Systems become more and more complex,
-and their software reflects the augmentity complexity.
+and their software reflects the augmented complexity.
 New features and fixes let much more as desirable that
 the software on an embedded system can be updated
 in a absolutely reliable way.</p>
-<p>On a linux-based system, we can find in most cases
+<p>On a Linux-based system, we can find in most cases
 the following elements:</p>
 <ul class="simple">
-<li>the bootloader.</li>
+<li>the boot loader.</li>
 <li>the kernel and the DT (Device Tree) file.</li>
-<li>the root filesystem</li>
-<li>other filesystems, mounted at a later point</li>
-<li>customer data, in raw format or on a filesystem</li>
+<li>the root file system</li>
+<li>other file systems, mounted at a later point</li>
+<li>customer data, in raw format or on a file system</li>
 <li>application specific software. For example, firmware
 to be downloaded on connected microcontrollers, and so on.</li>
 </ul>
 <p>Generally speaking, in most cases it is required to update
-kernel and root filesystem, preserving user data - but cases vary.</p>
-<p>In only a few cases it is required to update the bootloader,
-too. In fact, updating the bootloader is quite always risky,
+kernel and root file system, preserving user data - but cases vary.</p>
+<p>In only a few cases it is required to update the boot loader,
+too. In fact, updating the boot loader is quite always risky,
 because a failure in the update breaks the board.
 Restoring a broken board is possible in some cases,
 but this is not left in most cases to the end user
 and the system must be sent back to the manufacturer.</p>
 <p>There are a lot of different concepts about updating
-the software. I like to expone some of them, and then
+the software. I like to expose some of them, and then
 explain why I have implemented this project.</p>
-<div class="section" id="updating-through-the-bootloader">
-<h2>Updating through the bootloader<a class="headerlink" href="#updating-through-the-bootloader" title="Permalink to this headline">¶</a></h2>
-<p>Bootloaders do much more as simply start the kernel.
+<div class="section" id="updating-through-the-boot-loader">
+<h2>Updating through the boot loader<a class="headerlink" href="#updating-through-the-boot-loader" title="Permalink to this headline">¶</a></h2>
+<p>Boot loaders do much more as simply start the kernel.
 They have their own shell and can be managed using
 a processor&#8217;s peripheral, in most cases a serial line.
 They are often scriptable, letting possible to implement
@@ -90,32 +88,32 @@ some kind of software update mechanism.</p>
 <p>However, I found some drawbacks in this approach, that
 let me search for another solution, based on an application
 running on Linux:</p>
-<div class="section" id="bootloader-have-limited-access-to-peripherals">
-<h3>Bootloader have limited access to peripherals.<a class="headerlink" href="#bootloader-have-limited-access-to-peripherals" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="boot-loader-have-limited-access-to-peripherals">
+<h3>Boot loader have limited access to peripherals.<a class="headerlink" href="#boot-loader-have-limited-access-to-peripherals" title="Permalink to this headline">¶</a></h3>
 <p>Not all peripherals supported by the kernel are
-available with the bootloader. When it makes sense to add
+available with the boot loader. When it makes sense to add
 support to the kernel, because the peripheral is then available
 by the main application, it does not always make sense to duplicate
-the effort to port the driver to the bootloader.</p>
+the effort to port the driver to the boot loader.</p>
 </div>
-<div class="section" id="bootloader-s-drivers-are-not-updated">
-<h3>Bootloader&#8217;s drivers are not updated<a class="headerlink" href="#bootloader-s-drivers-are-not-updated" title="Permalink to this headline">¶</a></h3>
-<p>Bootloader&#8217;s drivers are mostly ported from the Linux kernel,
+<div class="section" id="boot-loader-s-drivers-are-not-updated">
+<h3>Boot loader&#8217;s drivers are not updated<a class="headerlink" href="#boot-loader-s-drivers-are-not-updated" title="Permalink to this headline">¶</a></h3>
+<p>Boot loader&#8217;s drivers are mostly ported from the Linux kernel,
 but due to adaptations they are not later fixed or synchronized
 with the kernel, while bug fixes flow regularly in the Linux kernel.
 Some peripherals can then work in a not reliable ways,
 and fixing the issues can be not easy. Drivers in boot loaders
 are more or less a fork of the respective drivers in kernel.</p>
 <p>As example, the UBI / UBIFS for NAND devices contains a lot of
-fixes in the kernel, that are not ported back to the bootloaders.
+fixes in the kernel, that are not ported back to the boot loaders.
 The same can be found for the USB stack. The effort to support
 new peripherals or protocols is better to be used for the kernel
-as for the bootloaders.</p>
+as for the boot loaders.</p>
 </div>
-<div class="section" id="reduced-filesystems">
-<h3>Reduced filesystems<a class="headerlink" href="#reduced-filesystems" title="Permalink to this headline">¶</a></h3>
-<p>The number of supported filesystems is limited and
-porting a filesystem to the bootloader requires high effort.</p>
+<div class="section" id="reduced-file-systems">
+<h3>Reduced file systems<a class="headerlink" href="#reduced-file-systems" title="Permalink to this headline">¶</a></h3>
+<p>The number of supported file systems is limited and
+porting a file system to the boot loader requires high effort.</p>
 </div>
 <div class="section" id="network-support-is-limited">
 <h3>Network support is limited<a class="headerlink" href="#network-support-is-limited" title="Permalink to this headline">¶</a></h3>
@@ -124,18 +122,18 @@ UDP but not via TCP.</p>
 </div>
 <div class="section" id="interaction-with-the-operator">
 <h3>Interaction with the operator<a class="headerlink" href="#interaction-with-the-operator" title="Permalink to this headline">¶</a></h3>
-<p>It is difficult to expone an interface to the operator,
+<p>It is difficult to expose an interface to the operator,
 such as a GUI with a browser or on a display.</p>
 <p>A complex logic can be easier implemented inside an application
-else in the bootloader. Extending the bootloader becomes complicated
+else in the boot loader. Extending the boot loader becomes complicated
 because the whole range of services and libraries are not available.</p>
 </div>
-<div class="section" id="bootloader-s-update-advantages">
-<h3>Bootloader&#8217;s update advantages<a class="headerlink" href="#bootloader-s-update-advantages" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="boot-loader-s-update-advantages">
+<h3>Boot loader&#8217;s update advantages<a class="headerlink" href="#boot-loader-s-update-advantages" title="Permalink to this headline">¶</a></h3>
 <p>However, this approach has some advantages,too:</p>
 <ul class="simple">
 <li>software for update is generally simpler.</li>
-<li>smaller footprint: a standalone application only for software management requires an own kernel and a root filesystem.
+<li>smaller footprint: a standalone application only for software management requires an own kernel and a root file system.
 Even if their size can be trimmed dropping what is not required
 for updating the software, their size is not negligible.</li>
 </ul>
@@ -167,7 +165,7 @@ to the customer ?</p>
 </div>
 <div class="section" id="strategies-for-an-application-doing-software-upgrade">
 <h2>Strategies for an application doing software upgrade<a class="headerlink" href="#strategies-for-an-application-doing-software-upgrade" title="Permalink to this headline">¶</a></h2>
-<p>Instead of using the bootloader, an application can take
+<p>Instead of using the boot loader, an application can take
 into charge to upgrade the system. The application can
 use all services provided by the OS. The proposed solution
 is a stand-alone software, that follow customer rules and
@@ -187,51 +185,51 @@ resources. I am listing some of them.</p>
 two copies of the whole software, it is possible to guarantee
 that there is always a working copy even if the software update
 is interrupted or a power off occurs..</p>
-<p>Each copy must contain the kernel, the root filesystem, and each
+<p>Each copy must contain the kernel, the root file system, and each
 further component that can be updated. It is required
 a mechanism to identify which version is running.</p>
 <p>swupdate should be inserted in the application software, and
 the application software will trigger it when an update is required.
 Duty of swupdate is to update the stand-by copy, leaving the
 running copy of the software untouched.</p>
-<p>A sinergy with the bootloader is often necessary, because the bootloader must
+<p>A synergy with the boot loader is often necessary, because the boot loader must
 decide which copy should be started. Again, it must be possible
 to switch between the two copies.
 After a reboot, the boot loader decides which copy should run.</p>
 <img alt="_images/double_copy_layout.png" src="_images/double_copy_layout.png" />
-<p>Check the chapter about bootloader to see which mechanisms can be
+<p>Check the chapter about boot loader to see which mechanisms can be
 implemented to guarantee that the target is not broken after an update.</p>
 <p>The most evident drawback is the amount of required space. The
 available space for each copy is less than half the size
 of the storage. However, an update is always safe even in case of power off.</p>
 <p>This project supports this strategy. The application as part of this project
-should be installed in the rootfilesystem and started
+should be installed in the root file system and started
 or triggered as required. There is no
 need of an own kernel, because the two copies guarantees that
 it is always possible to upgrade the not running copy.</p>
-<p>swupdate will set U-Boot&#8217;s variable to signal the bootloader
+<p>swupdate will set U-Boot&#8217;s variable to signal the boot loader
 that a new image is successfully installed.</p>
 </div>
 <div class="section" id="single-copy-running-as-standalone-image">
 <h3>Single copy - running as standalone image<a class="headerlink" href="#single-copy-running-as-standalone-image" title="Permalink to this headline">¶</a></h3>
 <p>The software upgrade application consists of kernel (maybe reduced
-dropping not required drivers) and a small root filesystem, with the application
+dropping not required drivers) and a small root file system, with the application
 and its libraries. The whole size is much less than a single copy of
 the system software. Depending on set up, I get sizes from 2.5 until 8 MB
-for the standalone root filesystem. If the size is very important on small
+for the standalone root file system. If the size is very important on small
 systems, it becomes negligible on systems with a lot of storage
 or big NANDs.</p>
-<p>The system can be put in &#8220;upgrade&#8221; mode, simply signalling to the
-bootloader that the upgrading software must be started. The way
-can differ, for example setting a bootloader environment or using
+<p>The system can be put in &#8220;upgrade&#8221; mode, simply signaling to the
+boot loader that the upgrading software must be started. The way
+can differ, for example setting a boot loader environment or using
 and external GPIO.</p>
-<p>The bootloader starts &#8220;swupdate&#8221;, booting the
-swupdate kernel and the initrd image as rootfilesystem. Because it runs in RAM,
+<p>The boot loader starts &#8220;swupdate&#8221;, booting the
+swupdate kernel and the initrd image as root file system. Because it runs in RAM,
 it is possible to upgrade the whole storage. Differently as in the
 double-copy strategy, the systems must reboot to put itself in
 update mode.</p>
 <p>This concept consumes less space in storage as having two copies, but
-it does not guarantee a falback without updating again the software.
+it does not guarantee a fallback without updating again the software.
 However, it can be guaranteed that
 the system goes automatically in upgrade mode when the productivity
 software is not found or corrupted, as well as when the upgrade process
@@ -243,12 +241,12 @@ upgrade the new software is set as &#8220;bootable&#8221;. With these considerat
 an upgrade with this strategy is safe: it is always guaranteed that the
 system boots and it is ready to get a new software, if the old one
 is corrupted or cannot run.
-With U-Boot as bootloader, swupdate is able to manage U-Boot&#8217;s environment
+With U-Boot as boot loader, swupdate is able to manage U-Boot&#8217;s environment
 setting variables to indicate the start and the end of a transaction and
 that the storage contains a valid software.</p>
-<p>swupdate is mainly used in this configuration. The receipes for Yocto
+<p>swupdate is mainly used in this configuration. The recipes for Yocto
 generates a initrd image containing the swupdate application, that is
-automatically started after mounting the root filesystem.</p>
+automatically started after mounting the root file system.</p>
 <img alt="_images/swupdate_single.png" src="_images/swupdate_single.png" />
 </div>
 </div>
@@ -256,7 +254,7 @@ automatically started after mounting the root filesystem.</p>
 <h2>Something went wrong ?<a class="headerlink" href="#something-went-wrong" title="Permalink to this headline">¶</a></h2>
 <p>Many things can go wrong, and it must be guaranteed that the system
 is able to run again and maybe able to reload a new software to fix
-a damaged image. swupdate works together with the U-Boot bootloader to
+a damaged image. swupdate works together with the U-Boot boot loader to
 identify the possible causes of failures.</p>
 <p>We can at least group some of the common causes:</p>
 <ul class="simple">
@@ -275,7 +273,7 @@ to fine tuning and report error causes. recovery_status can have the values &#82
 <p>When swupdate starts, it sets recovery_status to &#8220;progress&#8221;. After an update is finished
 with success, the variable is erased. If the update ends with an error, recovery_status
 has the value &#8220;failed&#8221;.</p>
-<p>When an update is interrupted, independently from the cause, the bootloader
+<p>When an update is interrupted, independently from the cause, the boot loader
 recognizes it because the recovery_status variable is in &#8220;progress&#8221; or &#8220;failed&#8221;.
 The boot loader can then start again swupdate to load again the software
 (single-copy case) or and run the old copy of the application
@@ -288,7 +286,7 @@ to work again - starting again swupdate or restoring an old copy of the software
 <ul class="simple">
 <li>single copy: swupdate is interrupted and the update transaction did not end</li>
 </ul>
-<p>with a success. The bootloader is able to start swupdate again, having the
+<p>with a success. The boot loader is able to start swupdate again, having the
 possibility to update the software again.</p>
 <ul class="simple">
 <li>double copy: swupdate did not switch between stand-by and current copy.</li>
@@ -308,23 +306,23 @@ swupdate is duplicated.</p>
 upgraded image:</p>
 <ul class="simple">
 <li>have two copies of swupdate</li>
-<li>take the risk, but have a rescue procedure using the bootloader.</li>
+<li>take the risk, but have a rescue procedure using the boot loader.</li>
 </ul>
 </div>
-<div class="section" id="what-about-upgrading-the-bootloader">
-<h3>What about upgrading the Bootloader ?<a class="headerlink" href="#what-about-upgrading-the-bootloader" title="Permalink to this headline">¶</a></h3>
-<p>Updating the bootloader is in most cases a one-way process. On most SOCs, there is no possibility
-to have multiple copies of the bootloader, and when U-Boot is broken,
+<div class="section" id="what-about-upgrading-the-boot-loader">
+<h3>What about upgrading the Boot loader ?<a class="headerlink" href="#what-about-upgrading-the-boot-loader" title="Permalink to this headline">¶</a></h3>
+<p>Updating the boot loader is in most cases a one-way process. On most SOCs, there is no possibility
+to have multiple copies of the boot loader, and when U-Boot is broken,
 the board does not simply boot.</p>
 <p>Some SOCs allow to have multiple copies of the
-bootloader. But again, there is no general solution for this because it
+boot loader. But again, there is no general solution for this because it
 is <em>very</em> hardware specific.</p>
-<p>In my experience, most targets do not allow to update the bootloader. It
-is very uncommon that the bootloader must be updated when the product
+<p>In my experience, most targets do not allow to update the boot loader. It
+is very uncommon that the boot loader must be updated when the product
 is ready for production.</p>
 <p>It is different is if the U-Boot environment mus be updated, that is a
-common praxis. U-Boot provides a double copy of the whole environment,
-and updating the environment from swupdate is power-off safe. Other bootloaders
+common practice. U-Boot provides a double copy of the whole environment,
+and updating the environment from swupdate is power-off safe. Other boot loaders
 can or cannot have this feature.</p>
 </div>
 </div>
@@ -339,13 +337,13 @@ can or cannot have this feature.</p>
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">Software Management on embedded systems</a><ul>
-<li><a class="reference internal" href="#updating-through-the-bootloader">Updating through the bootloader</a><ul>
-<li><a class="reference internal" href="#bootloader-have-limited-access-to-peripherals">Bootloader have limited access to peripherals.</a></li>
-<li><a class="reference internal" href="#bootloader-s-drivers-are-not-updated">Bootloader&#8217;s drivers are not updated</a></li>
-<li><a class="reference internal" href="#reduced-filesystems">Reduced filesystems</a></li>
+<li><a class="reference internal" href="#updating-through-the-boot-loader">Updating through the boot loader</a><ul>
+<li><a class="reference internal" href="#boot-loader-have-limited-access-to-peripherals">Boot loader have limited access to peripherals.</a></li>
+<li><a class="reference internal" href="#boot-loader-s-drivers-are-not-updated">Boot loader&#8217;s drivers are not updated</a></li>
+<li><a class="reference internal" href="#reduced-file-systems">Reduced file systems</a></li>
 <li><a class="reference internal" href="#network-support-is-limited">Network support is limited</a></li>
 <li><a class="reference internal" href="#interaction-with-the-operator">Interaction with the operator</a></li>
-<li><a class="reference internal" href="#bootloader-s-update-advantages">Bootloader&#8217;s update advantages</a></li>
+<li><a class="reference internal" href="#boot-loader-s-update-advantages">Boot loader&#8217;s update advantages</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#updating-through-a-package-manager">Updating through a package manager</a></li>
@@ -357,7 +355,7 @@ can or cannot have this feature.</p>
 <li><a class="reference internal" href="#something-went-wrong">Something went wrong ?</a><ul>
 <li><a class="reference internal" href="#power-failure">Power Failure</a></li>
 <li><a class="reference internal" href="#what-about-upgrading-swupdate-itself">What about upgrading swupdate itself ?</a></li>
-<li><a class="reference internal" href="#what-about-upgrading-the-bootloader">What about upgrading the Bootloader ?</a></li>
+<li><a class="reference internal" href="#what-about-upgrading-the-boot-loader">What about upgrading the Boot loader ?</a></li>
 </ul>
 </li>
 </ul>
@@ -366,10 +364,10 @@ can or cannot have this feature.</p>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="index.html"
-                        title="previous chapter">SWUpdate Documentation</a></p>
+                        title="previous chapter">swupdate Documentation</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="swupdate.html"
-                        title="next chapter">SWUPDATE: software update for embedded system</a></p>
+                        title="next chapter">swupdate: software update for embedded system</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/overview.txt"
@@ -399,17 +397,17 @@ can or cannot have this feature.</p>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="swupdate.html" title="SWUPDATE: software update for embedded system"
+          <a href="swupdate.html" title="swupdate: software update for embedded system"
              >next</a> |</li>
         <li class="right" >
-          <a href="index.html" title="SWUpdate Documentation"
+          <a href="index.html" title="swupdate Documentation"
              >previous</a> |</li>
         <li><a href="index.html">Embedded Software Update Documentation 0.1.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
         &copy; Copyright 2013, Stefano Babic.
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
   </body>
 </html>

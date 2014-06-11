@@ -21,7 +21,7 @@ Supplied handlers
 -----------------
 
 In mainline there are the handler for the most common cases. They includes:
-	- NOR flashes
+	- flash devices in raw mode (both NOR and NAND)
 	- UBI volumes
 	- raw devices, such as a SD Card partition
 	- U-Boot environment
@@ -69,3 +69,37 @@ Where:
 - data : an optional pointer to an own structure, that swupdate
   saves in the handlers' list and pass to the handler when it will
   be executed.
+
+Handler for UBI Volumes
+-----------------------
+
+The handler for UBI volumes is thought to update UBI volumes
+without changing the layout of the storage.
+Volumes must be set before: the handler does not create volumes
+itself. It searches for a volume in all MTD (if they are not
+blacklisted: see UBIBLACKLIST) to find the volume where the image
+must be installed. For this reason, volumes must be unique inside
+the system. Two volumes with the same names are not supported
+and drives to unpredictable results. swupdate will install
+an image to the first volume that matches with the name, and this
+maybe is not the desired behavior.
+Updating volumes, it is guaranted that the erase counters are
+preserved and not lost after an update. The way for updating
+is identical to the "ubiupdatevol" from the mtd-utils. In fact,
+the same library from mtd-utils (libubi) is reused by swupdate.
+
+If the storage is empty, it is required to setup the layout
+and create the volumes. This can be easy done with a
+preinstall script. Building with meta-swupdate, the original
+mtd-utils are available and can be called by a LUA script.
+
+Extend swupdate with handlers in LUA
+------------------------------------
+
+In an experimental phase, it is possible to add handlers
+that are not linked to swupdate but that are loaded by
+the LUA interpreter. The handlers must be copied into the
+root filesystem and are loaded only at the startup.
+These handlers cannot be integrated into the image to be installed.
+Even if this can be theoretical possible, arise a lot of
+security questions, because it changes swupdate's behavior.
