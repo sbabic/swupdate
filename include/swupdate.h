@@ -26,7 +26,8 @@
 #include <sys/queue.h>
 #include "flash.h"
 
-#define BANNER "Swupdate v" SWU_VER
+#define BANNER "Swupdate v" SWU_VER "\n" \
+	"Built on " AUTOCONF_TIMESTAMP
 
 #define MAX_IMAGE_FNAME	64
 #define MAX_VOLNAME	32
