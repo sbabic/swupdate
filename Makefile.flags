@@ -10,7 +10,7 @@ SKIP_STRIP ?= n
 CPPFLAGS += $(call cc-option,-std=gnu99,)
 
 CPPFLAGS += \
-	-Iinclude -Ilibbb \
+	-Iinclude \
 	$(if $(KBUILD_SRC),-Iinclude2 -I$(srctree)/include -I$(srctree)/libbb) \
 	-include include/autoconf.h \
 	-D_GNU_SOURCE -DNDEBUG \
