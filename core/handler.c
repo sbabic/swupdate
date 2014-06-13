@@ -113,7 +113,7 @@ static int l_handler_wrapper(struct img_type *img, void *data) {
 static int l_register_handler( lua_State *L ) {
 	int *l_func_ref = malloc(sizeof(int));
 	if(!l_func_ref) {
-		printf("[lua handler] unable to allocate memory\n");
+		ERROR("lua handler: unable to allocate memory\n");
 		return -1;
 	} else {
 		const char *handler_desc = luaL_checkstring(L, 1);
@@ -121,7 +121,6 @@ static int l_register_handler( lua_State *L ) {
 		*l_func_ref = luaL_ref (L, LUA_REGISTRYINDEX);
 		/* pop the arguments from the stack */
 		lua_pop (L, 2);
-		printf ("[lua handler] id: %d, handler name: %s, \n", *l_func_ref, handler_desc);
 		register_handler(handler_desc,l_handler_wrapper,l_func_ref);
 		return 0;
 	}

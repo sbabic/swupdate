@@ -79,7 +79,7 @@ static void usage(char *programname)
 		" -v, --verbose         : be verbose\n"
 		" -i, --image <filename> : Software to be installed\n"
 #ifdef CONFIG_WEBSERVER
-		" -w, --webserver [OPTIONS] : Paramters to be passed to webserver\n"
+		" -w, --webserver [OPTIONS] : Parameters to be passed to webserver\n"
 #endif
 		" -h, --help            : print this help and exit\n"),
 	       programname);
