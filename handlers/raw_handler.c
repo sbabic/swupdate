@@ -46,17 +46,17 @@ static int install_raw_image(struct img_type *img,
 {
 	int ret;
 	int fdout;
-	unsigned long dummy;
+	unsigned long offset;
 	uint32_t checksum;
 
-	fdout = open(img->path, O_RDWR);
+	fdout = open(img->device, O_RDWR);
 	if (fdout < 0) {
 		TRACE("Image %s cannot be opened",
 				img->path);
 		return -1;
 	}
 	
-	ret = copyfile(img->fdin, fdout, img->size, &dummy, 0, 0, &checksum);
+	ret = copyfile(img->fdin, fdout, img->size, &offset, 0, img->compressed, &checksum);
 	close(fdout);
 	return ret;
 }

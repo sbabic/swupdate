@@ -317,8 +317,9 @@ static void parse_files(config_t *cfg, struct swupdate_cfg *swcfg)
 		GET_FIELD(elem, "path", file->path);
 		GET_FIELD(elem, "device", file->device);
 		GET_FIELD(elem, "filesystem", file->filesystem);
-		strcpy(file->type, "raw");
-		if (!config_setting_lookup_bool(elem, "compressed", &file->compressed))
+		strcpy(file->type, "rawfile");
+		if (config_setting_lookup_bool(elem,
+			"compressed", &file->compressed) == CONFIG_FALSE)
 			file->compressed = 0;
 		TRACE("Found %sFile: %s --> %s (%s)\n",
 			file->compressed ? "compressed " : "",
@@ -326,7 +327,7 @@ static void parse_files(config_t *cfg, struct swupdate_cfg *swcfg)
 			file->path,
 			strlen(file->device) ? file->device : "ROOTFS");
  
-		LIST_INSERT_HEAD(&swcfg->files, file, next);
+		LIST_INSERT_HEAD(&swcfg->images, file, next);
 	}
 }
 
