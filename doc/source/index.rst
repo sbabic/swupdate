@@ -11,6 +11,7 @@ swupdate Documentation
    swupdate.rst
    sw-description.rst
    handlers.rst
+   swupdate-ipc.rst
    help_and_support.rst
    roadmap.rst
 
