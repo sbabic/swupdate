@@ -76,7 +76,7 @@ typedef void (*notifier) (RECOVERY_STATUS status, int error, const char *msg);
 } while(0)
 
 #define ERROR(format, arg...) do { \
-	char tmpbuf[128]; \
+	char tmpbuf[1024]; \
 	if (verbose) \
 		snprintf(tmpbuf, sizeof(tmpbuf), "ERROR %s : %s : %d : " format, __FILE__, __func__, __LINE__, ## arg); \
 	else \
