@@ -36,6 +36,28 @@
 #define GET_FIELD(e, name, d) \
 	get_field(e, name, d, sizeof(d))
 
+static struct hw_type hardware;
+
+static const config_setting_t *get_setting(config_t *cfg,
+	const char *field)
+{
+	const config_setting_t *setting;
+
+	char node[1024];
+	if (field && strlen(hardware.boardname)) {
+		snprintf(node, sizeof(node), "software.%s.%s",
+			hardware.boardname,
+			field);
+		setting = config_lookup(cfg, node);
+		if (setting)
+			return setting;
+	}
+	/* Fall back without board entry */
+	snprintf(node, sizeof(node), "software.%s",
+		field);
+	return config_lookup(cfg, node);
+}
+
 static void get_field(const config_setting_t *e, const char *path, char *dest, size_t n)
 {
 	const char *str;
@@ -54,7 +76,7 @@ static int parse_hw_compatibility(config_t *cfg, struct swupdate_cfg *swcfg)
 	const char *s;
 	struct hw_type *hwrev;
 
-	setting = config_lookup(cfg, "software.hardware-compatibility");
+	setting = get_setting(cfg, "hardware-compatibility");
 	if (setting == NULL) {
 		ERROR("HW compatibility not found\n");
 		return -1;
@@ -96,7 +118,7 @@ static void parse_partitions(config_t *cfg, struct swupdate_cfg *swcfg)
 	int count, i;
 	struct img_type *partition;
 
-	setting = config_lookup(cfg, "software.partitions");
+	setting = get_setting(cfg, "partitions");
 
 	if (setting == NULL)
 		return;
@@ -146,7 +168,7 @@ static void parse_scripts(config_t *cfg, struct swupdate_cfg *swcfg)
 	struct img_type *script;
 	const char *str;
 
-	setting = config_lookup(cfg, "software.scripts");
+	setting = get_setting(cfg, "scripts");
 
 	if (setting == NULL)
 		return;
@@ -191,7 +213,7 @@ static void parse_uboot(config_t *cfg, struct swupdate_cfg *swcfg)
 	struct uboot_var *uboot;
 	const char *str;
 
-	setting = config_lookup(cfg, "software.uboot");
+	setting = get_setting(cfg, "uboot");
 
 	if (setting == NULL)
 		return;
@@ -229,7 +251,7 @@ static void parse_images(config_t *cfg, struct swupdate_cfg *swcfg)
 	struct img_type *image;
 	const char *str;
 
-	setting = config_lookup(cfg, "software.images");
+	setting = get_setting(cfg, "images");
 
 	if (setting == NULL)
 		return;
@@ -286,7 +308,7 @@ static void parse_files(config_t *cfg, struct swupdate_cfg *swcfg)
 	struct img_type *file;
 	const char *str;
 
-	setting = config_lookup(cfg, "software.files");
+	setting = get_setting(cfg, "files");
 
 	if (setting == NULL)
 		return;
@@ -329,6 +351,7 @@ int parse_cfg (struct swupdate_cfg *swcfg, const char *filename)
 {
 	config_t cfg;
 	const char *str;
+	int ret;
 
 	memset(&cfg, 0, sizeof(cfg));
 	config_init(&cfg);
@@ -353,6 +376,8 @@ int parse_cfg (struct swupdate_cfg *swcfg, const char *filename)
 		strncpy(swcfg->version, str, sizeof(swcfg->version));
 		fprintf(stdout, "Version %s\n", swcfg->version);
 	}
+
+	get_hw_revision(&hardware);
 
 	/* Now parse the single elements */
 	parse_hw_compatibility(&cfg, swcfg);
