@@ -135,26 +135,46 @@ int isDirectoryEmpty(const char *dirname)
 int get_hw_revision(struct hw_type *hw)
 {
 	FILE *fp;
+	int ret;
+	char *b1, *b2;
 #ifdef HW_COMPATIBILITY_FILE
 #define HW_FILE HW_COMPATIBILITY_FILE
 #else
 #define HW_FILE "/etc/hwrevision"
 #endif
+
+	memset(hw->boardname, 0, sizeof(hw->boardname));
+	memset(hw->revision, 0, sizeof(hw->revision));
 	/*
 	 * Not all boards have pins for revision number
 	 * check if there is a file containing theHW revision number
 	 */
 
-	hw->major = 0;
-	hw->minor = 0;
-
 	fp = fopen(HW_FILE, "r");
 	if (!fp)
 		return -1;
 
-	if (fscanf(fp, "%d.%d", &hw->major, &hw->minor) == EOF)
-		return -1;
+	ret = fscanf(fp, "%ms %ms", &b1, &b2);
 	fclose(fp);
+
+	if (ret != 2) {
+		TRACE("Cannot find Board Revision\n");
+		if(ret == 1)
+			free(b1);
+		return -1;
+	}
+
+	if ((strlen(b1) > (SWUPDATE_GENERAL_STRING_SIZE) - 1) ||
+		(strlen(b2) > (SWUPDATE_GENERAL_STRING_SIZE - 1))) {
+		ERROR("Board name or revision too long");
+		return -1;
+	}
+
+	strncpy(hw->boardname, b1, sizeof(hw->boardname));
+	strncpy(hw->revision, b2, sizeof(hw->revision));
+
+	free(b1);
+	free(b2);
 
 	return 0;
 }
@@ -173,9 +193,9 @@ int check_hw_compatibility(struct swupdate_cfg *cfg)
 	if (ret < 0)
 		return -1;
 
-	TRACE("Hardware Revision: %d.%d", hwrev.major, hwrev.minor);
+	TRACE("Hardware %s Revision: %s", hwrev.boardname, hwrev.revision);
 	LIST_FOREACH(hw, &cfg->hardware, next) {
-		if (hw && (hw->major == hwrev.major) && (hw->minor == hwrev.minor))
+		if (hw && (!strcmp(hw->revision, hwrev.revision)))
 			return 0;
 	}
 

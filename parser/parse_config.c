@@ -52,7 +52,6 @@ static int parse_hw_compatibility(config_t *cfg, struct swupdate_cfg *swcfg)
 	const config_setting_t *setting, *hw;
 	int count, i;
 	const char *s;
-	char *p;
 	struct hw_type *hwrev;
 
 	setting = config_lookup(cfg, "software.hardware-compatibility");
@@ -76,14 +75,9 @@ static int parse_hw_compatibility(config_t *cfg, struct swupdate_cfg *swcfg)
 			return -1;
 		}
 
-		p = strchr(s, '.');
-		hwrev->major = strtoul(s, NULL, 10);
-		if (p && ((p - s) < strlen(s))) {
-			hwrev->minor = strtoul(p + 1, NULL, 10);
-			LIST_INSERT_HEAD(&swcfg->hardware, hwrev, next);
-			TRACE("Accepted Hw Revision : %d.%d\n", hwrev->major,
-				hwrev->minor);
-		}
+		strncpy(hwrev->revision, s, sizeof(hwrev->revision));
+		LIST_INSERT_HEAD(&swcfg->hardware, hwrev, next);
+		TRACE("Accepted Hw Revision : %s", hwrev->revision);
 	}
 
 	return 0;
@@ -357,7 +351,6 @@ int parse_cfg (struct swupdate_cfg *swcfg, const char *filename)
 		return -1;
 	} else {
 		strncpy(swcfg->version, str, sizeof(swcfg->version));
-
 		fprintf(stdout, "Version %s\n", swcfg->version);
 	}
 

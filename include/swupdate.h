@@ -29,11 +29,13 @@
 #define BANNER "Swupdate v" SWU_VER "\n" \
 	"Built on " AUTOCONF_TIMESTAMP
 
-#define MAX_IMAGE_FNAME	64
-#define MAX_VOLNAME	32
+#define SWUPDATE_GENERAL_STRING_SIZE	64
+#define MAX_IMAGE_FNAME	SWUPDATE_GENERAL_STRING_SIZE
+#define MAX_VOLNAME	SWUPDATE_GENERAL_STRING_SIZE
 #define MAX_HW_VERSIONS	10
 #define MAX_LINE	80
 #define UBOOT_VAR_LENGTH 16
+#define MAX_REVISION_LENGTH	SWUPDATE_GENERAL_STRING_SIZE
 
 /* These are fixed path to temporary files */
 #define SCRIPTS_DIR	TMPDIR "scripts/"
@@ -50,7 +52,7 @@ typedef enum {
 } imagetype_t;
 
 struct img_type {
-	char type[64];
+	char type[SWUPDATE_GENERAL_STRING_SIZE];
 	char fname[MAX_IMAGE_FNAME];
 	char volname[MAX_VOLNAME];
 	char device[MAX_VOLNAME];
@@ -73,8 +75,8 @@ struct img_type {
 LIST_HEAD(imglist, img_type);
 
 struct hw_type {
-	int major;
-	int minor;
+	char boardname[SWUPDATE_GENERAL_STRING_SIZE];
+	char revision[SWUPDATE_GENERAL_STRING_SIZE];
 	LIST_ENTRY(hw_type) next;
 };
 
@@ -95,9 +97,9 @@ struct uboot_var {
 LIST_HEAD(ubootvarlist, uboot_var);
 
 struct swupdate_cfg {
-	char name[64];
+	char name[SWUPDATE_GENERAL_STRING_SIZE];
 	int valid;
-	char version[64];
+	char version[SWUPDATE_GENERAL_STRING_SIZE];
 	struct hwlist hardware;
 	struct imglist images;
 	struct imglist files;

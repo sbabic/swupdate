@@ -235,11 +235,11 @@ int main(int argc, char **argv)
 		}
 	}
 
-	if(!get_hw_revision(&hwrev))
-		TRACE("Board HW Revision %d.%d\n", hwrev.major, hwrev.minor);
-
 	swupdate_init(&swcfg);
 	lua_handlers_init();
+	if(!get_hw_revision(&hwrev))
+		printf("Running on %s Revision %s\n", hwrev.boardname, hwrev.revision);
+
 	print_registered_handlers();
 	notify_init();
 
