@@ -351,7 +351,6 @@ int parse_cfg (struct swupdate_cfg *swcfg, const char *filename)
 {
 	config_t cfg;
 	const char *str;
-	int ret;
 
 	memset(&cfg, 0, sizeof(cfg));
 	config_init(&cfg);
