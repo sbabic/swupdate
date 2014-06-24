@@ -356,11 +356,13 @@ static void recovery_status(struct mg_connection *conn) {
 		"{\r\n"
 		"\t\"Status\" : \"%d\",\r\n"
 		"\t\"Msg\" : \"%s\",\r\n"
-		"\t\"Error\" : \"%d\"\r\n"
+		"\t\"Error\" : \"%d\",\r\n"
+		"\t\"LastResult\" : \"%d\"\r\n"
 		"}\r\n",
 		ipc.data.status.current,
 		strlen(ipc.data.status.desc) ? ipc.data.status.desc : "",
-		ipc.data.status.error
+		ipc.data.status.error,
+		ipc.data.status.last_result
 		);
 
 	mg_printf(conn,
