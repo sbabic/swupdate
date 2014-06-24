@@ -215,6 +215,7 @@ void cleanup_files(struct swupdate_cfg *software) {
 	char fn[64];
 	struct img_type *img;
 	struct uboot_var *ubootvar;
+	struct hw_type *hw;
 
 	LIST_FOREACH(img, &software->images, next) {
 		if (img->fname[0]) {
@@ -222,6 +223,7 @@ void cleanup_files(struct swupdate_cfg *software) {
 			remove_sw_file(fn);
 		}
 		LIST_REMOVE(img, next);
+		free(img);
 	}
 	LIST_FOREACH(img, &software->scripts, next) {
 		if (img->fname[0]) {
@@ -229,13 +231,17 @@ void cleanup_files(struct swupdate_cfg *software) {
 			remove_sw_file(fn);
 		}
 		LIST_REMOVE(img, next);
+		free(img);
 	}
 	LIST_FOREACH(ubootvar, &software->uboot, next) {
 		LIST_REMOVE(ubootvar, next);
+		free(ubootvar);
 	}
 
+	LIST_FOREACH(hw, &software->hardware, next) {
+		LIST_REMOVE(hw, next);
+		free(hw);
+	}
 	snprintf(fn, sizeof(fn), "%s%s", TMPDIR, SW_DESCRIPTION_FILENAME);
 	remove_sw_file(fn);
 }
-
-
