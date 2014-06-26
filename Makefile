@@ -1,8 +1,8 @@
-VERSION = 0
-PATCHLEVEL = 1
+VERSION = 2014
+PATCHLEVEL = 07
 SUBLEVEL = 0
-EXTRAVERSION = .git
-NAME = Unnamed
+EXTRAVERSION = -rc1
+NAME =
 
 # *DOCUMENTATION*
 # To see a list of typical targets execute "make help"
