@@ -30,7 +30,6 @@
 #include <ctype.h>
 #include <sys/types.h>
 #include <sys/queue.h>
-#include <libconfig.h>
 #include <sys/fcntl.h>
 
 #include "autoconf.h"
