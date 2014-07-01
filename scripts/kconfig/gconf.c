@@ -275,7 +275,7 @@ void init_main_window(const gchar * glade_file)
 					  /*"style", PANGO_STYLE_OBLIQUE, */
 					  NULL);
 
-	sprintf(title, _("BusyBox %s Configuration"),
+	sprintf(title, _("swupdate %s Configuration"),
 		getenv("KERNELVERSION"));
 	gtk_window_set_title(GTK_WINDOW(main_wnd), title);
 
