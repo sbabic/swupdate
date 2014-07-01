@@ -124,6 +124,35 @@ By reading the delivered image, swupdate will ignore all images that
 are not in the list processed by the parser. In this way, it is possible
 to have a single delivered image for the update of multiple devices.
 
+Multiple devices is supported by the default parser, too.
+
+::
+
+    software =
+    {
+        version = "0.1.0";
+
+        target-1 = {
+                images: (
+                        {
+                                ...
+                        }
+                );
+        };
+
+        target-2 = {
+                images: (
+                        {
+                                ...
+                        }
+                );
+        };
+    }
+
+In this way, it is possible to have a single image providing software
+for each device you have.
+
+
 Streaming feature
 -----------------
 
@@ -209,29 +238,108 @@ List of supported features
 - Features are enabled / disabled using "make menuconfig".
   (Kbuild is inherited from busybox project)
 
-Configuration and installation
-==============================
+Configuration and build
+=======================
 
-swupdate is configurable via "make menu config". The small footprint
+Requirements
+------------
+
+There are only a few libraries that are required to compile swupdate.
+
+- mtd-utils: internally, mtd-utils generates libmtd and libubi.
+  They are commonly not exported and not installed, but they are
+  linked by swupdate to reuse the same functions for upgrading
+  MTD and UBI volumes.
+- openssl: required with the Webserver
+- LUA: liblua and the development headers.
+- libz, libcrypto are always linked.
+- libconfig: it is used by the default parser.
+
+Building with Yocto
+-------------------
+
+A meta-swupdate layer is provided. It contains the required changes
+for mtd-utils and for generating LUA. Using meta-swupdate is a
+straightforward process.
+
+Firstly, clone meta-swupdate from:
+
+.. _meta_swupdate:  https://github.com/sbabic/meta-swupdate.git
+
+Add meta-swupdate as usual to your bblayers.conf.
+
+In meta-swupdate there is a receipe to generate a initrd with a
+rescue system with swupdate. Use:
+
+::
+
+	MACHINE=<your machine> bitbake swupdate-image
+
+You will find the result in your tmp/deploy/<your machine> directory.
+How to install and start a initrd is very target specific - please
+check in the documentation of your bootloader.
+
+Configuring swupdate
+--------------------
+
+swupdate is configurable via "make menuconfig". The small footprint
 is reached using the internal parser and disabling the webserver.
+Any option has a small help describing its usage. In the default
+configuration, many options are already activated.
 
-To compile, you have to follow the steps:
+To configure the options:
 
-- configure the options
+::
 
 	make menuconfig
 
+Building
+--------
+
+- to cross-compile, set the CC and CXX variables before running make.
+  It is also possible to set the cross-compiler prefix as option with
+  make menuconfig.
 - generate the code
+
+::
 
 	make
 
-To cross-compile, set the CC and CXX variables before running make.
-It is also possible to set the cross-compiler prefix as option with
-make menuconfig.
-
 The result is the binary "swupdate". 
 
-To start it expecting the image from a file:
+Running swupdate
+-----------------
+
+A run of swupdate consists mainly of the following steps:
+
+- check for media (USB-pen)
+- check for an image file. The extension must be .swu
+- extracts sw-description from the image and verifies it
+  It parses sw-description creating a raw description in RAM
+  about the activities that must be performed.
+- Reads the cpio archive and proofs the checksum of each single file
+  swupdate stops if the archive is not complete verified
+- check for hardware-software compatibility, if any,
+  reading hardware revision from hardware and matching
+  with the table in sw-description.
+- check that all components described in sw-description are
+  really in the cpio archive.
+- modify partitions, if required. This consists in a resize
+  of UBI volumes, not a resize of MTD partition.
+  A volume with the name "data" is saved and restored after
+  resizing.
+- runs pre-install scripts
+- iterates through all images and call the corresponding
+  handler for installing on target.
+- runs post-install scripts
+- update u-boot environment, if changes are specified
+  in sw-description.
+- reports the status to the operator (stdout)
+
+The first step that fails, stops the entire procedure and
+an error is reported.
+
+To start swupdate expecting the image from a file:
 
 ::
 
@@ -241,7 +349,7 @@ To start with the embedded webserver:
 
 ::
 
-	         swupdate -w "<webserver options"
+	         swupdate -w "<webserver options>"
 
 The main important parameter for the webserver is "document_root".
 
@@ -250,14 +358,13 @@ The main important parameter for the webserver is "document_root".
 	         swupdate -w "-document_root ./www"
 
 The embedded webserver is taken from the Mongoose project (last release
-with LUA license). Additional paramters can be found in mongoose
+with LUA license). Additional parameters can be found in mongoose
 documentation.
 This uses as website the pages delivered with the code. Of course,
 they can be customized and replaced. The website uses AJAX to communicate
 with swupdate, and to show the progress of the update to the operator.
 
 The default port of the Webserver is 8080. You can then connect to the target with:
-
 
 ::
 
@@ -329,35 +436,3 @@ To produce an image, a script like this can be used:
 
 The single images can be put in any order inside the cpio container, with the exception
 of sw-description, that must be the first one.
-
-Running swupdate
------------------
-
-A run of swupdate consists mainly of the following steps:
-
-- check for media (USB-pen)
-- check for an image file. The extension must be .swu
-- extracts sw-description from the image and verifies it
-  It parses sw-description creating a raw description in RAM
-  about the activities that must be performed.
-- Reads the cpio archive and proofs the checksum of each single file
-  swupdate stops if the archive is not complete verified
-- check for hardware-software compatibility, if any,
-  reading hardware revision from hardware and matching
-  with the table in sw-description.
-- check that all components described in sw-description are
-  really in the cpio archive.
-- modify partitions, if required. This consists in a resize
-  of UBI volumes, not a resize of MTD partition.
-  A volume with the name "data" is saved and restored after
-  resizing.
-- runs pre-install scripts
-- iterates through all images and call the corresponding
-  handler for installing on target.
-- runs post-install scripts
-- update u-boot environment, if changes are specified
-  in sw-description.
-- reports the status to the operator (stdout)
-
-The first step that fails, stops the entire procedure and
-an error is reported.
