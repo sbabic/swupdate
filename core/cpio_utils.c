@@ -211,10 +211,17 @@ int extract_cpio_header(int fd, struct filehdr *fhdr, unsigned long *offset)
 	unsigned char buf[256];
 	if (fill_buffer(fd, buf, sizeof(struct new_ascii_header), offset, NULL) < 0)
 		return(-EINVAL);
-	if (get_cpiohdr(buf, &fhdr->size, &fhdr->namesize, &fhdr->chksum) < 0)
+	if (get_cpiohdr(buf, &fhdr->size, &fhdr->namesize, &fhdr->chksum) < 0) {
+		ERROR("CPIO Header corrupted, cannot be parsed");
 		return -EINVAL;
+	}
 	if (fhdr->namesize >= sizeof(fhdr->filename))
+	{
+		ERROR("CPIO Header filelength too big %u >= %u (max)",
+			(unsigned int)fhdr->namesize,
+			(unsigned int)sizeof(fhdr->filename));
 		return -EINVAL;
+	}
 
 	if (fill_buffer(fd, buf, fhdr->namesize , offset, NULL) < 0)
 		return(-EINVAL);
