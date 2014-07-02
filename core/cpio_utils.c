@@ -214,7 +214,10 @@ int extract_cpio_header(int fd, struct filehdr *fhdr, unsigned long *offset)
 	if (get_cpiohdr(buf, &fhdr->size, &fhdr->namesize, &fhdr->chksum) < 0)
 		return -EINVAL;
 	if (fhdr->namesize >= sizeof(fhdr->filename))
+	{
+	    ERROR("fhdr->namesize %d >= sizeof(fhdr->filename) %d", fhdr->namesize, sizeof(fhdr->filename));
 		return -EINVAL;
+	}
 
 	if (fill_buffer(fd, buf, fhdr->namesize , offset, NULL) < 0)
 		return(-EINVAL);
