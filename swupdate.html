@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>swupdate: software update for embedded system &mdash; Embedded Software Update Documentation 0.1.0 documentation</title>
+    <title>swupdate: software update for embedded system &mdash; Embedded Software Update Documentation 2014.07 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.1.0',
+        VERSION:     '2014.07',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="Embedded Software Update Documentation 0.1.0 documentation" href="index.html" />
+    <link rel="top" title="Embedded Software Update Documentation 2014.07 documentation" href="index.html" />
     <link rel="next" title="swupdate: syntax and tags with the default parser" href="sw-description.html" />
     <link rel="prev" title="Software Management on embedded systems" href="overview.html" /> 
   </head>
@@ -40,7 +40,7 @@
         <li class="right" >
           <a href="overview.html" title="Software Management on embedded systems"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">Embedded Software Update Documentation 0.1.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">Embedded Software Update Documentation 2014.07 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -151,6 +151,31 @@ handlers.
 By reading the delivered image, swupdate will ignore all images that
 are not in the list processed by the parser. In this way, it is possible
 to have a single delivered image for the update of multiple devices.</p>
+<p>Multiple devices is supported by the default parser, too.</p>
+<div class="highlight-python"><div class="highlight"><pre>software =
+{
+    version = &quot;0.1.0&quot;;
+
+    target-1 = {
+            images: (
+                    {
+                            ...
+                    }
+            );
+    };
+
+    target-2 = {
+            images: (
+                    {
+                            ...
+                    }
+            );
+    };
+}
+</pre></div>
+</div>
+<p>In this way, it is possible to have a single image providing software
+for each device you have.</p>
 </div>
 <div class="section" id="streaming-feature">
 <h3>Streaming feature<a class="headerlink" href="#streaming-feature" title="Permalink to this headline">¶</a></h3>
@@ -221,33 +246,98 @@ to be installed.</li>
 </ul>
 </div>
 </div>
-<div class="section" id="configuration-and-installation">
-<h2>Configuration and installation<a class="headerlink" href="#configuration-and-installation" title="Permalink to this headline">¶</a></h2>
-<p>swupdate is configurable via &#8220;make menu config&#8221;. The small footprint
-is reached using the internal parser and disabling the webserver.</p>
-<p>To compile, you have to follow the steps:</p>
-<ul>
-<li><p class="first">configure the options</p>
-<blockquote>
-<div><p>make menuconfig</p>
-</div></blockquote>
-</li>
-<li><p class="first">generate the code</p>
-<blockquote>
-<div><p>make</p>
-</div></blockquote>
-</li>
+<div class="section" id="configuration-and-build">
+<h2>Configuration and build<a class="headerlink" href="#configuration-and-build" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="requirements">
+<h3>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h3>
+<p>There are only a few libraries that are required to compile swupdate.</p>
+<ul class="simple">
+<li>mtd-utils: internally, mtd-utils generates libmtd and libubi.
+They are commonly not exported and not installed, but they are
+linked by swupdate to reuse the same functions for upgrading
+MTD and UBI volumes.</li>
+<li>openssl: required with the Webserver</li>
+<li>LUA: liblua and the development headers.</li>
+<li>libz, libcrypto are always linked.</li>
+<li>libconfig: it is used by the default parser.</li>
 </ul>
-<p>To cross-compile, set the CC and CXX variables before running make.
+</div>
+<div class="section" id="building-with-yocto">
+<h3>Building with Yocto<a class="headerlink" href="#building-with-yocto" title="Permalink to this headline">¶</a></h3>
+<p>A meta-swupdate layer is provided. It contains the required changes
+for mtd-utils and for generating LUA. Using meta-swupdate is a
+straightforward process.</p>
+<p>Firstly, clone meta-swupdate from:</p>
+<p>Add meta-swupdate as usual to your bblayers.conf.</p>
+<p>In meta-swupdate there is a receipe to generate a initrd with a
+rescue system with swupdate. Use:</p>
+<div class="highlight-python"><div class="highlight"><pre>MACHINE=&lt;your machine&gt; bitbake swupdate-image
+</pre></div>
+</div>
+<p>You will find the result in your tmp/deploy/&lt;your machine&gt; directory.
+How to install and start a initrd is very target specific - please
+check in the documentation of your bootloader.</p>
+</div>
+<div class="section" id="configuring-swupdate">
+<h3>Configuring swupdate<a class="headerlink" href="#configuring-swupdate" title="Permalink to this headline">¶</a></h3>
+<p>swupdate is configurable via &#8220;make menuconfig&#8221;. The small footprint
+is reached using the internal parser and disabling the webserver.
+Any option has a small help describing its usage. In the default
+configuration, many options are already activated.</p>
+<p>To configure the options:</p>
+<div class="highlight-python"><div class="highlight"><pre>make menuconfig
+</pre></div>
+</div>
+</div>
+<div class="section" id="building">
+<h3>Building<a class="headerlink" href="#building" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>to cross-compile, set the CC and CXX variables before running make.
 It is also possible to set the cross-compiler prefix as option with
-make menuconfig.</p>
+make menuconfig.</li>
+<li>generate the code</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">make</span>
+</pre></div>
+</div>
 <p>The result is the binary &#8220;swupdate&#8221;.</p>
-<p>To start it expecting the image from a file:</p>
+</div>
+<div class="section" id="running-swupdate">
+<h3>Running swupdate<a class="headerlink" href="#running-swupdate" title="Permalink to this headline">¶</a></h3>
+<p>A run of swupdate consists mainly of the following steps:</p>
+<ul class="simple">
+<li>check for media (USB-pen)</li>
+<li>check for an image file. The extension must be .swu</li>
+<li>extracts sw-description from the image and verifies it
+It parses sw-description creating a raw description in RAM
+about the activities that must be performed.</li>
+<li>Reads the cpio archive and proofs the checksum of each single file
+swupdate stops if the archive is not complete verified</li>
+<li>check for hardware-software compatibility, if any,
+reading hardware revision from hardware and matching
+with the table in sw-description.</li>
+<li>check that all components described in sw-description are
+really in the cpio archive.</li>
+<li>modify partitions, if required. This consists in a resize
+of UBI volumes, not a resize of MTD partition.
+A volume with the name &#8220;data&#8221; is saved and restored after
+resizing.</li>
+<li>runs pre-install scripts</li>
+<li>iterates through all images and call the corresponding
+handler for installing on target.</li>
+<li>runs post-install scripts</li>
+<li>update u-boot environment, if changes are specified
+in sw-description.</li>
+<li>reports the status to the operator (stdout)</li>
+</ul>
+<p>The first step that fails, stops the entire procedure and
+an error is reported.</p>
+<p>To start swupdate expecting the image from a file:</p>
 <div class="highlight-python"><div class="highlight"><pre>swupdate -i &lt;filename&gt;
 </pre></div>
 </div>
 <p>To start with the embedded webserver:</p>
-<div class="highlight-python"><div class="highlight"><pre>swupdate -w &quot;&lt;webserver options&quot;
+<div class="highlight-python"><div class="highlight"><pre>swupdate -w &quot;&lt;webserver options&gt;&quot;
 </pre></div>
 </div>
 <p>The main important parameter for the webserver is &#8220;document_root&#8221;.</p>
@@ -255,7 +345,7 @@ make menuconfig.</p>
 </pre></div>
 </div>
 <p>The embedded webserver is taken from the Mongoose project (last release
-with LUA license). Additional paramters can be found in mongoose
+with LUA license). Additional parameters can be found in mongoose
 documentation.
 This uses as website the pages delivered with the code. Of course,
 they can be customized and replaced. The website uses AJAX to communicate
@@ -278,6 +368,7 @@ on a LCD (if the target has one), or sending back to another device via
 network.
 An example of the notifications sent back to the browser is in the next figure:</p>
 <img alt="_images/webprogress.png" src="_images/webprogress.png" />
+</div>
 </div>
 <div class="section" id="changes-in-bootloader-code">
 <h2>Changes in bootloader code<a class="headerlink" href="#changes-in-bootloader-code" title="Permalink to this headline">¶</a></h2>
@@ -320,37 +411,6 @@ for i in $FILES;do
 </div>
 <p>The single images can be put in any order inside the cpio container, with the exception
 of sw-description, that must be the first one.</p>
-<div class="section" id="running-swupdate">
-<h3>Running swupdate<a class="headerlink" href="#running-swupdate" title="Permalink to this headline">¶</a></h3>
-<p>A run of swupdate consists mainly of the following steps:</p>
-<ul class="simple">
-<li>check for media (USB-pen)</li>
-<li>check for an image file. The extension must be .swu</li>
-<li>extracts sw-description from the image and verifies it
-It parses sw-description creating a raw description in RAM
-about the activities that must be performed.</li>
-<li>Reads the cpio archive and proofs the checksum of each single file
-swupdate stops if the archive is not complete verified</li>
-<li>check for hardware-software compatibility, if any,
-reading hardware revision from hardware and matching
-with the table in sw-description.</li>
-<li>check that all components described in sw-description are
-really in the cpio archive.</li>
-<li>modify partitions, if required. This consists in a resize
-of UBI volumes, not a resize of MTD partition.
-A volume with the name &#8220;data&#8221; is saved and restored after
-resizing.</li>
-<li>runs pre-install scripts</li>
-<li>iterates through all images and call the corresponding
-handler for installing on target.</li>
-<li>runs post-install scripts</li>
-<li>update u-boot environment, if changes are specified
-in sw-description.</li>
-<li>reports the status to the operator (stdout)</li>
-</ul>
-<p>The first step that fails, stops the entire procedure and
-an error is reported.</p>
-</div>
 </div>
 </div>
 
@@ -370,12 +430,16 @@ an error is reported.</p>
 <li><a class="reference internal" href="#list-of-supported-features">List of supported features</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#configuration-and-installation">Configuration and installation</a></li>
-<li><a class="reference internal" href="#changes-in-bootloader-code">Changes in bootloader code</a></li>
-<li><a class="reference internal" href="#building-a-single-image">Building a single image</a><ul>
+<li><a class="reference internal" href="#configuration-and-build">Configuration and build</a><ul>
+<li><a class="reference internal" href="#requirements">Requirements</a></li>
+<li><a class="reference internal" href="#building-with-yocto">Building with Yocto</a></li>
+<li><a class="reference internal" href="#configuring-swupdate">Configuring swupdate</a></li>
+<li><a class="reference internal" href="#building">Building</a></li>
 <li><a class="reference internal" href="#running-swupdate">Running swupdate</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#changes-in-bootloader-code">Changes in bootloader code</a></li>
+<li><a class="reference internal" href="#building-a-single-image">Building a single image</a></li>
 </ul>
 </li>
 </ul>
@@ -420,11 +484,11 @@ an error is reported.</p>
         <li class="right" >
           <a href="overview.html" title="Software Management on embedded systems"
              >previous</a> |</li>
-        <li><a href="index.html">Embedded Software Update Documentation 0.1.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">Embedded Software Update Documentation 2014.07 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2013, Stefano Babic.
+        &copy; Copyright 2013-2014, Stefano Babic.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
   </body>
