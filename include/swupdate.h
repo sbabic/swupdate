@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2012
+ * (C) Copyright 2012-2014
  * Stefano Babic, DENX Software Engineering, sbabic@denx.de.
  *
  * See file CREDITS for list of people who contributed to this
@@ -25,23 +25,7 @@
 
 #include <sys/queue.h>
 #include "flash.h"
-
-#define BANNER "Swupdate v" SWU_VER "\n" \
-	"Built on " AUTOCONF_TIMESTAMP
-
-#define SWUPDATE_GENERAL_STRING_SIZE	64
-#define MAX_IMAGE_FNAME	SWUPDATE_GENERAL_STRING_SIZE
-#define MAX_VOLNAME	SWUPDATE_GENERAL_STRING_SIZE
-#define MAX_HW_VERSIONS	10
-#define MAX_LINE	80
-#define UBOOT_VAR_LENGTH 16
-#define MAX_REVISION_LENGTH	SWUPDATE_GENERAL_STRING_SIZE
-
-/* These are fixed path to temporary files */
-#define SCRIPTS_DIR	TMPDIR "scripts/"
-#define DATASRC_DIR	TMPDIR "datasrc/"
-#define DATADST_DIR	TMPDIR "datadst/"
-#define UBOOT_SCRIPT	TMPDIR "uboot-script"
+#include "globals.h"
 
 typedef enum {
 	FLASH,

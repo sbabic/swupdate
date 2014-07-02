@@ -21,6 +21,7 @@
 #define _CPIOHDR_H 1
 
 #include <cpio.h>
+#include "globals.h"
 
 struct old_cpio_header
 {
@@ -106,7 +107,7 @@ struct filehdr {
 	long size;
 	long namesize;
 	long chksum;
-	char filename[40];
+	char filename[MAX_IMAGE_FNAME];
 };
 
 int extract_cpio_header(int fd, struct filehdr *fhdr, unsigned long *offset);
