@@ -108,6 +108,9 @@ function xmlparser(name, device)
 				if (streams[i]["attr"]["dest"]) then
 					img[count]["dest"] = streams[i]["attr"]["dest"]
 				end
+				if (streams[i]["attr"]["device_id"]) then
+					img[count]["device_id"] = streams[i]["attr"]["device_id"]
+				end
 
 			end
 		end
