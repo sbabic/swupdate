@@ -104,7 +104,7 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 	int status = STREAM_WAIT_DESCRIPTION;
 	unsigned long offset;
 	struct filehdr fdh;
-	char output_file[64];
+	char output_file[MAX_IMAGE_FNAME];
 	int skip;
 	uint32_t checksum;
 	int fdout;
