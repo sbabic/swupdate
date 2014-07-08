@@ -5359,7 +5359,7 @@ struct mg_context *mg_start(const struct mg_callbacks *callbacks,
   // won't kill the whole process.
   (void) signal(SIGPIPE, SIG_IGN);
   // Also ignoring SIGCHLD to let the OS to reap zombies properly.
-  (void) signal(SIGCHLD, SIG_IGN);
+  //(void) signal(SIGCHLD, SIG_IGN);
 #endif // !_WIN32
 
   (void) pthread_mutex_init(&ctx->mutex, NULL);
