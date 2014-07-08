@@ -62,6 +62,14 @@ config LUASCRIPTHANDLER
 	  Handler to be called for pre- and post scripts
 	  written in LUA.
 
+config SHELLSCRIPTHANDLER
+	bool "shellscript"
+	default n
+	help
+	  Handler to be called for pre- and post scripts
+	  written as shell scripts. The default shell /bin/sh
+	  is called.
+
 config HANDLER_IN_LUA
 	bool "Handlers in LUA"
 	depends on LUASCRIPTHANDLER
