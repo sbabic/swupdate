@@ -123,84 +123,6 @@ static unsigned char obsolete_flag = 0;
 #define MK_STR(x)	XMK_STR(x)
 
 static char default_environment[] = {
-#if defined(CONFIG_BOOTARGS)
-	"bootargs=" CONFIG_BOOTARGS "\0"
-#endif
-#if defined(CONFIG_BOOTCOMMAND)
-	"bootcmd=" CONFIG_BOOTCOMMAND "\0"
-#endif
-#if defined(CONFIG_RAMBOOTCOMMAND)
-	"ramboot=" CONFIG_RAMBOOTCOMMAND "\0"
-#endif
-#if defined(CONFIG_NFSBOOTCOMMAND)
-	"nfsboot=" CONFIG_NFSBOOTCOMMAND "\0"
-#endif
-#if defined(CONFIG_BOOTDELAY) && (CONFIG_BOOTDELAY >= 0)
-	"bootdelay=" MK_STR (CONFIG_BOOTDELAY) "\0"
-#endif
-#if defined(CONFIG_BAUDRATE) && (CONFIG_BAUDRATE >= 0)
-	"baudrate=" MK_STR (CONFIG_BAUDRATE) "\0"
-#endif
-#ifdef	CONFIG_LOADS_ECHO
-	"loads_echo=" MK_STR (CONFIG_LOADS_ECHO) "\0"
-#endif
-#ifdef	CONFIG_ETHADDR
-	"ethaddr=" MK_STR (CONFIG_ETHADDR) "\0"
-#endif
-#ifdef	CONFIG_ETH1ADDR
-	"eth1addr=" MK_STR (CONFIG_ETH1ADDR) "\0"
-#endif
-#ifdef	CONFIG_ETH2ADDR
-	"eth2addr=" MK_STR (CONFIG_ETH2ADDR) "\0"
-#endif
-#ifdef	CONFIG_ETH3ADDR
-	"eth3addr=" MK_STR (CONFIG_ETH3ADDR) "\0"
-#endif
-#ifdef	CONFIG_ETH4ADDR
-	"eth4addr=" MK_STR (CONFIG_ETH4ADDR) "\0"
-#endif
-#ifdef	CONFIG_ETH5ADDR
-	"eth5addr=" MK_STR (CONFIG_ETH5ADDR) "\0"
-#endif
-#ifdef	CONFIG_ETHPRIME
-	"ethprime=" CONFIG_ETHPRIME "\0"
-#endif
-#ifdef	CONFIG_IPADDR
-	"ipaddr=" MK_STR (CONFIG_IPADDR) "\0"
-#endif
-#ifdef	CONFIG_SERVERIP
-	"serverip=" MK_STR (CONFIG_SERVERIP) "\0"
-#endif
-#ifdef	CONFIG_SYS_AUTOLOAD
-	"autoload=" CONFIG_SYS_AUTOLOAD "\0"
-#endif
-#ifdef	CONFIG_ROOTPATH
-	"rootpath=" CONFIG_ROOTPATH "\0"
-#endif
-#ifdef	CONFIG_GATEWAYIP
-	"gatewayip=" MK_STR (CONFIG_GATEWAYIP) "\0"
-#endif
-#ifdef	CONFIG_NETMASK
-	"netmask=" MK_STR (CONFIG_NETMASK) "\0"
-#endif
-#ifdef	CONFIG_HOSTNAME
-	"hostname=" MK_STR (CONFIG_HOSTNAME) "\0"
-#endif
-#ifdef	CONFIG_BOOTFILE
-	"bootfile=" CONFIG_BOOTFILE "\0"
-#endif
-#ifdef	CONFIG_LOADADDR
-	"loadaddr=" MK_STR (CONFIG_LOADADDR) "\0"
-#endif
-#ifdef	CONFIG_PREBOOT
-	"preboot=" CONFIG_PREBOOT "\0"
-#endif
-#ifdef	CONFIG_CLOCKS_IN_MHZ
-	"clocks_in_mhz=" "1" "\0"
-#endif
-#if defined(CONFIG_PCI_BOOTDELAY) && (CONFIG_PCI_BOOTDELAY > 0)
-	"pcidelay=" MK_STR (CONFIG_PCI_BOOTDELAY) "\0"
-#endif
 #ifdef  CONFIG_EXTRA_ENV_SETTINGS
 	CONFIG_EXTRA_ENV_SETTINGS
 #endif
@@ -211,9 +133,7 @@ static int flash_io (int mode);
 static char *envmatch (char * s1, char * s2);
 static int parse_config (void);
 
-#if defined(CONFIG_UBOOT_FWENV)
 static int get_config (char *);
-#endif
 static inline ulong getenvsize (void)
 {
 	ulong rc = CONFIG_ENV_SIZE - sizeof (long);
@@ -390,23 +310,6 @@ int fw_env_write(char *name, char *value)
 	 * Delete any existing definition
 	 */
 	if (oldval) {
-#ifndef CONFIG_ENV_OVERWRITE
-		/*
-		 * Ethernet Address and serial# can be set only once
-		 */
-		if (
-		    (strcmp(name, "serial#") == 0) ||
-		    ((strcmp(name, "ethaddr") == 0)
-#if defined(CONFIG_OVERWRITE_ETHADDR_ONCE) && defined(CONFIG_ETHADDR)
-		    && (strcmp(oldval, MK_STR(CONFIG_ETHADDR)) != 0)
-#endif /* CONFIG_OVERWRITE_ETHADDR_ONCE && CONFIG_ETHADDR */
-		   ) ) {
-			fprintf (stderr, "Can't overwrite \"%s\"\n", name);
-			errno = EROFS;
-			return -1;
-		}
-#endif /* CONFIG_ENV_OVERWRITE */
-
 		if (*++nxt == '\0') {
 			*env = '\0';
 		} else {
@@ -1232,45 +1135,13 @@ static int parse_config (void)
 {
 	struct stat st;
 
-#if defined(CONFIG_UBOOT_FWENV)
 	/* Fills in DEVNAME(), ENVSIZE(), DEVESIZE(). Or don't. */
 	if (get_config ((char *)CONFIG_UBOOT_FWENV)) {
 		fprintf (stderr,
 			"Cannot parse config file: %s\n", strerror (errno));
 		return -1;
 	}
-#else
-	strcpy (DEVNAME (0), DEVICE1_NAME);
-	DEVOFFSET (0) = DEVICE1_OFFSET;
-	ENVSIZE (0) = ENV1_SIZE;
-	/* Default values are: erase-size=env-size */
-	DEVESIZE (0) = ENVSIZE (0);
-	/* #sectors=env-size/erase-size (rounded up) */
-	ENVSECTORS (0) = (ENVSIZE(0) + DEVESIZE(0) - 1) / DEVESIZE(0);
-#ifdef DEVICE1_ESIZE
-	DEVESIZE (0) = DEVICE1_ESIZE;
-#endif
-#ifdef DEVICE1_ENVSECTORS
-	ENVSECTORS (0) = DEVICE1_ENVSECTORS;
-#endif
 
-#ifdef HAVE_REDUND
-	strcpy (DEVNAME (1), DEVICE2_NAME);
-	DEVOFFSET (1) = DEVICE2_OFFSET;
-	ENVSIZE (1) = ENV2_SIZE;
-	/* Default values are: erase-size=env-size */
-	DEVESIZE (1) = ENVSIZE (1);
-	/* #sectors=env-size/erase-size (rounded up) */
-	ENVSECTORS (1) = (ENVSIZE(1) + DEVESIZE(1) - 1) / DEVESIZE(1);
-#ifdef DEVICE2_ESIZE
-	DEVESIZE (1) = DEVICE2_ESIZE;
-#endif
-#ifdef DEVICE2_ENVSECTORS
-	ENVSECTORS (1) = DEVICE2_ENVSECTORS;
-#endif
-	HaveRedundEnv = 1;
-#endif
-#endif
 	if (stat (DEVNAME (0), &st)) {
 		fprintf (stderr,
 			"Cannot access MTD device %s: %s\n",
@@ -1287,7 +1158,6 @@ static int parse_config (void)
 	return 0;
 }
 
-#if defined(CONFIG_UBOOT_FWENV)
 static int get_config (char *fname)
 {
 	FILE *fp;
@@ -1332,4 +1202,3 @@ static int get_config (char *fname)
 	} else
 		return 0;
 }
-#endif
