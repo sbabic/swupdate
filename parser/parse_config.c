@@ -194,10 +194,14 @@ static void parse_scripts(config_t *cfg, struct swupdate_cfg *swcfg)
 		}
 
 		GET_FIELD(elem, "filename", script->fname);
+		GET_FIELD(elem, "type", script->type);
+
+		/* Scripts as default call the LUA interpreter */
+		if (!strlen(script->type)) {
+			strcpy(script->type, "lua");
+		}
 		script->is_script = 1;
 
-		/* Scripts must be written in LUA */
-		strcpy(script->type, "lua");
 		LIST_INSERT_HEAD(&swcfg->scripts, script, next);
 
 		TRACE("Found Script: %s %s\n",
