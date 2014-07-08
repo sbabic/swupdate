@@ -37,6 +37,7 @@
  * Replacement for fw_setenv() for calling inside
  * the library
  */
+#ifdef CONFIG_UBOOT
 int fw_set_one_env (const char *name, const char *value)
 {
 
@@ -47,6 +48,13 @@ int fw_set_one_env (const char *name, const char *value)
 	fw_env_write ((char *)name, (char *)value);
 	return fw_env_close ();
 }
+#else
+int fw_set_one_env (const char __attribute__ ((__unused__)) *name,
+			const char __attribute__ ((__unused__)) *value)
+{
+	return 0;
+}
+#endif
 
 static int countargc(char *args, char **argv)
 {

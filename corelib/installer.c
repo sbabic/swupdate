@@ -88,12 +88,14 @@ static void prepare_uboot_script(struct swupdate_cfg *cfg, const char *script)
 
 static void update_uboot_env(void)
 {
+#ifdef CONFIG_UBOOT
 	int ret;
 
 	TRACE("Updating U-boot environment");
 	ret = fw_parse_script((char *)UBOOT_SCRIPT);
 	if (ret < 0)
 		ERROR("Error updating U-Boot environment");
+#endif
 }
 
 
