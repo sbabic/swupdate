@@ -78,6 +78,8 @@ static int start_shell_script(struct img_type *img, void *data)
 
 	ret = system(shellscript);
 	TRACE("Calling shell script %s: return with %d", shellscript, ret);
+	if (ret == WIFEXITED(ret))
+		return 0;
 	if (ret) {
 		ERROR("%s returns '%s'", img->fname, strerror(errno));
 	}
