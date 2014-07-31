@@ -172,34 +172,8 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 
 			snprintf(output_file, sizeof(output_file), "%s%s", TMPDIR, fdh.filename);
 			skip = check_if_required(&software->images, &fdh, output_file);
-#if 0
-			LIST_FOREACH(img, &software->images, next) {
-				if (strcmp(fdh.filename, img->fname) == 0) {
-					skip = 0;
-					img->provided = 1;
-					img->size = (unsigned int)fdh.size;
-					strncpy(img->extract_file,
-						output_file,
-						sizeof(img->extract_file));
-					break;
-				}
-			}
-#endif
 			if (skip) {
 				skip = check_if_required(&software->scripts, &fdh, output_file);
-#if 0
-				LIST_FOREACH(img, &software->scripts, next) {
-					if (strcmp(fdh.filename, img->fname) == 0) {
-						skip = 0;
-						img->provided = 1;
-						img->size = (unsigned int)fdh.size;
-						strncpy(img->extract_file,
-							output_file,
-							sizeof(img->extract_file));
-						break;
-					}
-				}
-#endif
 			}
 			TRACE("Found file:\n\tfilename %s\n\tsize %d %s",
 				fdh.filename,
