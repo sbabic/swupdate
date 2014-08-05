@@ -188,8 +188,19 @@ static int adjust_volume(struct img_type *cfg,
 	}
 
 	if (ubivol) {
+		unsigned int requested_lebs, allocated_lebs;
+
+		/* This should never happen, the fields are filled by scan_ubi */
+		if (!mtd_info->dev_info.leb_size) {
+			return -EFAULT;
+		}
+
 		/* Check if size is changed */
-		if (ubivol->vol_info.data_bytes == cfg->partsize)
+		requested_lebs = cfg->partsize / mtd_info->dev_info.leb_size +
+			((cfg->partsize % mtd_info->dev_info.leb_size) ? 1 : 0);
+		allocated_lebs = ubivol->vol_info.data_bytes / mtd_info->dev_info.leb_size;
+
+		if (requested_lebs == allocated_lebs)
 			return 0;
 
 		snprintf(node, sizeof(node), "/dev/ubi%d", ubivol->vol_info.dev_num);
@@ -238,8 +249,8 @@ static int adjust_volume(struct img_type *cfg,
 		return err;
 	}
 	LIST_INSERT_HEAD(&mtd_info->ubi_partitions, ubivol, next);
-	TRACE("Created UBI Volume %s of %lld bytes\n",
-		req.name, req.bytes);
+	TRACE("Created UBI Volume %s of %lld bytes (requested %lld)\n",
+		req.name, ubivol->vol_info.data_bytes, req.bytes);
 
 	return 0;
 }
