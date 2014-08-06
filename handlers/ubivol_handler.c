@@ -175,13 +175,12 @@ static int adjust_volume(struct img_type *cfg,
 	mtd_info = &nandubi->mtd_info[mtdnum];
 
 	/*
-	 * First remove all volumes but "data"
+	 * Search for volume with the same name
 	 */
 	ubivol = mtd_info->ubi_partitions.lh_first;
 	for(ubivol = mtd_info->ubi_partitions.lh_first;
 		ubivol != NULL;
 		ubivol = ubivol->next.le_next) {
-		/* Do not drop data partition */
 		if (strcmp(ubivol->vol_info.name, cfg->volname) == 0) {
 			break;
 		}
