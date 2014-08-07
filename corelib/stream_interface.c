@@ -266,13 +266,6 @@ int network_initializer(int argc, char *argv[], struct swupdate_cfg *software)
 		notify(START, RECOVERY_NO_ERROR, "Software Update started !");
 
 		/*
-		 * If an image is loaded, the install
-		 * must be successful. Set we have
-		 * initiated an update
-		 */
-		fw_set_one_env("recovery_status", "in_progress");
-
-		/*
 		 * extract the meta data and relevant parts
 		 * (flash images) from the install image
 		 */
@@ -282,6 +275,13 @@ int network_initializer(int argc, char *argv[], struct swupdate_cfg *software)
 		/* do carry out the installation (flash programming) */
 		if (ret == 0) {
 			TRACE("Valid image found: copying to FLASH");
+
+			/*
+			 * If an image is loaded, the install
+			 * must be successful. Set we have
+			 * initiated an update
+			 */
+			fw_set_one_env("recovery_status", "in_progress");
 
 			notify(RUN, RECOVERY_NO_ERROR, "Installation in progress");
 			ret = install_images(software, 0, 0);
