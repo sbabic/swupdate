@@ -115,7 +115,6 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 	struct filehdr fdh;
 
 	mtd_cleanup();
-	scan_mtd_devices();
 
 	/* Extract all scripts, preinstall scripts must be run now */
 	if (fromfile)
@@ -123,6 +122,8 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 
 	/* Scripts must be run before installing images */
 	ret = run_prepost_scripts(sw, PREINSTALL);
+
+	scan_mtd_devices();
 
 	/* Update u-boot environment */
 	prepare_uboot_script(sw, UBOOT_SCRIPT);
