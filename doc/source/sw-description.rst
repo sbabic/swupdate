@@ -325,8 +325,8 @@ that must be changed:
 
 	uboot: (
 		{
-			name = <Name der Variabel>;
-			value = <Wert für die Variabel>;
+			name = <Variable name>;
+			value = <Variable value>;
 		},
 	)
 
