@@ -34,11 +34,7 @@
 #include <string.h>
 #include "swupdate.h"
 #include "handler.h"
-#include "lua.h"
-#include "lauxlib.h"
-#include "lualib.h"
 #include "util.h"
-#include "lua_util.h"
 
 static void shell_handler(void);
 
