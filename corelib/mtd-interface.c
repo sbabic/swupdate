@@ -33,6 +33,8 @@
 #include "util.h"
 #include "flash.h"
 
+static char mtd_ubi_blacklist[100] = { 0 };
+
 void mtd_init(void)
 {
 	struct flash_description *flash = get_flash_info();
@@ -42,6 +44,11 @@ void mtd_init(void)
 			ERROR("MTD is not present in the system");
 		ERROR("cannot open libmtd");
 	}
+}
+
+void mtd_set_ubiblacklist(char *mtdlist)
+{
+	strncpy(mtd_ubi_blacklist, mtdlist, sizeof(mtd_ubi_blacklist));
 }
 
 int get_mtd_from_device(char *s) {
@@ -111,6 +118,10 @@ int scan_mtd_devices (void)
 #if defined(CONFIG_UBIBLACKLIST)
 	strncpy(blacklist, CONFIG_UBIBLACKLIST, sizeof(blacklist));
 #endif
+
+	/* Blacklist passed on the command line has priority */
+	if (strlen(mtd_ubi_blacklist))
+		strncpy(blacklist, mtd_ubi_blacklist, sizeof(blacklist));
 
 	if (!libmtd) {
 		ERROR("MTD is not present on the target");

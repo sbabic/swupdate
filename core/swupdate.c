@@ -60,6 +60,7 @@ struct flash_description *get_flash_info(void) {
 static struct option long_options[] = {
 	{"verbose", no_argument, NULL, 'v'},
 	{"image", required_argument, NULL, 'i'},
+	{"blacklist", required_argument, NULL, 'b'},
 	{"help", no_argument, NULL, 'h'},
 #ifdef CONFIG_WEBSERVER
 	{"webserver", required_argument, NULL, 'w'},
@@ -77,6 +78,7 @@ static void usage(char *programname)
 	printf(("Usage %s [OPTION]\n"
 		" -v, --verbose         : be verbose\n"
 		" -i, --image <filename> : Software to be installed\n"
+		" -b, --blacklist <list of mtd> : MTDs that must not be scanned for UBI\n"
 #ifdef CONFIG_WEBSERVER
 		" -w, --webserver [OPTIONS] : Parameters to be passed to webserver\n"
 #endif
@@ -195,7 +197,7 @@ int main(int argc, char **argv)
 
 	memset(&flashdesc, 0, sizeof(flashdesc));
 	memset(main_options, 0, sizeof(main_options));
-	strcpy(main_options, "vhi:");
+	strcpy(main_options, "vhi:b:");
 #ifdef CONFIG_WEBSERVER
 	strcat(main_options, "w:");
 #endif
@@ -212,6 +214,8 @@ int main(int argc, char **argv)
 		case 'v':
 			verbose++;
 			break;
+		case 'b':
+			mtd_set_ubiblacklist(optarg);
 		case 'i':
 			strncpy(fname, optarg, sizeof(fname));
 			opt_i = 1;

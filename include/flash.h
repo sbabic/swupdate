@@ -67,6 +67,7 @@ void ubi_umount(const char *mntpoint);
 #endif
 
 void mtd_init(void);
+void mtd_set_ubiblacklist(char *mtdlist);
 void ubi_init(void);
 int scan_mtd_devices (void);
 void mtd_cleanup (void);
