@@ -158,7 +158,7 @@ static int install_from_file(char *fname)
 	fprintf(stdout, "Software updated successfully\n");
 	fprintf(stdout, "Please reboot the device to start the new software\n");
 
-	exit(0);
+	return 0;
 }
 
 static void swupdate_init(struct swupdate_cfg *sw)
