@@ -249,6 +249,8 @@ int main(int argc, char **argv)
 	if (opt_i) {
 		install_from_file(fname);
 		cleanup_files(&swcfg);
+
+		notify(SUCCESS, 0, 0);
 	}
 #ifdef CONFIG_WEBSERVER
 	if (opt_w)
