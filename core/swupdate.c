@@ -197,6 +197,7 @@ static int download_from_url(char *image_url, char *fname)
 	}
 
 	puts("Image download started");
+	notify(DOWNLOAD, 0, 0);
 
 	curl_global_init(CURL_GLOBAL_ALL);
 	curl_handle = curl_easy_init();

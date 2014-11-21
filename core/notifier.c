@@ -84,6 +84,9 @@ static void console_notifier (RECOVERY_STATUS status, int error, const char *msg
 	case IDLE:
 		strncpy(current, "No SWUPDATE running : ", sizeof(current));
 		break;
+	case DOWNLOAD:
+		strncpy(current, "SWUPDATE downloading : ", sizeof(current));
+		break;
 	case START:
 		strncpy(current, "SWUPDATE started : ", sizeof(current));
 		break;

@@ -31,6 +31,7 @@ extern int verbose;
 
 typedef enum {
 	IDLE,
+	DOWNLOAD,
 	START,
 	RUN,
 	SUCCESS,
