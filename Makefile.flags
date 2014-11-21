@@ -112,6 +112,12 @@ LDLIBS += lua dl
 LDFLAGS += -Wl,-E
 endif
 
+
+# Image downloading support
+ifneq ($(CONFIG_DOWNLOAD),)
+LDLIBS += curl
+endif
+
 # Android has no separate crypt library
 # gcc-4.2.1 fails if we try to feed C source on stdin:
 #  echo 'int main(void){return 0;}' | $(CC) $(CFLAGS) -lcrypt -o /dev/null -xc -

@@ -169,6 +169,13 @@ endmenu
 
 endmenu
 
+config DOWNLOAD
+	bool "Enable image downloading"
+	default n
+	help
+	  Enable update from image URL using libcurl. Files are downloaded
+	  completely before installation begins.
+
 config WEBSERVER
 	bool "Enable webserver"
 	default n

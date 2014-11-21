@@ -34,6 +34,10 @@
 #include <sys/stat.h>
 #include <sys/mount.h>
 
+#ifdef CONFIG_DOWNLOAD
+#include <curl/curl.h>
+#endif
+
 #include "cpiohdr.h"
 #include "util.h"
 #include "swupdate.h"
@@ -62,6 +66,9 @@ static struct option long_options[] = {
 	{"image", required_argument, NULL, 'i'},
 	{"blacklist", required_argument, NULL, 'b'},
 	{"help", no_argument, NULL, 'h'},
+#ifdef CONFIG_DOWNLOAD
+	{"download", required_argument, NULL, 'd'},
+#endif
 #ifdef CONFIG_WEBSERVER
 	{"webserver", required_argument, NULL, 'w'},
 #endif
@@ -79,6 +86,11 @@ static void usage(char *programname)
 		" -v, --verbose         : be verbose\n"
 		" -i, --image <filename> : Software to be installed\n"
 		" -b, --blacklist <list of mtd> : MTDs that must not be scanned for UBI\n"
+#ifdef CONFIG_DOWNLOAD
+		" -d, --download <url> : URL of image to be downloaded. Image will be\n"
+		"                        downloaded completely to --image filename, then\n"
+		"                        installation will proceed as usual.\n"
+#endif
 #ifdef CONFIG_WEBSERVER
 		" -w, --webserver [OPTIONS] : Parameters to be passed to webserver\n"
 #endif
@@ -161,6 +173,59 @@ static int install_from_file(char *fname)
 	return 0;
 }
 
+#ifdef CONFIG_DOWNLOAD
+static int download_from_url(char *image_url, char *fname)
+{
+	CURL *curl_handle;
+	CURLcode res;
+	FILE *image;
+
+	if (!strlen(image_url)) {
+		ERROR("Image URL not provided... aborting download and update\n");
+		exit(1);
+	}
+
+	if (!strlen(fname)) {
+		ERROR("Image name not provided... aborting download and update\n");
+		exit(1);
+	}
+
+	image = fopen(fname, "w");
+	if (image == NULL) {
+		ERROR("Image file cannot be written...exiting!\n");
+		exit(1);
+	}
+
+	puts("Image download started");
+
+	curl_global_init(CURL_GLOBAL_ALL);
+	curl_handle = curl_easy_init();
+
+	/* Write all data to the image file */
+	curl_easy_setopt(curl_handle, CURLOPT_URL, image_url);
+	curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, image);
+	curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "swupdate");
+
+	/* TODO: Convert this to a streaming download at some point such
+	 * that the file doesn't need to be downloaded completely before
+	 * unpacking it for updating. See stream_interface for example. */
+	if ((res = curl_easy_perform(curl_handle)) != CURLE_OK) {
+		ERROR("Failed to download image: %s, exiting!\n",
+				curl_easy_strerror(res));
+		exit(1);
+	}
+
+	fclose(image);
+
+	curl_easy_cleanup(curl_handle);
+	curl_global_cleanup();
+
+	puts("Image download completed");
+
+	return 0;
+}
+#endif
+
 static void swupdate_init(struct swupdate_cfg *sw)
 {
 	/* Initialize internal tree to store configuration */
@@ -188,6 +253,10 @@ int main(int argc, char **argv)
 	char fname[MAX_IMAGE_FNAME];
 	int opt_i = 0;
 	struct hw_type hwrev;
+#ifdef CONFIG_DOWNLOAD
+	char image_url[MAX_URL];
+	int opt_d = 0;
+#endif
 #ifdef CONFIG_WEBSERVER
 	char weboptions[1024];
 	char **av = NULL;
@@ -198,6 +267,9 @@ int main(int argc, char **argv)
 	memset(&flashdesc, 0, sizeof(flashdesc));
 	memset(main_options, 0, sizeof(main_options));
 	strcpy(main_options, "vhi:b:");
+#ifdef CONFIG_DOWNLOAD
+	strcat(main_options, "d:");
+#endif
 #ifdef CONFIG_WEBSERVER
 	strcat(main_options, "w:");
 #endif
@@ -224,6 +296,12 @@ int main(int argc, char **argv)
 			usage(argv[0]);
 			exit(0);
 			break;
+#ifdef CONFIG_DOWNLOAD
+		case 'd':
+			strncpy(image_url, optarg, sizeof(image_url));
+			opt_d = 1;
+			break;
+#endif
 #ifdef CONFIG_WEBSERVER
 		case 'w':
 			snprintf(weboptions, sizeof(weboptions), "%s %s", argv[0], optarg);
@@ -247,6 +325,12 @@ int main(int argc, char **argv)
 	notify_init();
 
 	if (opt_i) {
+#ifdef CONFIG_DOWNLOAD
+		if (opt_d) {
+			download_from_url(image_url, fname);
+		}
+#endif
+
 		install_from_file(fname);
 		cleanup_files(&swcfg);
 
