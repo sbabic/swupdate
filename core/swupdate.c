@@ -23,9 +23,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <dirent.h>
 #include <unistd.h>
 #include <string.h>
 #include <getopt.h>
+#include <libgen.h>
+#include <fnmatch.h>
 #include <errno.h>
 #include <ctype.h>
 #include <sys/types.h>
@@ -115,6 +118,74 @@ static int check_provided(struct imglist *list)
 	return ret;
 }
 
+static int searching_for_image(char *name)
+{
+	char *dir, *dirc, *basec;
+	char *fpattern;
+	DIR *path;
+	struct dirent *dp;
+	int i;
+	int fd = -1;
+	int found;
+	char fname[MAX_IMAGE_FNAME];
+	char *buf;
+	char hex[4];
+
+	dirc = strdup(name);
+	basec = strdup(name);
+	dir = dirname(dirc);
+	fpattern = basename(basec);
+	path = opendir(dir);
+
+	TRACE("Searching image: check %s into %s\n",
+			basec, dirc);
+	if (!path) {
+		free(dirc);
+		free(basec);
+		return -EBADF;
+	}
+
+	dp = readdir(path);
+	do {
+		if (!dp)
+			break;
+		if (!strcmp(dp->d_name, ".") ||
+				!strcmp(dp->d_name, "..") ||
+				!strlen(dp->d_name))
+			continue;
+		found = !fnmatch(fpattern, dp->d_name, FNM_CASEFOLD);
+
+		if (found) {
+			TRACE("File found: %s :\n", dp->d_name);
+			/* Buffer for hexa output */
+			buf = (char *)malloc(3 * strlen(dp->d_name) + 1);
+			if (buf) {
+				for (i = 0; i < strlen(dp->d_name); i++) {
+					snprintf(hex, sizeof(hex), "%x ", dp->d_name[i]);
+					memcpy(&buf[3 * i], hex, 3);
+				}
+				buf[3 * strlen(dp->d_name)] = '\0';
+				TRACE("File name (hex): %s\n", buf);
+			}
+			/* Take the first one as image */
+			if (fd < 0) {
+				snprintf(fname, sizeof(fname), "%s/%s", dirc, dp->d_name);
+				fd = open(fname, O_RDONLY);
+				if (fd > 0)
+					TRACE("\t\t**Used for upgrade\n");
+			}
+			free(buf);
+		}
+
+	} while ((dp = readdir(path)) !=NULL);
+
+	free(dirc);
+	free(basec);
+
+	return fd;
+}
+
+
 static int install_from_file(char *fname)
 {
 	int fdsw;
@@ -129,8 +200,11 @@ static int install_from_file(char *fname)
 
 	fdsw = open(fname, O_RDONLY);
 	if (fdsw < 0) {
-		ERROR("Image Software cannot be read...exiting !\n");
-		exit(1);
+		fdsw = searching_for_image(fname);
+		if (fdsw < 0) {
+			ERROR("Image Software cannot be read...exiting !\n");
+			exit(1);
+		}
 	}
 
 	pos = extract_sw_description(fdsw);
