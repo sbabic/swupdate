@@ -134,8 +134,8 @@ ifeq ($(CONFIG_LIBCONFIG),y)
 LDLIBS += config
 endif
 
-# mongoose webserver
-ifneq ($(CONFIG_MONGOOSE),)
+# mongoose / webserver
+ifneq ($(CONFIG_WEBSERVER),)
 LDLIBS += pthread crypto
 ifneq ($(CONFIG_MONGOOSESSL),)
 CFLAGS += -DNO_SSL_DL
