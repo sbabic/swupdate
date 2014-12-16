@@ -38,12 +38,6 @@
 #else
 #define LUA_PARSER	(CONFIG_EXTPARSERNAME)
 #endif
-#define DEVICE		"Goldeneye"
-
-static const char *get_device_name(void)
-{
-	return DEVICE;
-}
 
 static void sw_append_stream(struct img_type *img, const char *key,
 	       const char *value)
@@ -75,6 +69,7 @@ int parse_external(struct swupdate_cfg *software, const char *filename)
 	int ret;
 	unsigned int nstreams;
 	struct img_type *image;
+	struct hw_type hardware;
 
 	lua_State *L = luaL_newstate(); /* opens Lua */
 	luaL_openlibs(L); /* opens the standard libraries */
@@ -93,12 +88,20 @@ int parse_external(struct swupdate_cfg *software, const char *filename)
 		return 1;
 	}
 
+	if (-1 == get_hw_revision(&hardware))
+	{
+	    ERROR("ERROR getting hw revision");
+	    return 1;
+	}
+
 	lua_getglobal(L, "xmlparser");
+
 	/* passing arguments */
 	lua_pushstring(L, filename);
-	lua_pushstring(L, get_device_name());
+	lua_pushstring(L, hardware.boardname);
+	lua_pushstring(L, hardware.revision);
 
-	if (lua_pcall(L, 2, 4, 0)) {
+	if (lua_pcall(L, 3, 4, 0)) {
 		LUAstackDump(L);
 		ERROR("ERROR Calling XML Parser in LUA");
 		lua_close(L);
