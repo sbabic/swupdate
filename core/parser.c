@@ -31,6 +31,10 @@ int parse(struct swupdate_cfg *sw, const char *descfile)
 	ret = parse_cfg(sw, descfile);
 	if (ret == 0) return 0;
 #endif
+#ifdef CONFIG_JSON
+	ret = parse_json(sw, descfile);
+	if (ret == 0) return 0;
+#endif
 #ifdef CONFIG_LUAEXTERNAL
 	ret = parse_external(sw, descfile);
 	if (ret == 0) return 0;

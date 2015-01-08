@@ -136,6 +136,11 @@ ifeq ($(CONFIG_LIBCONFIG),y)
 LDLIBS += config
 endif
 
+# json-c
+ifeq ($(CONFIG_JSON),y)
+LDLIBS += json-c
+endif
+
 # mongoose / webserver
 ifneq ($(CONFIG_WEBSERVER),)
 ifneq ($(CONFIG_MONGOOSESSL),)

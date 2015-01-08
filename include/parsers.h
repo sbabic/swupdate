@@ -31,7 +31,7 @@
 
 int parse(struct swupdate_cfg *swcfg, const char *filename);
 int parse_cfg (struct swupdate_cfg *swcfg, const char *filename);
-int parse_cfg (struct swupdate_cfg *swcfg, const char *filename);
+int parse_json(struct swupdate_cfg *swcfg, const char *filename);
 int parse_external(struct swupdate_cfg *swcfg, const char *filename);
 #endif
 

@@ -7,6 +7,12 @@ config LIBCONFIG
 	  Use libconfig to parse the configuration file.
 	  This is the default parser.
 
+config JSON
+	bool "libjson"
+	default n
+	help
+	  Use json-c to parse the configuration file.
+
 config LUAEXTERNAL
 	bool "lua"
 	depends on LUA
