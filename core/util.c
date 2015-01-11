@@ -32,6 +32,7 @@
 #include "swupdate.h"
 #include "util.h"
 #include "fw_env.h"
+#include "autoconf.h"
 
 /*
  * Replacement for fw_setenv() for calling inside
@@ -145,8 +146,8 @@ int get_hw_revision(struct hw_type *hw)
 	FILE *fp;
 	int ret;
 	char *b1, *b2;
-#ifdef HW_COMPATIBILITY_FILE
-#define HW_FILE HW_COMPATIBILITY_FILE
+#ifdef CONFIG_HW_COMPATIBILITY_FILE
+#define HW_FILE CONFIG_HW_COMPATIBILITY_FILE
 #else
 #define HW_FILE "/etc/hwrevision"
 #endif
