@@ -60,11 +60,9 @@ struct flash_description {
 	struct mtd_ubi_info *mtd_info;
 };
 
-#if defined(CONFIG_UBIVOL)
 void scan_ubi_partitions(int mtd);
 void ubi_mount(struct ubi_vol_info *vol, const char *mntpoint);
 void ubi_umount(const char *mntpoint);
-#endif
 
 void mtd_init(void);
 void mtd_set_ubiblacklist(char *mtdlist);
