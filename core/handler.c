@@ -175,11 +175,11 @@ static int luaopen_swupdate(lua_State *L) {
 	lua_pushstring(L, "RECOVERY_STATUS");
 	lua_newtable (L);
 	lua_push_enum(L, "IDLE", IDLE);
-	lua_push_enum(L, "DOWNLOAD", DOWNLOAD);
 	lua_push_enum(L, "START", START);
 	lua_push_enum(L, "RUN", RUN);
 	lua_push_enum(L, "SUCCESS", SUCCESS);
 	lua_push_enum(L, "FAILURE", FAILURE);
+	lua_push_enum(L, "DOWNLOAD", DOWNLOAD);
 	lua_settable(L, -3);
 
 	return 1;
