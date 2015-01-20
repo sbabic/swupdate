@@ -49,7 +49,7 @@ struct notify_elem {
 
 STAILQ_HEAD(notifylist, notify_elem);
 
-static struct notifylist clients; 
+static struct notifylist clients;
 
 int register_notifier(notifier client)
 {
@@ -102,6 +102,7 @@ static void console_notifier (RECOVERY_STATUS status, int error, const char *msg
 	}
 
 	fprintf(stdout, "[NOTIFY] : %s %s\n", current, msg ? msg : "");
+	fflush(stdout);
 }
 
 void notify_init(void)
