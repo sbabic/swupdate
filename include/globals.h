@@ -34,6 +34,7 @@
 #define MAX_LINE	80
 #define UBOOT_VAR_LENGTH 16
 #define MAX_REVISION_LENGTH	SWUPDATE_GENERAL_STRING_SIZE
+#define MAX_UBOOT_SCRIPT_LINE_LENGTH	1024
 
 /* These are fixed path to temporary files */
 #define SCRIPTS_DIR	TMPDIR "scripts/"

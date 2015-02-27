@@ -43,6 +43,7 @@
 # include <mtd/mtd-user.h>
 #endif
 
+#include "globals.h"
 #include "fw_env.h"
 
 #define WHITESPACE(c) ((c == '\t') || (c == ' '))
@@ -439,7 +440,7 @@ int fw_setenv(int argc, char *argv[])
 int fw_parse_script(char *fname)
 {
 	FILE *fp;
-	char dump[1024];	/* Maximum line length in the file */
+	char dump[MAX_UBOOT_SCRIPT_LINE_LENGTH]; /* Maximum line length */
 	char *name;
 	char *val;
 	int lineno = 0;
