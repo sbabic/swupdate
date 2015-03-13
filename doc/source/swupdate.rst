@@ -124,7 +124,7 @@ By reading the delivered image, swupdate will ignore all images that
 are not in the list processed by the parser. In this way, it is possible
 to have a single delivered image for the update of multiple devices.
 
-Multiple devices is supported by the default parser, too.
+Multiple devices are supported by the default parser, too.
 
 ::
 

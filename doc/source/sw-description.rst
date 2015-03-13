@@ -254,7 +254,7 @@ debugging or special purposes.
 		}
 	);
 
-Entries in "files" section are managed as single files. The attribute
+Entries in "files" section are managed as single files. The attributes
 "path" and "filesystem" are mandatory. swupdate copies the file in the path
 specified after mounting the device.
 
@@ -288,7 +288,7 @@ called before installing the images.
 
 ::
 
-	function postnst()
+	function postinst()
 
 swupdate scans for all scripts and check for a postinst function. It is
 called after installing the images.
