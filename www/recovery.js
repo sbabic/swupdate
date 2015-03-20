@@ -68,7 +68,7 @@ Developed by Craig Buckler (@craigbuckler) of OptimalWorks.net
 		var listempty;
 		var msg ="";
 		var lasterror = 0;
-		$.ajax({ url: "getstatus.json", success: function(data){
+		$.ajax({cache: false, url: "getstatus.json", success: function(data){
 			$.each(data, function(key, val) {
 				if (key == "Status")
 					status = val;
