@@ -348,6 +348,7 @@ char *mg_md5(char buf[33], ...);
 // Added some general functions
 const char *mg_strcasestr(const char *big_str, const char *small_str);
 int get_request_len(const char *buf, int buflen);
+int mg_vprintf(struct mg_connection *conn, const char *fmt, va_list ap);
 
 #ifdef __cplusplus
 }

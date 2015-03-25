@@ -42,6 +42,7 @@
 #include <assert.h>
 
 #include "mongoose.h"
+#include "mongoose_interface.h"
 #include "network_ipc.h"
 
 #ifdef USE_LUA

@@ -245,6 +245,7 @@ typedef int SOCKET;
 #endif // End of Windows and UNIX specific includes
 
 #include "mongoose.h"
+#include "mongoose_interface.h"
 
 #ifdef USE_LUA
 #include <lua.h>
@@ -308,6 +309,7 @@ static const char *http_500_error = "Internal Server Error";
 
 #if defined(NO_SSL_DL)
 #include <openssl/ssl.h>
+#include <openssl/err.h>
 #else
 // SSL loaded dynamically from DLL.
 // I put the prototypes here to be independent from OpenSSL source installation.
@@ -4879,8 +4881,6 @@ struct mg_connection *mg_connect(const char *host, int port, int use_ssl,
 
   if (host == NULL) {
     snprintf(ebuf, ebuf_len, "%s", "NULL host");
-  } else if (use_ssl && SSLv23_client_method == NULL) {
-    snprintf(ebuf, ebuf_len, "%s", "SSL is not initialized");
   } else if ((he = gethostbyname(host)) == NULL) {
     snprintf(ebuf, ebuf_len, "gethostbyname(%s): %s", host, strerror(ERRNO));
   } else if ((sock = socket(PF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET) {
