@@ -189,7 +189,7 @@ void *network_thread (void *data)
 		TRACE("request header: magic[0x%08X] type[0x%08X]", msg.magic, msg.type);
 #endif
 
-		pthread_mutex_lock(&mutex);
+		pthread_mutex_lock(&stream_mutex);
 		if (msg.magic == IPC_MAGIC)  {
 			switch (msg.type) {
 			case REQ_INSTALL:
@@ -202,7 +202,7 @@ void *network_thread (void *data)
 					cleanum_msg_list();
 
 					/* Wake-up the installer */
-					pthread_cond_signal(&cond);
+					pthread_cond_signal(&stream_wkup);
 				} else {
 					msg.type = NACK;
 					sprintf(msg.data.msg, "Installation in progress");
@@ -246,7 +246,7 @@ void *network_thread (void *data)
 
 		if (msg.type != ACK)
 			close(ctrlconnfd);
-		pthread_mutex_unlock(&mutex);
+		pthread_mutex_unlock(&stream_mutex);
 	} while (1);
 	return (void *)0; 
 }

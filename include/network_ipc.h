@@ -54,9 +54,8 @@ void ipc_end(int connfd);
 int ipc_get_status(ipc_message *msg);
 
 void *network_thread(void *data);
-void start_mongoose(int argc, char *argv[]);
 
-extern pthread_mutex_t mutex;
-extern pthread_cond_t cond;
+extern pthread_mutex_t stream_mutex;
+extern pthread_cond_t stream_wkup;
 
 #endif

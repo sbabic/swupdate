@@ -47,6 +47,7 @@
 #include "parsers.h"
 #include "network_ipc.h"
 #include "network_interface.h"
+#include "mongoose_interface.h"
 #include "installer.h"
 
 #define BUFF_SIZE	 4096
@@ -70,8 +71,8 @@ static pthread_t network_thread_id;
  *
  */
 
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
+pthread_mutex_t stream_mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t stream_wkup = PTHREAD_COND_INITIALIZER;
 
 static struct installer inst;
 
@@ -258,7 +259,7 @@ int network_initializer(int argc, char *argv[], struct swupdate_cfg *software)
 	while (1) {
 
 		/* wait for someone to issue an install request */
-		pthread_cond_wait(&cond, &condmutex);
+		pthread_cond_wait(&stream_wkup, &condmutex);
 		inst.status = RUN;
 		notify(START, RECOVERY_NO_ERROR, "Software Update started !");
 
@@ -299,9 +300,9 @@ int network_initializer(int argc, char *argv[], struct swupdate_cfg *software)
 			inst.last_install = FAILURE;
 			notify(FAILURE, RECOVERY_ERROR, "Image invalid or corrupted. Not installing ...");
 		}
-		pthread_mutex_lock(&mutex);
+		pthread_mutex_lock(&stream_mutex);
 		inst.status = IDLE;
-		pthread_mutex_unlock(&mutex);
+		pthread_mutex_unlock(&stream_mutex);
 		TRACE("Main thread sleep again !");
 		notify(IDLE, RECOVERY_NO_ERROR, "Waiting for requests...");
 
