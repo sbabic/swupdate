@@ -43,8 +43,6 @@
 #include "util.h"
 #include "network_ipc.h"
 
-#define SOCKET_STREAM_PATH	"/tmp/sockinstdata"
-
 static int prepare_ipc(void) {
 
 	int connfd;
