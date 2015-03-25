@@ -214,11 +214,9 @@ void *network_thread (void *data)
 			case GET_STATUS:
 				msg.type = GET_STATUS;
 				memset(msg.data.msg, 0, sizeof(msg.data.msg));
-#if 1
 				msg.data.status.current = instp->status;
 				msg.data.status.last_result = instp->last_install;
 				msg.data.status.error = instp->last_error;
-#endif
 
 				/* Get first notification from the queue */
 				pthread_mutex_lock(&msglock);
