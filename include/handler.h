@@ -3,9 +3,6 @@
  * Stefano Babic, DENX Software Engineering, sbabic@denx.de.
  * 	on behalf of ifm electronic GmbH
  *
- * See file CREDITS for list of people who contributed to this
- * project.
- *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
  * published by the Free Software Foundation; either version 2 of
