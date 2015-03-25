@@ -22,6 +22,8 @@
 #ifndef _IPC_H
 #define _IPC_H
 
+#include "swupdate_status.h"
+
 #define IPC_MAGIC		0x14052001
 #define SOCKET_CTRL_PATH	"/tmp/sockinstctrl"
 
@@ -54,6 +56,16 @@ void ipc_end(int connfd);
 int ipc_get_status(ipc_message *msg);
 
 void *network_thread(void *data);
+
+
+typedef int (*writedata)(char **buf, int *size);
+typedef int (*getstatus)(ipc_message *msg);
+typedef int (*terminated)(RECOVERY_STATUS status);
+int swupdate_image_write(char *buf, int size);
+int swupdate_async_start(writedata wr_func, getstatus status_func,
+				terminated end_func);
+
+pthread_t start_thread(void *(* start_routine) (void *), void *arg);
 
 extern pthread_mutex_t stream_mutex;
 extern pthread_cond_t stream_wkup;

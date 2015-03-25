@@ -467,6 +467,7 @@ core-y		:= \
 libs-y		:= \
 		archival/ \
 		corelib/ \
+		ipc/ \
 		parser/ \
 		mongoose/ \
 

@@ -224,19 +224,6 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 	}
 }
 
-static pthread_t start_thread(void *(* start_routine) (void *), void *arg)
-{
-	int ret;
-	pthread_t id;
-
-	ret = pthread_create(&id, NULL, start_routine, arg);
-	if (ret) {
-		TRACE("I cannot start pthread");
-		exit(1);
-	}
-	return id;
-}
-
 int network_initializer(int argc, char *argv[], struct swupdate_cfg *software)
 {
 	int ret;
