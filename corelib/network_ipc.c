@@ -141,8 +141,6 @@ int ipc_send_data(int connfd, char *buf, int size)
 
 	ret = write(connfd,  buf, size);
 	if (ret != size) {
-//		TRACE("Error sending data to the installer %d != %d\n",
-//			ret, size);
 		return -1;
 	}
 
