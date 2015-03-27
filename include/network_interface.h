@@ -22,8 +22,5 @@
 #ifndef _NETWORK_INTERFACE_H
 #define _NETWORK_INTERFACE_H
 
-#ifdef CONFIG_WEBSERVER
-int network_initializer(int argc, char *argv[], struct swupdate_cfg *software);
-#endif
-
+int network_initializer(struct swupdate_cfg *software);
 #endif

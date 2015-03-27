@@ -48,6 +48,7 @@
 #include "installer.h"
 #include "flash.h"
 #include "lua_util.h"
+#include "mongoose_interface.h"
 
 #define MODULE_NAME	"swupdate"
 
@@ -66,6 +67,7 @@ static struct option long_options[] = {
 	{"image", required_argument, NULL, 'i'},
 	{"blacklist", required_argument, NULL, 'b'},
 	{"help", no_argument, NULL, 'h'},
+	{"server", no_argument, NULL, 's'},
 #ifdef CONFIG_DOWNLOAD
 	{"download", required_argument, NULL, 'd'},
 #endif
@@ -91,6 +93,7 @@ static void usage(char *programname)
 		"                        downloaded completely to --image filename, then\n"
 		"                        installation will proceed as usual.\n"
 #endif
+		" -s, --server : run as daemon waiting from IPC interface.\n"
 #ifdef CONFIG_WEBSERVER
 		" -w, --webserver [OPTIONS] : Parameters to be passed to webserver\n"
 #endif
@@ -327,6 +330,7 @@ int main(int argc, char **argv)
 	int c;
 	char fname[MAX_IMAGE_FNAME];
 	int opt_i = 0;
+	int opt_s = 0;
 	struct hw_type hwrev;
 #ifdef CONFIG_DOWNLOAD
 	char image_url[MAX_URL];
@@ -341,7 +345,7 @@ int main(int argc, char **argv)
 
 	memset(&flashdesc, 0, sizeof(flashdesc));
 	memset(main_options, 0, sizeof(main_options));
-	strcpy(main_options, "vhi:b:");
+	strcpy(main_options, "vhi:b:s");
 #ifdef CONFIG_DOWNLOAD
 	strcat(main_options, "d:");
 #endif
@@ -377,6 +381,9 @@ int main(int argc, char **argv)
 			opt_d = 1;
 			break;
 #endif
+		case 's': /* run as server */
+			opt_s = 1;
+			break;
 #ifdef CONFIG_WEBSERVER
 		case 'w':
 			snprintf(weboptions, sizeof(weboptions), "%s %s", argv[0], optarg);
@@ -411,8 +418,13 @@ int main(int argc, char **argv)
 
 		notify(SUCCESS, 0, 0);
 	}
-#ifdef CONFIG_WEBSERVER
+
+#if defined(CONFIG_MONGOOSE)
+	/* Start embedded web server */
 	if (opt_w)
-		network_initializer(ac, av, &swcfg);
+		start_mongoose(ac, av);
 #endif
+	if (opt_w || opt_s)
+		network_initializer(&swcfg);
+
 }	

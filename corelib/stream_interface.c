@@ -224,7 +224,7 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 	}
 }
 
-int network_initializer(int argc, char *argv[], struct swupdate_cfg *software)
+int network_initializer(struct swupdate_cfg *software)
 {
 	int ret;
 	pthread_mutex_t condmutex = PTHREAD_MUTEX_INITIALIZER;
@@ -236,11 +236,6 @@ int network_initializer(int argc, char *argv[], struct swupdate_cfg *software)
 
 	/* fork off the local dialogs and network service */
 	network_thread_id = start_thread(network_thread, &inst);
-
-#if defined(CONFIG_MONGOOSE)
-	/* Start embedded web server */
-	start_mongoose(argc, argv);
-#endif
 
 	/* handle installation requests (from either source) */
 	while (1) {
