@@ -38,6 +38,7 @@
 
 #include "util.h"
 #include "network_ipc.h"
+#include "network_interface.h"
 
 #define LISTENQ	1024
 
