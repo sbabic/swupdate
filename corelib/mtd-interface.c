@@ -167,7 +167,7 @@ int scan_mtd_devices (void)
 			continue;
 		}
 #if defined(CONFIG_UBIVOL)
-		if (!flash->mtd_info[i].skipubi)
+		if (flash->libubi && !flash->mtd_info[i].skipubi)
 			scan_ubi_partitions(i);
 #endif
 	}
