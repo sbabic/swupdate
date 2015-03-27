@@ -52,3 +52,32 @@ Any error lets swupdate to leave the update state, and further packets
 will be ignored until a new REQ_INSTALL will be received.
 
 .. image:: images/API.png
+
+Client Library
+--------------
+
+A library simplifies the usage of the IPC making available a way to
+start asynchrounosly an update.
+
+The library consists of one function and several callbacks.
+
+::
+
+        int swupdate_async_start(writedata wr_func, getstatus status_func,
+                terminated end_func)
+        typedef int (*writedata)(char **buf, int *size);
+        typedef int (*getstatus)(ipc_message *msg);
+        typedef int (*terminated)(RECOVERY_STATUS status);
+
+swupdate_async_start creates a new thread and start the communication with swupdate,
+triggering for a new update. The wr_func is called to get the image to be installed.
+It is responsibility of the callback to provide the buffer and the size of
+the chunk of data.
+
+The getstatus callback is called after the stream was downloaded to check
+how upgrade is going on. It can be omitted if only the result is required.
+
+The terminated callback is called when swupdate has finished with the result
+of the upgrade.
+
+Example about using this library is in the examples/client directory.
