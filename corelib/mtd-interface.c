@@ -75,7 +75,6 @@ void ubi_init(void)
 	if (!libubi) {
 		if (errno == 0)
 			ERROR("UBI is not present in the system");
-		ERROR("cannot open libubi");
 		return;
 	}
 
