@@ -206,6 +206,30 @@ int copyfile(int fdin, int fdout, int nbytes, unsigned long *offs,
 	return 0;
 }
 
+int calc_checksum(int fdin, int nbytes, unsigned long offset,
+	uint32_t *checksum)
+{
+	unsigned long size;
+	int ret;
+
+	if (checksum)
+		*checksum = 0;
+
+	while (nbytes > 0) {
+		size = (nbytes < BUFF_SIZE ? nbytes : BUFF_SIZE);
+
+		if ((ret = fill_buffer(fdin, in, size, &offset, checksum) < 0)) {
+			return ret;
+		}
+
+		nbytes -= size;
+	}
+
+	fill_buffer(fdin, in, NPAD_BYTES(offset), &offset, checksum);
+
+	return 0;
+}
+
 int extract_cpio_header(int fd, struct filehdr *fhdr, unsigned long *offset)
 {
 	unsigned char buf[256];
@@ -348,6 +372,9 @@ off_t cpio_scan(int fd, struct swupdate_cfg *cfg, off_t start)
 	struct filehdr fdh;
 	unsigned long offset = start;
 	int file_listed;
+#ifdef CONFIG_CPIO_VERIFY_CHECKSUM_BEFORE_UPDATE
+	uint32_t checksum;
+#endif
 
 	while (1) {
 		file_listed = 0;
@@ -371,6 +398,18 @@ off_t cpio_scan(int fd, struct swupdate_cfg *cfg, off_t start)
 			(unsigned int)fdh.size,
 			file_listed ? "REQUIRED" : "not required");
 
+#ifdef CONFIG_CPIO_VERIFY_CHECKSUM_BEFORE_UPDATE
+		if (calc_checksum(fd, fdh.size, offset, &checksum) != 0) {
+			TRACE("Checksum calculation failed for %s\n",
+					fdh.filename);
+			return -1;
+		}
+		if ((uint32_t)(fdh.chksum) != checksum) {
+			TRACE("Checksum verification failed for %s: %x != %x\n",
+					fdh.filename, (uint32_t)fdh.chksum, checksum);
+			return -1;
+		}
+#endif
 		/* Skip to the end of the file */
 		offset += fdh.size;
 

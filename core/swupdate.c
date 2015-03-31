@@ -219,7 +219,11 @@ static int install_from_file(char *fname)
 		exit(1);
 	}
 
-	cpio_scan(fdsw, &swcfg, pos);
+	pos = cpio_scan(fdsw, &swcfg, pos);
+	if (pos < 0) {
+		close(fdsw);
+		exit(1);
+	}
 
 	/*
 	 * Check if all files described in sw-description

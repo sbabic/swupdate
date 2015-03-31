@@ -119,6 +119,7 @@ int copyfile(int fdin, int fdout, int nbytes, unsigned long *offs,
 off_t extract_sw_description(int fd);
 off_t extract_next_file(int fd, int fdout, off_t start, int compressed);
 int openfileoutput(const char *filename);
+int calc_checksum(int fdin, int nbytes, unsigned long offset, uint32_t *checksum);
 
 int register_notifier(notifier client);
 void notify(RECOVERY_STATUS status, int error, const char *msg);
