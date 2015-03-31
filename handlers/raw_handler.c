@@ -57,6 +57,11 @@ static int install_raw_image(struct img_type *img,
 	}
 	
 	ret = copyfile(img->fdin, fdout, img->size, &offset, 0, img->compressed, &checksum);
+	if ((uint32_t)(img->checksum) != checksum)
+	{
+		TRACE("Checkum verification failed: %x != %x\n", img->checksum, checksum);
+		ret = -1;
+	}
 	close(fdout);
 	return ret;
 }
