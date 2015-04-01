@@ -21,6 +21,16 @@ config CPIO
 	  Unless you have a specific application which requires cpio, you
 	  should probably say N here.
 
+config CPIO_VERIFY_CHECKSUM_BEFORE_UPDATE
+	bool "cpio: verify checksum before update"
+	default y
+	help
+	  If activated all of the cpio archive's checksums are verified before
+	  starting the update. Otherwise the checksums are verified while/after
+	  the update installation.
+	  As the pre-installation checksum verification takes some time, this
+	  behavior can be deactivated
+
 config GUNZIP
 	bool "gunzip"
 	default y
