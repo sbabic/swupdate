@@ -348,6 +348,8 @@ off_t cpio_scan(int fd, struct swupdate_cfg *cfg, off_t start)
 	struct filehdr fdh;
 	unsigned long offset = start;
 	int file_listed;
+	uint32_t checksum;
+
 
 	while (1) {
 		file_listed = 0;
@@ -371,8 +373,19 @@ off_t cpio_scan(int fd, struct swupdate_cfg *cfg, off_t start)
 			(unsigned int)fdh.size,
 			file_listed ? "REQUIRED" : "not required");
 
-		/* Skip to the end of the file */
-		offset += fdh.size;
+		/*
+		 * use copyfile for checksum verification, as we skip file
+		 * we do not have to provide fdout
+		 */
+		if (copyfile(fd, 0, fdh.size, &offset, 1, 0, &checksum) != 0) {
+			ERROR("invalid archive\n");
+			return -1;
+		}
+		if ((uint32_t)(fdh.chksum) != checksum) {
+			ERROR("Checksum verification failed for %s: %x != %x\n",
+			fdh.filename, (uint32_t)fdh.chksum, checksum);
+			return -1;
+		}
 
 		/* Next header must be 4-bytes aligned */
 		offset += NPAD_BYTES(offset);
