@@ -343,7 +343,7 @@ off_t extract_next_file(int fd, int fdout, off_t start, int compressed)
 	return offset;
 }
 
-off_t cpio_scan(int fd, struct swupdate_cfg *cfg, off_t start)
+int cpio_scan(int fd, struct swupdate_cfg *cfg, off_t start)
 {
 	struct filehdr fdh;
 	unsigned long offset = start;
@@ -393,6 +393,6 @@ off_t cpio_scan(int fd, struct swupdate_cfg *cfg, off_t start)
 			ERROR("CPIO file corrupted : %s\n", strerror(errno));
 	}
 
-	return offset;
+	return 0;
 }
 
