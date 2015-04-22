@@ -331,6 +331,7 @@ int main(int argc, char **argv)
 	char fname[MAX_IMAGE_FNAME];
 	int opt_i = 0;
 	int opt_s = 0;
+	int opt_w = 0;
 	struct hw_type hwrev;
 #ifdef CONFIG_DOWNLOAD
 	char image_url[MAX_URL];
@@ -340,7 +341,6 @@ int main(int argc, char **argv)
 	char weboptions[1024];
 	char **av = NULL;
 	int ac = 0;
-	int opt_w = 0;
 #endif
 
 	memset(&flashdesc, 0, sizeof(flashdesc));

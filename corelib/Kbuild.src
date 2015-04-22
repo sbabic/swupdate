@@ -3,6 +3,5 @@ libs-y		+= libcore/
 INSERT
 
 lib-y			+= installer.o mtd-interface.o \
-			   network_thread.o
+			   network_thread.o stream_interface.o
 lib-$(CONFIG_LUA)	+= lua_interface.o
-lib-$(CONFIG_WEBSERVER)	+= stream_interface.o

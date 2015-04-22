@@ -106,6 +106,8 @@ CFLAGS += --sysroot=$(CONFIG_SYSROOT)
 export SYSROOT=$(CONFIG_SYSROOT)
 endif
 
+# Links always pthread
+LDLIBS += pthread crypto
 # lua
 ifneq ($(CONFIG_LUA),)
 LDLIBS += lua dl
@@ -136,7 +138,6 @@ endif
 
 # mongoose / webserver
 ifneq ($(CONFIG_WEBSERVER),)
-LDLIBS += pthread crypto
 ifneq ($(CONFIG_MONGOOSESSL),)
 CFLAGS += -DNO_SSL_DL
 LDLIBS += ssl
