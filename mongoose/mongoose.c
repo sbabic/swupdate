@@ -203,7 +203,7 @@ struct pollfd {
 #else    // UNIX  specific
 #include <sys/wait.h>
 #include <sys/socket.h>
-#include <sys/poll.h>
+#include <poll.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/time.h>
