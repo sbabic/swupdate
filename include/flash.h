@@ -24,8 +24,8 @@
 
 #include <stdint.h>
 #include <mtd/libmtd.h>
-#include <sys/queue.h>
 #include <mtd/libubi.h>
+#include "bsdqueue.h"
 
 #define DEFAULT_CTRL_DEV "/dev/ubi_ctrl"
 #define UBI_DATA_VOLNAME	"data"

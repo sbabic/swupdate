@@ -29,7 +29,6 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/queue.h>
 #include <ctype.h>
 #include <fcntl.h>
 #include <dirent.h>
@@ -40,6 +39,7 @@
 #include <pthread.h>
 #include "cpiohdr.h"
 
+#include "bsdqueue.h"
 #include "swupdate.h"
 #include "util.h"
 #include "handler.h"

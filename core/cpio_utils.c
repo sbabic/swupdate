@@ -26,10 +26,10 @@
 #include <errno.h>
 #include <ctype.h>
 #include <sys/types.h>
-#include <sys/queue.h>
 #include <fcntl.h>
 
 #include "autoconf.h"
+#include "bsdqueue.h"
 #include "cpiohdr.h"
 #include "util.h"
 #include "swupdate.h"

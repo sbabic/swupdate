@@ -28,7 +28,6 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <sys/queue.h>
 #include <sys/stat.h>
 #include <sys/un.h>
 #include <sys/select.h>
@@ -36,6 +35,7 @@
 #include <netinet/in.h>
 #include <pthread.h>
 
+#include "bsdqueue.h"
 #include "util.h"
 #include "network_ipc.h"
 #include "network_interface.h"

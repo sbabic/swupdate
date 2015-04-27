@@ -21,7 +21,7 @@
 #define _SWUPDATE_H
 
 #include <sys/types.h>
-#include <sys/queue.h>
+#include "bsdqueue.h"
 #include "flash.h"
 #include "globals.h"
 

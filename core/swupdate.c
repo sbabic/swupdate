@@ -29,7 +29,6 @@
 #include <errno.h>
 #include <ctype.h>
 #include <sys/types.h>
-#include <sys/queue.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/mount.h>
@@ -38,6 +37,7 @@
 #include <curl/curl.h>
 #endif
 
+#include "bsdqueue.h"
 #include "cpiohdr.h"
 #include "util.h"
 #include "swupdate.h"

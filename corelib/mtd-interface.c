@@ -23,10 +23,10 @@
 #include <string.h>
 #include <mtd/mtd-user.h>
 #include <sys/types.h>
-#include <sys/queue.h>
 #include <sys/mount.h>
 #include <unistd.h>
 #include <errno.h>
+#include "bsdqueue.h"
 #include "util.h"
 #include "flash.h"
 

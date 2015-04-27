@@ -28,7 +28,6 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/queue.h>
 #include <ctype.h>
 #include <fcntl.h>
 #include <dirent.h>
@@ -37,6 +36,7 @@
 #include <sys/reboot.h>
 #include <sys/stat.h>
 
+#include "bsdqueue.h"
 #include "util.h"
 
 struct notify_elem {

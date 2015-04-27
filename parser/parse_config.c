@@ -22,8 +22,8 @@
 #include <string.h>
 #include <libconfig.h>
 #include <sys/types.h>
-#include <sys/queue.h>
 #include "autoconf.h"
+#include "bsdqueue.h"
 #include "util.h"
 #include "swupdate.h"
 #include "parsers.h"
