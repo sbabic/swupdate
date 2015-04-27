@@ -20,6 +20,7 @@
 #ifndef _SWUPDATE_H
 #define _SWUPDATE_H
 
+#include <sys/types.h>
 #include <sys/queue.h>
 #include "flash.h"
 #include "globals.h"
