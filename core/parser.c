@@ -19,7 +19,7 @@
  */
 
 #include <unistd.h>
-#include <sys/fcntl.h>
+#include <fcntl.h>
 #include "swupdate.h"
 #include "parsers.h"
 

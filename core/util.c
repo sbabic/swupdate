@@ -24,7 +24,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <errno.h>
-#include <sys/fcntl.h>
+#include <fcntl.h>
 #include <dirent.h>
 #include "swupdate.h"
 #include "util.h"

@@ -27,7 +27,7 @@
 #include <ctype.h>
 #include <sys/types.h>
 #include <sys/queue.h>
-#include <sys/fcntl.h>
+#include <fcntl.h>
 
 #include "autoconf.h"
 #include "cpiohdr.h"

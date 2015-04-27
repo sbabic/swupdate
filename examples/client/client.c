@@ -38,7 +38,7 @@
 #include <string.h>
 #include <errno.h>
 #include <sys/ioctl.h>
-#include <sys/fcntl.h>
+#include <fcntl.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include "network_ipc.h"

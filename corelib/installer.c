@@ -28,7 +28,7 @@
 #include <ctype.h>
 #include <sys/types.h>
 #include <sys/queue.h>
-#include <sys/fcntl.h>
+#include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/mount.h>
 
