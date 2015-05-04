@@ -25,12 +25,12 @@
 #include <string.h>
 #include <sys/types.h>
 #include <errno.h>
-#include <sys/queue.h>
 #include <json-c/json.h>
 #include <unistd.h>
 #include <sys/fcntl.h>
 #include <sys/stat.h>
 #include "autoconf.h"
+#include "bsdqueue.h"
 #include "util.h"
 #include "swupdate.h"
 #include "parsers.h"
