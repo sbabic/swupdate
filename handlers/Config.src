@@ -43,6 +43,7 @@ config UBIVIDOFFSET
 
 config CFI
 	bool "cfi"
+	depends on MTD
 	default n
 	help
 	  Handler to store images in flash in raw mode,
