@@ -203,7 +203,7 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 
 			/*
 			 * Check if all required files were provided
-			 * Update of a single file is not possible. 
+			 * Update of a single file is not possible.
 			 */
 
 			LIST_FOREACH(img, &software->images, next) {
@@ -291,6 +291,6 @@ int network_initializer(struct swupdate_cfg *software)
 		/* release temp files we may have created */
 		cleanup_files(software);
 	}
-	
+
 	exit(0);
 }
