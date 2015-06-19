@@ -161,7 +161,12 @@ CFLAGS += -DUSE_IPV6
 endif
 endif
 
-LDLIBS += z ubi mtd
+# MTD
+ifeq ($(CONFIG_MTD),y)
+LDLIBS += ubi mtd
+endif
+
+LDLIBS += z
 
 
 # If a flat binary should be built, CFLAGS_swupdate="-elf2flt"

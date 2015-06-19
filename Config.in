@@ -42,6 +42,12 @@ config HW_COMPATIBILITY_FILE
 	  The file has simple entries (one per line) in the
 	  format of "major.minor".
 
+config MTD
+	bool "MTD support"
+	default y
+	help
+	  Enable MTD support.
+
 config LUA
 	bool "lua"
 	default y

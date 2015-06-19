@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc. 
+ * Foundation, Inc.
  */
 
 #include <stdio.h>
@@ -112,17 +112,18 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 	struct stat buf;
 	struct filehdr fdh;
 
+#ifdef CONFIG_MTD
 	mtd_cleanup();
-
+#endif
 	/* Extract all scripts, preinstall scripts must be run now */
 	if (fromfile)
 		extract_script(fdsw, &sw->scripts, TMPDIR);
 
 	/* Scripts must be run before installing images */
 	ret = run_prepost_scripts(sw, PREINSTALL);
-
+#ifdef CONFIG_MTD
 	scan_mtd_devices();
-
+#endif
 	/* Update u-boot environment */
 	prepare_uboot_script(sw, UBOOT_SCRIPT);
 
