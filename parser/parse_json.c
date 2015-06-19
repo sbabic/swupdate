@@ -110,8 +110,8 @@ static void get_field_string(json_object *e, const char *path, char *dest, size_
 	const char *str;
 	json_object *node;
 
-	node = json_object_object_get(e, path);
-	if (node && (json_object_get_type(node) == json_type_string)) {
+	if (json_object_object_get_ex(e, path, &node) &&
+		(json_object_get_type(node) == json_type_string)) {
 		str = json_object_get_string(node);
 		strncpy(dest, str, n);
 	}
@@ -122,8 +122,7 @@ static void get_field(json_object *e, const char *path, void *dest)
 	json_object *fld = NULL;
 	enum json_type type;
 
-	fld = json_object_object_get(e, path);
-	if (fld) {
+	if (json_object_object_get_ex(e, path, &fld)) {
 		type = json_object_get_type(fld);
 		switch (type) {
 		case json_type_boolean:
@@ -258,7 +257,7 @@ static void parse_scripts(json_object * jobj, struct swupdate_cfg *swcfg)
 		if (!elem)
 			continue;
 
-		if (!json_object_object_get(elem, "filename"))
+		if (!json_object_object_get_ex(elem, "filename", NULL))
 			continue;
 
 		script = (struct img_type *)calloc(1, sizeof(struct img_type));
@@ -301,7 +300,7 @@ static void parse_uboot(json_object * jobj, struct swupdate_cfg *swcfg)
 		if (!elem)
 			continue;
 
-		if (!json_object_object_get(elem, "name"))
+		if (!json_object_object_get_ex(elem, "name", NULL))
 			continue;
 
 		uboot = (struct uboot_var *)calloc(1, sizeof(struct uboot_var));
@@ -339,7 +338,7 @@ static void parse_images(json_object * jobj, struct swupdate_cfg *swcfg)
 		if (!elem)
 			continue;
 
-		if (!json_object_object_get(elem, "filename"))
+		if (!json_object_object_get_ex(elem, "filename", NULL))
 			continue;
 
 		image = (struct img_type *)calloc(1, sizeof(struct img_type));
@@ -393,7 +392,7 @@ static void parse_files(json_object *jobj, struct swupdate_cfg *swcfg)
 		if (!elem)
 			continue;
 
-		if (!json_object_object_get(elem, "filename"))
+		if (!json_object_object_get_ex(elem, "filename", NULL))
 			continue;
 
 		file = (struct img_type *)calloc(1, sizeof(struct img_type));
