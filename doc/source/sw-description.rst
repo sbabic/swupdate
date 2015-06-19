@@ -123,7 +123,7 @@ Example:
 	hardware-compatibility: [ "1.0", "1.2", "1.3"];
 
 This means that the software is compatible with HW-Revisions
-1.0, 1.2 and 1.3, but not for 1.1 or other version not explicitely
+1.0, 1.2 and 1.3, but not for 1.1 or other version not explicitly
 listed here.
 It is then duty of the single project to find which is the
 revision of the board where swupdate is running. There is no
@@ -285,7 +285,7 @@ uboot
 -----
 
 There are two ways to update the bootloader (U-Boot) environment.
-First way is to add a file with the list of variales to be changed
+First way is to add a file with the list of variables to be changed
 and setting "uboot" as type of the image. This inform swupdate to
 call the U-Boot handler to manage the file.
 
