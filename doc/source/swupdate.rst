@@ -23,9 +23,10 @@ the updating process reports only the status to the operator
 The output can be displayed on a LCD using the framebuffer
 device or directed to a serial line (Linux console).
 
-It is generally used in the single copy approach, running
-in a initrd (receipes are provided to generate with Yocto).
-However, it is possible to use it in a double-copy approach.
+It is generally used in the single copy approach, running in a initrd
+(receipes are provided to generate with Yocto).  However, it is
+possible to use it in a double-copy approach by use of `Software
+collections`_.
 
 If started for a remote update, swupdate starts an embedded
 Webserver and waits for requests. The operator must upload
@@ -166,6 +167,49 @@ Where:
 - `<boardname>` can be used for grouping board specific settigns
 
 
+Software collections
+--------------------
+
+Software collections and operation modes can be used to implement a
+dual copy strategy. The simplest case is to define two installation
+locations for the firmware image and call `swupdate` selecting the
+appropriate image.
+
+::
+
+    software =
+    {
+            version = "0.1.0";
+
+            stable = {
+                    copy-1: {
+                            images: (
+                            {
+                                    device = "/dev/mtd4"
+                                    ...
+                            }
+                            );
+                    }
+                    copy-2: {
+                            images: (
+                            {
+                                    device = "/dev/mtd5"
+                                    ...
+                            }
+                            );
+                    }
+            };
+    }
+
+In this way it is possible to specify that `copy-1` gets installed to
+`/dev/mtd4`, while `copy-2` to `/dev/mtd5`. By properly selecting the
+installation locations, `swupdate` will update the firmware in the
+other slot.
+
+The method of image selection is out of the scope of swupdate and user
+is responsible for calling `swupdate` passing proper settings.
+
+
 Streaming feature
 -----------------
 
@@ -250,6 +294,7 @@ List of supported features
 
 - Features are enabled / disabled using "make menuconfig".
   (Kbuild is inherited from busybox project)
+
 
 Configuration and build
 =======================
@@ -400,6 +445,14 @@ network.
 An example of the notifications sent back to the browser is in the next figure:
 
 .. image:: images/webprogress.png
+
+Software collections can be specified by passing `--select` command
+line option. Assuming `sw-description` file contains a collection
+named `stable`, with `alt` installation location, `swupdate` can be
+called like this::
+
+   swupdate --select stable,alt
+
 
 Changes in bootloader code
 ==========================

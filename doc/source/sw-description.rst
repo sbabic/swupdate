@@ -144,8 +144,8 @@ in kernel.
 
 ::
 
-	partitions: ( 
-		{ 
+	partitions: (
+		{
 			name = <volume name>;
 			size = <size in bytes>;
 			device = <MTD device>;
@@ -359,3 +359,76 @@ and the following description::
 swupdate will set `bootpart` to `0:2` in U-Boot's environment for this
 board. For all other boards, `bootpart` will be set to `0:1`. Board
 specific settings take precedence over default scoped settings.
+
+
+Software collections and operation modes
+----------------------------------------
+
+Software collections and operations modes extend the description file
+syntax to provide an overlay grouping all previous configuration
+tags. The mechanism is similar to `Board specific settings`_ and can
+be used for implementing a dual copy strategy or delivering both
+stable and unstable images within a single update file.
+
+The mechanism uses a custom user-defined tags placed within `software`
+scope. The tag names must not be any of: `version`,
+`hardware-compatibility`, `uboot`, `files`, `scripts`, `partitions`,
+`images`
+
+An example description file:
+
+::
+
+	software =
+	{
+	        version = "0.1";
+
+	        hardware-compatibility = [ "revA" ];
+
+	        /* differentiate running image modes/sets */
+	        stable:
+	        {
+	                main:
+	                {
+	                        images: (
+	                        {
+	                                filename = "rootfs.ext3";
+	                                device = "/dev/mmcblk0p2";
+	                        }
+	                        );
+
+	                        uboot: (
+	                        {
+	                                name = "bootpart";
+	                                value = "0:2";
+	                        }
+	                        );
+	                };
+	                alt:
+	                {
+	                        images: (
+	                        {
+	                                filename = "rootfs.ext3";
+	                                device = "/dev/mmcbkl0p1";
+	                        }
+	                        );
+
+	                        uboot: (
+	                        {
+	                                name = "bootpart";
+	                                value = "0:1";
+	                        }
+	                        );
+	                };
+
+	        };
+	}
+
+The configuration describes a single software collection named
+`stable`. Two distinct image locations are specified for this
+collection: `/dev/mmcblk0p1` and `/dev/mmcblk0p2` for `main` mode and
+`alt` mode respectively.
+
+This feature can be used to implement a dual copy strategy by
+specifying the collection and mode explicitly.
+
