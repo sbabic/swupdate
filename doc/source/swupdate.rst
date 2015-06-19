@@ -30,7 +30,7 @@ However, it is possible to use it in a double-copy approach.
 If started for a remote update, swupdate starts an embedded
 Webserver and waits for requests. The operator must upload
 a suitable image, that swupdate checks and then install.
-All output is notified to the operator's browser via AJAX 
+All output is notified to the operator's browser via AJAX
 notifications.
 
 Single image delivery
@@ -151,6 +151,19 @@ Multiple devices are supported by the default parser, too.
 
 In this way, it is possible to have a single image providing software
 for each device you have.
+
+By default the hardware information is extracted from
+`/etc/hwrevision` file. The file should contain a single line in the
+following format::
+
+  <boardname> <revision>
+
+Where:
+
+- `<revision>` will be used for matching with hardware compatibility
+  list
+
+- `<boardname>` can be used for grouping board specific settigns
 
 
 Streaming feature
@@ -305,7 +318,7 @@ Building
 
 	make
 
-The result is the binary "swupdate". 
+The result is the binary "swupdate".
 
 Running swupdate
 -----------------
