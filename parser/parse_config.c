@@ -36,12 +36,40 @@
 static struct hw_type hardware;
 
 static const config_setting_t *get_setting(config_t *cfg,
-	const char *field)
+					const char *field, struct swupdate_cfg *swcfg)
 {
 	const config_setting_t *setting;
 
 	char node[1024];
-	if (field && strlen(hardware.boardname)) {
+
+	if (!field)
+		return NULL;
+
+	if (strlen(swcfg->running_mode) && strlen(swcfg->software_set)) {
+		/* Try with both software set and board name */
+		if (strlen(hardware.boardname)) {
+			snprintf(node, sizeof(node), "software.%s.%s.%s.%s",
+				hardware.boardname,
+				swcfg->software_set,
+				swcfg->running_mode,
+				field);
+			setting = config_lookup(cfg, node);
+			if (setting)
+				return setting;
+		}
+		/* still here, try with software set and mode */
+		snprintf(node, sizeof(node), "software.%s.%s.%s",
+			swcfg->software_set,
+			swcfg->running_mode,
+			field);
+		setting = config_lookup(cfg, node);
+		if (setting)
+			return setting;
+
+	}
+
+	/* Try with board name */
+	if (strlen(hardware.boardname)) {
 		snprintf(node, sizeof(node), "software.%s.%s",
 			hardware.boardname,
 			field);
@@ -73,7 +101,7 @@ static int parse_hw_compatibility(config_t *cfg, struct swupdate_cfg *swcfg)
 	const char *s;
 	struct hw_type *hwrev;
 
-	setting = get_setting(cfg, "hardware-compatibility");
+	setting = get_setting(cfg, "hardware-compatibility", swcfg);
 	if (setting == NULL) {
 		ERROR("HW compatibility not found\n");
 		return -1;
@@ -115,7 +143,7 @@ static void parse_partitions(config_t *cfg, struct swupdate_cfg *swcfg)
 	int count, i;
 	struct img_type *partition;
 
-	setting = get_setting(cfg, "partitions");
+	setting = get_setting(cfg, "partitions", swcfg);
 
 	if (setting == NULL)
 		return;
@@ -165,7 +193,7 @@ static void parse_scripts(config_t *cfg, struct swupdate_cfg *swcfg)
 	struct img_type *script;
 	const char *str;
 
-	setting = get_setting(cfg, "scripts");
+	setting = get_setting(cfg, "scripts", swcfg);
 
 	if (setting == NULL)
 		return;
@@ -214,7 +242,7 @@ static void parse_uboot(config_t *cfg, struct swupdate_cfg *swcfg)
 	struct uboot_var *uboot;
 	const char *str;
 
-	setting = get_setting(cfg, "uboot");
+	setting = get_setting(cfg, "uboot", swcfg);
 
 	if (setting == NULL)
 		return;
@@ -252,7 +280,7 @@ static void parse_images(config_t *cfg, struct swupdate_cfg *swcfg)
 	struct img_type *image;
 	const char *str;
 
-	setting = get_setting(cfg, "images");
+	setting = get_setting(cfg, "images", swcfg);
 
 	if (setting == NULL)
 		return;
@@ -309,7 +337,7 @@ static void parse_files(config_t *cfg, struct swupdate_cfg *swcfg)
 	struct img_type *file;
 	const char *str;
 
-	setting = get_setting(cfg, "files");
+	setting = get_setting(cfg, "files", swcfg);
 
 	if (setting == NULL)
 		return;
