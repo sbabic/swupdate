@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc. 
+ * Foundation, Inc.
  */
 
 #ifndef _SWUPDATE_H
@@ -82,6 +82,8 @@ struct swupdate_cfg {
 	char name[SWUPDATE_GENERAL_STRING_SIZE];
 	int valid;
 	char version[SWUPDATE_GENERAL_STRING_SIZE];
+	char software_set[SWUPDATE_GENERAL_STRING_SIZE];
+	char running_mode[SWUPDATE_GENERAL_STRING_SIZE];
 	struct hwlist hardware;
 	struct imglist images;
 	struct imglist files;

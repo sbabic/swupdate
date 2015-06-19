@@ -65,6 +65,7 @@ struct flash_description *get_flash_info(void) {
 static struct option long_options[] = {
 	{"verbose", no_argument, NULL, 'v'},
 	{"image", required_argument, NULL, 'i'},
+	{"select", required_argument, NULL, 'e'},
 	{"blacklist", required_argument, NULL, 'b'},
 	{"help", no_argument, NULL, 'h'},
 	{"server", no_argument, NULL, 's'},
@@ -87,6 +88,8 @@ static void usage(char *programname)
 	printf(("Usage %s [OPTION]\n"
 		" -v, --verbose         : be verbose\n"
 		" -i, --image <filename> : Software to be installed\n"
+	        " -e, --select <software>,<mode> : Select software images set and source\n"
+		"                                  Ex.: stable,main\n"
 		" -b, --blacklist <list of mtd> : MTDs that must not be scanned for UBI\n"
 #ifdef CONFIG_DOWNLOAD
 		" -d, --download <url> : URL of image to be downloaded. Image will be\n"
@@ -304,6 +307,29 @@ static int download_from_url(char *image_url, char *fname)
 }
 #endif
 
+static int parse_image_selector(const char *selector, struct swupdate_cfg *sw)
+{
+	char *pos;
+	size_t len;
+
+	pos = strchr(selector, ',');
+	if (pos == NULL)
+		return -EINVAL;
+
+	len = pos - selector;
+	if (len > sizeof(sw->software_set))
+		len = sizeof(sw->software_set);
+
+	strncpy(sw->software_set, selector, len);
+	/* pos + 1 will either be NULL or valid text */
+	strncpy(sw->running_mode, pos + 1, sizeof(sw->running_mode));
+
+	if (strlen(sw->software_set) == 0 || strlen(sw->running_mode) == 0)
+		return -EINVAL;
+
+	return 0;
+}
+
 static void swupdate_init(struct swupdate_cfg *sw)
 {
 	/* Initialize internal tree to store configuration */
@@ -329,7 +355,9 @@ int main(int argc, char **argv)
 {
 	int c;
 	char fname[MAX_IMAGE_FNAME];
+	const char *software_select = NULL;
 	int opt_i = 0;
+	int opt_e = 0;
 	int opt_s = 0;
 	int opt_w = 0;
 	struct hw_type hwrev;
@@ -345,7 +373,7 @@ int main(int argc, char **argv)
 
 	memset(&flashdesc, 0, sizeof(flashdesc));
 	memset(main_options, 0, sizeof(main_options));
-	strcpy(main_options, "vhi:b:s");
+	strcpy(main_options, "vhi:b:se:");
 #ifdef CONFIG_DOWNLOAD
 	strcat(main_options, "d:");
 #endif
@@ -370,6 +398,10 @@ int main(int argc, char **argv)
 		case 'i':
 			strncpy(fname, optarg, sizeof(fname));
 			opt_i = 1;
+			break;
+		case 'e':
+			software_select = optarg;
+			opt_e = 1;
 			break;
 		case 'h':
 			usage(argv[0]);
@@ -405,6 +437,15 @@ int main(int argc, char **argv)
 
 	print_registered_handlers();
 	notify_init();
+
+	if (opt_e) {
+		if (parse_image_selector(software_select, &swcfg)) {
+			fprintf(stderr, "Incorrect select option format\n");
+			exit(1);
+		}
+		fprintf(stderr, "software set: %s mode: %s\n",
+			swcfg.software_set, swcfg.running_mode);
+	}
 
 	if (opt_i) {
 #ifdef CONFIG_DOWNLOAD
