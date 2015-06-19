@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc. 
+ * Foundation, Inc.
  */
 
 #include <stdio.h>
@@ -115,7 +115,7 @@ static int parse_hw_compatibility(config_t *cfg, struct swupdate_cfg *swcfg)
 		s = config_setting_get_string(hw);
 		if (!s)
 			continue;
- 
+
 		hwrev = (struct hw_type *)calloc(1, sizeof(struct hw_type));
 		if (!hwrev) {
 			ERROR("No memory: malloc failed\n");
@@ -155,7 +155,7 @@ static void parse_partitions(config_t *cfg, struct swupdate_cfg *swcfg)
 		if (!elem)
 			continue;
 
-		partition = (struct img_type *)calloc(1, sizeof(struct img_type));	
+		partition = (struct img_type *)calloc(1, sizeof(struct img_type));
 		if (!partition) {
 			ERROR("No memory: malloc failed\n");
 			return;
@@ -181,7 +181,7 @@ static void parse_partitions(config_t *cfg, struct swupdate_cfg *swcfg)
 		TRACE("Partition: %s new size %lld bytes\n",
 			partition->volname,
 			partition->partsize);
- 
+
 		LIST_INSERT_HEAD(&swcfg->images, partition, next);
 	}
 }
@@ -212,7 +212,7 @@ static void parse_scripts(config_t *cfg, struct swupdate_cfg *swcfg)
 		if(!(config_setting_lookup_string(elem, "filename", &str)))
 			continue;
 
-		script = (struct img_type *)calloc(1, sizeof(struct img_type));	
+		script = (struct img_type *)calloc(1, sizeof(struct img_type));
 		if (!script) {
 			ERROR( "No memory: malloc failed\n");
 			return;
@@ -257,7 +257,7 @@ static void parse_uboot(config_t *cfg, struct swupdate_cfg *swcfg)
 		if(!(config_setting_lookup_string(elem, "name", &str)))
 			continue;
 
-		uboot = (struct uboot_var *)calloc(1, sizeof(struct uboot_var));	
+		uboot = (struct uboot_var *)calloc(1, sizeof(struct uboot_var));
 		if (!uboot) {
 			ERROR( "No memory: malloc failed\n");
 			return;
@@ -268,7 +268,7 @@ static void parse_uboot(config_t *cfg, struct swupdate_cfg *swcfg)
 		TRACE("U-Boot var: %s = %s\n",
 			uboot->varname,
 			uboot->value);
- 
+
 		LIST_INSERT_HEAD(&swcfg->uboot, uboot, next);
 	}
 }
@@ -296,7 +296,7 @@ static void parse_images(config_t *cfg, struct swupdate_cfg *swcfg)
 		if(!(config_setting_lookup_string(elem, "filename", &str)))
 			continue;
 
-		image = (struct img_type *)calloc(1, sizeof(struct img_type));	
+		image = (struct img_type *)calloc(1, sizeof(struct img_type));
 		if (!image) {
 			ERROR( "No memory: malloc failed\n");
 			return;
@@ -325,7 +325,7 @@ static void parse_images(config_t *cfg, struct swupdate_cfg *swcfg)
 			strlen(image->volname) ? image->volname : image->device,
 			strlen(image->type) ? image->type : "NOT FOUND"
 			);
- 
+
 		LIST_INSERT_HEAD(&swcfg->images, image, next);
 	}
 }
@@ -371,7 +371,7 @@ static void parse_files(config_t *cfg, struct swupdate_cfg *swcfg)
 			file->fname,
 			file->path,
 			strlen(file->device) ? file->device : "ROOTFS");
- 
+
 		LIST_INSERT_HEAD(&swcfg->images, file, next);
 	}
 }
