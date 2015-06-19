@@ -86,21 +86,22 @@ static void usage(char *programname)
 {
 	printf("%s (compiled %s)\n", programname, __DATE__);
 	printf(("Usage %s [OPTION]\n"
-		" -v, --verbose         : be verbose\n"
-		" -i, --image <filename> : Software to be installed\n"
+		" -v, --verbose                  : be verbose\n"
+		" -i, --image <filename>         : Software to be installed\n"
 	        " -e, --select <software>,<mode> : Select software images set and source\n"
 		"                                  Ex.: stable,main\n"
-		" -b, --blacklist <list of mtd> : MTDs that must not be scanned for UBI\n"
+		" -b, --blacklist <list of mtd>  : MTDs that must not be scanned for UBI\n"
 #ifdef CONFIG_DOWNLOAD
 		" -d, --download <url> : URL of image to be downloaded. Image will be\n"
 		"                        downloaded completely to --image filename, then\n"
 		"                        installation will proceed as usual.\n"
 #endif
-		" -s, --server : run as daemon waiting from IPC interface.\n"
+		" -s, --server                   : run as daemon waiting from\n"
+		"                                  IPC interface.\n"
 #ifdef CONFIG_WEBSERVER
-		" -w, --webserver [OPTIONS] : Parameters to be passed to webserver\n"
+		" -w, --webserver [OPTIONS]      : Parameters to be passed to webserver\n"
 #endif
-		" -h, --help            : print this help and exit\n"),
+		" -h, --help                     : print this help and exit\n"),
 	       programname);
 }
 
