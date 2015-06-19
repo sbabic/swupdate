@@ -1,0 +1,18 @@
+software =
+{
+        version = "0.1";
+
+        hardware-compatibility = [ "revA" ];
+
+        images: (
+        /* single copy mode */
+        {
+                filename = "uImage";
+                volume = "kernel";
+        },
+        {
+                filename = "rootfs.ubifs";
+                volume = "rootfs";
+        }
+        );
+}

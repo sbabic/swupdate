@@ -1,0 +1,43 @@
+software =
+{
+        version = "0.1";
+
+        hardware-compatibility = [ "revA" ];
+
+        /* differentiate running image modes/sets */
+        stable:
+        {
+                main:
+                {
+                        images: (
+                        {
+                                filename = "rootfs.ext3";
+                                device = "/dev/mmcblk0p2";
+                        }
+                        );
+
+                        uboot: (
+                        {
+                                name = "bootpart";
+                                value = "0:2";
+                        }
+                        );
+                };
+                alt:
+                {
+                        images: (
+                        {
+                                filename = "rootfs.ext3";
+                                device = "/dev/mmcbkl0p1";
+                        }
+                        );
+
+                        uboot: (
+                        {
+                                name = "bootpart";
+                                value = "0:1";
+                        }
+                        );
+                };
+        };
+}
