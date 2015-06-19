@@ -92,19 +92,6 @@ static json_object *find_node(json_object *root, const char *node,
 	return find_recursive_node(root, simple_nodes);
 }
 
-static json_object *get_board_node(json_object *jobj)
-{
-	json_object *jnode = NULL;
-
-	char target[1024];
-	if (strlen(hardware.boardname)) {
-		snprintf(target, sizeof(target), "%s",
-			hardware.boardname);
-		jnode = json_object_object_get(jobj, target);
-	}
-	return jnode ? jnode : jobj;
-}
-
 static void get_field_string(json_object *e, const char *path, char *dest, size_t n)
 {
 	const char *str;
