@@ -396,6 +396,7 @@ int main(int argc, char **argv)
 			break;
 		case 'b':
 			mtd_set_ubiblacklist(optarg);
+			break;
 		case 'i':
 			strncpy(fname, optarg, sizeof(fname));
 			opt_i = 1;
