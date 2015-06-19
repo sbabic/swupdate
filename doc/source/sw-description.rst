@@ -107,22 +107,9 @@ The following example explains better the implemented tags:
 		);
 	}
 
-The first tag is "software". The whole description is contained in this tag.
-In the future, a device specific subset can be introduced to
-support the update of multiple devices using the same image.
-This can be easy added as:
-
-
-::
-
-	software =
-	{
-		devices (
-			{
-				version = "0.1.0";
-			},
-		);
-	}
+The first tag is "software". The whole description is contained in
+this tag. It is possible to group settings per device by using `Board
+specific settings`_.
 
 hardware-compatibility
 ----------------------
@@ -191,7 +178,7 @@ The syntax is:
 	);
 
 *volume* is only used to install the image in a UBI volume. volume and
-*device* cannot be used at the same time. If device is set, 
+*device* cannot be used at the same time. If device is set,
 the raw handler is automatically selected.
 
 The following example is to update a UBI volume:
@@ -332,3 +319,43 @@ that must be changed:
 
 swupdate will internally generate a script that will be passed to the
 U-Boot handler for adjusting the environment.
+
+
+Board specific settings
+-----------------------
+
+Each setting can be placed under a custom tag matching the board
+name. This mechanism can be used to override particular setting in
+board specific fashion.
+
+Assuming that the hardware information file `/etc/hwrevision` contains
+the following entry::
+
+  my-board 0.1.0
+
+and the following description::
+
+	software =
+	{
+	        version = "0.1.0";
+
+	        my-board = {
+	                uboot: (
+	                {
+	                        name = "bootpart";
+	                        value = "0:2";
+	                }
+	                );
+	        };
+
+	        uboot: (
+	        {
+	                name = "bootpart";
+	                value = "0:1";
+	        }
+	        );
+	}
+
+swupdate will set `bootpart` to `0:2` in U-Boot's environment for this
+board. For all other boards, `bootpart` will be set to `0:1`. Board
+specific settings take precedence over default scoped settings.
