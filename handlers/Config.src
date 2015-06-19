@@ -10,6 +10,7 @@ INSERT
 config UBIVOL
 	bool "ubivol"
 	default n
+	depends on MTD
 	help
 	  ubi is the default format for NAND device.
 	  Say Y if you have NAND or you use UBI on
