@@ -42,6 +42,56 @@
 
 static struct hw_type hardware;
 
+static json_object *find_recursive_node(json_object *root, const char **names)
+{
+	json_object *node = root;
+
+	while (*names) {
+		const char *n = *names;
+		json_object *cnode = NULL;
+
+		if (json_object_object_get_ex(node, n, &cnode))
+			node = cnode;
+		else
+			return NULL;
+		names++;
+	}
+
+	return node;
+}
+
+static json_object *find_node(json_object *root, const char *node,
+			struct swupdate_cfg *swcfg)
+{
+	json_object *jnode = NULL;
+	const char *simple_nodes[] = {node, NULL};
+
+	if (strlen(swcfg->running_mode) && strlen(swcfg->software_set)) {
+		if (strlen(hardware.boardname)) {
+			const char *nodes[] = {hardware.boardname, swcfg->software_set,
+					       swcfg->running_mode, node, NULL};
+			jnode = find_recursive_node(root, nodes);
+			if (jnode)
+				return jnode;
+		} else {
+			const char *nodes[] = {swcfg->software_set, swcfg->running_mode,
+					       node, NULL};
+			jnode = find_recursive_node(root, nodes);
+			if (jnode)
+				return jnode;
+		}
+	}
+
+	if (strlen(hardware.boardname)) {
+		const char *nodes[] = {hardware.boardname, node, NULL};
+		jnode = find_recursive_node(root, nodes);
+		if (jnode)
+			return jnode;
+	}
+
+	return find_recursive_node(root, simple_nodes);
+}
+
 static json_object *get_board_node(json_object *jobj)
 {
 	json_object *jnode = NULL;
@@ -146,7 +196,7 @@ static void parse_partitions(json_object * jobj, struct swupdate_cfg *swcfg)
 	int count, i;
 	struct img_type *partition;
 
-	node = json_object_object_get(jobj, "partitions");
+	node = find_node(jobj, "partitions", swcfg);
 
 	if (node == NULL)
 		return;
@@ -191,7 +241,7 @@ static void parse_scripts(json_object * jobj, struct swupdate_cfg *swcfg)
 	int count, i;
 	struct img_type *script;
 
-	node = json_object_object_get(jobj, "scripts");
+	node = find_node(jobj, "scripts", swcfg);
 
 	if (node == NULL)
 		return;
@@ -239,7 +289,7 @@ static void parse_uboot(json_object * jobj, struct swupdate_cfg *swcfg)
 	int count, i;
 	struct uboot_var *uboot;
 
-	node = json_object_object_get(jobj, "uboot");
+	node = find_node(jobj, "uboot", swcfg);
 
 	if (node == NULL)
 		return;
@@ -276,7 +326,7 @@ static void parse_images(json_object * jobj, struct swupdate_cfg *swcfg)
 	int count, i;
 	struct img_type *image;
 
-	node = json_object_object_get(jobj, "images");
+	node = find_node(jobj, "images", swcfg);
 
 	if (node == NULL)
 		return;
@@ -331,7 +381,7 @@ static void parse_files(json_object *jobj, struct swupdate_cfg *swcfg)
 	int count, i;
 	struct img_type *file;
 
-	node = json_object_object_get(jobj, "files");
+	node = find_node(jobj, "files", swcfg);
 
 	if (node == NULL)
 		return;
@@ -405,7 +455,6 @@ int parse_json(struct swupdate_cfg *swcfg, const char *filename)
 	}
 
 	get_hw_revision(&hardware);
-	cfg = get_board_node(cfg);
 
 	/* Now parse the single elements */
 	parse_hw_compatibility(cfg, swcfg);
