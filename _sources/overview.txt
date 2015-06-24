@@ -46,7 +46,7 @@ However, I found some drawbacks in this approach, that
 let me search for another solution, based on an application
 running on Linux:
 
-Boot loader have limited access to peripherals.
+Boot loaders have limited access to peripherals
 -----------------------------------------------
 
 Not all peripherals supported by the kernel are
@@ -95,7 +95,7 @@ because the whole range of services and libraries are not available.
 
 Boot loader's update advantages
 -------------------------------
-However, this approach has some advantages,too:
+However, this approach has some advantages, too:
 
 - software for update is generally simpler.
 - smaller footprint: a standalone application only for software management requires an own kernel and a root file system.
@@ -113,12 +113,12 @@ using this approach. Embedded systems are well tested
 with a specific software. Using a package manager
 can put weirdness because the software itself
 is not anymore *atomic*, but split into a long
-list of packages. How can be assured that an application
+list of packages. How can we be assured that an application
 with library version x.y works, and also with different
-versions of the same library ? How can be successful tested ?
+versions of the same library? How can it be successfully tested?
 
 For a manufacturer, it is generally better to say that
-a new release of software (well tested by his test
+a new release of software (well tested by its test
 engineers) is released, and the new software (or firmware)
 is available for updating. Splitting in packages can
 generate nightmare and high effort for the testers.
@@ -155,10 +155,10 @@ resources. I am listing some of them.
 Double copy with fallback
 -------------------------
 
-If there are enough place on the storage to save
+If there is enough space on the storage to save
 two copies of the whole software, it is possible to guarantee
 that there is always a working copy even if the software update
-is interrupted or a power off occurs..
+is interrupted or a power off occurs.
 
 Each copy must contain the kernel, the root file system, and each
 further component that can be updated. It is required
@@ -166,7 +166,7 @@ a mechanism to identify which version is running.
 
 swupdate should be inserted in the application software, and
 the application software will trigger it when an update is required.
-Duty of swupdate is to update the stand-by copy, leaving the
+The duty of swupdate is to update the stand-by copy, leaving the
 running copy of the software untouched.
 
 A synergy with the boot loader is often necessary, because the boot loader must
@@ -235,7 +235,7 @@ setting variables to indicate the start and the end of a transaction and
 that the storage contains a valid software.
 
 swupdate is mainly used in this configuration. The recipes for Yocto
-generates a initrd image containing the swupdate application, that is
+generate an initrd image containing the swupdate application, that is
 automatically started after mounting the root file system.
 
 .. image:: images/swupdate_single.png
@@ -273,7 +273,7 @@ has the value "failed".
 When an update is interrupted, independently from the cause, the boot loader
 recognizes it because the recovery_status variable is in "progress" or "failed".
 The boot loader can then start again swupdate to load again the software
-(single-copy case) or and run the old copy of the application
+(single-copy case) or run the old copy of the application
 (double-copy case).
 
 Power Failure

@@ -92,6 +92,28 @@ Any error lets swupdate to leave the update state, and further packets
 will be ignored until a new REQ_INSTALL will be received.</p>
 <img alt="_images/API.png" src="_images/API.png" />
 </div>
+<div class="section" id="client-library">
+<h3>Client Library<a class="headerlink" href="#client-library" title="Permalink to this headline">¶</a></h3>
+<p>A library simplifies the usage of the IPC making available a way to
+start asynchrounosly an update.</p>
+<p>The library consists of one function and several callbacks.</p>
+<div class="highlight-python"><div class="highlight"><pre>int swupdate_async_start(writedata wr_func, getstatus status_func,
+        terminated end_func)
+typedef int (*writedata)(char **buf, int *size);
+typedef int (*getstatus)(ipc_message *msg);
+typedef int (*terminated)(RECOVERY_STATUS status);
+</pre></div>
+</div>
+<p>swupdate_async_start creates a new thread and start the communication with swupdate,
+triggering for a new update. The wr_func is called to get the image to be installed.
+It is responsibility of the callback to provide the buffer and the size of
+the chunk of data.</p>
+<p>The getstatus callback is called after the stream was downloaded to check
+how upgrade is going on. It can be omitted if only the result is required.</p>
+<p>The terminated callback is called when swupdate has finished with the result
+of the upgrade.</p>
+<p>Example about using this library is in the examples/client directory.</p>
+</div>
 </div>
 </div>
 
@@ -106,6 +128,7 @@ will be ignored until a new REQ_INSTALL will be received.</p>
 <li><a class="reference internal" href="#">swupdate: API for external programs</a><ul>
 <li><a class="reference internal" href="#overview">Overview</a><ul>
 <li><a class="reference internal" href="#api-description">API Description</a></li>
+<li><a class="reference internal" href="#client-library">Client Library</a></li>
 </ul>
 </li>
 </ul>

@@ -107,22 +107,9 @@ The following example explains better the implemented tags:
 		);
 	}
 
-The first tag is "software". The whole description is contained in this tag.
-In the future, a device specific subset can be introduced to
-support the update of multiple devices using the same image.
-This can be easy added as:
-
-
-::
-
-	software =
-	{
-		devices (
-			{
-				version = "0.1.0";
-			},
-		);
-	}
+The first tag is "software". The whole description is contained in
+this tag. It is possible to group settings per device by using `Board
+specific settings`_.
 
 hardware-compatibility
 ----------------------
@@ -136,7 +123,7 @@ Example:
 	hardware-compatibility: [ "1.0", "1.2", "1.3"];
 
 This means that the software is compatible with HW-Revisions
-1.0, 1.2 and 1.3, but not for 1.1 or other version not explicitely
+1.0, 1.2 and 1.3, but not for 1.1 or other version not explicitly
 listed here.
 It is then duty of the single project to find which is the
 revision of the board where swupdate is running. There is no
@@ -157,8 +144,8 @@ in kernel.
 
 ::
 
-	partitions: ( 
-		{ 
+	partitions: (
+		{
 			name = <volume name>;
 			size = <size in bytes>;
 			device = <MTD device>;
@@ -191,7 +178,7 @@ The syntax is:
 	);
 
 *volume* is only used to install the image in a UBI volume. volume and
-*device* cannot be used at the same time. If device is set, 
+*device* cannot be used at the same time. If device is set,
 the raw handler is automatically selected.
 
 The following example is to update a UBI volume:
@@ -254,7 +241,7 @@ debugging or special purposes.
 		}
 	);
 
-Entries in "files" section are managed as single files. The attribute
+Entries in "files" section are managed as single files. The attributes
 "path" and "filesystem" are mandatory. swupdate copies the file in the path
 specified after mounting the device.
 
@@ -288,7 +275,7 @@ called before installing the images.
 
 ::
 
-	function postnst()
+	function postinst()
 
 swupdate scans for all scripts and check for a postinst function. It is
 called after installing the images.
@@ -298,7 +285,7 @@ uboot
 -----
 
 There are two ways to update the bootloader (U-Boot) environment.
-First way is to add a file with the list of variales to be changed
+First way is to add a file with the list of variables to be changed
 and setting "uboot" as type of the image. This inform swupdate to
 call the U-Boot handler to manage the file.
 
@@ -325,10 +312,123 @@ that must be changed:
 
 	uboot: (
 		{
-			name = <Name der Variabel>;
-			value = <Wert für die Variabel>;
+			name = <Variable name>;
+			value = <Variable value>;
 		},
 	)
 
 swupdate will internally generate a script that will be passed to the
 U-Boot handler for adjusting the environment.
+
+
+Board specific settings
+-----------------------
+
+Each setting can be placed under a custom tag matching the board
+name. This mechanism can be used to override particular setting in
+board specific fashion.
+
+Assuming that the hardware information file `/etc/hwrevision` contains
+the following entry::
+
+  my-board 0.1.0
+
+and the following description::
+
+	software =
+	{
+	        version = "0.1.0";
+
+	        my-board = {
+	                uboot: (
+	                {
+	                        name = "bootpart";
+	                        value = "0:2";
+	                }
+	                );
+	        };
+
+	        uboot: (
+	        {
+	                name = "bootpart";
+	                value = "0:1";
+	        }
+	        );
+	}
+
+swupdate will set `bootpart` to `0:2` in U-Boot's environment for this
+board. For all other boards, `bootpart` will be set to `0:1`. Board
+specific settings take precedence over default scoped settings.
+
+
+Software collections and operation modes
+----------------------------------------
+
+Software collections and operations modes extend the description file
+syntax to provide an overlay grouping all previous configuration
+tags. The mechanism is similar to `Board specific settings`_ and can
+be used for implementing a dual copy strategy or delivering both
+stable and unstable images within a single update file.
+
+The mechanism uses a custom user-defined tags placed within `software`
+scope. The tag names must not be any of: `version`,
+`hardware-compatibility`, `uboot`, `files`, `scripts`, `partitions`,
+`images`
+
+An example description file:
+
+::
+
+	software =
+	{
+	        version = "0.1";
+
+	        hardware-compatibility = [ "revA" ];
+
+	        /* differentiate running image modes/sets */
+	        stable:
+	        {
+	                main:
+	                {
+	                        images: (
+	                        {
+	                                filename = "rootfs.ext3";
+	                                device = "/dev/mmcblk0p2";
+	                        }
+	                        );
+
+	                        uboot: (
+	                        {
+	                                name = "bootpart";
+	                                value = "0:2";
+	                        }
+	                        );
+	                };
+	                alt:
+	                {
+	                        images: (
+	                        {
+	                                filename = "rootfs.ext3";
+	                                device = "/dev/mmcbkl0p1";
+	                        }
+	                        );
+
+	                        uboot: (
+	                        {
+	                                name = "bootpart";
+	                                value = "0:1";
+	                        }
+	                        );
+	                };
+
+	        };
+	}
+
+The configuration describes a single software collection named
+`stable`. Two distinct image locations are specified for this
+collection: `/dev/mmcblk0p1` and `/dev/mmcblk0p2` for `main` mode and
+`alt` mode respectively.
+
+This feature can be used to implement a dual copy strategy by
+specifying the collection and mode explicitly.
+

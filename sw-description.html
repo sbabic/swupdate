@@ -151,20 +151,9 @@ using of the #include directive is not allowed by swupdate.</p>
 }
 </pre></div>
 </div>
-<p>The first tag is &#8220;software&#8221;. The whole description is contained in this tag.
-In the future, a device specific subset can be introduced to
-support the update of multiple devices using the same image.
-This can be easy added as:</p>
-<div class="highlight-python"><div class="highlight"><pre>software =
-{
-        devices (
-                {
-                        version = &quot;0.1.0&quot;;
-                },
-        );
-}
-</pre></div>
-</div>
+<p>The first tag is &#8220;software&#8221;. The whole description is contained in
+this tag. It is possible to group settings per device by using <a class="reference internal" href="#board-specific-settings">Board
+specific settings</a>.</p>
 </div>
 <div class="section" id="hardware-compatibility">
 <h2>hardware-compatibility<a class="headerlink" href="#hardware-compatibility" title="Permalink to this headline">¶</a></h2>
@@ -174,7 +163,7 @@ This can be easy added as:</p>
 <blockquote>
 <div>hardware-compatibility: [ &#8220;1.0&#8221;, &#8220;1.2&#8221;, &#8220;1.3&#8221;];</div></blockquote>
 <p>This means that the software is compatible with HW-Revisions
-1.0, 1.2 and 1.3, but not for 1.1 or other version not explicitely
+1.0, 1.2 and 1.3, but not for 1.1 or other version not explicitly
 listed here.
 It is then duty of the single project to find which is the
 revision of the board where swupdate is running. There is no
@@ -269,7 +258,7 @@ debugging or special purposes.</p>
 );
 </pre></div>
 </div>
-<p>Entries in &#8220;files&#8221; section are managed as single files. The attribute
+<p>Entries in &#8220;files&#8221; section are managed as single files. The attributes
 &#8220;path&#8221; and &#8220;filesystem&#8221; are mandatory. swupdate copies the file in the path
 specified after mounting the device.</p>
 </div>
@@ -294,7 +283,7 @@ Scripts must have at least one of the following functions:</p>
 </div>
 <p>swupdate scans for all scripts and check for a preinst function. It is
 called before installing the images.</p>
-<div class="highlight-python"><div class="highlight"><pre>function postnst()
+<div class="highlight-python"><div class="highlight"><pre>function postinst()
 </pre></div>
 </div>
 <p>swupdate scans for all scripts and check for a postinst function. It is
@@ -303,7 +292,7 @@ called after installing the images.</p>
 <div class="section" id="uboot">
 <h2>uboot<a class="headerlink" href="#uboot" title="Permalink to this headline">¶</a></h2>
 <p>There are two ways to update the bootloader (U-Boot) environment.
-First way is to add a file with the list of variales to be changed
+First way is to add a file with the list of variables to be changed
 and setting &#8220;uboot&#8221; as type of the image. This inform swupdate to
 call the U-Boot handler to manage the file.</p>
 <div class="highlight-python"><div class="highlight"><pre>{
@@ -322,14 +311,116 @@ is in the format</p>
 that must be changed:</p>
 <div class="highlight-python"><div class="highlight"><pre>uboot: (
         {
-                name = &lt;Name der Variabel&gt;;
-                value = &lt;Wert für die Variabel&gt;;
+                name = &lt;Variable name&gt;;
+                value = &lt;Variable value&gt;;
         },
 )
 </pre></div>
 </div>
 <p>swupdate will internally generate a script that will be passed to the
 U-Boot handler for adjusting the environment.</p>
+</div>
+<div class="section" id="board-specific-settings">
+<h2>Board specific settings<a class="headerlink" href="#board-specific-settings" title="Permalink to this headline">¶</a></h2>
+<p>Each setting can be placed under a custom tag matching the board
+name. This mechanism can be used to override particular setting in
+board specific fashion.</p>
+<p>Assuming that the hardware information file <cite>/etc/hwrevision</cite> contains
+the following entry:</p>
+<div class="highlight-python"><div class="highlight"><pre>my-board 0.1.0
+</pre></div>
+</div>
+<p>and the following description:</p>
+<div class="highlight-python"><div class="highlight"><pre>software =
+{
+        version = &quot;0.1.0&quot;;
+
+        my-board = {
+                uboot: (
+                {
+                        name = &quot;bootpart&quot;;
+                        value = &quot;0:2&quot;;
+                }
+                );
+        };
+
+        uboot: (
+        {
+                name = &quot;bootpart&quot;;
+                value = &quot;0:1&quot;;
+        }
+        );
+}
+</pre></div>
+</div>
+<p>swupdate will set <cite>bootpart</cite> to <cite>0:2</cite> in U-Boot&#8217;s environment for this
+board. For all other boards, <cite>bootpart</cite> will be set to <cite>0:1</cite>. Board
+specific settings take precedence over default scoped settings.</p>
+</div>
+<div class="section" id="software-collections-and-operation-modes">
+<h2>Software collections and operation modes<a class="headerlink" href="#software-collections-and-operation-modes" title="Permalink to this headline">¶</a></h2>
+<p>Software collections and operations modes extend the description file
+syntax to provide an overlay grouping all previous configuration
+tags. The mechanism is similar to <a class="reference internal" href="#board-specific-settings">Board specific settings</a> and can
+be used for implementing a dual copy strategy or delivering both
+stable and unstable images within a single update file.</p>
+<p>The mechanism uses a custom user-defined tags placed within <cite>software</cite>
+scope. The tag names must not be any of: <cite>version</cite>,
+<cite>hardware-compatibility</cite>, <cite>uboot</cite>, <cite>files</cite>, <cite>scripts</cite>, <cite>partitions</cite>,
+<cite>images</cite></p>
+<p>An example description file:</p>
+<div class="highlight-python"><div class="highlight"><pre>software =
+{
+        version = &quot;0.1&quot;;
+
+        hardware-compatibility = [ &quot;revA&quot; ];
+
+        /* differentiate running image modes/sets */
+        stable:
+        {
+                main:
+                {
+                        images: (
+                        {
+                                filename = &quot;rootfs.ext3&quot;;
+                                device = &quot;/dev/mmcblk0p2&quot;;
+                        }
+                        );
+
+                        uboot: (
+                        {
+                                name = &quot;bootpart&quot;;
+                                value = &quot;0:2&quot;;
+                        }
+                        );
+                };
+                alt:
+                {
+                        images: (
+                        {
+                                filename = &quot;rootfs.ext3&quot;;
+                                device = &quot;/dev/mmcbkl0p1&quot;;
+                        }
+                        );
+
+                        uboot: (
+                        {
+                                name = &quot;bootpart&quot;;
+                                value = &quot;0:1&quot;;
+                        }
+                        );
+                };
+
+        };
+}
+</pre></div>
+</div>
+<p>The configuration describes a single software collection named
+<cite>stable</cite>. Two distinct image locations are specified for this
+collection: <cite>/dev/mmcblk0p1</cite> and <cite>/dev/mmcblk0p2</cite> for <cite>main</cite> mode and
+<cite>alt</cite> mode respectively.</p>
+<p>This feature can be used to implement a dual copy strategy by
+specifying the collection and mode explicitly.</p>
 </div>
 </div>
 
@@ -349,6 +440,8 @@ U-Boot handler for adjusting the environment.</p>
 <li><a class="reference internal" href="#files">Files</a></li>
 <li><a class="reference internal" href="#scripts">Scripts</a></li>
 <li><a class="reference internal" href="#uboot">uboot</a></li>
+<li><a class="reference internal" href="#board-specific-settings">Board specific settings</a></li>
+<li><a class="reference internal" href="#software-collections-and-operation-modes">Software collections and operation modes</a></li>
 </ul>
 </li>
 </ul>

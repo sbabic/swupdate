@@ -68,9 +68,10 @@ the updating process reports only the status to the operator
 (successful or failed).</p>
 <p>The output can be displayed on a LCD using the framebuffer
 device or directed to a serial line (Linux console).</p>
-<p>It is generally used in the single copy approach, running
-in a initrd (receipes are provided to generate with Yocto).
-However, it is possible to use it in a double-copy approach.</p>
+<p>It is generally used in the single copy approach, running in a initrd
+(receipes are provided to generate with Yocto).  However, it is
+possible to use it in a double-copy approach by use of <a class="reference internal" href="#software-collections">Software
+collections</a>.</p>
 <p>If started for a remote update, swupdate starts an embedded
 Webserver and waits for requests. The operator must upload
 a suitable image, that swupdate checks and then install.
@@ -151,7 +152,7 @@ handlers.
 By reading the delivered image, swupdate will ignore all images that
 are not in the list processed by the parser. In this way, it is possible
 to have a single delivered image for the update of multiple devices.</p>
-<p>Multiple devices is supported by the default parser, too.</p>
+<p>Multiple devices are supported by the default parser, too.</p>
 <div class="highlight-python"><div class="highlight"><pre>software =
 {
     version = &quot;0.1.0&quot;;
@@ -176,6 +177,56 @@ to have a single delivered image for the update of multiple devices.</p>
 </div>
 <p>In this way, it is possible to have a single image providing software
 for each device you have.</p>
+<p>By default the hardware information is extracted from
+<cite>/etc/hwrevision</cite> file. The file should contain a single line in the
+following format:</p>
+<div class="highlight-python"><div class="highlight"><pre>&lt;boardname&gt; &lt;revision&gt;
+</pre></div>
+</div>
+<p>Where:</p>
+<ul class="simple">
+<li><cite>&lt;revision&gt;</cite> will be used for matching with hardware compatibility
+list</li>
+<li><cite>&lt;boardname&gt;</cite> can be used for grouping board specific settigns</li>
+</ul>
+</div>
+<div class="section" id="software-collections">
+<h3>Software collections<a class="headerlink" href="#software-collections" title="Permalink to this headline">¶</a></h3>
+<p>Software collections and operation modes can be used to implement a
+dual copy strategy. The simplest case is to define two installation
+locations for the firmware image and call <cite>swupdate</cite> selecting the
+appropriate image.</p>
+<div class="highlight-python"><div class="highlight"><pre>software =
+{
+        version = &quot;0.1.0&quot;;
+
+        stable = {
+                copy-1: {
+                        images: (
+                        {
+                                device = &quot;/dev/mtd4&quot;
+                                ...
+                        }
+                        );
+                }
+                copy-2: {
+                        images: (
+                        {
+                                device = &quot;/dev/mtd5&quot;
+                                ...
+                        }
+                        );
+                }
+        };
+}
+</pre></div>
+</div>
+<p>In this way it is possible to specify that <cite>copy-1</cite> gets installed to
+<cite>/dev/mtd4</cite>, while <cite>copy-2</cite> to <cite>/dev/mtd5</cite>. By properly selecting the
+installation locations, <cite>swupdate</cite> will update the firmware in the
+other slot.</p>
+<p>The method of image selection is out of the scope of swupdate and user
+is responsible for calling <cite>swupdate</cite> passing proper settings.</p>
 </div>
 <div class="section" id="streaming-feature">
 <h3>Streaming feature<a class="headerlink" href="#streaming-feature" title="Permalink to this headline">¶</a></h3>
@@ -368,6 +419,13 @@ on a LCD (if the target has one), or sending back to another device via
 network.
 An example of the notifications sent back to the browser is in the next figure:</p>
 <img alt="_images/webprogress.png" src="_images/webprogress.png" />
+<p>Software collections can be specified by passing <cite>&#8211;select</cite> command
+line option. Assuming <cite>sw-description</cite> file contains a collection
+named <cite>stable</cite>, with <cite>alt</cite> installation location, <cite>swupdate</cite> can be
+called like this:</p>
+<div class="highlight-python"><div class="highlight"><pre>swupdate --select stable,alt
+</pre></div>
+</div>
 </div>
 </div>
 <div class="section" id="changes-in-bootloader-code">
@@ -426,6 +484,7 @@ of sw-description, that must be the first one.</p>
 <li><a class="reference internal" href="#overview">Overview</a><ul>
 <li><a class="reference internal" href="#single-image-delivery">Single image delivery</a></li>
 <li><a class="reference internal" href="#handling-configuration-differences">Handling configuration differences</a></li>
+<li><a class="reference internal" href="#software-collections">Software collections</a></li>
 <li><a class="reference internal" href="#streaming-feature">Streaming feature</a></li>
 <li><a class="reference internal" href="#list-of-supported-features">List of supported features</a></li>
 </ul>
