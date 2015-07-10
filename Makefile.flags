@@ -73,11 +73,6 @@ CFLAGS += $(call cc-option,-Os,$(call cc-option,-O2,))
 endif
 endif
 
-# If arch/$(ARCH)/Makefile did not override it (with, say, -fPIC)...
-ARCH_FPIC ?= -fpic
-ARCH_FPIE ?= -fpie
-ARCH_PIE ?= -pie
-
 # Usage: $(eval $(call pkg_check_modules,VARIABLE-PREFIX,MODULES))
 define pkg_check_modules
 $(1)_CFLAGS := $(shell $(PKG_CONFIG) $(PKG_CONFIG_FLAGS) --cflags $(2))
@@ -87,11 +82,6 @@ endef
 ifeq ($(CONFIG_STATIC),y)
 CFLAGS_swupdate += -static
 PKG_CONFIG_FLAGS += --static
-endif
-
-ifeq ($(CONFIG_PIE),y)
-CFLAGS_swupdate += $(ARCH_PIE)
-CFLAGS += $(ARCH_FPIE)
 endif
 
 ifneq ($(CONFIG_EXTRA_CFLAGS),)
