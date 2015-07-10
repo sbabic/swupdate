@@ -120,8 +120,6 @@ ifneq ($(CONFIG_DOWNLOAD),)
 LDLIBS += curl
 endif
 
-LDLIBS += m
-
 # libconfig is alwasy compiled
 ifeq ($(CONFIG_LIBCONFIG),y)
 LDLIBS += config
@@ -146,6 +144,7 @@ LDLIBS += dl
 endif
 ifneq ($(CONFIG_MONGOOSESQL),)
 CFLAGS += -DUSE_LUA_SQLITE3
+LDLIBS += m
 endif
 ifneq ($(CONFIG_MONGOOSEIPV6),)
 CFLAGS += -DUSE_IPV6
