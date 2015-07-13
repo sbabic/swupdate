@@ -100,7 +100,7 @@ endif
 LDLIBS += pthread
 # lua
 ifneq ($(CONFIG_LUA),)
-LDLIBS += lua dl
+LDLIBS += lua dl m
 LDFLAGS += -Wl,-E
 endif
 
@@ -133,7 +133,6 @@ CFLAGS += -DUSE_LUA
 endif
 ifneq ($(CONFIG_MONGOOSESQL),)
 CFLAGS += -DUSE_LUA_SQLITE3
-LDLIBS += m
 endif
 ifneq ($(CONFIG_MONGOOSEIPV6),)
 CFLAGS += -DUSE_IPV6
