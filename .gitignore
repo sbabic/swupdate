@@ -24,9 +24,6 @@
 *.o.*
 *.a
 *.s
-Kbuild
-Config.in
-
 
 # 
 swupdate
