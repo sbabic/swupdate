@@ -39,15 +39,6 @@ include/autoconf.h
 include/config/
 include/generated/
 doc/build
-scripts/basic/docproc
-scripts/basic/fixdep
-scripts/basic/split-include
-scripts/kconfig/conf
-scripts/kconfig/lex.zconf.c
-scripts/kconfig/lxdialog/lxdialog
-scripts/kconfig/mconf
-scripts/kconfig/zconf.hash.c
-scripts/kconfig/zconf.tab.c
 
 # stgit generated dirs
 patches-*
