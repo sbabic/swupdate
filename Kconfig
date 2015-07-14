@@ -81,16 +81,13 @@ config STATIC
 
 	  Most people will leave this set to 'N'.
 
-config CROSS_COMPILER_PREFIX
+config CROSS_COMPILE
 	string "Cross Compiler prefix"
 	default ""
 	help
 	  If you want to build BusyBox with a cross compiler, then you
 	  will need to set this to the cross-compiler prefix, for example,
 	  "i386-uclibc-".
-
-	  Note that CROSS_COMPILE environment variable or
-	  "make CROSS_COMPILE=xxx ..." will override this selection.
 
 	  Native builds leave this empty.
 
