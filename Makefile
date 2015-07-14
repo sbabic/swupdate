@@ -352,7 +352,7 @@ quiet_cmd_swupdate = LD      $@
       "$@" \
       "$(CC)" \
       "$(KBUILD_CFLAGS) $(CFLAGS_swupdate)" \
-      "$(LDFLAGS) $(EXTRA_LDFLAGS)" \
+      "$(LDFLAGS) $(EXTRA_LDFLAGS) $(LDFLAGS_swupdate)" \
       "$(swupdate-objs)" \
       "$(swupdate-libs)" \
       "$(LDLIBS)"

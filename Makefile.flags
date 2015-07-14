@@ -97,7 +97,7 @@ LDLIBS += pthread
 # lua
 ifneq ($(CONFIG_LUA),)
 LDLIBS += lua dl m
-LDFLAGS += -Wl,-E
+LDFLAGS_swupdate += -Wl,-E
 endif
 
 
