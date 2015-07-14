@@ -1,3 +1,9 @@
+VERSION = 2015
+PATCHLEVEL = 07
+SUBLEVEL = 0
+EXTRAVERSION = -rc
+NAME =
+
 # *DOCUMENTATION*
 # To see a list of typical targets execute "make help"
 # More info can be located in ./README
@@ -327,34 +333,51 @@ else
 include/config/auto.conf: ;
 endif # $(dot-config)
 
+# Now we can define CFLAGS etc according to .config
+include $(srctree)/Makefile.flags
 
 # The all: target is the default when no target is given on the
 # command line.
 # This allow a user to issue only 'make' to build a kernel including modules
 # Defaults to vmlinux, but the arch makefile usually adds further targets
-all: myapp
+all: swupdate
 
+objs-y		:= core handlers
+libs-y		:= archival corelib ipc mongoose parser
 
-objs-y		:= main
-libs-y		:= lib
-
-myapp-dirs	:= $(objs-y) $(libs-y)
-myapp-objs	:= $(patsubst %,%/built-in.o, $(objs-y))
-myapp-libs	:= $(patsubst %,%/lib.a, $(libs-y))
-myapp-all	:= $(myapp-objs) $(myapp-libs)
+swupdate-dirs	:= $(objs-y) $(libs-y)
+swupdate-objs	:= $(patsubst %,%/built-in.o, $(objs-y))
+swupdate-libs	:= $(patsubst %,%/lib.a, $(libs-y))
+swupdate-all	:= $(swupdate-objs) $(swupdate-libs)
 
 # Do modpost on a prelinked vmlinux. The finally linked vmlinux has
 # relevant sections renamed as per the linker script.
-quiet_cmd_myapp = LD      $@
-      cmd_myapp = $(CC) $(LDFLAGS) -o $@                          \
-      -Wl,--start-group $(myapp-libs) $(myapp-objs) -Wl,--end-group
+quiet_cmd_swupdate = LD      $@
+      cmd_swupdate = $(srctree)/scripts/trylink \
+      "$@" \
+      "$(CC)" \
+      "$(KBUILD_CFLAGS) $(CFLAGS_swupdate)" \
+      "$(LDFLAGS) $(EXTRA_LDFLAGS)" \
+      "$(swupdate-objs)" \
+      "$(swupdate-libs)" \
+      "$(LDLIBS)"
 
-myapp: $(myapp-all)
-	$(call if_changed,myapp)
+swupdate_unstripped: $(swupdate-all) FORCE
+	$(call if_changed,swupdate)
+
+swupdate: swupdate_unstripped
+ifeq ($(SKIP_STRIP),y)
+	$(Q)cp $< $@
+else
+	$(Q)$(STRIP) -s --remove-section=.note --remove-section=.comment \
+		swupdate_unstripped -o $@
+# strip is confused by PIE executable and does not set exec bits
+	$(Q)chmod a+x $@
+endif
 
 # The actual objects are generated when descending,
 # make sure no implicit rule kicks in
-$(sort $(myapp-all)): $(myapp-dirs) ;
+$(sort $(swupdate-all)): $(swupdate-dirs) ;
 
 # Handle descending into subdirectories listed in $(vmlinux-dirs)
 # Preset locale variables to speed up the build process. Limit locale
@@ -362,12 +385,9 @@ $(sort $(myapp-all)): $(myapp-dirs) ;
 # make menuconfig etc.
 # Error messages still appears in the original language
 
-#PHONY += $(vmlinux-dirs)
-#$(vmlinux-dirs): prepare scripts
-PHONY += $(myapp-dirs)
-$(myapp-dirs): scripts_basic
+PHONY += $(swupdate-dirs)
+$(swupdate-dirs): scripts
 	$(Q)$(MAKE) $(build)=$@
-
 
 ###
 # Cleaning is done on three levels.
@@ -378,7 +398,7 @@ $(myapp-dirs): scripts_basic
 
 # Directories & files removed with 'make clean'
 CLEAN_DIRS  +=
-CLEAN_FILES +=	myapp
+CLEAN_FILES += swupdate swupdate_unstripped*
 
 # Directories & files removed with 'make mrproper'
 MRPROPER_DIRS  += include/config include/generated
@@ -388,7 +408,7 @@ MRPROPER_FILES += .config .config.old tags TAGS cscope* GPATH GTAGS GRTAGS GSYMS
 #
 clean: rm-dirs  := $(CLEAN_DIRS)
 clean: rm-files := $(CLEAN_FILES)
-clean-dirs      := $(addprefix _clean_, $(myapp-dirs))
+clean-dirs      := $(addprefix _clean_, $(swupdate-dirs))
 
 PHONY += $(clean-dirs) clean archclean
 $(clean-dirs):
@@ -443,59 +463,7 @@ quiet_cmd_rmfiles = $(if $(wildcard $(rm-files)),CLEAN   $(wildcard $(rm-files))
 # $(Q)$(MAKE) $(clean)=dir
 clean := -f $(if $(KBUILD_SRC),$(srctree)/)scripts/Makefile.clean obj
 
-
-
-help:
-	@echo  'Cleaning targets:'
-	@echo  '  clean		  - Remove most generated files but keep the config and'
-	@echo  '                    enough build support to build external modules'
-	@echo  '  mrproper	  - Remove all generated files + config + various backup files'
-	@echo  '  distclean	  - mrproper + remove editor backup and patch files'
-	@echo  ''
-	@echo  'Configuration targets:'
-	@$(MAKE) -f $(srctree)/scripts/kconfig/Makefile help
-	@echo  ''
-	@echo  'Other generic targets:'
-	@echo  '  all		  - Build all targets marked with [*]'
-	@echo  '* myapp	  	  - Build the application'
-	@echo  '  dir/            - Build all files in dir and below'
-	@echo  '  dir/file.[oisS] - Build specified target only'
-	@echo  '  dir/file.lst    - Build specified mixed source/assembly target only'
-	@echo  '                    (requires a recent binutils and recent build (System.map))'
-	@echo  '  tags/TAGS	  - Generate tags file for editors'
-	@echo  '  cscope	  - Generate cscope index'
-	@echo  '  gtags           - Generate GNU GLOBAL index'
-	@echo  '  kernelrelease	  - Output the release version string'
-	@echo  '  kernelversion	  - Output the version stored in Makefile'
-	 echo  ''
-	@echo  'Static analysers'
-	@echo  '  checkstack      - Generate a list of stack hogs'
-	@echo  '  namespacecheck  - Name space analysis on compiled kernel'
-	@echo  '  versioncheck    - Sanity check on version.h usage'
-	@echo  '  includecheck    - Check for duplicate included header files'
-	@echo  '  export_report   - List the usages of all exported symbols'
-	@echo  '  headers_check   - Sanity check on exported headers'
-#	@$(MAKE) -f $(srctree)/scripts/Makefile.help checker-help
-	@echo  ''
-#	@echo  'Kernel packaging:'
-#	@$(MAKE) $(build)=$(package-dir) help
-	@echo  ''
-#	@echo  'Documentation targets:'
-#	@$(MAKE) -f $(srctree)/Documentation/DocBook/Makefile dochelp
-	@echo  ''
-	@echo  '  make V=0|1 [targets] 0 => quiet build (default), 1 => verbose build'
-	@echo  '  make V=2   [targets] 2 => give reason for rebuild of target'
-	@echo  '  make O=dir [targets] Locate all output files in "dir", including .config'
-	@echo  '  make W=n   [targets] Enable extra gcc checks, n=1,2,3 where'
-	@echo  '		1: warnings which may be relevant and do not occur too often'
-	@echo  '		2: warnings which occur quite often but may still be relevant'
-	@echo  '		3: more obscure warnings, can most likely be ignored'
-	@echo  '		Multiple levels can be combined with W=12 or W=123'
-	@echo  '  make RECORDMCOUNT_WARN=1 [targets] Warn about ignored mcount sections'
-	@echo  ''
-	@echo  'Execute "make" or "make all" to build all targets marked with [*] '
-	@echo  'For further info see the ./README file'
-
+-include $(srctree)/Makefile.help
 
 endif #ifeq ($(config-targets),1)
 endif #ifeq ($(mixed-targets),1)
