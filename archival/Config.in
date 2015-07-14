@@ -5,8 +5,6 @@
 
 menu "Archival Features"
 
-INSERT
-
 config CPIO
 	bool "cpio"
 	default y

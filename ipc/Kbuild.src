@@ -1,5 +1,3 @@
 libs-y		+= libipc/
 
-INSERT
-
 lib-y			+= network_ipc.o

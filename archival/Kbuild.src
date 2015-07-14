@@ -2,6 +2,4 @@ libs-y				+= libarchive/
 
 lib-y:=
 
-INSERT
-
 lib-$(CONFIG_GUNZIP)		+= gun.o

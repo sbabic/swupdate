@@ -5,8 +5,6 @@
 
 menu "Image Handlers"
 
-INSERT
-
 config UBIVOL
 	bool "ubivol"
 	default n
