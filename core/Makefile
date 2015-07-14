@@ -8,10 +8,6 @@
 #
 # Licensed under GPLv2, see file LICENSE in this source tree.
 
-#obj-y :=
-
-obj-y		= 
-
 obj-y += swupdate.o \
 	 cpio_utils.o \
 	 gpio.o \
