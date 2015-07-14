@@ -37,6 +37,7 @@ examples/client/client
 *.depend*
 include/autoconf.h
 include/config/
+include/generated/
 doc/build
 scripts/basic/docproc
 scripts/basic/fixdep
