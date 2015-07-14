@@ -17,22 +17,22 @@ CPPFLAGS += \
 	$(if $(CONFIG_LFS),-D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64) \
 	-D"SWU_VER=KBUILD_STR($(SWU_VER))"
 
-CFLAGS += $(call cc-option,-Wall,)
-CFLAGS += $(call cc-option,-Wshadow,)
-CFLAGS += $(call cc-option,-Wwrite-strings,)
-CFLAGS += $(call cc-option,-Wundef,)
-CFLAGS += $(call cc-option,-Wstrict-prototypes,)
-CFLAGS += $(call cc-option,-Wunused -Wunused-parameter,)
-CFLAGS += $(call cc-option,-Wunused-function -Wunused-value,)
-CFLAGS += $(call cc-option,-Wmissing-prototypes -Wmissing-declarations,)
-CFLAGS += $(call cc-option,-Wno-format-security,)
+KBUILD_CFLAGS += $(call cc-option,-Wall,)
+KBUILD_CFLAGS += $(call cc-option,-Wshadow,)
+KBUILD_CFLAGS += $(call cc-option,-Wwrite-strings,)
+KBUILD_CFLAGS += $(call cc-option,-Wundef,)
+KBUILD_CFLAGS += $(call cc-option,-Wstrict-prototypes,)
+KBUILD_CFLAGS += $(call cc-option,-Wunused -Wunused-parameter,)
+KBUILD_CFLAGS += $(call cc-option,-Wunused-function -Wunused-value,)
+KBUILD_CFLAGS += $(call cc-option,-Wmissing-prototypes -Wmissing-declarations,)
+KBUILD_CFLAGS += $(call cc-option,-Wno-format-security,)
 # warn about C99 declaration after statement
-CFLAGS += $(call cc-option,-Wdeclaration-after-statement,)
+KBUILD_CFLAGS += $(call cc-option,-Wdeclaration-after-statement,)
 # If you want to add more -Wsomething above, make sure that it is
 # still possible to build bbox without warnings.
 
 ifeq ($(CONFIG_WERROR),y)
-CFLAGS += $(call cc-option,-Werror,)
+KBUILD_CFLAGS += $(call cc-option,-Werror,)
 ## TODO:
 ## gcc version 4.4.0 20090506 (Red Hat 4.4.0-4) (GCC) is a PITA:
 ## const char *ptr; ... off_t v = *(off_t*)ptr; -> BOOM
@@ -42,34 +42,34 @@ CFLAGS += $(call cc-option,-Werror,)
 ## and I am unwilling to do crazy gcc specific ({ void *ppp = ...; })
 ## stuff in macros. This would obfuscate the code too much.
 ## Maybe try __attribute__((__may_alias__))?
-#CFLAGS += $(call cc-ifversion, -eq, 0404, -fno-strict-aliasing)
+#KBUILD_CFLAGS += $(call cc-ifversion, -eq, 0404, -fno-strict-aliasing)
 endif
 # gcc 3.x emits bogus "old style proto" warning on find.c:alloc_action()
-CFLAGS += $(call cc-ifversion, -ge, 0400, -Wold-style-definition)
+KBUILD_CFLAGS += $(call cc-ifversion, -ge, 0400, -Wold-style-definition)
 
-CFLAGS += $(call cc-option,-fno-builtin-strlen -finline-limit=0 -fomit-frame-pointer -ffunction-sections -fdata-sections,)
+KBUILD_CFLAGS += $(call cc-option,-fno-builtin-strlen -finline-limit=0 -fomit-frame-pointer -ffunction-sections -fdata-sections,)
 # -fno-guess-branch-probability: prohibit pseudo-random guessing
 # of branch probabilities (hopefully makes bloatcheck more stable):
-CFLAGS += $(call cc-option,-fno-guess-branch-probability,)
-CFLAGS += $(call cc-option,-funsigned-char -static-libgcc,)
-CFLAGS += $(call cc-option,-falign-functions=1 -falign-jumps=1 -falign-labels=1 -falign-loops=1,)
+KBUILD_CFLAGS += $(call cc-option,-fno-guess-branch-probability,)
+KBUILD_CFLAGS += $(call cc-option,-funsigned-char -static-libgcc,)
+KBUILD_CFLAGS += $(call cc-option,-falign-functions=1 -falign-jumps=1 -falign-labels=1 -falign-loops=1,)
 # Defeat .eh_frame bloat (gcc 4.6.3 x86-32 defconfig: 20% smaller binary):
-CFLAGS += $(call cc-option,-fno-unwind-tables,)
-CFLAGS += $(call cc-option,-fno-asynchronous-unwind-tables,)
+KBUILD_CFLAGS += $(call cc-option,-fno-unwind-tables,)
+KBUILD_CFLAGS += $(call cc-option,-fno-asynchronous-unwind-tables,)
 
 # FIXME: These warnings are at least partially to be concerned about and should
 # be fixed..
-#CFLAGS += $(call cc-option,-Wconversion,)
+#KBUILD_CFLAGS += $(call cc-option,-Wconversion,)
 
 ifneq ($(CONFIG_DEBUG),y)
-CFLAGS += $(call cc-option,-Os,$(call cc-option,-O2,))
+KBUILD_CFLAGS += $(call cc-option,-Os,$(call cc-option,-O2,))
 else
-CFLAGS += $(call cc-option,-g,)
-#CFLAGS += "-D_FORTIFY_SOURCE=2"
+KBUILD_CFLAGS += $(call cc-option,-g,)
+#KBUILD_CFLAGS += "-D_FORTIFY_SOURCE=2"
 ifeq ($(CONFIG_DEBUG_PESSIMIZE),y)
-CFLAGS += $(call cc-option,-O0,)
+KBUILD_CFLAGS += $(call cc-option,-O0,)
 else
-CFLAGS += $(call cc-option,-Os,$(call cc-option,-O2,))
+KBUILD_CFLAGS += $(call cc-option,-Os,$(call cc-option,-O2,))
 endif
 endif
 
@@ -85,14 +85,14 @@ PKG_CONFIG_FLAGS += --static
 endif
 
 ifneq ($(CONFIG_EXTRA_CFLAGS),)
-CFLAGS += $(strip $(subst ",,$(CONFIG_EXTRA_CFLAGS)))
+KBUILD_CFLAGS += $(strip $(subst ",,$(CONFIG_EXTRA_CFLAGS)))
 #"))
 endif
 
 # Note: both "" (string consisting of two quote chars) and empty string
 # are possible, and should be skipped below.
 ifneq ($(subst "",,$(CONFIG_SYSROOT)),)
-CFLAGS += --sysroot=$(CONFIG_SYSROOT)
+KBUILD_CFLAGS += --sysroot=$(CONFIG_SYSROOT)
 export SYSROOT=$(CONFIG_SYSROOT)
 endif
 
@@ -123,19 +123,19 @@ endif
 # mongoose / webserver
 ifneq ($(CONFIG_WEBSERVER),)
 ifneq ($(CONFIG_MONGOOSESSL),)
-CFLAGS += -DNO_SSL_DL
+KBUILD_CFLAGS += -DNO_SSL_DL
 LDLIBS += crypto ssl
 else
-CFLAGS += -DNO_SSL
+KBUILD_CFLAGS += -DNO_SSL
 endif
 ifneq ($(CONFIG_MONGOOSELUA),)
-CFLAGS += -DUSE_LUA
+KBUILD_CFLAGS += -DUSE_LUA
 endif
 ifneq ($(CONFIG_MONGOOSESQL),)
-CFLAGS += -DUSE_LUA_SQLITE3
+KBUILD_CFLAGS += -DUSE_LUA_SQLITE3
 endif
 ifneq ($(CONFIG_MONGOOSEIPV6),)
-CFLAGS += -DUSE_IPV6
+KBUILD_CFLAGS += -DUSE_IPV6
 endif
 endif
 
