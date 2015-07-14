@@ -20,8 +20,7 @@
 #ifndef _GLOBALS_H
 #define _GLOBALS_H
 
-#define BANNER "Swupdate v" SWU_VER "\n" \
-	"Built on " AUTOCONF_TIMESTAMP
+#define BANNER "Swupdate v" SWU_VER "\n"
 
 #define SWUPDATE_GENERAL_STRING_SIZE	256
 #define MAX_IMAGE_FNAME	SWUPDATE_GENERAL_STRING_SIZE
