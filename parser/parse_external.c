@@ -24,7 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include "autoconf.h"
+#include "generated/autoconf.h"
 #include "lua.h"
 #include "lauxlib.h"
 #include "lualib.h"

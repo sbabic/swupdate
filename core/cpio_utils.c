@@ -28,7 +28,7 @@
 #include <sys/types.h>
 #include <fcntl.h>
 
-#include "autoconf.h"
+#include "generated/autoconf.h"
 #include "bsdqueue.h"
 #include "cpiohdr.h"
 #include "util.h"

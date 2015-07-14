@@ -21,7 +21,7 @@
 #ifndef _RECOVERY_PARSERS_H
 #define _RECOVERY_PARSERS_H
 
-#include "autoconf.h"
+#include "generated/autoconf.h"
 
 #ifndef CONFIG_SETSWDESCRIPTION
 #define SW_DESCRIPTION_FILENAME	"sw-description"

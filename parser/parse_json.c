@@ -29,7 +29,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
-#include "autoconf.h"
+#include "generated/autoconf.h"
 #include "bsdqueue.h"
 #include "util.h"
 #include "swupdate.h"

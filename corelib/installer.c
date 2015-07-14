@@ -31,7 +31,7 @@
 #include <sys/stat.h>
 #include <sys/mount.h>
 
-#include "autoconf.h"
+#include "generated/autoconf.h"
 #include "bsdqueue.h"
 #include "globals.h"
 #include "util.h"

@@ -22,7 +22,7 @@
 #include <string.h>
 #include <libconfig.h>
 #include <sys/types.h>
-#include "autoconf.h"
+#include "generated/autoconf.h"
 #include "bsdqueue.h"
 #include "util.h"
 #include "swupdate.h"

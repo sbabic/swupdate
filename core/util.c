@@ -29,7 +29,7 @@
 #include "swupdate.h"
 #include "util.h"
 #include "fw_env.h"
-#include "autoconf.h"
+#include "generated/autoconf.h"
 
 /*
  * Replacement for fw_setenv() for calling inside
