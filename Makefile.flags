@@ -7,15 +7,11 @@ export SWU_VER
 SKIP_STRIP ?= n
 
 # -std=gnu99 needed for [U]LLONG_MAX on some systems
-CPPFLAGS += $(call cc-option,-std=gnu99,)
+KBUILD_CPPFLAGS += $(call cc-option,-std=gnu99,)
 
-CPPFLAGS += \
-	-Iinclude \
-	$(if $(KBUILD_SRC),-I$(srctree)/include) \
-	-include include/autoconf.h \
-	-D_GNU_SOURCE -DNDEBUG \
-	$(if $(CONFIG_LFS),-D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64) \
-	-D"SWU_VER=KBUILD_STR($(SWU_VER))"
+KBUILD_CPPFLAGS += -D_GNU_SOURCE -DNDEBUG \
+		   $(if $(CONFIG_LFS),-D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64) \
+		   -D"SWU_VER=KBUILD_STR($(SWU_VER))"
 
 KBUILD_CFLAGS += $(call cc-option,-Wall,)
 KBUILD_CFLAGS += $(call cc-option,-Wshadow,)

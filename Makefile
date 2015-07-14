@@ -194,8 +194,7 @@ LINUXINCLUDE    := -Iinclude \
                    $(if $(KBUILD_SRC), -I$(srctree)/include) \
                    -include include/generated/autoconf.h
 
-KBUILD_CPPFLAGS := -D__KERNEL__
-
+KBUILD_CPPFLAGS :=
 KBUILD_CFLAGS   :=
 KBUILD_AFLAGS_KERNEL :=
 KBUILD_CFLAGS_KERNEL :=
