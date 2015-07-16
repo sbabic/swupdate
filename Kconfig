@@ -29,6 +29,10 @@ config HAVE_LIBUBI
 	bool
 	option env="HAVE_LIBUBI"
 
+config HAVE_ZLIB
+	bool
+	option env="HAVE_ZLIB"
+
 menu "Swupdate Settings"
 
 menu "General Configuration"

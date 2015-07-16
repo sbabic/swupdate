@@ -24,6 +24,10 @@ ifeq ($(HAVE_LIBUBI),)
 export HAVE_LIBUBI = y
 endif
 
+ifeq ($(HAVE_ZLIB),)
+export HAVE_ZLIB = y
+endif
+
 # *DOCUMENTATION*
 # To see a list of typical targets execute "make help"
 # More info can be located in ./README

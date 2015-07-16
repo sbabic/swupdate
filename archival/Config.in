@@ -22,6 +22,7 @@ config CPIO
 config GUNZIP
 	bool "gunzip"
 	default y
+	depends on HAVE_ZLIB
 	help
 	  gunzip is used to decompress archives created by gzip.
 	  You can use the `-t' option to test the integrity of
