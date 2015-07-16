@@ -40,6 +40,7 @@ config MONGOOSEIPV6
 config MONGOOSESSL
 	bool "ssl"
 	depends on HAVE_LIBSSL
+	depends on HAVE_LIBCRYPTO
 	help
 	   It enables SSL support into mongoose
 endmenu

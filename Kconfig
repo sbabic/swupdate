@@ -37,6 +37,10 @@ config HAVE_LIBSSL
 	bool
 	option env="HAVE_LIBSSL"
 
+config HAVE_LIBCRYPTO
+	bool
+	option env="HAVE_LIBCRYPTO"
+
 menu "Swupdate Settings"
 
 menu "General Configuration"

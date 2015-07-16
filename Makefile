@@ -32,6 +32,10 @@ ifeq ($(HAVE_LIBSSL),)
 export HAVE_LIBSSL = y
 endif
 
+ifeq ($(HAVE_LIBCRYPTO),)
+export HAVE_LIBCRYPTO = y
+endif
+
 # *DOCUMENTATION*
 # To see a list of typical targets execute "make help"
 # More info can be located in ./README
