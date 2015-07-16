@@ -12,6 +12,10 @@ ifeq ($(HAVE_LIBCONFIG),)
 export HAVE_LIBCONFIG = y
 endif
 
+ifeq ($(HAVE_LIBCURL),)
+export HAVE_LIBCURL = y
+endif
+
 # *DOCUMENTATION*
 # To see a list of typical targets execute "make help"
 # More info can be located in ./README

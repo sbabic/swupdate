@@ -17,6 +17,10 @@ config HAVE_LIBCONFIG
 	bool
 	option env="HAVE_LIBCONFIG"
 
+config HAVE_LIBCURL
+	bool
+	option env="HAVE_LIBCURL"
+
 menu "Swupdate Settings"
 
 menu "General Configuration"
@@ -184,6 +188,7 @@ endmenu
 config DOWNLOAD
 	bool "Enable image downloading"
 	default n
+	depends on HAVE_LIBCURL
 	help
 	  Enable update from image URL using libcurl. Files are downloaded
 	  completely before installation begins.
