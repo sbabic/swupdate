@@ -9,6 +9,10 @@ config HAVE_DOT_CONFIG
 	bool
 	default y
 
+config HAVE_LUA
+	bool
+	option env="HAVE_LUA"
+
 menu "Swupdate Settings"
 
 menu "General Configuration"
@@ -51,6 +55,7 @@ config MTD
 config LUA
 	bool "lua"
 	default y
+	depends on HAVE_LUA
 	help
 	  Enable LUA interpreter.
 
