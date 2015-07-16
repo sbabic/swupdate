@@ -21,6 +21,10 @@ config HAVE_LIBCURL
 	bool
 	option env="HAVE_LIBCURL"
 
+config HAVE_LIBMTD
+	bool
+	option env="HAVE_LIBMTD"
+
 menu "Swupdate Settings"
 
 menu "General Configuration"
@@ -57,6 +61,7 @@ config HW_COMPATIBILITY_FILE
 config MTD
 	bool "MTD support"
 	default y
+	depends on HAVE_LIBMTD
 	help
 	  Enable MTD support.
 
