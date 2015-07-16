@@ -20,6 +20,10 @@ ifeq ($(HAVE_LIBMTD),)
 export HAVE_LIBMTD = y
 endif
 
+ifeq ($(HAVE_LIBUBI),)
+export HAVE_LIBUBI = y
+endif
+
 # *DOCUMENTATION*
 # To see a list of typical targets execute "make help"
 # More info can be located in ./README

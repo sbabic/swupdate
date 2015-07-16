@@ -25,6 +25,10 @@ config HAVE_LIBMTD
 	bool
 	option env="HAVE_LIBMTD"
 
+config HAVE_LIBUBI
+	bool
+	option env="HAVE_LIBUBI"
+
 menu "Swupdate Settings"
 
 menu "General Configuration"

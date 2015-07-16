@@ -8,6 +8,7 @@ menu "Image Handlers"
 config UBIVOL
 	bool "ubivol"
 	default n
+	depends on HAVE_LIBUBI
 	depends on MTD
 	help
 	  ubi is the default format for NAND device.
