@@ -33,6 +33,10 @@ config HAVE_ZLIB
 	bool
 	option env="HAVE_ZLIB"
 
+config HAVE_LIBSSL
+	bool
+	option env="HAVE_LIBSSL"
+
 menu "Swupdate Settings"
 
 menu "General Configuration"
