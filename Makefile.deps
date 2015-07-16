@@ -1,0 +1,35 @@
+ifeq ($(HAVE_LUA),)
+export HAVE_LUA = y
+endif
+
+ifeq ($(HAVE_LIBCONFIG),)
+export HAVE_LIBCONFIG = y
+endif
+
+ifeq ($(HAVE_LIBCURL),)
+export HAVE_LIBCURL = y
+endif
+
+ifeq ($(HAVE_LIBMTD),)
+export HAVE_LIBMTD = y
+endif
+
+ifeq ($(HAVE_LIBUBI),)
+export HAVE_LIBUBI = y
+endif
+
+ifeq ($(HAVE_ZLIB),)
+export HAVE_ZLIB = y
+endif
+
+ifeq ($(HAVE_LIBSSL),)
+export HAVE_LIBSSL = y
+endif
+
+ifeq ($(HAVE_LIBCRYPTO),)
+export HAVE_LIBCRYPTO = y
+endif
+
+ifeq ($(HAVE_JSON_C),)
+export HAVE_JSON_C = y
+endif

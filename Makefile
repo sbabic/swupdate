@@ -4,42 +4,6 @@ SUBLEVEL = 0
 EXTRAVERSION = -rc
 NAME =
 
-ifeq ($(HAVE_LUA),)
-export HAVE_LUA = y
-endif
-
-ifeq ($(HAVE_LIBCONFIG),)
-export HAVE_LIBCONFIG = y
-endif
-
-ifeq ($(HAVE_LIBCURL),)
-export HAVE_LIBCURL = y
-endif
-
-ifeq ($(HAVE_LIBMTD),)
-export HAVE_LIBMTD = y
-endif
-
-ifeq ($(HAVE_LIBUBI),)
-export HAVE_LIBUBI = y
-endif
-
-ifeq ($(HAVE_ZLIB),)
-export HAVE_ZLIB = y
-endif
-
-ifeq ($(HAVE_LIBSSL),)
-export HAVE_LIBSSL = y
-endif
-
-ifeq ($(HAVE_LIBCRYPTO),)
-export HAVE_LIBCRYPTO = y
-endif
-
-ifeq ($(HAVE_JSON_C),)
-export HAVE_JSON_C = y
-endif
-
 # *DOCUMENTATION*
 # To see a list of typical targets execute "make help"
 # More info can be located in ./README
@@ -257,6 +221,8 @@ RCS_FIND_IGNORE := \( -name SCCS -o -name BitKeeper -o -name .svn -o -name CVS -
 
 # ===========================================================================
 # Rules shared between *config targets and build targets
+
+-include $(srctree)/Makefile.deps
 
 # Basic helpers built in scripts/
 PHONY += scripts_basic
