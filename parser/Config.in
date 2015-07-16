@@ -3,6 +3,7 @@ menu "Parser Features"
 config LIBCONFIG
 	bool "libconfig"
 	default y
+	depends on HAVE_LIBCONFIG
 	help
 	  Use libconfig to parse the configuration file.
 	  This is the default parser.
