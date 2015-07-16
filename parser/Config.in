@@ -11,6 +11,7 @@ config LIBCONFIG
 config JSON
 	bool "libjson"
 	default n
+	depends on HAVE_JSON_C
 	help
 	  Use json-c to parse the configuration file.
 

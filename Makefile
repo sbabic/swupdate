@@ -36,6 +36,10 @@ ifeq ($(HAVE_LIBCRYPTO),)
 export HAVE_LIBCRYPTO = y
 endif
 
+ifeq ($(HAVE_JSON_C),)
+export HAVE_JSON_C = y
+endif
+
 # *DOCUMENTATION*
 # To see a list of typical targets execute "make help"
 # More info can be located in ./README

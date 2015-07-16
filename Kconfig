@@ -41,6 +41,10 @@ config HAVE_LIBCRYPTO
 	bool
 	option env="HAVE_LIBCRYPTO"
 
+config HAVE_JSON_C
+	bool
+	option env="HAVE_JSON_C"
+
 menu "Swupdate Settings"
 
 menu "General Configuration"
