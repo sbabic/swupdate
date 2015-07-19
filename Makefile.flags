@@ -95,7 +95,7 @@ endif
 LDLIBS += pthread
 # lua
 ifneq ($(CONFIG_LUA),)
-LDLIBS += lua dl m
+LDLIBS += lua${LUAVERSION} dl m
 LDFLAGS_swupdate += -Wl,-E
 endif
 
@@ -108,6 +108,11 @@ endif
 # libconfig is alwasy compiled
 ifeq ($(CONFIG_LIBCONFIG),y)
 LDLIBS += config
+endif
+
+# libarchive
+ifeq ($(CONFIG_ARCHIVE),y)
+LDLIBS += archive
 endif
 
 # json-c

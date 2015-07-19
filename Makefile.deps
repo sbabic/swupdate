@@ -6,6 +6,10 @@ ifeq ($(HAVE_LIBCONFIG),)
 export HAVE_LIBCONFIG = y
 endif
 
+ifeq ($(HAVE_LIBARCHIVE),)
+export HAVE_LIBARCHIVE = y
+endif
+
 ifeq ($(HAVE_LIBCURL),)
 export HAVE_LIBCURL = y
 endif
