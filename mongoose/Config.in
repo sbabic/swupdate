@@ -24,13 +24,6 @@ config MONGOOSELUA
 	help
 	  It allows to use LUA scripts as CGI interpreter.
 
-config MONGOOSESQL
-	bool "sqlite"
-	depends on LUA
-	default y
-	help
-	   SQL support into mongoose
-
 config MONGOOSEIPV6
 	bool "ipv6"
 	default y
