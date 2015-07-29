@@ -33,6 +33,9 @@
 #define GET_FIELD(e, name, d) \
 	get_field(e, name, d, sizeof(d))
 
+#define NODEROOT (!strlen(CONFIG_LIBCONFIGROOT) ? \
+			"software" : CONFIG_LIBCONFIGROOT)
+
 static struct hw_type hardware;
 
 static const config_setting_t *get_setting(config_t *cfg,
@@ -48,7 +51,8 @@ static const config_setting_t *get_setting(config_t *cfg,
 	if (strlen(swcfg->running_mode) && strlen(swcfg->software_set)) {
 		/* Try with both software set and board name */
 		if (strlen(hardware.boardname)) {
-			snprintf(node, sizeof(node), "software.%s.%s.%s.%s",
+			snprintf(node, sizeof(node), "%s.%s.%s.%s.%s",
+				NODEROOT,
 				hardware.boardname,
 				swcfg->software_set,
 				swcfg->running_mode,
@@ -58,7 +62,8 @@ static const config_setting_t *get_setting(config_t *cfg,
 				return setting;
 		}
 		/* still here, try with software set and mode */
-		snprintf(node, sizeof(node), "software.%s.%s.%s",
+		snprintf(node, sizeof(node), "%s.%s.%s.%s",
+			NODEROOT,
 			swcfg->software_set,
 			swcfg->running_mode,
 			field);
@@ -70,7 +75,8 @@ static const config_setting_t *get_setting(config_t *cfg,
 
 	/* Try with board name */
 	if (strlen(hardware.boardname)) {
-		snprintf(node, sizeof(node), "software.%s.%s",
+		snprintf(node, sizeof(node), "%s.%s.%s",
+			NODEROOT,
 			hardware.boardname,
 			field);
 		setting = config_lookup(cfg, node);
@@ -78,7 +84,8 @@ static const config_setting_t *get_setting(config_t *cfg,
 			return setting;
 	}
 	/* Fall back without board entry */
-	snprintf(node, sizeof(node), "software.%s",
+	snprintf(node, sizeof(node), "%s.%s",
+		NODEROOT,
 		field);
 	return config_lookup(cfg, node);
 }
@@ -380,6 +387,7 @@ int parse_cfg (struct swupdate_cfg *swcfg, const char *filename)
 {
 	config_t cfg;
 	const char *str;
+	char node[128];
 
 	memset(&cfg, 0, sizeof(cfg));
 	config_init(&cfg);
@@ -397,7 +405,10 @@ int parse_cfg (struct swupdate_cfg *swcfg, const char *filename)
 		return -1;
 	}
 
-	if (!config_lookup_string(&cfg, "software.version", &str)) {
+	snprintf(node, sizeof(node), "%s.version",
+			NODEROOT);
+
+	if (!config_lookup_string(&cfg, node, &str)) {
 		ERROR("Missing version in configuration file\n");
 		return -1;
 	} else {

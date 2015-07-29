@@ -8,6 +8,14 @@ config LIBCONFIG
 	  Use libconfig to parse the configuration file.
 	  This is the default parser.
 
+config LIBCONFIGROOT
+	string "Name of root node"
+	depends on LIBCONFIG
+	help
+	  For compatibility reasons, the root node
+	  can be set to something else as "software".
+	  In most case you do not need to set it.
+
 config JSON
 	bool "libjson"
 	default n
