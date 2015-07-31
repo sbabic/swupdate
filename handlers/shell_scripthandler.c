@@ -34,31 +34,14 @@
 #include "util.h"
 
 static void shell_handler(void);
+static void shell_preinstall_handler(void);
+static void shell_postinstall_handler(void);
 
-static int start_shell_script(struct img_type *img, void *data)
+static int execute_shell_script(struct img_type *img, const char *fnname)
 {
 	int ret;
-	const char *fnname;
 	char shellscript[MAX_IMAGE_FNAME +
 		strlen(SCRIPTS_DIR) + strlen("postinst") + 2];
-	script_fn scriptfn;
-
-	if (!data)
-		return -1;
-
-	scriptfn = *(script_fn *)data;
-
-	switch (scriptfn) {
-	case PREINSTALL:
-		fnname="preinst";
-		break;
-	case POSTINSTALL:
-		fnname="postinst";
-		break;
-	default:
-		/* no error, simply no call */
-		return 0;
-	}
 
 	snprintf(shellscript, sizeof(shellscript),
 		"%s%s", TMPDIR, img->fname);
@@ -78,11 +61,83 @@ static int start_shell_script(struct img_type *img, void *data)
 	}
 
 	return ret;
+}
 
+static int start_shell_script(struct img_type *img, void *data)
+{
+	const char *fnname;
+	script_fn scriptfn;
+
+	if (!data)
+		return -EINVAL;
+
+	scriptfn = *(script_fn *)data;
+
+	switch (scriptfn) {
+	case PREINSTALL:
+		fnname="preinst";
+		break;
+	case POSTINSTALL:
+		fnname="postinst";
+		break;
+	default:
+		/* no error, simply no call */
+		return 0;
+	}
+
+	return execute_shell_script(img, fnname);
+}
+
+static int start_preinstall_script(struct img_type *img, void *data)
+{
+	script_fn scriptfn;
+
+	if (!data)
+		return -EINVAL;
+
+	scriptfn = *(script_fn *)data;
+
+	/*
+	 * Call only in case of preinstall
+	 */
+	if (scriptfn != PREINSTALL)
+		return 0;
+
+	return execute_shell_script(img, "");
+}
+
+static int start_postinstall_script(struct img_type *img, void *data)
+{
+	script_fn scriptfn;
+
+	if (!data)
+		return -EINVAL;
+
+	scriptfn = *(script_fn *)data;
+
+	/*
+	 * Call only in case of preinstall
+	 */
+	if (scriptfn != POSTINSTALL)
+		return 0;
+
+	return execute_shell_script(img, "");
 }
 
  __attribute__((constructor))
 static void shell_handler(void)
 {
 	register_handler("shellscript", start_shell_script, NULL);
+}
+
+ __attribute__((constructor))
+static void shell_preinstall_handler(void)
+{
+	register_handler("preinstall", start_preinstall_script, NULL);
+}
+
+ __attribute__((constructor))
+static void shell_postinstall_handler(void)
+{
+	register_handler("postinstall", start_postinstall_script, NULL);
 }
