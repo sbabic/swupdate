@@ -1,0 +1,72 @@
+software =
+{
+	version = "0.1.0";
+
+	/* "myboard" is the name that should be set into /etc/hwrevision */
+	myboard = {
+
+		/* a revision is a string */
+		hardware-compatibility: [ "1.0", "1.3", "16#010071"];
+
+		/* UBI Volumes can be rearranged */
+		partitions: ( /* UBI Volumes */
+			{
+				name = "rootfs";
+				device = "mtd10";
+			  	size = 104896512; /* in bytes */
+			},
+			{
+				name = "kernel";
+				device = "mtd9";
+			  	size = 4194304; /* in bytes */
+			}
+		);
+
+		images: (
+			{
+				filename = "core-image-base-myboard.ubifs";
+				volume = "rootfs";
+				type = "ubivol"
+			},
+			{
+				filename = "uboot-env";
+				type = "uboot";
+			},
+			{
+				filename = "uImage";
+				volume = "kernel";
+				type = "ubivol"
+			},
+			{
+				filename = "fpga.txt";
+				type = "fpga";
+			}
+		);
+
+		scripts: (
+			{
+				filename = "test.lua";
+				type = "lua";
+			},
+			{
+				filename = "sdcard.lua";
+				type = "lua";
+			},
+			{
+				filename = "test_shell.sh";
+				type = "shellscript";
+			}
+		);
+
+		uboot: (
+			{
+				name = "myvar";
+				value = "4M";
+			},
+			{
+				name = "addmyvar";
+				value = "setenv bootargs ${bootargs} myvar=${myvar}"
+			}
+		);
+	}
+}
