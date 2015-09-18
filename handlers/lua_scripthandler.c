@@ -86,6 +86,13 @@ static int start_lua_script(struct img_type *img, void *data)
 	}
 
 	lua_getglobal(L, fnname);
+
+	if(!lua_isfunction(L,lua_gettop(L))) {
+		lua_close(L);
+		TRACE("Script : no %s in %s script, exiting", fnname, filename);
+		return 0;
+	}
+
 	/* passing arguments */
 	lua_pushstring(L, filename);
 
