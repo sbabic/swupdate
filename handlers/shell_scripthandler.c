@@ -53,10 +53,11 @@ static int execute_shell_script(struct img_type *img, const char *fnname)
 		"%s%s %s", TMPDIR, img->fname, fnname);
 
 	ret = system(shellscript);
-	TRACE("Calling shell script %s: return with %d", shellscript, ret);
-	if (ret == WIFEXITED(ret))
-		return 0;
-	if (ret) {
+	if (WIFEXITED(ret)) {
+		ret = WEXITSTATUS(ret);
+		TRACE("Calling shell script %s: return with %d",
+			shellscript, ret);
+	} else {
 		ERROR("%s returns '%s'", img->fname, strerror(errno));
 	}
 
