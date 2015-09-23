@@ -40,7 +40,6 @@
 #include "flash.h"
 
 #define PROCMTD	"/proc/mtd"
-#define BUFF_SIZE	8192
 #define LINESIZE	80
 
 void flash_handler(void);
@@ -314,7 +313,6 @@ static int flash_write_nor(int mtdnum, struct img_type *img)
 {
 	int fdout;
 	char mtd_device[LINESIZE];
-	char *buf;
 	int ret;
 	uint32_t checksum;
 	long unsigned int dummy = 0;
@@ -331,14 +329,7 @@ static int flash_write_nor(int mtdnum, struct img_type *img)
 		return -1;
 	}
 
-	buf = (char *)malloc(BUFF_SIZE);
-	if (!buf) {
-		ERROR("malloc returns no memory");
-		return -ENOMEM;
-	}
-
 	ret = copyfile(img->fdin, fdout, img->size, &dummy, 0, 0, &checksum);
-	free(buf);
 
 	/* tell 'nbytes == 0' (EOF) from 'nbytes < 0' (read error) */
 	if (ret < 0) {
