@@ -89,9 +89,11 @@ The following example explains better the implemented tags:
 		scripts: (
 			{
 				filename = "erase_at_end";
+				type = "lua";
 		 	},
 			{
 				filename = "display_info";
+				type = "lua";
 			}
 		);
 
@@ -248,22 +250,32 @@ specified after mounting the device.
 
 Scripts
 -------
-::
-
-	scripts: (
-		{
-			filename = <Name in CPIO Archive>;
-	 	},
-	);
 
 Scripts runs in the order they are put into the sw-description file.
 The result of a script is valuated by swupdate, that stops the update
 with an error if the result is <> 0.
 
-Scripts are LUA scripts and they are run using the internal interpreter.
 They are copied into a temporary directory before execution and their name must
 be unique inside the same cpio archive.
-Scripts must have at least one of the following functions:
+
+If no type is given, swupdate default to "lua".
+
+LUA
+...
+
+::
+
+	scripts: (
+		{
+			filename = <Name in CPIO Archive>;
+			type = "lua";
+	 	},
+	);
+
+
+LUA scripts are run using the internal interpreter.
+
+They must have at least one of the following functions:
 
 ::
 
@@ -279,6 +291,53 @@ called before installing the images.
 
 swupdate scans for all scripts and check for a postinst function. It is
 called after installing the images.
+
+shellscript
+...........
+
+::
+
+	scripts: (
+		{
+			filename = <Name in CPIO Archive>;
+			type = "shellscript";
+		},
+	);
+
+Shell scripts are called via system command.
+swupdate scans for all scripts and calls them before and after installing
+the images. swupdate passes 'preinst' or 'postinst' as first argument to
+the script.
+
+preinstall
+..........
+
+::
+
+	scripts: (
+		{
+			filename = <Name in CPIO Archive>;
+			type = "preinstall";
+		},
+	);
+
+preinstall are shell scripts and called via system command.
+swupdate scans for all scripts and calls them before installing the images.
+
+postinstall
+...........
+
+::
+
+	scripts: (
+		{
+			filename = <Name in CPIO Archive>;
+			type = "postinstall";
+		},
+	);
+
+postinstall are shell scripts and called via system command.
+swupdate scans for all scripts and calls them after installing the images.
 
 
 uboot
