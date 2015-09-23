@@ -121,6 +121,10 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 
 	/* Scripts must be run before installing images */
 	ret = run_prepost_scripts(sw, PREINSTALL);
+	if (ret) {
+		ERROR("execute preinstall scripts failed");
+		return ret;
+	}
 #ifdef CONFIG_MTD
 	scan_mtd_devices();
 #endif
@@ -175,6 +179,10 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 		return ret;
 
 	ret = run_prepost_scripts(sw, POSTINSTALL);
+	if (ret) {
+		ERROR("execute postinstall scripts failed");
+		return ret;
+	}
 
 	if (!LIST_EMPTY(&sw->uboot))
 		update_uboot_env();
