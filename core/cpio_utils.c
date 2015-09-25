@@ -69,14 +69,14 @@ from_ascii (char const *where, size_t digs, unsigned logbase)
 		char *p = strchr (codetab, toupper (*buf));
 		if (!p)
 		{
-			TRACE("Malformed number %.*s\n", (int)digs, where);
+			ERROR("Malformed number %.*s\n", (int)digs, where);
 			break;
 		}
 
 		d = p - codetab;
 		if ((d >> logbase) > 1)
 		{
-			TRACE("Malformed number %.*s\n", (int)digs, where);
+			ERROR("Malformed number %.*s\n", (int)digs, where);
 			break;
 		}
 		value += d;
@@ -86,7 +86,7 @@ from_ascii (char const *where, size_t digs, unsigned logbase)
 		value <<= logbase;
 	}
 	if (overflow)
-		TRACE ("Archive value %.*s is out of range\n",
+		ERROR("Archive value %.*s is out of range\n",
 			(int)digs, where);
 	return value;
 }
@@ -97,7 +97,7 @@ static int get_cpiohdr(unsigned char *buf, long *size, long *namesize, long *chk
 
 	cpiohdr = (struct new_ascii_header *)buf;
 	if (strncmp(cpiohdr->c_magic, "070702", 6) != 0) {
-		TRACE("CPIO Format not recognized: magic not found\n");
+		ERROR("CPIO Format not recognized: magic not found\n");
 			return -EINVAL;
 	}
 	*size = FROM_HEX(cpiohdr->c_filesize);
@@ -117,7 +117,7 @@ int fill_buffer(int fd, unsigned char *buf, int nbytes, unsigned long *offs,
 	while (nbytes > 0) {
 		len = read(fd, buf, nbytes);
 		if (len < 0) {
-			TRACE("Failure in stream: I cannot go on\n");
+			ERROR("Failure in stream: I cannot go on\n");
 			return -EFAULT;
 		}
 		if (len == 0) {

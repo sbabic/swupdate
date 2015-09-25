@@ -206,13 +206,13 @@ void scan_ubi_partitions(int mtd)
 
 	err = ubi_attach(libubi, DEFAULT_CTRL_DEV, &mtd_info->req);
 	if (err) {
-		TRACE("cannot attach mtd%d - maybe not a NAND or raw device", mtd);
+		ERROR("cannot attach mtd%d - maybe not a NAND or raw device", mtd);
 		return;
 	}
 
 	err = ubi_get_dev_info1(libubi, mtd_info->req.dev_num, &mtd_info->dev_info);
 	if (err) {
-		TRACE("cannot get information about UBI device %d", mtd_info->req.dev_num);
+		ERROR("cannot get information about UBI device %d", mtd_info->req.dev_num);
 		return;
 	}
 
@@ -227,7 +227,7 @@ void scan_ubi_partitions(int mtd)
 			if (errno == ENOENT)
 				continue;
 
-			TRACE("libubi failed to probe volume %d on ubi%d",
+			ERROR("libubi failed to probe volume %d on ubi%d",
 					  i, mtd_info->dev_info.dev_num);
 			return;
 		}

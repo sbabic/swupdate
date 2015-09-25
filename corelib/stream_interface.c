@@ -142,14 +142,14 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 				return -1;
 			}
 			if (checksum != (uint32_t)fdh.chksum) {
-				TRACE("Checksum WRONG ! Computed 0x%ux, it should be 0x%ux\n",
+				ERROR("Checksum WRONG ! Computed 0x%ux, it should be 0x%ux\n",
 					(unsigned int)checksum, (unsigned int)fdh.chksum);
 				return -1;
 			}
 			close(fdout);
 
 			if (parse(software, output_file)) {
-				TRACE("Compatible SW not found");
+				ERROR("Compatible SW not found");
 				return -1;
 			}
 			if (check_hw_compatibility(software)) {
@@ -192,7 +192,7 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 			}
 			close(fdout);
 			if (checksum != (unsigned long)fdh.chksum) {
-				TRACE("Checksum WRONG ! Computed 0x%ux, it should be 0x%ux",
+				ERROR("Checksum WRONG ! Computed 0x%ux, it should be 0x%ux",
 					(unsigned int)checksum, (unsigned int)fdh.chksum);
 				return -1;
 			}

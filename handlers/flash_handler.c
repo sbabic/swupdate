@@ -60,7 +60,7 @@ static int flash_erase(int mtdnum)
 	struct flash_description *flash = get_flash_info();
 
 	if  (!mtd_dev_present(flash->libmtd, mtdnum)) {
-			TRACE("MTD %d does not exist\n", mtdnum);
+			ERROR("MTD %d does not exist\n", mtdnum);
 			return -ENODEV;
 	}
 	mtd = &flash->mtd_info[mtdnum].mtd;

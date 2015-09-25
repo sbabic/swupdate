@@ -236,9 +236,8 @@ static void parse_scripts(config_t *cfg, struct swupdate_cfg *swcfg)
 
 		LIST_INSERT_HEAD(&swcfg->scripts, script, next);
 
-		TRACE("Found Script: %s %s\n",
-			script->fname,
-			str);
+		TRACE("Found Script: %s\n",
+			script->fname);
 	}
 }
 
