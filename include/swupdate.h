@@ -86,7 +86,6 @@ struct swupdate_cfg {
 	char running_mode[SWUPDATE_GENERAL_STRING_SIZE];
 	struct hwlist hardware;
 	struct imglist images;
-	struct imglist files;
 	struct imglist partitions;
 	struct imglist scripts;
 	struct ubootvarlist uboot;

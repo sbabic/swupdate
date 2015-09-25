@@ -237,7 +237,6 @@ static int install_from_file(char *fname)
 	 * are in the image
 	 */
 	ret = check_provided(&swcfg.images);
-	ret |= check_provided(&swcfg.files);
 	ret |= check_provided(&swcfg.scripts);
 	if (ret)
 		exit(1);
@@ -340,7 +339,6 @@ static void swupdate_init(struct swupdate_cfg *sw)
 	/* Initialize internal tree to store configuration */
 	memset(sw, 0, sizeof(*sw));
 	LIST_INIT(&sw->images);
-	LIST_INIT(&sw->files);
 	LIST_INIT(&sw->partitions);
 	LIST_INIT(&sw->hardware);
 	LIST_INIT(&sw->scripts);

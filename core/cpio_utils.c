@@ -360,8 +360,6 @@ int cpio_scan(int fd, struct swupdate_cfg *cfg, off_t start)
 
 		SEARCH_FILE(struct img_type, cfg->images,
 			file_listed, start);
-		SEARCH_FILE(struct img_type, cfg->files,
-			file_listed, start);
 		SEARCH_FILE(struct img_type, cfg->scripts,
 			file_listed, start);
 
