@@ -369,6 +369,7 @@ static void parse_files(config_t *cfg, struct swupdate_cfg *swcfg)
 		GET_FIELD(elem, "device", file->device);
 		GET_FIELD(elem, "filesystem", file->filesystem);
 		strcpy(file->type, "rawfile");
+		GET_FIELD(elem, "type", file->type);
 		if (config_setting_lookup_bool(elem,
 			"compressed", &file->compressed) == CONFIG_FALSE)
 			file->compressed = 0;

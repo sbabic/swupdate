@@ -393,6 +393,7 @@ static void parse_files(json_object *jobj, struct swupdate_cfg *swcfg)
 		GET_FIELD(elem, "device", file->device);
 		GET_FIELD(elem, "filesystem", file->filesystem);
 		strcpy(file->type, "rawfile");
+		get_field(elem, "type", &file->type);
 		get_field(elem, "compressed", &file->compressed);
 
 		TRACE("Found %sFile: %s --> %s (%s)\n",
