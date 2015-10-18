@@ -8,6 +8,9 @@ config LIBCONFIG
 	  Use libconfig to parse the configuration file.
 	  This is the default parser.
 
+comment "Default config parser support needs libconfig"
+	depends on !HAVE_LIBCONFIG
+
 config LIBCONFIGROOT
 	string "Name of root node"
 	depends on LIBCONFIG
@@ -22,6 +25,9 @@ config JSON
 	depends on HAVE_JSON_C
 	help
 	  Use json-c to parse the configuration file.
+
+comment "JSON config parser support needs json-c"
+	depends on !HAVE_JSON_C
 
 config LUAEXTERNAL
 	bool "lua"

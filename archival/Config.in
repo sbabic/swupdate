@@ -28,4 +28,7 @@ config GUNZIP
 	  You can use the `-t' option to test the integrity of
 	  an archive, without decompressing it.
 
+comment "gunzip support needs libz"
+	depends on !HAVE_ZLIB
+
 endmenu

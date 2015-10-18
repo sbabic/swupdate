@@ -15,6 +15,9 @@ config UBIVOL
 	  Say Y if you have NAND or you use UBI on
 	  your system.
 
+comment "ubivol support needs libubi"
+	depends on !HAVE_LIBUBI
+
 config UBIBLACKLIST
 	string "List of MTD devices to be excluded for UBI"
 	depends on UBIVOL
@@ -86,6 +89,9 @@ config UBOOT
 	help
 	  Enable it to change U-Boot environment
 	  during the installation process.
+
+comment "uboot support needs libz"
+	depends on !HAVE_ZLIB
 
 config UBOOT_FWENV
 	string "U-Boot Environment Configuration file"

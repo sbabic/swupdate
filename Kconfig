@@ -85,12 +85,18 @@ config MTD
 	help
 	  Enable MTD support.
 
+comment "MTD support needs libmtd"
+	depends on !HAVE_LIBMTD
+
 config LUA
 	bool "lua"
 	default y
 	depends on HAVE_LUA
 	help
 	  Enable LUA interpreter.
+
+comment "Lua support needs a Lua interpreter"
+	depends on !HAVE_LUA
 
 # These are auto-selected by other options
 
@@ -217,6 +223,9 @@ config DOWNLOAD
 	help
 	  Enable update from image URL using libcurl. Files are downloaded
 	  completely before installation begins.
+
+comment "Image downloading support needs libcurl"
+	depends on !HAVE_LIBCURL
 
 config WEBSERVER
 	bool "Enable webserver"

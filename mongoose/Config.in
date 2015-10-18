@@ -36,6 +36,10 @@ config MONGOOSESSL
 	depends on HAVE_LIBCRYPTO
 	help
 	   It enables SSL support into mongoose
+
+comment "SSL support needs libcrypto, libssl"
+	depends on !HAVE_LIBSSL || !HAVE_LIBCRYPTO
+
 endmenu
 
 endmenu
