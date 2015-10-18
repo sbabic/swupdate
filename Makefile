@@ -339,8 +339,7 @@ include $(srctree)/Makefile.flags
 # Defaults to vmlinux, but the arch makefile usually adds further targets
 all: swupdate
 
-objs-y		:= core handlers
-libs-y		:= archival corelib ipc mongoose parser
+libs-y		:= archival core corelib handlers ipc mongoose parser
 
 swupdate-dirs	:= $(objs-y) $(libs-y)
 swupdate-objs	:= $(patsubst %,%/built-in.o, $(objs-y))
