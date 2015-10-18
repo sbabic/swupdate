@@ -81,6 +81,7 @@ config HANDLER_IN_LUA
 
 config UBOOT
 	bool "uboot"
+	depends on HAVE_ZLIB
 	default n
 	help
 	  Enable it to change U-Boot environment
