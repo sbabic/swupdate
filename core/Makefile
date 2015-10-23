@@ -8,7 +8,7 @@
 #
 # Licensed under GPLv2, see file LICENSE in this source tree.
 
-lib-y += swupdate.o \
+obj-y += swupdate.o \
 	 cpio_utils.o \
 	 gpio.o \
 	 notifier.o \
