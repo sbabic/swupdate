@@ -468,7 +468,7 @@ An example description file:
 	                        images: (
 	                        {
 	                                filename = "rootfs.ext3";
-	                                device = "/dev/mmcbkl0p1";
+	                                device = "/dev/mmcblk0p1";
 	                        }
 	                        );
 
