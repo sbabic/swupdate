@@ -195,7 +195,7 @@ int copyfile(int fdin, int fdout, int nbytes, unsigned long *offs,
 			continue;
 
 		if (copy_write(fdout, in, size) < 0)
-				return(-ENOSPC);
+			return -ENOSPC;
 	}
 
 	fill_buffer(fdin, in, NPAD_BYTES(*offs), offs, checksum);
@@ -207,7 +207,7 @@ int extract_cpio_header(int fd, struct filehdr *fhdr, unsigned long *offset)
 {
 	unsigned char buf[256];
 	if (fill_buffer(fd, buf, sizeof(struct new_ascii_header), offset, NULL) < 0)
-		return(-EINVAL);
+		return -EINVAL;
 	if (get_cpiohdr(buf, &fhdr->size, &fhdr->namesize, &fhdr->chksum) < 0) {
 		ERROR("CPIO Header corrupted, cannot be parsed");
 		return -EINVAL;
@@ -221,12 +221,12 @@ int extract_cpio_header(int fd, struct filehdr *fhdr, unsigned long *offset)
 	}
 
 	if (fill_buffer(fd, buf, fhdr->namesize , offset, NULL) < 0)
-		return(-EINVAL);
+		return -EINVAL;
 	strncpy(fhdr->filename, (char *)buf, sizeof(fhdr->filename));
 
 	/* Skip filename padding, if any */
 	if (fill_buffer(fd, buf, (4 - (*offset % 4)) % 4, offset, NULL) < 0)
-		return(-EINVAL);
+		return -EINVAL;
 
 	return 0;
 }

@@ -113,7 +113,7 @@ int main(int argc, char *argv[]) {
 		switch (c) {
 		case 'h':
 			usage();
-			return(0);
+			return 0;
 		case 'q':
 			verbose = 0;
 			break;
@@ -122,7 +122,7 @@ int main(int argc, char *argv[]) {
 			break;
 		default:
 			usage;
-			return(-1);
+			return -1;
 		}
 	}
 	argc -= optind;
