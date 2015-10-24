@@ -140,6 +140,7 @@ static int copy_write(int fd, const void *buf, int len)
 	int ret;
 
 	while (len) {
+		errno = 0;
 		ret = write(fd, buf, len);
 		if (ret < 0) {
 			if (errno == EINTR)
