@@ -98,8 +98,8 @@ pre
 
 #head_bar
 {
-  background-color:#ff9900;
-  height:72px;
+  background-color:#0080ff;
+  height:37px;
   left:0;
   margin:0;
   position:absolute;
@@ -110,10 +110,10 @@ pre
 
 #headcontent
 {
-  background:url(/head_bg.gif);
-  height:110px;
+  background:url(/head_bg.gif) no-repeat right center;
+  border-right: 20px solid #003399;
+  height:62px;
   margin:0;
   width:100%;
   position: relative;
-  z-index: 3;
 }
