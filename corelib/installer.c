@@ -84,16 +84,17 @@ static void prepare_uboot_script(struct swupdate_cfg *cfg, const char *script)
 	close(fd);
 }
 
-static void update_uboot_env(void)
+static int update_uboot_env(void)
 {
-#ifdef CONFIG_UBOOT
-	int ret;
+	int ret = 0;
 
+#ifdef CONFIG_UBOOT
 	TRACE("Updating U-boot environment");
 	ret = fw_parse_script((char *)UBOOT_SCRIPT);
 	if (ret < 0)
 		ERROR("Error updating U-Boot environment");
 #endif
+	return ret;
 }
 
 
@@ -185,7 +186,7 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 	}
 
 	if (!LIST_EMPTY(&sw->uboot))
-		update_uboot_env();
+		ret = update_uboot_env();
 
 	return ret;
 }
