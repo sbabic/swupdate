@@ -48,8 +48,8 @@ static int install_raw_image(struct img_type *img,
 
 	fdout = open(img->device, O_RDWR);
 	if (fdout < 0) {
-		TRACE("Image %s cannot be opened",
-				img->path);
+		TRACE("Device %s cannot be opened: %s",
+				img->device, strerror(errno));
 		return -1;
 	}
 	
