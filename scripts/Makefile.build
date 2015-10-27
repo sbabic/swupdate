@@ -22,7 +22,7 @@ EXTRA_LDFLAGS  :=
 asflags-y  :=
 ccflags-y  :=
 cppflags-y :=
-ldflags-y  :=
+ldflags-y  := -nostdlib
 
 subdir-asflags-y :=
 subdir-ccflags-y :=
