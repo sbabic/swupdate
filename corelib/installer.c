@@ -107,6 +107,57 @@ static int update_uboot_env(void)
 	return ret;
 }
 
+static int install_single_image(struct img_type *img, int fdsw, int fromfile)
+{
+	struct installer_handler *hnd;
+	char filename[64];
+	struct filehdr fdh;
+	struct stat buf;
+	int ret;
+
+	hnd = find_handler(img);
+	if (!hnd) {
+		TRACE("Image Type %s not supported", img->type);
+		return -1;
+	}
+	TRACE("Found installer for stream %s %s", img->fname, hnd->desc);
+
+	if (!fromfile) {
+		snprintf(filename, sizeof(filename), "%s%s", TMPDIR, img->fname);
+
+		ret = stat(filename, &buf);
+		if (ret) {
+			TRACE("%s not found or wrong", filename);
+			return -1;
+		}
+		img->size = buf.st_size;
+
+		img->fdin = open(filename, O_RDONLY);
+		if (img->fdin < 0) {
+			ERROR("Image %s cannot be opened",
+			img->fname);
+			return -1;
+		}
+	} else {
+		if (extract_img_from_cpio(fdsw, img->offset, &fdh) < 0)
+			return -1;
+		img->size = fdh.size;
+		img->checksum = fdh.chksum;
+		img->fdin = fdsw;
+	}
+
+/* TODO : check callback to push results / progress */
+	ret = hnd->installer(img, hnd->data);
+	if (ret != 0) {
+		TRACE("Installer for %s not successful !",
+			hnd->desc);
+	}
+
+	if (!fromfile)
+		close(img->fdin);
+
+	return ret;
+}
 
 /*
  * streamfd: file descriptor if it is required to extract
@@ -118,10 +169,6 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 {
 	int ret;
 	struct img_type *img;
-	struct installer_handler *hnd;
-	char filename[64];
-	struct stat buf;
-	struct filehdr fdh;
 
 #ifdef CONFIG_MTD
 	mtd_cleanup();
@@ -152,47 +199,7 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 
 
 	LIST_FOREACH(img, &sw->images, next) {
-		hnd = find_handler(img);
-		if (!hnd) {
-			TRACE("Image Type %s not supported", img->type);
-			return -1;
-		}
-		TRACE("Found installer for stream %s %s", img->fname, hnd->desc);
-
-		if (!fromfile) {
-			snprintf(filename, sizeof(filename), "%s%s", TMPDIR, img->fname);
-
-			ret = stat(filename, &buf);
-			if (ret) {
-				TRACE("%s not found or wrong", filename);
-				return -1;
-			}
-			img->size = buf.st_size;
-
-			img->fdin = open(filename, O_RDONLY);
-			if (img->fdin < 0) {
-				ERROR("Image %s cannot be opened",
-				img->fname);
-				return -1;
-			}
-		} else {
-			if (extract_img_from_cpio(fdsw, img->offset, &fdh) < 0)
-				return -1;
-			img->size = fdh.size;
-			img->checksum = fdh.chksum;
-			img->fdin = fdsw;
-		}
-
-/* TODO : check callback to push results / progress */
-		ret = hnd->installer(img, hnd->data);
-		if (ret != 0) {
-			TRACE("Installer for %s not successful !",
-				hnd->desc);
-			break;
-		}
-
-		if (!fromfile)
-			close(img->fdin);
+		ret = install_single_image(img, fdsw, fromfile);
 	}
 
 	if (ret)

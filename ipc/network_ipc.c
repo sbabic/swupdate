@@ -287,8 +287,12 @@ pthread_t start_thread(void *(* start_routine) (void *), void *arg)
 {
 	int ret;
 	pthread_t id;
+	pthread_attr_t attr;
 
-	ret = pthread_create(&id, NULL, start_routine, arg);
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+
+	ret = pthread_create(&id, &attr, start_routine, arg);
 	if (ret) {
 		exit(1);
 	}

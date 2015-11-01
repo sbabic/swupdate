@@ -44,6 +44,7 @@ struct img_type {
 	int required;
 	int provided;
 	int compressed;
+	int install_directly;
 	int is_script;
 	int is_partitioner;
 	long long partsize;

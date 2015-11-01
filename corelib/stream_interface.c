@@ -180,6 +180,11 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 
 			fdout = -1;
 			offset = 0;
+
+			/*
+			 * If images are not streamed directly into the target
+			 * copy them into TMPDIR to check if it is all ok
+			 */
 			if (!skip) {
 				fdout = openfileoutput(output_file);
 
@@ -224,10 +229,11 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 	}
 }
 
-int network_initializer(struct swupdate_cfg *software)
+void *network_initializer(void *data)
 {
 	int ret;
 	pthread_mutex_t condmutex = PTHREAD_MUTEX_INITIALIZER;
+	struct swupdate_cfg *software = data;
 
 	/* No installation in progress */
 	memset(&inst, 0, sizeof(inst));
@@ -239,6 +245,8 @@ int network_initializer(struct swupdate_cfg *software)
 
 	/* handle installation requests (from either source) */
 	while (1) {
+
+		printf ("Main loop Daemon\n");
 
 		/* wait for someone to issue an install request */
 		pthread_cond_wait(&stream_wkup, &condmutex);
@@ -292,5 +300,5 @@ int network_initializer(struct swupdate_cfg *software)
 		cleanup_files(software);
 	}
 
-	exit(0);
+	pthread_exit((void *)0);
 }

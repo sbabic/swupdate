@@ -22,7 +22,7 @@
 #ifndef _NETWORK_INTERFACE_H
 #define _NETWORK_INTERFACE_H
 
-int network_initializer(struct swupdate_cfg *software);
+void *network_initializer(void *data);
 void *network_thread(void *data);
 
 extern pthread_mutex_t stream_mutex;

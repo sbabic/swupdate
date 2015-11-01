@@ -32,10 +32,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/mount.h>
-
-#ifdef CONFIG_DOWNLOAD
-#include <curl/curl.h>
-#endif
+#include <pthread.h>
 
 #include "bsdqueue.h"
 #include "cpiohdr.h"
@@ -49,8 +46,11 @@
 #include "flash.h"
 #include "lua_util.h"
 #include "mongoose_interface.h"
+#include "network_ipc.h"
 
 #define MODULE_NAME	"swupdate"
+
+static pthread_t network_daemon;
 
 /* Tree derived from the configuration file */
 static struct swupdate_cfg swcfg;
@@ -193,7 +193,6 @@ static int searching_for_image(char *name)
 	return fd;
 }
 
-
 static int install_from_file(char *fname)
 {
 	int fdsw;
@@ -257,60 +256,6 @@ static int install_from_file(char *fname)
 	return 0;
 }
 
-#ifdef CONFIG_DOWNLOAD
-static int download_from_url(char *image_url, char *fname)
-{
-	CURL *curl_handle;
-	CURLcode res;
-	FILE *image;
-
-	if (!strlen(image_url)) {
-		ERROR("Image URL not provided... aborting download and update\n");
-		exit(1);
-	}
-
-	if (!strlen(fname)) {
-		ERROR("Image name not provided... aborting download and update\n");
-		exit(1);
-	}
-
-	image = fopen(fname, "w");
-	if (image == NULL) {
-		ERROR("Image file cannot be written...exiting!\n");
-		exit(1);
-	}
-
-	puts("Image download started");
-	notify(DOWNLOAD, 0, 0);
-
-	curl_global_init(CURL_GLOBAL_ALL);
-	curl_handle = curl_easy_init();
-
-	/* Write all data to the image file */
-	curl_easy_setopt(curl_handle, CURLOPT_URL, image_url);
-	curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, image);
-	curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "swupdate");
-
-	/* TODO: Convert this to a streaming download at some point such
-	 * that the file doesn't need to be downloaded completely before
-	 * unpacking it for updating. See stream_interface for example. */
-	if ((res = curl_easy_perform(curl_handle)) != CURLE_OK) {
-		ERROR("Failed to download image: %s, exiting!\n",
-				curl_easy_strerror(res));
-		exit(1);
-	}
-
-	fclose(image);
-
-	curl_easy_cleanup(curl_handle);
-	curl_global_cleanup();
-
-	puts("Image download completed");
-
-	return 0;
-}
-#endif
-
 static int parse_image_selector(const char *selector, struct swupdate_cfg *sw)
 {
 	char *pos;
@@ -366,10 +311,9 @@ int main(int argc, char **argv)
 	int opt_s = 0;
 	int opt_w = 0;
 	struct hw_type hwrev;
-#ifdef CONFIG_DOWNLOAD
 	char image_url[MAX_URL];
 	int opt_d = 0;
-#endif
+
 #ifdef CONFIG_WEBSERVER
 	char weboptions[1024];
 	char **av = NULL;
@@ -442,6 +386,7 @@ int main(int argc, char **argv)
 	}
 
 	swupdate_init(&swcfg);
+
 	lua_handlers_init();
 	if(!get_hw_revision(&hwrev))
 		printf("Running on %s Revision %s\n", hwrev.boardname, hwrev.revision);
@@ -458,12 +403,9 @@ int main(int argc, char **argv)
 			swcfg.software_set, swcfg.running_mode);
 	}
 
+	network_daemon = start_thread(network_initializer, &swcfg);
+
 	if (opt_i) {
-#ifdef CONFIG_DOWNLOAD
-		if (opt_d) {
-			download_from_url(image_url, fname);
-		}
-#endif
 
 		install_from_file(fname);
 		cleanup_files(&swcfg);
@@ -471,12 +413,17 @@ int main(int argc, char **argv)
 		notify(SUCCESS, 0, 0);
 	}
 
-#if defined(CONFIG_MONGOOSE)
+	if (opt_d) {
+		download_from_url(image_url);
+	}
+
 	/* Start embedded web server */
+#if defined(CONFIG_MONGOOSE)
 	if (opt_w)
 		start_mongoose(ac, av);
 #endif
+
 	if (opt_w || opt_s)
-		network_initializer(&swcfg);
+		pthread_join(network_daemon, NULL);
 
 }
