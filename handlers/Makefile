@@ -10,4 +10,4 @@ obj-$(CONFIG_UBIVOL)	+= ubivol_handler.o
 obj-$(CONFIG_LUASCRIPTHANDLER) += lua_scripthandler.o
 obj-$(CONFIG_SHELLSCRIPTHANDLER) += shell_scripthandler.o
 obj-$(CONFIG_RAW) += raw_handler.o
-obj-$(CONFIG_UBOOT) += uboot_handler.o
+obj-$(CONFIG_UBOOT) += uboot_handler.o fw_env.o
