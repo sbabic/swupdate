@@ -111,4 +111,14 @@ config UBOOT_FWENV
 	  where U-Boot environment is saved, that is, on which
 	  MTD device.
 
+config UBOOT_LIBRARY
+	bool "Use U-Boot library to access the environment"
+	depends on UBOOT
+	default n
+	help
+	  Just U-Boot knows how to access the environment. swupdate
+	  imported code for this with the fw_env.c file, but it is not
+	  synchronized with U-Boot. If a library is exported by U-Boot, it is
+	  possible to use it instead of this legacy code.
+
 endmenu

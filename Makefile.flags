@@ -147,6 +147,9 @@ endif
 
 ifeq ($(CONFIG_UBOOT),y)
 LDLIBS += z
+ifeq ($(CONFIG_UBOOT_LIBRARY),y)
+LDLIBS += ubootenv
+endif
 endif
 
 # If a flat binary should be built, CFLAGS_swupdate="-elf2flt"
