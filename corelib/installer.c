@@ -107,12 +107,9 @@ static int update_uboot_env(void)
 	return ret;
 }
 
-static int install_single_image(struct img_type *img, int fdsw, int fromfile)
+int install_single_image(struct img_type *img)
 {
 	struct installer_handler *hnd;
-	char filename[64];
-	struct filehdr fdh;
-	struct stat buf;
 	int ret;
 
 	hnd = find_handler(img);
@@ -122,39 +119,12 @@ static int install_single_image(struct img_type *img, int fdsw, int fromfile)
 	}
 	TRACE("Found installer for stream %s %s", img->fname, hnd->desc);
 
-	if (!fromfile) {
-		snprintf(filename, sizeof(filename), "%s%s", TMPDIR, img->fname);
-
-		ret = stat(filename, &buf);
-		if (ret) {
-			TRACE("%s not found or wrong", filename);
-			return -1;
-		}
-		img->size = buf.st_size;
-
-		img->fdin = open(filename, O_RDONLY);
-		if (img->fdin < 0) {
-			ERROR("Image %s cannot be opened",
-			img->fname);
-			return -1;
-		}
-	} else {
-		if (extract_img_from_cpio(fdsw, img->offset, &fdh) < 0)
-			return -1;
-		img->size = fdh.size;
-		img->checksum = fdh.chksum;
-		img->fdin = fdsw;
-	}
-
-/* TODO : check callback to push results / progress */
+	/* TODO : check callback to push results / progress */
 	ret = hnd->installer(img, hnd->data);
 	if (ret != 0) {
 		TRACE("Installer for %s not successful !",
 			hnd->desc);
 	}
-
-	if (!fromfile)
-		close(img->fdin);
 
 	return ret;
 }
@@ -169,10 +139,10 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 {
 	int ret;
 	struct img_type *img;
+	char filename[64];
+	struct filehdr fdh;
+	struct stat buf;
 
-#ifdef CONFIG_MTD
-	mtd_cleanup();
-#endif
 	/* Extract all scripts, preinstall scripts must be run now */
 	if (fromfile) {
 		ret = extract_script(fdsw, &sw->scripts, TMPDIR);
@@ -188,9 +158,7 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 		ERROR("execute preinstall scripts failed");
 		return ret;
 	}
-#ifdef CONFIG_MTD
-	scan_mtd_devices();
-#endif
+
 	/* Update u-boot environment */
 	ret = prepare_uboot_script(sw, UBOOT_SCRIPT);
 	if (ret) {
@@ -199,11 +167,47 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 
 
 	LIST_FOREACH(img, &sw->images, next) {
-		ret = install_single_image(img, fdsw, fromfile);
-	}
+		/*
+		 *  If image is flagged to be installed from stream
+		 *  it  was already installed by loading the
+		 *  .swu image and it is skipped here.
+		 */
+		if (img->install_directly)
+			continue;
 
-	if (ret)
-		return ret;
+		if (!fromfile) {
+			snprintf(filename, sizeof(filename), "%s%s", TMPDIR, img->fname);
+
+			ret = stat(filename, &buf);
+			if (ret) {
+				TRACE("%s not found or wrong", filename);
+				return -1;
+			}
+			img->size = buf.st_size;
+
+			img->fdin = open(filename, O_RDONLY);
+			if (img->fdin < 0) {
+				ERROR("Image %s cannot be opened",
+				img->fname);
+				return -1;
+			}
+		} else {
+			if (extract_img_from_cpio(fdsw, img->offset, &fdh) < 0)
+				return -1;
+			img->size = fdh.size;
+			img->checksum = fdh.chksum;
+			img->fdin = fdsw;
+		}
+
+		ret = install_single_image(img);
+
+		if (!fromfile)
+			close(img->fdin);
+
+		if (ret)
+			return ret;
+
+	}
 
 	ret = run_prepost_scripts(sw, POSTINSTALL);
 	if (ret) {

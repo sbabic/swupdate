@@ -581,13 +581,15 @@ static void parse_images(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 		}
 
 		get_field(p, elem, "compressed", &image->compressed);
+		get_field(p, elem, "installed-directly", &image->install_directly);
 
-		TRACE("Found %sImage: %s in %s : %s for handler %s\n",
+		TRACE("Found %sImage: %s in %s : %s for handler %s%s\n",
 			image->compressed ? "compressed " : "",
 			image->fname,
 			strlen(image->volname) ? "volume" : "device",
 			strlen(image->volname) ? image->volname : image->device,
-			strlen(image->type) ? image->type : "NOT FOUND"
+			strlen(image->type) ? image->type : "NOT FOUND",
+			image->install_directly ? "(installed from stream)" : ""
 			);
 
 		LIST_INSERT_HEAD(&swcfg->images, image, next);
@@ -630,6 +632,7 @@ static void parse_files(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 			strcpy(file->type, "rawfile");
 		}
 		get_field(p, elem, "compressed", &file->compressed);
+		get_field(p, elem, "installed-directly", &file->install_directly);
 		TRACE("Found %sFile: %s --> %s (%s)\n",
 			file->compressed ? "compressed " : "",
 			file->fname,

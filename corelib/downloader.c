@@ -36,6 +36,8 @@
 #include "installer.h"
 #include "network_ipc.h"
 
+static int cnt = 0;
+
 static size_t write_data(void *buffer, size_t size, size_t nmemb, void *userp)
 {
 	int ret;
@@ -49,12 +51,12 @@ static size_t write_data(void *buffer, size_t size, size_t nmemb, void *userp)
 	}
 
 	fd = *(int *)userp;
-
 	ret = ipc_send_data(fd, buffer, size * nmemb);
 	if (ret < 0) {
 		ERROR("Failure writing into IPC Stream\n");
 		return ret;
 	}
+	cnt += size * nmemb;
 
 	return nmemb;
 }
@@ -89,7 +91,6 @@ int download_from_url(char *image_url)
 	}
 	errno = 0;
 
-	puts("Image download started");
 	notify(DOWNLOAD, 0, 0);
 
 	curl_global_init(CURL_GLOBAL_ALL);
@@ -100,6 +101,10 @@ int download_from_url(char *image_url)
 	curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, write_data);
 	curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, &fd);
 	curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "swupdate");
+	//curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 1L);
+	curl_easy_setopt(curl_handle, CURLOPT_NOPROGRESS, 1L);
+
+	puts("Image download started");
 
 	/* TODO: Convert this to a streaming download at some point such
 	 * that the file doesn't need to be downloaded completely before
@@ -107,17 +112,19 @@ int download_from_url(char *image_url)
 	if ((res = curl_easy_perform(curl_handle)) != CURLE_OK) {
 		ERROR("Failed to download image: %s, exiting!\n",
 				curl_easy_strerror(res));
-		exit(1);
+		return -1;
 	}
+
+	puts("Image download completed");
 
 	curl_easy_cleanup(curl_handle);
 	curl_global_cleanup();
 
+	ipc_wait_for_complete(NULL);
+
 	close(fd);
 
-	puts("Image download completed");
-
-	sleep(10);
+	puts("Image download end");
 
 	return 0;
 }

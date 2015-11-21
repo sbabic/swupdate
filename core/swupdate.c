@@ -240,6 +240,10 @@ static int install_from_file(char *fname)
 	if (ret)
 		exit(1);
 
+#ifdef CONFIG_MTD
+		mtd_cleanup();
+		scan_mtd_devices();
+#endif
 	/* copy images */
 	ret = install_images(&swcfg, fdsw, 1);
 

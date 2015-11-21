@@ -76,25 +76,58 @@ pthread_cond_t stream_wkup = PTHREAD_COND_INITIALIZER;
 
 static struct installer inst;
 
-static int check_if_required(struct imglist *list, struct filehdr *pfdh, char *output)
+enum {
+	COPY_FILE,
+	SKIP_FILE,
+	INSTALL_FROM_STREAM
+};
+
+/*
+ * function returns:
+ * 0 = do not skip the file, it must be installed
+ * 1 = skip the file
+ * 2 = install directly (stream to the handler)
+ * -1= error found
+ */
+static int check_if_required(struct imglist *list, struct filehdr *pfdh,
+				struct img_type **pimg)
 {
-	int skip = 1;
+	int skip = SKIP_FILE;
 	struct img_type *img;
+
+	/*
+	 * Check that not more as one image wnat to be streamed
+	 */
+	int install_direct = 0;
 
 	LIST_FOREACH(img, list, next) {
 		if (strcmp(pfdh->filename, img->fname) == 0) {
-			skip = 0;
+			skip = COPY_FILE;
 			img->provided = 1;
 			img->size = (unsigned int)pfdh->size;
-			strncpy(img->extract_file,
-				output,
-				sizeof(img->extract_file));
-			break;
+
+			snprintf(img->extract_file, sizeof(img->extract_file),
+					"%s%s", TMPDIR, pfdh->filename);
+			/*
+			 *  Streaming is possible to only one handler
+			 *  If more img requires the same file,
+			 *  sw-description contains an error
+			 */
+			if (install_direct) {
+				ERROR("sw-description: stream to several handlers unsupported\n");
+				return -EINVAL;
+			}
+
+			if (img->install_directly) {
+				skip = INSTALL_FROM_STREAM;
+				install_direct++;
+			}
+
+			*pimg = img;
 		}
 	}
 
 	return skip;
-
 }
 
 static int extract_files(int fd, struct swupdate_cfg *software)
@@ -102,11 +135,11 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 	int status = STREAM_WAIT_DESCRIPTION;
 	unsigned long offset;
 	struct filehdr fdh;
-	char output_file[MAX_IMAGE_FNAME];
 	int skip;
 	uint32_t checksum;
 	int fdout;
 	struct img_type *img;
+	char output_file[MAX_IMAGE_FNAME];
 
 
 	/* preset the info about the install parts */
@@ -161,6 +194,7 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 
 		case STREAM_DATA:
 			if (extract_cpio_header(fd, &fdh, &offset)) {
+				ERROR("CPIO HEADER");
 				return -1;
 			}
 			if (strcmp("TRAILER!!!", fdh.filename) == 0) {
@@ -168,15 +202,14 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 				break;
 			}
 
-			snprintf(output_file, sizeof(output_file), "%s%s", TMPDIR, fdh.filename);
-			skip = check_if_required(&software->images, &fdh, output_file);
-			if (skip) {
-				skip = check_if_required(&software->scripts, &fdh, output_file);
+			skip = check_if_required(&software->images, &fdh, &img);
+			if (skip == SKIP_FILE) {
+				skip = check_if_required(&software->scripts, &fdh, &img);
 			}
 			TRACE("Found file:\n\tfilename %s\n\tsize %d %s",
 				fdh.filename,
 				(unsigned int)fdh.size,
-				(skip ? "Not required: skipping" : "required"));
+				(skip == SKIP_FILE ? "Not required: skipping" : "required"));
 
 			fdout = -1;
 			offset = 0;
@@ -185,21 +218,31 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 			 * If images are not streamed directly into the target
 			 * copy them into TMPDIR to check if it is all ok
 			 */
-			if (!skip) {
-				fdout = openfileoutput(output_file);
-
+			switch (skip) {
+			case COPY_FILE:
+				fdout = openfileoutput(img->extract_file);
 				if (fdout < 0)
 					return -1;
-			}
-
-			if (copyfile(fd, fdout, fdh.size, &offset, skip, 0, &checksum) < 0) {
-				return -1;
-			}
-			close(fdout);
-			if (checksum != (unsigned long)fdh.chksum) {
-				ERROR("Checksum WRONG ! Computed 0x%ux, it should be 0x%ux",
-					(unsigned int)checksum, (unsigned int)fdh.chksum);
-				return -1;
+			case SKIP_FILE:
+				if (copyfile(fd, fdout, fdh.size, &offset, skip, 0, &checksum) < 0) {
+					return -1;
+				}
+				close(fdout);
+				if (checksum != (unsigned long)fdh.chksum) {
+					ERROR("Checksum WRONG ! Computed 0x%ux, it should be 0x%ux",
+						(unsigned int)checksum, (unsigned int)fdh.chksum);
+					return -1;
+				}
+				break;
+			case INSTALL_FROM_STREAM:
+				TRACE("Installing STREAM %s, %lld bytes\n", img->fname, img->size);
+				img->fdin = fd;
+				if (install_single_image(img)) {
+					ERROR("Error streaming %s", img->fname);
+					return -1;
+				}
+				TRACE("END INSTALLIN STREAMING");
+				break;
 			}
 
 			break;
@@ -253,6 +296,10 @@ void *network_initializer(void *data)
 		inst.status = RUN;
 		notify(START, RECOVERY_NO_ERROR, "Software Update started !");
 
+#ifdef CONFIG_MTD
+		mtd_cleanup();
+		scan_mtd_devices();
+#endif
 		/*
 		 * extract the meta data and relevant parts
 		 * (flash images) from the install image

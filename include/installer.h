@@ -25,6 +25,7 @@
 #include "handler.h"
 
 int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile);
+int install_single_image(struct img_type *img);
 int run_prepost_scripts(struct swupdate_cfg *sw, script_fn type);
 
 void cleanup_files(struct swupdate_cfg *software);
