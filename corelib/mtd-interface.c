@@ -181,8 +181,10 @@ void scan_ubi_partitions(int mtd)
 	struct mtd_ubi_info *mtd_info;
 	int i;
 
-	if (mtd < 0 || mtd > MAX_MTD_DEVICES)
+	if (mtd < 0 || mtd > MAX_MTD_DEVICES) {
 		ERROR("wrong MTD device /dev/mtd%d", mtd);
+		return;
+	}
 
 	mtd_info = &nand->mtd_info[mtd];
 	LIST_INIT(&mtd_info->ubi_partitions);
@@ -219,8 +221,10 @@ void scan_ubi_partitions(int mtd)
 	for (i = mtd_info->dev_info.lowest_vol_id;
 	     i <= mtd_info->dev_info.highest_vol_id; i++) {
 		ubi_part = (struct ubi_part *)calloc(1, sizeof(struct ubi_part));
-		if (!ubi_part)
+		if (!ubi_part) {
 			ERROR("No memory: malloc failed\n");
+			return;
+		}
 
 		err = ubi_get_vol_info1(libubi, mtd_info->dev_info.dev_num, i, &ubi_part->vol_info);
 		if (err == -1) {

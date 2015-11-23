@@ -47,15 +47,17 @@
  * Extract all scripts from a list from the image
  * and save them on the filesystem to be executed later
  */
-static void extract_script(int fd, struct imglist *head, const char *dest)
+static int extract_script(int fd, struct imglist *head, const char *dest)
 {
 	struct img_type *script;
 	int fdout;
 
 	LIST_FOREACH(script, head, next) {
-		if (script->provided == 0)
+		if (script->provided == 0) {
 			ERROR("Required script %s not found in image",
 				script->fname);
+			return -1;
+		}
 
 		snprintf(script->extract_file, sizeof(script->extract_file), "%s%s",
 				dest, script->fname);
@@ -64,24 +66,32 @@ static void extract_script(int fd, struct imglist *head, const char *dest)
 		extract_next_file(fd, fdout, script->offset, 0);
 		close(fdout);
 	}
+	return 0;
 }
 
-static void prepare_uboot_script(struct swupdate_cfg *cfg, const char *script)
+static int prepare_uboot_script(struct swupdate_cfg *cfg, const char *script)
 {
 	int fd;
+	int ret = 0;
 	struct uboot_var *ubootvar;
 	char buf[MAX_UBOOT_SCRIPT_LINE_LENGTH];
 
 	fd = openfileoutput(script);
+	if (fd < 0)
+		return -1;
 
 	LIST_FOREACH(ubootvar, &cfg->uboot, next) {
 		snprintf(buf, sizeof(buf), "%s %s\n",
 			ubootvar->varname,
 			ubootvar->value);
-		if (write(fd, buf, strlen(buf)) != strlen(buf))
+		if (write(fd, buf, strlen(buf)) != strlen(buf)) {
 			  TRACE("Error saving temporary file");
+			  ret = -1;
+			  break;
+		}
 	}
 	close(fd);
+	return ret;
 }
 
 static int update_uboot_env(void)
@@ -117,8 +127,13 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 	mtd_cleanup();
 #endif
 	/* Extract all scripts, preinstall scripts must be run now */
-	if (fromfile)
-		extract_script(fdsw, &sw->scripts, TMPDIR);
+	if (fromfile) {
+		ret = extract_script(fdsw, &sw->scripts, TMPDIR);
+		if (ret) {
+			ERROR("extracting script to TMPDIR failed");
+			return ret;
+		}
+	}
 
 	/* Scripts must be run before installing images */
 	ret = run_prepost_scripts(sw, PREINSTALL);
@@ -130,7 +145,11 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 	scan_mtd_devices();
 #endif
 	/* Update u-boot environment */
-	prepare_uboot_script(sw, UBOOT_SCRIPT);
+	ret = prepare_uboot_script(sw, UBOOT_SCRIPT);
+	if (ret) {
+		return ret;
+	}
+
 
 	LIST_FOREACH(img, &sw->images, next) {
 		hnd = find_handler(img);
