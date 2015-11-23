@@ -33,6 +33,11 @@
 
 #ifdef CONFIG_LIBCONFIG
 #include <libconfig.h>
+#define LIBCONFIG_VERSION ((LIBCONFIG_VER_MAJOR << 16) | \
+	(LIBCONFIG_VER_MINOR << 8) | LIBCONFIG_VER_REVISION)
+#if LIBCONFIG_VERSION < 0x10500
+#define config_setting_lookup config_lookup_from
+#endif
 #else
 #define config_setting_get_elem(a,b)	(NULL)
 #define config_setting_length(a)	(0)
@@ -148,7 +153,7 @@ static void get_field_cfg(config_setting_t *e, const char *path, void *dest)
 	config_setting_t *elem;
 
 	if (path)
-		elem = config_lookup_from(e, path);
+		elem = config_setting_lookup(e, path);
 	else
 		elem = e;
 
@@ -164,7 +169,7 @@ static void get_field_string_libconfig(config_setting_t *e, const char *path, vo
 	const char *str;
 
 	if (path)
-		elem = config_lookup_from(e, path);
+		elem = config_setting_lookup(e, path);
 	else
 		elem = e;
 
