@@ -625,7 +625,10 @@ static void parse_files(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 		GET_FIELD_STRING(p, elem, "path", file->path);
 		GET_FIELD_STRING(p, elem, "device", file->device);
 		GET_FIELD_STRING(p, elem, "filesystem", file->filesystem);
-		strcpy(file->type, "rawfile");
+		GET_FIELD_STRING(p, elem, "type", file->type);
+		if (!strlen(file->type)) {
+			strcpy(file->type, "rawfile");
+		}
 		get_field(p, elem, "compressed", &file->compressed);
 		TRACE("Found %sFile: %s --> %s (%s)\n",
 			file->compressed ? "compressed " : "",
