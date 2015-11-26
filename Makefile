@@ -11,10 +11,10 @@ NAME =
 # expect to learn how to build the kernel reading this file.
 
 # Do not:
-# o  use make's built-in rules and variables
+# o  use make's built-in rules
 #    (this increases performance and avoids hard-to-debug behaviour);
 # o  print "Entering directory ...";
-MAKEFLAGS += -rR --no-print-directory
+MAKEFLAGS += -r --no-print-directory
 
 
 # To put more focus on warnings, be less verbose as default
@@ -169,15 +169,18 @@ include $(srctree)/scripts/Kbuild.include
 
 # Make variables (CC, etc...)
 
-AS		?= $(CROSS_COMPILE)as
-LD		?= $(CROSS_COMPILE)gcc
-CC		?= $(CROSS_COMPILE)gcc
-CPP		?= $(CC) -E
-AR		?= $(CROSS_COMPILE)ar
-NM		?= $(CROSS_COMPILE)nm
-STRIP		?= $(CROSS_COMPILE)strip
-OBJCOPY		?= $(CROSS_COMPILE)objcopy
-OBJDUMP		?= $(CROSS_COMPILE)objdump
+# this looks a bit horrible, but 'VAR ?= VALUE' preserves builtin values
+# rather than only user-supplied values from env or command-line
+$(call set_if_default_or_unset,AS,$(CROSS_COMPILE)as)
+$(call set_if_default_or_unset,LD,$(CROSS_COMPILE)gcc)
+$(call set_if_default_or_unset,CC,$(CROSS_COMPILE)gcc)
+$(call set_if_default_or_unset,CPP,$(CC) -E)
+$(call set_if_default_or_unset,AR,$(CROSS_COMPILE)ar)
+$(call set_if_default_or_unset,NM,$(CROSS_COMPILE)nm)
+$(call set_if_default_or_unset,STRIP,$(CROSS_COMPILE)strip)
+$(call set_if_default_or_unset,OBJCOPY,$(CROSS_COMPILE)objcopy)
+$(call set_if_default_or_unset,OBJDUMP,$(CROSS_COMPILE)objdump)
+
 AWK		= awk
 INSTALLKERNEL  := installkernel
 PERL		= perl

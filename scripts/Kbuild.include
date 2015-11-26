@@ -233,6 +233,10 @@ if_changed_rule = $(if $(strip $(any-prereq) $(arg-check) ),                 \
 	@set -e;                                                             \
 	$(rule_$(1)))
 
+# Usage: $(call set_if_default_or_unset,var,value)
+set_if_default_or_unset = $(if $(filter default undefined,$(origin $(1))),   \
+        $(eval $(1) = $(2)) )
+
 ###
 # why - tell why a a target got build
 #       enabled by make V=2
