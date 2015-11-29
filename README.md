@@ -27,6 +27,18 @@ the online documentation (generated from doc/) at:
 
 	http://sbabic.github.io/swupdate
 
-There is a mailing list for this project. You can send your questions to:
+
+Submitting patches
+------------------
+
+You can submit your patches (or post questions reagarding
+the project to the swupdate Mailing List:
 
 	swupdate@googlegroups.com
+
+When creating patches, please use something like:
+
+    git format-patch -s [PATCH' <revision range>
+
+Please use 'git send- email' to send the generated patches to the ML
+to bypass changes from your mailer.
