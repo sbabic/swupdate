@@ -58,6 +58,7 @@ int ipc_get_status(ipc_message *msg);
 typedef int (*writedata)(char **buf, int *size);
 typedef int (*getstatus)(ipc_message *msg);
 typedef int (*terminated)(RECOVERY_STATUS status);
+int ipc_wait_for_complete(getstatus callback);
 int swupdate_image_write(char *buf, int size);
 int swupdate_async_start(writedata wr_func, getstatus status_func,
 				terminated end_func);

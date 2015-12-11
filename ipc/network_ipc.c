@@ -175,17 +175,48 @@ int swupdate_image_write(char *buf, int size)
 	return ipc_send_data(rq->connfd, buf, size);
 }
 
+int ipc_wait_for_complete(getstatus callback)
+{
+	int fd;
+	RECOVERY_STATUS status = IDLE;
+	ipc_message message;
+	int ret;
+
+	do {
+		fd = prepare_ipc();
+		if (fd < 0)
+			break;
+		ret = __ipc_get_status(fd, &message);
+		ipc_end(fd);
+
+		if (ret < 0) {
+			printf("__ipc_get_status returned %d\n", ret);
+			message.data.status.last_result = FAILURE;
+			break;
+		}
+
+		if (( (status != message.data.status.current) ||
+			strlen(message.data.status.desc))) {
+				if (callback)
+					callback(&message);
+			} else
+				sleep(1);
+
+		status = message.data.status.current;
+	} while(message.data.status.current != IDLE);
+
+	return message.data.status.last_result;
+}
+
 static void *swupdate_async_thread(void *data)
 {
 	char *pbuf;
 	int size;
-	ipc_message message;
-	int ret;
 	sigset_t sigpipe_mask;
 	sigset_t saved_mask;
 	struct timespec zerotime = {0};
-	RECOVERY_STATUS status = IDLE;
 	struct async_lib *rq = (struct async_lib *)data;
+	int swupdate_result;
 
 	sigemptyset(&sigpipe_mask);
 	sigaddset(&sigpipe_mask, SIGPIPE);
@@ -211,28 +242,8 @@ static void *swupdate_async_thread(void *data)
 	/*
 	 * Everything sent, ask for status
 	 */
-	do {
-		rq->connfd = prepare_ipc();
-		if (rq->connfd < 0)
-			break;
-		ret = __ipc_get_status(rq->connfd, &message);
-		ipc_end(rq->connfd);
 
-		if (ret < 0) {
-			printf("__ipc_get_status returned %d\n", ret);
-			message.data.status.last_result = FAILURE;
-			break;
-		}
-
-		if (( (status != message.data.status.current) ||
-			strlen(message.data.status.desc)) &&
-			rq->get)
-				rq->get(&message);
-		else
-			sleep(1);
-
-		status = message.data.status.current;
-	} while(message.data.status.current != IDLE);
+	swupdate_result = ipc_wait_for_complete(rq->get);
 
 	handle = 0;
 
@@ -245,7 +256,7 @@ static void *swupdate_async_thread(void *data)
 	}
 
 	if (rq->end)
-		rq->end(message.data.status.last_result);
+		rq->end(swupdate_result);
 
 	pthread_exit(NULL);
 }
