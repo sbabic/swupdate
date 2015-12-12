@@ -43,7 +43,7 @@ static int install_raw_image(struct img_type *img,
 {
 	int ret;
 	int fdout;
-	unsigned long offset;
+	unsigned long offset = 0;
 	uint32_t checksum;
 
 	fdout = open(img->device, O_RDWR);
@@ -65,7 +65,7 @@ static int install_raw_file(struct img_type *img,
 	int fdout;
 	int ret = 0;
 	uint32_t checksum = 0;
-	unsigned long offset;
+	unsigned long offset = 0;
 
 	if (strlen(img->device) &&
 	    strlen(img->filesystem) && strlen(img->path)) {
