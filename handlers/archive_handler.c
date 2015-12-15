@@ -193,6 +193,23 @@ static int install_archive_image(struct img_type *img,
 			img->fname, path);
 
 		tf.flags = 0;
+		if  (img->extract_time) {
+			tf.flags |= ARCHIVE_EXTRACT_TIME;
+			TRACE("extract time attributes");
+		}
+		if (img->extract_perm) {
+			tf.flags |= ARCHIVE_EXTRACT_PERM;
+			TRACE("extract permission attributes");
+		}
+		if (img->extract_acl) {
+			tf.flags |= ARCHIVE_EXTRACT_ACL;
+			TRACE("extract ACL attributes");
+		}
+		if (img->extract_fflags) {
+			tf.flags |= ARCHIVE_EXTRACT_FFLAGS;
+			TRACE("extract fflags attributes");
+		}
+		TRACE("extract flags = 0x%02X", tf.flags);
 
 		ret = pthread_create(&extract_thread, &attr, extract, &tf);
 		if (ret) {

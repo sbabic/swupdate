@@ -630,6 +630,11 @@ static void parse_files(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 			strcpy(file->type, "rawfile");
 		}
 		get_field(p, elem, "compressed", &file->compressed);
+		get_field(p, elem, "extract_time", &file->extract_time);
+		get_field(p, elem, "extract_perm", &file->extract_perm);
+		get_field(p, elem, "extract_acl", &file->extract_acl);
+		get_field(p, elem, "extract_fflags", &file->extract_fflags);
+
 		TRACE("Found %sFile: %s --> %s (%s)\n",
 			file->compressed ? "compressed " : "",
 			file->fname,
