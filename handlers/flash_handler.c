@@ -155,6 +155,13 @@ static int flash_write_nand(int mtdnum, struct img_type *img)
 		ERROR("Image %s does not fit into mtd%d\n", img->fname, mtdnum);
 		return -EIO;
 	}
+
+	/* Flashing to NAND is currently not streamable */
+	if (img->install_directly) {
+		ERROR("Raw NAND not streamable\n");
+		return -EINVAL;
+	}
+
 	filebuf_max = mtd->eb_size / mtd->min_io_size * pagelen;
 	filebuf = calloc(1, filebuf_max);
 	erase_buffer(filebuf, filebuf_max);
