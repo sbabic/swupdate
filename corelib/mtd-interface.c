@@ -98,11 +98,133 @@ static void ubi_insert_blacklist(int index, struct flash_description *flash)
 	}
 }
 
+#if defined(CONFIG_UBIVOL)
+static void scan_ubi_volumes(struct mtd_ubi_info *info)
+{
+	struct flash_description *flash = get_flash_info();
+	libubi_t libubi = flash->libubi;
+	struct ubi_part *ubi_part;
+	int i, err;
+
+	for (i = info->dev_info.lowest_vol_id;
+	     i <= info->dev_info.highest_vol_id; i++) {
+		ubi_part = (struct ubi_part *)calloc(1, sizeof(struct ubi_part));
+		if (!ubi_part) {
+			ERROR("No memory: malloc failed\n");
+			return;
+		}
+
+		err = ubi_get_vol_info1(libubi, info->dev_info.dev_num,
+					i, &ubi_part->vol_info);
+		if (err == -1) {
+			if (errno == ENOENT)
+				continue;
+
+			ERROR("libubi failed to probe volume %d on ubi%d",
+					  i, info->dev_info.dev_num);
+			return;
+		}
+
+		LIST_INSERT_HEAD(&info->ubi_partitions, ubi_part, next);
+		TRACE("mtd%d:\tVolume found : \t%s",
+			info->dev_info.mtd_num,
+			ubi_part->vol_info.name);
+	}
+
+	info->scanned = 1;
+}
+
+static void scan_for_ubi_devices(void)
+{
+	struct flash_description *flash = get_flash_info();
+	libubi_t libubi = flash->libubi;
+	struct ubi_info ubi_info;
+	struct ubi_dev_info dev_info;
+	struct mtd_ubi_info *mtd_info;
+	int err, i, mtd;
+
+	if (!libubi)
+		return;
+	/*
+	 * if not yet an attached device, return and try later
+	 * to attach them
+	 */
+	printf("%s\n", __func__);
+	err = ubi_get_info(libubi, &ubi_info);
+	if (err)
+		return;
+
+	for (i = ubi_info.lowest_dev_num;
+	     i <= ubi_info.highest_dev_num; i++) {
+		err = ubi_get_dev_info1(libubi, i, &dev_info);
+		if (err == -1) {
+			continue;
+		}
+		mtd = dev_info.mtd_num;
+		mtd_info = &flash->mtd_info[mtd];
+		if (mtd < 0 || mtd > MAX_MTD_DEVICES || flash->mtd_info[mtd].skipubi)
+			continue;
+		memcpy(&mtd_info->dev_info, &dev_info, sizeof(struct ubi_dev_info));
+
+		scan_ubi_volumes(mtd_info);
+	}
+}
+
+static void scan_ubi_partitions(int mtd)
+{
+	struct flash_description *flash = get_flash_info();
+	libubi_t libubi = flash->libubi;
+	int err;
+	struct mtd_ubi_info *mtd_info;
+
+	if (mtd < 0 || mtd > MAX_MTD_DEVICES) {
+		ERROR("wrong MTD device /dev/mtd%d", mtd);
+		return;
+	}
+
+	mtd_info = &flash->mtd_info[mtd];
+
+	/*
+	 * The program is called directly after a boot,
+	 * and a detach is not required. However,
+	 * detaching at the beginning allows consecutive
+	 * start of the program itself
+	 */
+	mtd_info->req.dev_num = UBI_DEV_NUM_AUTO;
+	mtd_info->req.mtd_num = mtd;
+#if defined(CONFIG_UBIVIDOFFSET)
+	mtd_info->req.vid_hdr_offset = CONFIG_UBIVIDOFFSET;
+#else
+	mtd_info->req.vid_hdr_offset = 0;
+#endif
+	mtd_info->req.mtd_dev_node = NULL;
+
+	/*
+	 * Check if the MTD was alrady attached
+	 * and tries to get information, if not found
+	 * try to attach.
+	 */
+	err = ubi_attach(libubi, DEFAULT_CTRL_DEV, &mtd_info->req);
+	if (err) {
+		ERROR("cannot attach mtd%d - maybe not a NAND or raw device", mtd);
+		return;
+	}
+
+	err = ubi_get_dev_info1(libubi, mtd_info->req.dev_num, &mtd_info->dev_info);
+	if (err) {
+		ERROR("cannot get information about UBI device %d", mtd_info->req.dev_num);
+		return;
+	}
+	scan_ubi_volumes(mtd_info);
+}
+#endif
+
 int scan_mtd_devices (void)
 {
 	int err;
 	struct flash_description *flash = get_flash_info();
 	struct mtd_info *mtd_info = &flash->mtd;
+	struct mtd_ubi_info *mtd_ubi_info;
 	libmtd_t libmtd = flash->libmtd;
 	char blacklist[100] = { 0 };
 	char *token;
@@ -156,6 +278,9 @@ int scan_mtd_devices (void)
 
 	for (i = mtd_info->lowest_mtd_num;
 	     i <= mtd_info->highest_mtd_num; i++) {
+		/* initialize data */
+		mtd_ubi_info = &flash->mtd_info[i];
+		LIST_INIT(&mtd_ubi_info->ubi_partitions);
 		if (!mtd_dev_present(libmtd, i))
 			continue;
 		err = mtd_get_dev_info1(libmtd, i, &flash->mtd_info[i].mtd);
@@ -163,86 +288,27 @@ int scan_mtd_devices (void)
 			TRACE("No information from MTD%d", i);
 			continue;
 		}
+	}
+
 #if defined(CONFIG_UBIVOL)
-		if (flash->libubi && !flash->mtd_info[i].skipubi)
+	/*
+	 * Now search for MTD that are already attached
+	 */
+	scan_for_ubi_devices();
+
+	/*
+	 * Search for volumes in MTD that are not attached, default case
+	 */
+
+	for (i = mtd_info->lowest_mtd_num;
+	     i <= mtd_info->highest_mtd_num; i++) {
+		if (flash->libubi && !flash->mtd_info[i].skipubi &&
+				!flash->mtd_info[i].scanned)
 			scan_ubi_partitions(i);
 #endif
 	}
 
 	return mtd_info->mtd_dev_cnt;
-}
-
-void scan_ubi_partitions(int mtd)
-{
-	struct flash_description *nand = get_flash_info();
-	int err;
-	libubi_t libubi = nand->libubi;
-	struct ubi_part *ubi_part;
-	struct mtd_ubi_info *mtd_info;
-	int i;
-
-	if (mtd < 0 || mtd > MAX_MTD_DEVICES) {
-		ERROR("wrong MTD device /dev/mtd%d", mtd);
-		return;
-	}
-
-	mtd_info = &nand->mtd_info[mtd];
-	LIST_INIT(&mtd_info->ubi_partitions);
-
-	/*
-	 * The program is called directly after a boot,
-	 * and a detach is not required. However,
-	 * detaching at the beginning allows consecutive
-	 * start of the program itself
-	 */
-	ubi_detach_mtd(libubi, DEFAULT_CTRL_DEV, mtd);
-
-	mtd_info->req.dev_num = UBI_DEV_NUM_AUTO;
-	mtd_info->req.mtd_num = mtd;
-#if defined(CONFIG_UBIVIDOFFSET)
-	mtd_info->req.vid_hdr_offset = CONFIG_UBIVIDOFFSET;
-#else
-	mtd_info->req.vid_hdr_offset = 0;
-#endif
-	mtd_info->req.mtd_dev_node = NULL;
-
-	err = ubi_attach(libubi, DEFAULT_CTRL_DEV, &mtd_info->req);
-	if (err) {
-		ERROR("cannot attach mtd%d - maybe not a NAND or raw device", mtd);
-		return;
-	}
-
-	err = ubi_get_dev_info1(libubi, mtd_info->req.dev_num, &mtd_info->dev_info);
-	if (err) {
-		ERROR("cannot get information about UBI device %d", mtd_info->req.dev_num);
-		return;
-	}
-
-	for (i = mtd_info->dev_info.lowest_vol_id;
-	     i <= mtd_info->dev_info.highest_vol_id; i++) {
-		ubi_part = (struct ubi_part *)calloc(1, sizeof(struct ubi_part));
-		if (!ubi_part) {
-			ERROR("No memory: malloc failed\n");
-			return;
-		}
-
-		err = ubi_get_vol_info1(libubi, mtd_info->dev_info.dev_num, i, &ubi_part->vol_info);
-		if (err == -1) {
-			if (errno == ENOENT)
-				continue;
-
-			ERROR("libubi failed to probe volume %d on ubi%d",
-					  i, mtd_info->dev_info.dev_num);
-			return;
-		}
-
-		LIST_INSERT_HEAD(&mtd_info->ubi_partitions, ubi_part, next);
-		TRACE("mtd%d:\tVolume found : \t%s",
-			mtd,
-			ubi_part->vol_info.name);
-	}
-
-	mtd_info->scanned = 1;
 }
 
 void ubi_mount(struct ubi_vol_info *vol, const char *mntpoint)

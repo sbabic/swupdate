@@ -57,7 +57,6 @@ struct flash_description {
 	struct mtd_ubi_info *mtd_info;
 };
 
-void scan_ubi_partitions(int mtd);
 void ubi_mount(struct ubi_vol_info *vol, const char *mntpoint);
 void ubi_umount(const char *mntpoint);
 
