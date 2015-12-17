@@ -317,6 +317,7 @@ int main(int argc, char **argv)
 	struct hw_type hwrev;
 	char image_url[MAX_URL];
 	int opt_d = 0;
+	RECOVERY_STATUS result;
 
 #ifdef CONFIG_WEBSERVER
 	char weboptions[1024];
@@ -418,7 +419,11 @@ int main(int argc, char **argv)
 	}
 
 	if (opt_d) {
-		download_from_url(image_url);
+		result =download_from_url(image_url);
+		if (result == SUCCESS)
+			exit(0);
+		else
+			exit(1);
 	}
 
 	/* Start embedded web server */

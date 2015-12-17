@@ -31,7 +31,7 @@ int run_prepost_scripts(struct swupdate_cfg *sw, script_fn type);
 void cleanup_files(struct swupdate_cfg *software);
 
 #ifdef CONFIG_DOWNLOAD
-int download_from_url(char *image_url);
+RECOVERY_STATUS download_from_url(char *image_url);
 #else
 #define download_from_url(url)	(0)
 #endif

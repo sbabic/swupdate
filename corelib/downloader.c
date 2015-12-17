@@ -61,12 +61,13 @@ static size_t write_data(void *buffer, size_t size, size_t nmemb, void *userp)
 	return nmemb;
 }
 
-int download_from_url(char *image_url)
+RECOVERY_STATUS download_from_url(char *image_url)
 {
 	CURL *curl_handle;
 	CURLcode res;
 	int fd;
 	int attempt = 3;
+	int result;
 
 	if (!strlen(image_url)) {
 		ERROR("Image URL not provided... aborting download and update\n");
@@ -101,10 +102,9 @@ int download_from_url(char *image_url)
 	curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, write_data);
 	curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, &fd);
 	curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "swupdate");
-	//curl_easy_setopt(curl_handle, CURLOPT_VERBOSE, 1L);
 	curl_easy_setopt(curl_handle, CURLOPT_NOPROGRESS, 1L);
 
-	puts("Image download started");
+	TRACE("Image download started");
 
 	/* TODO: Convert this to a streaming download at some point such
 	 * that the file doesn't need to be downloaded completely before
@@ -115,16 +115,14 @@ int download_from_url(char *image_url)
 		return -1;
 	}
 
-	puts("Image download completed");
+	TRACE("Image download completed");
 
 	curl_easy_cleanup(curl_handle);
 	curl_global_cleanup();
 
-	ipc_wait_for_complete(NULL);
+	result = ipc_wait_for_complete(NULL);
 
 	close(fd);
 
-	puts("Image download end");
-
-	return 0;
+	return result;
 }
