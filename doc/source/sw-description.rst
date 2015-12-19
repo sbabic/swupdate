@@ -491,3 +491,48 @@ collection: `/dev/mmcblk0p1` and `/dev/mmcblk0p2` for `main` mode and
 This feature can be used to implement a dual copy strategy by
 specifying the collection and mode explicitly.
 
+Attribute reference
+-------------------
+
++-------------+----------+----------------------------------------------------+
+|  Name       |  Type    |  Description                                       |
++=============+==========+====================================================+
+| filename    | string   | filename as found in the cpio archive              |
++-------------+----------+----------------------------------------------------+
+| volume      | string   | Just if type = "ubivol". UBI volume where image    |
+|             |          | must be installed.                                 |
++-------------+----------+----------------------------------------------------+
+| ubipartition| string   | Just if type = "ubivol". Volume to be created or   |
+|             |          | adjusted with a new size                           |
++-------------+----------+----------------------------------------------------+
+| device      | string   | devicenode as found in /dev. Usafe depends on      |
+|             |          | handler                                            |
++-------------+----------+----------------------------------------------------+
+| filesystem  | string   | For files: indicates the filesystem type where     |
+|             |          | the file must be installed.                        |
++-------------+----------+----------------------------------------------------+
+| path        | string   | For files: indicates the path (absolute) where the |
+|             |          | file must be installed.                            |
+|             |          | device, filesystem and path are then mandatory     |
+|             |          | swupdate will install the file after mounting      |
+|             |          | "device", that contains "filesystem", under "path" |
++-------------+----------+----------------------------------------------------+
+| type        | string   | string identifier for the handler, as it is set    |
+|             |          | by the handler when it regitsters itself.          |
+|             |          | ("ubivol", "raw", "rawfile", etc.)                 |
++-------------+----------+----------------------------------------------------+
+| compressed  | bool     | flag to indicate that "filename" is zlib-compressed|
+|             |          | and must be decompressed before beeing installed   |
++-------------+----------+----------------------------------------------------+
+| installed-  | bool     | flag to indicate that image is streamed into the   |
+| directly    |          | target without any temporary copy. Not all         |
+|             |          | handlers support streaming. It is not used         |
+|             |          | for "scripts"                                      |
++-------------+----------+----------------------------------------------------+
+| name        | string   | For U-Boot handler: name of the U-Boot variable to |
+|             |          | be set.                                            |
++-------------+----------+----------------------------------------------------+
+| value       | string   | For U-Boot handler: value to be assigned to the    |
+|             |          | variable                                           |
++-------------+----------+----------------------------------------------------+
+
