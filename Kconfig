@@ -119,13 +119,13 @@ config STATIC
 	bool "Build swupdate as a static binary (no shared libs)"
 	default n
 	help
-	  If you want to build a static BusyBox binary, which does not
+	  If you want to build a static swupdate binary, which does not
 	  use or require any shared libraries, then enable this option.
-	  This can cause BusyBox to be considerably larger, so you should
+	  This can cause swupdate to be considerably larger, so you should
 	  leave this option false unless you have a good reason (i.e.
 	  your target platform does not support shared libraries, or
 	  you are building an initrd which doesn't need anything but
-	  BusyBox, etc).
+	  swupdate, etc).
 
 	  Most people will leave this set to 'N'.
 
@@ -133,7 +133,7 @@ config CROSS_COMPILE
 	string "Cross Compiler prefix"
 	default ""
 	help
-	  If you want to build BusyBox with a cross compiler, then you
+	  If you want to build swupdate with a cross compiler, then you
 	  will need to set this to the cross-compiler prefix, for example,
 	  "i386-uclibc-".
 
@@ -143,11 +143,11 @@ config SYSROOT
 	string "Path to sysroot"
 	default ""
 	help
-	  If you want to build BusyBox with a cross compiler, then you
+	  If you want to build swupdate with a cross compiler, then you
 	  might also need to specify where /usr/include and /usr/lib
 	  will be found.
 
-	  For example, BusyBox can be built against an installed
+	  For example, swupdate can be built against an installed
 	  Android NDK, platform version 9, for ARM ABI with
 
 	  CONFIG_SYSROOT=/opt/android-ndk/platforms/android-9/arch-arm
@@ -180,10 +180,10 @@ config DEBUG
 	bool "Build Swupdate with extra Debugging symbols"
 	default n
 	help
-	  Say Y here if you wish to examine BusyBox internals while applets are
+	  Say Y here if you wish to examine swupdate internals while applets are
 	  running. This increases the size of the binary considerably, and
 	  should only be used when doing development. If you are doing
-	  development and want to debug BusyBox, answer Y.
+	  development and want to debug swupdate, answer Y.
 
 	  Most people should answer N.
 
