@@ -305,8 +305,8 @@ int scan_mtd_devices (void)
 		if (flash->libubi && !flash->mtd_info[i].skipubi &&
 				!flash->mtd_info[i].scanned)
 			scan_ubi_partitions(i);
-#endif
 	}
+#endif
 
 	return mtd_info->mtd_dev_cnt;
 }
