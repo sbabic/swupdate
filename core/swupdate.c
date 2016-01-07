@@ -49,6 +49,7 @@
 #include "lua_util.h"
 #include "mongoose_interface.h"
 #include "network_ipc.h"
+#include "sslapi.h"
 
 #define MODULE_NAME	"swupdate"
 
@@ -78,6 +79,9 @@ static struct option long_options[] = {
 	{"image", required_argument, NULL, 'i'},
 	{"loglevel", required_argument, NULL, 'l'},
 	{"select", required_argument, NULL, 'e'},
+#ifdef CONFIG_SIGNED_IMAGES
+	{"key", required_argument, NULL, 'k'},
+#endif
 #ifdef CONFIG_MTD
 	{"blacklist", required_argument, NULL, 'b'},
 #endif
@@ -118,6 +122,9 @@ static void usage(char *programname)
 		"                                  Ex.: stable,main\n"
 		" -i, --image <filename>         : Software to be installed\n"
 		" -l, --loglevel <level>         : logging level\n"
+#ifdef CONFIG_SIGNED_IMAGES
+		" -k  --key <public key file>    : file with public key to verify images\n"
+#endif
 		" -s, --server                   : run as daemon waiting from\n"
 		"                                  IPC interface.\n"
 		" -v, --verbose                  : be verbose, set maximum loglevel\n"
@@ -361,8 +368,10 @@ int main(int argc, char **argv)
 {
 	int c;
 	char fname[MAX_IMAGE_FNAME];
+	char pubkeyfname[MAX_IMAGE_FNAME];
 	const char *software_select = NULL;
 	int opt_i = 0;
+	int opt_k = 0;
 	int opt_e = 0;
 	int opt_s = 0;
 	int opt_w = 0;
@@ -372,6 +381,7 @@ int main(int argc, char **argv)
 	int __attribute__ ((__unused__)) opt_r = 3;
 	RECOVERY_STATUS result;
 	char main_options[256];
+	unsigned int public_key_mandatory = 0;
 
 #ifdef CONFIG_WEBSERVER
 	char weboptions[1024];
@@ -398,6 +408,10 @@ int main(int argc, char **argv)
 #endif
 #ifdef CONFIG_HW_COMPATIBILITY
 	strcat(main_options, "H:");
+#endif
+#ifdef CONFIG_SIGNED_IMAGES
+	strcat(main_options, "k:");
+	public_key_mandatory = 1;
 #endif
 
 	memset(fname, 0, sizeof(fname));
@@ -427,6 +441,10 @@ int main(int argc, char **argv)
 			break;
 		case 'l':
 			loglevel = strtoul(optarg, NULL, 10);
+		case 'k':
+			strncpy(pubkeyfname,
+				optarg, sizeof(pubkeyfname));
+			opt_k = 1;
 			break;
 		case 'e':
 			software_select = optarg;
@@ -473,6 +491,21 @@ int main(int argc, char **argv)
 		}
 	}
 
+	if (public_key_mandatory && !opt_k) {
+		fprintf(stderr,
+			 "swupdate built for signed image, provide a public key file\n");
+		usage(argv[0]);
+		exit(1);
+	}
+
+	if (opt_k) {
+		if (swupdate_dgst_init(&swcfg, pubkeyfname)) {
+			fprintf(stderr,
+				 "Crypto cannot be initialized\n");
+			exit(1);
+		}
+	}
+
 	lua_handlers_init();
 	if(!get_hw_revision(&swcfg.hw))
 		printf("Running on %s Revision %s\n", swcfg.hw.boardname, swcfg.hw.revision);
@@ -509,6 +542,7 @@ int main(int argc, char **argv)
 		else
 			exit(1);
 	}
+
 
 	/* Start embedded web server */
 #if defined(CONFIG_MONGOOSE)
