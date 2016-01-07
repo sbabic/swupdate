@@ -195,8 +195,16 @@ int copyfile(int fdin, int fdout, int nbytes, unsigned long *offs,
 		if (skip_file)
 			continue;
 
-		if (copy_write(fdout, in, size) < 0)
+		/*
+		 * If there is no enough place,
+		 * returns an error and close the output file that
+		 * results corrupted. This lets the cleanup routine
+		 * to remove it
+		 */
+		if (copy_write(fdout, in, size) < 0) {
+			close(fdout);
 			return -ENOSPC;
+		}
 	}
 
 	fill_buffer(fdin, in, NPAD_BYTES(*offs), offs, checksum);
@@ -391,4 +399,3 @@ int cpio_scan(int fd, struct swupdate_cfg *cfg, off_t start)
 
 	return 0;
 }
-
