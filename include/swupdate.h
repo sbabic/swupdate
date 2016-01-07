@@ -24,6 +24,11 @@
 #include "bsdqueue.h"
 #include "globals.h"
 
+/*
+ * swupdate uses SHA256 hashes
+ */
+#define SHA256_HASH_LENGTH	32
+
 typedef enum {
 	FLASH,
 	UBI,
@@ -74,6 +79,7 @@ struct img_type {
 	off_t offset;	/* offset in cpio file */
 	long long size;
 	unsigned int checksum;
+	unsigned char sha256[SHA256_HASH_LENGTH];	/* SHA-256 is 32 byte */
 	LIST_ENTRY(img_type) next;
 };
 
@@ -114,6 +120,7 @@ struct swupdate_cfg {
 	struct imglist partitions;
 	struct imglist scripts;
 	struct ubootvarlist uboot;
+	void *dgst;	/* Structure for signed images */
 };
 
 #define SEARCH_FILE(type, list, found, offs) do { \
@@ -133,7 +140,6 @@ struct swupdate_cfg {
 } while(0)
 
 off_t extract_sw_description(int fd);
-off_t extract_next_file(int fd, int fdout, off_t offset, int compressed);
 int cpio_scan(int fd, struct swupdate_cfg *cfg, off_t start);
 
 #endif
