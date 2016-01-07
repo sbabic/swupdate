@@ -123,6 +123,11 @@ ifeq ($(CONFIG_JSON),y)
 LDLIBS += json-c
 endif
 
+# signed images require openssl (digest)
+ifneq ($(CONFIG_SIGNED_IMAGES),)
+LDLIBS += crypto ssl
+endif
+
 # mongoose / webserver
 ifneq ($(CONFIG_WEBSERVER),)
 ifneq ($(CONFIG_MONGOOSESSL),)
