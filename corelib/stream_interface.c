@@ -58,6 +58,7 @@
 
 enum {
 	STREAM_WAIT_DESCRIPTION,
+	STREAM_WAIT_SIGNATURE,
 	STREAM_DATA,
 	STREAM_END
 };
@@ -104,36 +105,24 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 		switch (status) {
 		/* Waiting for the first Header */
 		case STREAM_WAIT_DESCRIPTION:
-			if (extract_cpio_header(fd, &fdh, &offset)) {
-				return -1;
-			}
-			if (strcmp(fdh.filename, SW_DESCRIPTION_FILENAME)) {
-				TRACE("description file name not the first of the list: %s instead of %s",
-					fdh.filename,
-					SW_DESCRIPTION_FILENAME);
-				return -1;
-			}
-			snprintf(output_file, sizeof(output_file), "%s%s", TMPDIR, fdh.filename);
-			TRACE("Found file:\n\tfilename %s\n\tsize %u", fdh.filename, (unsigned int)fdh.size);
-
-			fdout = openfileoutput(output_file);
-			if (fdout < 0)
+			if (extract_file_to_tmp(fd, SW_DESCRIPTION_FILENAME, &offset) < 0 )
 				return -1;
 
-			if (copyfile(fd, fdout, fdh.size, &offset, 0, 0, &checksum) < 0) {
-				return -1;
-			}
-			if (checksum != (uint32_t)fdh.chksum) {
-				ERROR("Checksum WRONG ! Computed 0x%ux, it should be 0x%ux\n",
-					(unsigned int)checksum, (unsigned int)fdh.chksum);
-				return -1;
-			}
-			close(fdout);
+			status = STREAM_WAIT_SIGNATURE;
+			break;
 
+		case STREAM_WAIT_SIGNATURE:
+#ifdef CONFIG_SIGNED_IMAGES
+			snprintf(output_file, sizeof(output_file), "%s.sig", SW_DESCRIPTION_FILENAME);
+			if (extract_file_to_tmp(fd, output_file, &offset) < 0 )
+				return -1;
+#endif
+			snprintf(output_file, sizeof(output_file), "%s%s", TMPDIR, SW_DESCRIPTION_FILENAME);
 			if (parse(software, output_file)) {
 				ERROR("Compatible SW not found");
 				return -1;
 			}
+
 			if (check_hw_compatibility(software)) {
 				ERROR("SW not compatible with hardware\n");
 				return -1;
