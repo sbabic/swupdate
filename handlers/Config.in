@@ -51,6 +51,24 @@ config CFI
 	  Handler to store images in flash in raw mode,
 	  without UBI
 
+config CFIHAMMING1
+	bool "NAND in raw mode with 1bit Hamming OOB (TI)"
+	depends on MTD
+	default n
+	select CFI
+	help
+	  On certain TI's omaps (for example, DM3730 or AM3517),
+	  the first bootloader (MLO or SPL) must be saved with one bit
+	  Hamming correction because this is requested by the SOC's ROM.
+	  However, the Linux driver must use for the rest of the NAND a more
+	  powerful algorithm to make data reliable, and this causes that
+	  it is not possible to update SPL by letting the driver to handle
+	  the OOB area. This handler raws the NAND in raw mode, computing
+	  the ECC with 1 bit Hamming Code and saving it into OOB
+	  (assumes sector size of 512 and page size of 2048).
+
+	  You do not need this if you have not a OMAP SOC.
+
 config RAW
 	bool "raw"
 	default n
