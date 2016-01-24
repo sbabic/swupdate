@@ -703,6 +703,12 @@ int parse_cfg (struct swupdate_cfg *swcfg, const char *filename)
 
 	return 0;
 }
+#else
+int parse_cfg (struct swupdate_cfg __attribute__ ((__unused__)) *swcfg,
+		const char __attribute__ ((__unused__)) *filename)
+{
+	return -1;
+}
 #endif
 
 #ifdef CONFIG_JSON
@@ -749,5 +755,11 @@ int parse_json(struct swupdate_cfg *swcfg, const char *filename)
 	free(string);
 
 	return 0;
+}
+#else
+int parse_json(struct swupdate_cfg __attribute__ ((__unused__)) *swcfg,
+		const char __attribute__ ((__unused__)) *filename)
+{
+	return -1;
 }
 #endif

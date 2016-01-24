@@ -33,6 +33,7 @@
 #include "swupdate.h"
 #include "parsers.h"
 
+#ifdef CONFIG_LUAEXTERNAL
 #ifndef CONFIG_SETEXTPARSERNAME
 #define LUA_PARSER	"lua-tools/extparser.lua"
 #else
@@ -158,3 +159,11 @@ int parse_external(struct swupdate_cfg *software, const char *filename)
 
 	return !(nstreams > 0);
 }
+#else
+
+int parse_external(struct swupdate_cfg __attribute__ ((__unused__)) *software,
+			const char __attribute__ ((__unused__)) *filename)
+{
+	return -1;
+}
+#endif

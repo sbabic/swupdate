@@ -1,2 +1,1 @@
-lib-$(CONFIG_LUAEXTERNAL)	+= parse_external.o
-lib-y				+= parser.o
+lib-y				+= parser.o parse_external.o
