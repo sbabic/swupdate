@@ -29,6 +29,8 @@
 #define SW_DESCRIPTION_FILENAME	CONFIG_SWDESCRIPTION
 #endif
 
+typedef int (*parser_fn)(struct swupdate_cfg *swcfg, const char *filename);
+
 int parse(struct swupdate_cfg *swcfg, const char *filename);
 int parse_cfg (struct swupdate_cfg *swcfg, const char *filename);
 int parse_json(struct swupdate_cfg *swcfg, const char *filename);

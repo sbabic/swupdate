@@ -19,22 +19,83 @@
  */
 
 #include <unistd.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include <fcntl.h>
+#include <string.h>
+#include <errno.h>
 #include "swupdate.h"
 #include "parsers.h"
+#include "sslapi.h"
+#include "util.h"
+
+static parser_fn parsers[] = {
+	parse_cfg,
+	parse_json,
+	parse_external
+};
+
+/*
+ * Check that all images in a list have a valid hsh
+ */
+static int check_missing_hash(struct imglist *list)
+{
+	struct img_type *image;
+
+	LIST_FOREACH(image, list, next) {
+		if (!IsValidHash(image->sha256)) {
+			ERROR("Hash not set for %s Type %s",
+				image->fname,
+				image->type);
+			return -EINVAL;
+		}
+	}
+
+	return 0;
+}
 
 int parse(struct swupdate_cfg *sw, const char *descfile)
 {
 	int ret = -1;
+	int i;
+	parser_fn current;
+#ifdef CONFIG_SIGNED_IMAGES
+	char *sigfile;
+#endif
 
-	ret = parse_cfg(sw, descfile);
-	if (ret == 0) return 0;
+	for (i = 0; i < ARRAY_SIZE(parsers); i++) {
+		current = parsers[i];
 
-	ret = parse_json(sw, descfile);
-	if (ret == 0) return 0;
+		ret = current(sw, descfile);
 
-	ret = parse_external(sw, descfile);
-	if (ret == 0) return 0;
+		if (ret == 0)
+			break;
+	}
+
+	if (ret != 0)
+		return ret;
+
+#ifdef CONFIG_SIGNED_IMAGES
+	sigfile = malloc(strlen(descfile) + strlen(".sig") + 1);
+	if (!sigfile)
+		return -ENOMEM;
+	strcpy(sigfile, descfile);
+	strcat(sigfile, ".sig");
+
+	ret = swupdate_verify_file(sw->dgst, sigfile, descfile);
+	free(sigfile);
+
+	if (ret)
+		return ret;
+
+	/*
+	 * If the software must verified, all images
+	 * must have a valid hash to be checked
+	 */
+	if (check_missing_hash(&sw->images) ||
+		check_missing_hash(&sw->scripts))
+		ret = -EINVAL;
+#endif
 
 	return ret;
 }
