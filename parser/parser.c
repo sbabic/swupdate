@@ -363,6 +363,16 @@ static int exist_field_string(parsertype p, void *e, const char *path)
 	return 0;
 }
 
+static void get_hash_value(parsertype p, void *elem, unsigned char *hash)
+{
+	char hash_ascii[80];
+
+	memset(hash_ascii, 0, sizeof(hash_ascii));
+	GET_FIELD_STRING(p, elem, "sha256", hash_ascii);
+
+	ascii_to_hash(hash, hash_ascii);
+}
+
 #ifdef CONFIG_HW_COMPATIBILITY
 /*
  * Check if the software can run on the hardware
@@ -493,6 +503,7 @@ static void parse_scripts(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 
 		GET_FIELD_STRING(p, elem, "filename", script->fname);
 		GET_FIELD_STRING(p, elem, "type", script->type);
+		get_hash_value(p, elem, script->sha256);
 
 		/* Scripts as default call the LUA interpreter */
 		if (!strlen(script->type)) {
@@ -578,6 +589,7 @@ static void parse_images(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 		GET_FIELD_STRING(p, elem, "volume", image->volname);
 		GET_FIELD_STRING(p, elem, "device", image->device);
 		GET_FIELD_STRING(p, elem, "type", image->type);
+		get_hash_value(p, elem, image->sha256);
 
 		/* if the handler is not explicit set, try to find the right one */
 		if (!strlen(image->type)) {
@@ -642,6 +654,8 @@ static void parse_files(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 		GET_FIELD_STRING(p, elem, "device", file->device);
 		GET_FIELD_STRING(p, elem, "filesystem", file->filesystem);
 		GET_FIELD_STRING(p, elem, "type", file->type);
+		get_hash_value(p, elem, file->sha256);
+
 		if (!strlen(file->type)) {
 			strcpy(file->type, "rawfile");
 		}
