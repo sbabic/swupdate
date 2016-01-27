@@ -63,6 +63,11 @@ static void sw_append_stream(struct img_type *img, const char *key,
 			sizeof(img->device));
 	if (!strcmp(key, "script"))
 		img->is_script = 1;
+	if (!strcmp(key, "path"))
+		strncpy(img->path, value,
+			sizeof(img->path));
+	if (!strcmp(key, "sha256"))
+		ascii_to_hash(img->sha256, value);
 }
 
 int parse_external(struct swupdate_cfg *software, const char *filename)
