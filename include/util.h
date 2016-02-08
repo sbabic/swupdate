@@ -82,6 +82,17 @@ typedef void (*notifier) (RECOVERY_STATUS status, int error, const char *msg);
 #define LG_16 4
 #define FROM_HEX(f) from_ascii (f, sizeof f, LG_16)
 
+#define max(a, b) ({\
+		typeof(a) _a = a;\
+		typeof(b) _b = b;\
+		_a > _b ? _a : _b; })
+
+#define min(a, b) ({\
+		typeof(a) _a = a;\
+		typeof(b) _b = b;\
+		_a < _b ? _a : _b; })
+
+
 int gpio_export(int gpio);
 int gpio_unexport(int gpio);
 int gpio_direction_input(int gpio_number);

@@ -42,14 +42,9 @@
 
 #include "globals.h"
 #include "fw_env.h"
+#include "util.h"
 
 #define WHITESPACE(c) ((c == '\t') || (c == ' '))
-
-#define min(x, y) ({				\
-	typeof(x) _min1 = (x);			\
-	typeof(y) _min2 = (y);			\
-	(void) (&_min1 == &_min2);		\
-	_min1 < _min2 ? _min1 : _min2; })
 
 struct envdev_s {
 	char devname[16];		/* Device name */
