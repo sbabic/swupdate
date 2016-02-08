@@ -171,8 +171,10 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 		 *  If image is flagged to be installed from stream
 		 *  it  was already installed by loading the
 		 *  .swu image and it is skipped here.
+		 *  This does not make sense when installed from file,
+		 *  because images are seekd (no streaming)
 		 */
-		if (img->install_directly)
+		if (!fromfile && img->install_directly)
 			continue;
 
 		if (!fromfile) {
