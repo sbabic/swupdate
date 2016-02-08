@@ -265,6 +265,7 @@ static int flash_write_nand_hamming1(int mtdnum, struct img_type *img)
 	int cnt;
 	int i, j;
 	int len;
+	long long imglen = 0;
 	int page_idx = 0;
 	int ret = EXIT_FAILURE;
 	char mtd_device[LINESIZE];
@@ -278,6 +279,8 @@ static int flash_write_nand_hamming1(int mtdnum, struct img_type *img)
 	len = mtd->min_io_size;
 	if (!rawNand)
 		len *= 2;
+
+	imglen = img->size;
 
 	page = (unsigned char *) malloc(len);
 	if (page == NULL) {
@@ -298,7 +301,11 @@ static int flash_write_nand_hamming1(int mtdnum, struct img_type *img)
 			goto out_input;
 		}
 
-	while ((cnt = read(fd, page, mtd->min_io_size)) > 0) {
+	while (imglen > 0) {
+		cnt = read(fd, page, min(mtd->min_io_size, imglen));
+		if (cnt < 0)
+			break;
+
 		/* Writes has to be page aligned */
 		if (cnt < mtd->min_io_size)
 			memset(page + cnt, 0xff, mtd->min_io_size - cnt);
@@ -327,6 +334,8 @@ static int flash_write_nand_hamming1(int mtdnum, struct img_type *img)
 				goto out_output;
 			}
 		page_idx++;
+
+		imglen -= cnt;
 	}
 
 	if (cnt < 0) {
@@ -630,7 +639,7 @@ static int install_flash_image(struct img_type *img,
 			img->device);
 		return -1;
 	}
-	TRACE("Copying %s", img->fname);
+	TRACE("Copying %s into /dev/mtd%d", img->fname, mtdnum);
 	if (flash_write_image(mtdnum, img, hamming)) {
 		ERROR("I cannot copy %s into %s partition",
 			img->fname,
