@@ -497,6 +497,7 @@ int decompress_image(int infile, unsigned long *offs, int nbytes,
         ERROR("gun out of memory error--aborting\n");
         return 1;
     }
+    errno = 0;
     ret = gunpipe(&strm, infile, offs, nbytes, outfile, checksum);
     /* clean up */
     inflateBackEnd(&strm);

@@ -176,7 +176,7 @@ int copyfile(int fdin, int fdout, int nbytes, unsigned long *offs,
 	if (compressed) {
 		ret = decompress_image(fdin, offs, nbytes, fdout, checksum);
 		if (ret < 0) {
-			ERROR("wrong gzip image -- aborting\n");
+			ERROR("gunzip failure %d (errno %d) -- aborting\n", ret, errno);
 			return ret;
 		}
 		return 0;
