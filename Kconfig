@@ -264,6 +264,12 @@ config DOWNLOAD
 comment "Image downloading support needs libcurl"
 	depends on !HAVE_LIBCURL
 
+config SIGNED_IMAGES
+	bool "Enable verification of signed images"
+	depends on HAVE_LIBSSL
+comment "Image verification (signed images) needs libssl"
+	depends on !HAVE_LIBSSL
+
 config WEBSERVER
 	bool "Enable webserver"
 	default n
