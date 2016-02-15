@@ -204,7 +204,8 @@ static int install_archive_image(struct img_type *img,
 		fdout = open(FIFO, O_WRONLY);
 
 		offset = img->offset;
-		ret = copyfile(img->fdin, fdout, img->size, &offset, 0, img->compressed, &checksum);
+		ret = copyfile(img->fdin, fdout, img->size, &offset, 0,
+				img->compressed, &checksum, img->sha256);
 		if (ret< 0) {
 			ERROR("Error copying extracted file\n");
 			return -EFAULT;

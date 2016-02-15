@@ -72,7 +72,7 @@ static int l_handler_wrapper(struct img_type *img, void *data) {
 		snprintf(img->extract_file, sizeof(img->extract_file), "%s%s",
 			TMPDIR, img->fname);
 		fdout = openfileoutput(img->extract_file);
-		res = extract_next_file(img->fdin, fdout, img->offset, 0);
+		res = extract_next_file(img->fdin, fdout, img->offset, 0, img->sha256);
 	}
 
 	l_func_ref = *((int*)data);

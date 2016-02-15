@@ -121,9 +121,9 @@ int gpio_set_value(int gpio_number, int value);
 int gpio_get_value(int gpio_number);
 
 int fill_buffer(int fd, unsigned char *buf, int nbytes, unsigned long *offs,
-	uint32_t *checksum);
+	uint32_t *checksum, void *dgst);
 int decompress_image(int infile, unsigned long *offs, int nbytes,
-	int outfile, uint32_t *checksum);
+	int outfile, uint32_t *checksum, void *dgst);
 int fw_set_one_env(const char *name, const char *value);
 int openfile(const char *filename);
 int copyfile(int fdin, int fdout, int nbytes, unsigned long *offs,

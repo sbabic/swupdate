@@ -45,6 +45,7 @@ struct ind {
     unsigned long *offs;
     unsigned long *checksum;
     int nbytes;
+    void *dgst;
 };
 
 /* Load input buffer, assumed to be empty, and return bytes loaded and a
@@ -66,7 +67,7 @@ static unsigned in(void *in_desc, unsigned char **buf)
             ret = (int)(SIZE - len);
 	if (ret > me->nbytes)
 		ret = me->nbytes;
-	ret = fill_buffer(me->infile, next, ret, me->offs, (uint32_t *)me->checksum);
+	ret = fill_buffer(me->infile, next, ret, me->offs, (uint32_t *)me->checksum, me->dgst);
         if (ret < 0) {
             len = 0;
             break;
@@ -343,7 +344,7 @@ static int lunpipe(unsigned have, unsigned char *next, struct ind *indp,
    prematurely or a write error occurs, or Z_ERRNO if junk (not a another gzip
    stream) follows a valid gzip stream.
  */
-static int gunpipe(z_stream *strm, int infile, unsigned long *offs, int nbytes, int outfile, uint32_t *checksum)
+static int gunpipe(z_stream *strm, int infile, unsigned long *offs, int nbytes, int outfile, uint32_t *checksum, void *dgst)
 {
     int ret, first, last;
     unsigned have, flags, len;
@@ -357,6 +358,7 @@ static int gunpipe(z_stream *strm, int infile, unsigned long *offs, int nbytes, 
     ind.nbytes = nbytes;
     ind.offs = offs;
     ind.checksum = (unsigned long *)checksum;
+    ind.dgst = dgst; /* digest for computing hashes */
     indp = &ind;
 
     /* decompress concatenated gzip streams */
@@ -479,7 +481,7 @@ static int gunpipe(z_stream *strm, int infile, unsigned long *offs, int nbytes, 
 /* Process the gun command line arguments.  See the command syntax near the
    beginning of this source file. */
 int decompress_image(int infile, unsigned long *offs, int nbytes,
-	int outfile, uint32_t *checksum)
+	int outfile, uint32_t *checksum, void *dgst)
 {
     int ret;
     unsigned char *window;
@@ -498,7 +500,7 @@ int decompress_image(int infile, unsigned long *offs, int nbytes,
         return 1;
     }
     errno = 0;
-    ret = gunpipe(&strm, infile, offs, nbytes, outfile, checksum);
+    ret = gunpipe(&strm, infile, offs, nbytes, outfile, checksum, dgst);
     /* clean up */
     inflateBackEnd(&strm);
     return ret;

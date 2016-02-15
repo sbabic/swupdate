@@ -34,6 +34,7 @@
 #include "util.h"
 #include "swupdate.h"
 #include "parsers.h"
+#include "sslapi.h"
 
 #define MODULE_NAME "cpio"
 
@@ -60,7 +61,7 @@ static int get_cpiohdr(unsigned char *buf, long *size, long *namesize, long *chk
 }
 
 int fill_buffer(int fd, unsigned char *buf, int nbytes, unsigned long *offs,
-	uint32_t *checksum)
+	uint32_t *checksum, void *dgst)
 {
 	unsigned long len;
 	unsigned long count = 0;
@@ -79,11 +80,14 @@ int fill_buffer(int fd, unsigned char *buf, int nbytes, unsigned long *offs,
 			for (i = 0; i < len; i++)
 				*checksum += buf[i];
 
+		if (dgst)
+			swupdate_HASH_update(dgst, buf, len);
 		buf += len;
 		count += len;
 		nbytes -= len;
 		*offs += len;
 	}
+
 	return count;
 }
 
@@ -115,10 +119,22 @@ static int copy_write(int fd, const void *buf, int len)
 
 int copyfile(int fdin, int fdout, int nbytes, unsigned long *offs,
 	int skip_file, int __attribute__ ((__unused__)) compressed,
-	uint32_t *checksum)
+	uint32_t *checksum, unsigned char *hash)
 {
 	unsigned long size;
 	int ret;
+	void *dgst = NULL;
+	unsigned char md_value[64]; /*
+				     *  Maximum hash is 64 bytes for SHA512
+				     *  and we use sha256 in swupdate
+				     */
+	unsigned int md_len = 0;
+
+	if (IsValidHash(hash)) {
+		dgst = swupdate_HASH_init();
+		if (!dgst)
+			return -EFAULT;
+	}
 
 	if (checksum)
 		*checksum = 0;
@@ -126,7 +142,7 @@ int copyfile(int fdin, int fdout, int nbytes, unsigned long *offs,
 
 #ifdef CONFIG_GUNZIP
 	if (compressed) {
-		ret = decompress_image(fdin, offs, nbytes, fdout, checksum);
+		ret = decompress_image(fdin, offs, nbytes, fdout, checksum, dgst);
 		if (ret < 0) {
 			ERROR("gunzip failure %d (errno %d) -- aborting\n", ret, errno);
 			return ret;
@@ -138,7 +154,7 @@ int copyfile(int fdin, int fdout, int nbytes, unsigned long *offs,
 	while (nbytes > 0) {
 		size = (nbytes < BUFF_SIZE ? nbytes : BUFF_SIZE);
 
-		if ((ret = fill_buffer(fdin, in, size, offs, checksum) < 0)) {
+		if ((ret = fill_buffer(fdin, in, size, offs, checksum, dgst) < 0)) {
 			close(fdout);
 			return ret;
 		}
@@ -159,7 +175,28 @@ int copyfile(int fdin, int fdout, int nbytes, unsigned long *offs,
 		}
 	}
 
-	fill_buffer(fdin, in, NPAD_BYTES(*offs), offs, checksum);
+	if (IsValidHash(hash)) {
+		swupdate_HASH_final(dgst, md_value, &md_len);
+		swupdate_dgst_cleanup(dgst);
+
+		/*
+		 * Now check if the computed hash is equal
+		 * to the value retrieved from sw-descritpion
+		 */
+		if (md_len != SHA256_HASH_LENGTH || swupdate_HASH_compare(hash, md_value)) {
+			char hashstring[2 * SHA256_HASH_LENGTH + 1];
+			char newhashstring[2 * SHA256_HASH_LENGTH + 1];
+
+			hash_to_ascii(hash, hashstring);
+			hash_to_ascii(md_value, newhashstring);
+
+			ERROR("HASH mismatch : %s <--> %s",
+				hashstring, newhashstring);
+			return -EFAULT;
+		}
+	}
+
+	fill_buffer(fdin, in, NPAD_BYTES(*offs), offs, checksum, NULL);
 
 	return 0;
 }
@@ -167,7 +204,7 @@ int copyfile(int fdin, int fdout, int nbytes, unsigned long *offs,
 int extract_cpio_header(int fd, struct filehdr *fhdr, unsigned long *offset)
 {
 	unsigned char buf[256];
-	if (fill_buffer(fd, buf, sizeof(struct new_ascii_header), offset, NULL) < 0)
+	if (fill_buffer(fd, buf, sizeof(struct new_ascii_header), offset, NULL, NULL) < 0)
 		return -EINVAL;
 	if (get_cpiohdr(buf, &fhdr->size, &fhdr->namesize, &fhdr->chksum) < 0) {
 		ERROR("CPIO Header corrupted, cannot be parsed");
@@ -181,12 +218,12 @@ int extract_cpio_header(int fd, struct filehdr *fhdr, unsigned long *offset)
 		return -EINVAL;
 	}
 
-	if (fill_buffer(fd, buf, fhdr->namesize , offset, NULL) < 0)
+	if (fill_buffer(fd, buf, fhdr->namesize , offset, NULL, NULL) < 0)
 		return -EINVAL;
 	strncpy(fhdr->filename, (char *)buf, sizeof(fhdr->filename));
 
 	/* Skip filename padding, if any */
-	if (fill_buffer(fd, buf, (4 - (*offset % 4)) % 4, offset, NULL) < 0)
+	if (fill_buffer(fd, buf, (4 - (*offset % 4)) % 4, offset, NULL, NULL) < 0)
 		return -EINVAL;
 
 	return 0;
@@ -224,7 +261,7 @@ off_t extract_sw_description(int fd)
 		ERROR("CPIO file corrupted : %s\n", strerror(errno));
 		return -1;
 	}
-	if (copyfile(fd, fdout, fdh.size, &offset, 0, 0, &checksum) < 0) {
+	if (copyfile(fd, fdout, fdh.size, &offset, 0, 0, &checksum, NULL) < 0) {
 		ERROR("sw-description corrupted or not valid\n");
 		return -1;
 	}
@@ -266,7 +303,8 @@ int extract_img_from_cpio(int fd, unsigned long offset, struct filehdr *fdh)
 	return 0;
 }
 
-off_t extract_next_file(int fd, int fdout, off_t start, int compressed)
+off_t extract_next_file(int fd, int fdout, off_t start, int compressed,
+		unsigned char *hash)
 {
 	struct filehdr fdh;
 	uint32_t checksum = 0;
@@ -284,7 +322,7 @@ off_t extract_next_file(int fd, int fdout, off_t start, int compressed)
 
 	if (lseek(fd, offset, SEEK_SET) < 0)
 		ERROR("CPIO file corrupted : %s\n", strerror(errno));
-	if (copyfile(fd, fdout, fdh.size, &offset, 0, compressed, &checksum) < 0) {
+	if (copyfile(fd, fdout, fdh.size, &offset, 0, compressed, &checksum, hash) < 0) {
 		ERROR("Error copying extracted file\n");
 	}
 
@@ -333,7 +371,7 @@ int cpio_scan(int fd, struct swupdate_cfg *cfg, off_t start)
 		 * use copyfile for checksum verification, as we skip file
 		 * we do not have to provide fdout
 		 */
-		if (copyfile(fd, 0, fdh.size, &offset, 1, 0, &checksum) != 0) {
+		if (copyfile(fd, 0, fdh.size, &offset, 1, 0, &checksum, NULL) != 0) {
 			ERROR("invalid archive\n");
 			return -1;
 		}

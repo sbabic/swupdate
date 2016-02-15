@@ -80,6 +80,42 @@ pthread_cond_t stream_wkup = PTHREAD_COND_INITIALIZER;
 
 static struct installer inst;
 
+static int extract_file_to_tmp(int fd, const char *fname, unsigned long *poffs)
+{
+	char output_file[MAX_IMAGE_FNAME];
+	struct filehdr fdh;
+	int fdout;
+	uint32_t checksum;
+
+	if (extract_cpio_header(fd, &fdh, poffs)) {
+		return -1;
+	}
+	if (strcmp(fdh.filename, fname)) {
+		TRACE("description file name not the first of the list: %s instead of %s",
+			fdh.filename,
+			fname);
+		return -1;
+	}
+	snprintf(output_file, sizeof(output_file), "%s%s", TMPDIR, fdh.filename);
+	TRACE("Found file:\n\tfilename %s\n\tsize %u", fdh.filename, (unsigned int)fdh.size);
+
+	fdout = openfileoutput(output_file);
+	if (fdout < 0)
+		return -1;
+
+	if (copyfile(fd, fdout, fdh.size, poffs, 0, 0, &checksum, NULL) < 0) {
+		return -1;
+	}
+	if (checksum != (uint32_t)fdh.chksum) {
+		ERROR("Checksum WRONG ! Computed 0x%ux, it should be 0x%ux\n",
+			(unsigned int)checksum, (unsigned int)fdh.chksum);
+			return -1;
+	}
+	close(fdout);
+
+	return 0;
+}
+
 static int extract_files(int fd, struct swupdate_cfg *software)
 {
 	int status = STREAM_WAIT_DESCRIPTION;
@@ -169,11 +205,21 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 				fdout = openfileoutput(img->extract_file);
 				if (fdout < 0)
 					return -1;
-			case SKIP_FILE:
-				if (copyfile(fd, fdout, fdh.size, &offset, skip, 0, &checksum) < 0) {
+				if (copyfile(fd, fdout, fdh.size, &offset, 0, 0, &checksum, img->sha256) < 0) {
+					return -1;
+				}
+				if (checksum != (unsigned long)fdh.chksum) {
+					ERROR("Checksum WRONG ! Computed 0x%ux, it should be 0x%ux",
+						(unsigned int)checksum, (unsigned int)fdh.chksum);
 					return -1;
 				}
 				close(fdout);
+				break;
+
+			case SKIP_FILE:
+				if (copyfile(fd, fdout, fdh.size, &offset, skip, 0, &checksum, NULL) < 0) {
+					return -1;
+				}
 				if (checksum != (unsigned long)fdh.chksum) {
 					ERROR("Checksum WRONG ! Computed 0x%ux, it should be 0x%ux",
 						(unsigned int)checksum, (unsigned int)fdh.chksum);
