@@ -37,59 +37,11 @@
 
 #define MODULE_NAME "cpio"
 
-#define LG_16 4
-#define FROM_HEX(f) from_ascii (f, sizeof f, LG_16)
 #define BUFF_SIZE	 16384
 
 #define NPAD_BYTES(o) ((4 - (o % 4)) % 4)
 
 static unsigned char in[BUFF_SIZE];
-
-static uintmax_t
-from_ascii (char const *where, size_t digs, unsigned logbase)
-{
-	uintmax_t value = 0;
-	char const *buf = where;
-	char const *end = buf + digs;
-	int overflow = 0;
-	static char codetab[] = "0123456789ABCDEF";
-
-	for (; *buf == ' '; buf++)
-	{
-		if (buf == end)
-		return 0;
-	}
-
-	if (buf == end || *buf == 0)
-		return 0;
-	while (1)
-	{
-		unsigned d;
-
-		char *p = strchr (codetab, toupper (*buf));
-		if (!p)
-		{
-			ERROR("Malformed number %.*s\n", (int)digs, where);
-			break;
-		}
-
-		d = p - codetab;
-		if ((d >> logbase) > 1)
-		{
-			ERROR("Malformed number %.*s\n", (int)digs, where);
-			break;
-		}
-		value += d;
-		if (++buf == end || *buf == 0)
-			break;
-		overflow |= value ^ (value << logbase >> logbase);
-		value <<= logbase;
-	}
-	if (overflow)
-		ERROR("Archive value %.*s is out of range\n",
-			(int)digs, where);
-	return value;
-}
 
 static int get_cpiohdr(unsigned char *buf, long *size, long *namesize, long *chksum)
 {

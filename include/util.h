@@ -96,6 +96,10 @@ typedef void (*notifier) (RECOVERY_STATUS status, int level, const char *msg);
 
 #define LG_16 4
 #define FROM_HEX(f) from_ascii (f, sizeof f, LG_16)
+uintmax_t
+from_ascii (char const *where, size_t digs, unsigned logbase);
+int ascii_to_hash(unsigned char *hash, const char *s);
+void hash_to_ascii(const unsigned char *hash, char *s);
 
 #define max(a, b) ({\
 		typeof(a) _a = a;\
@@ -122,9 +126,10 @@ int decompress_image(int infile, unsigned long *offs, int nbytes,
 int fw_set_one_env(const char *name, const char *value);
 int openfile(const char *filename);
 int copyfile(int fdin, int fdout, int nbytes, unsigned long *offs,
-	int skip_file, int compressed, uint32_t *checksum);
+	int skip_file, int compressed, uint32_t *checksum, unsigned char *hash);
 off_t extract_sw_description(int fd);
-off_t extract_next_file(int fd, int fdout, off_t start, int compressed);
+off_t extract_next_file(int fd, int fdout, off_t start, int compressed,
+	       			unsigned char *hash);
 int openfileoutput(const char *filename);
 
 int register_notifier(notifier client);

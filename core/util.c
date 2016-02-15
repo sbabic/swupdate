@@ -290,3 +290,81 @@ int check_hw_compatibility(struct swupdate_cfg
 	return 0;
 }
 #endif
+
+uintmax_t
+from_ascii (char const *where, size_t digs, unsigned logbase)
+{
+	uintmax_t value = 0;
+	char const *buf = where;
+	char const *end = buf + digs;
+	int overflow = 0;
+	static char codetab[] = "0123456789ABCDEF";
+
+	for (; *buf == ' '; buf++)
+	{
+		if (buf == end)
+		return 0;
+	}
+
+	if (buf == end || *buf == 0)
+		return 0;
+	while (1)
+	{
+		unsigned d;
+
+		char *p = strchr (codetab, toupper (*buf));
+		if (!p)
+		{
+			ERROR("Malformed number %.*s\n", (int)digs, where);
+			break;
+		}
+
+		d = p - codetab;
+		if ((d >> logbase) > 1)
+		{
+			ERROR("Malformed number %.*s\n", (int)digs, where);
+			break;
+		}
+		value += d;
+		if (++buf == end || *buf == 0)
+			break;
+		overflow |= value ^ (value << logbase >> logbase);
+		value <<= logbase;
+	}
+	if (overflow)
+		ERROR("Archive value %.*s is out of range\n",
+			(int)digs, where);
+	return value;
+}
+
+/*
+ * Convert a hash as hexa string into a sequence of bytes
+ * hash must be a an array of 32 bytes as specified by SHA256
+ */
+int ascii_to_hash(unsigned char *hash, const char *s)
+{
+	int i;
+	unsigned int val;
+
+	if (strlen(s) == 64) {
+		for (i = 0; i < 64; i+= 2) {
+			val = from_ascii(&s[i], 2, LG_16);
+			hash[i / 2] = val;
+		}
+	} else
+		return -1;
+
+	return 0;
+}
+
+void hash_to_ascii(const unsigned char *hash, char *str)
+{
+	int i;
+	char *s = str;
+
+	for (i = 0; i < SHA256_HASH_LENGTH; i++) {
+		sprintf(s, "%02x", hash[i]);
+		s += 2;
+	}
+	*s = '\0';
+}
