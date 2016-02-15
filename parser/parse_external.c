@@ -25,15 +25,15 @@
 #include <string.h>
 #include <errno.h>
 #include "generated/autoconf.h"
+#include "swupdate.h"
+#include "parsers.h"
+
+#ifdef CONFIG_LUAEXTERNAL
 #include "lua.h"
 #include "lauxlib.h"
 #include "lualib.h"
 #include "util.h"
 #include "lua_util.h"
-#include "swupdate.h"
-#include "parsers.h"
-
-#ifdef CONFIG_LUAEXTERNAL
 #ifndef CONFIG_SETEXTPARSERNAME
 #define LUA_PARSER	"lua-tools/extparser.lua"
 #else
