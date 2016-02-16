@@ -368,3 +368,21 @@ void hash_to_ascii(const unsigned char *hash, char *str)
 	}
 	*s = '\0';
 }
+
+/*
+ * Check that hash is not zeroes
+ */
+int IsValidHash(const unsigned char *hash)
+{
+	int i;
+
+	if (!hash)
+		return 0;
+
+	for (i = 0; i < SHA256_HASH_LENGTH; i++) {
+		if (hash[i] != 0)
+			return 1;		
+	}
+
+	return 0;
+}

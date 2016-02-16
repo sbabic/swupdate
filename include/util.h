@@ -100,6 +100,7 @@ uintmax_t
 from_ascii (char const *where, size_t digs, unsigned logbase);
 int ascii_to_hash(unsigned char *hash, const char *s);
 void hash_to_ascii(const unsigned char *hash, char *s);
+int IsValidHash(const unsigned char *hash);
 
 #define max(a, b) ({\
 		typeof(a) _a = a;\
