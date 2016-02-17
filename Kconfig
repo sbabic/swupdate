@@ -102,6 +102,18 @@ config LUA
 comment "Lua support needs a Lua interpreter"
 	depends on !HAVE_LUA
 
+config LUAVERSION
+	string "LUA version"
+	default ""
+	depends on LUA
+	help
+	  Allow to specify which version must be taken. This is useful
+	  in case of multiple versions of the LUA interpreter in the system.
+
+comment "Lua support needs a Lua interpreter"
+	depends on !HAVE_LUA
+
+
 # These are auto-selected by other options
 
 config FEATURE_SYSLOG

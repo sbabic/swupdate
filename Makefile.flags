@@ -95,8 +95,9 @@ endif
 LDLIBS += pthread
 # lua
 ifneq ($(CONFIG_LUA),)
-LDLIBS += lua${LUAVERSION} dl m
+LDLIBS += lua${CONFIG_LUAVERSION} dl m
 LDFLAGS_swupdate += -Wl,-E
+$(eval $(call pkg_check_modules, KBUILD, lua${CONFIG_LUAVERSION}))
 endif
 
 

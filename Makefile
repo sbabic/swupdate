@@ -180,6 +180,7 @@ $(call set_if_default_or_unset,NM,$(CROSS_COMPILE)nm)
 $(call set_if_default_or_unset,STRIP,$(CROSS_COMPILE)strip)
 $(call set_if_default_or_unset,OBJCOPY,$(CROSS_COMPILE)objcopy)
 $(call set_if_default_or_unset,OBJDUMP,$(CROSS_COMPILE)objdump)
+$(call set_if_default_or_unset,PKG_CONFIG,pkg-config)
 
 AWK		= awk
 INSTALLKERNEL  := installkernel
