@@ -89,9 +89,11 @@ The following example explains better the implemented tags:
 		scripts: (
 			{
 				filename = "erase_at_end";
+				type = "lua";
 		 	},
 			{
 				filename = "display_info";
+				type = "lua";
 			}
 		);
 
@@ -248,22 +250,32 @@ specified after mounting the device.
 
 Scripts
 -------
-::
-
-	scripts: (
-		{
-			filename = <Name in CPIO Archive>;
-	 	},
-	);
 
 Scripts runs in the order they are put into the sw-description file.
 The result of a script is valuated by swupdate, that stops the update
 with an error if the result is <> 0.
 
-Scripts are LUA scripts and they are run using the internal interpreter.
 They are copied into a temporary directory before execution and their name must
 be unique inside the same cpio archive.
-Scripts must have at least one of the following functions:
+
+If no type is given, swupdate default to "lua".
+
+LUA
+...
+
+::
+
+	scripts: (
+		{
+			filename = <Name in CPIO Archive>;
+			type = "lua";
+	 	},
+	);
+
+
+LUA scripts are run using the internal interpreter.
+
+They must have at least one of the following functions:
 
 ::
 
@@ -279,6 +291,53 @@ called before installing the images.
 
 swupdate scans for all scripts and check for a postinst function. It is
 called after installing the images.
+
+shellscript
+...........
+
+::
+
+	scripts: (
+		{
+			filename = <Name in CPIO Archive>;
+			type = "shellscript";
+		},
+	);
+
+Shell scripts are called via system command.
+swupdate scans for all scripts and calls them before and after installing
+the images. swupdate passes 'preinst' or 'postinst' as first argument to
+the script.
+
+preinstall
+..........
+
+::
+
+	scripts: (
+		{
+			filename = <Name in CPIO Archive>;
+			type = "preinstall";
+		},
+	);
+
+preinstall are shell scripts and called via system command.
+swupdate scans for all scripts and calls them before installing the images.
+
+postinstall
+...........
+
+::
+
+	scripts: (
+		{
+			filename = <Name in CPIO Archive>;
+			type = "postinstall";
+		},
+	);
+
+postinstall are shell scripts and called via system command.
+swupdate scans for all scripts and calls them after installing the images.
 
 
 uboot
@@ -409,7 +468,7 @@ An example description file:
 	                        images: (
 	                        {
 	                                filename = "rootfs.ext3";
-	                                device = "/dev/mmcbkl0p1";
+	                                device = "/dev/mmcblk0p1";
 	                        }
 	                        );
 
@@ -431,4 +490,49 @@ collection: `/dev/mmcblk0p1` and `/dev/mmcblk0p2` for `main` mode and
 
 This feature can be used to implement a dual copy strategy by
 specifying the collection and mode explicitly.
+
+Attribute reference
+-------------------
+
++-------------+----------+----------------------------------------------------+
+|  Name       |  Type    |  Description                                       |
++=============+==========+====================================================+
+| filename    | string   | filename as found in the cpio archive              |
++-------------+----------+----------------------------------------------------+
+| volume      | string   | Just if type = "ubivol". UBI volume where image    |
+|             |          | must be installed.                                 |
++-------------+----------+----------------------------------------------------+
+| ubipartition| string   | Just if type = "ubivol". Volume to be created or   |
+|             |          | adjusted with a new size                           |
++-------------+----------+----------------------------------------------------+
+| device      | string   | devicenode as found in /dev. Usafe depends on      |
+|             |          | handler                                            |
++-------------+----------+----------------------------------------------------+
+| filesystem  | string   | For files: indicates the filesystem type where     |
+|             |          | the file must be installed.                        |
++-------------+----------+----------------------------------------------------+
+| path        | string   | For files: indicates the path (absolute) where the |
+|             |          | file must be installed.                            |
+|             |          | device, filesystem and path are then mandatory     |
+|             |          | swupdate will install the file after mounting      |
+|             |          | "device", that contains "filesystem", under "path" |
++-------------+----------+----------------------------------------------------+
+| type        | string   | string identifier for the handler, as it is set    |
+|             |          | by the handler when it regitsters itself.          |
+|             |          | ("ubivol", "raw", "rawfile", etc.)                 |
++-------------+----------+----------------------------------------------------+
+| compressed  | bool     | flag to indicate that "filename" is zlib-compressed|
+|             |          | and must be decompressed before beeing installed   |
++-------------+----------+----------------------------------------------------+
+| installed-  | bool     | flag to indicate that image is streamed into the   |
+| directly    |          | target without any temporary copy. Not all         |
+|             |          | handlers support streaming. It is not used         |
+|             |          | for "scripts"                                      |
++-------------+----------+----------------------------------------------------+
+| name        | string   | For U-Boot handler: name of the U-Boot variable to |
+|             |          | be set.                                            |
++-------------+----------+----------------------------------------------------+
+| value       | string   | For U-Boot handler: value to be assigned to the    |
+|             |          | variable                                           |
++-------------+----------+----------------------------------------------------+
 

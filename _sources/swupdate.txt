@@ -213,25 +213,24 @@ is responsible for calling `swupdate` passing proper settings.
 Streaming feature
 -----------------
 
-Even if not yet fully implemented, swupdate is thought to be able
-to stream the received image directly into the target, without
-any temporary copy. In fact, the single installer (handler) receive
-as input the file descriptor set at the beginning of the image
-that must be installed.
+swupdate is thought to be able to stream the received image directly into
+the target, without any temporary copy. In fact, the single installer
+(handler) receive as input the file descriptor set at the beginning of
+the image that must be installed.
 
-The reason why this feature is not yet fully implemented and some parts
-are temporary extracted into /tmp is due to the fact that it is then not
-possible to make checks on the whole delivered software before installing.
-By streaming, it can happen that only a part is delivered, for example because
-the network connection is suddenly broken. At the moment, the images making
-a software release for a device are extracted from the stream and copied into
-/tmp, and then a check runs before installing.
-
+The feature can be set on image basis, that means that a user can
+decide which partial images should be streamed. If not streamed (see
+installed-directly flag), files are temporary extracted into /tmp.
+Of course, by streaming it is not possible to make checks on the whole delivered
+software before installing.
 The temporary copy is done only when updated from network. When the image
 is stored on an external storage, there is no need of that copy.
 
 List of supported features
 --------------------------
+
+- Install on embedded Media (eMMC, SD, Raw NAND,
+  NOR and SPI-NOR flashes)
 
 - check if a image is available. The image is built
   in a specified format (cpio) and it must contain
@@ -279,6 +278,9 @@ List of supported features
   was choosen, in the version under LUA license). A different
   Webserver can be used.
 
+- Multiple interfaces for getting software (local Storage,
+  integrated WebServer, remote Server)
+
 - Can be configured to check for compatibility between software and hardware
   revisions. The software image must contain an entry declaring on which
   HW revision the software is allowed to run.
@@ -292,9 +294,27 @@ List of supported features
   and extracts only the required components for the device
   to be installed.
 
+- allow custom handlers for installing FPGA firmware,
+  microcontroller firmware via custom protocols.
+
 - Features are enabled / disabled using "make menuconfig".
   (Kbuild is inherited from busybox project)
 
+- Power-Off safe
+
+Images fully streamed
+---------------------
+
+In case of remote update, swupdate extracts relevant images
+from the stream and copy them into /tmp before calling the handlers.
+This guarantee that an update is initiated only if all parts are present and correct.
+However, on some systems with less resources, the amount of RAM
+to copy the images could be not enough, for example if the filesystem on
+an attached SD Card must be updated. In this case, it will help if the images
+are installed directly as stream by the corresponding handler, without temporary
+copies. Not all handlers support to stream direclty into the target.
+Streaming with zero-copy is enabled by setting the flag "installed-directly"
+in the descripütion of the single image.
 
 Configuration and build
 =======================

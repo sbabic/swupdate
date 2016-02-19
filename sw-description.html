@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>swupdate: syntax and tags with the default parser &mdash; Embedded Software Update Documentation 2014.07 documentation</title>
+    <title>swupdate: syntax and tags with the default parser &mdash; Embedded Software Update Documentation 2016.- documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '2014.07',
+        VERSION:     '2016.-',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="Embedded Software Update Documentation 2014.07 documentation" href="index.html" />
+    <link rel="top" title="Embedded Software Update Documentation 2016.- documentation" href="index.html" />
     <link rel="next" title="Handlers" href="handlers.html" />
     <link rel="prev" title="swupdate: software update for embedded system" href="swupdate.html" /> 
   </head>
@@ -40,7 +40,7 @@
         <li class="right" >
           <a href="swupdate.html" title="swupdate: software update for embedded system"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">Embedded Software Update Documentation 2014.07 documentation</a> &raquo;</li> 
+        <li><a href="index.html">Embedded Software Update Documentation 2016.- documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -132,9 +132,11 @@ using of the #include directive is not allowed by swupdate.</p>
         scripts: (
                 {
                         filename = &quot;erase_at_end&quot;;
+                        type = &quot;lua&quot;;
                 },
                 {
                         filename = &quot;display_info&quot;;
+                        type = &quot;lua&quot;;
                 }
         );
 
@@ -264,20 +266,24 @@ specified after mounting the device.</p>
 </div>
 <div class="section" id="scripts">
 <h2>Scripts<a class="headerlink" href="#scripts" title="Permalink to this headline">¶</a></h2>
+<p>Scripts runs in the order they are put into the sw-description file.
+The result of a script is valuated by swupdate, that stops the update
+with an error if the result is &lt;&gt; 0.</p>
+<p>They are copied into a temporary directory before execution and their name must
+be unique inside the same cpio archive.</p>
+<p>If no type is given, swupdate default to &#8220;lua&#8221;.</p>
+<div class="section" id="lua">
+<h3>LUA<a class="headerlink" href="#lua" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-python"><div class="highlight"><pre>scripts: (
         {
                 filename = &lt;Name in CPIO Archive&gt;;
+                type = &quot;lua&quot;;
         },
 );
 </pre></div>
 </div>
-<p>Scripts runs in the order they are put into the sw-description file.
-The result of a script is valuated by swupdate, that stops the update
-with an error if the result is &lt;&gt; 0.</p>
-<p>Scripts are LUA scripts and they are run using the internal interpreter.
-They are copied into a temporary directory before execution and their name must
-be unique inside the same cpio archive.
-Scripts must have at least one of the following functions:</p>
+<p>LUA scripts are run using the internal interpreter.</p>
+<p>They must have at least one of the following functions:</p>
 <div class="highlight-python"><div class="highlight"><pre>function preinst()
 </pre></div>
 </div>
@@ -288,6 +294,48 @@ called before installing the images.</p>
 </div>
 <p>swupdate scans for all scripts and check for a postinst function. It is
 called after installing the images.</p>
+</div>
+<div class="section" id="shellscript">
+<h3>shellscript<a class="headerlink" href="#shellscript" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>scripts: (
+        {
+                filename = &lt;Name in CPIO Archive&gt;;
+                type = &quot;shellscript&quot;;
+        },
+);
+</pre></div>
+</div>
+<p>Shell scripts are called via system command.
+swupdate scans for all scripts and calls them before and after installing
+the images. swupdate passes &#8216;preinst&#8217; or &#8216;postinst&#8217; as first argument to
+the script.</p>
+</div>
+<div class="section" id="preinstall">
+<h3>preinstall<a class="headerlink" href="#preinstall" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>scripts: (
+        {
+                filename = &lt;Name in CPIO Archive&gt;;
+                type = &quot;preinstall&quot;;
+        },
+);
+</pre></div>
+</div>
+<p>preinstall are shell scripts and called via system command.
+swupdate scans for all scripts and calls them before installing the images.</p>
+</div>
+<div class="section" id="postinstall">
+<h3>postinstall<a class="headerlink" href="#postinstall" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>scripts: (
+        {
+                filename = &lt;Name in CPIO Archive&gt;;
+                type = &quot;postinstall&quot;;
+        },
+);
+</pre></div>
+</div>
+<p>postinstall are shell scripts and called via system command.
+swupdate scans for all scripts and calls them after installing the images.</p>
+</div>
 </div>
 <div class="section" id="uboot">
 <h2>uboot<a class="headerlink" href="#uboot" title="Permalink to this headline">¶</a></h2>
@@ -399,7 +447,7 @@ scope. The tag names must not be any of: <cite>version</cite>,
                         images: (
                         {
                                 filename = &quot;rootfs.ext3&quot;;
-                                device = &quot;/dev/mmcbkl0p1&quot;;
+                                device = &quot;/dev/mmcblk0p1&quot;;
                         }
                         );
 
@@ -422,6 +470,85 @@ collection: <cite>/dev/mmcblk0p1</cite> and <cite>/dev/mmcblk0p2</cite> for <cit
 <p>This feature can be used to implement a dual copy strategy by
 specifying the collection and mode explicitly.</p>
 </div>
+<div class="section" id="attribute-reference">
+<h2>Attribute reference<a class="headerlink" href="#attribute-reference" title="Permalink to this headline">¶</a></h2>
+<table border="1" class="docutils">
+<colgroup>
+<col width="17%" />
+<col width="13%" />
+<col width="69%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Name</th>
+<th class="head">Type</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>filename</td>
+<td>string</td>
+<td>filename as found in the cpio archive</td>
+</tr>
+<tr class="row-odd"><td>volume</td>
+<td>string</td>
+<td>Just if type = &#8220;ubivol&#8221;. UBI volume where image
+must be installed.</td>
+</tr>
+<tr class="row-even"><td>ubipartition</td>
+<td>string</td>
+<td>Just if type = &#8220;ubivol&#8221;. Volume to be created or
+adjusted with a new size</td>
+</tr>
+<tr class="row-odd"><td>device</td>
+<td>string</td>
+<td>devicenode as found in /dev. Usafe depends on
+handler</td>
+</tr>
+<tr class="row-even"><td>filesystem</td>
+<td>string</td>
+<td>For files: indicates the filesystem type where
+the file must be installed.</td>
+</tr>
+<tr class="row-odd"><td>path</td>
+<td>string</td>
+<td>For files: indicates the path (absolute) where the
+file must be installed.
+device, filesystem and path are then mandatory
+swupdate will install the file after mounting
+&#8220;device&#8221;, that contains &#8220;filesystem&#8221;, under &#8220;path&#8221;</td>
+</tr>
+<tr class="row-even"><td>type</td>
+<td>string</td>
+<td>string identifier for the handler, as it is set
+by the handler when it regitsters itself.
+(&#8220;ubivol&#8221;, &#8220;raw&#8221;, &#8220;rawfile&#8221;, etc.)</td>
+</tr>
+<tr class="row-odd"><td>compressed</td>
+<td>bool</td>
+<td>flag to indicate that &#8220;filename&#8221; is zlib-compressed
+and must be decompressed before beeing installed</td>
+</tr>
+<tr class="row-even"><td>installed-
+directly</td>
+<td>bool</td>
+<td>flag to indicate that image is streamed into the
+target without any temporary copy. Not all
+handlers support streaming. It is not used
+for &#8220;scripts&#8221;</td>
+</tr>
+<tr class="row-odd"><td>name</td>
+<td>string</td>
+<td>For U-Boot handler: name of the U-Boot variable to
+be set.</td>
+</tr>
+<tr class="row-even"><td>value</td>
+<td>string</td>
+<td>For U-Boot handler: value to be assigned to the
+variable</td>
+</tr>
+</tbody>
+</table>
+</div>
 </div>
 
 
@@ -438,10 +565,17 @@ specifying the collection and mode explicitly.</p>
 <li><a class="reference internal" href="#partitions-ubi-layout">partitions : UBI layout</a></li>
 <li><a class="reference internal" href="#images">images</a></li>
 <li><a class="reference internal" href="#files">Files</a></li>
-<li><a class="reference internal" href="#scripts">Scripts</a></li>
+<li><a class="reference internal" href="#scripts">Scripts</a><ul>
+<li><a class="reference internal" href="#lua">LUA</a></li>
+<li><a class="reference internal" href="#shellscript">shellscript</a></li>
+<li><a class="reference internal" href="#preinstall">preinstall</a></li>
+<li><a class="reference internal" href="#postinstall">postinstall</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#uboot">uboot</a></li>
 <li><a class="reference internal" href="#board-specific-settings">Board specific settings</a></li>
 <li><a class="reference internal" href="#software-collections-and-operation-modes">Software collections and operation modes</a></li>
+<li><a class="reference internal" href="#attribute-reference">Attribute reference</a></li>
 </ul>
 </li>
 </ul>
@@ -486,11 +620,11 @@ specifying the collection and mode explicitly.</p>
         <li class="right" >
           <a href="swupdate.html" title="swupdate: software update for embedded system"
              >previous</a> |</li>
-        <li><a href="index.html">Embedded Software Update Documentation 2014.07 documentation</a> &raquo;</li> 
+        <li><a href="index.html">Embedded Software Update Documentation 2016.- documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2013-2014, Stefano Babic.
+        &copy; Copyright 2013-2015, Stefano Babic.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
   </body>
