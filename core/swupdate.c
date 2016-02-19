@@ -96,9 +96,9 @@ static void usage(char *programname)
 		"                        downloaded completely to --image filename, then\n"
 		"                        installation will proceed as usual.\n"
 #endif
-	        " -e, --select <software>,<mode> : Select software images set and source\n"
-		" -i, --image <filename>         : Software to be installed\n"
+		" -e, --select <software>,<mode> : Select software images set and source\n"
 		"                                  Ex.: stable,main\n"
+		" -i, --image <filename>         : Software to be installed\n"
 		" -s, --server                   : run as daemon waiting from\n"
 		"                                  IPC interface.\n"
 		" -v, --verbose                  : be verbose\n"
