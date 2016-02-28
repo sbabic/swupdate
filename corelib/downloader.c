@@ -61,7 +61,7 @@ static size_t write_data(void *buffer, size_t size, size_t nmemb, void *userp)
 	return nmemb;
 }
 
-RECOVERY_STATUS download_from_url(char *image_url)
+RECOVERY_STATUS download_from_url(char *image_url, int retries)
 {
 	CURL *curl_handle;
 	CURLcode res;

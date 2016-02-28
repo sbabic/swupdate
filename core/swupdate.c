@@ -73,6 +73,7 @@ static struct option long_options[] = {
 	{"server", no_argument, NULL, 's'},
 #ifdef CONFIG_DOWNLOAD
 	{"download", required_argument, NULL, 'd'},
+	{"retries", required_argument, NULL, 'r'},
 #endif
 #ifdef CONFIG_WEBSERVER
 	{"webserver", required_argument, NULL, 'w'},
@@ -95,6 +96,8 @@ static void usage(char *programname)
 		" -d, --download <url> : URL of image to be downloaded. Image will be\n"
 		"                        downloaded completely to --image filename, then\n"
 		"                        installation will proceed as usual.\n"
+		" -r, --retries        : number of retries (resumed download) if\n"
+		"			 connection is broken (0 means undefinetly retries)\n"
 #endif
 		" -e, --select <software>,<mode> : Select software images set and source\n"
 		"                                  Ex.: stable,main\n"
@@ -317,6 +320,7 @@ int main(int argc, char **argv)
 	struct hw_type hwrev;
 	char image_url[MAX_URL];
 	int opt_d = 0;
+	int opt_r = 3;
 	RECOVERY_STATUS result;
 
 #ifdef CONFIG_WEBSERVER
@@ -333,6 +337,7 @@ int main(int argc, char **argv)
 #endif
 #ifdef CONFIG_DOWNLOAD
 	strcat(main_options, "d:");
+	strcat(main_options, "r:");
 #endif
 #ifdef CONFIG_WEBSERVER
 	strcat(main_options, "w:");
@@ -371,6 +376,15 @@ int main(int argc, char **argv)
 		case 'd':
 			strncpy(image_url, optarg, sizeof(image_url));
 			opt_d = 1;
+			break;
+		case 'r':
+			errno = 0;
+			opt_r = strtoul(optarg, NULL, 10);
+			if (errno) {
+				printf("Wrong number of retries, check your value again !\n");
+				usage(argv[0]);
+				exit(1);
+			}
 			break;
 #endif
 		case 's': /* run as server */
@@ -419,7 +433,7 @@ int main(int argc, char **argv)
 	}
 
 	if (opt_d) {
-		result =download_from_url(image_url);
+		result = download_from_url(image_url, opt_r);
 		if (result == SUCCESS)
 			exit(0);
 		else
