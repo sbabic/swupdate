@@ -38,6 +38,11 @@
 
 static int cnt = 0;
 
+/*
+ * Callback from the libcurl API
+ * It is called any time a chunk of data is received
+ * to transfer it via IPC to the installer
+ */
 static size_t write_data(void *buffer, size_t size, size_t nmemb, void *userp)
 {
 	int ret;
@@ -61,18 +66,58 @@ static size_t write_data(void *buffer, size_t size, size_t nmemb, void *userp)
 	return nmemb;
 }
 
+/* Minimum bytes/sec, else connection is broken */
+#define DL_LOWSPEED_BYTES	8
+/* Number of seconds while below low speed limit before aborting */
+#define DL_LOWSPEED_TIME	300
+
+/*
+ * libcurl options (see easy interface in libcurl documentation)
+ * are grouped together into this function
+ */
+static void set_option_common(CURL *curl_handle)
+{
+	int ret;
+
+	curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "swupdate");
+	curl_easy_setopt(curl_handle, CURLOPT_NOPROGRESS, 1L);
+
+	curl_easy_setopt(curl_handle, CURLOPT_LOW_SPEED_LIMIT, DL_LOWSPEED_BYTES);
+	curl_easy_setopt(curl_handle, CURLOPT_LOW_SPEED_TIME, DL_LOWSPEED_TIME);
+
+	/* enable TCP keep-alive for this transfer */
+	ret = curl_easy_setopt(curl_handle, CURLOPT_TCP_KEEPALIVE, 1L);
+	if (ret == CURLE_UNKNOWN_OPTION) {
+		TRACE("No keep alive (unsupported in curl)");
+		return;
+	}
+
+	/* keep-alive idle time to 240 seconds */
+	curl_easy_setopt(curl_handle, CURLOPT_TCP_KEEPIDLE, 240L);
+
+	/* interval time between keep-alive probes: 120 seconds */
+	curl_easy_setopt(curl_handle, CURLOPT_TCP_KEEPINTVL, 120L);
+}
+
+/*
+ * This provide a pull from an external server
+ * It si not thought to work with local (file://)
+ * for that, the -i option is used.
+ */
 RECOVERY_STATUS download_from_url(char *image_url, int retries)
 {
 	CURL *curl_handle;
-	CURLcode res;
+	CURLcode res = CURLE_GOT_NOTHING;
 	int fd;
 	int attempt = 3;
 	int result;
+	double dummy;
+	unsigned long long dwlbytes = 0;
+	int i;
 
 	if (!strlen(image_url)) {
 		ERROR("Image URL not provided... aborting download and update\n");
-		printf("EXITING\n");
-		exit(1);
+		return FAILURE;
 	}
 
 	/*
@@ -88,34 +133,68 @@ RECOVERY_STATUS download_from_url(char *image_url, int retries)
 
 	if (fd < 0) {
 		ERROR("Error getting IPC: %s\n", strerror(errno));
-		return -EBUSY;
+		return FAILURE;
 	}
 	errno = 0;
 
+	/* We are starting a download */
 	notify(DOWNLOAD, 0, 0);
 
 	curl_global_init(CURL_GLOBAL_ALL);
 	curl_handle = curl_easy_init();
-
-	/* Write all data to the image file */
-	curl_easy_setopt(curl_handle, CURLOPT_URL, image_url);
-	curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, write_data);
-	curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, &fd);
-	curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "swupdate");
-	curl_easy_setopt(curl_handle, CURLOPT_NOPROGRESS, 1L);
-
-	TRACE("Image download started");
-
-	/* TODO: Convert this to a streaming download at some point such
-	 * that the file doesn't need to be downloaded completely before
-	 * unpacking it for updating. See stream_interface for example. */
-	if ((res = curl_easy_perform(curl_handle)) != CURLE_OK) {
-		ERROR("Failed to download image: %s, exiting!\n",
-				curl_easy_strerror(res));
-		return -1;
+	if (!curl_handle) {
+		/* something very bad, it should never happen */
+		ERROR("FAULT: no handle from libcurl");
+		return FAILURE;
 	}
 
-	TRACE("Image download completed");
+	/* Set URL */
+	if (curl_easy_setopt(curl_handle, CURLOPT_URL, image_url) != CURLE_OK) {
+		TRACE("Runs out of memory: serious internal error");
+		return FAILURE;
+	}
+
+	curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, write_data);
+	curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, &fd);
+	set_option_common(curl_handle);
+
+	TRACE("Image download started : %s", image_url);
+
+	for (i = 0; (res != CURLE_OK); i++) {
+		/* if resume, set the offset */
+		if (i) {
+			TRACE("Connection with server interrupted, try RESUME after %llu",
+					dwlbytes);
+			if (curl_easy_setopt(curl_handle,CURLOPT_RESUME_FROM_LARGE,
+					dwlbytes) != CURLE_OK) {
+				TRACE("CURLOPT_RESUME_FROM_LARGE not implemented");
+				break;
+			}
+
+			/* Let some time before tries */
+			sleep(20);
+		}
+		res = curl_easy_perform(curl_handle);
+
+		/* if size cannot be determined, exit because no resume is possible */
+		if (curl_easy_getinfo(curl_handle,
+				      CURLINFO_SIZE_DOWNLOAD,
+				      &dummy) != CURLE_OK)
+			break;
+
+		dwlbytes += dummy;
+
+		/* Check if max attempts is reached */
+		if (retries && (i > retries))
+			break;
+
+	}
+
+	if (res == CURLE_OK) {
+		TRACE("Image download completed %s : %llu bytes", image_url, dwlbytes);
+	} else {
+		ERROR("Image not downloaded: %s", curl_easy_strerror(res));
+	}
 
 	curl_easy_cleanup(curl_handle);
 	curl_global_cleanup();
