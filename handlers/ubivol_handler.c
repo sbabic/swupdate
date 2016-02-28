@@ -104,7 +104,7 @@ static int update_volume(libubi_t libubi, int fdsw, struct img_type *img,
 		img->fname, node, img->volname);
 	notify(RUN, RECOVERY_NO_ERROR, sbuf);
 
-	printf("Updating UBI : %s %lld %lu\n",
+	TRACE("Updating UBI : %s %lld %lu\n",
 			img->fname, img->size, offset);
 	if (copyfile(fdsw, fdout, img->size, (unsigned long *)&img->offset, 0,
 		img->compressed, &checksum) < 0) {
