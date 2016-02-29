@@ -1,8 +1,8 @@
 =============================================
-Project's roadmap
+Project's road-map
 =============================================
 
-swupdate's roadmap
+swupdate's road-map
 ==================
 
 Main goal
@@ -21,7 +21,7 @@ are coming from a verified source. Any image originally built
 according to the rules in the documentation is accepted.
 
 However, there is some draft for using signed images. This will
-guarantee that only images from an autenticated source (that is
+guarantee that only images from an authenticated source (that is
 the manufacturer of the product) can be installed on the target.
 
 Handlers desired
@@ -30,7 +30,7 @@ Handlers desired
 Surely the implemented handlers cover the majority of cases. Anyway,
 new methods can be considered, and new handlers can be added to mainline
 to support special ways. For example, downloading an image to a separate
-microprocessor/microcontroller, downloading a bitstream to a FPGA,
+microprocessor/micro-controller, downloading a bit-stream to a FPGA,
 and so on.
 
 Handlers installable as plugin at runtime

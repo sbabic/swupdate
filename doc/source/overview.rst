@@ -17,7 +17,7 @@ the following elements:
 - other file systems, mounted at a later point
 - customer data, in raw format or on a file system
 - application specific software. For example, firmware
-  to be downloaded on connected microcontrollers, and so on.
+  to be downloaded on connected micro-controllers, and so on.
 
 Generally speaking, in most cases it is required to update
 kernel and root file system, preserving user data - but cases vary.
@@ -39,7 +39,7 @@ Updating through the boot loader
 Boot loaders do much more as simply start the kernel.
 They have their own shell and can be managed using
 a processor's peripheral, in most cases a serial line.
-They are often scriptable, letting possible to implement
+They are often script-able, letting possible to implement
 some kind of software update mechanism.
 
 However, I found some drawbacks in this approach, that
@@ -98,7 +98,7 @@ Boot loader's update advantages
 However, this approach has some advantages, too:
 
 - software for update is generally simpler.
-- smaller footprint: a standalone application only for software management requires an own kernel and a root file system.
+- smaller footprint: a stand-alone application only for software management requires an own kernel and a root file system.
   Even if their size can be trimmed dropping what is not required
   for updating the software, their size is not negligible.
 
@@ -152,7 +152,7 @@ scripts, and so on.
 Different strategies can be used, depending on the system's
 resources. I am listing some of them.
 
-Double copy with fallback
+Double copy with fall-back
 -------------------------
 
 If there is enough space on the storage to save
@@ -199,7 +199,7 @@ The software upgrade application consists of kernel (maybe reduced
 dropping not required drivers) and a small root file system, with the application
 and its libraries. The whole size is much less than a single copy of
 the system software. Depending on set up, I get sizes from 2.5 until 8 MB
-for the standalone root file system. If the size is very important on small
+for the stand-alone root file system. If the size is very important on small
 systems, it becomes negligible on systems with a lot of storage
 or big NANDs.
 
@@ -215,7 +215,7 @@ double-copy strategy, the systems must reboot to put itself in
 update mode.
 
 This concept consumes less space in storage as having two copies, but
-it does not guarantee a fallback without updating again the software.
+it does not guarantee a fall-back without updating again the software.
 However, it can be guaranteed that
 the system goes automatically in upgrade mode when the productivity
 software is not found or corrupted, as well as when the upgrade process
@@ -226,7 +226,7 @@ is interrupted for some reason.
 
 In fact, it is possible to consider
 the upgrade procedure as a transaction, and only after the successful
-upgrade the new software is set as "bootable". With these considerations,
+upgrade the new software is set as "boot-able". With these considerations,
 an upgrade with this strategy is safe: it is always guaranteed that the
 system boots and it is ready to get a new software, if the old one
 is corrupted or cannot run.
@@ -325,7 +325,7 @@ In my experience, most targets do not allow to update the boot loader. It
 is very uncommon that the boot loader must be updated when the product
 is ready for production.
 
-It is different is if the U-Boot environment mus be updated, that is a
+It is different is if the U-Boot environment must be updated, that is a
 common practice. U-Boot provides a double copy of the whole environment,
 and updating the environment from swupdate is power-off safe. Other boot loaders
 can or cannot have this feature.

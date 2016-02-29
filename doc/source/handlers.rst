@@ -8,11 +8,11 @@ Overview
 It is quite difficult to foresee all possible installation cases.
 Instead of trying to find all use cases, swupdate let the
 developer free to add his own installer (that is, a new **handler**),
-that must be responsibleto install an image of a certain type.
+that must be responsible to install an image of a certain type.
 An image is marked to be of a defined type to be installed with
 a specific handler.
 
-The parser make the connection between 'image type' nad 'handler'.
+The parser make the connection between 'image type' and 'handler'.
 It fills a table containing the list of images to be installed
 with the required handler to execute the installation. Each image
 can have a different installer.
@@ -83,7 +83,7 @@ the system. Two volumes with the same names are not supported
 and drives to unpredictable results. swupdate will install
 an image to the first volume that matches with the name, and this
 maybe is not the desired behavior.
-Updating volumes, it is guaranted that the erase counters are
+Updating volumes, it is guaranteed that the erase counters are
 preserved and not lost after an update. The way for updating
 is identical to the "ubiupdatevol" from the mtd-utils. In fact,
 the same library from mtd-utils (libubi) is reused by swupdate.
