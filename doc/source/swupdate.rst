@@ -332,6 +332,12 @@ There are only a few libraries that are required to compile swupdate.
 - LUA: liblua and the development headers.
 - libz, libcrypto are always linked.
 - libconfig: it is used by the default parser.
+- libarchive (optional) for archive handler
+- libjson (optional) for JSON parser
+
+New handlers can add some other libraries to the requirement list -
+check if you need all handlers in case you get build errors,
+and drop what you do not need.
 
 Building with Yocto
 -------------------
@@ -386,7 +392,10 @@ Building
 The result is the binary "swupdate".
 
 Running swupdate
------------------
+================
+
+What is expected from a swupdate run
+------------------------------------
 
 A run of swupdate consists mainly of the following steps:
 
@@ -472,6 +481,49 @@ named `stable`, with `alt` installation location, `swupdate` can be
 called like this::
 
    swupdate --select stable,alt
+
+Command line parameters
+-----------------------
+
++-------------+----------+--------------------------------------------+
+|  Parameter  | Type     | Description                                |
++=============+==========+============================================+
+| -b <string> | string   | Active only if CONFIG_MTD is set           |
+|             |          | It allows to blacklist MTDs when swupdate  |
+|             |          | searches for UBI volumes.                  |
+|             |          | Example: U-Boot and environment in MTD0-1: |
+|             |          |      -b "0 1"                              |
++-------------+----------+--------------------------------------------+
+| -d <URL>    | string   | Active only if CONFIG_DOWNLOAD is set      |
+|             |          | This is the URL where new software is      |
+|             |          | pulled. URL is a link to a valid .swu image|
++-------------+----------+--------------------------------------------+
+| -r <retries>| integer  | Active only if CONFIG_DOWNLOAD is set      |
+|             |          | Number of retries before a download is     |
+|             |          | considered broken. With "-r 0", swupdate   |
+|             |          | will not stop until a valid software is    |
+|             |          | loaded.                                    |
++-------------+----------+--------------------------------------------+
+| -e <sel>    | string   | sel is in the format <software>,<mode>     |
+|             |          | It allows to find a subset of rules in     |
+|             |          | the sw-description file. With it,          |
+|             |          | multiple rules are allowed.                |
+|             |          | One common usage is in case of the dual    |
+|             |          | copy approach. Example:                    |
+|             |          | -e "stable, copy1"  ==> install on copy1   |
+|             |          | -e "stable, copy2"  ==> install on copy2   |
++-------------+----------+--------------------------------------------+
+| -h          |    -     | run usage with help                        |
++-------------+----------+--------------------------------------------+
+| -s          |    -     | run swupdate in daemon mode                |
++-------------+----------+--------------------------------------------+
+| -i <file>   | string   | run swupdate with a local .swu file        |
++-------------+----------+--------------------------------------------+
+| -v          |    -     | activate verbose output                    |
++-------------+----------+--------------------------------------------+
+| -w <parms>  | string   | start internal webserver and pass to it    |
+|             |          | a command line string.                     |
++-------------+----------+--------------------------------------------+
 
 
 Changes in bootloader code
