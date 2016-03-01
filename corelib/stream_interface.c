@@ -21,6 +21,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <unistd.h>
 #include <string.h>
 #include <getopt.h>
@@ -82,6 +83,34 @@ enum {
 	INSTALL_FROM_STREAM
 };
 
+static int isImageInstalled(struct swver *sw_ver_list,
+				struct img_type *img)
+{
+	struct sw_version *swver;
+
+	if (!sw_ver_list)
+		return false;
+
+	if (!strlen(img->id.name) || !strlen(img->id.version) ||
+		!img->id.install_if_different)
+		return false;
+
+	LIST_FOREACH(swver, sw_ver_list, next) {
+		/*
+		 * Check if name and version are identical
+		 */
+		if (!strncmp(img->id.name, swver->name, sizeof(img->id.name)) &&
+		    !strncmp(img->id.version, swver->version, sizeof(img->id.version))) {
+			TRACE("%s(%s) already installed, skipping...",
+				img->id.name,
+				img->id.version);
+			return true;
+		}
+	}
+
+	return false;
+}
+
 /*
  * function returns:
  * 0 = do not skip the file, it must be installed
@@ -90,6 +119,7 @@ enum {
  * -1= error found
  */
 static int check_if_required(struct imglist *list, struct filehdr *pfdh,
+				struct swver *sw_ver_list,
 				struct img_type **pimg)
 {
 	int skip = SKIP_FILE;
@@ -102,6 +132,20 @@ static int check_if_required(struct imglist *list, struct filehdr *pfdh,
 
 	LIST_FOREACH(img, list, next) {
 		if (strcmp(pfdh->filename, img->fname) == 0) {
+
+			/*
+			 * Check the version. If this artifact is
+			 * installed in the same version on the system,
+			 * skip it
+			 */
+			if (isImageInstalled(sw_ver_list, img)) {
+				/*
+				 *  drop this from the list of images to be installed
+				 */
+				LIST_REMOVE(img, next);
+				return SKIP_FILE;
+			}
+
 			skip = COPY_FILE;
 			img->provided = 1;
 			img->size = (unsigned int)pfdh->size;
@@ -202,9 +246,17 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 				break;
 			}
 
-			skip = check_if_required(&software->images, &fdh, &img);
+			skip = check_if_required(&software->images, &fdh,
+						&software->installed_sw_list,
+						&img);
 			if (skip == SKIP_FILE) {
-				skip = check_if_required(&software->scripts, &fdh, &img);
+				/*
+				 *  Check for script, but scripts are not checked
+				 *  for version
+				 */
+				skip = check_if_required(&software->scripts, &fdh,
+								NULL,
+								&img);
 			}
 			TRACE("Found file:\n\tfilename %s\n\tsize %d %s",
 				fdh.filename,

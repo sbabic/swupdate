@@ -33,7 +33,18 @@ typedef enum {
 	SCRIPT
 } imagetype_t;
 
+struct sw_version {
+	char name[SWUPDATE_GENERAL_STRING_SIZE];
+	char version[SWUPDATE_GENERAL_STRING_SIZE];
+	int install_if_different;
+	LIST_ENTRY(sw_version) next;
+};
+
+LIST_HEAD(swver, sw_version);
+
+
 struct img_type {
+	struct sw_version id;
 	char type[SWUPDATE_GENERAL_STRING_SIZE];
 	char fname[MAX_IMAGE_FNAME];
 	char volname[MAX_VOLNAME];
@@ -86,6 +97,7 @@ struct swupdate_cfg {
 	char software_set[SWUPDATE_GENERAL_STRING_SIZE];
 	char running_mode[SWUPDATE_GENERAL_STRING_SIZE];
 	struct hwlist hardware;
+	struct swver installed_sw_list;
 	struct imglist images;
 	struct imglist partitions;
 	struct imglist scripts;

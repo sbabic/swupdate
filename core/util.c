@@ -186,6 +186,69 @@ int get_hw_revision(struct hw_type *hw)
 }
 
 /*
+ * Read versions of components from a file, if provided
+ * This is used to check for version mismatch and avoid
+ * to reinstall a component that is already installed
+ */
+#ifdef CONFIG_SW_VERSIONS_FILE
+#define SW_VERSIONS_FILE CONFIG_SW_VERSIONS_FILE
+#else
+#define SW_VERSIONS_FILE "/etc/sw-versions"
+#endif
+void get_sw_versions(struct swupdate_cfg *sw)
+{
+	FILE *fp;
+	int ret;
+	char *name, *version;
+	struct sw_version *swcomp;
+
+	/*
+	 * scan all entries inside SW_VERSIONS_FILE
+	 * and generate a list
+	 */
+
+	fp = fopen(SW_VERSIONS_FILE, "r");
+	if (!fp)
+		return;
+
+	while (1) {
+		ret = fscanf(fp, "%ms %ms", &name, &version);
+		/* pair component / version found */
+		if (ret == 2) {
+			swcomp = (struct sw_version *)calloc(1, sizeof(struct sw_version));
+			if (!swcomp) {
+				ERROR("Allocation error");
+				return;
+			}
+			strncpy(swcomp->name, name, sizeof(swcomp->name));
+			strncpy(swcomp->version, version, sizeof(swcomp->version));
+			LIST_INSERT_HEAD(&sw->installed_sw_list, swcomp, next);
+			TRACE("Installed %s: Version %s",
+					swcomp->name,
+					swcomp->version);
+			free(name);
+			free(version);
+		} else {
+			if (ret == EOF)
+				break;
+			if (errno) {
+				ERROR("Malformed sw-versions file, skipped !");
+				break;
+			}
+
+			/*
+			 * Malformed file, skip the line
+			 * and check next
+			 */
+			if (ret == 1)
+				free(name);
+		}
+	}
+	fclose(fp);
+}
+
+
+/*
  * The HW revision of the board *MUST* be inserted
  * in the sw-description file
  */

@@ -120,5 +120,6 @@ char **splitargs(char *args, int *argc);
 void freeargs (char **argv);
 int isDirectoryEmpty(const char *dirname);
 int get_hw_revision(struct hw_type *hw);
+void get_sw_versions(struct swupdate_cfg *sw);
 int check_hw_compatibility(struct swupdate_cfg *cfg);
 #endif

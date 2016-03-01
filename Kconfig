@@ -82,6 +82,26 @@ config HW_COMPATIBILITY_FILE
 	  The file has simple entries (one per line) in the
 	  format of "major.minor".
 
+config SW_VERSIONS_FILE
+	string "File with detected software version"
+	default "/etc/sw-versions"
+	help
+	  This is an optional file that is scanned at the
+	  beginning to read the installed versions of
+	  all sw-components. Each entry in the file is a
+	  a pair of "name version".
+	  In sw-description,  an image can have the
+	  optional attributes:
+		"name" : key for searching in SW_VERSIONS_FILE
+		"version" : version contained in the .swu
+		"install-if-different" : if set, version
+	  		is compared with the one in SW_VERSIONS_FILE.
+	  The image is installed only if there is a version mismatch.
+	  This lets reduce risks in case of components that are not
+	  safe to be updated, such as the bootloader. Updating it is a risk,
+	  but in some cases it can be required to do it. Having a check,
+	  the risky-component is not always updated.
+
 config MTD
 	bool "MTD support"
 	default y

@@ -422,6 +422,9 @@ int main(int argc, char **argv)
 			swcfg.software_set, swcfg.running_mode);
 	}
 
+	/* Read sw-versions */
+	get_sw_versions(&swcfg);
+
 	network_daemon = start_thread(network_initializer, &swcfg);
 
 	if (opt_i) {

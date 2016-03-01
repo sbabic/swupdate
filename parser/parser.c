@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015
+ * (C) Copyright 2015-2016
  * Stefano Babic, DENX Software Engineering, sbabic@denx.de.
  *
  * This program is free software; you can redistribute it and/or
@@ -567,6 +567,8 @@ static void parse_images(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 			return;
 		}
 
+		GET_FIELD_STRING(p, elem, "name", image->id.name);
+		GET_FIELD_STRING(p, elem, "version", image->id.version);
 		GET_FIELD_STRING(p, elem, "filename", image->fname);
 		GET_FIELD_STRING(p, elem, "volume", image->volname);
 		GET_FIELD_STRING(p, elem, "device", image->device);
@@ -582,14 +584,19 @@ static void parse_images(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 
 		get_field(p, elem, "compressed", &image->compressed);
 		get_field(p, elem, "installed-directly", &image->install_directly);
+		get_field(p, elem, "install-if-different", &image->id.install_if_different);
 
-		TRACE("Found %sImage: %s in %s : %s for handler %s%s\n",
+		TRACE("Found %sImage %s %s: %s in %s : %s for handler %s%s %s\n",
 			image->compressed ? "compressed " : "",
+			image->id.name,
+			image->id.version,
 			image->fname,
 			strlen(image->volname) ? "volume" : "device",
 			strlen(image->volname) ? image->volname : image->device,
 			strlen(image->type) ? image->type : "NOT FOUND",
-			image->install_directly ? "(installed from stream)" : ""
+			image->install_directly ? "(installed from stream)" : "",
+			(strlen(image->id.name) && image->id.install_if_different) ?
+					"Version must be checked" : ""
 			);
 
 		LIST_INSERT_HEAD(&swcfg->images, image, next);
@@ -623,6 +630,8 @@ static void parse_files(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 			return;
 		}
 
+		GET_FIELD_STRING(p, elem, "name", file->id.name);
+		GET_FIELD_STRING(p, elem, "version", file->id.version);
 		GET_FIELD_STRING(p, elem, "filename", file->fname);
 		GET_FIELD_STRING(p, elem, "path", file->path);
 		GET_FIELD_STRING(p, elem, "device", file->device);
@@ -633,11 +642,16 @@ static void parse_files(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 		}
 		get_field(p, elem, "compressed", &file->compressed);
 		get_field(p, elem, "installed-directly", &file->install_directly);
-		TRACE("Found %sFile: %s --> %s (%s)\n",
+		get_field(p, elem, "install-if-different", &file->id.install_if_different);
+		TRACE("Found %sFile %s %s: %s --> %s (%s) %s\n",
 			file->compressed ? "compressed " : "",
+			file->id.name,
+			file->id.version,
 			file->fname,
 			file->path,
-			strlen(file->device) ? file->device : "ROOTFS");
+			strlen(file->device) ? file->device : "ROOTFS",
+			(strlen(file->id.name) && file->id.install_if_different) ?
+					"Version must be checked" : "");
 
 		LIST_INSERT_HEAD(&swcfg->images, file, next);
 	}
