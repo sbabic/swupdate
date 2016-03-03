@@ -20,6 +20,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <unistd.h>
 #include <string.h>
@@ -42,6 +43,98 @@
 #include "cpiohdr.h"
 #include "parsers.h"
 #include "fw_env.h"
+
+static int isImageInstalled(struct swver *sw_ver_list,
+				struct img_type *img)
+{
+	struct sw_version *swver;
+
+	if (!sw_ver_list)
+		return false;
+
+	if (!strlen(img->id.name) || !strlen(img->id.version) ||
+		!img->id.install_if_different)
+		return false;
+
+	LIST_FOREACH(swver, sw_ver_list, next) {
+		/*
+		 * Check if name and version are identical
+		 */
+		if (!strncmp(img->id.name, swver->name, sizeof(img->id.name)) &&
+		    !strncmp(img->id.version, swver->version, sizeof(img->id.version))) {
+			TRACE("%s(%s) already installed, skipping...",
+				img->id.name,
+				img->id.version);
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/*
+ * function returns:
+ * 0 = do not skip the file, it must be installed
+ * 1 = skip the file
+ * 2 = install directly (stream to the handler)
+ * -1= error found
+ */
+int check_if_required(struct imglist *list, struct filehdr *pfdh,
+				struct swver *sw_ver_list,
+				struct img_type **pimg)
+{
+	int skip = SKIP_FILE;
+	struct img_type *img;
+
+	/*
+	 * Check that not more as one image wnat to be streamed
+	 */
+	int install_direct = 0;
+
+	LIST_FOREACH(img, list, next) {
+		if (strcmp(pfdh->filename, img->fname) == 0) {
+
+			/*
+			 * Check the version. If this artifact is
+			 * installed in the same version on the system,
+			 * skip it
+			 */
+			if (isImageInstalled(sw_ver_list, img)) {
+				/*
+				 *  drop this from the list of images to be installed
+				 */
+				LIST_REMOVE(img, next);
+				return SKIP_FILE;
+			}
+
+			skip = COPY_FILE;
+			img->provided = 1;
+			img->size = (unsigned int)pfdh->size;
+
+			snprintf(img->extract_file, sizeof(img->extract_file),
+					"%s%s", TMPDIR, pfdh->filename);
+			/*
+			 *  Streaming is possible to only one handler
+			 *  If more img requires the same file,
+			 *  sw-description contains an error
+			 */
+			if (install_direct) {
+				ERROR("sw-description: stream to several handlers unsupported\n");
+				return -EINVAL;
+			}
+
+			if (img->install_directly) {
+				skip = INSTALL_FROM_STREAM;
+				install_direct++;
+			}
+
+			*pimg = img;
+		}
+	}
+
+	return skip;
+}
+
 
 /*
  * Extract all scripts from a list from the image

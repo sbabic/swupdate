@@ -33,6 +33,18 @@ typedef enum {
 	SCRIPT
 } imagetype_t;
 
+/*
+ * this is used to indicate if a file
+ * in the .swu image is required for the
+ * device, or can be skipped
+ */
+enum {
+	COPY_FILE,
+	SKIP_FILE,
+	INSTALL_FROM_STREAM
+};
+
+
 struct sw_version {
 	char name[SWUPDATE_GENERAL_STRING_SIZE];
 	char version[SWUPDATE_GENERAL_STRING_SIZE];
