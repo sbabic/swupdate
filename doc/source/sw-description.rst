@@ -491,48 +491,115 @@ collection: `/dev/mmcblk0p1` and `/dev/mmcblk0p2` for `main` mode and
 This feature can be used to implement a dual copy strategy by
 specifying the collection and mode explicitly.
 
+Checking version of installed software
+--------------------------------------
+
+swupdate can optionally verify if a sub-image is already installed
+and, if the version to be installed is exactly the same, it can skip
+to install it. This is very useful in case some high risky image should
+be installed or to speed up the upgrade process.
+One case is if the bootloader needs to be updated. In most time, there
+is no need to upgrade the bootloader, but practice showed that there are
+some cases where an upgrade is strictly required - the project manager
+should take the risk. However, it is nicer to have always the bootloader image
+as part of the .swu file, allowing to get the whole distro for the
+device in a single file, but the device should install it just when needed.
+
+swupdate searches for a file (/etc/sw-versions is the default location)
+containing all versions of the installed images. This must be generated
+before running swupdate.
+The file must contains pairs with the name of image and his version, as:
+
+::
+
+	<name of component>	<version>
+
+Version is a string and can have any value. For example:
+
+::
+        bootloader              2015.01-rc3-00456-gd4978d
+        kernel                  3.17.0-00215-g2e876af
+
+In sw-description, the optional attributes "name", "version" and
+"check-if-different" provide the connection. Name and version are then
+compared with the data in the versions file. check-if-different is a
+boolean that enables the check for this image. It is then possible to
+check the version just for a subset of the images to be installed.
+
 Attribute reference
 -------------------
 
-+-------------+----------+----------------------------------------------------+
-|  Name       |  Type    |  Description                                       |
-+=============+==========+====================================================+
-| filename    | string   | filename as found in the cpio archive              |
-+-------------+----------+----------------------------------------------------+
-| volume      | string   | Just if type = "ubivol". UBI volume where image    |
-|             |          | must be installed.                                 |
-+-------------+----------+----------------------------------------------------+
-| ubipartition| string   | Just if type = "ubivol". Volume to be created or   |
-|             |          | adjusted with a new size                           |
-+-------------+----------+----------------------------------------------------+
-| device      | string   | devicenode as found in /dev. Usafe depends on      |
-|             |          | handler                                            |
-+-------------+----------+----------------------------------------------------+
-| filesystem  | string   | For files: indicates the filesystem type where     |
-|             |          | the file must be installed.                        |
-+-------------+----------+----------------------------------------------------+
-| path        | string   | For files: indicates the path (absolute) where the |
-|             |          | file must be installed.                            |
-|             |          | device, filesystem and path are then mandatory     |
-|             |          | swupdate will install the file after mounting      |
-|             |          | "device", that contains "filesystem", under "path" |
-+-------------+----------+----------------------------------------------------+
-| type        | string   | string identifier for the handler, as it is set    |
-|             |          | by the handler when it regitsters itself.          |
-|             |          | ("ubivol", "raw", "rawfile", etc.)                 |
-+-------------+----------+----------------------------------------------------+
-| compressed  | bool     | flag to indicate that "filename" is zlib-compressed|
-|             |          | and must be decompressed before beeing installed   |
-+-------------+----------+----------------------------------------------------+
-| installed-  | bool     | flag to indicate that image is streamed into the   |
-| directly    |          | target without any temporary copy. Not all         |
-|             |          | handlers support streaming. It is not used         |
-|             |          | for "scripts"                                      |
-+-------------+----------+----------------------------------------------------+
-| name        | string   | For U-Boot handler: name of the U-Boot variable to |
-|             |          | be set.                                            |
-+-------------+----------+----------------------------------------------------+
-| value       | string   | For U-Boot handler: value to be assigned to the    |
-|             |          | variable                                           |
-+-------------+----------+----------------------------------------------------+
+There are 4 main sections inside sw-description:
 
+- images: entries are images and swupdate has no knowledge
+  about them.
+- files: entries are files, and swupdate needs a filesystem for them.
+  This is generally used to expand from a tar-ball or to update
+  single files.
+- scripts: all entries are treated as executables, and they will
+  be run twice (as pre- and post- install scripts).
+- uboot: entries are pair with U-Boot variable name and its value.
+
++-------------+----------+------------+---------------------------------------+
+|  Name       |  Type    | Applies to |  Description                          |
++=============+==========+============+=======================================+
+| filename    | string   | images     |  filename as found in the cpio archive|
+|             |          | files      |                                       |
+|             |          | scripts    |                                       |
++-------------+----------+------------+---------------------------------------+
+| volume      | string   | images     | Just if type = "ubivol". UBI volume   |
+|             |          |            | where image must be installed.        |
++-------------+----------+------------+---------------------------------------+
+| ubipartition| string   | images     | Just if type = "ubivol". Volume to be |
+|             |          |            | created or adjusted with a new size   |
++-------------+----------+------------+---------------------------------------+
+| device      | string   | images     | devicenode as found in /dev. Usage    |
+|             |          | files      | depends on handler                    |
+|             |          |            | For files, it indicates on which      |
+|             |          |            | device the "filesystem" must be       |
+|             |          |            | mounted.                              |
++-------------+----------+------------+---------------------------------------+
+| filesystem  | string   | files      | indicates the filesystem type where   |
+|             |          |            | the file must be installed.           |
++-------------+----------+------------+---------------------------------------+
+| path        | string   | files      | For files: indicates the path         |
+|             |          |            | (absolute) where the file must be     |
+|             |          |            | installed. Device, filesystem and path|
+|             |          |            | are then mandatory.                   |
+|             |          |            | swupdate will install the file after  |
+|             |          |            | mounting "device", that contains      |
+|             |          |            | "filesystem", under "path"            |
++-------------+----------+------------+---------------------------------------+
+| type        | string   | images     | string identifier for the handler,    |
+|             |          | files      | as it is set by the handler when it   |
+|             |          | scripts    | regitsters itself.                    |
+|             |          |            | Example: "ubivol", "raw", "rawfile",  |
++-------------+----------+------------+---------------------------------------+
+| compressed  | bool     | images     | flag to indicate that "filename" is   |
+|             |          | files      | zlib-compressed and must be           |
+|             |          |            | decompressed before beeing installed  |
++-------------+----------+------------+---------------------------------------+
+| installed-  | bool     | images     | flag to indicate that image is        |
+|  directly   |          |            | streamed into the target without any  |
+|             |          |            | temporary copy. Not all handlers      |
+|             |          |            | support streaming.                    |
++-------------+----------+------------+---------------------------------------+
+| name        | string   | uboot      | name of the U-Boot variable to be set.|
++-------------+----------+------------+---------------------------------------+
+| value       | string   | uboot      | value to be assigned to the U-Boot    |
+|             |          |            | variable                              |
++-------------+----------+------------+---------------------------------------+
+| name        | string   | images     | name that identifies the sw-component |
+|             |          | files      | it can be any string and it is        |
+|             |          |            | compared with the entries in          |
+|             |          |            | sw-versions                           |
++-------------+----------+------------+---------------------------------------+
+| version     | string   | images     | version for the  the sw-component     |
+|             |          | files      | it can be any string and it is        |
+|             |          |            | compared with the entries in          |
+|             |          |            | sw-versions                           |
++-------------+----------+------------+---------------------------------------+
+| check-if-   | boolean  | images     | flag                                  |
+| installed   |          | files      | if set, name and version are          |
+|             |          |            | compared with the entries in          |
++-------------+----------+------------+---------------------------------------+
