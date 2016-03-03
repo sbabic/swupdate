@@ -320,7 +320,7 @@ int main(int argc, char **argv)
 	struct hw_type hwrev;
 	char image_url[MAX_URL];
 	int opt_d = 0;
-	int opt_r = 3;
+	int __attribute__ ((__unused__)) opt_r = 3;
 	RECOVERY_STATUS result;
 
 #ifdef CONFIG_WEBSERVER
@@ -331,6 +331,7 @@ int main(int argc, char **argv)
 
 	memset(&flashdesc, 0, sizeof(flashdesc));
 	memset(main_options, 0, sizeof(main_options));
+	memset(image_url, 0, sizeof(image_url));
 	strcpy(main_options, "vhi:se:");
 #ifdef CONFIG_MTD
 	strcat(main_options, "b:");
@@ -372,7 +373,6 @@ int main(int argc, char **argv)
 			usage(argv[0]);
 			exit(0);
 			break;
-#ifdef CONFIG_DOWNLOAD
 		case 'd':
 			strncpy(image_url, optarg, sizeof(image_url));
 			opt_d = 1;
@@ -386,7 +386,6 @@ int main(int argc, char **argv)
 				exit(1);
 			}
 			break;
-#endif
 		case 's': /* run as server */
 			opt_s = 1;
 			break;
