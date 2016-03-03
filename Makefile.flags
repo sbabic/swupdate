@@ -97,7 +97,9 @@ LDLIBS += pthread
 ifneq ($(CONFIG_LUA),)
 LDLIBS += lua${CONFIG_LUAVERSION} dl m
 LDFLAGS_swupdate += -Wl,-E
-$(eval $(call pkg_check_modules, KBUILD, lua${CONFIG_LUAVERSION}))
+$(eval $(call pkg_check_modules, LUABUILD, lua${CONFIG_LUAVERSION}))
+KBUILD_CFLAGS += $(LUABUILD_CFLAGS)
+KBUILD_LIBS += $(LUABUILD_LIBS)
 endif
 
 
