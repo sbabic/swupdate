@@ -292,6 +292,13 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 			img->size = fdh.size;
 			img->checksum = fdh.chksum;
 			img->fdin = fdsw;
+
+			/*
+			 * Skip if the image in the same version is already
+			 * installed
+			 */
+			if (isImageInstalled(&sw->installed_sw_list, img))
+				continue;
 		}
 
 		ret = install_single_image(img);
