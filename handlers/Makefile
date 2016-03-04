@@ -11,6 +11,3 @@ obj-$(CONFIG_LUASCRIPTHANDLER) += lua_scripthandler.o
 obj-$(CONFIG_SHELLSCRIPTHANDLER) += shell_scripthandler.o
 obj-$(CONFIG_RAW) += raw_handler.o
 obj-$(CONFIG_UBOOT) += uboot_handler.o
-ifeq ($(CONFIG_UBOOT_LIBRARY),)
-obj-$(CONFIG_UBOOT) += fw_env.o
-endif
