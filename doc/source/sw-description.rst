@@ -517,6 +517,7 @@ The file must contains pairs with the name of image and his version, as:
 Version is a string and can have any value. For example:
 
 ::
+
         bootloader              2015.01-rc3-00456-gd4978d
         kernel                  3.17.0-00215-g2e876af
 
