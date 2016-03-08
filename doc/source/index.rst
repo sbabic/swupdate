@@ -22,6 +22,7 @@ SWUpdate Documentation
 
    swupdate.rst
    sw-description.rst
+   signed_images.rst
    handlers.rst
    swupdate-ipc.rst
 
