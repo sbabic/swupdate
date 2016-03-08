@@ -66,14 +66,14 @@ simply pressing a key (or in any way that can be recognized
 by the target), making all checks automatically. At the end,
 the updating process reports only the status to the operator
 (successful or failed).</p>
-<p>The output can be displayed on a LCD using the framebuffer
+<p>The output can be displayed on a LCD using the frame-buffer
 device or directed to a serial line (Linux console).</p>
 <p>It is generally used in the single copy approach, running in a initrd
-(receipes are provided to generate with Yocto).  However, it is
+(recipes are provided to generate with Yocto).  However, it is
 possible to use it in a double-copy approach by use of <a class="reference internal" href="#software-collections">Software
 collections</a>.</p>
 <p>If started for a remote update, swupdate starts an embedded
-Webserver and waits for requests. The operator must upload
+Web-server and waits for requests. The operator must upload
 a suitable image, that swupdate checks and then install.
 All output is notified to the operator&#8217;s browser via AJAX
 notifications.</p>
@@ -97,13 +97,13 @@ there are handlers to install images into UBI volumes,
 or to a SD card, a CFI Flash, and so on. It is then easy to
 add an own handler if a very special installer is required.</p>
 <p>For example we can think at a project with a main processor and
-one or several microcontrollers. Let&#8217;s say for simplicity that
-the main processor communicates with the microcontrollers via
-UARTS using a proprietary protocol. The software on the microcontrollers
+one or several micro-controllers. Let&#8217;s say for simplicity that
+the main processor communicates with the micro-controllers via
+UARTS using a proprietary protocol. The software on the micro-controllers
 can be updated using the proprietary protocol.</p>
 <p>It is possible to extend swupdate writing a handler, that implements
 the part of the proprietary protocol to perform the upgrade
-on the microcontroller. The parser must recognize which image must be
+on the micro-controller. The parser must recognize which image must be
 installed with the new handler, and swupdate will call the handler
 during the installation process.</p>
 </div>
@@ -264,7 +264,7 @@ tarball (tgz file) are supported.</li>
 used by Windows).</li>
 <li>support for updating a single file inside a filesystem.
 The filesystem where to put the file must be described.</li>
-<li>chechksum for the single components of an image</li>
+<li>checksum for the single components of an image</li>
 <li>use a structured language to describe the image. This is done
 using the <a class="reference external" href="http://www.hyperrealm.com/libconfig/">libconfig</a> library as default parser, that uses a
 JSON-like description.</li>
@@ -272,16 +272,16 @@ JSON-like description.</li>
 <ul class="simple">
 <li>use custom&#8217;s choice for the description of the image. It is
 possible to write an own parser using the LUA language.
-An example using a XML description in LUS is provided
+An example using a XML description in LUA is provided
 in the examples directory.</li>
 <li>Support for setting / erasing U-Boot variables</li>
 <li>Support for preinstall scripts. They run before updating the images</li>
 <li>Support for postinstall scripts. They run after updating the images.</li>
-<li>Network installer using an embedded Webserver (Mongoose Server
-was choosen, in the version under LUA license). A different
-Webserver can be used.</li>
+<li>Network installer using an embedded Web-server (Mongoose Server
+was chosen, in the version under LUA license). A different
+Web-server can be used.</li>
 <li>Multiple interfaces for getting software (local Storage,
-integrated WebServer, remote Server)</li>
+integrated Web-Server, remote Server)</li>
 <li>Can be configured to check for compatibility between software and hardware
 revisions. The software image must contain an entry declaring on which
 HW revision the software is allowed to run.
@@ -294,7 +294,7 @@ swupdate receives the software as stream without temporary storing,
 and extracts only the required components for the device
 to be installed.</li>
 <li>allow custom handlers for installing FPGA firmware,
-microcontroller firmware via custom protocols.</li>
+micro-controller firmware via custom protocols.</li>
 <li>Features are enabled / disabled using &#8220;make menuconfig&#8221;.
 (Kbuild is inherited from busybox project)</li>
 <li>Power-Off safe</li>
@@ -309,9 +309,9 @@ However, on some systems with less resources, the amount of RAM
 to copy the images could be not enough, for example if the filesystem on
 an attached SD Card must be updated. In this case, it will help if the images
 are installed directly as stream by the corresponding handler, without temporary
-copies. Not all handlers support to stream direclty into the target.
+copies. Not all handlers support to stream directly into the target.
 Streaming with zero-copy is enabled by setting the flag &#8220;installed-directly&#8221;
-in the descripütion of the single image.</p>
+in the descriptionü of the single image.</p>
 </div>
 </div>
 <div class="section" id="configuration-and-build">
@@ -328,7 +328,12 @@ MTD and UBI volumes.</li>
 <li>LUA: liblua and the development headers.</li>
 <li>libz, libcrypto are always linked.</li>
 <li>libconfig: it is used by the default parser.</li>
+<li>libarchive (optional) for archive handler</li>
+<li>libjson (optional) for JSON parser</li>
 </ul>
+<p>New handlers can add some other libraries to the requirement list -
+check if you need all handlers in case you get build errors,
+and drop what you do not need.</p>
 </div>
 <div class="section" id="building-with-yocto">
 <h3>Building with Yocto<a class="headerlink" href="#building-with-yocto" title="Permalink to this headline">¶</a></h3>
@@ -337,7 +342,7 @@ for mtd-utils and for generating LUA. Using meta-swupdate is a
 straightforward process.</p>
 <p>Firstly, clone meta-swupdate from:</p>
 <p>Add meta-swupdate as usual to your bblayers.conf.</p>
-<p>In meta-swupdate there is a receipe to generate a initrd with a
+<p>In meta-swupdate there is a recipe to generate a initrd with a
 rescue system with swupdate. Use:</p>
 <div class="highlight-python"><div class="highlight"><pre>MACHINE=&lt;your machine&gt; bitbake swupdate-image
 </pre></div>
@@ -349,7 +354,7 @@ check in the documentation of your bootloader.</p>
 <div class="section" id="configuring-swupdate">
 <h3>Configuring swupdate<a class="headerlink" href="#configuring-swupdate" title="Permalink to this headline">¶</a></h3>
 <p>swupdate is configurable via &#8220;make menuconfig&#8221;. The small footprint
-is reached using the internal parser and disabling the webserver.
+is reached using the internal parser and disabling the web-server.
 Any option has a small help describing its usage. In the default
 configuration, many options are already activated.</p>
 <p>To configure the options:</p>
@@ -370,8 +375,11 @@ make menuconfig.</li>
 </div>
 <p>The result is the binary &#8220;swupdate&#8221;.</p>
 </div>
+</div>
 <div class="section" id="running-swupdate">
-<h3>Running swupdate<a class="headerlink" href="#running-swupdate" title="Permalink to this headline">¶</a></h3>
+<h2>Running swupdate<a class="headerlink" href="#running-swupdate" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="what-is-expected-from-a-swupdate-run">
+<h3>What is expected from a swupdate run<a class="headerlink" href="#what-is-expected-from-a-swupdate-run" title="Permalink to this headline">¶</a></h3>
 <p>A run of swupdate consists mainly of the following steps:</p>
 <ul class="simple">
 <li>check for media (USB-pen)</li>
@@ -404,21 +412,21 @@ an error is reported.</p>
 <div class="highlight-python"><div class="highlight"><pre>swupdate -i &lt;filename&gt;
 </pre></div>
 </div>
-<p>To start with the embedded webserver:</p>
-<div class="highlight-python"><div class="highlight"><pre>swupdate -w &quot;&lt;webserver options&gt;&quot;
+<p>To start with the embedded web-server:</p>
+<div class="highlight-python"><div class="highlight"><pre>swupdate -w &quot;&lt;web-server options&gt;&quot;
 </pre></div>
 </div>
-<p>The main important parameter for the webserver is &#8220;document_root&#8221;.</p>
+<p>The main important parameter for the web-server is &#8220;document_root&#8221;.</p>
 <div class="highlight-python"><div class="highlight"><pre>swupdate -w &quot;-document_root ./www&quot;
 </pre></div>
 </div>
-<p>The embedded webserver is taken from the Mongoose project (last release
+<p>The embedded web-server is taken from the Mongoose project (last release
 with LUA license). Additional parameters can be found in mongoose
 documentation.
 This uses as website the pages delivered with the code. Of course,
 they can be customized and replaced. The website uses AJAX to communicate
 with swupdate, and to show the progress of the update to the operator.</p>
-<p>The default port of the Webserver is 8080. You can then connect to the target with:</p>
+<p>The default port of the Web-server is 8080. You can then connect to the target with:</p>
 <div class="highlight-python"><div class="highlight"><pre>http://&lt;target_ip&gt;:8080
 </pre></div>
 </div>
@@ -444,11 +452,94 @@ called like this:</p>
 </pre></div>
 </div>
 </div>
+<div class="section" id="command-line-parameters">
+<h3>Command line parameters<a class="headerlink" href="#command-line-parameters" title="Permalink to this headline">¶</a></h3>
+<table border="1" class="docutils">
+<colgroup>
+<col width="19%" />
+<col width="15%" />
+<col width="66%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Parameter</th>
+<th class="head">Type</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>-b &lt;string&gt;</td>
+<td>string</td>
+<td><p class="first">Active only if CONFIG_MTD is set
+It allows to blacklist MTDs when swupdate
+searches for UBI volumes.
+Example: U-Boot and environment in MTD0-1:</p>
+<blockquote class="last">
+<div>-b &#8220;0 1&#8221;</div></blockquote>
+</td>
+</tr>
+<tr class="row-odd"><td>-d &lt;URL&gt;</td>
+<td>string</td>
+<td>Active only if CONFIG_DOWNLOAD is set
+This is the URL where new software is
+pulled. URL is a link to a valid .swu image</td>
+</tr>
+<tr class="row-even"><td>-r &lt;retries&gt;</td>
+<td>integer</td>
+<td>Active only if CONFIG_DOWNLOAD is set
+Number of retries before a download is
+considered broken. With &#8220;-r 0&#8221;, swupdate
+will not stop until a valid software is
+loaded.</td>
+</tr>
+<tr class="row-odd"><td>-e &lt;sel&gt;</td>
+<td>string</td>
+<td>sel is in the format &lt;software&gt;,&lt;mode&gt;
+It allows to find a subset of rules in
+the sw-description file. With it,
+multiple rules are allowed.
+One common usage is in case of the dual
+copy approach. Example:
+-e &#8220;stable, copy1&#8221;  ==&gt; install on copy1
+-e &#8220;stable, copy2&#8221;  ==&gt; install on copy2</td>
+</tr>
+<tr class="row-even"><td>-h</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td>run usage with help</td>
+</tr>
+<tr class="row-odd"><td>-s</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td>run swupdate in daemon mode</td>
+</tr>
+<tr class="row-even"><td>-i &lt;file&gt;</td>
+<td>string</td>
+<td>run swupdate with a local .swu file</td>
+</tr>
+<tr class="row-odd"><td>-v</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td>activate verbose output</td>
+</tr>
+<tr class="row-even"><td>-w &lt;parms&gt;</td>
+<td>string</td>
+<td>start internal webserver and pass to it
+a command line string.</td>
+</tr>
+</tbody>
+</table>
 </div>
-<div class="section" id="changes-in-bootloader-code">
-<h2>Changes in bootloader code<a class="headerlink" href="#changes-in-bootloader-code" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="changes-in-boot-loader-code">
+<h2>Changes in boot-loader code<a class="headerlink" href="#changes-in-boot-loader-code" title="Permalink to this headline">¶</a></h2>
 <p>The swupdate consists of kernel and a root filesystem
-(image) that must be started by the bootloader.
+(image) that must be started by the boot-loader.
 In case using U-Boot, the following mechanism can be implemented:</p>
 <ul class="simple">
 <li>U-Boot checks if a sw update is required (check gpio, serial console, etc.).</li>
@@ -512,10 +603,14 @@ of sw-description, that must be the first one.</p>
 <li><a class="reference internal" href="#building-with-yocto">Building with Yocto</a></li>
 <li><a class="reference internal" href="#configuring-swupdate">Configuring swupdate</a></li>
 <li><a class="reference internal" href="#building">Building</a></li>
-<li><a class="reference internal" href="#running-swupdate">Running swupdate</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#changes-in-bootloader-code">Changes in bootloader code</a></li>
+<li><a class="reference internal" href="#running-swupdate">Running swupdate</a><ul>
+<li><a class="reference internal" href="#what-is-expected-from-a-swupdate-run">What is expected from a swupdate run</a></li>
+<li><a class="reference internal" href="#command-line-parameters">Command line parameters</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#changes-in-boot-loader-code">Changes in boot-loader code</a></li>
 <li><a class="reference internal" href="#building-a-single-image">Building a single image</a></li>
 </ul>
 </li>

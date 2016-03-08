@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="Embedded Software Update Documentation 2016.- documentation" href="index.html" />
     <link rel="next" title="swupdate: API for external programs" href="swupdate-ipc.html" />
-    <link rel="prev" title="swupdate: syntax and tags with the default parser" href="sw-description.html" /> 
+    <link rel="prev" title="Update images from verified source" href="signed_images.html" /> 
   </head>
   <body>
     <div class="related">
@@ -38,7 +38,7 @@
           <a href="swupdate-ipc.html" title="swupdate: API for external programs"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="sw-description.html" title="swupdate: syntax and tags with the default parser"
+          <a href="signed_images.html" title="Update images from verified source"
              accesskey="P">previous</a> |</li>
         <li><a href="index.html">Embedded Software Update Documentation 2016.- documentation</a> &raquo;</li> 
       </ul>
@@ -56,10 +56,10 @@
 <p>It is quite difficult to foresee all possible installation cases.
 Instead of trying to find all use cases, swupdate let the
 developer free to add his own installer (that is, a new <strong>handler</strong>),
-that must be responsibleto install an image of a certain type.
+that must be responsible to install an image of a certain type.
 An image is marked to be of a defined type to be installed with
 a specific handler.</p>
-<p>The parser make the connection between &#8216;image type&#8217; nad &#8216;handler&#8217;.
+<p>The parser make the connection between &#8216;image type&#8217; and &#8216;handler&#8217;.
 It fills a table containing the list of images to be installed
 with the required handler to execute the installation. Each image
 can have a different installer.</p>
@@ -124,7 +124,7 @@ the system. Two volumes with the same names are not supported
 and drives to unpredictable results. swupdate will install
 an image to the first volume that matches with the name, and this
 maybe is not the desired behavior.
-Updating volumes, it is guaranted that the erase counters are
+Updating volumes, it is guaranteed that the erase counters are
 preserved and not lost after an update. The way for updating
 is identical to the &#8220;ubiupdatevol&#8221; from the mtd-utils. In fact,
 the same library from mtd-utils (libubi) is reused by swupdate.</p>
@@ -163,8 +163,8 @@ security questions, because it changes swupdate&#8217;s behavior.</p>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="sw-description.html"
-                        title="previous chapter">swupdate: syntax and tags with the default parser</a></p>
+  <p class="topless"><a href="signed_images.html"
+                        title="previous chapter">Update images from verified source</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="swupdate-ipc.html"
                         title="next chapter">swupdate: API for external programs</a></p>
@@ -200,7 +200,7 @@ security questions, because it changes swupdate&#8217;s behavior.</p>
           <a href="swupdate-ipc.html" title="swupdate: API for external programs"
              >next</a> |</li>
         <li class="right" >
-          <a href="sw-description.html" title="swupdate: syntax and tags with the default parser"
+          <a href="signed_images.html" title="Update images from verified source"
              >previous</a> |</li>
         <li><a href="index.html">Embedded Software Update Documentation 2016.- documentation</a> &raquo;</li> 
       </ul>

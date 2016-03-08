@@ -24,7 +24,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="Embedded Software Update Documentation 2016.- documentation" href="index.html" />
-    <link rel="next" title="Handlers" href="handlers.html" />
+    <link rel="next" title="Update images from verified source" href="signed_images.html" />
     <link rel="prev" title="swupdate: software update for embedded system" href="swupdate.html" /> 
   </head>
   <body>
@@ -35,7 +35,7 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="handlers.html" title="Handlers"
+          <a href="signed_images.html" title="Update images from verified source"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="swupdate.html" title="swupdate: software update for embedded system"
@@ -470,81 +470,177 @@ collection: <cite>/dev/mmcblk0p1</cite> and <cite>/dev/mmcblk0p2</cite> for <cit
 <p>This feature can be used to implement a dual copy strategy by
 specifying the collection and mode explicitly.</p>
 </div>
+<div class="section" id="checking-version-of-installed-software">
+<h2>Checking version of installed software<a class="headerlink" href="#checking-version-of-installed-software" title="Permalink to this headline">¶</a></h2>
+<p>swupdate can optionally verify if a sub-image is already installed
+and, if the version to be installed is exactly the same, it can skip
+to install it. This is very useful in case some high risky image should
+be installed or to speed up the upgrade process.
+One case is if the bootloader needs to be updated. In most time, there
+is no need to upgrade the bootloader, but practice showed that there are
+some cases where an upgrade is strictly required - the project manager
+should take the risk. However, it is nicer to have always the bootloader image
+as part of the .swu file, allowing to get the whole distro for the
+device in a single file, but the device should install it just when needed.</p>
+<p>swupdate searches for a file (/etc/sw-versions is the default location)
+containing all versions of the installed images. This must be generated
+before running swupdate.
+The file must contains pairs with the name of image and his version, as:</p>
+<div class="highlight-python"><div class="highlight"><pre>&lt;name of component&gt;     &lt;version&gt;
+</pre></div>
+</div>
+<p>Version is a string and can have any value. For example:</p>
+<div class="highlight-python"><div class="highlight"><pre>bootloader              2015.01-rc3-00456-gd4978d
+kernel                  3.17.0-00215-g2e876af
+</pre></div>
+</div>
+<p>In sw-description, the optional attributes &#8220;name&#8221;, &#8220;version&#8221; and
+&#8220;check-if-different&#8221; provide the connection. Name and version are then
+compared with the data in the versions file. check-if-different is a
+boolean that enables the check for this image. It is then possible to
+check the version just for a subset of the images to be installed.</p>
+</div>
 <div class="section" id="attribute-reference">
 <h2>Attribute reference<a class="headerlink" href="#attribute-reference" title="Permalink to this headline">¶</a></h2>
+<p>There are 4 main sections inside sw-description:</p>
+<ul class="simple">
+<li>images: entries are images and swupdate has no knowledge
+about them.</li>
+<li>files: entries are files, and swupdate needs a filesystem for them.
+This is generally used to expand from a tar-ball or to update
+single files.</li>
+<li>scripts: all entries are treated as executables, and they will
+be run twice (as pre- and post- install scripts).</li>
+<li>uboot: entries are pair with U-Boot variable name and its value.</li>
+</ul>
 <table border="1" class="docutils">
 <colgroup>
-<col width="17%" />
-<col width="13%" />
-<col width="69%" />
+<col width="18%" />
+<col width="14%" />
+<col width="16%" />
+<col width="53%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Name</th>
 <th class="head">Type</th>
+<th class="head">Applies to</th>
 <th class="head">Description</th>
 </tr>
 </thead>
 <tbody valign="top">
 <tr class="row-even"><td>filename</td>
 <td>string</td>
+<td>images
+files
+scripts</td>
 <td>filename as found in the cpio archive</td>
 </tr>
 <tr class="row-odd"><td>volume</td>
 <td>string</td>
-<td>Just if type = &#8220;ubivol&#8221;. UBI volume where image
-must be installed.</td>
+<td>images</td>
+<td>Just if type = &#8220;ubivol&#8221;. UBI volume
+where image must be installed.</td>
 </tr>
 <tr class="row-even"><td>ubipartition</td>
 <td>string</td>
-<td>Just if type = &#8220;ubivol&#8221;. Volume to be created or
-adjusted with a new size</td>
+<td>images</td>
+<td>Just if type = &#8220;ubivol&#8221;. Volume to be
+created or adjusted with a new size</td>
 </tr>
 <tr class="row-odd"><td>device</td>
 <td>string</td>
-<td>devicenode as found in /dev. Usafe depends on
-handler</td>
+<td>images
+files</td>
+<td>devicenode as found in /dev. Usage
+depends on handler
+For files, it indicates on which
+device the &#8220;filesystem&#8221; must be
+mounted.</td>
 </tr>
 <tr class="row-even"><td>filesystem</td>
 <td>string</td>
-<td>For files: indicates the filesystem type where
+<td>files</td>
+<td>indicates the filesystem type where
 the file must be installed.</td>
 </tr>
 <tr class="row-odd"><td>path</td>
 <td>string</td>
-<td>For files: indicates the path (absolute) where the
-file must be installed.
-device, filesystem and path are then mandatory
-swupdate will install the file after mounting
-&#8220;device&#8221;, that contains &#8220;filesystem&#8221;, under &#8220;path&#8221;</td>
+<td>files</td>
+<td>For files: indicates the path
+(absolute) where the file must be
+installed. Device, filesystem and path
+are then mandatory.
+swupdate will install the file after
+mounting &#8220;device&#8221;, that contains
+&#8220;filesystem&#8221;, under &#8220;path&#8221;</td>
 </tr>
 <tr class="row-even"><td>type</td>
 <td>string</td>
-<td>string identifier for the handler, as it is set
-by the handler when it regitsters itself.
-(&#8220;ubivol&#8221;, &#8220;raw&#8221;, &#8220;rawfile&#8221;, etc.)</td>
+<td>images
+files
+scripts</td>
+<td>string identifier for the handler,
+as it is set by the handler when it
+regitsters itself.
+Example: &#8220;ubivol&#8221;, &#8220;raw&#8221;, &#8220;rawfile&#8221;,</td>
 </tr>
 <tr class="row-odd"><td>compressed</td>
 <td>bool</td>
-<td>flag to indicate that &#8220;filename&#8221; is zlib-compressed
-and must be decompressed before beeing installed</td>
+<td>images
+files</td>
+<td>flag to indicate that &#8220;filename&#8221; is
+zlib-compressed and must be
+decompressed before beeing installed</td>
 </tr>
-<tr class="row-even"><td>installed-
-directly</td>
+<tr class="row-even"><td><dl class="first last docutils">
+<dt>installed-</dt>
+<dd>directly</dd>
+</dl>
+</td>
 <td>bool</td>
-<td>flag to indicate that image is streamed into the
-target without any temporary copy. Not all
-handlers support streaming. It is not used
-for &#8220;scripts&#8221;</td>
+<td>images</td>
+<td>flag to indicate that image is
+streamed into the target without any
+temporary copy. Not all handlers
+support streaming.</td>
 </tr>
 <tr class="row-odd"><td>name</td>
 <td>string</td>
-<td>For U-Boot handler: name of the U-Boot variable to
-be set.</td>
+<td>uboot</td>
+<td>name of the U-Boot variable to be set.</td>
 </tr>
 <tr class="row-even"><td>value</td>
 <td>string</td>
-<td>For U-Boot handler: value to be assigned to the
+<td>uboot</td>
+<td>value to be assigned to the U-Boot
 variable</td>
+</tr>
+<tr class="row-odd"><td>name</td>
+<td>string</td>
+<td>images
+files</td>
+<td>name that identifies the sw-component
+it can be any string and it is
+compared with the entries in
+sw-versions</td>
+</tr>
+<tr class="row-even"><td>version</td>
+<td>string</td>
+<td>images
+files</td>
+<td>version for the  the sw-component
+it can be any string and it is
+compared with the entries in
+sw-versions</td>
+</tr>
+<tr class="row-odd"><td>check-if-
+installed</td>
+<td>boolean</td>
+<td>images
+files</td>
+<td>flag
+if set, name and version are
+compared with the entries in</td>
 </tr>
 </tbody>
 </table>
@@ -575,6 +671,7 @@ variable</td>
 <li><a class="reference internal" href="#uboot">uboot</a></li>
 <li><a class="reference internal" href="#board-specific-settings">Board specific settings</a></li>
 <li><a class="reference internal" href="#software-collections-and-operation-modes">Software collections and operation modes</a></li>
+<li><a class="reference internal" href="#checking-version-of-installed-software">Checking version of installed software</a></li>
 <li><a class="reference internal" href="#attribute-reference">Attribute reference</a></li>
 </ul>
 </li>
@@ -584,8 +681,8 @@ variable</td>
   <p class="topless"><a href="swupdate.html"
                         title="previous chapter">swupdate: software update for embedded system</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="handlers.html"
-                        title="next chapter">Handlers</a></p>
+  <p class="topless"><a href="signed_images.html"
+                        title="next chapter">Update images from verified source</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/sw-description.txt"
@@ -615,7 +712,7 @@ variable</td>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="handlers.html" title="Handlers"
+          <a href="signed_images.html" title="Update images from verified source"
              >next</a> |</li>
         <li class="right" >
           <a href="swupdate.html" title="swupdate: software update for embedded system"

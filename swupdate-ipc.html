@@ -53,12 +53,12 @@
 <h1>swupdate: API for external programs<a class="headerlink" href="#swupdate-api-for-external-programs" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
-<p>swupdate contains an integrated webserver to allow remote updating.
+<p>swupdate contains an integrated web-server to allow remote updating.
 However, which protocols are involved during an update is project
 specific and differs significantly. Some projects can decide
 to use FTP to load an image from an external server, or using
 even a proprietary protocol.
-The integrated webserver uses this interface.</p>
+The integrated web-server uses this interface.</p>
 <p>swupdate has a simple interface to let external programs
 to communicate with the installer. Clients can start an upgrade
 and stream an image to the installer, querying then for the status
@@ -86,7 +86,7 @@ or by swupdate to report back notifications and status.</li>
 <p>The client sends a REQ_INSTALL packet and waits for an answer.
 swupdate sends back ACK or NACK, if for example an update is already in progress.</p>
 <p>After the ACK, the client sends the whole image as a stream. swupdate
-expectes that all bytes after the ACK are part of the image to be installed.
+expects that all bytes after the ACK are part of the image to be installed.
 swupdate recognizes the size of the image from the CPIO header.
 Any error lets swupdate to leave the update state, and further packets
 will be ignored until a new REQ_INSTALL will be received.</p>
@@ -96,7 +96,7 @@ will be ignored until a new REQ_INSTALL will be received.</p>
 <h3>Client Library<a class="headerlink" href="#client-library" title="Permalink to this headline">¶</a></h3>
 <p>A library simplifies the usage of the IPC making available a way to
 start asynchrounosly an update.</p>
-<p>The library consists of one function and several callbacks.</p>
+<p>The library consists of one function and several call-backs.</p>
 <div class="highlight-python"><div class="highlight"><pre>int swupdate_async_start(writedata wr_func, getstatus status_func,
         terminated end_func)
 typedef int (*writedata)(char **buf, int *size);
@@ -108,9 +108,9 @@ typedef int (*terminated)(RECOVERY_STATUS status);
 triggering for a new update. The wr_func is called to get the image to be installed.
 It is responsibility of the callback to provide the buffer and the size of
 the chunk of data.</p>
-<p>The getstatus callback is called after the stream was downloaded to check
+<p>The getstatus call-back is called after the stream was downloaded to check
 how upgrade is going on. It can be omitted if only the result is required.</p>
-<p>The terminated callback is called when swupdate has finished with the result
+<p>The terminated call-back is called when swupdate has finished with the result
 of the upgrade.</p>
 <p>Example about using this library is in the examples/client directory.</p>
 </div>
