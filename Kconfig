@@ -130,9 +130,6 @@ config LUAVERSION
 	  Allow to specify which version must be taken. This is useful
 	  in case of multiple versions of the LUA interpreter in the system.
 
-comment "Lua support needs a Lua interpreter"
-	depends on !HAVE_LUA
-
 
 # These are auto-selected by other options
 
