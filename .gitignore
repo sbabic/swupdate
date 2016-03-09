@@ -24,6 +24,11 @@
 *.o.*
 *.a
 *.s
+scripts/basic/fixdep
+scripts/kconfig/mconf
+scripts/kconfig/zconf.hash.c
+scripts/kconfig/zconf.lex.c
+scripts/kconfig/zconf.tab.c
 
 # 
 swupdate
