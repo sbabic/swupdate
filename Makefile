@@ -171,15 +171,15 @@ include $(srctree)/scripts/Kbuild.include
 
 # this looks a bit horrible, but 'VAR ?= VALUE' preserves builtin values
 # rather than only user-supplied values from env or command-line
-$(call set_if_default_or_unset,AS,$(CROSS_COMPILE)as)
-$(call set_if_default_or_unset,LD,$(CROSS_COMPILE)gcc)
-$(call set_if_default_or_unset,CC,$(CROSS_COMPILE)gcc)
-$(call set_if_default_or_unset,CPP,$(CC) -E)
-$(call set_if_default_or_unset,AR,$(CROSS_COMPILE)ar)
-$(call set_if_default_or_unset,NM,$(CROSS_COMPILE)nm)
-$(call set_if_default_or_unset,STRIP,$(CROSS_COMPILE)strip)
-$(call set_if_default_or_unset,OBJCOPY,$(CROSS_COMPILE)objcopy)
-$(call set_if_default_or_unset,OBJDUMP,$(CROSS_COMPILE)objdump)
+$(call set_if_default_or_unset,AS,$$(CROSS_COMPILE)as)
+$(call set_if_default_or_unset,LD,$$(CROSS_COMPILE)gcc)
+$(call set_if_default_or_unset,CC,$$(CROSS_COMPILE)gcc)
+$(call set_if_default_or_unset,CPP,$$(CC) -E)
+$(call set_if_default_or_unset,AR,$$(CROSS_COMPILE)ar)
+$(call set_if_default_or_unset,NM,$$(CROSS_COMPILE)nm)
+$(call set_if_default_or_unset,STRIP,$$(CROSS_COMPILE)strip)
+$(call set_if_default_or_unset,OBJCOPY,$$(CROSS_COMPILE)objcopy)
+$(call set_if_default_or_unset,OBJDUMP,$$(CROSS_COMPILE)objdump)
 $(call set_if_default_or_unset,PKG_CONFIG,pkg-config)
 
 AWK		= awk
