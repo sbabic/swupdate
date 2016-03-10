@@ -522,8 +522,8 @@ Version is a string and can have any value. For example:
         kernel                  3.17.0-00215-g2e876af
 
 In sw-description, the optional attributes "name", "version" and
-"check-if-different" provide the connection. Name and version are then
-compared with the data in the versions file. check-if-different is a
+"install-if-different" provide the connection. Name and version are then
+compared with the data in the versions file. install-if-different is a
 boolean that enables the check for this image. It is then possible to
 check the version just for a subset of the images to be installed.
 
@@ -600,7 +600,7 @@ There are 4 main sections inside sw-description:
 |             |          |            | compared with the entries in          |
 |             |          |            | sw-versions                           |
 +-------------+----------+------------+---------------------------------------+
-| check-if-   | boolean  | images     | flag                                  |
-| installed   |          | files      | if set, name and version are          |
+| install-if  | boolean  | images     | flag                                  |
+| different   |          | files      | if set, name and version are          |
 |             |          |            | compared with the entries in          |
 +-------------+----------+------------+---------------------------------------+
