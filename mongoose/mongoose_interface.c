@@ -375,6 +375,26 @@ static void recovery_status(struct mg_connection *conn) {
 	mg_write(conn, buf, strlen(buf));
 }
 
+static void reboot_target(struct mg_connection *conn) {
+	const struct mg_request_info * reqInfo = mg_get_request_info(conn);
+
+	if(!strcmp(reqInfo->request_method,"POST")) {
+		mg_printf(conn,
+			"HTTP/1.1 200 OK\r\n"
+			"Content-Type: text/plain\r\n"
+			"\r\n"
+			"Device will reboot now.");
+		system("reboot");
+	}
+	else {
+		mg_printf(conn,
+			"HTTP/1.1 200 OK\r\n"
+			"Content-Type: text/html\r\n"
+			"\r\n"
+			"<form method='POST' action=''><input type='submit' value='Reboot'></form>");
+	}
+}
+
 static int begin_request_handler(struct mg_connection *conn) {
 	if (!strcmp(mg_get_request_info(conn)->uri, "/handle_post_request")) {
 		mg_printf(conn, "%s", "HTTP/1.0 200 OK\r\n\r\n");
@@ -383,6 +403,10 @@ static int begin_request_handler(struct mg_connection *conn) {
 	}
 	if (!strcmp(mg_get_request_info(conn)->uri, "/getstatus.json")) {
 		recovery_status(conn);
+		return 1;
+	}
+	if (!strcmp(mg_get_request_info(conn)->uri, "/rebootTarget")) {
+		reboot_target(conn);
 		return 1;
 	}
 	return 0;
