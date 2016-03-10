@@ -4,7 +4,7 @@
 Updating an embedded system
 ############################################
 
-swupdate provides a reliable way to update
+SWUpdate provides a reliable way to update
 the software on an embedded system.
 Sources are hosted at https://github.com/sbabic/swupdate
 
@@ -14,7 +14,7 @@ Sources are hosted at https://github.com/sbabic/swupdate
    overview.rst
 
 ############################################
-swupdate Documentation
+SWUpdate Documentation
 ############################################
 
 .. toctree::

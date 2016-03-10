@@ -2,14 +2,14 @@
 Project's road-map
 =============================================
 
-swupdate's road-map
+SWUpdate's road-map
 ==================
 
 Main goal
 ---------
 
 First goal is to reach a quite big audience, making
-swupdate suitable for a large number of products.
+SWUpdate suitable for a large number of products.
 This will help to build a community around the project
 itself.
 
@@ -38,7 +38,7 @@ Handlers installable as plugin at runtime
 
 The project supports LUA as script language for pre- and postinstall
 script. It will be easy to add a way for installing a handler at runtime
-written in LUA, allowing to expand swupdate to the cases not covered
+written in LUA, allowing to expand SWUpdate to the cases not covered
 in the design phase of a product.
 
 Of course, this issue is related to the security features: it must be

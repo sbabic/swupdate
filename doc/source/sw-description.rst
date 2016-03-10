@@ -1,13 +1,13 @@
 =================================================
-swupdate: syntax and tags with the default parser
+SWUpdate: syntax and tags with the default parser
 =================================================
 
 Introduction
 ------------
 
-swupdate uses the library "libconfig"
+SWUpdate uses the library "libconfig"
 as default parser for the image description.
-However, it is possible to extend swupdate and add an own
+However, it is possible to extend SWUpdate and add an own
 parser, based on a different syntax and language as the one
 supported by libconfig. In the examples directory
 there is the code for a parser written in LUA, with the
@@ -18,7 +18,7 @@ syntax rules described in the libconfig manual.
 Please take a look at http://www.hyperrealm.com/libconfig/libconfig_manual.html
 for an explanation of basic types.
 The whole description must be contained in the sw-description file itself:
-using of the #include directive is not allowed by swupdate.
+using of the #include directive is not allowed by SWUpdate.
 
 The following example explains better the implemented tags:
 
@@ -128,12 +128,12 @@ This means that the software is compatible with HW-Revisions
 1.0, 1.2 and 1.3, but not for 1.1 or other version not explicitly
 listed here.
 It is then duty of the single project to find which is the
-revision of the board where swupdate is running. There is no
+revision of the board where SWUpdate is running. There is no
 assumption how the revision can be obtained (GPIOs, EEPROM,..)
 and each project is free to select the way most appropriate.
 The result must be written in the file /etc/hwrevision (or in
 another file if specified as configuration option) before
-swupdate is started.
+SWUpdate is started.
 
 partitions : UBI layout
 -----------------------
@@ -154,7 +154,7 @@ in kernel.
 		},
 	);
 
-All fields are mandatory. swupdate searches for a volume of the
+All fields are mandatory. SWUpdate searches for a volume of the
 selected name and adjusts the size, or creates a new volume if
 no volume with the given name exists.
 
@@ -244,7 +244,7 @@ debugging or special purposes.
 	);
 
 Entries in "files" section are managed as single files. The attributes
-"path" and "filesystem" are mandatory. swupdate copies the file in the path
+"path" and "filesystem" are mandatory. SWUpdate copies the file in the path
 specified after mounting the device.
 
 
@@ -252,13 +252,13 @@ Scripts
 -------
 
 Scripts runs in the order they are put into the sw-description file.
-The result of a script is valuated by swupdate, that stops the update
+The result of a script is valuated by SWUpdate, that stops the update
 with an error if the result is <> 0.
 
 They are copied into a temporary directory before execution and their name must
 be unique inside the same cpio archive.
 
-If no type is given, swupdate default to "lua".
+If no type is given, SWUpdate default to "lua".
 
 LUA
 ...
@@ -281,7 +281,7 @@ They must have at least one of the following functions:
 
 	function preinst()
 
-swupdate scans for all scripts and check for a preinst function. It is
+SWUpdate scans for all scripts and check for a preinst function. It is
 called before installing the images.
 
 
@@ -289,7 +289,7 @@ called before installing the images.
 
 	function postinst()
 
-swupdate scans for all scripts and check for a postinst function. It is
+SWUpdate scans for all scripts and check for a postinst function. It is
 called after installing the images.
 
 shellscript
@@ -305,8 +305,8 @@ shellscript
 	);
 
 Shell scripts are called via system command.
-swupdate scans for all scripts and calls them before and after installing
-the images. swupdate passes 'preinst' or 'postinst' as first argument to
+SWUpdate scans for all scripts and calls them before and after installing
+the images. SWUpdate passes 'preinst' or 'postinst' as first argument to
 the script.
 
 preinstall
@@ -322,7 +322,7 @@ preinstall
 	);
 
 preinstall are shell scripts and called via system command.
-swupdate scans for all scripts and calls them before installing the images.
+SWUpdate scans for all scripts and calls them before installing the images.
 
 postinstall
 ...........
@@ -337,7 +337,7 @@ postinstall
 	);
 
 postinstall are shell scripts and called via system command.
-swupdate scans for all scripts and calls them after installing the images.
+SWUpdate scans for all scripts and calls them after installing the images.
 
 
 uboot
@@ -345,7 +345,7 @@ uboot
 
 There are two ways to update the bootloader (U-Boot) environment.
 First way is to add a file with the list of variables to be changed
-and setting "uboot" as type of the image. This inform swupdate to
+and setting "uboot" as type of the image. This inform SWUpdate to
 call the U-Boot handler to manage the file.
 
 ::
@@ -376,7 +376,7 @@ that must be changed:
 		},
 	)
 
-swupdate will internally generate a script that will be passed to the
+SWUpdate will internally generate a script that will be passed to the
 U-Boot handler for adjusting the environment.
 
 
@@ -415,7 +415,7 @@ and the following description::
 	        );
 	}
 
-swupdate will set `bootpart` to `0:2` in U-Boot's environment for this
+SWUpdate will set `bootpart` to `0:2` in U-Boot's environment for this
 board. For all other boards, `bootpart` will be set to `0:1`. Board
 specific settings take precedence over default scoped settings.
 
@@ -494,7 +494,7 @@ specifying the collection and mode explicitly.
 Checking version of installed software
 --------------------------------------
 
-swupdate can optionally verify if a sub-image is already installed
+SWUpdate can optionally verify if a sub-image is already installed
 and, if the version to be installed is exactly the same, it can skip
 to install it. This is very useful in case some high risky image should
 be installed or to speed up the upgrade process.
@@ -505,9 +505,9 @@ should take the risk. However, it is nicer to have always the bootloader image
 as part of the .swu file, allowing to get the whole distro for the
 device in a single file, but the device should install it just when needed.
 
-swupdate searches for a file (/etc/sw-versions is the default location)
+SWUpdate searches for a file (/etc/sw-versions is the default location)
 containing all versions of the installed images. This must be generated
-before running swupdate.
+before running SWUpdate.
 The file must contains pairs with the name of image and his version, as:
 
 ::
@@ -532,9 +532,9 @@ Attribute reference
 
 There are 4 main sections inside sw-description:
 
-- images: entries are images and swupdate has no knowledge
+- images: entries are images and SWUpdate has no knowledge
   about them.
-- files: entries are files, and swupdate needs a filesystem for them.
+- files: entries are files, and SWUpdate needs a filesystem for them.
   This is generally used to expand from a tar-ball or to update
   single files.
 - scripts: all entries are treated as executables, and they will
@@ -567,7 +567,7 @@ There are 4 main sections inside sw-description:
 |             |          |            | (absolute) where the file must be     |
 |             |          |            | installed. Device, filesystem and path|
 |             |          |            | are then mandatory.                   |
-|             |          |            | swupdate will install the file after  |
+|             |          |            | SWUpdate will install the file after  |
 |             |          |            | mounting "device", that contains      |
 |             |          |            | "filesystem", under "path"            |
 +-------------+----------+------------+---------------------------------------+

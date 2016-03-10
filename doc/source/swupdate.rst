@@ -1,5 +1,5 @@
 =============================================
-swupdate: software update for embedded system
+SWUpdate: software update for embedded system
 =============================================
 
 Overview
@@ -8,7 +8,7 @@ Overview
 This project is thought to help to update an embedded
 system from a storage media or from network. However,
 it should be mainly considered as a framework, where
-further protocols or installers (in swupdate they are called handlers)
+further protocols or installers (in SWUpdate they are called handlers)
 can be easily added to the application.
 
 One use case is to update from an external local media, as
@@ -28,9 +28,9 @@ It is generally used in the single copy approach, running in a initrd
 possible to use it in a double-copy approach by use of `Software
 collections`_.
 
-If started for a remote update, swupdate starts an embedded
+If started for a remote update, SWUpdate starts an embedded
 Web-server and waits for requests. The operator must upload
-a suitable image, that swupdate checks and then install.
+a suitable image, that SWUpdate checks and then install.
 All output is notified to the operator's browser via AJAX
 notifications.
 
@@ -43,7 +43,7 @@ for its simplicity and because can be streamed) together with
 an additional file (sw-description), that contains meta
 information about each single image.
 
-The format of sw-description can be customized: swupdate can be
+The format of sw-description can be customized: SWUpdate can be
 configured to use its internal parser (based on libconfig), or calling
 an external parser in LUA.
 
@@ -56,7 +56,7 @@ Changing the rules to accept images with an external parser,
 let to extend to new image types and how they are installed.
 In fact, the scope of the parser is to retrieve which single
 images must be installed and how.
-swupdate implements "handlers" to install a single image:
+SWUpdate implements "handlers" to install a single image:
 there are handlers to install images into UBI volumes,
 or to a SD card, a CFI Flash, and so on. It is then easy to
 add an own handler if a very special installer is required.
@@ -67,10 +67,10 @@ the main processor communicates with the micro-controllers via
 UARTS using a proprietary protocol. The software on the micro-controllers
 can be updated using the proprietary protocol.
 
-It is possible to extend swupdate writing a handler, that implements
+It is possible to extend SWUpdate writing a handler, that implements
 the part of the proprietary protocol to perform the upgrade
 on the micro-controller. The parser must recognize which image must be
-installed with the new handler, and swupdate will call the handler
+installed with the new handler, and SWUpdate will call the handler
 during the installation process.
 
 Handling configuration differences
@@ -121,7 +121,7 @@ The parser for this is in the /examples directory.
 By identifying which is the running device, the parser return
 a table containing the images that must be installed and their associated
 handlers.
-By reading the delivered image, swupdate will ignore all images that
+By reading the delivered image, SWUpdate will ignore all images that
 are not in the list processed by the parser. In this way, it is possible
 to have a single delivered image for the update of multiple devices.
 
@@ -172,7 +172,7 @@ Software collections
 
 Software collections and operation modes can be used to implement a
 dual copy strategy. The simplest case is to define two installation
-locations for the firmware image and call `swupdate` selecting the
+locations for the firmware image and call `SWUpdate` selecting the
 appropriate image.
 
 ::
@@ -203,17 +203,17 @@ appropriate image.
 
 In this way it is possible to specify that `copy-1` gets installed to
 `/dev/mtd4`, while `copy-2` to `/dev/mtd5`. By properly selecting the
-installation locations, `swupdate` will update the firmware in the
+installation locations, `SWUpdate` will update the firmware in the
 other slot.
 
-The method of image selection is out of the scope of swupdate and user
-is responsible for calling `swupdate` passing proper settings.
+The method of image selection is out of the scope of SWUpdate and user
+is responsible for calling `SWUpdate` passing proper settings.
 
 
 Streaming feature
 -----------------
 
-swupdate is thought to be able to stream the received image directly into
+SWUpdate is thought to be able to stream the received image directly into
 the target, without any temporary copy. In fact, the single installer
 (handler) receive as input the file descriptor set at the beginning of
 the image that must be installed.
@@ -236,12 +236,12 @@ List of supported features
   in a specified format (cpio) and it must contain
   a file describing the software that must be updated.
 
-- swupdate is thought to update UBI volumes (mainly for NAND, but not only)
+- SWUpdate is thought to update UBI volumes (mainly for NAND, but not only)
   and images on devices. Passing a whole image can still be updated
   as a partition on the SD card, or a MTD partition.
 
 - new partition schema. This is bound with UBI volume.
-  swupdate can recreate UBI volumes, resizing them and
+  SWUpdate can recreate UBI volumes, resizing them and
   copying the new software. A special UBI volume with the name "data"
   is saved and restored after repartitioning with all data
   it contains,  to maintain user's data.
@@ -284,13 +284,13 @@ List of supported features
 - Can be configured to check for compatibility between software and hardware
   revisions. The software image must contain an entry declaring on which
   HW revision the software is allowed to run.
-  swupdate refuses to install if the compatibility is not verified.
+  SWUpdate refuses to install if the compatibility is not verified.
 
 - support for image extraction. A manufacturer can require to have
   a single image that contains the software for more as one device.
   This simplifies the manufacturer's management and reduces
   their administrative costs having a single software product.
-  swupdate receives the software as stream without temporary storing,
+  SWUpdate receives the software as stream without temporary storing,
   and extracts only the required components for the device
   to be installed.
 
@@ -305,7 +305,7 @@ List of supported features
 Images fully streamed
 ---------------------
 
-In case of remote update, swupdate extracts relevant images
+In case of remote update, SWUpdate extracts relevant images
 from the stream and copy them into /tmp before calling the handlers.
 This guarantee that an update is initiated only if all parts are present and correct.
 However, on some systems with less resources, the amount of RAM
@@ -322,11 +322,11 @@ Configuration and build
 Requirements
 ------------
 
-There are only a few libraries that are required to compile swupdate.
+There are only a few libraries that are required to compile SWUpdate.
 
 - mtd-utils: internally, mtd-utils generates libmtd and libubi.
   They are commonly not exported and not installed, but they are
-  linked by swupdate to reuse the same functions for upgrading
+  linked by SWUpdate to reuse the same functions for upgrading
   MTD and UBI volumes.
 - openssl: required with the Webserver
 - LUA: liblua and the development headers.
@@ -342,18 +342,18 @@ and drop what you do not need.
 Building with Yocto
 -------------------
 
-A meta-swupdate layer is provided. It contains the required changes
-for mtd-utils and for generating LUA. Using meta-swupdate is a
+A meta-SWUpdate layer is provided. It contains the required changes
+for mtd-utils and for generating LUA. Using meta-SWUpdate is a
 straightforward process.
 
-Firstly, clone meta-swupdate from:
+Firstly, clone meta-SWUpdate from:
 
-.. _meta_swupdate:  https://github.com/sbabic/meta-swupdate.git
+.. _meta_SWUpdate:  https://github.com/sbabic/meta-swupdate.git
 
-Add meta-swupdate as usual to your bblayers.conf.
+Add meta-SWUpdate as usual to your bblayers.conf.
 
-In meta-swupdate there is a recipe to generate a initrd with a
-rescue system with swupdate. Use:
+In meta-SWUpdate there is a recipe to generate a initrd with a
+rescue system with SWUpdate. Use:
 
 ::
 
@@ -363,10 +363,10 @@ You will find the result in your tmp/deploy/<your machine> directory.
 How to install and start a initrd is very target specific - please
 check in the documentation of your bootloader.
 
-Configuring swupdate
+Configuring SWUpdate
 --------------------
 
-swupdate is configurable via "make menuconfig". The small footprint
+SWUpdate is configurable via "make menuconfig". The small footprint
 is reached using the internal parser and disabling the web-server.
 Any option has a small help describing its usage. In the default
 configuration, many options are already activated.
@@ -389,15 +389,15 @@ Building
 
 	make
 
-The result is the binary "swupdate".
+The result is the binary "SWUpdate".
 
-Running swupdate
+Running SWUpdate
 ================
 
-What is expected from a swupdate run
+What is expected from a SWUpdate run
 ------------------------------------
 
-A run of swupdate consists mainly of the following steps:
+A run of SWUpdate consists mainly of the following steps:
 
 - check for media (USB-pen)
 - check for an image file. The extension must be .swu
@@ -405,7 +405,7 @@ A run of swupdate consists mainly of the following steps:
   It parses sw-description creating a raw description in RAM
   about the activities that must be performed.
 - Reads the cpio archive and proofs the checksum of each single file
-  swupdate stops if the archive is not complete verified
+  SWUpdate stops if the archive is not complete verified
 - check for hardware-software compatibility, if any,
   reading hardware revision from hardware and matching
   with the table in sw-description.
@@ -426,7 +426,7 @@ A run of swupdate consists mainly of the following steps:
 The first step that fails, stops the entire procedure and
 an error is reported.
 
-To start swupdate expecting the image from a file:
+To start SWUpdate expecting the image from a file:
 
 ::
 
@@ -442,14 +442,14 @@ The main important parameter for the web-server is "document_root".
 
 ::
 
-	         swupdate -w "-document_root ./www"
+	         SWUpdate -w "-document_root ./www"
 
 The embedded web-server is taken from the Mongoose project (last release
 with LUA license). Additional parameters can be found in mongoose
 documentation.
 This uses as website the pages delivered with the code. Of course,
 they can be customized and replaced. The website uses AJAX to communicate
-with swupdate, and to show the progress of the update to the operator.
+with SWUpdate, and to show the progress of the update to the operator.
 
 The default port of the Web-server is 8080. You can then connect to the target with:
 
@@ -461,9 +461,9 @@ If it works, the start page should be displayed as in next figure.
 
 .. image:: images/website.png
 
-If a correct image is downloaded, swupdate starts to process the received image.
-All notifications are sent back to the browser. swupdate provides a mechanism
-to send to a receiver the progress of the installation. In fact, swupdate
+If a correct image is downloaded, SWUpdate starts to process the received image.
+All notifications are sent back to the browser. SWUpdate provides a mechanism
+to send to a receiver the progress of the installation. In fact, SWUpdate
 takes a list of objects that registers itself with the application
 and they will be informed any time the application calls the notify() function.
 This allows also for self-written handlers to inform the upper layers about
@@ -477,7 +477,7 @@ An example of the notifications sent back to the browser is in the next figure:
 
 Software collections can be specified by passing `--select` command
 line option. Assuming `sw-description` file contains a collection
-named `stable`, with `alt` installation location, `swupdate` can be
+named `stable`, with `alt` installation location, `SWUpdate` can be
 called like this::
 
    swupdate --select stable,alt
@@ -489,7 +489,7 @@ Command line parameters
 |  Parameter  | Type     | Description                                |
 +=============+==========+============================================+
 | -b <string> | string   | Active only if CONFIG_MTD is set           |
-|             |          | It allows to blacklist MTDs when swupdate  |
+|             |          | It allows to blacklist MTDs when SWUpdate  |
 |             |          | searches for UBI volumes.                  |
 |             |          | Example: U-Boot and environment in MTD0-1: |
 |             |          |      -b "0 1"                              |
@@ -500,7 +500,7 @@ Command line parameters
 +-------------+----------+--------------------------------------------+
 | -r <retries>| integer  | Active only if CONFIG_DOWNLOAD is set      |
 |             |          | Number of retries before a download is     |
-|             |          | considered broken. With "-r 0", swupdate   |
+|             |          | considered broken. With "-r 0", SWUpdate   |
 |             |          | will not stop until a valid software is    |
 |             |          | loaded.                                    |
 +-------------+----------+--------------------------------------------+
@@ -515,9 +515,9 @@ Command line parameters
 +-------------+----------+--------------------------------------------+
 | -h          |    -     | run usage with help                        |
 +-------------+----------+--------------------------------------------+
-| -s          |    -     | run swupdate in daemon mode                |
+| -s          |    -     | run SWUpdate in daemon mode                |
 +-------------+----------+--------------------------------------------+
-| -i <file>   | string   | run swupdate with a local .swu file        |
+| -i <file>   | string   | run SWUpdate with a local .swu file        |
 +-------------+----------+--------------------------------------------+
 | -v          |    -     | activate verbose output                    |
 +-------------+----------+--------------------------------------------+
@@ -529,13 +529,13 @@ Command line parameters
 Changes in boot-loader code
 ==========================
 
-The swupdate consists of kernel and a root filesystem
+The SWUpdate consists of kernel and a root filesystem
 (image) that must be started by the boot-loader.
 In case using U-Boot, the following mechanism can be implemented:
 
 - U-Boot checks if a sw update is required (check gpio, serial console, etc.).
-- the script "altbootcmd" sets the rules to start swupdate
-- in case swupdate is required, u-boot run the script "altbootcmd"
+- the script "altbootcmd" sets the rules to start SWUpdate
+- in case SWUpdate is required, u-boot run the script "altbootcmd"
 
 Is it safe to change U-Boot environment ? Well, it is, but U-Boot must
 be configured correctly. U-Boot supports two copies of the environment
@@ -549,7 +549,7 @@ into u-boot to make the system safer. The most important I will
 suggest is to add support for boot counter in u-boot (documentation
 is in U-Boot docs). This allows U-Boot to track for attempts to
 successfully run the application, and if the boot counter is
-greater as a limit, can start automatically swupdate to replace
+greater as a limit, can start automatically SWUpdate to replace
 a corrupt software.
 
 Building a single image
