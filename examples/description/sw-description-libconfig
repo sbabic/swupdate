@@ -29,6 +29,14 @@ software =
 				type = "ubivol"
 			},
 			{
+				name = "bootloader";
+				version = "2016.01";
+				install-if-different = true;
+				filename = "u-boot.sb";
+				device = "mtd1";
+				type = "flash";
+			},
+			{
 				filename = "uboot-env";
 				type = "uboot";
 			},
