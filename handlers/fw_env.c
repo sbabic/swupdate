@@ -1029,8 +1029,8 @@ int fw_env_open(void)
 	if (!HaveRedundEnv) {
 		if (!crc0_ok) {
 			fprintf (stderr,
-				"Warning: Bad CRC, using default environment\n");
-			memcpy(environment.data, default_environment, sizeof default_environment);
+				"Warning: Bad CRC: not setting any environment data ...\n");
+			return -1;
 		}
 	} else {
 		flag0 = *environment.flags;
@@ -1078,10 +1078,8 @@ int fw_env_open(void)
 			dev_current = 1;
 		} else if (!crc0_ok && !crc1_ok) {
 			fprintf (stderr,
-				"Warning: Bad CRC, using default environment\n");
-			memcpy (environment.data, default_environment,
-				sizeof default_environment);
-			dev_current = 0;
+			        "Warning: Bad CRC: not setting any environment data ...\n");
+            return -1;
 		} else {
 			switch (environment.flag_scheme) {
 			case FLAG_BOOLEAN:
