@@ -377,6 +377,7 @@ static void recovery_status(struct mg_connection *conn) {
 
 static void reboot_target(struct mg_connection *conn) {
 	const struct mg_request_info * reqInfo = mg_get_request_info(conn);
+	int ret;
 
 	if(!strcmp(reqInfo->request_method,"POST")) {
 		mg_printf(conn,
@@ -384,7 +385,14 @@ static void reboot_target(struct mg_connection *conn) {
 			"Content-Type: text/plain\r\n"
 			"\r\n"
 			"Device will reboot now.");
-		system("reboot");
+		ret = system("reboot");
+		if (ret) {
+			mg_printf(conn,
+				"HTTP/1.1 200 OK\r\n"
+				"Content-Type: text/plain\r\n"
+				"\r\n"
+				"Device cannot be reboot, internal fault.");
+		}
 	}
 	else {
 		mg_printf(conn,
