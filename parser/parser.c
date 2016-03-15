@@ -594,7 +594,7 @@ static void parse_images(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 			strlen(image->volname) ? "volume" : "device",
 			strlen(image->volname) ? image->volname : image->device,
 			strlen(image->type) ? image->type : "NOT FOUND",
-			image->install_directly ? "(installed from stream)" : "",
+			image->install_directly ? " (installed from stream)" : "",
 			(strlen(image->id.name) && image->id.install_if_different) ?
 					"Version must be checked" : ""
 			);
