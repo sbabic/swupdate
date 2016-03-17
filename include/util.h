@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2012-2013
+ * (C) Copyright 2012-2016
  * Stefano Babic, DENX Software Engineering, sbabic@denx.de.
  *
  * This program is free software; you can redistribute it and/or
@@ -25,26 +25,20 @@
 #include "swupdate.h"
 #include "swupdate_status.h"
 
-extern int verbose;
+extern int loglevel;
+
+typedef enum {
+	OFF,
+	ERRORLEVEL,
+	WARNLEVEL,
+	INFOLEVEL,
+	DEBUGLEVEL,
+	TRACELEVEL
+} LOGLEVEL;
 
 enum {
 	RECOVERY_NO_ERROR,
 	RECOVERY_ERROR,
-	WRITE_ERROR,
-	FAILED_OPEN,
-	REQUIRED_FILE_NOT_FOUND,
-	WRONG_COMPRESS_IMAGE,
-	OUT_OF_MEMORY,
-	LUA_SCRIPT_LOAD,
-	LUA_SCRIPT_PREPARE,
-	LUA_SCRIPT_RUN,
-	LUA_MISMATCH_TYPE,
-	UBI_TOO_BIG_VOLUME,
-	UBI_NOT_VOLUME,
-	UBI_WRITE_VOLUME,
-	INTERNAL_ERROR,
-	NO_MTD_DEV,
-	MOUNT_FAILED
 };
 
 struct installer {
@@ -55,25 +49,46 @@ struct installer {
 	char	errormsg[64];			//!< error message if installation failed
 };
 
-typedef void (*notifier) (RECOVERY_STATUS status, int error, const char *msg);
+typedef void (*notifier) (RECOVERY_STATUS status, int level, const char *msg);
 
-#define TRACE(format, arg...) do { \
-	char tmpbuf[1024]; \
-	if (verbose) { \
-		snprintf(tmpbuf, sizeof(tmpbuf), "[%s] : " format, __func__, ## arg); \
-		notify(RUN, RECOVERY_NO_ERROR, tmpbuf); \
+#define swupdate_notify(status, format, level, arg...) do { \
+	if (loglevel >= level) { \
+		char tmpbuf[1024]; \
+		if (status == FAILURE) { \
+			if (loglevel >= DEBUGLEVEL) \
+				snprintf(tmpbuf, sizeof(tmpbuf), \
+				     	"ERROR %s : %s : %d : " format, \
+					       	__FILE__, \
+					       	__func__, \
+					       	__LINE__, \
+						## arg); \
+			else \
+				snprintf(tmpbuf, sizeof(tmpbuf), \
+					       	"ERROR : " format, ## arg); \
+			fprintf(stderr, "%s\n", tmpbuf); \
+			notify(FAILURE, 0, tmpbuf); \
+		} else {\
+			snprintf(tmpbuf, sizeof(tmpbuf), \
+				       	"[%s] : " format, __func__, ## arg); \
+			notify(RUN, RECOVERY_NO_ERROR, tmpbuf); \
+		} \
 	} \
 } while(0)
 
-#define ERROR(format, arg...) do { \
-	char tmpbuf[1024]; \
-	if (verbose) \
-		snprintf(tmpbuf, sizeof(tmpbuf), "ERROR %s : %s : %d : " format, __FILE__, __func__, __LINE__, ## arg); \
-	else \
-		snprintf(tmpbuf, sizeof(tmpbuf), "ERROR : " format, ## arg); \
-	fprintf(stderr, "%s\n", tmpbuf); \
-	notify(FAILURE, 0, tmpbuf); \
-} while(0)
+#define ERROR(format, arg...) \
+	swupdate_notify(FAILURE, format, ERRORLEVEL, ## arg)
+
+#define WARN(format, arg...) \
+	swupdate_notify(RUN, format, WARNLEVEL, ## arg)
+
+#define INFO(format, arg...) \
+	swupdate_notify(RUN, format, INFOLEVEL, ## arg)
+
+#define TRACE(format, arg...) \
+	swupdate_notify(RUN, format, TRACELEVEL, ## arg)
+
+#define DEBUG(format, arg...) \
+	swupdate_notify(RUN, format, DEBUGLEVEL, ## arg)
 
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
 
@@ -113,7 +128,7 @@ off_t extract_next_file(int fd, int fdout, off_t start, int compressed);
 int openfileoutput(const char *filename);
 
 int register_notifier(notifier client);
-void notify(RECOVERY_STATUS status, int error, const char *msg);
+void notify(RECOVERY_STATUS status, int level, const char *msg);
 void notify_init(void);
 
 char **splitargs(char *args, int *argc);

@@ -65,6 +65,7 @@ struct flash_description *get_flash_info(void) {
 static struct option long_options[] = {
 	{"verbose", no_argument, NULL, 'v'},
 	{"image", required_argument, NULL, 'i'},
+	{"loglevel", required_argument, NULL, 'l'},
 	{"select", required_argument, NULL, 'e'},
 #ifdef CONFIG_MTD
 	{"blacklist", required_argument, NULL, 'b'},
@@ -81,9 +82,7 @@ static struct option long_options[] = {
 	{NULL, 0, NULL, 0}
 };
 
-char main_options[20];
-
-int verbose = 0;
+int loglevel = 0;
 
 static void usage(char *programname)
 {
@@ -102,9 +101,10 @@ static void usage(char *programname)
 		" -e, --select <software>,<mode> : Select software images set and source\n"
 		"                                  Ex.: stable,main\n"
 		" -i, --image <filename>         : Software to be installed\n"
+		" -l, --loglevel <level>         : logging level\n"
 		" -s, --server                   : run as daemon waiting from\n"
 		"                                  IPC interface.\n"
-		" -v, --verbose                  : be verbose\n"
+		" -v, --verbose                  : be verbose, set maximum loglevel\n"
 #ifdef CONFIG_WEBSERVER
 		" -w, --webserver [OPTIONS]      : Parameters to be passed to webserver\n"
 #endif
@@ -322,6 +322,7 @@ int main(int argc, char **argv)
 	int opt_d = 0;
 	int __attribute__ ((__unused__)) opt_r = 3;
 	RECOVERY_STATUS result;
+	char main_options[256];
 
 #ifdef CONFIG_WEBSERVER
 	char weboptions[1024];
@@ -332,7 +333,7 @@ int main(int argc, char **argv)
 	memset(&flashdesc, 0, sizeof(flashdesc));
 	memset(main_options, 0, sizeof(main_options));
 	memset(image_url, 0, sizeof(image_url));
-	strcpy(main_options, "vhi:se:");
+	strcpy(main_options, "vhi:se:l:");
 #ifdef CONFIG_MTD
 	strcat(main_options, "b:");
 #endif
@@ -354,7 +355,7 @@ int main(int argc, char **argv)
 				long_options, NULL)) != EOF) {
 		switch (c) {
 		case 'v':
-			verbose++;
+			loglevel = TRACELEVEL;
 			break;
 #ifdef CONFIG_MTD
 		case 'b':
@@ -364,6 +365,9 @@ int main(int argc, char **argv)
 		case 'i':
 			strncpy(fname, optarg, sizeof(fname));
 			opt_i = 1;
+			break;
+		case 'l':
+			loglevel = strtoul(optarg, NULL, 10);
 			break;
 		case 'e':
 			software_select = optarg;

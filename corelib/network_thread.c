@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2008
+ * (C) Copyright 2012-2016
  * Stefano Babic, DENX Software Engineering, sbabic@denx.de.
  * 	on behalf of ifm electronic GmbH
  *
@@ -186,7 +186,7 @@ void *network_thread (void *data)
 			close(ctrlconnfd);
 			continue;
 		}
-#ifdef DEBUG
+#ifdef DEBUG_IPC
 		TRACE("request header: magic[0x%08X] type[0x%08X]", msg.magic, msg.type);
 #endif
 
@@ -224,7 +224,7 @@ void *network_thread (void *data)
 					nrmsgs--;
 					strncpy(msg.data.status.desc, notification->msg,
 						sizeof(msg.data.status.desc) - 1);
-#ifdef DEBUG
+#ifdef DEBUG_IPC
 					printf("GET STATUS: %s\n", msg.data.status.desc);
 #endif
 					msg.data.status.current = notification->status;
