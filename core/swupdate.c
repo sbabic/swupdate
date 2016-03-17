@@ -95,11 +95,11 @@ static void usage(char *programname)
 		" -b, --blacklist <list of mtd>  : MTDs that must not be scanned for UBI\n"
 #endif
 #ifdef CONFIG_DOWNLOAD
-		" -d, --download <url> : URL of image to be downloaded. Image will be\n"
-		"                        downloaded completely to --image filename, then\n"
-		"                        installation will proceed as usual.\n"
-		" -r, --retries        : number of retries (resumed download) if\n"
-		"			 connection is broken (0 means undefinetly retries)\n"
+		" -d, --download <url>           : URL of image to be downloaded. Image will be\n"
+		"                                  downloaded completely to --image filename, then\n"
+		"                                  installation will proceed as usual.\n"
+		" -r, --retries                  : number of retries (resumed download) if\n"
+		"                                  connection is broken (0 means undefinetly retries)\n"
 #endif
 		" -e, --select <software>,<mode> : Select software images set and source\n"
 		"                                  Ex.: stable,main\n"
@@ -112,7 +112,7 @@ static void usage(char *programname)
 		" -w, --webserver [OPTIONS]      : Parameters to be passed to webserver\n"
 #endif
 #ifdef CONFIG_HW_COMPATIBILITY
-		" -H, --hwrevision <boardname>:<revision> : Set hardware revision\n"
+		" -H, --hwrevision <board>:<rev> : Set hardware revision\n"
 #endif
 		" -h, --help                     : print this help and exit\n"),
 	       programname);
