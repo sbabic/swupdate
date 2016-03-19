@@ -71,7 +71,6 @@ typedef enum {
 	JSON_PARSER
 } parsertype;
 
-static struct hw_type hardware;
 
 #ifdef CONFIG_LIBCONFIG
 static config_setting_t *find_node_libconfig(config_t *cfg,
@@ -79,18 +78,21 @@ static config_setting_t *find_node_libconfig(config_t *cfg,
 {
 	//const config_setting_t *setting;
 	config_setting_t *setting;
+	struct hw_type *hardware;
 
 	char node[1024];
 
 	if (!field)
 		return NULL;
 
+	hardware = &swcfg->hw;
+
 	if (strlen(swcfg->running_mode) && strlen(swcfg->software_set)) {
 		/* Try with both software set and board name */
-		if (strlen(hardware.boardname)) {
+		if (strlen(hardware->boardname)) {
 			snprintf(node, sizeof(node), "%s.%s.%s.%s.%s",
 				NODEROOT,
-				hardware.boardname,
+				hardware->boardname,
 				swcfg->software_set,
 				swcfg->running_mode,
 				field);
@@ -111,10 +113,10 @@ static config_setting_t *find_node_libconfig(config_t *cfg,
 	}
 
 	/* Try with board name */
-	if (strlen(hardware.boardname)) {
+	if (strlen(hardware->boardname)) {
 		snprintf(node, sizeof(node), "%s.%s.%s",
 			NODEROOT,
-			hardware.boardname,
+			hardware->boardname,
 			field);
 		setting = config_lookup(cfg, node);
 		if (setting)
@@ -210,10 +212,13 @@ static json_object *find_node_json(json_object *root, const char *node,
 {
 	json_object *jnode = NULL;
 	const char *simple_nodes[] = {node, NULL};
+	struct hw_type *hardware;
+
+	hardware = &swcfg->hw;
 
 	if (strlen(swcfg->running_mode) && strlen(swcfg->software_set)) {
-		if (strlen(hardware.boardname)) {
-			const char *nodes[] = {hardware.boardname, swcfg->software_set,
+		if (strlen(hardware->boardname)) {
+			const char *nodes[] = {hardware->boardname, swcfg->software_set,
 					       swcfg->running_mode, node, NULL};
 			jnode = find_recursive_node(root, nodes);
 			if (jnode)
@@ -227,8 +232,8 @@ static json_object *find_node_json(json_object *root, const char *node,
 		}
 	}
 
-	if (strlen(hardware.boardname)) {
-		const char *nodes[] = {hardware.boardname, node, NULL};
+	if (strlen(hardware->boardname)) {
+		const char *nodes[] = {hardware->boardname, node, NULL};
 		jnode = find_recursive_node(root, nodes);
 		if (jnode)
 			return jnode;
@@ -660,7 +665,7 @@ static void parse_files(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 static void parser(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 {
 
-	get_hw_revision(&hardware);
+	get_hw_revision(&swcfg->hw);
 
 	/* Now parse the single elements */
 	parse_hw_compatibility(p, cfg, swcfg);

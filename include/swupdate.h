@@ -108,6 +108,7 @@ struct swupdate_cfg {
 	char version[SWUPDATE_GENERAL_STRING_SIZE];
 	char software_set[SWUPDATE_GENERAL_STRING_SIZE];
 	char running_mode[SWUPDATE_GENERAL_STRING_SIZE];
+	struct hw_type hw;
 	struct hwlist hardware;
 	struct swver installed_sw_list;
 	struct imglist images;

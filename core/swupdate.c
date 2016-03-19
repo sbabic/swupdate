@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2012-2013
+ * (C) Copyright 2012-2016
  * Stefano Babic, DENX Software Engineering, sbabic@denx.de.
  *
  * This program is free software; you can redistribute it and/or
@@ -71,6 +71,9 @@ static struct option long_options[] = {
 	{"blacklist", required_argument, NULL, 'b'},
 #endif
 	{"help", no_argument, NULL, 'h'},
+#ifdef CONFIG_HW_COMPATIBILITY
+	{"hwrevision", required_argument, NULL, 'H'},
+#endif
 	{"server", no_argument, NULL, 's'},
 #ifdef CONFIG_DOWNLOAD
 	{"download", required_argument, NULL, 'd'},
@@ -108,6 +111,9 @@ static void usage(char *programname)
 #ifdef CONFIG_WEBSERVER
 		" -w, --webserver [OPTIONS]      : Parameters to be passed to webserver\n"
 #endif
+#ifdef CONFIG_HW_COMPATIBILITY
+		" -H, --hwrevision <boardname>:<revision> : Set hardware revision\n"
+#endif
 		" -h, --help                     : print this help and exit\n"),
 	       programname);
 }
@@ -127,6 +133,36 @@ static int check_provided(struct imglist *list)
 	}
 
 	return ret;
+}
+
+/*
+ * Extract board and revision number from command line
+ * The parameter is in the format <board>:<revision>
+ */
+static int opt_to_hwrev(char *param, struct hw_type *hw)
+{
+	char *s;
+
+	/* skip if there is no string */
+	if (!param)
+		return 0;
+
+	s = strchr(param, ':');
+
+	if (!s) {
+		ERROR("You pass Hardware Revision in wrong format: %s\n",
+				param);
+		return -EINVAL;
+	}
+
+	strncpy(hw->revision, s + 1, sizeof(hw->revision));
+	*s = '\0';
+	strncpy(hw->boardname, param, sizeof(hw->boardname));
+
+	if (!strlen(hw->boardname) || !strlen(hw->revision))
+		return -EINVAL;
+
+	return 0;
 }
 
 static int searching_for_image(char *name)
@@ -317,7 +353,6 @@ int main(int argc, char **argv)
 	int opt_e = 0;
 	int opt_s = 0;
 	int opt_w = 0;
-	struct hw_type hwrev;
 	char image_url[MAX_URL];
 	int opt_d = 0;
 	int __attribute__ ((__unused__)) opt_r = 3;
@@ -344,11 +379,18 @@ int main(int argc, char **argv)
 #ifdef CONFIG_WEBSERVER
 	strcat(main_options, "w:");
 #endif
+#ifdef CONFIG_HW_COMPATIBILITY
+	strcat(main_options, "H:");
+#endif
+
 	memset(fname, 0, sizeof(fname));
 
 	printf("%s\n", BANNER);
 	printf("Licensed under GPLv2. See source distribution for detailed "
 		"copyright notices.\n\n");
+
+	/* Initialize internal database */
+	swupdate_init(&swcfg);
 
 	/* Process options with getopt */
 	while ((c = getopt_long(argc, argv, main_options,
@@ -393,6 +435,10 @@ int main(int argc, char **argv)
 		case 's': /* run as server */
 			opt_s = 1;
 			break;
+		case 'H':
+			if (opt_to_hwrev(optarg, &swcfg.hw) < 0)
+				exit(1);
+			break;
 #ifdef CONFIG_WEBSERVER
 		case 'w':
 			snprintf(weboptions, sizeof(weboptions), "%s %s", argv[0], optarg);
@@ -407,11 +453,9 @@ int main(int argc, char **argv)
 		}
 	}
 
-	swupdate_init(&swcfg);
-
 	lua_handlers_init();
-	if(!get_hw_revision(&hwrev))
-		printf("Running on %s Revision %s\n", hwrev.boardname, hwrev.revision);
+	if(!get_hw_revision(&swcfg.hw))
+		printf("Running on %s Revision %s\n", swcfg.hw.boardname, swcfg.hw.revision);
 
 	print_registered_handlers();
 	notify_init();

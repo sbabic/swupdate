@@ -149,13 +149,23 @@ int get_hw_revision(struct hw_type *hw)
 #define HW_FILE "/etc/hwrevision"
 #endif
 
+	if (!hw)
+		return -EINVAL;
+
+	/*
+	 * do not overwrite if it is already set
+	 * (maybe from command line)
+	 */
+	if (strlen(hw->boardname))
+		return 0;
+
 	memset(hw->boardname, 0, sizeof(hw->boardname));
 	memset(hw->revision, 0, sizeof(hw->revision));
+
 	/*
 	 * Not all boards have pins for revision number
 	 * check if there is a file containing theHW revision number
 	 */
-
 	fp = fopen(HW_FILE, "r");
 	if (!fp)
 		return -1;
@@ -255,17 +265,17 @@ void get_sw_versions(struct swupdate_cfg *sw)
 #ifdef CONFIG_HW_COMPATIBILITY
 int check_hw_compatibility(struct swupdate_cfg *cfg)
 {
-	struct hw_type hwrev, *hw;
+	struct hw_type *hw;
 	int ret;
 
-	ret = get_hw_revision(&hwrev);
+	ret = get_hw_revision(&cfg->hw);
 	if (ret < 0)
 		return -1;
 
-	TRACE("Hardware %s Revision: %s", hwrev.boardname, hwrev.revision);
+	TRACE("Hardware %s Revision: %s", cfg->hw.boardname, cfg->hw.revision);
 	LIST_FOREACH(hw, &cfg->hardware, next) {
-		if (hw && strlen(hw->revision) == strlen(hwrev.revision) &&
-				(!strcmp(hw->revision, hwrev.revision))) {
+		if (hw && strlen(hw->revision) == strlen(cfg->hw.revision) &&
+				(!strcmp(hw->revision, cfg->hw.revision))) {
 			TRACE("Hardware compatibility verified");
 			return 0;
 		}
