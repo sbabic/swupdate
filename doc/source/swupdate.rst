@@ -524,6 +524,12 @@ Command line parameters
 | -w <parms>  | string   | start internal webserver and pass to it    |
 |             |          | a command line string.                     |
 +-------------+----------+--------------------------------------------+
+| -H          | string   | set board name and Hardware revision       |
+| <board:rev> |          |                                            |
++-------------+----------+--------------------------------------------+
+| -t <timeout>| integer  | Timeout for connection lost when           |
+|             |          | downloading                                |
++-------------+----------+--------------------------------------------+
 
 
 Changes in boot-loader code
