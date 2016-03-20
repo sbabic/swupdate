@@ -68,14 +68,12 @@ static size_t write_data(void *buffer, size_t size, size_t nmemb, void *userp)
 
 /* Minimum bytes/sec, else connection is broken */
 #define DL_LOWSPEED_BYTES	8
-/* Number of seconds while below low speed limit before aborting */
-#define DL_LOWSPEED_TIME	300
 
 /*
  * libcurl options (see easy interface in libcurl documentation)
  * are grouped together into this function
  */
-static void set_option_common(CURL *curl_handle)
+static void set_option_common(CURL *curl_handle, unsigned long lowspeed_time)
 {
 	int ret;
 
@@ -83,7 +81,7 @@ static void set_option_common(CURL *curl_handle)
 	curl_easy_setopt(curl_handle, CURLOPT_NOPROGRESS, 1L);
 
 	curl_easy_setopt(curl_handle, CURLOPT_LOW_SPEED_LIMIT, DL_LOWSPEED_BYTES);
-	curl_easy_setopt(curl_handle, CURLOPT_LOW_SPEED_TIME, DL_LOWSPEED_TIME);
+	curl_easy_setopt(curl_handle, CURLOPT_LOW_SPEED_TIME, lowspeed_time);
 
 	/* enable TCP keep-alive for this transfer */
 	ret = curl_easy_setopt(curl_handle, CURLOPT_TCP_KEEPALIVE, 1L);
@@ -104,7 +102,8 @@ static void set_option_common(CURL *curl_handle)
  * It si not thought to work with local (file://)
  * for that, the -i option is used.
  */
-RECOVERY_STATUS download_from_url(char *image_url, int retries)
+RECOVERY_STATUS download_from_url(char *image_url, int retries,
+					unsigned long lowspeed_time)
 {
 	CURL *curl_handle;
 	CURLcode res = CURLE_GOT_NOTHING;
@@ -156,7 +155,7 @@ RECOVERY_STATUS download_from_url(char *image_url, int retries)
 
 	curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, write_data);
 	curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, &fd);
-	set_option_common(curl_handle);
+	set_option_common(curl_handle, lowspeed_time);
 
 	TRACE("Image download started : %s", image_url);
 

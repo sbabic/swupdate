@@ -35,8 +35,9 @@ int run_prepost_scripts(struct swupdate_cfg *sw, script_fn type);
 void cleanup_files(struct swupdate_cfg *software);
 
 #ifdef CONFIG_DOWNLOAD
-RECOVERY_STATUS download_from_url(char *image_url, int retries);
+RECOVERY_STATUS download_from_url(char *image_url, int retries,
+					unsigned long lowspeed_time);
 #else
-#define download_from_url(url, retries)	(0)
+#define download_from_url(url, retries, lowspeed_time)	(0)
 #endif
 #endif

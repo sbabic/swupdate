@@ -50,6 +50,13 @@
 
 #define MODULE_NAME	"swupdate"
 
+/*
+ * Number of seconds while below low speed
+ * limit before aborting
+ * it can be overwritten by -t
+ */
+#define DL_LOWSPEED_TIME	300
+
 static pthread_t network_daemon;
 
 /* Tree derived from the configuration file */
@@ -78,6 +85,7 @@ static struct option long_options[] = {
 #ifdef CONFIG_DOWNLOAD
 	{"download", required_argument, NULL, 'd'},
 	{"retries", required_argument, NULL, 'r'},
+	{"timeout", required_argument, NULL, 't'},
 #endif
 #ifdef CONFIG_WEBSERVER
 	{"webserver", required_argument, NULL, 'w'},
@@ -100,6 +108,7 @@ static void usage(char *programname)
 		"                                  installation will proceed as usual.\n"
 		" -r, --retries                  : number of retries (resumed download) if\n"
 		"                                  connection is broken (0 means undefinetly retries)\n"
+		" -t, --timeout                  : timeout to check if a connection is lost\n"
 #endif
 		" -e, --select <software>,<mode> : Select software images set and source\n"
 		"                                  Ex.: stable,main\n"
@@ -355,6 +364,7 @@ int main(int argc, char **argv)
 	int opt_w = 0;
 	char image_url[MAX_URL];
 	int opt_d = 0;
+	unsigned long opt_t = DL_LOWSPEED_TIME;
 	int __attribute__ ((__unused__)) opt_r = 3;
 	RECOVERY_STATUS result;
 	char main_options[256];
@@ -375,6 +385,7 @@ int main(int argc, char **argv)
 #ifdef CONFIG_DOWNLOAD
 	strcat(main_options, "d:");
 	strcat(main_options, "r:");
+	strcat(main_options, "t:");
 #endif
 #ifdef CONFIG_WEBSERVER
 	strcat(main_options, "w:");
@@ -439,6 +450,9 @@ int main(int argc, char **argv)
 			if (opt_to_hwrev(optarg, &swcfg.hw) < 0)
 				exit(1);
 			break;
+		case 't':
+			opt_t = strtoul(optarg, NULL, 10);
+			break;
 #ifdef CONFIG_WEBSERVER
 		case 'w':
 			snprintf(weboptions, sizeof(weboptions), "%s %s", argv[0], optarg);
@@ -483,7 +497,7 @@ int main(int argc, char **argv)
 	}
 
 	if (opt_d) {
-		result = download_from_url(image_url, opt_r);
+		result = download_from_url(image_url, opt_r, opt_t);
 		if (result == SUCCESS)
 			exit(0);
 		else
