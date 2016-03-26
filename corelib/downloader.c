@@ -38,6 +38,49 @@
 
 static int cnt = 0;
 
+/* notify download progress each second */
+#define MINIMAL_PROGRESS_INTERVAL     1
+
+struct dlprogress {
+	double lastruntime;
+	CURL *curl;
+};
+
+/*
+ * Callback from the libcurl API to progress meter function
+ * This function gets called by libcurl instead of its internal equivalent.
+ */
+static int download_info(void *p,
+			 curl_off_t dltotal, curl_off_t dlnow,
+			 curl_off_t __attribute__ ((__unused__)) ultotal,
+			 curl_off_t __attribute__ ((__unused__)) ulnow)
+{
+	struct dlprogress *dlp = (struct dlprogress *)p;
+	CURL *curl = dlp->curl;
+	double curtime = 0;
+	curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &curtime);
+
+	if ((curtime - dlp->lastruntime) >= MINIMAL_PROGRESS_INTERVAL) {
+		dlp->lastruntime = curtime;
+		INFO("Received : %" CURL_FORMAT_CURL_OFF_T " / %"
+		     CURL_FORMAT_CURL_OFF_T, dlnow, dltotal);
+	}
+
+	return 0;
+}
+
+/* for libcurl older than 7.32.0 (CURLOPT_PROGRESSFUNCTION) */
+static int legacy_download_info(void *p,
+				double dltotal, double dlnow,
+				double ultotal, double ulnow)
+{
+	return download_info(p,
+			     (curl_off_t)dltotal,
+			     (curl_off_t)dlnow,
+			     (curl_off_t)ultotal,
+			     (curl_off_t)ulnow);
+}
+
 /*
  * Callback from the libcurl API
  * It is called any time a chunk of data is received
@@ -75,10 +118,30 @@ static size_t write_data(void *buffer, size_t size, size_t nmemb, void *userp)
  */
 static void set_option_common(CURL *curl_handle, unsigned long lowspeed_time)
 {
+	struct dlprogress prog;
 	int ret;
 
+	prog.lastruntime = 0;
+	prog.curl = curl_handle;
+
 	curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "swupdate");
-	curl_easy_setopt(curl_handle, CURLOPT_NOPROGRESS, 1L);
+
+	curl_easy_setopt(curl_handle, CURLOPT_PROGRESSFUNCTION, legacy_download_info);
+	curl_easy_setopt(curl_handle, CURLOPT_PROGRESSDATA, &prog);
+#if LIBCURL_VERSION_NUM >= 0x072000
+	/* xferinfo was introduced in 7.32.0, no earlier libcurl versions will
+	   compile as they won't have the symbols around.
+
+	   If built with a newer libcurl, but running with an older libcurl:
+	   curl_easy_setopt() will fail in run-time trying to set the new
+	   callback, making the older callback get used.
+
+	   New libcurls will prefer the new callback and instead use that one
+	   even if both callbacks are set. */
+	curl_easy_setopt(curl_handle, CURLOPT_XFERINFOFUNCTION, download_info);
+	curl_easy_setopt(curl_handle, CURLOPT_XFERINFODATA, &prog);
+#endif
+	curl_easy_setopt(curl_handle, CURLOPT_NOPROGRESS, 0L);
 
 	curl_easy_setopt(curl_handle, CURLOPT_LOW_SPEED_LIMIT, DL_LOWSPEED_BYTES);
 	curl_easy_setopt(curl_handle, CURLOPT_LOW_SPEED_TIME, lowspeed_time);
@@ -190,9 +253,9 @@ RECOVERY_STATUS download_from_url(char *image_url, int retries,
 	}
 
 	if (res == CURLE_OK) {
-		TRACE("Image download completed %s : %llu bytes", image_url, dwlbytes);
+		INFO("Success : %llu bytes", dwlbytes);
 	} else {
-		ERROR("Image not downloaded: %s", curl_easy_strerror(res));
+		INFO("Error : %s", curl_easy_strerror(res));
 	}
 
 	curl_easy_cleanup(curl_handle);
