@@ -242,7 +242,7 @@ static int recovery_upload(struct mg_connection *conn) {
 		if ((content_type_header = mg_get_header(conn, "Content-length")) == NULL)
 			return num_uploaded_files;
 		file_length = strtoul(content_type_header, NULL, 10);
-		printf("X_FILENAME: %s lenght: %d\n", fname, file_length);
+		printf("X_FILENAME: %s length: %d\n", fname, file_length);
 		XHTTPRequest = 1;
 	}
 
