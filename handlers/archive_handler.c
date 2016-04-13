@@ -154,13 +154,17 @@ static int install_archive_image(struct img_type *img,
 	struct extract_data tf;
 	pthread_attr_t attr;
 	void *status;
+	int use_mount = (strlen(img->device) && strlen(img->filesystem)) ? 1 : 0;
 
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
-	if (strlen(img->device) &&
-	    strlen(img->filesystem) && strlen(img->path)) {
+	if (strlen(img->path) == 0) {
+		TRACE("Missing path attribute");
+		return -1;
+	}
 
+	if (use_mount) {
 		ret = mount(img->device, DATADST_DIR, img->filesystem, 0, NULL);
 		if (ret) {
 			ERROR("Device %s with filesystem %s cannot be mounted",
@@ -170,67 +174,68 @@ static int install_archive_image(struct img_type *img,
 
 		snprintf(path, sizeof(path), "%s%s",
 			DATADST_DIR, img->path);
-
-		unlink(FIFO);
-		ret = mkfifo(FIFO, 0666);
-		if (ret) {
-			ERROR("FIFO cannot be created in archive handler\n");
-			return -1;
-		}
-		if (!getcwd(pwd, sizeof(pwd)))
-			return -1;
-
-		/*
-		 * Change to directory where tarball must be extracted
-		 */
-		ret = chdir(path);
-		if (ret) {
-			TRACE("Fault: chdir not possible\n");
-			return -EFAULT;
-		}
-
-		TRACE("Installing file %s on %s\n",
-			img->fname, path);
-
-		tf.flags = 0;
-
-		ret = pthread_create(&extract_thread, &attr, extract, &tf);
-		if (ret) {
-			ERROR("Code from pthread_create() is %d\n",
-				 ret);
-			return -EFAULT;
-		}
-
-		fdout = open(FIFO, O_WRONLY);
-
-		offset = img->offset;
-		ret = copyfile(img->fdin, fdout, img->size, &offset, 0,
-				img->compressed, &checksum, img->sha256);
-		if (ret< 0) {
-			ERROR("Error copying extracted file\n");
-			return -EFAULT;
-		}
-
-		close(fdout);
-
-		ret = pthread_join(extract_thread, &status);
-		if (ret) {
-			ERROR("return code from pthread_join() is %d\n", ret);
-			return -EFAULT;
-		}
-
-		unlink(FIFO);
-
-		ret = chdir(pwd);
-
-		if (ret) {
-			TRACE("Fault: chdir not possible\n");
-		}
-		umount(DATADST_DIR);
 	} else {
-		ret = -ENODEV;
-		TRACE("%s %s %s %s\n", __func__, img->device,
-				img->filesystem, img->path);
+		snprintf(path, sizeof(path), "%s", img->path);
+	}
+
+	unlink(FIFO);
+	ret = mkfifo(FIFO, 0666);
+	if (ret) {
+		ERROR("FIFO cannot be created in archive handler\n");
+		return -1;
+	}
+	if (!getcwd(pwd, sizeof(pwd)))
+		return -1;
+
+	/*
+	 * Change to directory where tarball must be extracted
+	 */
+	ret = chdir(path);
+	if (ret) {
+		TRACE("Fault: chdir not possible\n");
+		return -EFAULT;
+	}
+
+	TRACE("Installing file %s on %s\n",
+		img->fname, path);
+
+	tf.flags = 0;
+
+	ret = pthread_create(&extract_thread, &attr, extract, &tf);
+	if (ret) {
+		ERROR("Code from pthread_create() is %d\n",
+			 ret);
+		return -EFAULT;
+	}
+
+	fdout = open(FIFO, O_WRONLY);
+
+	offset = img->offset;
+	ret = copyfile(img->fdin, fdout, img->size, &offset, 0,
+			img->compressed, &checksum, img->sha256);
+	if (ret< 0) {
+		ERROR("Error copying extracted file\n");
+		return -EFAULT;
+	}
+
+	close(fdout);
+
+	ret = pthread_join(extract_thread, &status);
+	if (ret) {
+		ERROR("return code from pthread_join() is %d\n", ret);
+		return -EFAULT;
+	}
+
+	unlink(FIFO);
+
+	ret = chdir(pwd);
+
+	if (ret) {
+		TRACE("Fault: chdir not possible\n");
+	}
+
+	if (use_mount) {
+		umount(DATADST_DIR);
 	}
 
 	return ret;
