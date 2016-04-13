@@ -238,14 +238,16 @@ debugging or special purposes.
 		{
 			filename = <Name in CPIO Archive>;
 			path = <path in filesystem>;
-			device = <device node >;
-			filesystem = <filesystem for mount>;
+			device[optional] = <device node >;
+			filesystem[optional] = <filesystem for mount>;
 		}
 	);
 
 Entries in "files" section are managed as single files. The attributes
-"path" and "filesystem" are mandatory. SWUpdate copies the file in the path
-specified after mounting the device.
+"filename" and "path" are mandatory. Attributes "device" and "filesystem" are
+optional; they tell SWUpdate to mount device (of the given filesystem type,
+e.g. "ext4") before copying "filename" to "path". Without "device" and
+"filesystem", the "filename" will be copied to "path" in the current rootfs.
 
 
 Scripts
@@ -555,21 +557,24 @@ There are 4 main sections inside sw-description:
 |             |          |            | created or adjusted with a new size   |
 +-------------+----------+------------+---------------------------------------+
 | device      | string   | images     | devicenode as found in /dev. Usage    |
-|             |          | files      | depends on handler                    |
+|             |          | files      | depends on handler.                   |
 |             |          |            | For files, it indicates on which      |
 |             |          |            | device the "filesystem" must be       |
-|             |          |            | mounted.                              |
+|             |          |            | mounted. If not specified, the current|
+|             |          |            | rootfs will be used.                  |
 +-------------+----------+------------+---------------------------------------+
 | filesystem  | string   | files      | indicates the filesystem type where   |
-|             |          |            | the file must be installed.           |
+|             |          |            | the file must be installed. Only      |
+|             |          |            | used if "device" attribute is set.    |
 +-------------+----------+------------+---------------------------------------+
 | path        | string   | files      | For files: indicates the path         |
 |             |          |            | (absolute) where the file must be     |
-|             |          |            | installed. Device, filesystem and path|
-|             |          |            | are then mandatory.                   |
-|             |          |            | SWUpdate will install the file after  |
-|             |          |            | mounting "device", that contains      |
-|             |          |            | "filesystem", under "path"            |
+|             |          |            | installed. If "device" and            |
+|             |          |            | "filesystem" are set,                 |
+|             |          |            | SWUpdate will install the             |
+|             |          |            | file after mounting "device" with     |
+|             |          |            | "filesystem" type. (path is always    |
+|             |          |            | relative to the mount point.)         |
 +-------------+----------+------------+---------------------------------------+
 | type        | string   | images     | string identifier for the handler,    |
 |             |          | files      | as it is set by the handler when it   |
