@@ -38,7 +38,6 @@
 #include "util.h"
 #include "swupdate.h"
 #include "installer.h"
-#include "flash.h"
 #include "handler.h"
 #include "cpiohdr.h"
 #include "parsers.h"

@@ -43,7 +43,9 @@
 #include "network_interface.h"
 #include "handler.h"
 #include "installer.h"
+#ifdef CONFIG_MTD
 #include "flash.h"
+#endif
 #include "lua_util.h"
 #include "mongoose_interface.h"
 #include "network_ipc.h"
@@ -62,12 +64,14 @@ static pthread_t network_daemon;
 /* Tree derived from the configuration file */
 static struct swupdate_cfg swcfg;
 
+#ifdef CONFIG_MTD
 /* Global MTD configuration */
 static struct flash_description flashdesc;
 
 struct flash_description *get_flash_info(void) {
 	return &flashdesc;
 }
+#endif
 
 static struct option long_options[] = {
 	{"verbose", no_argument, NULL, 'v'},
@@ -375,7 +379,9 @@ int main(int argc, char **argv)
 	int ac = 0;
 #endif
 
+#ifdef CONFIG_MTD
 	memset(&flashdesc, 0, sizeof(flashdesc));
+#endif
 	memset(main_options, 0, sizeof(main_options));
 	memset(image_url, 0, sizeof(image_url));
 	strcpy(main_options, "vhi:se:l:");

@@ -44,7 +44,9 @@
 #include "swupdate.h"
 #include "util.h"
 #include "handler.h"
+#ifdef CONFIG_MTD
 #include "flash.h"
+#endif
 #include "parsers.h"
 #include "network_ipc.h"
 #include "network_interface.h"

@@ -29,10 +29,8 @@
 #include <errno.h>
 #include <string.h>
 
-#include <mtd/mtd-user.h>
 #include "swupdate.h"
 #include "handler.h"
-#include "flash.h"
 #include "util.h"
 
 void raw_handler(void);

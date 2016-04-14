@@ -22,7 +22,6 @@
 
 #include <sys/types.h>
 #include "bsdqueue.h"
-#include "flash.h"
 #include "globals.h"
 
 typedef enum {
