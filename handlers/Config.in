@@ -108,6 +108,9 @@ config ARCHIVE
 	  Handler using the libarchive to extract tarballs
 	  into a filesystem.
 
+comment "archive support needs libarchive"
+	depends on !HAVE_LIBARCHIVE
+
 config UBOOT
 	bool "uboot"
 	depends on HAVE_ZLIB
