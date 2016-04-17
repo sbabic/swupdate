@@ -35,6 +35,7 @@ static parser_fn parsers[] = {
 	parse_external
 };
 
+#ifdef CONFIG_SIGNED_IMAGES
 /*
  * Check that all images in a list have a valid hsh
  */
@@ -53,6 +54,7 @@ static int check_missing_hash(struct imglist *list)
 
 	return 0;
 }
+#endif
 
 int parse(struct swupdate_cfg *sw, const char *descfile)
 {
