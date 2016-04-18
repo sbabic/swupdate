@@ -44,7 +44,12 @@ static int check_missing_hash(struct imglist *list)
 	struct img_type *image;
 
 	LIST_FOREACH(image, list, next) {
-		if (!IsValidHash(image->sha256)) {
+		/*
+		 * Skip "ubipartition" because there is no image
+		 * associated for this type
+		 */
+		if ( (strcmp(image->type, "ubipartition")) &&
+				(!IsValidHash(image->sha256))) {
 			ERROR("Hash not set for %s Type %s",
 				image->fname,
 				image->type);
