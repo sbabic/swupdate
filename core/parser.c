@@ -37,7 +37,7 @@ static parser_fn parsers[] = {
 
 #ifdef CONFIG_SIGNED_IMAGES
 /*
- * Check that all images in a list have a valid hsh
+ * Check that all images in a list have a valid hash
  */
 static int check_missing_hash(struct imglist *list)
 {
@@ -91,7 +91,7 @@ int parse(struct swupdate_cfg *sw, const char *descfile)
 		return ret;
 
 	/*
-	 * If the software must verified, all images
+	 * If the software must be verified, all images
 	 * must have a valid hash to be checked
 	 */
 	if (check_missing_hash(&sw->images) ||

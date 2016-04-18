@@ -172,7 +172,7 @@ int swupdate_verify_file(struct swupdate_digest *dgst, const char *sigfile,
 	int status = 0;
 
 	if (!dgst) {
-		ERROR("Wrong crypto initialization: do you pass the key ?");
+		ERROR("Wrong crypto initialization: did you pass the key ?");
 		status = -ENOKEY;
 		goto out;
 	}
@@ -285,7 +285,7 @@ int swupdate_dgst_init(struct swupdate_cfg *sw, const char *keyfile)
 	 */
 	dgst->pkey = load_pubkey(keyfile);
 	if (!dgst->pkey) {
-		ERROR("Error loading pub key form %s", keyfile);
+		ERROR("Error loading pub key from %s", keyfile);
 		ret = -EINVAL;
 		goto dgst_init_error;
 	}
