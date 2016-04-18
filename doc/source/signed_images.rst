@@ -2,10 +2,10 @@ Update images from verified source
 ==================================
 
 It is becoming very important that a device must not only be safely updated,
-but also that it can verify by updating if the delivered image is coming
+but also that it can verify if the delivered image is coming
 from a known source and it was not corrupted introducing some malware.
 
-To reach this goal, SWUpdate must verify the incoming images. There are some
+To achieve this goal, SWUpdate must verify the incoming images. There are several
 ways to do this. Should the compound image be signed ? Or some parts of it ?
 
 Advantages and disadvantages are described in the following chapter.
@@ -45,7 +45,7 @@ Generating private and public key
 ---------------------------------
 
 The openssl tool is used to generate the keys. This is part of the
-opnSSL project. A complete documentation can be found at
+openSSL project. A complete documentation can be found at
 https://www.openssl.org/docs/manmaster/apps/openssl.html.
 
 First, the private key must be created:
