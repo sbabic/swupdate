@@ -124,7 +124,7 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 	int skip;
 	uint32_t checksum;
 	int fdout;
-	struct img_type *img;
+	struct img_type *img, *part;
 	char output_file[MAX_IMAGE_FNAME];
 
 
@@ -228,6 +228,23 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 				break;
 			case INSTALL_FROM_STREAM:
 				TRACE("Installing STREAM %s, %lld bytes\n", img->fname, img->size);
+				/*
+				 * If we are streaming data to store in a UBI volume, make
+				 * sure that the UBI partitions are adjusted beforehand
+				 */
+				LIST_FOREACH(part, &software->images, next) {
+					if ( (!part->install_directly)
+						&& (!strcmp(part->type, "ubipartition")) ) {
+						TRACE("Need to adjust partition %s before streaming %s",
+							part->volname, img->fname);
+						if (install_single_image(part)) {
+							ERROR("Error adjusting partition %s", part->volname);
+							return -1;
+						}
+						/* Avoid trying to adjust again later */
+						part->install_directly = 1;
+					}
+				}
 				img->fdin = fd;
 				if (install_single_image(img)) {
 					ERROR("Error streaming %s", img->fname);
