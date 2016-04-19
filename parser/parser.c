@@ -437,7 +437,11 @@ static void parse_partitions(parsertype p, void *cfg, struct swupdate_cfg *swcfg
 		return;
 
 	count = get_array_length(p, setting);
-	for(i = 0; i < count; ++i) {
+	/*
+	 * Parse in reverse order, so that the partitions are processed
+	 * by LIST_HEAD() in the same order as they are found in sw-description
+	 */
+	for(i = (count - 1); i >= 0; --i) {
 		elem = get_elem_from_idx(p, setting, i);
 
 		if (!elem)
