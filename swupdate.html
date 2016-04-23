@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>swupdate: software update for embedded system &mdash; Embedded Software Update Documentation 2016.- documentation</title>
+    <title>SWUpdate: software update for embedded system &mdash; Embedded Software Update Documentation 2016.04 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '2016.-',
+        VERSION:     '2016.04',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,8 +23,8 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="Embedded Software Update Documentation 2016.- documentation" href="index.html" />
-    <link rel="next" title="swupdate: syntax and tags with the default parser" href="sw-description.html" />
+    <link rel="top" title="Embedded Software Update Documentation 2016.04 documentation" href="index.html" />
+    <link rel="next" title="SWUpdate: syntax and tags with the default parser" href="sw-description.html" />
     <link rel="prev" title="Software Management on embedded systems" href="overview.html" /> 
   </head>
   <body>
@@ -35,12 +35,12 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="sw-description.html" title="swupdate: syntax and tags with the default parser"
+          <a href="sw-description.html" title="SWUpdate: syntax and tags with the default parser"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="overview.html" title="Software Management on embedded systems"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">Embedded Software Update Documentation 2016.- documentation</a> &raquo;</li> 
+        <li><a href="index.html">Embedded Software Update Documentation 2016.04 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -50,13 +50,13 @@
           <div class="body">
             
   <div class="section" id="swupdate-software-update-for-embedded-system">
-<h1>swupdate: software update for embedded system<a class="headerlink" href="#swupdate-software-update-for-embedded-system" title="Permalink to this headline">¶</a></h1>
+<h1>SWUpdate: software update for embedded system<a class="headerlink" href="#swupdate-software-update-for-embedded-system" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>This project is thought to help to update an embedded
 system from a storage media or from network. However,
 it should be mainly considered as a framework, where
-further protocols or installers (in swupdate they are called handlers)
+further protocols or installers (in SWUpdate they are called handlers)
 can be easily added to the application.</p>
 <p>One use case is to update from an external local media, as
 USB-Pen or SD-Card. In this case, the update is done
@@ -72,9 +72,9 @@ device or directed to a serial line (Linux console).</p>
 (recipes are provided to generate with Yocto).  However, it is
 possible to use it in a double-copy approach by use of <a class="reference internal" href="#software-collections">Software
 collections</a>.</p>
-<p>If started for a remote update, swupdate starts an embedded
+<p>If started for a remote update, SWUpdate starts an embedded
 Web-server and waits for requests. The operator must upload
-a suitable image, that swupdate checks and then install.
+a suitable image, that SWUpdate checks and then install.
 All output is notified to the operator&#8217;s browser via AJAX
 notifications.</p>
 <div class="section" id="single-image-delivery">
@@ -84,7 +84,7 @@ big image. All single images are packed together (cpio was chosen
 for its simplicity and because can be streamed) together with
 an additional file (sw-description), that contains meta
 information about each single image.</p>
-<p>The format of sw-description can be customized: swupdate can be
+<p>The format of sw-description can be customized: SWUpdate can be
 configured to use its internal parser (based on libconfig), or calling
 an external parser in LUA.</p>
 <img alt="_images/image_format.png" src="_images/image_format.png" />
@@ -92,7 +92,7 @@ an external parser in LUA.</p>
 let to extend to new image types and how they are installed.
 In fact, the scope of the parser is to retrieve which single
 images must be installed and how.
-swupdate implements &#8220;handlers&#8221; to install a single image:
+SWUpdate implements &#8220;handlers&#8221; to install a single image:
 there are handlers to install images into UBI volumes,
 or to a SD card, a CFI Flash, and so on. It is then easy to
 add an own handler if a very special installer is required.</p>
@@ -101,10 +101,10 @@ one or several micro-controllers. Let&#8217;s say for simplicity that
 the main processor communicates with the micro-controllers via
 UARTS using a proprietary protocol. The software on the micro-controllers
 can be updated using the proprietary protocol.</p>
-<p>It is possible to extend swupdate writing a handler, that implements
+<p>It is possible to extend SWUpdate writing a handler, that implements
 the part of the proprietary protocol to perform the upgrade
 on the micro-controller. The parser must recognize which image must be
-installed with the new handler, and swupdate will call the handler
+installed with the new handler, and SWUpdate will call the handler
 during the installation process.</p>
 </div>
 <div class="section" id="handling-configuration-differences">
@@ -149,7 +149,7 @@ library is needed.</p>
 By identifying which is the running device, the parser return
 a table containing the images that must be installed and their associated
 handlers.
-By reading the delivered image, swupdate will ignore all images that
+By reading the delivered image, SWUpdate will ignore all images that
 are not in the list processed by the parser. In this way, it is possible
 to have a single delivered image for the update of multiple devices.</p>
 <p>Multiple devices are supported by the default parser, too.</p>
@@ -194,7 +194,7 @@ list</li>
 <h3>Software collections<a class="headerlink" href="#software-collections" title="Permalink to this headline">¶</a></h3>
 <p>Software collections and operation modes can be used to implement a
 dual copy strategy. The simplest case is to define two installation
-locations for the firmware image and call <cite>swupdate</cite> selecting the
+locations for the firmware image and call <cite>SWUpdate</cite> selecting the
 appropriate image.</p>
 <div class="highlight-python"><div class="highlight"><pre>software =
 {
@@ -223,14 +223,14 @@ appropriate image.</p>
 </div>
 <p>In this way it is possible to specify that <cite>copy-1</cite> gets installed to
 <cite>/dev/mtd4</cite>, while <cite>copy-2</cite> to <cite>/dev/mtd5</cite>. By properly selecting the
-installation locations, <cite>swupdate</cite> will update the firmware in the
+installation locations, <cite>SWUpdate</cite> will update the firmware in the
 other slot.</p>
-<p>The method of image selection is out of the scope of swupdate and user
-is responsible for calling <cite>swupdate</cite> passing proper settings.</p>
+<p>The method of image selection is out of the scope of SWUpdate and user
+is responsible for calling <cite>SWUpdate</cite> passing proper settings.</p>
 </div>
 <div class="section" id="streaming-feature">
 <h3>Streaming feature<a class="headerlink" href="#streaming-feature" title="Permalink to this headline">¶</a></h3>
-<p>swupdate is thought to be able to stream the received image directly into
+<p>SWUpdate is thought to be able to stream the received image directly into
 the target, without any temporary copy. In fact, the single installer
 (handler) receive as input the file descriptor set at the beginning of
 the image that must be installed.</p>
@@ -250,11 +250,11 @@ NOR and SPI-NOR flashes)</li>
 <li>check if a image is available. The image is built
 in a specified format (cpio) and it must contain
 a file describing the software that must be updated.</li>
-<li>swupdate is thought to update UBI volumes (mainly for NAND, but not only)
+<li>SWUpdate is thought to update UBI volumes (mainly for NAND, but not only)
 and images on devices. Passing a whole image can still be updated
 as a partition on the SD card, or a MTD partition.</li>
 <li>new partition schema. This is bound with UBI volume.
-swupdate can recreate UBI volumes, resizing them and
+SWUpdate can recreate UBI volumes, resizing them and
 copying the new software. A special UBI volume with the name &#8220;data&#8221;
 is saved and restored after repartitioning with all data
 it contains,  to maintain user&#8217;s data.</li>
@@ -285,12 +285,12 @@ integrated Web-Server, remote Server)</li>
 <li>Can be configured to check for compatibility between software and hardware
 revisions. The software image must contain an entry declaring on which
 HW revision the software is allowed to run.
-swupdate refuses to install if the compatibility is not verified.</li>
+SWUpdate refuses to install if the compatibility is not verified.</li>
 <li>support for image extraction. A manufacturer can require to have
 a single image that contains the software for more as one device.
 This simplifies the manufacturer&#8217;s management and reduces
 their administrative costs having a single software product.
-swupdate receives the software as stream without temporary storing,
+SWUpdate receives the software as stream without temporary storing,
 and extracts only the required components for the device
 to be installed.</li>
 <li>allow custom handlers for installing FPGA firmware,
@@ -302,7 +302,7 @@ micro-controller firmware via custom protocols.</li>
 </div>
 <div class="section" id="images-fully-streamed">
 <h3>Images fully streamed<a class="headerlink" href="#images-fully-streamed" title="Permalink to this headline">¶</a></h3>
-<p>In case of remote update, swupdate extracts relevant images
+<p>In case of remote update, SWUpdate extracts relevant images
 from the stream and copy them into /tmp before calling the handlers.
 This guarantee that an update is initiated only if all parts are present and correct.
 However, on some systems with less resources, the amount of RAM
@@ -318,11 +318,11 @@ in the descriptionü of the single image.</p>
 <h2>Configuration and build<a class="headerlink" href="#configuration-and-build" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="requirements">
 <h3>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h3>
-<p>There are only a few libraries that are required to compile swupdate.</p>
+<p>There are only a few libraries that are required to compile SWUpdate.</p>
 <ul class="simple">
 <li>mtd-utils: internally, mtd-utils generates libmtd and libubi.
 They are commonly not exported and not installed, but they are
-linked by swupdate to reuse the same functions for upgrading
+linked by SWUpdate to reuse the same functions for upgrading
 MTD and UBI volumes.</li>
 <li>openssl: required with the Webserver</li>
 <li>LUA: liblua and the development headers.</li>
@@ -337,13 +337,13 @@ and drop what you do not need.</p>
 </div>
 <div class="section" id="building-with-yocto">
 <h3>Building with Yocto<a class="headerlink" href="#building-with-yocto" title="Permalink to this headline">¶</a></h3>
-<p>A meta-swupdate layer is provided. It contains the required changes
-for mtd-utils and for generating LUA. Using meta-swupdate is a
+<p>A meta-SWUpdate layer is provided. It contains the required changes
+for mtd-utils and for generating LUA. Using meta-SWUpdate is a
 straightforward process.</p>
-<p>Firstly, clone meta-swupdate from:</p>
-<p>Add meta-swupdate as usual to your bblayers.conf.</p>
-<p>In meta-swupdate there is a recipe to generate a initrd with a
-rescue system with swupdate. Use:</p>
+<p>Firstly, clone meta-SWUpdate from:</p>
+<p>Add meta-SWUpdate as usual to your bblayers.conf.</p>
+<p>In meta-SWUpdate there is a recipe to generate a initrd with a
+rescue system with SWUpdate. Use:</p>
 <div class="highlight-python"><div class="highlight"><pre>MACHINE=&lt;your machine&gt; bitbake swupdate-image
 </pre></div>
 </div>
@@ -352,8 +352,8 @@ How to install and start a initrd is very target specific - please
 check in the documentation of your bootloader.</p>
 </div>
 <div class="section" id="configuring-swupdate">
-<h3>Configuring swupdate<a class="headerlink" href="#configuring-swupdate" title="Permalink to this headline">¶</a></h3>
-<p>swupdate is configurable via &#8220;make menuconfig&#8221;. The small footprint
+<h3>Configuring SWUpdate<a class="headerlink" href="#configuring-swupdate" title="Permalink to this headline">¶</a></h3>
+<p>SWUpdate is configurable via &#8220;make menuconfig&#8221;. The small footprint
 is reached using the internal parser and disabling the web-server.
 Any option has a small help describing its usage. In the default
 configuration, many options are already activated.</p>
@@ -373,14 +373,14 @@ make menuconfig.</li>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">make</span>
 </pre></div>
 </div>
-<p>The result is the binary &#8220;swupdate&#8221;.</p>
+<p>The result is the binary &#8220;SWUpdate&#8221;.</p>
 </div>
 </div>
 <div class="section" id="running-swupdate">
-<h2>Running swupdate<a class="headerlink" href="#running-swupdate" title="Permalink to this headline">¶</a></h2>
+<h2>Running SWUpdate<a class="headerlink" href="#running-swupdate" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="what-is-expected-from-a-swupdate-run">
-<h3>What is expected from a swupdate run<a class="headerlink" href="#what-is-expected-from-a-swupdate-run" title="Permalink to this headline">¶</a></h3>
-<p>A run of swupdate consists mainly of the following steps:</p>
+<h3>What is expected from a SWUpdate run<a class="headerlink" href="#what-is-expected-from-a-swupdate-run" title="Permalink to this headline">¶</a></h3>
+<p>A run of SWUpdate consists mainly of the following steps:</p>
 <ul class="simple">
 <li>check for media (USB-pen)</li>
 <li>check for an image file. The extension must be .swu</li>
@@ -388,7 +388,7 @@ make menuconfig.</li>
 It parses sw-description creating a raw description in RAM
 about the activities that must be performed.</li>
 <li>Reads the cpio archive and proofs the checksum of each single file
-swupdate stops if the archive is not complete verified</li>
+SWUpdate stops if the archive is not complete verified</li>
 <li>check for hardware-software compatibility, if any,
 reading hardware revision from hardware and matching
 with the table in sw-description.</li>
@@ -408,7 +408,7 @@ in sw-description.</li>
 </ul>
 <p>The first step that fails, stops the entire procedure and
 an error is reported.</p>
-<p>To start swupdate expecting the image from a file:</p>
+<p>To start SWUpdate expecting the image from a file:</p>
 <div class="highlight-python"><div class="highlight"><pre>swupdate -i &lt;filename&gt;
 </pre></div>
 </div>
@@ -417,7 +417,7 @@ an error is reported.</p>
 </pre></div>
 </div>
 <p>The main important parameter for the web-server is &#8220;document_root&#8221;.</p>
-<div class="highlight-python"><div class="highlight"><pre>swupdate -w &quot;-document_root ./www&quot;
+<div class="highlight-python"><div class="highlight"><pre>SWUpdate -w &quot;-document_root ./www&quot;
 </pre></div>
 </div>
 <p>The embedded web-server is taken from the Mongoose project (last release
@@ -425,16 +425,16 @@ with LUA license). Additional parameters can be found in mongoose
 documentation.
 This uses as website the pages delivered with the code. Of course,
 they can be customized and replaced. The website uses AJAX to communicate
-with swupdate, and to show the progress of the update to the operator.</p>
+with SWUpdate, and to show the progress of the update to the operator.</p>
 <p>The default port of the Web-server is 8080. You can then connect to the target with:</p>
 <div class="highlight-python"><div class="highlight"><pre>http://&lt;target_ip&gt;:8080
 </pre></div>
 </div>
 <p>If it works, the start page should be displayed as in next figure.</p>
 <img alt="_images/website.png" src="_images/website.png" />
-<p>If a correct image is downloaded, swupdate starts to process the received image.
-All notifications are sent back to the browser. swupdate provides a mechanism
-to send to a receiver the progress of the installation. In fact, swupdate
+<p>If a correct image is downloaded, SWUpdate starts to process the received image.
+All notifications are sent back to the browser. SWUpdate provides a mechanism
+to send to a receiver the progress of the installation. In fact, SWUpdate
 takes a list of objects that registers itself with the application
 and they will be informed any time the application calls the notify() function.
 This allows also for self-written handlers to inform the upper layers about
@@ -446,7 +446,7 @@ An example of the notifications sent back to the browser is in the next figure:<
 <img alt="_images/webprogress.png" src="_images/webprogress.png" />
 <p>Software collections can be specified by passing <cite>&#8211;select</cite> command
 line option. Assuming <cite>sw-description</cite> file contains a collection
-named <cite>stable</cite>, with <cite>alt</cite> installation location, <cite>swupdate</cite> can be
+named <cite>stable</cite>, with <cite>alt</cite> installation location, <cite>SWUpdate</cite> can be
 called like this:</p>
 <div class="highlight-python"><div class="highlight"><pre>swupdate --select stable,alt
 </pre></div>
@@ -470,7 +470,7 @@ called like this:</p>
 <tr class="row-even"><td>-b &lt;string&gt;</td>
 <td>string</td>
 <td><p class="first">Active only if CONFIG_MTD is set
-It allows to blacklist MTDs when swupdate
+It allows to blacklist MTDs when SWUpdate
 searches for UBI volumes.
 Example: U-Boot and environment in MTD0-1:</p>
 <blockquote class="last">
@@ -487,7 +487,7 @@ pulled. URL is a link to a valid .swu image</td>
 <td>integer</td>
 <td>Active only if CONFIG_DOWNLOAD is set
 Number of retries before a download is
-considered broken. With &#8220;-r 0&#8221;, swupdate
+considered broken. With &#8220;-r 0&#8221;, SWUpdate
 will not stop until a valid software is
 loaded.</td>
 </tr>
@@ -514,11 +514,11 @@ copy approach. Example:
 <li></li>
 </ul>
 </td>
-<td>run swupdate in daemon mode</td>
+<td>run SWUpdate in daemon mode</td>
 </tr>
 <tr class="row-even"><td>-i &lt;file&gt;</td>
 <td>string</td>
-<td>run swupdate with a local .swu file</td>
+<td>run SWUpdate with a local .swu file</td>
 </tr>
 <tr class="row-odd"><td>-v</td>
 <td><ul class="first last simple">
@@ -532,19 +532,29 @@ copy approach. Example:
 <td>start internal webserver and pass to it
 a command line string.</td>
 </tr>
+<tr class="row-odd"><td>-H
+&lt;board:rev&gt;</td>
+<td>string</td>
+<td>set board name and Hardware revision</td>
+</tr>
+<tr class="row-even"><td>-t &lt;timeout&gt;</td>
+<td>integer</td>
+<td>Timeout for connection lost when
+downloading</td>
+</tr>
 </tbody>
 </table>
 </div>
 </div>
 <div class="section" id="changes-in-boot-loader-code">
 <h2>Changes in boot-loader code<a class="headerlink" href="#changes-in-boot-loader-code" title="Permalink to this headline">¶</a></h2>
-<p>The swupdate consists of kernel and a root filesystem
+<p>The SWUpdate consists of kernel and a root filesystem
 (image) that must be started by the boot-loader.
 In case using U-Boot, the following mechanism can be implemented:</p>
 <ul class="simple">
 <li>U-Boot checks if a sw update is required (check gpio, serial console, etc.).</li>
-<li>the script &#8220;altbootcmd&#8221; sets the rules to start swupdate</li>
-<li>in case swupdate is required, u-boot run the script &#8220;altbootcmd&#8221;</li>
+<li>the script &#8220;altbootcmd&#8221; sets the rules to start SWUpdate</li>
+<li>in case SWUpdate is required, u-boot run the script &#8220;altbootcmd&#8221;</li>
 </ul>
 <p>Is it safe to change U-Boot environment ? Well, it is, but U-Boot must
 be configured correctly. U-Boot supports two copies of the environment
@@ -557,7 +567,7 @@ into u-boot to make the system safer. The most important I will
 suggest is to add support for boot counter in u-boot (documentation
 is in U-Boot docs). This allows U-Boot to track for attempts to
 successfully run the application, and if the boot counter is
-greater as a limit, can start automatically swupdate to replace
+greater as a limit, can start automatically SWUpdate to replace
 a corrupt software.</p>
 </div>
 <div class="section" id="building-a-single-image">
@@ -588,7 +598,7 @@ of sw-description, that must be the first one.</p>
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">swupdate: software update for embedded system</a><ul>
+<li><a class="reference internal" href="#">SWUpdate: software update for embedded system</a><ul>
 <li><a class="reference internal" href="#overview">Overview</a><ul>
 <li><a class="reference internal" href="#single-image-delivery">Single image delivery</a></li>
 <li><a class="reference internal" href="#handling-configuration-differences">Handling configuration differences</a></li>
@@ -601,12 +611,12 @@ of sw-description, that must be the first one.</p>
 <li><a class="reference internal" href="#configuration-and-build">Configuration and build</a><ul>
 <li><a class="reference internal" href="#requirements">Requirements</a></li>
 <li><a class="reference internal" href="#building-with-yocto">Building with Yocto</a></li>
-<li><a class="reference internal" href="#configuring-swupdate">Configuring swupdate</a></li>
+<li><a class="reference internal" href="#configuring-swupdate">Configuring SWUpdate</a></li>
 <li><a class="reference internal" href="#building">Building</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#running-swupdate">Running swupdate</a><ul>
-<li><a class="reference internal" href="#what-is-expected-from-a-swupdate-run">What is expected from a swupdate run</a></li>
+<li><a class="reference internal" href="#running-swupdate">Running SWUpdate</a><ul>
+<li><a class="reference internal" href="#what-is-expected-from-a-swupdate-run">What is expected from a SWUpdate run</a></li>
 <li><a class="reference internal" href="#command-line-parameters">Command line parameters</a></li>
 </ul>
 </li>
@@ -621,7 +631,7 @@ of sw-description, that must be the first one.</p>
                         title="previous chapter">Software Management on embedded systems</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="sw-description.html"
-                        title="next chapter">swupdate: syntax and tags with the default parser</a></p>
+                        title="next chapter">SWUpdate: syntax and tags with the default parser</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/swupdate.txt"
@@ -651,16 +661,16 @@ of sw-description, that must be the first one.</p>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="sw-description.html" title="swupdate: syntax and tags with the default parser"
+          <a href="sw-description.html" title="SWUpdate: syntax and tags with the default parser"
              >next</a> |</li>
         <li class="right" >
           <a href="overview.html" title="Software Management on embedded systems"
              >previous</a> |</li>
-        <li><a href="index.html">Embedded Software Update Documentation 2016.- documentation</a> &raquo;</li> 
+        <li><a href="index.html">Embedded Software Update Documentation 2016.04 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2013-2015, Stefano Babic.
+        &copy; Copyright 2013-2016, Stefano Babic.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
   </body>

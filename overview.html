@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Software Management on embedded systems &mdash; Embedded Software Update Documentation 2016.- documentation</title>
+    <title>Software Management on embedded systems &mdash; Embedded Software Update Documentation 2016.04 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '2016.-',
+        VERSION:     '2016.04',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,8 +23,8 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="Embedded Software Update Documentation 2016.- documentation" href="index.html" />
-    <link rel="next" title="swupdate: software update for embedded system" href="swupdate.html" />
+    <link rel="top" title="Embedded Software Update Documentation 2016.04 documentation" href="index.html" />
+    <link rel="next" title="SWUpdate: software update for embedded system" href="swupdate.html" />
     <link rel="prev" title="Updating an embedded system" href="index.html" /> 
   </head>
   <body>
@@ -35,12 +35,12 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="swupdate.html" title="swupdate: software update for embedded system"
+          <a href="swupdate.html" title="SWUpdate: software update for embedded system"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="index.html" title="Updating an embedded system"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">Embedded Software Update Documentation 2016.- documentation</a> &raquo;</li> 
+        <li><a href="index.html">Embedded Software Update Documentation 2016.04 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -188,9 +188,9 @@ is interrupted or a power off occurs.</p>
 <p>Each copy must contain the kernel, the root file system, and each
 further component that can be updated. It is required
 a mechanism to identify which version is running.</p>
-<p>swupdate should be inserted in the application software, and
+<p>SWUpdate should be inserted in the application software, and
 the application software will trigger it when an update is required.
-The duty of swupdate is to update the stand-by copy, leaving the
+The duty of SWUpdate is to update the stand-by copy, leaving the
 running copy of the software untouched.</p>
 <p>A synergy with the boot loader is often necessary, because the boot loader must
 decide which copy should be started. Again, it must be possible
@@ -207,7 +207,7 @@ should be installed in the root file system and started
 or triggered as required. There is no
 need of an own kernel, because the two copies guarantees that
 it is always possible to upgrade the not running copy.</p>
-<p>swupdate will set U-Boot&#8217;s variable to signal the boot loader
+<p>SWUpdate will set U-Boot&#8217;s variable to signal the boot loader
 that a new image is successfully installed.</p>
 </div>
 <div class="section" id="single-copy-running-as-standalone-image">
@@ -223,8 +223,8 @@ or big NANDs.</p>
 boot loader that the upgrading software must be started. The way
 can differ, for example setting a boot loader environment or using
 and external GPIO.</p>
-<p>The boot loader starts &#8220;swupdate&#8221;, booting the
-swupdate kernel and the initrd image as root file system. Because it runs in RAM,
+<p>The boot loader starts &#8220;SWUpdate&#8221;, booting the
+SWUpdate kernel and the initrd image as root file system. Because it runs in RAM,
 it is possible to upgrade the whole storage. Differently as in the
 double-copy strategy, the systems must reboot to put itself in
 update mode.</p>
@@ -241,11 +241,11 @@ upgrade the new software is set as &#8220;boot-able&#8221;. With these considera
 an upgrade with this strategy is safe: it is always guaranteed that the
 system boots and it is ready to get a new software, if the old one
 is corrupted or cannot run.
-With U-Boot as boot loader, swupdate is able to manage U-Boot&#8217;s environment
+With U-Boot as boot loader, SWUpdate is able to manage U-Boot&#8217;s environment
 setting variables to indicate the start and the end of a transaction and
 that the storage contains a valid software.</p>
-<p>swupdate is mainly used in this configuration. The recipes for Yocto
-generate an initrd image containing the swupdate application, that is
+<p>SWUpdate is mainly used in this configuration. The recipes for Yocto
+generate an initrd image containing the SWUpdate application, that is
 automatically started after mounting the root file system.</p>
 <img alt="_images/swupdate_single.png" src="_images/swupdate_single.png" />
 </div>
@@ -254,58 +254,58 @@ automatically started after mounting the root file system.</p>
 <h2>Something went wrong ?<a class="headerlink" href="#something-went-wrong" title="Permalink to this headline">¶</a></h2>
 <p>Many things can go wrong, and it must be guaranteed that the system
 is able to run again and maybe able to reload a new software to fix
-a damaged image. swupdate works together with the U-Boot boot loader to
+a damaged image. SWUpdate works together with the U-Boot boot loader to
 identify the possible causes of failures.</p>
 <p>We can at least group some of the common causes:</p>
 <ul class="simple">
 <li>damage / corrupted image during installing.
-swupdate is able to recognize it and the update process
+SWUpdate is able to recognize it and the update process
 is interrupted. The old software is preserved and nothing
 is really copied into the target&#8217;s storage.</li>
 <li>corrupted image in the storage (flash)</li>
 <li>remote update interrupted due to communication problem.</li>
 <li>power-failure</li>
 </ul>
-<p>swupdate works as transaction process. The U-Boot variable &#8220;recovery_status&#8221; is
+<p>SWUpdate works as transaction process. The U-Boot variable &#8220;recovery_status&#8221; is
 set to signal U-Boot the update&#8217;s status. Of course, further variables can be added
 to fine tuning and report error causes. recovery_status can have the values &#8220;progress&#8221;,
 &#8220;failed&#8221;, or it can be unset.</p>
-<p>When swupdate starts, it sets recovery_status to &#8220;progress&#8221;. After an update is finished
+<p>When SWUpdate starts, it sets recovery_status to &#8220;progress&#8221;. After an update is finished
 with success, the variable is erased. If the update ends with an error, recovery_status
 has the value &#8220;failed&#8221;.</p>
 <p>When an update is interrupted, independently from the cause, the boot loader
 recognizes it because the recovery_status variable is in &#8220;progress&#8221; or &#8220;failed&#8221;.
-The boot loader can then start again swupdate to load again the software
+The boot loader can then start again SWUpdate to load again the software
 (single-copy case) or run the old copy of the application
 (double-copy case).</p>
 <div class="section" id="power-failure">
 <h3>Power Failure<a class="headerlink" href="#power-failure" title="Permalink to this headline">¶</a></h3>
 <p>If a power off occurs, it must be guaranteed that the system is able
-to work again - starting again swupdate or restoring an old copy of the software.</p>
+to work again - starting again SWUpdate or restoring an old copy of the software.</p>
 <p>Generally, the behavior can be split according to the chosen scenario:</p>
 <ul class="simple">
-<li>single copy: swupdate is interrupted and the update transaction did not end</li>
+<li>single copy: SWUpdate is interrupted and the update transaction did not end</li>
 </ul>
-<p>with a success. The boot loader is able to start swupdate again, having the
+<p>with a success. The boot loader is able to start SWUpdate again, having the
 possibility to update the software again.</p>
 <ul class="simple">
-<li>double copy: swupdate did not switch between stand-by and current copy.</li>
+<li>double copy: SWUpdate did not switch between stand-by and current copy.</li>
 </ul>
 <p>The same version of software, that was not touched by the update, is
 started again.</p>
 </div>
 <div class="section" id="what-about-upgrading-swupdate-itself">
-<h3>What about upgrading swupdate itself ?<a class="headerlink" href="#what-about-upgrading-swupdate-itself" title="Permalink to this headline">¶</a></h3>
-<p>swupdate is thought to be used in the whole development process, replacing
+<h3>What about upgrading SWUpdate itself ?<a class="headerlink" href="#what-about-upgrading-swupdate-itself" title="Permalink to this headline">¶</a></h3>
+<p>SWUpdate is thought to be used in the whole development process, replacing
 customized process to update the software during the development. Before going into production,
-swupdate is well tested for a project.</p>
-<p>If swupdate itself should be update, the update cannot be safe if there is only
-one copy of swupdate in the storage. Safe update can be guaranteed only if
-swupdate is duplicated.</p>
-<p>There are some ways to circumvent this issue if swupdate is part of the
+SWUpdate is well tested for a project.</p>
+<p>If SWUpdate itself should be update, the update cannot be safe if there is only
+one copy of SWUpdate in the storage. Safe update can be guaranteed only if
+SWUpdate is duplicated.</p>
+<p>There are some ways to circumvent this issue if SWUpdate is part of the
 upgraded image:</p>
 <ul class="simple">
-<li>have two copies of swupdate</li>
+<li>have two copies of SWUpdate</li>
 <li>take the risk, but have a rescue procedure using the boot loader.</li>
 </ul>
 </div>
@@ -322,7 +322,7 @@ is very uncommon that the boot loader must be updated when the product
 is ready for production.</p>
 <p>It is different is if the U-Boot environment must be updated, that is a
 common practice. U-Boot provides a double copy of the whole environment,
-and updating the environment from swupdate is power-off safe. Other boot loaders
+and updating the environment from SWUpdate is power-off safe. Other boot loaders
 can or cannot have this feature.</p>
 </div>
 </div>
@@ -354,7 +354,7 @@ can or cannot have this feature.</p>
 </li>
 <li><a class="reference internal" href="#something-went-wrong">Something went wrong ?</a><ul>
 <li><a class="reference internal" href="#power-failure">Power Failure</a></li>
-<li><a class="reference internal" href="#what-about-upgrading-swupdate-itself">What about upgrading swupdate itself ?</a></li>
+<li><a class="reference internal" href="#what-about-upgrading-swupdate-itself">What about upgrading SWUpdate itself ?</a></li>
 <li><a class="reference internal" href="#what-about-upgrading-the-boot-loader">What about upgrading the Boot loader ?</a></li>
 </ul>
 </li>
@@ -367,7 +367,7 @@ can or cannot have this feature.</p>
                         title="previous chapter">Updating an embedded system</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="swupdate.html"
-                        title="next chapter">swupdate: software update for embedded system</a></p>
+                        title="next chapter">SWUpdate: software update for embedded system</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/overview.txt"
@@ -397,16 +397,16 @@ can or cannot have this feature.</p>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="swupdate.html" title="swupdate: software update for embedded system"
+          <a href="swupdate.html" title="SWUpdate: software update for embedded system"
              >next</a> |</li>
         <li class="right" >
           <a href="index.html" title="Updating an embedded system"
              >previous</a> |</li>
-        <li><a href="index.html">Embedded Software Update Documentation 2016.- documentation</a> &raquo;</li> 
+        <li><a href="index.html">Embedded Software Update Documentation 2016.04 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2013-2015, Stefano Babic.
+        &copy; Copyright 2013-2016, Stefano Babic.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
   </body>

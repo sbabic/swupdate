@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Handlers &mdash; Embedded Software Update Documentation 2016.- documentation</title>
+    <title>Handlers &mdash; Embedded Software Update Documentation 2016.04 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '2016.-',
+        VERSION:     '2016.04',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,9 +23,9 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="Embedded Software Update Documentation 2016.- documentation" href="index.html" />
-    <link rel="next" title="swupdate: API for external programs" href="swupdate-ipc.html" />
-    <link rel="prev" title="swupdate: syntax and tags with the default parser" href="sw-description.html" /> 
+    <link rel="top" title="Embedded Software Update Documentation 2016.04 documentation" href="index.html" />
+    <link rel="next" title="SWUpdate: API for external programs" href="swupdate-ipc.html" />
+    <link rel="prev" title="Update images from verified source" href="signed_images.html" /> 
   </head>
   <body>
     <div class="related">
@@ -35,12 +35,12 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="swupdate-ipc.html" title="swupdate: API for external programs"
+          <a href="swupdate-ipc.html" title="SWUpdate: API for external programs"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="sw-description.html" title="swupdate: syntax and tags with the default parser"
+          <a href="signed_images.html" title="Update images from verified source"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">Embedded Software Update Documentation 2016.- documentation</a> &raquo;</li> 
+        <li><a href="index.html">Embedded Software Update Documentation 2016.04 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -54,7 +54,7 @@
 <div class="section" id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
 <p>It is quite difficult to foresee all possible installation cases.
-Instead of trying to find all use cases, swupdate let the
+Instead of trying to find all use cases, SWUpdate let the
 developer free to add his own installer (that is, a new <strong>handler</strong>),
 that must be responsible to install an image of a certain type.
 An image is marked to be of a defined type to be installed with
@@ -97,8 +97,8 @@ void my_handler_init(void)
 }
 </pre></div>
 </div>
-<p>swupdate uses the gcc constructors, and all supplied handlers are registered
-when swupdate is initialized.</p>
+<p>SWUpdate uses the gcc constructors, and all supplied handlers are registered
+when SWUpdate is initialized.</p>
 <p>register_handler has the syntax:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">register_handler</span><span class="p">(</span><span class="n">my_image_type</span><span class="p">,</span> <span class="n">my_handler</span><span class="p">,</span> <span class="n">data</span><span class="p">);</span>
 </pre></div>
@@ -107,7 +107,7 @@ when swupdate is initialized.</p>
 <ul class="simple">
 <li>my_image_type : string identifying the own new image type.</li>
 <li>my_handler : pointer to the installer to be registered.</li>
-<li>data : an optional pointer to an own structure, that swupdate
+<li>data : an optional pointer to an own structure, that SWUpdate
 saves in the handlers&#8217; list and pass to the handler when it will
 be executed.</li>
 </ul>
@@ -121,27 +121,27 @@ itself. It searches for a volume in all MTD (if they are not
 blacklisted: see UBIBLACKLIST) to find the volume where the image
 must be installed. For this reason, volumes must be unique inside
 the system. Two volumes with the same names are not supported
-and drives to unpredictable results. swupdate will install
+and drives to unpredictable results. SWUpdate will install
 an image to the first volume that matches with the name, and this
 maybe is not the desired behavior.
 Updating volumes, it is guaranteed that the erase counters are
 preserved and not lost after an update. The way for updating
 is identical to the &#8220;ubiupdatevol&#8221; from the mtd-utils. In fact,
-the same library from mtd-utils (libubi) is reused by swupdate.</p>
+the same library from mtd-utils (libubi) is reused by SWUpdate.</p>
 <p>If the storage is empty, it is required to setup the layout
 and create the volumes. This can be easy done with a
-preinstall script. Building with meta-swupdate, the original
+preinstall script. Building with meta-SWUpdate, the original
 mtd-utils are available and can be called by a LUA script.</p>
 </div>
 <div class="section" id="extend-swupdate-with-handlers-in-lua">
-<h2>Extend swupdate with handlers in LUA<a class="headerlink" href="#extend-swupdate-with-handlers-in-lua" title="Permalink to this headline">¶</a></h2>
+<h2>Extend SWUpdate with handlers in LUA<a class="headerlink" href="#extend-swupdate-with-handlers-in-lua" title="Permalink to this headline">¶</a></h2>
 <p>In an experimental phase, it is possible to add handlers
-that are not linked to swupdate but that are loaded by
+that are not linked to SWUpdate but that are loaded by
 the LUA interpreter. The handlers must be copied into the
 root filesystem and are loaded only at the startup.
 These handlers cannot be integrated into the image to be installed.
 Even if this can be theoretical possible, arise a lot of
-security questions, because it changes swupdate&#8217;s behavior.</p>
+security questions, because it changes SWUpdate&#8217;s behavior.</p>
 </div>
 </div>
 
@@ -157,17 +157,17 @@ security questions, because it changes swupdate&#8217;s behavior.</p>
 <li><a class="reference internal" href="#overview">Overview</a></li>
 <li><a class="reference internal" href="#supplied-handlers">Supplied handlers</a></li>
 <li><a class="reference internal" href="#handler-for-ubi-volumes">Handler for UBI Volumes</a></li>
-<li><a class="reference internal" href="#extend-swupdate-with-handlers-in-lua">Extend swupdate with handlers in LUA</a></li>
+<li><a class="reference internal" href="#extend-swupdate-with-handlers-in-lua">Extend SWUpdate with handlers in LUA</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="sw-description.html"
-                        title="previous chapter">swupdate: syntax and tags with the default parser</a></p>
+  <p class="topless"><a href="signed_images.html"
+                        title="previous chapter">Update images from verified source</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="swupdate-ipc.html"
-                        title="next chapter">swupdate: API for external programs</a></p>
+                        title="next chapter">SWUpdate: API for external programs</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/handlers.txt"
@@ -197,16 +197,16 @@ security questions, because it changes swupdate&#8217;s behavior.</p>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="swupdate-ipc.html" title="swupdate: API for external programs"
+          <a href="swupdate-ipc.html" title="SWUpdate: API for external programs"
              >next</a> |</li>
         <li class="right" >
-          <a href="sw-description.html" title="swupdate: syntax and tags with the default parser"
+          <a href="signed_images.html" title="Update images from verified source"
              >previous</a> |</li>
-        <li><a href="index.html">Embedded Software Update Documentation 2016.- documentation</a> &raquo;</li> 
+        <li><a href="index.html">Embedded Software Update Documentation 2016.04 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2013-2015, Stefano Babic.
+        &copy; Copyright 2013-2016, Stefano Babic.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
   </body>

@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Updating an embedded system &mdash; Embedded Software Update Documentation 2016.- documentation</title>
+    <title>Updating an embedded system &mdash; Embedded Software Update Documentation 2016.04 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '2016.-',
+        VERSION:     '2016.04',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="Embedded Software Update Documentation 2016.- documentation" href="#" />
+    <link rel="top" title="Embedded Software Update Documentation 2016.04 documentation" href="#" />
     <link rel="next" title="Software Management on embedded systems" href="overview.html" /> 
   </head>
   <body>
@@ -36,7 +36,7 @@
         <li class="right" >
           <a href="overview.html" title="Software Management on embedded systems"
              accesskey="N">next</a> |</li>
-        <li><a href="#">Embedded Software Update Documentation 2016.- documentation</a> &raquo;</li> 
+        <li><a href="#">Embedded Software Update Documentation 2016.04 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -47,7 +47,7 @@
             
   <div class="section" id="updating-an-embedded-system">
 <h1>Updating an embedded system<a class="headerlink" href="#updating-an-embedded-system" title="Permalink to this headline">¶</a></h1>
-<p>swupdate provides a reliable way to update
+<p>SWUpdate provides a reliable way to update
 the software on an embedded system.
 Sources are hosted at <a class="reference external" href="https://github.com/sbabic/swupdate">https://github.com/sbabic/swupdate</a></p>
 <div class="toctree-wrapper compound">
@@ -63,18 +63,18 @@ Sources are hosted at <a class="reference external" href="https://github.com/sba
 </div>
 </div>
 <div class="section" id="swupdate-documentation">
-<h1>swupdate Documentation<a class="headerlink" href="#swupdate-documentation" title="Permalink to this headline">¶</a></h1>
+<h1>SWUpdate Documentation<a class="headerlink" href="#swupdate-documentation" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="swupdate.html">swupdate: software update for embedded system</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="swupdate.html">SWUpdate: software update for embedded system</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="swupdate.html#overview">Overview</a></li>
 <li class="toctree-l2"><a class="reference internal" href="swupdate.html#configuration-and-build">Configuration and build</a></li>
-<li class="toctree-l2"><a class="reference internal" href="swupdate.html#running-swupdate">Running swupdate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="swupdate.html#running-swupdate">Running SWUpdate</a></li>
 <li class="toctree-l2"><a class="reference internal" href="swupdate.html#changes-in-boot-loader-code">Changes in boot-loader code</a></li>
 <li class="toctree-l2"><a class="reference internal" href="swupdate.html#building-a-single-image">Building a single image</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="sw-description.html">swupdate: syntax and tags with the default parser</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="sw-description.html">SWUpdate: syntax and tags with the default parser</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="sw-description.html#introduction">Introduction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sw-description.html#hardware-compatibility">hardware-compatibility</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sw-description.html#partitions-ubi-layout">partitions : UBI layout</a></li>
@@ -88,14 +88,24 @@ Sources are hosted at <a class="reference external" href="https://github.com/sba
 <li class="toctree-l2"><a class="reference internal" href="sw-description.html#attribute-reference">Attribute reference</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="signed_images.html">Update images from verified source</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="signed_images.html#signing-the-compound-image">Signing the compound image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="signed_images.html#signing-the-sub-images">Signing the sub-images</a></li>
+<li class="toctree-l2"><a class="reference internal" href="signed_images.html#combining-signing-sw-description-with-hash-verification">Combining signing sw-description with hash verification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="signed_images.html#generating-private-and-public-key">Generating private and public key</a></li>
+<li class="toctree-l2"><a class="reference internal" href="signed_images.html#signing-the-swu-image">Signing the SWU image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="signed_images.html#example-for-sw-description-with-signed-image">Example for sw-description with signed image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="signed_images.html#running-swupdate-with-signed-images">Running SWUpdate with signed images</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="handlers.html">Handlers</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="handlers.html#overview">Overview</a></li>
 <li class="toctree-l2"><a class="reference internal" href="handlers.html#supplied-handlers">Supplied handlers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="handlers.html#handler-for-ubi-volumes">Handler for UBI Volumes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="handlers.html#extend-swupdate-with-handlers-in-lua">Extend swupdate with handlers in LUA</a></li>
+<li class="toctree-l2"><a class="reference internal" href="handlers.html#extend-swupdate-with-handlers-in-lua">Extend SWUpdate with handlers in LUA</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">swupdate: API for external programs</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">SWUpdate: API for external programs</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="swupdate-ipc.html#overview">Overview</a></li>
 </ul>
 </li>
@@ -112,7 +122,7 @@ Sources are hosted at <a class="reference external" href="https://github.com/sba
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project&#8217;s road-map</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="roadmap.html#swupdate-s-road-map">swupdate&#8217;s road-map</a></li>
+<li class="toctree-l2"><a class="reference internal" href="roadmap.html#swupdate-s-road-map">SWUpdate&#8217;s road-map</a></li>
 </ul>
 </li>
 </ul>
@@ -136,7 +146,7 @@ Sources are hosted at <a class="reference external" href="https://github.com/sba
   <h3><a href="#">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">Updating an embedded system</a></li>
-<li><a class="reference internal" href="#swupdate-documentation">swupdate Documentation</a></li>
+<li><a class="reference internal" href="#swupdate-documentation">SWUpdate Documentation</a></li>
 <li><a class="reference internal" href="#help-and-support">Help and support</a><ul>
 <li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
 </ul>
@@ -177,11 +187,11 @@ Sources are hosted at <a class="reference external" href="https://github.com/sba
         <li class="right" >
           <a href="overview.html" title="Software Management on embedded systems"
              >next</a> |</li>
-        <li><a href="#">Embedded Software Update Documentation 2016.- documentation</a> &raquo;</li> 
+        <li><a href="#">Embedded Software Update Documentation 2016.04 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2013-2015, Stefano Babic.
+        &copy; Copyright 2013-2016, Stefano Babic.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
   </body>

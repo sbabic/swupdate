@@ -164,9 +164,9 @@ Each copy must contain the kernel, the root file system, and each
 further component that can be updated. It is required
 a mechanism to identify which version is running.
 
-swupdate should be inserted in the application software, and
+SWUpdate should be inserted in the application software, and
 the application software will trigger it when an update is required.
-The duty of swupdate is to update the stand-by copy, leaving the
+The duty of SWUpdate is to update the stand-by copy, leaving the
 running copy of the software untouched.
 
 A synergy with the boot loader is often necessary, because the boot loader must
@@ -189,7 +189,7 @@ or triggered as required. There is no
 need of an own kernel, because the two copies guarantees that
 it is always possible to upgrade the not running copy.
 
-swupdate will set U-Boot's variable to signal the boot loader
+SWUpdate will set U-Boot's variable to signal the boot loader
 that a new image is successfully installed.
 
 Single copy - running as standalone image
@@ -208,8 +208,8 @@ boot loader that the upgrading software must be started. The way
 can differ, for example setting a boot loader environment or using
 and external GPIO.
 
-The boot loader starts "swupdate", booting the
-swupdate kernel and the initrd image as root file system. Because it runs in RAM,
+The boot loader starts "SWUpdate", booting the
+SWUpdate kernel and the initrd image as root file system. Because it runs in RAM,
 it is possible to upgrade the whole storage. Differently as in the
 double-copy strategy, the systems must reboot to put itself in
 update mode.
@@ -230,12 +230,12 @@ upgrade the new software is set as "boot-able". With these considerations,
 an upgrade with this strategy is safe: it is always guaranteed that the
 system boots and it is ready to get a new software, if the old one
 is corrupted or cannot run.
-With U-Boot as boot loader, swupdate is able to manage U-Boot's environment
+With U-Boot as boot loader, SWUpdate is able to manage U-Boot's environment
 setting variables to indicate the start and the end of a transaction and
 that the storage contains a valid software.
 
-swupdate is mainly used in this configuration. The recipes for Yocto
-generate an initrd image containing the swupdate application, that is
+SWUpdate is mainly used in this configuration. The recipes for Yocto
+generate an initrd image containing the SWUpdate application, that is
 automatically started after mounting the root file system.
 
 .. image:: images/swupdate_single.png
@@ -245,13 +245,13 @@ Something went wrong ?
 
 Many things can go wrong, and it must be guaranteed that the system
 is able to run again and maybe able to reload a new software to fix
-a damaged image. swupdate works together with the U-Boot boot loader to
+a damaged image. SWUpdate works together with the U-Boot boot loader to
 identify the possible causes of failures.
 
 We can at least group some of the common causes:
 
 - damage / corrupted image during installing.
-  swupdate is able to recognize it and the update process
+  SWUpdate is able to recognize it and the update process
   is interrupted. The old software is preserved and nothing
   is really copied into the target's storage.
 
@@ -261,18 +261,18 @@ We can at least group some of the common causes:
 
 - power-failure
 
-swupdate works as transaction process. The U-Boot variable "recovery_status" is
+SWUpdate works as transaction process. The U-Boot variable "recovery_status" is
 set to signal U-Boot the update's status. Of course, further variables can be added
 to fine tuning and report error causes. recovery_status can have the values "progress",
 "failed", or it can be unset.
 
-When swupdate starts, it sets recovery_status to "progress". After an update is finished
+When SWUpdate starts, it sets recovery_status to "progress". After an update is finished
 with success, the variable is erased. If the update ends with an error, recovery_status
 has the value "failed".
 
 When an update is interrupted, independently from the cause, the boot loader
 recognizes it because the recovery_status variable is in "progress" or "failed".
-The boot loader can then start again swupdate to load again the software
+The boot loader can then start again SWUpdate to load again the software
 (single-copy case) or run the old copy of the application
 (double-copy case).
 
@@ -280,34 +280,34 @@ Power Failure
 -------------
 
 If a power off occurs, it must be guaranteed that the system is able
-to work again - starting again swupdate or restoring an old copy of the software.
+to work again - starting again SWUpdate or restoring an old copy of the software.
 
 Generally, the behavior can be split according to the chosen scenario:
 
-- single copy: swupdate is interrupted and the update transaction did not end
-with a success. The boot loader is able to start swupdate again, having the
+- single copy: SWUpdate is interrupted and the update transaction did not end
+with a success. The boot loader is able to start SWUpdate again, having the
 possibility to update the software again.
 
-- double copy: swupdate did not switch between stand-by and current copy.
+- double copy: SWUpdate did not switch between stand-by and current copy.
 The same version of software, that was not touched by the update, is
 started again.
 
 
-What about upgrading swupdate itself ?
+What about upgrading SWUpdate itself ?
 --------------------------------------
 
-swupdate is thought to be used in the whole development process, replacing
+SWUpdate is thought to be used in the whole development process, replacing
 customized process to update the software during the development. Before going into production,
-swupdate is well tested for a project.
+SWUpdate is well tested for a project.
 
-If swupdate itself should be update, the update cannot be safe if there is only
-one copy of swupdate in the storage. Safe update can be guaranteed only if
-swupdate is duplicated.
+If SWUpdate itself should be update, the update cannot be safe if there is only
+one copy of SWUpdate in the storage. Safe update can be guaranteed only if
+SWUpdate is duplicated.
 
-There are some ways to circumvent this issue if swupdate is part of the
+There are some ways to circumvent this issue if SWUpdate is part of the
 upgraded image:
 
-- have two copies of swupdate
+- have two copies of SWUpdate
 - take the risk, but have a rescue procedure using the boot loader.
 
 What about upgrading the Boot loader ?
@@ -327,5 +327,5 @@ is ready for production.
 
 It is different is if the U-Boot environment must be updated, that is a
 common practice. U-Boot provides a double copy of the whole environment,
-and updating the environment from swupdate is power-off safe. Other boot loaders
+and updating the environment from SWUpdate is power-off safe. Other boot loaders
 can or cannot have this feature.

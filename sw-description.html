@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>swupdate: syntax and tags with the default parser &mdash; Embedded Software Update Documentation 2016.- documentation</title>
+    <title>SWUpdate: syntax and tags with the default parser &mdash; Embedded Software Update Documentation 2016.04 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '2016.-',
+        VERSION:     '2016.04',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,9 +23,9 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="Embedded Software Update Documentation 2016.- documentation" href="index.html" />
-    <link rel="next" title="Handlers" href="handlers.html" />
-    <link rel="prev" title="swupdate: software update for embedded system" href="swupdate.html" /> 
+    <link rel="top" title="Embedded Software Update Documentation 2016.04 documentation" href="index.html" />
+    <link rel="next" title="Update images from verified source" href="signed_images.html" />
+    <link rel="prev" title="SWUpdate: software update for embedded system" href="swupdate.html" /> 
   </head>
   <body>
     <div class="related">
@@ -35,12 +35,12 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="handlers.html" title="Handlers"
+          <a href="signed_images.html" title="Update images from verified source"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="swupdate.html" title="swupdate: software update for embedded system"
+          <a href="swupdate.html" title="SWUpdate: software update for embedded system"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">Embedded Software Update Documentation 2016.- documentation</a> &raquo;</li> 
+        <li><a href="index.html">Embedded Software Update Documentation 2016.04 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -50,12 +50,12 @@
           <div class="body">
             
   <div class="section" id="swupdate-syntax-and-tags-with-the-default-parser">
-<h1>swupdate: syntax and tags with the default parser<a class="headerlink" href="#swupdate-syntax-and-tags-with-the-default-parser" title="Permalink to this headline">¶</a></h1>
+<h1>SWUpdate: syntax and tags with the default parser<a class="headerlink" href="#swupdate-syntax-and-tags-with-the-default-parser" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
-<p>swupdate uses the library &#8220;libconfig&#8221;
+<p>SWUpdate uses the library &#8220;libconfig&#8221;
 as default parser for the image description.
-However, it is possible to extend swupdate and add an own
+However, it is possible to extend SWUpdate and add an own
 parser, based on a different syntax and language as the one
 supported by libconfig. In the examples directory
 there is the code for a parser written in LUA, with the
@@ -65,7 +65,7 @@ syntax rules described in the libconfig manual.
 Please take a look at <a class="reference external" href="http://www.hyperrealm.com/libconfig/libconfig_manual.html">http://www.hyperrealm.com/libconfig/libconfig_manual.html</a>
 for an explanation of basic types.
 The whole description must be contained in the sw-description file itself:
-using of the #include directive is not allowed by swupdate.</p>
+using of the #include directive is not allowed by SWUpdate.</p>
 <p>The following example explains better the implemented tags:</p>
 <div class="highlight-python"><div class="highlight"><pre>software =
 {
@@ -168,12 +168,12 @@ specific settings</a>.</p>
 1.0, 1.2 and 1.3, but not for 1.1 or other version not explicitly
 listed here.
 It is then duty of the single project to find which is the
-revision of the board where swupdate is running. There is no
+revision of the board where SWUpdate is running. There is no
 assumption how the revision can be obtained (GPIOs, EEPROM,..)
 and each project is free to select the way most appropriate.
 The result must be written in the file /etc/hwrevision (or in
 another file if specified as configuration option) before
-swupdate is started.</p>
+SWUpdate is started.</p>
 </div>
 <div class="section" id="partitions-ubi-layout">
 <h2>partitions : UBI layout<a class="headerlink" href="#partitions-ubi-layout" title="Permalink to this headline">¶</a></h2>
@@ -190,7 +190,7 @@ in kernel.</p>
 );
 </pre></div>
 </div>
-<p>All fields are mandatory. swupdate searches for a volume of the
+<p>All fields are mandatory. SWUpdate searches for a volume of the
 selected name and adjusts the size, or creates a new volume if
 no volume with the given name exists.</p>
 </div>
@@ -254,24 +254,26 @@ debugging or special purposes.</p>
         {
                 filename = &lt;Name in CPIO Archive&gt;;
                 path = &lt;path in filesystem&gt;;
-                device = &lt;device node &gt;;
-                filesystem = &lt;filesystem for mount&gt;;
+                device[optional] = &lt;device node &gt;;
+                filesystem[optional] = &lt;filesystem for mount&gt;;
         }
 );
 </pre></div>
 </div>
 <p>Entries in &#8220;files&#8221; section are managed as single files. The attributes
-&#8220;path&#8221; and &#8220;filesystem&#8221; are mandatory. swupdate copies the file in the path
-specified after mounting the device.</p>
+&#8220;filename&#8221; and &#8220;path&#8221; are mandatory. Attributes &#8220;device&#8221; and &#8220;filesystem&#8221; are
+optional; they tell SWUpdate to mount device (of the given filesystem type,
+e.g. &#8220;ext4&#8221;) before copying &#8220;filename&#8221; to &#8220;path&#8221;. Without &#8220;device&#8221; and
+&#8220;filesystem&#8221;, the &#8220;filename&#8221; will be copied to &#8220;path&#8221; in the current rootfs.</p>
 </div>
 <div class="section" id="scripts">
 <h2>Scripts<a class="headerlink" href="#scripts" title="Permalink to this headline">¶</a></h2>
 <p>Scripts runs in the order they are put into the sw-description file.
-The result of a script is valuated by swupdate, that stops the update
+The result of a script is valuated by SWUpdate, that stops the update
 with an error if the result is &lt;&gt; 0.</p>
 <p>They are copied into a temporary directory before execution and their name must
 be unique inside the same cpio archive.</p>
-<p>If no type is given, swupdate default to &#8220;lua&#8221;.</p>
+<p>If no type is given, SWUpdate default to &#8220;lua&#8221;.</p>
 <div class="section" id="lua">
 <h3>LUA<a class="headerlink" href="#lua" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-python"><div class="highlight"><pre>scripts: (
@@ -287,12 +289,12 @@ be unique inside the same cpio archive.</p>
 <div class="highlight-python"><div class="highlight"><pre>function preinst()
 </pre></div>
 </div>
-<p>swupdate scans for all scripts and check for a preinst function. It is
+<p>SWUpdate scans for all scripts and check for a preinst function. It is
 called before installing the images.</p>
 <div class="highlight-python"><div class="highlight"><pre>function postinst()
 </pre></div>
 </div>
-<p>swupdate scans for all scripts and check for a postinst function. It is
+<p>SWUpdate scans for all scripts and check for a postinst function. It is
 called after installing the images.</p>
 </div>
 <div class="section" id="shellscript">
@@ -306,8 +308,8 @@ called after installing the images.</p>
 </pre></div>
 </div>
 <p>Shell scripts are called via system command.
-swupdate scans for all scripts and calls them before and after installing
-the images. swupdate passes &#8216;preinst&#8217; or &#8216;postinst&#8217; as first argument to
+SWUpdate scans for all scripts and calls them before and after installing
+the images. SWUpdate passes &#8216;preinst&#8217; or &#8216;postinst&#8217; as first argument to
 the script.</p>
 </div>
 <div class="section" id="preinstall">
@@ -321,7 +323,7 @@ the script.</p>
 </pre></div>
 </div>
 <p>preinstall are shell scripts and called via system command.
-swupdate scans for all scripts and calls them before installing the images.</p>
+SWUpdate scans for all scripts and calls them before installing the images.</p>
 </div>
 <div class="section" id="postinstall">
 <h3>postinstall<a class="headerlink" href="#postinstall" title="Permalink to this headline">¶</a></h3>
@@ -334,14 +336,14 @@ swupdate scans for all scripts and calls them before installing the images.</p>
 </pre></div>
 </div>
 <p>postinstall are shell scripts and called via system command.
-swupdate scans for all scripts and calls them after installing the images.</p>
+SWUpdate scans for all scripts and calls them after installing the images.</p>
 </div>
 </div>
 <div class="section" id="uboot">
 <h2>uboot<a class="headerlink" href="#uboot" title="Permalink to this headline">¶</a></h2>
 <p>There are two ways to update the bootloader (U-Boot) environment.
 First way is to add a file with the list of variables to be changed
-and setting &#8220;uboot&#8221; as type of the image. This inform swupdate to
+and setting &#8220;uboot&#8221; as type of the image. This inform SWUpdate to
 call the U-Boot handler to manage the file.</p>
 <div class="highlight-python"><div class="highlight"><pre>{
         filename = &quot;uboot-env&quot;;
@@ -365,7 +367,7 @@ that must be changed:</p>
 )
 </pre></div>
 </div>
-<p>swupdate will internally generate a script that will be passed to the
+<p>SWUpdate will internally generate a script that will be passed to the
 U-Boot handler for adjusting the environment.</p>
 </div>
 <div class="section" id="board-specific-settings">
@@ -401,7 +403,7 @@ the following entry:</p>
 }
 </pre></div>
 </div>
-<p>swupdate will set <cite>bootpart</cite> to <cite>0:2</cite> in U-Boot&#8217;s environment for this
+<p>SWUpdate will set <cite>bootpart</cite> to <cite>0:2</cite> in U-Boot&#8217;s environment for this
 board. For all other boards, <cite>bootpart</cite> will be set to <cite>0:1</cite>. Board
 specific settings take precedence over default scoped settings.</p>
 </div>
@@ -472,7 +474,7 @@ specifying the collection and mode explicitly.</p>
 </div>
 <div class="section" id="checking-version-of-installed-software">
 <h2>Checking version of installed software<a class="headerlink" href="#checking-version-of-installed-software" title="Permalink to this headline">¶</a></h2>
-<p>swupdate can optionally verify if a sub-image is already installed
+<p>SWUpdate can optionally verify if a sub-image is already installed
 and, if the version to be installed is exactly the same, it can skip
 to install it. This is very useful in case some high risky image should
 be installed or to speed up the upgrade process.
@@ -482,9 +484,9 @@ some cases where an upgrade is strictly required - the project manager
 should take the risk. However, it is nicer to have always the bootloader image
 as part of the .swu file, allowing to get the whole distro for the
 device in a single file, but the device should install it just when needed.</p>
-<p>swupdate searches for a file (/etc/sw-versions is the default location)
+<p>SWUpdate searches for a file (/etc/sw-versions is the default location)
 containing all versions of the installed images. This must be generated
-before running swupdate.
+before running SWUpdate.
 The file must contains pairs with the name of image and his version, as:</p>
 <div class="highlight-python"><div class="highlight"><pre>&lt;name of component&gt;     &lt;version&gt;
 </pre></div>
@@ -495,8 +497,8 @@ kernel                  3.17.0-00215-g2e876af
 </pre></div>
 </div>
 <p>In sw-description, the optional attributes &#8220;name&#8221;, &#8220;version&#8221; and
-&#8220;check-if-different&#8221; provide the connection. Name and version are then
-compared with the data in the versions file. check-if-different is a
+&#8220;install-if-different&#8221; provide the connection. Name and version are then
+compared with the data in the versions file. install-if-different is a
 boolean that enables the check for this image. It is then possible to
 check the version just for a subset of the images to be installed.</p>
 </div>
@@ -504,9 +506,9 @@ check the version just for a subset of the images to be installed.</p>
 <h2>Attribute reference<a class="headerlink" href="#attribute-reference" title="Permalink to this headline">¶</a></h2>
 <p>There are 4 main sections inside sw-description:</p>
 <ul class="simple">
-<li>images: entries are images and swupdate has no knowledge
+<li>images: entries are images and SWUpdate has no knowledge
 about them.</li>
-<li>files: entries are files, and swupdate needs a filesystem for them.
+<li>files: entries are files, and SWUpdate needs a filesystem for them.
 This is generally used to expand from a tar-ball or to update
 single files.</li>
 <li>scripts: all entries are treated as executables, and they will
@@ -552,27 +554,30 @@ created or adjusted with a new size</td>
 <td>images
 files</td>
 <td>devicenode as found in /dev. Usage
-depends on handler
+depends on handler.
 For files, it indicates on which
 device the &#8220;filesystem&#8221; must be
-mounted.</td>
+mounted. If not specified, the current
+rootfs will be used.</td>
 </tr>
 <tr class="row-even"><td>filesystem</td>
 <td>string</td>
 <td>files</td>
 <td>indicates the filesystem type where
-the file must be installed.</td>
+the file must be installed. Only
+used if &#8220;device&#8221; attribute is set.</td>
 </tr>
 <tr class="row-odd"><td>path</td>
 <td>string</td>
 <td>files</td>
 <td>For files: indicates the path
 (absolute) where the file must be
-installed. Device, filesystem and path
-are then mandatory.
-swupdate will install the file after
-mounting &#8220;device&#8221;, that contains
-&#8220;filesystem&#8221;, under &#8220;path&#8221;</td>
+installed. If &#8220;device&#8221; and
+&#8220;filesystem&#8221; are set,
+SWUpdate will install the
+file after mounting &#8220;device&#8221; with
+&#8220;filesystem&#8221; type. (path is always
+relative to the mount point.)</td>
 </tr>
 <tr class="row-even"><td>type</td>
 <td>string</td>
@@ -633,8 +638,8 @@ it can be any string and it is
 compared with the entries in
 sw-versions</td>
 </tr>
-<tr class="row-odd"><td>check-if-
-installed</td>
+<tr class="row-odd"><td>install-if
+different</td>
 <td>boolean</td>
 <td>images
 files</td>
@@ -655,7 +660,7 @@ compared with the entries in</td>
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">swupdate: syntax and tags with the default parser</a><ul>
+<li><a class="reference internal" href="#">SWUpdate: syntax and tags with the default parser</a><ul>
 <li><a class="reference internal" href="#introduction">Introduction</a></li>
 <li><a class="reference internal" href="#hardware-compatibility">hardware-compatibility</a></li>
 <li><a class="reference internal" href="#partitions-ubi-layout">partitions : UBI layout</a></li>
@@ -679,10 +684,10 @@ compared with the entries in</td>
 
   <h4>Previous topic</h4>
   <p class="topless"><a href="swupdate.html"
-                        title="previous chapter">swupdate: software update for embedded system</a></p>
+                        title="previous chapter">SWUpdate: software update for embedded system</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="handlers.html"
-                        title="next chapter">Handlers</a></p>
+  <p class="topless"><a href="signed_images.html"
+                        title="next chapter">Update images from verified source</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/sw-description.txt"
@@ -712,16 +717,16 @@ compared with the entries in</td>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="handlers.html" title="Handlers"
+          <a href="signed_images.html" title="Update images from verified source"
              >next</a> |</li>
         <li class="right" >
-          <a href="swupdate.html" title="swupdate: software update for embedded system"
+          <a href="swupdate.html" title="SWUpdate: software update for embedded system"
              >previous</a> |</li>
-        <li><a href="index.html">Embedded Software Update Documentation 2016.- documentation</a> &raquo;</li> 
+        <li><a href="index.html">Embedded Software Update Documentation 2016.04 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2013-2015, Stefano Babic.
+        &copy; Copyright 2013-2016, Stefano Babic.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
   </body>

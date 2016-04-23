@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>swupdate: API for external programs &mdash; Embedded Software Update Documentation 2016.- documentation</title>
+    <title>SWUpdate: API for external programs &mdash; Embedded Software Update Documentation 2016.04 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '2016.-',
+        VERSION:     '2016.04',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="Embedded Software Update Documentation 2016.- documentation" href="index.html" />
+    <link rel="top" title="Embedded Software Update Documentation 2016.04 documentation" href="index.html" />
     <link rel="next" title="Help and support" href="help_and_support.html" />
     <link rel="prev" title="Handlers" href="handlers.html" /> 
   </head>
@@ -40,7 +40,7 @@
         <li class="right" >
           <a href="handlers.html" title="Handlers"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">Embedded Software Update Documentation 2016.- documentation</a> &raquo;</li> 
+        <li><a href="index.html">Embedded Software Update Documentation 2016.04 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -50,16 +50,16 @@
           <div class="body">
             
   <div class="section" id="swupdate-api-for-external-programs">
-<h1>swupdate: API for external programs<a class="headerlink" href="#swupdate-api-for-external-programs" title="Permalink to this headline">¶</a></h1>
+<h1>SWUpdate: API for external programs<a class="headerlink" href="#swupdate-api-for-external-programs" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
-<p>swupdate contains an integrated web-server to allow remote updating.
+<p>SWUpdate contains an integrated web-server to allow remote updating.
 However, which protocols are involved during an update is project
 specific and differs significantly. Some projects can decide
 to use FTP to load an image from an external server, or using
 even a proprietary protocol.
 The integrated web-server uses this interface.</p>
-<p>swupdate has a simple interface to let external programs
+<p>SWUpdate has a simple interface to let external programs
 to communicate with the installer. Clients can start an upgrade
 and stream an image to the installer, querying then for the status
 and the final result. The API is at the moment very simple, but it can
@@ -67,7 +67,7 @@ easy be extended in the future if new use cases will arise.</p>
 <div class="section" id="api-description">
 <h3>API Description<a class="headerlink" href="#api-description" title="Permalink to this headline">¶</a></h3>
 <p>The communication runs via UDS (Unix Domain Socket). The socket is created
-at the startup by swupdate in /tmp/sockinstdata.</p>
+at the startup by SWUpdate in /tmp/sockinstdata.</p>
 <p>The exchanged packets are described in network_ipc.h</p>
 <div class="highlight-python"><div class="highlight"><pre>typedef struct {
         int magic;
@@ -81,14 +81,14 @@ at the startup by swupdate in /tmp/sockinstdata.</p>
 <li>magic : a magic number as simple proof of the packet</li>
 <li>type : one of REQ_INSTALL, ACK, NACK, GET_STATUS</li>
 <li>msgdata : a buffer used by the client to send the image
-or by swupdate to report back notifications and status.</li>
+or by SWUpdate to report back notifications and status.</li>
 </ul>
 <p>The client sends a REQ_INSTALL packet and waits for an answer.
-swupdate sends back ACK or NACK, if for example an update is already in progress.</p>
-<p>After the ACK, the client sends the whole image as a stream. swupdate
+SWUpdate sends back ACK or NACK, if for example an update is already in progress.</p>
+<p>After the ACK, the client sends the whole image as a stream. SWUpdate
 expects that all bytes after the ACK are part of the image to be installed.
-swupdate recognizes the size of the image from the CPIO header.
-Any error lets swupdate to leave the update state, and further packets
+SWUpdate recognizes the size of the image from the CPIO header.
+Any error lets SWUpdate to leave the update state, and further packets
 will be ignored until a new REQ_INSTALL will be received.</p>
 <img alt="_images/API.png" src="_images/API.png" />
 </div>
@@ -97,20 +97,20 @@ will be ignored until a new REQ_INSTALL will be received.</p>
 <p>A library simplifies the usage of the IPC making available a way to
 start asynchrounosly an update.</p>
 <p>The library consists of one function and several call-backs.</p>
-<div class="highlight-python"><div class="highlight"><pre>int swupdate_async_start(writedata wr_func, getstatus status_func,
+<div class="highlight-python"><div class="highlight"><pre>int SWUpdate_async_start(writedata wr_func, getstatus status_func,
         terminated end_func)
 typedef int (*writedata)(char **buf, int *size);
 typedef int (*getstatus)(ipc_message *msg);
 typedef int (*terminated)(RECOVERY_STATUS status);
 </pre></div>
 </div>
-<p>swupdate_async_start creates a new thread and start the communication with swupdate,
+<p>SWUpdate_async_start creates a new thread and start the communication with SWUpdate,
 triggering for a new update. The wr_func is called to get the image to be installed.
 It is responsibility of the callback to provide the buffer and the size of
 the chunk of data.</p>
 <p>The getstatus call-back is called after the stream was downloaded to check
 how upgrade is going on. It can be omitted if only the result is required.</p>
-<p>The terminated call-back is called when swupdate has finished with the result
+<p>The terminated call-back is called when SWUpdate has finished with the result
 of the upgrade.</p>
 <p>Example about using this library is in the examples/client directory.</p>
 </div>
@@ -125,7 +125,7 @@ of the upgrade.</p>
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">swupdate: API for external programs</a><ul>
+<li><a class="reference internal" href="#">SWUpdate: API for external programs</a><ul>
 <li><a class="reference internal" href="#overview">Overview</a><ul>
 <li><a class="reference internal" href="#api-description">API Description</a></li>
 <li><a class="reference internal" href="#client-library">Client Library</a></li>
@@ -175,11 +175,11 @@ of the upgrade.</p>
         <li class="right" >
           <a href="handlers.html" title="Handlers"
              >previous</a> |</li>
-        <li><a href="index.html">Embedded Software Update Documentation 2016.- documentation</a> &raquo;</li> 
+        <li><a href="index.html">Embedded Software Update Documentation 2016.04 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2013-2015, Stefano Babic.
+        &copy; Copyright 2013-2016, Stefano Babic.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
   </body>
