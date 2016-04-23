@@ -515,6 +515,9 @@ Command line parameters
 +-------------+----------+--------------------------------------------+
 | -h          |    -     | run usage with help                        |
 +-------------+----------+--------------------------------------------+
+| -k          | string   | Active if CONFIG_SIGNED is set             |
+|             |          | Filename with the public key               |
++-------------+----------+--------------------------------------------+
 | -s          |    -     | run SWUpdate in daemon mode                |
 +-------------+----------+--------------------------------------------+
 | -i <file>   | string   | run SWUpdate with a local .swu file        |
