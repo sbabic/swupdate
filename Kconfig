@@ -77,7 +77,7 @@ config HW_COMPATIBILITY
 	  version is written into a file by a previous software.
 
 config HW_COMPATIBILITY_FILE
-	string "File with detected hardare revisions"
+	string "File with detected hardware revisions"
 	depends on HW_COMPATIBILITY
 	default "/etc/hwrevision"
 	help
