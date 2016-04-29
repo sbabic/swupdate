@@ -385,4 +385,9 @@ void cleanup_files(struct swupdate_cfg *software) {
 	}
 	snprintf(fn, sizeof(fn), "%s%s", TMPDIR, SW_DESCRIPTION_FILENAME);
 	remove_sw_file(fn);
+#ifdef CONFIG_SIGNED_IMAGES
+	snprintf(fn, sizeof(fn), "%s%s.sig",
+		TMPDIR, SW_DESCRIPTION_FILENAME);
+	remove_sw_file(fn);
+#endif
 }
