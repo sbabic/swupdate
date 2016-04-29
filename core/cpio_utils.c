@@ -229,10 +229,10 @@ int extract_cpio_header(int fd, struct filehdr *fhdr, unsigned long *offset)
 	return 0;
 }
 
-off_t extract_sw_description(int fd)
+off_t extract_sw_description(int fd, const char *descfile, off_t start)
 {
 	struct filehdr fdh;
-	unsigned long offset = 0;
+	unsigned long offset = start;
 	char output_file[64];
 	uint32_t checksum;
 	int fdout;
@@ -242,11 +242,10 @@ off_t extract_sw_description(int fd)
 		return -1;
 	}
 
-	if (strcmp(fdh.filename, SW_DESCRIPTION_FILENAME)) {
-		ERROR("%s not the first of the list: %s instead of %s\n",
-			SW_DESCRIPTION_FILENAME,
-			fdh.filename,
-			SW_DESCRIPTION_FILENAME);
+	if (strcmp(fdh.filename, descfile)) {
+		ERROR("Expected %s but found %s.\n",
+			descfile,
+			fdh.filename);
 		return -1;
 	}
 	if ((strlen(TMPDIR) + strlen(fdh.filename)) > sizeof(output_file)) {
@@ -262,7 +261,7 @@ off_t extract_sw_description(int fd)
 		return -1;
 	}
 	if (copyfile(fd, fdout, fdh.size, &offset, 0, 0, &checksum, NULL) < 0) {
-		ERROR("sw-description corrupted or not valid\n");
+		ERROR("%s corrupted or not valid\n", descfile);
 		return -1;
 	}
 

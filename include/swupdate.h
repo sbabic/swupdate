@@ -139,7 +139,7 @@ struct swupdate_cfg {
 	} \
 } while(0)
 
-off_t extract_sw_description(int fd);
+off_t extract_sw_description(int fd, const char *descfile, off_t start);
 int cpio_scan(int fd, struct swupdate_cfg *cfg, off_t start);
 
 #endif

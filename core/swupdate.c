@@ -273,7 +273,12 @@ static int install_from_file(char *fname)
 		}
 	}
 
-	pos = extract_sw_description(fdsw);
+	pos = extract_sw_description(fdsw, SW_DESCRIPTION_FILENAME, 0);
+#ifdef CONFIG_SIGNED_IMAGES
+	pos = extract_sw_description(fdsw, SW_DESCRIPTION_FILENAME ".sig",
+		pos);
+#endif
+
 	ret = parse(&swcfg, TMPDIR SW_DESCRIPTION_FILENAME);
 	if (ret) {
 		exit(1);
