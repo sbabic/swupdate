@@ -26,6 +26,10 @@ ifeq ($(HAVE_ZLIB),)
 export HAVE_ZLIB = y
 endif
 
+ifeq ($(HAVE_LIBUBOOTENV),)
+export HAVE_LIBUBOOTENV = y
+endif
+
 ifeq ($(HAVE_LIBSSL),)
 export HAVE_LIBSSL = y
 endif
