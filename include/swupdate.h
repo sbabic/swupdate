@@ -109,7 +109,6 @@ LIST_HEAD(ubootvarlist, uboot_var);
 
 struct swupdate_cfg {
 	char name[SWUPDATE_GENERAL_STRING_SIZE];
-	int valid;
 	char version[SWUPDATE_GENERAL_STRING_SIZE];
 	char software_set[SWUPDATE_GENERAL_STRING_SIZE];
 	char running_mode[SWUPDATE_GENERAL_STRING_SIZE];
