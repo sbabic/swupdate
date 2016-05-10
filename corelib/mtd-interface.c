@@ -303,7 +303,8 @@ int scan_mtd_devices (void)
 	for (i = mtd_info->lowest_mtd_num;
 	     i <= mtd_info->highest_mtd_num; i++) {
 		if (flash->libubi && !flash->mtd_info[i].skipubi &&
-				!flash->mtd_info[i].scanned)
+				!flash->mtd_info[i].scanned &&
+				flash->mtd_info[i].mtd.type != MTD_UBIVOLUME)
 			scan_ubi_partitions(i);
 	}
 #endif
