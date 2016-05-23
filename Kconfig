@@ -270,6 +270,15 @@ config SIGNED_IMAGES
 comment "Image verification (signed images) needs libssl"
 	depends on !HAVE_LIBSSL
 
+config SURICATTA
+	bool "Enable Suricatta Daemon Mode"
+	default n
+	help
+	  Suricatta daemon mode regularly polls a remote server for
+	  updates, downloads, and install them.
+
+source suricatta/Config.in
+
 config WEBSERVER
 	bool "Enable webserver"
 	default n

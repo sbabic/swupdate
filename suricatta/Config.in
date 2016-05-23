@@ -1,0 +1,85 @@
+menu "Suricatta"
+depends on SURICATTA
+
+menu "Features"
+config SURICATTA_SSL
+	bool "SSL support"
+	default n
+	depends on HAVE_LIBSSL
+	depends on HAVE_LIBCRYPTO
+	help
+	  Enable SSL and checksum verification support in suricatta.
+
+comment "SSL support needs libcrypto, libssl"
+	depends on !HAVE_LIBSSL || !HAVE_LIBCRYPTO
+
+choice
+	prompt "Update Status Storage"
+	default SURICATTA_STATE_CHOICE_UBOOT if  UBOOT
+	default SURICATTA_STATE_CHOICE_NONE  if !UBOOT
+	help
+	  Place for suricatta to persistently store the update
+	  status for, e.g., communicating it to the server after
+	  a reboot.
+
+config SURICATTA_STATE_CHOICE_NONE
+	bool "None"
+	help
+	  Do not store update status.
+
+config SURICATTA_STATE_CHOICE_UBOOT
+	bool "U-Boot"
+	depends on UBOOT
+	depends on HAVE_ZLIB
+	help
+	  Store update status in U-Boot's environment.
+	  Specify U-Boot environment variable name to store update status in.
+
+endchoice
+
+config SURICATTA_STATE_UBOOT
+	string "Store Update Status in U-Boot Environment variable"
+	default ""
+	depends on SURICATTA_STATE_CHOICE_UBOOT
+	help
+	  Store update information in U-Boot's environment.
+
+comment "Store Update Status in U-Boot Environment needs CONFIG_UBOOT and libz"
+	depends on !UBOOT
+	depends on !HAVE_ZLIB
+
+endmenu
+
+menu "Server"
+
+choice
+	prompt "Server Type"
+	default SURICATTA_HAWKBIT
+	help
+	  Choose the server type. Currently, just hawkBit is
+	  supported.
+
+config SURICATTA_HAWKBIT
+	bool "hawkBit support"
+	depends on HAVE_LIBCURL
+	depends on HAVE_JSON_C
+	help
+	  Support for hawkBit server.
+	  https://projects.eclipse.org/projects/iot.hawkbit
+
+endchoice
+
+config SURICATTA_HAWKBIT_PROXY
+	string "hawkBit HTTP(S) proxy"
+	depends on SURICATTA_HAWKBIT
+	default ""
+	help
+	  Proxy server to use for communication with hawkBit.
+	  Leave blank for no proxy usage.
+
+comment "hawkBit support needs curl and json-c"
+	depends on !HAVE_LIBCURL && !HAVE_JSON_C
+
+endmenu
+
+endmenu

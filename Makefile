@@ -344,7 +344,7 @@ include $(srctree)/Makefile.flags
 all: swupdate
 
 objs-y		:= core handlers
-libs-y		:= archival corelib ipc mongoose parser
+libs-y		:= archival corelib ipc mongoose parser suricatta
 
 swupdate-dirs	:= $(objs-y) $(libs-y)
 swupdate-objs	:= $(patsubst %,%/built-in.o, $(objs-y))

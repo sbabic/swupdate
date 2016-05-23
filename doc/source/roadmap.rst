@@ -79,3 +79,66 @@ that malware can get the control of the target.
 Current release supports verified images. That means that a handler
 written in LUA could be now be part of the compound image, because
 a unauthenticated handler cannot run.
+
+Extended IPC-based Post-Upgrade Handler
+---------------------------------------
+
+It may be desirable to, e.g., reboot the system after having installed
+an update transaction completely but only after having signaled all
+applications to shut down cleanly. The IPC mechanism should be extended
+in this regard to allow for such functionality.
+
+Configuration File Support
+--------------------------
+
+As the number of command-line parameters is growing, support for reading
+the run-time configuration from a configuration file should be supported.
+
+Suricatta road-map
+==================
+
+Support for multiple Servers simultaneously
+-------------------------------------------
+
+Currently, suricatta's server backends are a mutually exclusive
+compile-time choice. A proxy registrar and dispatcher should be plugged
+into the architecture to allow for different channels and server
+backends to be mixed and matched at run-time.
+
+Filesystem-based Persistent Update Status Storage
+-------------------------------------------------
+
+Currently, `U-Boot`_'s environment is used to persistently store the
+update status across reboots. On systems where U-Boot is not available
+or a different bootloader is used, a filesystem- or raw partition-based
+persistent storage should be made available to support other bootloaders
+such as, e.g., `grub`_.
+
+.. _grub:   https://www.gnu.org/software/grub/
+.. _U-Boot: http://www.denx.de/wiki/U-Boot/
+
+User Feedback while Installing
+------------------------------
+
+Currently, there's no concurrent feedback reported to the user while
+SWUpdate is installing the update payload. Hence, if the update payload
+is large, it is hard to tell from the outside whether the update is
+still in progress or, e.g., the system has halted. Therefore, a second
+thread may report the current update status on a regular basis, e.g.,
+every 10 seconds, to the server in order to assert the user the update
+is still running.
+
+Sanity Checking of Update Payload
+---------------------------------
+
+Currently, suricatta hands over the update payload to SWUpdate and
+awaits its installation result. Suricatta has no means to inspect the
+payload, e.g., for a misconfiguration resulting in overwriting the
+currently used root file system partition, rendering the system broken.
+SWUpdate's IPC mechanism may be extended to report (meta-)data about
+a to be installed update payload such as the target partition. Only if
+this information is ACK'd by the IPC client, SWUpdate continues the
+installation or aborts otherwise.
+While one could argue that the payload should be thoroughly tested and
+can be assumed to be correct, a "last line of defense" may prove
+valuable.

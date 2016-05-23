@@ -155,6 +155,23 @@ ifeq ($(CONFIG_UBOOT),y)
 LDLIBS += z ubootenv
 endif
 
+# suricatta
+ifneq ($(CONFIG_SURICATTA),)
+ifneq ($(CONFIG_SURICATTA_SSL),)
+ifeq ($(strip $(findstring crypto,$(LDLIBS))),)
+LDLIBS += crypto ssl
+endif
+endif
+ifneq ($(CONFIG_SURICATTA_HAWKBIT),)
+ifeq ($(strip $(findstring json-c,$(LDLIBS))),)
+LDLIBS += json-c
+endif
+ifeq ($(strip $(findstring curl,$(LDLIBS))),)
+LDLIBS += curl
+endif
+endif
+endif
+
 # If a flat binary should be built, CFLAGS_swupdate="-elf2flt"
 # env var should be set for make invocation.
 # Here we check whether CFLAGS_swupdate indeed contains that flag.

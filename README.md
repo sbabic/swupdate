@@ -22,19 +22,17 @@ use LUA with a custom syntax.
 
 Here a short list of the main features:
 
-	- Install on embedded media
-	  (eMMC, SD, Raw NAND, NOR and SPI-NOR flashes)
-	- Allow delivery single image for multiple devices
-	- Multiple interfaces for getting software
-	  (local storage, integrated web server,
-	   remote server)
-	- Software delivered as images, gzipped tarball,
-	  etc.
-	- Allow custom handlers for installing
-	  FPGA firmware, microcontroller firmware
-	  via custom protocols.
-	- Power-Off safe
-	- Hardware / Software compatibility.
+- Install on embedded media (eMMC, SD, Raw NAND, NOR and SPI-NOR flashes)
+- Allow delivery single image for multiple devices
+- Multiple interfaces for getting software
+    - local storage
+    - integrated web server
+    - integrated REST client connector to [hawkBit](https://projects.eclipse.org/projects/iot.hawkbit)
+    - remote server download
+- Software delivered as images, gzipped tarball, etc.
+- Allow custom handlers for installing FPGA firmware, microcontroller firmware via custom protocols.
+- Power-Off safe
+- Hardware / Software compatibility.
 
 This software is licensed under GPL Version 2.0+
 

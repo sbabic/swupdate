@@ -50,6 +50,7 @@
 #include "mongoose_interface.h"
 #include "network_ipc.h"
 #include "sslapi.h"
+#include "suricatta/suricatta.h"
 
 #define MODULE_NAME	"swupdate"
 
@@ -95,6 +96,9 @@ static struct option long_options[] = {
 	{"retries", required_argument, NULL, 'r'},
 	{"timeout", required_argument, NULL, 't'},
 #endif
+#ifdef CONFIG_SURICATTA
+	{"suricatta", required_argument, NULL, 'u'},
+#endif
 #ifdef CONFIG_WEBSERVER
 	{"webserver", required_argument, NULL, 'w'},
 #endif
@@ -128,6 +132,9 @@ static void usage(char *programname)
 		" -s, --server                   : run as daemon waiting from\n"
 		"                                  IPC interface.\n"
 		" -v, --verbose                  : be verbose, set maximum loglevel\n"
+#ifdef CONFIG_SURICATTA
+		" -u, --suricatta [OPTIONS]      : Parameters to be passed to suricatta\n"
+#endif
 #ifdef CONFIG_WEBSERVER
 		" -w, --webserver [OPTIONS]      : Parameters to be passed to webserver\n"
 #endif
@@ -379,6 +386,7 @@ int main(int argc, char **argv)
 	int opt_k = 0;
 	int opt_e = 0;
 	int opt_s = 0;
+	int opt_u = 0;
 	int opt_w = 0;
 	char image_url[MAX_URL];
 	int opt_d = 0;
@@ -388,6 +396,11 @@ int main(int argc, char **argv)
 	char main_options[256];
 	unsigned int public_key_mandatory = 0;
 
+#ifdef CONFIG_SURICATTA
+	char suricattaoptions[1024];
+	char **argvalues = NULL;
+	int argcount = 0;
+#endif
 #ifdef CONFIG_WEBSERVER
 	char weboptions[1024];
 	char **av = NULL;
@@ -407,6 +420,9 @@ int main(int argc, char **argv)
 	strcat(main_options, "d:");
 	strcat(main_options, "r:");
 	strcat(main_options, "t:");
+#endif
+#ifdef CONFIG_SURICATTA
+	strcat(main_options, "u:");
 #endif
 #ifdef CONFIG_WEBSERVER
 	strcat(main_options, "w:");
@@ -482,6 +498,13 @@ int main(int argc, char **argv)
 		case 't':
 			opt_t = strtoul(optarg, NULL, 10);
 			break;
+#ifdef CONFIG_SURICATTA
+		case 'u':
+			(void)snprintf(suricattaoptions, sizeof(suricattaoptions), "%s %s", argv[0], optarg);
+			argvalues = splitargs(suricattaoptions, &argcount);
+			opt_u = 1;
+			break;
+#endif
 #ifdef CONFIG_WEBSERVER
 		case 'w':
 			snprintf(weboptions, sizeof(weboptions), "%s %s", argv[0], optarg);
@@ -555,7 +578,13 @@ int main(int argc, char **argv)
 		start_mongoose(ac, av);
 #endif
 
-	if (opt_w || opt_s)
+#if defined(CONFIG_SURICATTA)
+	if (opt_u) {
+		start_suricatta(argcount, argvalues);
+    }
+#endif
+
+	if (opt_w || opt_s || opt_u)
 		pthread_join(network_daemon, NULL);
 
 }
