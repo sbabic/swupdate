@@ -492,7 +492,7 @@ Command line parameters
 |             |          | It allows to blacklist MTDs when SWUpdate  |
 |             |          | searches for UBI volumes.                  |
 |             |          | Example: U-Boot and environment in MTD0-1: |
-|             |          |      -b "0 1"                              |
+|             |          | **swupdate -b "0 1"**                      |
 +-------------+----------+--------------------------------------------+
 | -d <URL>    | string   | Active only if CONFIG_DOWNLOAD is set      |
 |             |          | This is the URL where new software is      |
@@ -536,7 +536,7 @@ Command line parameters
 
 
 Changes in boot-loader code
-==========================
+===========================
 
 The SWUpdate consists of kernel and a root filesystem
 (image) that must be started by the boot-loader.

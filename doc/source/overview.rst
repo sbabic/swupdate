@@ -153,7 +153,7 @@ Different strategies can be used, depending on the system's
 resources. I am listing some of them.
 
 Double copy with fall-back
--------------------------
+--------------------------
 
 If there is enough space on the storage to save
 two copies of the whole software, it is possible to guarantee
@@ -285,12 +285,12 @@ to work again - starting again SWUpdate or restoring an old copy of the software
 Generally, the behavior can be split according to the chosen scenario:
 
 - single copy: SWUpdate is interrupted and the update transaction did not end
-with a success. The boot loader is able to start SWUpdate again, having the
-possibility to update the software again.
+  with a success. The boot loader is able to start SWUpdate again, having the
+  possibility to update the software again.
 
 - double copy: SWUpdate did not switch between stand-by and current copy.
-The same version of software, that was not touched by the update, is
-started again.
+  The same version of software, that was not touched by the update, is
+  started again.
 
 
 What about upgrading SWUpdate itself ?
