@@ -11,7 +11,7 @@ ways to do this. Should the compound image be signed ? Or some parts of it ?
 Advantages and disadvantages are described in the following chapter.
 
 Signing the compound image
--------------------------
+--------------------------
 
 It looks quite straightforward if the whole compound image is signed.
 However, this has some heavy drawbacks. It is not possible to know if the image
@@ -23,7 +23,7 @@ already installed, procedures that cannot be safe in case of power off letting
 some unwanted piece of software on the device.
 
 Signing the sub-images
----------------------
+----------------------
 
 If each sub-image is signed, the verification is done before calling the
 corresponding hardware. Only signed images can be installed.

@@ -32,6 +32,15 @@ the parser must fill a supplied table setting "ubi" as required handler,
 and filling the other fields required for this handler: name of volume, size,
 and so on.
 
+Creating own handlers
+---------------------
+
+SWUpdate can be extended with new handlers. The user needs to register his own
+handler with the core and he must provide the callback that SWUpdate uses when
+an image required to be installed with the new handler.
+
+The prototype for the callback is:
+
 ::
 
 	int my_handler(struct img_type *img,
@@ -43,7 +52,26 @@ a single image and inform the handler where the image must be installed. The
 file descriptor of the incoming stream set to the start of the image to be installed is also
 part of the structure.
 
-The handler developer registers his own handler with a call to:
+The structure *img_type* contains the file descriptor of the stream pointing to the first byte
+of the image to be installed. The handler must read the whole image, and when it returns
+back SWUpdate can go on with the next image in the stream.
+
+SWUpdate provides a general function to extract data from the stream and copy
+to somewhere else:
+
+::
+
+        int copyfile(int fdin, int fdout, int nbytes, unsigned long *offs,
+                int skip_file, int compressed, uint32_t *checksum, unsigned char *hash);
+
+fdin is the input stream, that is img->fdin from the callback. The *hash*, in case of
+signed images, is simply passed to copyfile() to perform the check, exactly as the *checksum*
+parameter. copyfile() will return an error if checksum or hash do not match. The handler
+does not need to bother with them.
+How the handler manages the copied data, is specific to the handler itself. See
+supplied handlers code for a better understanding.
+
+The handler's developer registers his own handler with a call to:
 
 ::
 

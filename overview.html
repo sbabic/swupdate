@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Software Management on embedded systems &mdash; Embedded Software Update Documentation 2016.04 documentation</title>
+    <title>Software Management on embedded systems &mdash; Embedded Software Update Documentation 2016.07 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '2016.04',
+        VERSION:     '2016.07',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="Embedded Software Update Documentation 2016.04 documentation" href="index.html" />
+    <link rel="top" title="Embedded Software Update Documentation 2016.07 documentation" href="index.html" />
     <link rel="next" title="SWUpdate: software update for embedded system" href="swupdate.html" />
     <link rel="prev" title="Updating an embedded system" href="index.html" /> 
   </head>
@@ -40,7 +40,7 @@
         <li class="right" >
           <a href="index.html" title="Updating an embedded system"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">Embedded Software Update Documentation 2016.04 documentation</a> &raquo;</li> 
+        <li><a href="index.html">Embedded Software Update Documentation 2016.07 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -284,15 +284,13 @@ The boot loader can then start again SWUpdate to load again the software
 to work again - starting again SWUpdate or restoring an old copy of the software.</p>
 <p>Generally, the behavior can be split according to the chosen scenario:</p>
 <ul class="simple">
-<li>single copy: SWUpdate is interrupted and the update transaction did not end</li>
+<li>single copy: SWUpdate is interrupted and the update transaction did not end
+with a success. The boot loader is able to start SWUpdate again, having the
+possibility to update the software again.</li>
+<li>double copy: SWUpdate did not switch between stand-by and current copy.
+The same version of software, that was not touched by the update, is
+started again.</li>
 </ul>
-<p>with a success. The boot loader is able to start SWUpdate again, having the
-possibility to update the software again.</p>
-<ul class="simple">
-<li>double copy: SWUpdate did not switch between stand-by and current copy.</li>
-</ul>
-<p>The same version of software, that was not touched by the update, is
-started again.</p>
 </div>
 <div class="section" id="what-about-upgrading-swupdate-itself">
 <h3>What about upgrading SWUpdate itself ?<a class="headerlink" href="#what-about-upgrading-swupdate-itself" title="Permalink to this headline">¶</a></h3>
@@ -402,7 +400,7 @@ can or cannot have this feature.</p>
         <li class="right" >
           <a href="index.html" title="Updating an embedded system"
              >previous</a> |</li>
-        <li><a href="index.html">Embedded Software Update Documentation 2016.04 documentation</a> &raquo;</li> 
+        <li><a href="index.html">Embedded Software Update Documentation 2016.07 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

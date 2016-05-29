@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Handlers &mdash; Embedded Software Update Documentation 2016.04 documentation</title>
+    <title>Handlers &mdash; Embedded Software Update Documentation 2016.07 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '2016.04',
+        VERSION:     '2016.07',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="Embedded Software Update Documentation 2016.04 documentation" href="index.html" />
+    <link rel="top" title="Embedded Software Update Documentation 2016.07 documentation" href="index.html" />
     <link rel="next" title="SWUpdate: API for external programs" href="swupdate-ipc.html" />
     <link rel="prev" title="Update images from verified source" href="signed_images.html" /> 
   </head>
@@ -40,7 +40,7 @@
         <li class="right" >
           <a href="signed_images.html" title="Update images from verified source"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">Embedded Software Update Documentation 2016.04 documentation</a> &raquo;</li> 
+        <li><a href="index.html">Embedded Software Update Documentation 2016.07 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -81,6 +81,13 @@ can have a different installer.</p>
 the parser must fill a supplied table setting &#8220;ubi&#8221; as required handler,
 and filling the other fields required for this handler: name of volume, size,
 and so on.</p>
+</div>
+<div class="section" id="creating-own-handlers">
+<h2>Creating own handlers<a class="headerlink" href="#creating-own-handlers" title="Permalink to this headline">¶</a></h2>
+<p>SWUpdate can be extended with new handlers. The user needs to register his own
+handler with the core and he must provide the callback that SWUpdate uses when
+an image required to be installed with the new handler.</p>
+<p>The prototype for the callback is:</p>
 <div class="highlight-python"><div class="highlight"><pre>int my_handler(struct img_type *img,
         void __attribute__ ((__unused__)) *data)
 </pre></div>
@@ -89,7 +96,22 @@ and so on.</p>
 a single image and inform the handler where the image must be installed. The
 file descriptor of the incoming stream set to the start of the image to be installed is also
 part of the structure.</p>
-<p>The handler developer registers his own handler with a call to:</p>
+<p>The structure <em>img_type</em> contains the file descriptor of the stream pointing to the first byte
+of the image to be installed. The handler must read the whole image, and when it returns
+back SWUpdate can go on with the next image in the stream.</p>
+<p>SWUpdate provides a general function to extract data from the stream and copy
+to somewhere else:</p>
+<div class="highlight-python"><div class="highlight"><pre>int copyfile(int fdin, int fdout, int nbytes, unsigned long *offs,
+        int skip_file, int compressed, uint32_t *checksum, unsigned char *hash);
+</pre></div>
+</div>
+<p>fdin is the input stream, that is img-&gt;fdin from the callback. The <em>hash</em>, in case of
+signed images, is simply passed to copyfile() to perform the check, exactly as the <em>checksum</em>
+parameter. copyfile() will return an error if checksum or hash do not match. The handler
+does not need to bother with them.
+How the handler manages the copied data, is specific to the handler itself. See
+supplied handlers code for a better understanding.</p>
+<p>The handler&#8217;s developer registers his own handler with a call to:</p>
 <div class="highlight-python"><div class="highlight"><pre>__attribute__((constructor))
 void my_handler_init(void)
 {
@@ -156,6 +178,7 @@ security questions, because it changes SWUpdate&#8217;s behavior.</p>
 <li><a class="reference internal" href="#">Handlers</a><ul>
 <li><a class="reference internal" href="#overview">Overview</a></li>
 <li><a class="reference internal" href="#supplied-handlers">Supplied handlers</a></li>
+<li><a class="reference internal" href="#creating-own-handlers">Creating own handlers</a></li>
 <li><a class="reference internal" href="#handler-for-ubi-volumes">Handler for UBI Volumes</a></li>
 <li><a class="reference internal" href="#extend-swupdate-with-handlers-in-lua">Extend SWUpdate with handlers in LUA</a></li>
 </ul>
@@ -202,7 +225,7 @@ security questions, because it changes SWUpdate&#8217;s behavior.</p>
         <li class="right" >
           <a href="signed_images.html" title="Update images from verified source"
              >previous</a> |</li>
-        <li><a href="index.html">Embedded Software Update Documentation 2016.04 documentation</a> &raquo;</li> 
+        <li><a href="index.html">Embedded Software Update Documentation 2016.07 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
