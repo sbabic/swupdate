@@ -147,8 +147,8 @@ int copyfile(int fdin, int fdout, int nbytes, unsigned long *offs,
 			ERROR("gunzip failure %d (errno %d) -- aborting\n", ret, errno);
 			return ret;
 		}
-		return 0;
 	}
+	else {
 #endif
 
 	while (nbytes > 0) {
@@ -175,6 +175,9 @@ int copyfile(int fdin, int fdout, int nbytes, unsigned long *offs,
 		}
 	}
 
+#ifdef CONFIG_GUNZIP
+	}
+#endif
 	if (IsValidHash(hash)) {
 		swupdate_HASH_final(dgst, md_value, &md_len);
 		swupdate_dgst_cleanup(dgst);
