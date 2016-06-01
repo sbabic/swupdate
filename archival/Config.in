@@ -5,20 +5,6 @@
 
 menu "Archival Features"
 
-config CPIO
-	bool "cpio"
-	default y
-	help
-	  cpio is an archival utility program used to create, modify, and
-	  extract contents from archives.
-	  cpio has 110 bytes of overheads for every stored file.
-
-	  This implementation of cpio can extract cpio archives created in the
-	  "newc" or "crc" format, it cannot create or modify them.
-
-	  Unless you have a specific application which requires cpio, you
-	  should probably say N here.
-
 config GUNZIP
 	bool "gunzip"
 	default y
