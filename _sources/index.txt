@@ -21,6 +21,7 @@ SWUpdate Documentation
    :maxdepth: 2
 
    swupdate.rst
+   suricatta.rst
    sw-description.rst
    signed_images.rst
    handlers.rst

@@ -527,6 +527,10 @@ Command line parameters
 | -w <parms>  | string   | start internal webserver and pass to it    |
 |             |          | a command line string.                     |
 +-------------+----------+--------------------------------------------+
+| -u <parms>  | string   | start internal suricatta client daemon and |
+|             |          | pass to it a command line string.          |
+|             |          | see suricatta's documentation for details. |
++-------------+----------+--------------------------------------------+
 | -H          | string   | set board name and Hardware revision       |
 | <board:rev> |          |                                            |
 +-------------+----------+--------------------------------------------+

@@ -47,6 +47,13 @@
             
   <div class="section" id="project-s-road-map">
 <h1>Project&#8217;s road-map<a class="headerlink" href="#project-s-road-map" title="Permalink to this headline">¶</a></h1>
+<p>Please take into account that most of the items here are proposals.
+I get some ideas talking with customers, some ideas are my own thoughts.
+There is no plan when these features will be implemented - this depends
+if enough interest is raised and if there will be contribution to the project.</p>
+<p>Thanks again to all companies that have supported my work up now and to
+everybody who contributes to the project, let me bring SWUpdate
+to the current status !</p>
 <div class="section" id="swupdate-s-road-map">
 <h2>SWUpdate&#8217;s road-map<a class="headerlink" href="#swupdate-s-road-map" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="main-goal">
@@ -56,14 +63,32 @@ SWUpdate suitable for a large number of products.
 This will help to build a community around the project
 itself.</p>
 </div>
-<div class="section" id="security-features">
-<h3>Security features<a class="headerlink" href="#security-features" title="Permalink to this headline">¶</a></h3>
-<p>There is currently no check if the images to be installed
-are coming from a verified source. Any image originally built
-according to the rules in the documentation is accepted.</p>
-<p>However, there is some draft for using signed images. This will
-guarantee that only images from an authenticated source (that is
-the manufacturer of the product) can be installed on the target.</p>
+<div class="section" id="encryption-of-artifacts">
+<h3>Encryption of artifacts<a class="headerlink" href="#encryption-of-artifacts" title="Permalink to this headline">¶</a></h3>
+<p>Images can be verified to check for their authenticity. Anyway,
+thare are cases where it is requested that the artifacts are
+encrypted, and decrypted on the fly before installing.</p>
+</div>
+<div class="section" id="deployment-in-the-iot-world">
+<h3>Deployment in the IoT world<a class="headerlink" href="#deployment-in-the-iot-world" title="Permalink to this headline">¶</a></h3>
+<p>The thing is not just updating the single device, but all
+devices in the field having a consistent status.</p>
+</div>
+<div class="section" id="interface-with-the-world-progress-status">
+<h3>Interface with the world - progress status<a class="headerlink" href="#interface-with-the-world-progress-status" title="Permalink to this headline">¶</a></h3>
+<p>The interface to the outside world is currently poor. If a target
+has a display and desires to show the progress of the update,
+it must fight with the poor status message. There is no standard way to
+get a percentage.
+An improvement is desired, as well as having a simple example to
+display the status using the Linux framebuffer.</p>
+</div>
+<div class="section" id="binary-delta-updates">
+<h3>Binary delta updates<a class="headerlink" href="#binary-delta-updates" title="Permalink to this headline">¶</a></h3>
+<p>A whole update could be very traffic intensive. Specially in case
+of low-bandwidth connections, it could be interesting to introduce
+a way for delta binary updates. Of course, the feature should not
+introduce leaks and make the system more vulnerable.</p>
 </div>
 <div class="section" id="handlers-desired">
 <h3>Handlers desired<a class="headerlink" href="#handlers-desired" title="Permalink to this headline">¶</a></h3>
@@ -71,7 +96,9 @@ the manufacturer of the product) can be installed on the target.</p>
 new methods can be considered, and new handlers can be added to mainline
 to support special ways. For example, downloading an image to a separate
 microprocessor/micro-controller, downloading a bit-stream to a FPGA,
-and so on.</p>
+and so on.
+There are custom specific solutions - I will be glad if these additional
+handlers will be merged into mainline in the future.</p>
 </div>
 <div class="section" id="handlers-installable-as-plugin-at-runtime">
 <h3>Handlers installable as plugin at runtime<a class="headerlink" href="#handlers-installable-as-plugin-at-runtime" title="Permalink to this headline">¶</a></h3>
@@ -82,6 +109,63 @@ in the design phase of a product.</p>
 <p>Of course, this issue is related to the security features: it must be
 ensured that only verified handlers can be added to the system to avoid
 that malware can get the control of the target.</p>
+<p>Current release supports verified images. That means that a handler
+written in LUA could be now be part of the compound image, because
+a unauthenticated handler cannot run.</p>
+</div>
+<div class="section" id="extended-ipc-based-post-upgrade-handler">
+<h3>Extended IPC-based Post-Upgrade Handler<a class="headerlink" href="#extended-ipc-based-post-upgrade-handler" title="Permalink to this headline">¶</a></h3>
+<p>It may be desirable to, e.g., reboot the system after having installed
+an update transaction completely but only after having signaled all
+applications to shut down cleanly. The IPC mechanism should be extended
+in this regard to allow for such functionality.</p>
+</div>
+<div class="section" id="configuration-file-support">
+<h3>Configuration File Support<a class="headerlink" href="#configuration-file-support" title="Permalink to this headline">¶</a></h3>
+<p>As the number of command-line parameters is growing, support for reading
+the run-time configuration from a configuration file should be supported.</p>
+</div>
+</div>
+<div class="section" id="suricatta-road-map">
+<h2>Suricatta road-map<a class="headerlink" href="#suricatta-road-map" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="support-for-multiple-servers-simultaneously">
+<h3>Support for multiple Servers simultaneously<a class="headerlink" href="#support-for-multiple-servers-simultaneously" title="Permalink to this headline">¶</a></h3>
+<p>Currently, suricatta&#8217;s server backends are a mutually exclusive
+compile-time choice. A proxy registrar and dispatcher should be plugged
+into the architecture to allow for different channels and server
+backends to be mixed and matched at run-time.</p>
+</div>
+<div class="section" id="filesystem-based-persistent-update-status-storage">
+<h3>Filesystem-based Persistent Update Status Storage<a class="headerlink" href="#filesystem-based-persistent-update-status-storage" title="Permalink to this headline">¶</a></h3>
+<p>Currently, <a class="reference external" href="http://www.denx.de/wiki/U-Boot/">U-Boot</a>&#8216;s environment is used to persistently store the
+update status across reboots. On systems where U-Boot is not available
+or a different bootloader is used, a filesystem- or raw partition-based
+persistent storage should be made available to support other bootloaders
+such as, e.g., <a class="reference external" href="https://www.gnu.org/software/grub/">grub</a>.</p>
+</div>
+<div class="section" id="user-feedback-while-installing">
+<h3>User Feedback while Installing<a class="headerlink" href="#user-feedback-while-installing" title="Permalink to this headline">¶</a></h3>
+<p>Currently, there&#8217;s no concurrent feedback reported to the user while
+SWUpdate is installing the update payload. Hence, if the update payload
+is large, it is hard to tell from the outside whether the update is
+still in progress or, e.g., the system has halted. Therefore, a second
+thread may report the current update status on a regular basis, e.g.,
+every 10 seconds, to the server in order to assert the user the update
+is still running.</p>
+</div>
+<div class="section" id="sanity-checking-of-update-payload">
+<h3>Sanity Checking of Update Payload<a class="headerlink" href="#sanity-checking-of-update-payload" title="Permalink to this headline">¶</a></h3>
+<p>Currently, suricatta hands over the update payload to SWUpdate and
+awaits its installation result. Suricatta has no means to inspect the
+payload, e.g., for a misconfiguration resulting in overwriting the
+currently used root file system partition, rendering the system broken.
+SWUpdate&#8217;s IPC mechanism may be extended to report (meta-)data about
+a to be installed update payload such as the target partition. Only if
+this information is ACK&#8217;d by the IPC client, SWUpdate continues the
+installation or aborts otherwise.
+While one could argue that the payload should be thoroughly tested and
+can be assumed to be correct, a &#8220;last line of defense&#8221; may prove
+valuable.</p>
 </div>
 </div>
 </div>
@@ -97,9 +181,21 @@ that malware can get the control of the target.</p>
 <li><a class="reference internal" href="#">Project&#8217;s road-map</a><ul>
 <li><a class="reference internal" href="#swupdate-s-road-map">SWUpdate&#8217;s road-map</a><ul>
 <li><a class="reference internal" href="#main-goal">Main goal</a></li>
-<li><a class="reference internal" href="#security-features">Security features</a></li>
+<li><a class="reference internal" href="#encryption-of-artifacts">Encryption of artifacts</a></li>
+<li><a class="reference internal" href="#deployment-in-the-iot-world">Deployment in the IoT world</a></li>
+<li><a class="reference internal" href="#interface-with-the-world-progress-status">Interface with the world - progress status</a></li>
+<li><a class="reference internal" href="#binary-delta-updates">Binary delta updates</a></li>
 <li><a class="reference internal" href="#handlers-desired">Handlers desired</a></li>
 <li><a class="reference internal" href="#handlers-installable-as-plugin-at-runtime">Handlers installable as plugin at runtime</a></li>
+<li><a class="reference internal" href="#extended-ipc-based-post-upgrade-handler">Extended IPC-based Post-Upgrade Handler</a></li>
+<li><a class="reference internal" href="#configuration-file-support">Configuration File Support</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#suricatta-road-map">Suricatta road-map</a><ul>
+<li><a class="reference internal" href="#support-for-multiple-servers-simultaneously">Support for multiple Servers simultaneously</a></li>
+<li><a class="reference internal" href="#filesystem-based-persistent-update-status-storage">Filesystem-based Persistent Update Status Storage</a></li>
+<li><a class="reference internal" href="#user-feedback-while-installing">User Feedback while Installing</a></li>
+<li><a class="reference internal" href="#sanity-checking-of-update-payload">Sanity Checking of Update Payload</a></li>
 </ul>
 </li>
 </ul>

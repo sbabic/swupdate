@@ -24,7 +24,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="Embedded Software Update Documentation 2016.07 documentation" href="index.html" />
-    <link rel="next" title="SWUpdate: syntax and tags with the default parser" href="sw-description.html" />
+    <link rel="next" title="Suricatta daemon mode" href="suricatta.html" />
     <link rel="prev" title="Software Management on embedded systems" href="overview.html" /> 
   </head>
   <body>
@@ -35,7 +35,7 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="sw-description.html" title="SWUpdate: syntax and tags with the default parser"
+          <a href="suricatta.html" title="Suricatta daemon mode"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="overview.html" title="Software Management on embedded systems"
@@ -535,12 +535,18 @@ Filename with the public key</td>
 <td>start internal webserver and pass to it
 a command line string.</td>
 </tr>
-<tr class="row-even"><td>-H
+<tr class="row-even"><td>-u &lt;parms&gt;</td>
+<td>string</td>
+<td>start internal suricatta client daemon and
+pass to it a command line string.
+see suricatta&#8217;s documentation for details.</td>
+</tr>
+<tr class="row-odd"><td>-H
 &lt;board:rev&gt;</td>
 <td>string</td>
 <td>set board name and Hardware revision</td>
 </tr>
-<tr class="row-odd"><td>-t &lt;timeout&gt;</td>
+<tr class="row-even"><td>-t &lt;timeout&gt;</td>
 <td>integer</td>
 <td>Timeout for connection lost when
 downloading</td>
@@ -633,8 +639,8 @@ of sw-description, that must be the first one.</p>
   <p class="topless"><a href="overview.html"
                         title="previous chapter">Software Management on embedded systems</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="sw-description.html"
-                        title="next chapter">SWUpdate: syntax and tags with the default parser</a></p>
+  <p class="topless"><a href="suricatta.html"
+                        title="next chapter">Suricatta daemon mode</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/swupdate.txt"
@@ -664,7 +670,7 @@ of sw-description, that must be the first one.</p>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="sw-description.html" title="SWUpdate: syntax and tags with the default parser"
+          <a href="suricatta.html" title="Suricatta daemon mode"
              >next</a> |</li>
         <li class="right" >
           <a href="overview.html" title="Software Management on embedded systems"
