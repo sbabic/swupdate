@@ -127,7 +127,7 @@ static void usage(char *programname)
 		" -i, --image <filename>         : Software to be installed\n"
 		" -l, --loglevel <level>         : logging level\n"
 #ifdef CONFIG_SIGNED_IMAGES
-		" -k  --key <public key file>    : file with public key to verify images\n"
+		" -k, --key <public key file>    : file with public key to verify images\n"
 #endif
 		" -s, --server                   : run as daemon waiting from\n"
 		"                                  IPC interface.\n"
