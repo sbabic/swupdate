@@ -132,7 +132,6 @@ struct swupdate_cfg {
 				p->offset = offs; \
 				p->provided = 1; \
 				p->size = fdh.size; \
-				break; \
 			} \
 		} \
 	} \
