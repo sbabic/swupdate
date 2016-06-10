@@ -34,6 +34,6 @@ int run_lua_script(char *script, char *function, char *parms);
 void image2table(lua_State* L, struct img_type *img);
 #endif
 
-void lua_handlers_init(void);
+int lua_handlers_init(void);
 
 #endif

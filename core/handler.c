@@ -182,28 +182,35 @@ static int luaopen_swupdate(lua_State *L) {
 	return 1;
 }
 
-void lua_handlers_init(void)
+int lua_handlers_init(void)
 {
+	int ret = -1;
+
 	gL = NULL;
 	gL = luaL_newstate();
 	if (gL) {
+		printf("Searching for custom LUA handlers :");
 		/* load standard libraries */
 		luaL_openlibs(gL);
 		luaL_requiref( gL, "swupdate", luaopen_swupdate, 1 );
 		/* try to load lua handlers for the swupdate system */
-		if(luaL_dostring(gL,"require (\"swupdate_handlers\")") != 0)
+		ret = luaL_dostring(gL,"require (\"swupdate_handlers\")");
+		if(ret != 0)
 		{
 			puts(lua_tostring(gL, -1));
-		}
+		} else
+			printf(" OK\n");
 	} else	{
 		printf ("Unable to register Lua context for callbacks\n");
 	}
+
+	return ret;
 }
 #else
-void lua_handlers_init(void) {}
+int lua_handlers_init(void) {0}
 #endif
 
-int register_handler(const char *desc, 
+int register_handler(const char *desc,
 		handler installer, void *data)
 {
 

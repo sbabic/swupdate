@@ -534,7 +534,9 @@ int main(int argc, char **argv)
 		}
 	}
 
-	lua_handlers_init();
+	if (lua_handlers_init())
+		printf("Custom handlers not found, no error, skipping...\n\n");
+
 	if(!get_hw_revision(&swcfg.hw))
 		printf("Running on %s Revision %s\n", swcfg.hw.boardname, swcfg.hw.revision);
 
