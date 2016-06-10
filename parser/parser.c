@@ -25,6 +25,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <sys/stat.h>
+#include <assert.h>
 #include "generated/autoconf.h"
 #include "bsdqueue.h"
 #include "util.h"
@@ -71,6 +72,19 @@ typedef enum {
 	JSON_PARSER
 } parsertype;
 
+static void check_field_string(const char *src, char *dst, const size_t max_len)
+{
+	assert(max_len>0);
+	size_t act_len = strnlen(src, SWUPDATE_GENERAL_STRING_SIZE);
+	if (act_len > max_len) {
+		((char*)dst)[max_len-1] = '\0';
+		WARN("Configuration Key '%s...' is > %lu chars, cropping it.\n",
+			(char*)dst, max_len-1);
+	}
+	if (act_len == 0) {
+		WARN("Configuration Key is empty!\n");
+	}
+}
 
 #ifdef CONFIG_LIBCONFIG
 static config_setting_t *find_node_libconfig(config_t *cfg,
@@ -178,12 +192,10 @@ static void get_field_string_libconfig(config_setting_t *e, const char *path, vo
 	if (!elem || config_setting_type(elem) != CONFIG_TYPE_STRING)
 		return;
 
-	if (path) {
-		if (config_setting_lookup_string(e, path, &str))
-			strncpy(dest, str, n);
-	} else {
-		if ((str = config_setting_get_string(e)) != NULL)
-			strncpy(dest, str, n);
+	if ( ( ( path) && (config_setting_lookup_string(e, path, &str))  ) ||
+	     ( (!path) && ((str = config_setting_get_string(e)) != NULL) ) ) {
+		strncpy(dest, str, n);
+		check_field_string(str, dest, n);
 	}
 }
 #endif
@@ -251,6 +263,7 @@ static void get_field_string_json(json_object *e, const char *path, char *dest, 
 		(json_object_get_type(node) == json_type_string)) {
 		str = json_object_get_string(node);
 		strncpy(dest, str, n);
+		check_field_string(str, dest, n);
 	}
 }
 
