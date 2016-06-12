@@ -42,6 +42,7 @@
 #include "cpiohdr.h"
 #include "parsers.h"
 #include "fw_env.h"
+#include "progress.h"
 
 static int isImageInstalled(struct swver *sw_ver_list,
 				struct img_type *img)
@@ -211,12 +212,16 @@ int install_single_image(struct img_type *img)
 	}
 	TRACE("Found installer for stream %s %s", img->fname, hnd->desc);
 
+	swupdate_progress_inc_step(img->fname);
+
 	/* TODO : check callback to push results / progress */
 	ret = hnd->installer(img, hnd->data);
 	if (ret != 0) {
 		TRACE("Installer for %s not successful !",
 			hnd->desc);
 	}
+
+	swupdate_progress_step_completed();
 
 	return ret;
 }
@@ -257,8 +262,8 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 		return ret;
 	}
 
-
 	LIST_FOREACH(img, &sw->images, next) {
+
 		/*
 		 *  If image is flagged to be installed from stream
 		 *  it  was already installed by loading the

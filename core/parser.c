@@ -28,6 +28,7 @@
 #include "parsers.h"
 #include "sslapi.h"
 #include "util.h"
+#include "progress.h"
 
 static parser_fn parsers[] = {
 	parse_cfg,
@@ -103,6 +104,12 @@ int parse(struct swupdate_cfg *sw, const char *descfile)
 		check_missing_hash(&sw->scripts))
 		ret = -EINVAL;
 #endif
+
+	/*
+	 * Compute the total number of installer
+	 * to initialize the progress bar
+	 */
+	swupdate_progress_init(count_elem_list(&sw->images));
 
 	return ret;
 }

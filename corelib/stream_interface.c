@@ -52,6 +52,7 @@
 #include "network_interface.h"
 #include "mongoose_interface.h"
 #include "installer.h"
+#include "progress.h"
 
 #define BUFF_SIZE	 4096
 #define PERCENT_LB_INDEX	4
@@ -333,6 +334,7 @@ void *network_initializer(void *data)
 				fw_set_one_env("recovery_status", "failed");
 				notify(FAILURE, RECOVERY_ERROR, "Installation failed !");
 				inst.last_install = FAILURE;
+
 			} else {
 				/*
 				 * Clear the recovery variable to indicate to U-Boot
@@ -346,6 +348,9 @@ void *network_initializer(void *data)
 			inst.last_install = FAILURE;
 			notify(FAILURE, RECOVERY_ERROR, "Image invalid or corrupted. Not installing ...");
 		}
+
+		swupdate_progress_end(inst.last_install);
+
 		pthread_mutex_lock(&stream_mutex);
 		inst.status = IDLE;
 		pthread_mutex_unlock(&stream_mutex);

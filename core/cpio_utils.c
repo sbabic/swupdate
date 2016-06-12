@@ -35,6 +35,7 @@
 #include "swupdate.h"
 #include "parsers.h"
 #include "sslapi.h"
+#include "progress.h"
 
 #define MODULE_NAME "cpio"
 
@@ -122,6 +123,8 @@ int copyfile(int fdin, int fdout, int nbytes, unsigned long *offs,
 	uint32_t *checksum, unsigned char *hash)
 {
 	unsigned long size;
+	unsigned long filesize = nbytes;
+	unsigned int percent, prevpercent = 0;
 	int ret;
 	void *dgst = NULL;
 	unsigned char md_value[64]; /*
@@ -172,6 +175,12 @@ int copyfile(int fdin, int fdout, int nbytes, unsigned long *offs,
 		if (copy_write(fdout, in, size) < 0) {
 			close(fdout);
 			return -ENOSPC;
+		}
+
+		percent = (unsigned int)(((double)(filesize - nbytes)) * 100 / filesize);
+		if (percent != prevpercent) {
+			prevpercent = percent;
+			swupdate_progress_update(percent);
 		}
 	}
 

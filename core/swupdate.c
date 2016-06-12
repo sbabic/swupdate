@@ -51,6 +51,7 @@
 #include "network_ipc.h"
 #include "sslapi.h"
 #include "suricatta/suricatta.h"
+#include "progress.h"
 
 #define MODULE_NAME	"swupdate"
 
@@ -318,6 +319,8 @@ static int install_from_file(char *fname)
 	/* copy images */
 	ret = install_images(&swcfg, fdsw, 1);
 
+	swupdate_progress_end(ret == 0 ? SUCCESS : FAILURE);
+
 	close(fdsw);
 
 	if (ret) {
@@ -412,7 +415,7 @@ int main(int argc, char **argv)
 #endif
 	memset(main_options, 0, sizeof(main_options));
 	memset(image_url, 0, sizeof(image_url));
-	strcpy(main_options, "vhi:se:l:");
+	strcpy(main_options, "pvhi:se:l:");
 #ifdef CONFIG_MTD
 	strcat(main_options, "b:");
 #endif
@@ -557,6 +560,8 @@ int main(int argc, char **argv)
 
 	network_daemon = start_thread(network_initializer, &swcfg);
 
+	start_thread(progress_bar_thread, NULL);
+
 	if (opt_i) {
 
 		install_from_file(fname);
@@ -572,7 +577,6 @@ int main(int argc, char **argv)
 		else
 			exit(1);
 	}
-
 
 	/* Start embedded web server */
 #if defined(CONFIG_MONGOOSE)

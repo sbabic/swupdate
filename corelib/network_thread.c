@@ -101,7 +101,7 @@ static void network_notifier(RECOVERY_STATUS status, int error, const char *msg)
 	pthread_mutex_unlock(&msglock);
 }
 
-static int listener_create(const char *path, int type)
+int listener_create(const char *path, int type)
 {
 	struct sockaddr_un servaddr;
 	int listenfd;
