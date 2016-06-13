@@ -207,7 +207,7 @@ int lua_handlers_init(void)
 	return ret;
 }
 #else
-int lua_handlers_init(void) {0}
+int lua_handlers_init(void) {return 0;}
 #endif
 
 int register_handler(const char *desc,
