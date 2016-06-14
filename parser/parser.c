@@ -78,8 +78,8 @@ static void check_field_string(const char *src, char *dst, const size_t max_len)
 	size_t act_len = strnlen(src, SWUPDATE_GENERAL_STRING_SIZE);
 	if (act_len > max_len) {
 		((char*)dst)[max_len-1] = '\0';
-		WARN("Configuration Key '%s...' is > %lu chars, cropping it.\n",
-			(char*)dst, max_len-1);
+		WARN("Configuration Key '%s...' is > %u chars, cropping it.\n",
+			(char*)dst, (unsigned int)max_len - 1);
 	}
 	if (act_len == 0) {
 		WARN("Configuration Key is empty!\n");
