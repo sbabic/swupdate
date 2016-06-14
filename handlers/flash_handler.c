@@ -2,7 +2,7 @@
  * (C) Copyright 2014-2016
  * Stefano Babic, DENX Software Engineering, sbabic@denx.de.
  *
- * Hamming code from 
+ * Hamming code from
  * https://github.com/martinezjavier/writeloader
  * Copyright (C) 2011 ISEE 2007, SL
  * Author: Javier Martinez Canillas <martinez.javier@gmail.com>
@@ -51,6 +51,7 @@
 #include "handler.h"
 #include "util.h"
 #include "flash.h"
+#include "progress.h"
 
 #define PROCMTD	"/proc/mtd"
 #define LINESIZE	80
@@ -271,6 +272,12 @@ static int flash_write_nand_hamming1(int mtdnum, struct img_type *img)
 	char mtd_device[LINESIZE];
 	bool rawNand = isNand(flash, mtdnum);
 
+	/*
+	 * if nothing to do, returns without errors
+	 */
+	if (!img->size)
+		return 0;
+
 	snprintf(mtd_device, sizeof(mtd_device), "/dev/mtd%d", mtdnum);
 
 	/*
@@ -336,6 +343,12 @@ static int flash_write_nand_hamming1(int mtdnum, struct img_type *img)
 		page_idx++;
 
 		imglen -= cnt;
+
+		/*
+		 * this handler does not use copyfile()
+		 * and must update itself the progress bar
+		 */
+		swupdate_progress_update((img->size - imglen) * 100 / img->size);
 	}
 
 	if (cnt < 0) {
@@ -392,6 +405,12 @@ static int flash_write_nand(int mtdnum, struct img_type *img)
 	bool failed = true;
 	int ret;
 	unsigned char *writebuf = NULL;
+
+	/*
+	 * if nothing to do, returns without errors
+	 */
+	if (!img->size)
+		return 0;
 
 	pagelen = mtd->min_io_size;
 	imglen = img->size;
@@ -467,7 +486,7 @@ static int flash_write_nand(int mtdnum, struct img_type *img)
 					}
 				}
 
-				offs +=  mtd->eb_size; 
+				offs +=  mtd->eb_size;
 			} while (offs < blockstart + mtd->eb_size);
 		}
 
@@ -543,6 +562,13 @@ static int flash_write_nand(int mtdnum, struct img_type *img)
 
 			continue;
 		}
+
+		/*
+		 * this handler does not use copyfile()
+		 * and must update itself the progress bar
+		 */
+		swupdate_progress_update((img->size - imglen) * 100 / img->size);
+
 		mtdoffset += mtd->min_io_size;
 		writebuf += pagelen;
 	}
