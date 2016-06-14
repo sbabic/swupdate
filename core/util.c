@@ -386,3 +386,15 @@ int IsValidHash(const unsigned char *hash)
 
 	return 0;
 }
+
+int count_elem_list(struct imglist *list)
+{
+	int count = 0;
+	struct img_type *img;
+
+	LIST_FOREACH(img, list, next) {
+		count++;
+	}
+
+	return count;
+}
