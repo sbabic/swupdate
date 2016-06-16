@@ -341,15 +341,20 @@ include $(srctree)/Makefile.flags
 # command line.
 # This allow a user to issue only 'make' to build a kernel including modules
 # Defaults to vmlinux, but the arch makefile usually adds further targets
-all: swupdate
+all: swupdate progress
 
 objs-y		:= core handlers
 libs-y		:= archival corelib ipc mongoose parser suricatta
+client-y	:= progress_client
 
 swupdate-dirs	:= $(objs-y) $(libs-y)
 swupdate-objs	:= $(patsubst %,%/built-in.o, $(objs-y))
 swupdate-libs	:= $(patsubst %,%/lib.a, $(libs-y))
 swupdate-all	:= $(swupdate-objs) $(swupdate-libs)
+
+progress-dirs	:= $(client-y)
+progress-objs	:= $(patsubst %,%/built-in.o, $(client-y))
+progress-all	:= $(progress-objs)
 
 # Do modpost on a prelinked vmlinux. The finally linked vmlinux has
 # relevant sections renamed as per the linker script.
@@ -366,6 +371,17 @@ quiet_cmd_swupdate = LD      $@
 swupdate_unstripped: $(swupdate-all) FORCE
 	$(call if_changed,swupdate)
 
+quiet_cmd_progress = LD      $@
+      cmd_progress = $(srctree)/scripts/trylink \
+      "$@" \
+      "$(CC)" \
+      "$(KBUILD_CFLAGS) $(CFLAGS_progress)" \
+      "$(LDFLAGS) $(EXTRA_LDFLAGS) $(LDFLAGS_progress)" \
+      "$(progress-objs)"
+
+progress_unstripped: $(progress-all) FORCE
+	$(call if_changed,progress)
+
 swupdate: swupdate_unstripped
 ifeq ($(SKIP_STRIP),y)
 	$(Q)cp $< $@
@@ -376,9 +392,21 @@ else
 	$(Q)chmod a+x $@
 endif
 
+progress: progress_unstripped
+ifeq ($(SKIP_STRIP),y)
+	$(Q)cp $< $@
+else
+	$(Q)$(STRIP) -s --remove-section=.note --remove-section=.comment \
+		progress_unstripped -o $@
+# strip is confused by PIE executable and does not set exec bits
+	$(Q)chmod a+x $@
+endif
+
+
 # The actual objects are generated when descending,
 # make sure no implicit rule kicks in
 $(sort $(swupdate-all)): $(swupdate-dirs) ;
+$(sort $(progress-all)): $(progress-dirs) ;
 
 # Handle descending into subdirectories listed in $(vmlinux-dirs)
 # Preset locale variables to speed up the build process. Limit locale
@@ -386,8 +414,10 @@ $(sort $(swupdate-all)): $(swupdate-dirs) ;
 # make menuconfig etc.
 # Error messages still appears in the original language
 
-PHONY += $(swupdate-dirs)
+PHONY += $(swupdate-dirs) $(progress-dirs)
 $(swupdate-dirs): scripts
+	$(Q)$(MAKE) $(build)=$@
+$(progress-dirs): scripts
 	$(Q)$(MAKE) $(build)=$@
 
 ###
@@ -399,7 +429,7 @@ $(swupdate-dirs): scripts
 
 # Directories & files removed with 'make clean'
 CLEAN_DIRS  +=
-CLEAN_FILES += swupdate swupdate_unstripped*
+CLEAN_FILES += swupdate swupdate_unstripped* progress progress_unstripped*
 
 # Directories & files removed with 'make mrproper'
 MRPROPER_DIRS  += include/config include/generated
@@ -409,7 +439,7 @@ MRPROPER_FILES += .config .config.old tags TAGS cscope* GPATH GTAGS GRTAGS GSYMS
 #
 clean: rm-dirs  := $(CLEAN_DIRS)
 clean: rm-files := $(CLEAN_FILES)
-clean-dirs      := $(addprefix _clean_, $(swupdate-dirs))
+clean-dirs      := $(addprefix _clean_, $(swupdate-dirs) $(progress-dirs))
 
 PHONY += $(clean-dirs) clean archclean
 $(clean-dirs):
