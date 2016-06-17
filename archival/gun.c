@@ -30,6 +30,7 @@
 #include <zlib.h>           /* inflateBackInit(), inflateBack(), */
                             /* inflateBackEnd(), crc32() */
 #include <util.h>
+#include <progress.h>
 
 /* buffer constants */
 #define SIZE 32768U         /* input and output buffer sizes */
@@ -45,6 +46,8 @@ struct ind {
     unsigned long *offs;
     unsigned long *checksum;
     int nbytes;
+    int total;
+    int percent;
     void *dgst;
 };
 
@@ -57,6 +60,7 @@ static unsigned in(void *in_desc, unsigned char **buf)
     unsigned len;
     unsigned char *next;
     struct ind *me = (struct ind *)in_desc;
+    unsigned int percent;
 
     next = me->inbuf;
     *buf = next;
@@ -76,6 +80,12 @@ static unsigned in(void *in_desc, unsigned char **buf)
         len += ret;
 	me->nbytes -= ret;
     } while (ret != 0 && len < SIZE);
+    percent = (unsigned int)(((double)(me->total - me->nbytes)) * 100 /
+		    (me->total ? me->total : 1));
+    if (percent != me->percent) {
+	me->percent = percent;
+	swupdate_progress_update(percent);
+    }
     return len;
 }
 
@@ -356,6 +366,8 @@ static int gunpipe(z_stream *strm, int infile, unsigned long *offs, int nbytes, 
     ind.infile = infile;
     ind.inbuf = inbuf;
     ind.nbytes = nbytes;
+    ind.total = nbytes; /* Used just for progress */
+    ind.percent = 0;
     ind.offs = offs;
     ind.checksum = (unsigned long *)checksum;
     ind.dgst = dgst; /* digest for computing hashes */
