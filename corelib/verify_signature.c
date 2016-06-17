@@ -158,6 +158,15 @@ int swupdate_HASH_final(struct swupdate_digest *dgst, unsigned char *md_value,
 
 }
 
+void swupdate_HASH_cleanup(struct swupdate_digest *dgst)
+{
+	if (dgst) {
+		EVP_MD_CTX_destroy(dgst->ctx);
+		free(dgst);
+		dgst = NULL;
+	}
+}
+
 int swupdate_verify_file(struct swupdate_digest *dgst, const char *sigfile,
 	       	const char *file)
 {
@@ -271,9 +280,6 @@ int swupdate_dgst_init(struct swupdate_cfg *sw, const char *keyfile)
 		return -EBUSY;
 	}
 
-	CRYPTO_malloc_init();
-	OpenSSL_add_all_algorithms();
-
 	dgst = calloc(1, sizeof(*dgst));
 	if (!dgst) {
 		ret = -ENOMEM;
@@ -309,13 +315,4 @@ dgst_init_error:
 		free(dgst);
 
 	return ret;
-}
-
-void swupdate_HASH_cleanup(struct swupdate_digest *dgst)
-{
-	if (dgst) {
-		EVP_MD_CTX_destroy(dgst->ctx);
-		free(dgst);
-		dgst = NULL;
-	}
 }

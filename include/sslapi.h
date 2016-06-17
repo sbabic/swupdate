@@ -20,7 +20,11 @@
 #ifndef _SWUPDATE_SSL_H
 #define _SWUPDATE_SSL_H
 
-#ifdef CONFIG_SIGNED_IMAGES
+/*
+ * openSSL is not mandatory
+ * Let compile when openSSL is not activated
+ */
+#if defined(CONFIG_SIGNED_IMAGES) || defined(CONFIG_ENCRYPTED_IMAGES)
 
 #include <openssl/bio.h>
 #include <openssl/objects.h>
@@ -30,12 +34,31 @@
 #include <openssl/pem.h>
 #include <openssl/evp.h>
 #include <openssl/hmac.h>
+#include <openssl/aes.h>
 
 struct swupdate_digest {
 	EVP_PKEY *pkey;
 	EVP_MD_CTX *ctx;
+	EVP_CIPHER_CTX ctxdec;
 };
 
+/*
+ * This just initialize globally the openSSL
+ * library
+ * It must be called just once
+ */
+#define swupdate_crypto_init() { \
+	do { \
+		CRYPTO_malloc_init(); \
+		OpenSSL_add_all_algorithms(); \
+	} while (0); \
+}
+#else
+#define swupdate_crypto_init()
+#define AES_BLOCK_SIZE	16
+#endif
+
+#if defined(CONFIG_SIGNED_IMAGES) 
 int swupdate_dgst_init(struct swupdate_cfg *sw, const char *keyfile);
 struct swupdate_digest *swupdate_HASH_init(void);
 int swupdate_HASH_update(struct swupdate_digest *dgst, unsigned char *buf,
@@ -46,6 +69,8 @@ void swupdate_HASH_cleanup(struct swupdate_digest *dgst);
 int swupdate_verify_file(struct swupdate_digest *dgst, const char *sigfile,
 	       	const char *file);
 int swupdate_HASH_compare(unsigned char *hash1, unsigned char *hash2);
+
+
 #else
 #define swupdate_dgst_init(sw, keyfile) ( 0 )
 #define swupdate_HASH_init(p) ( NULL )
@@ -54,6 +79,24 @@ int swupdate_HASH_compare(unsigned char *hash1, unsigned char *hash2);
 #define swupdate_HASH_final(p, result, len)
 #define swupdate_HASH_cleanup(sw)
 #define swupdate_HASH_compare(hash1,hash2)	(0)
+#endif
+
+#ifdef CONFIG_ENCRYPTED_IMAGES
+struct swupdate_digest *swupdate_DECRYPT_init(unsigned char *key, unsigned char *iv);
+int swupdate_DECRYPT_update(struct swupdate_digest *dgst, unsigned char *buf, 
+				int *outlen, unsigned char *cryptbuf, int inlen);
+int swupdate_DECRYPT_final(struct swupdate_digest *dgst, unsigned char *buf,
+				int *outlen);
+void swupdate_DECRYPT_cleanup(struct swupdate_digest *dgst);
+#else
+/*
+ * Note: macro for swupdate_DECRYPT_init is
+ * just to avoid compiler warnings
+ */
+#define swupdate_DECRYPT_init(key, iv) (((key != NULL) | (ivt != NULL)) ? NULL : NULL)
+#define swupdate_DECRYPT_update(p, buf, len, cbuf, inlen) (-1)
+#define swupdate_DECRYPT_final(p, buf, len) (-1)
+#define swupdate_DECRYPT_cleanup(p)
 #endif
 
 #endif
