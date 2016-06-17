@@ -609,3 +609,8 @@ There are 4 main sections inside sw-description:
 | different   |          | files      | if set, name and version are          |
 |             |          |            | compared with the entries in          |
 +-------------+----------+------------+---------------------------------------+
+| encrypted   | boolean  | images     | flag                                  |
+|             |          | files      | if set, file is encrypted             |
+|             |          | scripts    | and must be decrypted before          |
+|             |          |            | installing.                           |
++-------------+----------+------------+---------------------------------------+

@@ -71,6 +71,7 @@ struct img_type {
 	int required;
 	int provided;
 	int compressed;
+	int is_encrypted;
 	int install_directly;
 	int is_script;
 	int is_partitioner;

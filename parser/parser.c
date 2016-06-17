@@ -527,6 +527,8 @@ static void parse_scripts(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 		GET_FIELD_STRING(p, elem, "type", script->type);
 		get_hash_value(p, elem, script->sha256);
 
+		get_field(p, elem, "encrypted", &script->is_encrypted);
+
 		/* Scripts as default call the LUA interpreter */
 		if (!strlen(script->type)) {
 			strcpy(script->type, "lua");
@@ -634,6 +636,7 @@ static void parse_images(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 		get_field(p, elem, "compressed", &image->compressed);
 		get_field(p, elem, "installed-directly", &image->install_directly);
 		get_field(p, elem, "install-if-different", &image->id.install_if_different);
+		get_field(p, elem, "encrypted", &image->is_encrypted);
 
 		TRACE("Found %sImage %s %s: %s in %s : %s for handler %s%s %s\n",
 			image->compressed ? "compressed " : "",
@@ -699,6 +702,7 @@ static void parse_files(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 		get_field(p, elem, "compressed", &file->compressed);
 		get_field(p, elem, "installed-directly", &file->install_directly);
 		get_field(p, elem, "install-if-different", &file->id.install_if_different);
+		get_field(p, elem, "encrypted", &file->is_encrypted);
 		TRACE("Found %sFile %s %s: %s --> %s (%s) %s\n",
 			file->compressed ? "compressed " : "",
 			file->id.name,
