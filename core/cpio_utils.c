@@ -126,7 +126,7 @@ int copyfile(int fdin, int fdout, int nbytes, unsigned long *offs,
 	unsigned long filesize = nbytes;
 	unsigned int percent, prevpercent = 0;
 	int ret;
-	void *dgst = NULL;
+	void *dgst = NULL;	/* use a private context for HASH */
 	unsigned char md_value[64]; /*
 				     *  Maximum hash is 64 bytes for SHA512
 				     *  and we use sha256 in swupdate
@@ -189,7 +189,7 @@ int copyfile(int fdin, int fdout, int nbytes, unsigned long *offs,
 #endif
 	if (IsValidHash(hash)) {
 		swupdate_HASH_final(dgst, md_value, &md_len);
-		swupdate_dgst_cleanup(dgst);
+		swupdate_HASH_cleanup(dgst);
 
 		/*
 		 * Now check if the computed hash is equal

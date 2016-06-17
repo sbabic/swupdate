@@ -307,18 +307,14 @@ int swupdate_dgst_init(struct swupdate_cfg *sw, const char *keyfile)
 dgst_init_error:
 	if (dgst)
 		free(dgst);
-	EVP_cleanup();
-	CRYPTO_cleanup_all_ex_data();
 
 	return ret;
 }
 
-void swupdate_dgst_cleanup(struct swupdate_digest *dgst)
+void swupdate_HASH_cleanup(struct swupdate_digest *dgst)
 {
 	if (dgst) {
 		EVP_MD_CTX_destroy(dgst->ctx);
-		EVP_cleanup();
-		CRYPTO_cleanup_all_ex_data();
 		free(dgst);
 		dgst = NULL;
 	}
