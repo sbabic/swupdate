@@ -390,7 +390,7 @@ int main(int argc, char **argv)
 	int opt_w = 0;
 	char image_url[MAX_URL];
 	int opt_d = 0;
-	unsigned long opt_t = DL_LOWSPEED_TIME;
+	unsigned long __attribute__ ((__unused__)) opt_t = DL_LOWSPEED_TIME;
 	int __attribute__ ((__unused__)) opt_r = 3;
 	RECOVERY_STATUS result;
 	char main_options[256];
