@@ -1,5 +1,9 @@
+=====================
 Suricatta daemon mode
 =====================
+
+Introduction
+------------
 
 Suricatta is -- like mongoose -- a daemon mode of SWUpdate, hence the
 name suricatta (engl. meerkat) as it belongs to the mongoose family.
@@ -128,9 +132,8 @@ following lines add ``channel_hawkbit.o`` and ``server_hawkbit.o`` to
 the resulting SWUpdate binary if ``SURICATTA_HAWKBIT`` was selected
 while configuring SWUpdate.
 
-.. code:: makefile
+::
 
     ifneq ($(CONFIG_SURICATTA_HAWKBIT),)
     lib-$(CONFIG_SURICATTA) += channel_hawkbit.o server_hawkbit.o
     endif
-
