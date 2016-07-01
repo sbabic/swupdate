@@ -37,8 +37,6 @@ static int install_uboot_environment(struct img_type *img,
 {
 	int ret;
 	int fdout;
-	uint32_t checksum = 0;
-	unsigned long dummy;
 	char buf[64];
 
 	char filename[64];
@@ -52,7 +50,7 @@ static int install_uboot_environment(struct img_type *img,
 		 * U-Boot environment is set inside sw-description
 		 * there is no hash but sw-description was already verified
 		 */
-		ret = copyfile(img->fdin, fdout, img->size, &dummy, 0, 0, &checksum, NULL);
+		ret = copyimage(fdout, img);
 		close(fdout);
 	}
 

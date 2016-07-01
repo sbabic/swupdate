@@ -213,6 +213,18 @@ int copyfile(int fdin, int fdout, int nbytes, unsigned long *offs,
 	return 0;
 }
 
+int copyimage(int fdout, struct img_type *img)
+{
+	return copyfile(img->fdin,
+			fdout,
+			img->size,
+			(unsigned long *)&img->offset,
+			0, /* no skip */
+			img->compressed,
+			&img->checksum,
+			img->sha256);
+}
+
 int extract_cpio_header(int fd, struct filehdr *fhdr, unsigned long *offset)
 {
 	unsigned char buf[256];

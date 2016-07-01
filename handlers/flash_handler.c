@@ -636,8 +636,6 @@ static int flash_write_nor(int mtdnum, struct img_type *img)
 	int fdout;
 	char mtd_device[LINESIZE];
 	int ret;
-	uint32_t checksum;
-	long unsigned int dummy = 0;
 	struct flash_description *flash = get_flash_info();
 
 	if  (!mtd_dev_present(flash->libmtd, mtdnum)) {
@@ -651,7 +649,7 @@ static int flash_write_nor(int mtdnum, struct img_type *img)
 		return -1;
 	}
 
-	ret = copyfile(img->fdin, fdout, img->size, &dummy, 0, 0, &checksum, img->sha256);
+	ret = copyimage(fdout, img);
 
 	/* tell 'nbytes == 0' (EOF) from 'nbytes < 0' (read error) */
 	if (ret < 0) {

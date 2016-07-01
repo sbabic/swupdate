@@ -46,15 +46,13 @@ static struct ubi_part *search_volume(const char *str, struct ubilist *list)
 	return NULL;
 }
 
-static int update_volume(libubi_t libubi, int fdsw, struct img_type *img,
+static int update_volume(libubi_t libubi, struct img_type *img,
 	struct ubi_vol_info *vol)
 {
 	long long bytes;
 	int fdout;
 	char node[64];
 	int err;
-	unsigned long offset = 0;
-	uint32_t checksum = 0;
 	char sbuf[128];
 
 	bytes = img->size;
@@ -104,10 +102,9 @@ static int update_volume(libubi_t libubi, int fdsw, struct img_type *img,
 		img->fname, node, img->volname);
 	notify(RUN, RECOVERY_NO_ERROR, sbuf);
 
-	TRACE("Updating UBI : %s %lld %lu\n",
-			img->fname, img->size, offset);
-	if (copyfile(fdsw, fdout, img->size, (unsigned long *)&img->offset, 0,
-		img->compressed, &checksum, img->sha256) < 0) {
+	TRACE("Updating UBI : %s %lld\n",
+			img->fname, img->size);
+	if (copyimage(fdout, img) < 0) {
 		ERROR("Error copying extracted file");
 		err = -1;
 	}
@@ -140,7 +137,7 @@ static int install_ubivol_image(struct img_type *img,
 				img->volname);
 		return -1;
 	}
-	ret = update_volume(flash->libubi, img->fdin, img,
+	ret = update_volume(flash->libubi, img,
 				&ubivol->vol_info);
 	return ret;
 

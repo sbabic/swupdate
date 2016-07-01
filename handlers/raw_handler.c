@@ -41,8 +41,6 @@ static int install_raw_image(struct img_type *img,
 {
 	int ret;
 	int fdout;
-	unsigned long offset = 0;
-	uint32_t checksum;
 
 	fdout = open(img->device, O_RDWR);
 	if (fdout < 0) {
@@ -51,8 +49,8 @@ static int install_raw_image(struct img_type *img,
 		return -1;
 	}
 	
-	ret = copyfile(img->fdin, fdout, img->size, &offset, 0, img->compressed,
-			&checksum, img->sha256);
+	ret = copyimage(fdout, img);
+
 	close(fdout);
 	return ret;
 }
@@ -63,8 +61,6 @@ static int install_raw_file(struct img_type *img,
 	char path[255];
 	int fdout;
 	int ret = 0;
-	uint32_t checksum = 0;
-	unsigned long offset = 0;
 	int use_mount = (strlen(img->device) && strlen(img->filesystem)) ? 1 : 0;
 
 	if (strlen(img->path) == 0) {
@@ -89,9 +85,7 @@ static int install_raw_file(struct img_type *img,
 	TRACE("Installing file %s on %s\n",
 		img->fname, path);
 	fdout = openfileoutput(path);
-	offset = img->offset;
-	ret = copyfile(img->fdin, fdout, img->size, &offset, 0,
-			img->compressed, &checksum, img->sha256);
+	ret = copyimage(fdout, img);
 	if (ret< 0) {
 		ERROR("Error copying extracted file\n");
 	}
