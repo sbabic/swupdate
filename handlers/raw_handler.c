@@ -49,7 +49,7 @@ static int install_raw_image(struct img_type *img,
 		return -1;
 	}
 	
-	ret = copyimage(fdout, img);
+	ret = copyimage(fdout, img, NULL);
 
 	close(fdout);
 	return ret;
@@ -85,7 +85,7 @@ static int install_raw_file(struct img_type *img,
 	TRACE("Installing file %s on %s\n",
 		img->fname, path);
 	fdout = openfileoutput(path);
-	ret = copyimage(fdout, img);
+	ret = copyimage(fdout, img, NULL);
 	if (ret< 0) {
 		ERROR("Error copying extracted file\n");
 	}

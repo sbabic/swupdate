@@ -649,7 +649,7 @@ static int flash_write_nor(int mtdnum, struct img_type *img)
 		return -1;
 	}
 
-	ret = copyimage(fdout, img);
+	ret = copyimage(fdout, img, NULL);
 
 	/* tell 'nbytes == 0' (EOF) from 'nbytes < 0' (read error) */
 	if (ret < 0) {

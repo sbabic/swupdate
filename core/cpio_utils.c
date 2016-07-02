@@ -118,7 +118,7 @@ static int copy_write(int fd, const void *buf, int len)
 
 int copyfile(int fdin, int fdout, int nbytes, unsigned long *offs,
 	int skip_file, int __attribute__ ((__unused__)) compressed,
-	uint32_t *checksum, unsigned char *hash, int encrypted)
+	uint32_t *checksum, unsigned char *hash, int encrypted, writeimage callback)
 {
 	unsigned long size;
 	unsigned char *in;
@@ -131,6 +131,9 @@ int copyfile(int fdin, int fdout, int nbytes, unsigned long *offs,
 				     *  and we use sha256 in swupdate
 				     */
 	unsigned int md_len = 0;
+
+	if (!callback)
+		callback = copy_write;
 
 	if (IsValidHash(hash)) {
 		dgst = swupdate_HASH_init();
@@ -182,7 +185,7 @@ int copyfile(int fdin, int fdout, int nbytes, unsigned long *offs,
 		 * results corrupted. This lets the cleanup routine
 		 * to remove it
 		 */
-		if (copy_write(fdout, in, size) < 0) {
+		if (callback(fdout, in, size) < 0) {
 			close(fdout);
 			free(in);
 			return -ENOSPC;
@@ -227,7 +230,7 @@ int copyfile(int fdin, int fdout, int nbytes, unsigned long *offs,
 	return 0;
 }
 
-int copyimage(int fdout, struct img_type *img)
+int copyimage(int fdout, struct img_type *img, writeimage callback)
 {
 	return copyfile(img->fdin,
 			fdout,
@@ -237,7 +240,8 @@ int copyimage(int fdout, struct img_type *img)
 			img->compressed,
 			&img->checksum,
 			img->sha256,
-			img->is_encrypted);
+			img->is_encrypted,
+			callback);
 }
 
 int extract_cpio_header(int fd, struct filehdr *fhdr, unsigned long *offset)
@@ -299,7 +303,7 @@ off_t extract_sw_description(int fd, const char *descfile, off_t start)
 		ERROR("CPIO file corrupted : %s\n", strerror(errno));
 		return -1;
 	}
-	if (copyfile(fd, fdout, fdh.size, &offset, 0, 0, &checksum, NULL, 0) < 0) {
+	if (copyfile(fd, fdout, fdh.size, &offset, 0, 0, &checksum, NULL, 0, NULL) < 0) {
 		ERROR("%s corrupted or not valid\n", descfile);
 		return -1;
 	}
@@ -360,7 +364,7 @@ off_t extract_next_file(int fd, int fdout, off_t start, int compressed,
 
 	if (lseek(fd, offset, SEEK_SET) < 0)
 		ERROR("CPIO file corrupted : %s\n", strerror(errno));
-	if (copyfile(fd, fdout, fdh.size, &offset, 0, compressed, &checksum, hash, 0) < 0) {
+	if (copyfile(fd, fdout, fdh.size, &offset, 0, compressed, &checksum, hash, 0, NULL) < 0) {
 		ERROR("Error copying extracted file\n");
 	}
 
@@ -409,7 +413,7 @@ int cpio_scan(int fd, struct swupdate_cfg *cfg, off_t start)
 		 * use copyfile for checksum verification, as we skip file
 		 * we do not have to provide fdout
 		 */
-		if (copyfile(fd, 0, fdh.size, &offset, 1, 0, &checksum, NULL, 0) != 0) {
+		if (copyfile(fd, 0, fdh.size, &offset, 1, 0, &checksum, NULL, 0, NULL) != 0) {
 			ERROR("invalid archive\n");
 			return -1;
 		}
