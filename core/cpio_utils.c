@@ -43,8 +43,6 @@
 
 #define NPAD_BYTES(o) ((4 - (o % 4)) % 4)
 
-static unsigned char in[BUFF_SIZE];
-
 static int get_cpiohdr(unsigned char *buf, long *size, long *namesize, long *chksum)
 {
 	struct new_ascii_header *cpiohdr;
@@ -123,6 +121,7 @@ int copyfile(int fdin, int fdout, int nbytes, unsigned long *offs,
 	uint32_t *checksum, unsigned char *hash, int encrypted)
 {
 	unsigned long size;
+	unsigned char *in;
 	unsigned long filesize = nbytes;
 	unsigned int percent, prevpercent = 0;
 	int ret;
@@ -142,17 +141,22 @@ int copyfile(int fdin, int fdout, int nbytes, unsigned long *offs,
 	if (checksum)
 		*checksum = 0;
 
+	in = (unsigned char *)malloc(BUFF_SIZE);
+	if (!in)
+		return -ENOMEM;
 
 #ifdef CONFIG_GUNZIP
 	if (compressed) {
 		if (encrypted) {
 			ERROR("encrypted zip images are not yet supported -- aborting\n");
+			free(in);
 			return -EINVAL;
 		}
 
 		ret = decompress_image(fdin, offs, nbytes, fdout, checksum, dgst);
 		if (ret < 0) {
 			ERROR("gunzip failure %d (errno %d) -- aborting\n", ret, errno);
+			free(in);
 			return ret;
 		}
 	}
@@ -164,6 +168,7 @@ int copyfile(int fdin, int fdout, int nbytes, unsigned long *offs,
 
 		if ((ret = fill_buffer(fdin, in, size, offs, checksum, dgst) < 0)) {
 			close(fdout);
+			free(in);
 			return ret;
 		}
 
@@ -179,6 +184,7 @@ int copyfile(int fdin, int fdout, int nbytes, unsigned long *offs,
 		 */
 		if (copy_write(fdout, in, size) < 0) {
 			close(fdout);
+			free(in);
 			return -ENOSPC;
 		}
 
@@ -209,11 +215,14 @@ int copyfile(int fdin, int fdout, int nbytes, unsigned long *offs,
 
 			ERROR("HASH mismatch : %s <--> %s",
 				hashstring, newhashstring);
+			free(in);
 			return -EFAULT;
 		}
 	}
 
 	fill_buffer(fdin, in, NPAD_BYTES(*offs), offs, checksum, NULL);
+
+	free(in);
 
 	return 0;
 }
