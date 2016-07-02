@@ -120,7 +120,7 @@ static int copy_write(int fd, const void *buf, int len)
 
 int copyfile(int fdin, int fdout, int nbytes, unsigned long *offs,
 	int skip_file, int __attribute__ ((__unused__)) compressed,
-	uint32_t *checksum, unsigned char *hash)
+	uint32_t *checksum, unsigned char *hash, int encrypted)
 {
 	unsigned long size;
 	unsigned long filesize = nbytes;
@@ -145,6 +145,11 @@ int copyfile(int fdin, int fdout, int nbytes, unsigned long *offs,
 
 #ifdef CONFIG_GUNZIP
 	if (compressed) {
+		if (encrypted) {
+			ERROR("encrypted zip images are not yet supported -- aborting\n");
+			return -EINVAL;
+		}
+
 		ret = decompress_image(fdin, offs, nbytes, fdout, checksum, dgst);
 		if (ret < 0) {
 			ERROR("gunzip failure %d (errno %d) -- aborting\n", ret, errno);
@@ -222,7 +227,8 @@ int copyimage(int fdout, struct img_type *img)
 			0, /* no skip */
 			img->compressed,
 			&img->checksum,
-			img->sha256);
+			img->sha256,
+			img->is_encrypted);
 }
 
 int extract_cpio_header(int fd, struct filehdr *fhdr, unsigned long *offset)
@@ -284,7 +290,7 @@ off_t extract_sw_description(int fd, const char *descfile, off_t start)
 		ERROR("CPIO file corrupted : %s\n", strerror(errno));
 		return -1;
 	}
-	if (copyfile(fd, fdout, fdh.size, &offset, 0, 0, &checksum, NULL) < 0) {
+	if (copyfile(fd, fdout, fdh.size, &offset, 0, 0, &checksum, NULL, 0) < 0) {
 		ERROR("%s corrupted or not valid\n", descfile);
 		return -1;
 	}
@@ -345,7 +351,7 @@ off_t extract_next_file(int fd, int fdout, off_t start, int compressed,
 
 	if (lseek(fd, offset, SEEK_SET) < 0)
 		ERROR("CPIO file corrupted : %s\n", strerror(errno));
-	if (copyfile(fd, fdout, fdh.size, &offset, 0, compressed, &checksum, hash) < 0) {
+	if (copyfile(fd, fdout, fdh.size, &offset, 0, compressed, &checksum, hash, 0) < 0) {
 		ERROR("Error copying extracted file\n");
 	}
 
@@ -394,7 +400,7 @@ int cpio_scan(int fd, struct swupdate_cfg *cfg, off_t start)
 		 * use copyfile for checksum verification, as we skip file
 		 * we do not have to provide fdout
 		 */
-		if (copyfile(fd, 0, fdh.size, &offset, 1, 0, &checksum, NULL) != 0) {
+		if (copyfile(fd, 0, fdh.size, &offset, 1, 0, &checksum, NULL, 0) != 0) {
 			ERROR("invalid archive\n");
 			return -1;
 		}

@@ -127,7 +127,8 @@ int decompress_image(int infile, unsigned long *offs, int nbytes,
 int fw_set_one_env(const char *name, const char *value);
 int openfile(const char *filename);
 int copyfile(int fdin, int fdout, int nbytes, unsigned long *offs,
-	int skip_file, int compressed, uint32_t *checksum, unsigned char *hash);
+	int skip_file, int compressed, uint32_t *checksum,
+	unsigned char *hash, int encrypted);
 int copyimage(int fdout, struct img_type *img);
 off_t extract_sw_description(int fd, const char *descfile, off_t start);
 off_t extract_next_file(int fd, int fdout, off_t start, int compressed,
