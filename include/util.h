@@ -152,4 +152,10 @@ int get_hw_revision(struct hw_type *hw);
 void get_sw_versions(struct swupdate_cfg *sw);
 int check_hw_compatibility(struct swupdate_cfg *cfg);
 int count_elem_list(struct imglist *list);
+
+/* Decryption key functions */
+int load_decryption_key(char *fname);
+unsigned char *get_aes_key(void);
+unsigned char *get_aes_ivt(void);
+
 #endif

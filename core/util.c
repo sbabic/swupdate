@@ -31,6 +31,13 @@
 #include "fw_env.h"
 #include "generated/autoconf.h"
 
+struct decryption_key {
+	unsigned char key[32];
+	unsigned char ivt[16];
+};
+
+static struct decryption_key *aes_key = NULL;
+
 /*
  * Replacement for fw_setenv() for calling inside
  * the library
@@ -397,4 +404,57 @@ int count_elem_list(struct imglist *list)
 	}
 
 	return count;
+}
+
+int load_decryption_key(char *fname)
+{
+	FILE *fp;
+	char *b1, *b2;
+	int ret;
+
+	fp = fopen(fname, "r");
+	if (!fp)
+		return -EBADF;
+
+	ret = fscanf(fp, "%ms %ms", &b1, &b2);
+	fclose(fp);
+
+	if (aes_key)
+		free(aes_key);
+
+	aes_key = (struct decryption_key *)calloc(1, sizeof(*aes_key));
+	if (!aes_key)
+		return -ENOMEM;
+
+	if (ret != 2) {
+		fprintf(stderr, "File with decryption key is in the format <key> <ivt>\n");
+		return -EINVAL;
+	}
+
+	/*
+	 * Key is for aes_256, it must be 256 bit
+	 * and IVT is 128 bit
+	 */
+	if ((strlen(b1) != 32) || (strlen(b2) != 16)) {
+		fprintf(stderr, "Keys are of invalid length: Key %d instead of 32,  IVT %d instead of 16\n",
+				(int)strlen(b1), (int)strlen(b2));
+		return -EINVAL;
+	}
+
+	memcpy(aes_key->key, b1, 32);
+	memcpy(aes_key->ivt, b2, 16);
+
+	return 0;
+}
+
+unsigned char *get_aes_key(void) {
+	if (!aes_key)
+		return NULL;
+	return aes_key->key;
+}
+
+unsigned char *get_aes_ivt(void) {
+	if (!aes_key)
+		return NULL;
+	return aes_key->ivt;
 }
