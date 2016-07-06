@@ -14,7 +14,7 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc. 
+ * Foundation, Inc.
  */
 
 #include <stdio.h>
@@ -121,16 +121,21 @@ int copyfile(int fdin, int fdout, int nbytes, unsigned long *offs,
 	uint32_t *checksum, unsigned char *hash, int encrypted, writeimage callback)
 {
 	unsigned long size;
-	unsigned char *in;
+	unsigned char *in = NULL, *inbuf;
+	unsigned char *decbuf = NULL;
 	unsigned long filesize = nbytes;
 	unsigned int percent, prevpercent = 0;
-	int ret;
+	int ret = 0;
 	void *dgst = NULL;	/* use a private context for HASH */
+	void *dcrypt = NULL;	/* use a private context for decryption */
+	int len;
 	unsigned char md_value[64]; /*
 				     *  Maximum hash is 64 bytes for SHA512
 				     *  and we use sha256 in swupdate
 				     */
 	unsigned int md_len = 0;
+	unsigned char *aes_key;
+	unsigned char *ivt;
 
 	if (!callback)
 		callback = copy_write;
@@ -144,23 +149,41 @@ int copyfile(int fdin, int fdout, int nbytes, unsigned long *offs,
 	if (checksum)
 		*checksum = 0;
 
+	/*
+	 * Simultaneous compression and decryption of images
+	 * is not (yet ?) supported
+	 */
+	if (compressed && encrypted) {
+		ERROR("encrypted zip images are not yet supported -- aborting\n");
+		return -EINVAL;
+	}
+
 	in = (unsigned char *)malloc(BUFF_SIZE);
 	if (!in)
 		return -ENOMEM;
 
-#ifdef CONFIG_GUNZIP
-	if (compressed) {
-		if (encrypted) {
-			ERROR("encrypted zip images are not yet supported -- aborting\n");
-			free(in);
-			return -EINVAL;
+	if (encrypted) {
+		decbuf = (unsigned char *)calloc(1, BUFF_SIZE + AES_BLOCK_SIZE);
+		if (!decbuf) {
+			ret = -ENOMEM;
+			goto copyfile_exit;
 		}
 
+		aes_key = get_aes_key();
+		ivt = get_aes_ivt();
+		dcrypt = swupdate_DECRYPT_init(aes_key, ivt);
+		if (!dcrypt) {
+			ret = -EFAULT;
+			goto copyfile_exit;
+		}
+	}
+
+#ifdef CONFIG_GUNZIP
+	if (compressed) {
 		ret = decompress_image(fdin, offs, nbytes, fdout, checksum, dgst);
 		if (ret < 0) {
 			ERROR("gunzip failure %d (errno %d) -- aborting\n", ret, errno);
-			free(in);
-			return ret;
+			goto copyfile_exit;
 		}
 	}
 	else {
@@ -170,14 +193,23 @@ int copyfile(int fdin, int fdout, int nbytes, unsigned long *offs,
 		size = (nbytes < BUFF_SIZE ? nbytes : BUFF_SIZE);
 
 		if ((ret = fill_buffer(fdin, in, size, offs, checksum, dgst) < 0)) {
-			close(fdout);
-			free(in);
-			return ret;
+			goto copyfile_exit;
 		}
 
 		nbytes -= size;
 		if (skip_file)
 			continue;
+
+		inbuf = in;
+		len = size;
+
+		if (encrypted) {
+			ret = swupdate_DECRYPT_update(dcrypt, decbuf,
+				&len, in, size);
+			if (ret < 0)
+				goto copyfile_exit;
+			inbuf = decbuf;
+		}
 
 		/*
 		 * If there is no enough place,
@@ -185,10 +217,9 @@ int copyfile(int fdin, int fdout, int nbytes, unsigned long *offs,
 		 * results corrupted. This lets the cleanup routine
 		 * to remove it
 		 */
-		if (callback(fdout, in, size) < 0) {
-			close(fdout);
-			free(in);
-			return -ENOSPC;
+		if (callback(fdout, inbuf, len) < 0) {
+			ret =-ENOSPC;
+			goto copyfile_exit;
 		}
 
 		percent = (unsigned int)(((double)(filesize - nbytes)) * 100 / filesize);
@@ -201,9 +232,24 @@ int copyfile(int fdin, int fdout, int nbytes, unsigned long *offs,
 #ifdef CONFIG_GUNZIP
 	}
 #endif
+
+	/*
+	 * Finalise the decryption. Further plaintext bytes may be written at
+	 * this stage.
+	 */
+	if (encrypted) {
+		ret = swupdate_DECRYPT_final(dcrypt, decbuf, &len);
+		if (ret < 0)
+			goto copyfile_exit;
+		if (callback(fdout, decbuf, len) < 0) {
+			ret =-ENOSPC;
+			goto copyfile_exit;
+		}
+	}
+
+
 	if (IsValidHash(hash)) {
 		swupdate_HASH_final(dgst, md_value, &md_len);
-		swupdate_HASH_cleanup(dgst);
 
 		/*
 		 * Now check if the computed hash is equal
@@ -218,16 +264,28 @@ int copyfile(int fdin, int fdout, int nbytes, unsigned long *offs,
 
 			ERROR("HASH mismatch : %s <--> %s",
 				hashstring, newhashstring);
-			free(in);
-			return -EFAULT;
+			ret = -EFAULT;
+			goto copyfile_exit;
 		}
 	}
 
 	fill_buffer(fdin, in, NPAD_BYTES(*offs), offs, checksum, NULL);
 
-	free(in);
+	ret = 0;
 
-	return 0;
+copyfile_exit:
+	if (in)
+		free(in);
+	if (dcrypt)
+		swupdate_DECRYPT_cleanup(dcrypt);
+	if (decbuf)
+		free(decbuf);
+	if (dgst)
+		swupdate_HASH_cleanup(dgst);
+
+	close(fdout);
+
+	return ret;
 }
 
 int copyimage(int fdout, struct img_type *img, writeimage callback)
