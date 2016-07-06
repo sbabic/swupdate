@@ -348,13 +348,15 @@ from_ascii (char const *where, size_t digs, unsigned logbase)
  * Convert a hash as hexa string into a sequence of bytes
  * hash must be a an array of 32 bytes as specified by SHA256
  */
-int ascii_to_hash(unsigned char *hash, const char *s)
+static int ascii_to_bin(unsigned char *hash, const char *s, int len)
 {
 	int i;
 	unsigned int val;
 
-	if (strlen(s) == 64) {
-		for (i = 0; i < 64; i+= 2) {
+	if (len % 2)
+		return -EINVAL;
+	if (strlen(s) == len) {
+		for (i = 0; i < len; i+= 2) {
 			val = from_ascii(&s[i], 2, LG_16);
 			hash[i / 2] = val;
 		}
@@ -362,6 +364,11 @@ int ascii_to_hash(unsigned char *hash, const char *s)
 		return -1;
 
 	return 0;
+}
+
+int ascii_to_hash(unsigned char *hash, const char *s)
+{
+	return ascii_to_bin(hash, s, 64);
 }
 
 void hash_to_ascii(const unsigned char *hash, char *str)
@@ -435,14 +442,12 @@ int load_decryption_key(char *fname)
 	 * Key is for aes_256, it must be 256 bit
 	 * and IVT is 128 bit
 	 */
-	if ((strlen(b1) != 32) || (strlen(b2) != 16)) {
-		fprintf(stderr, "Keys are of invalid length: Key %d instead of 32,  IVT %d instead of 16\n",
-				(int)strlen(b1), (int)strlen(b2));
+	ret = ascii_to_bin(aes_key->key, b1, 64) | ascii_to_bin(aes_key->ivt, b2, 32); 
+
+	if (ret) {
+		fprintf(stderr, "Keys are invalid\n");
 		return -EINVAL;
 	}
-
-	memcpy(aes_key->key, b1, 32);
-	memcpy(aes_key->ivt, b2, 16);
 
 	return 0;
 }

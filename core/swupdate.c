@@ -85,6 +85,9 @@ static struct option long_options[] = {
 #ifdef CONFIG_SIGNED_IMAGES
 	{"key", required_argument, NULL, 'k'},
 #endif
+#ifdef CONFIG_ENCRYPTED_IMAGES
+	{"key-aes", required_argument, NULL, 'K'},
+#endif
 #ifdef CONFIG_MTD
 	{"blacklist", required_argument, NULL, 'b'},
 #endif
@@ -131,6 +134,10 @@ static void usage(char *programname)
 		" -L, --syslog                   : enable syslog logger\n"
 #ifdef CONFIG_SIGNED_IMAGES
 		" -k, --key <public key file>    : file with public key to verify images\n"
+#endif
+#ifdef CONFIG_ENCRYPTED_IMAGES
+		" -K, --key-aes <key file>       : the file contains the symmetric key to be used\n"
+		"                                  to decrypt images\n"
 #endif
 		" -s, --server                   : run as daemon waiting from\n"
 		"                                  IPC interface.\n"
@@ -386,9 +393,11 @@ int main(int argc, char **argv)
 	int c;
 	char fname[MAX_IMAGE_FNAME];
 	char pubkeyfname[MAX_IMAGE_FNAME];
+	char aeskeyfname[MAX_IMAGE_FNAME];
 	const char *software_select = NULL;
 	int opt_i = 0;
 	int opt_k = 0;
+	int opt_K = 0;
 	int opt_e = 0;
 	int opt_s = 0;
 	int opt_u = 0;
@@ -440,6 +449,9 @@ int main(int argc, char **argv)
 	strcat(main_options, "k:");
 	public_key_mandatory = 1;
 #endif
+#ifdef CONFIG_ENCRYPTED_IMAGES
+	strcat(main_options, "K:");
+#endif
 
 	memset(fname, 0, sizeof(fname));
 
@@ -477,6 +489,13 @@ int main(int argc, char **argv)
 				optarg, sizeof(pubkeyfname));
 			opt_k = 1;
 			break;
+#ifdef CONFIG_ENCRYPTED_IMAGES
+		case 'K':
+			strncpy(aeskeyfname,
+				optarg, sizeof(aeskeyfname));
+			opt_K = 1;
+			break;
+#endif
 		case 'e':
 			software_select = optarg;
 			opt_e = 1;
@@ -536,10 +555,24 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
+	swupdate_crypto_init();
+
 	if (opt_k) {
 		if (swupdate_dgst_init(&swcfg, pubkeyfname)) {
 			fprintf(stderr,
 				 "Crypto cannot be initialized\n");
+			exit(1);
+		}
+	}
+
+	/*
+	 * If a aes key is passed, load it to allow
+	 * to decrypt images
+	 */
+	if (opt_K) {
+		if (load_decryption_key(aeskeyfname)) {
+			fprintf(stderr,
+				"Key file does not contain a valid AES key\n");
 			exit(1);
 		}
 	}

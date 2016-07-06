@@ -270,6 +270,12 @@ config SIGNED_IMAGES
 comment "Image verification (signed images) needs libssl"
 	depends on !HAVE_LIBSSL
 
+config ENCRYPTED_IMAGES
+	bool "Images can be encrypted with a symmetric key"
+	depends on HAVE_LIBSSL
+comment "Image verification (signed images) needs libssl"
+	depends on !HAVE_LIBSSL
+
 config SURICATTA
 	bool "Enable Suricatta Daemon Mode"
 	default n
