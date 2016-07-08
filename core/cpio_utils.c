@@ -404,7 +404,7 @@ int extract_img_from_cpio(int fd, unsigned long offset, struct filehdr *fdh)
 }
 
 off_t extract_next_file(int fd, int fdout, off_t start, int compressed,
-		unsigned char *hash)
+		int encrypted, unsigned char *hash)
 {
 	struct filehdr fdh;
 	uint32_t checksum = 0;
@@ -422,7 +422,7 @@ off_t extract_next_file(int fd, int fdout, off_t start, int compressed,
 
 	if (lseek(fd, offset, SEEK_SET) < 0)
 		ERROR("CPIO file corrupted : %s\n", strerror(errno));
-	if (copyfile(fd, fdout, fdh.size, &offset, 0, compressed, &checksum, hash, 0, NULL) < 0) {
+	if (copyfile(fd, fdout, fdh.size, &offset, 0, compressed, &checksum, hash, encrypted, NULL) < 0) {
 		ERROR("Error copying extracted file\n");
 	}
 

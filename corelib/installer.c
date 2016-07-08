@@ -156,7 +156,8 @@ static int extract_script(int fd, struct imglist *head, const char *dest)
 				dest, script->fname);
 
 		fdout = openfileoutput(script->extract_file);
-		extract_next_file(fd, fdout, script->offset, 0, script->sha256);
+		extract_next_file(fd, fdout, script->offset, 0,
+					script->is_encrypted, script->sha256);
 		close(fdout);
 	}
 	return 0;
