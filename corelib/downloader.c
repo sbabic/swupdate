@@ -252,18 +252,18 @@ RECOVERY_STATUS download_from_url(char *image_url, int retries,
 
 	}
 
-	if (res == CURLE_OK) {
-		INFO("Success : %llu bytes", dwlbytes);
-	} else {
-		INFO("Error : %s", curl_easy_strerror(res));
-	}
-
 	curl_easy_cleanup(curl_handle);
 	curl_global_cleanup();
 
-	result = ipc_wait_for_complete(NULL);
+	if (res == CURLE_OK) {
+		INFO("Success : %llu bytes", dwlbytes);
+		result = ipc_wait_for_complete(NULL);
+	} else {
+		INFO("Error : %s", curl_easy_strerror(res));
+		result = FAILURE;
+	}
 
-	close(fd);
+	ipc_end(fd);
 
 	return result;
 }
