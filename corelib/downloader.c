@@ -116,18 +116,19 @@ static size_t write_data(void *buffer, size_t size, size_t nmemb, void *userp)
  * libcurl options (see easy interface in libcurl documentation)
  * are grouped together into this function
  */
-static void set_option_common(CURL *curl_handle, unsigned long lowspeed_time)
+static void set_option_common(CURL *curl_handle,
+				unsigned long lowspeed_time,
+				struct dlprogress *prog)
 {
-	struct dlprogress prog;
 	int ret;
 
-	prog.lastruntime = 0;
-	prog.curl = curl_handle;
+	prog->lastruntime = 0;
+	prog->curl = curl_handle;
 
 	curl_easy_setopt(curl_handle, CURLOPT_USERAGENT, "swupdate");
 
 	curl_easy_setopt(curl_handle, CURLOPT_PROGRESSFUNCTION, legacy_download_info);
-	curl_easy_setopt(curl_handle, CURLOPT_PROGRESSDATA, &prog);
+	curl_easy_setopt(curl_handle, CURLOPT_PROGRESSDATA, prog);
 #if LIBCURL_VERSION_NUM >= 0x072000
 	/* xferinfo was introduced in 7.32.0, no earlier libcurl versions will
 	   compile as they won't have the symbols around.
@@ -139,7 +140,7 @@ static void set_option_common(CURL *curl_handle, unsigned long lowspeed_time)
 	   New libcurls will prefer the new callback and instead use that one
 	   even if both callbacks are set. */
 	curl_easy_setopt(curl_handle, CURLOPT_XFERINFOFUNCTION, download_info);
-	curl_easy_setopt(curl_handle, CURLOPT_XFERINFODATA, &prog);
+	curl_easy_setopt(curl_handle, CURLOPT_XFERINFODATA, prog);
 #endif
 	curl_easy_setopt(curl_handle, CURLOPT_NOPROGRESS, 0L);
 
@@ -176,6 +177,7 @@ RECOVERY_STATUS download_from_url(char *image_url, int retries,
 	double dummy;
 	unsigned long long dwlbytes = 0;
 	int i;
+	struct dlprogress progress;
 
 	if (!strlen(image_url)) {
 		ERROR("Image URL not provided... aborting download and update\n");
@@ -218,7 +220,7 @@ RECOVERY_STATUS download_from_url(char *image_url, int retries,
 
 	curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, write_data);
 	curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, &fd);
-	set_option_common(curl_handle, lowspeed_time);
+	set_option_common(curl_handle, lowspeed_time, &progress);
 
 	TRACE("Image download started : %s", image_url);
 
