@@ -37,6 +37,10 @@ config HAVE_LIBUBOOTENV
 	bool
 	option env="HAVE_LIBUBOOTENV"
 
+config HAVE_LIBZEROMQ
+	bool
+	option env="HAVE_LIBZEROMQ"
+
 config HAVE_ZLIB
 	bool
 	option env="HAVE_ZLIB"

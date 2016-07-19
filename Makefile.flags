@@ -156,6 +156,10 @@ ifeq ($(CONFIG_GUNZIP),y)
 LDLIBS += z
 endif
 
+ifeq ($(CONFIG_REMOTE_HANDLER),y)
+LDLIBS += zmq
+endif
+
 ifeq ($(CONFIG_UBOOT),y)
 LDLIBS += z ubootenv
 endif

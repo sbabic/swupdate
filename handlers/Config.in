@@ -111,6 +111,22 @@ config ARCHIVE
 comment "archive support needs libarchive"
 	depends on !HAVE_LIBARCHIVE
 
+config REMOTE_HANDLER
+	bool "Remote handler"
+	depends on HAVE_LIBZEROMQ
+	default n
+	help
+	  Sometimes the update process should be done
+	  by another process, where code is already
+	  provided. The remote handler let communicate
+	  an external process with SWUpdate, sending
+	  the image to be updated with the help of the
+	  zeromq library.
+
+comment "remote handler needs zeromq"
+	depends on !HAVE_LIBZEROMQ
+
+
 config UBOOT
 	bool "uboot"
 	depends on HAVE_LIBUBOOTENV

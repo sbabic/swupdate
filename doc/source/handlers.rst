@@ -131,3 +131,57 @@ root filesystem and are loaded only at the startup.
 These handlers cannot be integrated into the image to be installed.
 Even if this can be theoretical possible, arise a lot of
 security questions, because it changes SWUpdate's behavior.
+
+Remote handlers
+---------------
+
+Remote handlers are thought for binding legacy installers
+without having the necessity to rewrite them in LUA. The remote
+handler forward the image to be installed to another process,
+waiting for an anknowledge to be sure that the image is installed
+correctly.
+The remote handler makes use of the zeromq library - this is
+to simplify the IPC with Unix Domain Socket. The remote handler
+is quite general, describing in sw-description with the
+"data" attribute how to communicate with the external process.
+The remote handler always acts as client, and try a connect()
+using the socket identified by the "data" attribute. For example,
+a possible setup using a remote handler could be:
+
+::
+
+        images: (
+                {
+                    filename = "myimage"";
+                    type = "remote";
+                    data = "test_remote";
+                 }
+        )
+
+
+The connectiion is instantiated using the socket "/tmp/test_remote". If
+connect() failes, the remote handler signals that the update is not successful.
+Each Zeromq Message from SWUpdate is a multi-part message split into two frames:
+
+        - first frame contains a string with a command.
+        - second frame contains data and can be of 0 bytes.
+
+There are currently just two possible commands: INIT and DATA. After
+a successful connect, SWUpdate sends the initialization string in the
+format:
+
+
+::
+        
+        INIT:<size of image to be installed>
+
+The external installer is informed about the size of the image to be
+installed, and it can assign resources if it needs. It will answer
+with the string *ACK* or *NACK*. The first NACK received by SWUpdate
+will interrupt the update. After sending the INIT command, the remote
+handler will send a sequence of *DATA* commands, where the second
+frame in message will contain chunks of the image to be installed.
+It is duty of the external process to take care of the amount of
+data transferred and to release resources when the last chunk
+is received. For each DATA message, the external process answers with a
+*ACK* or *NACK* message.
