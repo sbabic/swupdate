@@ -104,7 +104,7 @@ static int update_volume(libubi_t libubi, struct img_type *img,
 
 	TRACE("Updating UBI : %s %lld\n",
 			img->fname, img->size);
-	if (copyimage(fdout, img, NULL) < 0) {
+	if (copyimage(&fdout, img, NULL) < 0) {
 		ERROR("Error copying extracted file");
 		err = -1;
 	}
