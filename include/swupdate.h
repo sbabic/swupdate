@@ -60,12 +60,13 @@ LIST_HEAD(swver, sw_version);
 
 
 struct img_type {
-	struct sw_version id;
-	char type[SWUPDATE_GENERAL_STRING_SIZE];
-	char fname[MAX_IMAGE_FNAME];
-	char volname[MAX_VOLNAME];
-	char device[MAX_VOLNAME];
-	char path[MAX_IMAGE_FNAME];
+	struct sw_version id;		/* This is used to compare versions */
+	char type[SWUPDATE_GENERAL_STRING_SIZE]; /* Handler name */
+	char fname[MAX_IMAGE_FNAME];	/* Filename in CPIO archive */
+	char volname[MAX_VOLNAME];	/* Useful for UBI	*/
+	char device[MAX_VOLNAME];	/* device associated with image if any */
+	char path[MAX_IMAGE_FNAME];	/* Path where image must be installed */
+	char type_data[SWUPDATE_GENERAL_STRING_SIZE];	/* Data for handler */
 	char extract_file[MAX_IMAGE_FNAME];
 	char filesystem[MAX_IMAGE_FNAME];
 	int required;

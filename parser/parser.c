@@ -525,6 +525,7 @@ static void parse_scripts(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 
 		GET_FIELD_STRING(p, elem, "filename", script->fname);
 		GET_FIELD_STRING(p, elem, "type", script->type);
+		GET_FIELD_STRING(p, elem, "data", script->type_data);
 		get_hash_value(p, elem, script->sha256);
 
 		get_field(p, elem, "encrypted", &script->is_encrypted);
@@ -623,6 +624,7 @@ static void parse_images(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 		GET_FIELD_STRING(p, elem, "volume", image->volname);
 		GET_FIELD_STRING(p, elem, "device", image->device);
 		GET_FIELD_STRING(p, elem, "type", image->type);
+		GET_FIELD_STRING(p, elem, "data", image->type_data);
 		get_hash_value(p, elem, image->sha256);
 
 		/* if the handler is not explicit set, try to find the right one */
@@ -694,6 +696,7 @@ static void parse_files(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 		GET_FIELD_STRING(p, elem, "device", file->device);
 		GET_FIELD_STRING(p, elem, "filesystem", file->filesystem);
 		GET_FIELD_STRING(p, elem, "type", file->type);
+		GET_FIELD_STRING(p, elem, "data", file->type_data);
 		get_hash_value(p, elem, file->sha256);
 
 		if (!strlen(file->type)) {

@@ -614,3 +614,7 @@ There are 4 main sections inside sw-description:
 |             |          | scripts    | and must be decrypted before          |
 |             |          |            | installing.                           |
 +-------------+----------+------------+---------------------------------------+
+| data        | string   | images     | This is used to pass arbitrary data   |
+|             |          | files      | to a handler.                         |
+|             |          | scripts    |                                       |
++-------------+----------+------------+---------------------------------------+
