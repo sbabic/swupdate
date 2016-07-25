@@ -28,12 +28,21 @@
 #define CONFIG_UBOOT_ENV     "/etc/fw_env.config"
 #endif
 
-extern int   fw_printenv(int argc, char *argv[]);
-extern char *fw_getenv  (char *name);
-extern int fw_setenv  (int argc, char *argv[]);
-extern int fw_parse_script(char *fname);
-extern int fw_env_open(void);
-extern int fw_env_write(char *name, char *value);
-extern int fw_env_close(void);
+#include <stdint.h>
+
+#define AES_KEY_LENGTH  (128 / 8)
+
+struct env_opts {
+#ifdef CONFIG_FILE
+        char *config_file;
+#endif
+        int aes_flag; /* Is AES encryption used? */
+        uint8_t aes_key[AES_KEY_LENGTH];
+};
+
+int fw_parse_script(char *fname, struct env_opts *opts);
+int fw_env_open(struct env_opts *opts);
+int fw_env_write(char *name, char *value);
+int fw_env_close(struct env_opts *opts);
 
 extern unsigned	long  crc32	 (unsigned long, const unsigned char *, unsigned);

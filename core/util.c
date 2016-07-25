@@ -39,12 +39,12 @@
 int fw_set_one_env (const char *name, const char *value)
 {
 
-	if (fw_env_open ()) {
+	if (fw_env_open (NULL)) {
 		fprintf (stderr, "Error: environment not initialized\n");
 		return -1;
 	}
 	fw_env_write ((char *)name, (char *)value);
-	return fw_env_close ();
+	return fw_env_close (NULL);
 }
 #else
 int fw_set_one_env (const char __attribute__ ((__unused__)) *name,

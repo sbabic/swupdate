@@ -56,7 +56,7 @@ static int install_uboot_environment(struct img_type *img,
 		close(fdout);
 	}
 
-	ret = fw_parse_script(filename);
+	ret = fw_parse_script(filename, NULL);
 
 	if (ret < 0)
 		snprintf(buf, sizeof(buf), "Error setting U-Boot environment");

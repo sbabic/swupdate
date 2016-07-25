@@ -192,7 +192,7 @@ static int update_uboot_env(void)
 
 #ifdef CONFIG_UBOOT
 	TRACE("Updating U-boot environment");
-	ret = fw_parse_script((char *)UBOOT_SCRIPT);
+	ret = fw_parse_script((char *)UBOOT_SCRIPT, NULL);
 	if (ret < 0)
 		ERROR("Error updating U-Boot environment");
 #endif
