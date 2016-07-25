@@ -26,6 +26,7 @@ SWUpdate Documentation
    signed_images.rst
    handlers.rst
    swupdate-ipc.rst
+   progress.rst
 
 ############################################
 Help and support
