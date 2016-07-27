@@ -41,6 +41,7 @@ struct env_opts {
 };
 
 int fw_parse_script(char *fname, struct env_opts *opts);
+char *fw_getenv(char *name);
 int fw_env_open(struct env_opts *opts);
 int fw_env_write(char *name, char *value);
 int fw_env_close(struct env_opts *opts);
