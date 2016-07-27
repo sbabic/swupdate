@@ -49,7 +49,7 @@ server_op_res_t reset_state(char *key)
 #ifdef CONFIG_SURICATTA_STATE_CHOICE_UBOOT
 server_op_res_t save_state(char *key, update_state_t value)
 {
-	if (fw_env_open() != 0) {
+	if (fw_env_open(NULL) != 0) {
 		ERROR("Error: Cannot initialize U-Boot environment.\n");
 		return SERVER_EERR;
 	}
@@ -57,12 +57,12 @@ server_op_res_t save_state(char *key, update_state_t value)
 		ERROR("Error: Cannot write to U-Boot's environment.\n");
 		return SERVER_EERR;
 	}
-	return fw_env_close() == 0 ? SERVER_OK : SERVER_EERR;
+	return fw_env_close(NULL) == 0 ? SERVER_OK : SERVER_EERR;
 }
 
 server_op_res_t read_state(char *key, update_state_t *value)
 {
-	if (fw_env_open() != 0) {
+	if (fw_env_open(NULL) != 0) {
 		ERROR("Error: Cannot initialize U-Boot environment.\n");
 		return SERVER_EERR;
 	}
@@ -79,7 +79,7 @@ server_op_res_t read_state(char *key, update_state_t *value)
 }
 server_op_res_t reset_state(char *key)
 {
-	if (fw_env_open() != 0) {
+	if (fw_env_open(NULL) != 0) {
 		ERROR("Error: Cannot initialize U-Boot environment.\n");
 		return SERVER_EERR;
 	}
@@ -87,6 +87,6 @@ server_op_res_t reset_state(char *key)
 		ERROR("Error: Cannot write to U-Boot's environment.\n");
 		return SERVER_EERR;
 	}
-	return fw_env_close() == 0 ? SERVER_OK : SERVER_EERR;
+	return fw_env_close(NULL) == 0 ? SERVER_OK : SERVER_EERR;
 }
 #endif /* CONFIG_SURICATTA_STATE_CHOICE_UBOOT */
