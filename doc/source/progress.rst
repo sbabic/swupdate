@@ -34,7 +34,7 @@ back after any change in the update process with the following data
         	unsigned int	cur_step;	/* Current step index */
         	unsigned int	cur_percent;	/* % in current step */
         	char		cur_image[256];	/* Name of image to be installed */
-        	char		hnd_name[64];	/* Name of running hanler */
+        	char		hnd_name[64];	/* Name of running handler */
         };
 
 The single fields have the following meaning:
@@ -47,8 +47,8 @@ The single fields have the following meaning:
         - cur_percent is the percentage of work done inside the current handler. This is useful
           when updating a slow interface, such as a slow flash, and signals which is the percentage
           of image already copied into the destination.
-        - cur_image is the name of the image in sw-description that is currently beeing installed.
-        - hnd_name reports the name of the  running handler.
+        - cur_image is the name of the image in sw-description that is currently being installed.
+        - hnd_name reports the name of the running handler.
 
 
 *progress_client* is an example of interface, printing the status on the console and driving
