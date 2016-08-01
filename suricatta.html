@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Suricatta daemon mode &mdash; Embedded Software Update Documentation 2016.07 documentation</title>
+    <title>Suricatta daemon mode &mdash; Embedded Software Update Documentation 2016.10 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '2016.07',
+        VERSION:     '2016.10',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="Embedded Software Update Documentation 2016.07 documentation" href="index.html" />
+    <link rel="top" title="Embedded Software Update Documentation 2016.10 documentation" href="index.html" />
     <link rel="next" title="SWUpdate: syntax and tags with the default parser" href="sw-description.html" />
     <link rel="prev" title="SWUpdate: software update for embedded system" href="swupdate.html" /> 
   </head>
@@ -40,7 +40,7 @@
         <li class="right" >
           <a href="swupdate.html" title="SWUpdate: software update for embedded system"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">Embedded Software Update Documentation 2016.07 documentation</a> &raquo;</li> 
+        <li><a href="index.html">Embedded Software Update Documentation 2016.10 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -51,6 +51,8 @@
             
   <div class="section" id="suricatta-daemon-mode">
 <h1>Suricatta daemon mode<a class="headerlink" href="#suricatta-daemon-mode" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p>Suricatta is &#8211; like mongoose &#8211; a daemon mode of SWUpdate, hence the
 name suricatta (engl. meerkat) as it belongs to the mongoose family.</p>
 <p>Suricatta regularly polls a remote server for updates, downloads, and
@@ -65,6 +67,7 @@ and a switchback had to be performed.</p>
 as described in Section <a class="reference internal" href="#supporting-different-servers">Supporting different Servers</a>. Currently,
 support for the <a class="reference external" href="https://projects.eclipse.org/projects/iot.hawkbit">hawkBit</a> server is implemented via the <a class="reference external" href="http://sp.apps.bosch-iot-cloud.com/documentation/developerguide/apispecifications/directdeviceintegrationapi.html">hawkBit Direct
 Device Integration API</a>.</p>
+</div>
 <div class="section" id="running-suricatta">
 <h2>Running suricatta<a class="headerlink" href="#running-suricatta" title="Permalink to this headline">¶</a></h2>
 <p>After having configured and compiled SWUpdate with enabled suricatta
@@ -154,12 +157,11 @@ the SWUpdate binary, e.g., for the hawkBit example implementation, the
 following lines add <tt class="docutils literal"><span class="pre">channel_hawkbit.o</span></tt> and <tt class="docutils literal"><span class="pre">server_hawkbit.o</span></tt> to
 the resulting SWUpdate binary if <tt class="docutils literal"><span class="pre">SURICATTA_HAWKBIT</span></tt> was selected
 while configuring SWUpdate.</p>
-<pre class="code makefile literal-block">
-<span class="error"></span><span class="comment preproc">ifneq ($(CONFIG_SURICATTA_HAWKBIT),)
-</span><span class="error">lib-</span><span class="keyword">$(</span>CONFIG_SURICATTA<span class="keyword">)</span> +<span class="operator">=</span> channel_hawkbit.o server_hawkbit.o
-<span class="comment preproc">endif
-</span>
-</pre>
+<div class="highlight-python"><div class="highlight"><pre>ifneq ($(CONFIG_SURICATTA_HAWKBIT),)
+lib-$(CONFIG_SURICATTA) += channel_hawkbit.o server_hawkbit.o
+endif
+</pre></div>
+</div>
 </div>
 </div>
 
@@ -172,6 +174,7 @@ while configuring SWUpdate.</p>
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">Suricatta daemon mode</a><ul>
+<li><a class="reference internal" href="#introduction">Introduction</a></li>
 <li><a class="reference internal" href="#running-suricatta">Running suricatta</a></li>
 <li><a class="reference internal" href="#supporting-different-servers">Supporting different Servers</a></li>
 </ul>
@@ -218,7 +221,7 @@ while configuring SWUpdate.</p>
         <li class="right" >
           <a href="swupdate.html" title="SWUpdate: software update for embedded system"
              >previous</a> |</li>
-        <li><a href="index.html">Embedded Software Update Documentation 2016.07 documentation</a> &raquo;</li> 
+        <li><a href="index.html">Embedded Software Update Documentation 2016.10 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

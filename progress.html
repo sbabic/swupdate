@@ -1,0 +1,167 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Getting information on running update &mdash; Embedded Software Update Documentation 2016.10 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '2016.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Embedded Software Update Documentation 2016.10 documentation" href="index.html" />
+    <link rel="next" title="Help and support" href="help_and_support.html" />
+    <link rel="prev" title="SWUpdate: API for external programs" href="swupdate-ipc.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="help_and_support.html" title="Help and support"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="swupdate-ipc.html" title="SWUpdate: API for external programs"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Embedded Software Update Documentation 2016.10 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="getting-information-on-running-update">
+<h1>Getting information on running update<a class="headerlink" href="#getting-information-on-running-update" title="Permalink to this headline">¶</a></h1>
+<p>It is often required to inform the operator about the status of the running
+update and not just to return if the update was successful or not.
+For example, if the target has a display or a remote interface,
+it can be forwarded which is reached percentage of the update
+to let estimate how much the update will still run.
+SWUpdate has an interface for this (&#8220;progress API&#8221;). An external
+process can register itself with SWUpdate, and it will receive
+notifications when something in the update was changed. This is
+different from the IPC API, because the last one is mainly used to transfer
+the SWU image, and it is only possible to poll the interface to know
+if the update is still running.</p>
+<div class="section" id="api-description">
+<h2>API Description<a class="headerlink" href="#api-description" title="Permalink to this headline">¶</a></h2>
+<p>An external process registers itself to SWUpdate with a connect()
+request to the domain socket &#8220;/tmp/swupdateprog&#8221;. There is no
+information to send, and SWUpdate simply inserts the new connection
+in the list of processed to be informed. SWUpdate will send a frame
+back after any change in the update process with the following data
+(see include/progress.h):</p>
+<div class="highlight-python"><div class="highlight"><pre>struct progress_msg {
+        unsigned int    magic;          /* Magic Number */
+        unsigned int    status;         /* Update Status (Running, Failure) */
+        unsigned int    dwl_percent;    /* % downloaded data */
+        unsigned int    nsteps;         /* No. total of steps */
+        unsigned int    cur_step;       /* Current step index */
+        unsigned int    cur_percent;    /* % in current step */
+        char            cur_image[256]; /* Name of image to be installed */
+        char            hnd_name[64];   /* Name of running handler */
+};
+</pre></div>
+</div>
+<p>The single fields have the following meaning:</p>
+<blockquote>
+<div><ul class="simple">
+<li><em>magic</em> is not yet used, it could be added for simply verification of the frame.</li>
+<li><em>status</em> is one of the values in swupdate_status.h (START, RUN, SUCCESS, FAILURE, DOWNLOAD).</li>
+<li><em>dwl_percent</em> is the percentage of downloaded data when status = DOWNLOAD.</li>
+<li><em>nsteps</em> is the total number of installers (handlers) to be run.</li>
+<li><em>cur_step</em> is the index of the running handler. cur_step is in the range 1..nsteps</li>
+<li>cur_percent is the percentage of work done inside the current handler. This is useful
+when updating a slow interface, such as a slow flash, and signals which is the percentage
+of image already copied into the destination.</li>
+<li>cur_image is the name of the image in sw-description that is currently being installed.</li>
+<li>hnd_name reports the name of the running handler.</li>
+</ul>
+</div></blockquote>
+<p><em>progress_client</em> is an example of interface, printing the status on the console and driving
+&#8220;psplash&#8221; to draw a progress bar on a display.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Getting information on running update</a><ul>
+<li><a class="reference internal" href="#api-description">API Description</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="swupdate-ipc.html"
+                        title="previous chapter">SWUpdate: API for external programs</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="help_and_support.html"
+                        title="next chapter">Help and support</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/progress.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="help_and_support.html" title="Help and support"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="swupdate-ipc.html" title="SWUpdate: API for external programs"
+             >previous</a> |</li>
+        <li><a href="index.html">Embedded Software Update Documentation 2016.10 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013-2016, Stefano Babic.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>
