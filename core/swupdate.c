@@ -465,6 +465,7 @@ int main(int argc, char **argv)
 			break;
 		case 'l':
 			loglevel = strtoul(optarg, NULL, 10);
+			break;
 		case 'k':
 			strncpy(pubkeyfname,
 				optarg, sizeof(pubkeyfname));
