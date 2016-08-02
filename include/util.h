@@ -136,6 +136,7 @@ int openfileoutput(const char *filename);
 int register_notifier(notifier client);
 void notify(RECOVERY_STATUS status, int level, const char *msg);
 void notify_init(void);
+int syslog_init(void);
 
 char **splitargs(char *args, int *argc);
 void freeargs (char **argv);

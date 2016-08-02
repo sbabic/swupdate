@@ -80,6 +80,7 @@ static struct option long_options[] = {
 	{"verbose", no_argument, NULL, 'v'},
 	{"image", required_argument, NULL, 'i'},
 	{"loglevel", required_argument, NULL, 'l'},
+	{"syslog", no_argument, NULL, 'L' },
 	{"select", required_argument, NULL, 'e'},
 #ifdef CONFIG_SIGNED_IMAGES
 	{"key", required_argument, NULL, 'k'},
@@ -127,6 +128,7 @@ static void usage(char *programname)
 		"                                  Ex.: stable,main\n"
 		" -i, --image <filename>         : Software to be installed\n"
 		" -l, --loglevel <level>         : logging level\n"
+		" -L, --syslog                   : enable syslog logger\n"
 #ifdef CONFIG_SIGNED_IMAGES
 		" -k, --key <public key file>    : file with public key to verify images\n"
 #endif
@@ -391,6 +393,7 @@ int main(int argc, char **argv)
 	int opt_s = 0;
 	int opt_u = 0;
 	int opt_w = 0;
+	int opt_L = 0;
 	char image_url[MAX_URL];
 	int opt_d = 0;
 	unsigned long __attribute__ ((__unused__)) opt_t = DL_LOWSPEED_TIME;
@@ -415,7 +418,7 @@ int main(int argc, char **argv)
 #endif
 	memset(main_options, 0, sizeof(main_options));
 	memset(image_url, 0, sizeof(image_url));
-	strcpy(main_options, "pvhi:se:l:");
+	strcpy(main_options, "pvhi:se:l:L:");
 #ifdef CONFIG_MTD
 	strcat(main_options, "b:");
 #endif
@@ -465,6 +468,9 @@ int main(int argc, char **argv)
 			break;
 		case 'l':
 			loglevel = strtoul(optarg, NULL, 10);
+			break;
+		case 'L':
+			opt_L = 1;
 			break;
 		case 'k':
 			strncpy(pubkeyfname,
@@ -546,6 +552,11 @@ int main(int argc, char **argv)
 
 	print_registered_handlers();
 	notify_init();
+	if (opt_L) {
+		if (syslog_init()) {
+			ERROR("failed to initialize syslog notifier");
+		}
+	}
 
 	if (opt_e) {
 		if (parse_image_selector(software_select, &swcfg)) {
