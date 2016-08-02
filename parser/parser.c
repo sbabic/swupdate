@@ -509,8 +509,13 @@ static void parse_scripts(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 		if (!elem)
 			continue;
 
-		if(!(exist_field_string(p, elem, "filename")))
+		/*
+		 * Check for mandatory field
+		 */
+		if(!(exist_field_string(p, elem, "filename"))) {
+			TRACE("Script entry without filename field, skipping..");
 			continue;
+		}
 
 		script = (struct img_type *)calloc(1, sizeof(struct img_type));
 		if (!script) {
@@ -553,8 +558,13 @@ static void parse_uboot(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 		if (!elem)
 			continue;
 
-		if(!(exist_field_string(p, elem, "name")))
+		/*
+		 * Check for mandatory field
+		 */
+		if(!(exist_field_string(p, elem, "name"))) {
+			TRACE("U-Boot entry without variable name field, skipping..");
 			continue;
+		}
 
 		uboot = (struct uboot_var *)calloc(1, sizeof(struct uboot_var));
 		if (!uboot) {
@@ -591,8 +601,13 @@ static void parse_images(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 		if (!elem)
 			continue;
 
-		if(!(exist_field_string(p, elem, "filename")))
+		/*
+		 * Check for mandatory field
+		 */
+		if(!(exist_field_string(p, elem, "filename"))) {
+			TRACE("Image entry without filename field, skipping..");
 			continue;
+		}
 
 		image = (struct img_type *)calloc(1, sizeof(struct img_type));
 		if (!image) {
@@ -655,8 +670,13 @@ static void parse_files(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 		if (!elem)
 			continue;
 
-		if(!(exist_field_string(p, elem, "filename")))
+		/*
+		 * Check for mandatory field
+		 */
+		if(!(exist_field_string(p, elem, "filename"))) {
+			TRACE("File entry without filename field, skipping..");
 			continue;
+		}
 
 		file = (struct img_type *)calloc(1, sizeof(struct img_type));
 		if (!file) {
