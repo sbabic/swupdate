@@ -518,6 +518,10 @@ Command line parameters
 | -k          | string   | Active if CONFIG_SIGNED is set             |
 |             |          | Filename with the public key               |
 +-------------+----------+--------------------------------------------+
+| -l <level>  |    int   | Set loglevel                               |
++-------------+----------+--------------------------------------------+
+| -L          |    -     | Send LOG output to syslog(local)           |
++-------------+----------+--------------------------------------------+
 | -s          |    -     | run SWUpdate in daemon mode                |
 +-------------+----------+--------------------------------------------+
 | -i <file>   | string   | run SWUpdate with a local .swu file        |
@@ -537,7 +541,6 @@ Command line parameters
 | -t <timeout>| integer  | Timeout for connection lost when           |
 |             |          | downloading                                |
 +-------------+----------+--------------------------------------------+
-
 
 Changes in boot-loader code
 ===========================
