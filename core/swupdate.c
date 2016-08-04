@@ -418,7 +418,7 @@ int main(int argc, char **argv)
 #endif
 	memset(main_options, 0, sizeof(main_options));
 	memset(image_url, 0, sizeof(image_url));
-	strcpy(main_options, "pvhi:se:l:L:");
+	strcpy(main_options, "pvhi:se:l:L");
 #ifdef CONFIG_MTD
 	strcat(main_options, "b:");
 #endif
