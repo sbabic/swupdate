@@ -82,6 +82,7 @@ void flash_1bit_hamming_handler(void);
  * Note: the functions here are derived directly
  * with minor changes from mtd-utils.
  */
+#define EMPTY_BYTE	0xFF
 
 static int flash_erase(int mtdnum)
 {
@@ -90,7 +91,9 @@ static int flash_erase(int mtdnum)
 	struct mtd_dev_info *mtd;
 	int noskipbad = 0;
 	int unlock = 0;
-	unsigned int eb, eb_start, eb_cnt;
+	int ret = 0;
+	unsigned int eb, eb_start, eb_cnt, i;
+	uint8_t *buf;
 	struct flash_description *flash = get_flash_info();
 
 	if  (!mtd_dev_present(flash->libmtd, mtdnum)) {
@@ -108,25 +111,61 @@ static int flash_erase(int mtdnum)
 	/*
 	 * prepare to erase all of the MTD partition,
 	 */
+	buf = (uint8_t *)malloc(mtd->eb_size);
+	if (!buf) {
+		ERROR("No memory for temporary buffer of %d bytes",
+			mtd->eb_size);
+		close(fd);
+		return -ENOMEM;
+	}
+
 	eb_start = 0;
 	eb_cnt = (mtd->size / mtd->eb_size) - eb_start;
 	for (eb = 0; eb < eb_start + eb_cnt; eb++) {
 
 		/* Always skip bad sectors */
 		if (!noskipbad) {
-			int ret = mtd_is_bad(mtd, fd, eb);
-			if (ret > 0) {
+			int isbad = mtd_is_bad(mtd, fd, eb);
+			if (isbad > 0) {
 				continue;
-			} else if (ret < 0) {
+			} else if (isbad < 0) {
 				if (errno == EOPNOTSUPP) {
 					noskipbad = 1;
 				} else {
 					ERROR("%s: MTD get bad block failed", mtd_device);
-					return -EFAULT;
+					ret  = -EFAULT;
+					goto erase_out;
 				}
 			}
 		}
 
+		/*
+		 * In case of NOR flash, check if the flash
+		 * is already empty. This can save
+		 * an amount of time because erasing
+		 * a NOR flash is very time expensive.
+		 * NAND flash is always erased.
+		 */
+		if (!isNand(flash, mtdnum)) {
+			if (mtd_read(mtd, fd, eb, 0, buf, mtd->eb_size) != 0) {
+				ERROR("%s: MTD Read failure", mtd_device);
+				ret  = -EIO;
+				goto erase_out;
+			}
+
+			/* check if already empty */
+			for (i = 0; i < mtd->eb_size; i++) {
+				if (buf[i] != EMPTY_BYTE)
+					break;
+			}
+
+			/* skip erase if empty */
+			if (i == mtd->eb_size)
+				continue;
+
+		}
+
+		/* The sector contains data and it must be erased */
 		if (unlock) {
 			if (mtd_unlock(mtd, fd, eb) != 0) {
 				TRACE("%s: MTD unlock failure", mtd_device);
@@ -136,13 +175,17 @@ static int flash_erase(int mtdnum)
 
 		if (mtd_erase(flash->libmtd, mtd, fd, eb) != 0) {
 			ERROR("%s: MTD Erase failure", mtd_device);
-			return -EFAULT;
+			ret  = -EIO;
+			goto erase_out;
 		}
 	}
 
+erase_out:
+	free(buf);
+
 	close(fd);
 
-	return 0;
+	return ret;
 }
 
 #ifdef CONFIG_CFIHAMMING1
