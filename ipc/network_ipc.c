@@ -51,7 +51,7 @@ struct async_lib {
 };
 
 static int handle = 0;
-struct async_lib request;
+static struct async_lib request;
 static pthread_t async_thread_id;
 
 #define get_request()	(&request)
@@ -80,7 +80,7 @@ static int prepare_ipc(void) {
 
 static int __ipc_get_status(int connfd, ipc_message *msg)
 {
-	int ret;
+	ssize_t ret;
 
 	memset(msg, 0, sizeof(*msg));
 	msg->magic = IPC_MAGIC;
@@ -115,7 +115,7 @@ int ipc_inst_start(void)
 {
 	int connfd;
 	ipc_message msg;
-	int ret;
+	ssize_t ret;
 
 	connfd = prepare_ipc();
 	if (connfd < 0)
@@ -151,14 +151,14 @@ int ipc_inst_start(void)
  */
 int ipc_send_data(int connfd, char *buf, int size)
 {
-	int ret;
+	ssize_t ret;
 
-	ret = write(connfd,  buf, size);
+	ret = write(connfd, buf, (size_t)size);
 	if (ret != size) {
 		return -1;
 	}
 
-	return ret;
+	return (int)ret;
 }
 
 void ipc_end(int connfd)
@@ -195,14 +195,14 @@ int ipc_wait_for_complete(getstatus callback)
 			break;
 		}
 
-		if (( (status != message.data.status.current) ||
+		if (( (status != (RECOVERY_STATUS)message.data.status.current) ||
 			strlen(message.data.status.desc))) {
 				if (callback)
 					callback(&message);
 			} else
 				sleep(1);
 
-		status = message.data.status.current;
+		status = (RECOVERY_STATUS)message.data.status.current;
 	} while(message.data.status.current != IDLE);
 
 	return message.data.status.last_result;
@@ -214,7 +214,7 @@ static void *swupdate_async_thread(void *data)
 	int size;
 	sigset_t sigpipe_mask;
 	sigset_t saved_mask;
-	struct timespec zerotime = {0};
+	struct timespec zerotime = {0, 0};
 	struct async_lib *rq = (struct async_lib *)data;
 	int swupdate_result;
 
@@ -256,7 +256,7 @@ static void *swupdate_async_thread(void *data)
 	}
 
 	if (rq->end)
-		rq->end(swupdate_result);
+		rq->end((RECOVERY_STATUS)swupdate_result);
 
 	pthread_exit(NULL);
 }
