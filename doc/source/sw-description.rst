@@ -166,7 +166,7 @@ The syntax is:
 
 ::
 
-	images (
+	images: (
 		{
 			filename[mandatory] = <Name in CPIO Archive>;
 			volume[optional] = <destination volume>;
