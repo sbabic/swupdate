@@ -541,6 +541,11 @@ Command line parameters
 | -t <timeout>| integer  | Timeout for connection lost when           |
 |             |          | downloading                                |
 +-------------+----------+--------------------------------------------+
+| -c          |    -     | This will check *.swu file against internal|
+|             |          | tests. It ensures that files referenced in |
+|             |          | sw-description are present.                |
+|             |          | Usage: swupdate -c -i <file>               |
++-------------+----------+--------------------------------------------+
 
 Changes in boot-loader code
 ===========================
@@ -590,3 +595,10 @@ To produce an image, a script like this can be used:
 
 The single images can be put in any order inside the cpio container, with the exception
 of sw-description, that must be the first one.
+To check your generated image you can run the following command:
+
+::
+
+    swupdate -c -i my-software_1.0.swu
+
+
