@@ -402,6 +402,14 @@ else
 	$(Q)chmod a+x $@
 endif
 
+PHONY += run-tests
+run-tests: \
+	acceptance-tests
+
+PHONY += acceptance-tests
+acceptance-tests: FORCE
+	$(Q)$(MAKE) $(build)=scripts/acceptance-tests tests
+
 
 # The actual objects are generated when descending,
 # make sure no implicit rule kicks in
