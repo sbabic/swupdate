@@ -107,6 +107,7 @@ static struct option long_options[] = {
 #ifdef CONFIG_WEBSERVER
 	{"webserver", required_argument, NULL, 'w'},
 #endif
+	{"check", required_argument, NULL, 'c'},
 	{NULL, 0, NULL, 0}
 };
 
@@ -151,6 +152,7 @@ static void usage(char *programname)
 #ifdef CONFIG_HW_COMPATIBILITY
 		" -H, --hwrevision <board>:<rev> : Set hardware revision\n"
 #endif
+		" -c, --check                    : check image and exit, use with -i <filename>\n"
 		" -h, --help                     : print this help and exit\n"),
 	       programname);
 }
@@ -269,7 +271,7 @@ static int searching_for_image(char *name)
 	return fd;
 }
 
-static int install_from_file(char *fname)
+static int install_from_file(char *fname, int check)
 {
 	int fdsw;
 	off_t pos;
@@ -298,6 +300,7 @@ static int install_from_file(char *fname)
 
 	ret = parse(&swcfg, TMPDIR SW_DESCRIPTION_FILENAME);
 	if (ret) {
+		ERROR("failed to parse " SW_DESCRIPTION_FILENAME "!\n");
 		exit(1);
 	}
 
@@ -308,6 +311,7 @@ static int install_from_file(char *fname)
 	}
 
 	if (cpio_scan(fdsw, &swcfg, pos) < 0) {
+		ERROR("failed to scan for pos '%ld'!", pos);
 		close(fdsw);
 		exit(1);
 	}
@@ -317,9 +321,20 @@ static int install_from_file(char *fname)
 	 * are in the image
 	 */
 	ret = check_provided(&swcfg.images);
-	ret |= check_provided(&swcfg.scripts);
-	if (ret)
+	if (ret) {
+		ERROR("failed to check images!\n");
 		exit(1);
+	}
+	ret = check_provided(&swcfg.scripts);
+	if (ret) {
+		ERROR("failed to check scripts!\n");
+		exit(1);
+	}
+
+	if (check) {
+		fprintf(stdout, "successfully checked '%s'\n", fname);
+		exit(0);
+	}
 
 #ifdef CONFIG_MTD
 		mtd_cleanup();
@@ -403,6 +418,7 @@ int main(int argc, char **argv)
 	int opt_u = 0;
 	int opt_w = 0;
 	int opt_L = 0;
+	int opt_c = 0;
 	char image_url[MAX_URL];
 	int opt_d = 0;
 	unsigned long __attribute__ ((__unused__)) opt_t = DL_LOWSPEED_TIME;
@@ -427,7 +443,7 @@ int main(int argc, char **argv)
 #endif
 	memset(main_options, 0, sizeof(main_options));
 	memset(image_url, 0, sizeof(image_url));
-	strcpy(main_options, "pvhi:se:l:L");
+	strcpy(main_options, "pvhi:se:l:Lc");
 #ifdef CONFIG_MTD
 	strcat(main_options, "b:");
 #endif
@@ -541,6 +557,9 @@ int main(int argc, char **argv)
 			opt_w = 1;
 			break;
 #endif
+		case 'c':
+			opt_c = 1;
+			break;
 		default:
 			usage(argv[0]);
 			exit(1);
@@ -609,7 +628,7 @@ int main(int argc, char **argv)
 
 	if (opt_i) {
 
-		install_from_file(fname);
+		install_from_file(fname, opt_c);
 		cleanup_files(&swcfg);
 
 		notify(SUCCESS, 0, 0);
