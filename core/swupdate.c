@@ -622,9 +622,15 @@ int main(int argc, char **argv)
 	/* Read sw-versions */
 	get_sw_versions(&swcfg);
 
-	network_daemon = start_thread(network_initializer, &swcfg);
+	/*
+	 *  Do not start daemon if just a check is required
+	 *  SWUpdate will exit after the check
+	 */
+	if (!opt_c) {
+		network_daemon = start_thread(network_initializer, &swcfg);
 
-	start_thread(progress_bar_thread, NULL);
+		start_thread(progress_bar_thread, NULL);
+	}
 
 	if (opt_i) {
 
