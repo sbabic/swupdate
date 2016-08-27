@@ -70,6 +70,7 @@ endif
 define pkg_check_modules
 $(1)_CFLAGS := $(shell $(PKG_CONFIG) $(PKG_CONFIG_FLAGS) --cflags $(2))
 $(1)_LIBS := $(shell $(PKG_CONFIG) $(PKG_CONFIG_FLAGS) --libs $(2))
+$(1)_LDLIBS := $(patsubst -l%,%,$(shell $(PKG_CONFIG) $(PKG_CONFIG_FLAGS) --libs-only-l $(2)))
 endef
 
 ifeq ($(CONFIG_STATIC),y)
