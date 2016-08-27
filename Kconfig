@@ -130,14 +130,12 @@ config LUA
 comment "Lua support needs a Lua interpreter"
 	depends on !HAVE_LUA
 
-config LUAVERSION
-	string "LUA version"
-	default ""
+config LUAPKG
+	string "LUA pkg-config name"
+	default "lua"
 	depends on LUA
 	help
-	  Allow to specify which version must be taken. This is useful
-	  in case of multiple versions of the LUA interpreter in the system.
-
+	  Which pkg-config package supplies the Lua API.
 
 # These are auto-selected by other options
 
