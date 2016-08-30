@@ -96,7 +96,7 @@ static int l_handler_wrapper(struct img_type *img, void *data) {
 	result = lua_tonumber(gL, -1);
 	TRACE("[lua handler] returned: %d\n",(int)result);
 
-	return (int) res;
+	return (int) result;
 }
 
 /**
