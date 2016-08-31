@@ -574,6 +574,13 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
+	if (opt_c && !opt_i) {
+		fprintf(stderr,
+			"request check for local image, it requires -i\n");
+		usage(argv[0]);
+		exit(1);
+	}
+
 	swupdate_crypto_init();
 
 	if (opt_k) {
