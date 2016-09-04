@@ -18,13 +18,19 @@
 #
 # test commands for --check comand-line option
 #
-SWU_CHECK = ./swupdate -l 5 -c -i $<
+SWU_CHECK = ./swupdate -l 5 -c $(if $(strip $(filter-out FORCE,$<)),-i $<)
 
 quiet_cmd_swu_check_assert_false = RUN     $@
       cmd_swu_check_assert_false = $(SWU_CLEAN); if $(SWU_CHECK); then false; fi
 
 quiet_cmd_swu_check_assert_true = RUN     $@
       cmd_swu_check_assert_true = $(SWU_CLEAN); $(SWU_CHECK)
+
+quiet_cmd_swu_check_inv_websrv = RUN     $@
+      cmd_swu_check_inv_websrv = $(SWU_CLEAN); if ./swupdate -l 5 -c -w "-document_root $(srctree)"; then false; fi
+
+quiet_cmd_swu_check_inv_suricatta = RUN     $@
+      cmd_swu_check_inv_suricatta = $(SWU_CLEAN); if ./swupdate -l 5 -c -u "-t default -i 42 -u localhost:8080"; then false; fi
 
 quiet_cmd_mkswu = MKSWU   $@
       cmd_mkswu = mkdir -p $(dir $@); cd $(dir $<); for l in $(patsubst $(dir $<)%,%,$(filter-out FORCE,$^)); do echo "$$l"; done | cpio -ov -H crc > $(objtree)/$@
@@ -36,6 +42,9 @@ tests-y += FileNotFoundTest
 tests-y += CrapFileTest
 tests-y += ImgNameErrorTest
 tests-y += ValidImageTest
+tests-y += InvOptsNoImg
+tests-y += InvOptsCheckWithWeb
+tests-y += InvOptsCheckWithSur
 
 #
 # file not found test
@@ -122,3 +131,25 @@ software =\n\
 
 $(obj)/ValidImage.swu: $(obj)/ValidImage/sw-description $(obj)/ValidImage/hello.txt
 	$(call cmd,mkswu)
+
+#
+# invalid option test, no image given
+#
+PHONY += InvOptsNoImg
+InvOptsNoImg: FORCE
+	$(call cmd,swu_check_assert_false)
+
+#
+# invalid option test, web server with check
+#
+PHONY += InvOptsCheckWithWeb
+InvOptsCheckWithWeb: FORCE
+	$(call cmd,swu_check_inv_websrv)
+
+#
+# invalid option test, suricatta with check
+#
+PHONY += InvOptsCheckWithSur
+InvOptsCheckWithSur: FORCE
+	$(call cmd,swu_check_inv_suricatta)
+
