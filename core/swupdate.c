@@ -107,7 +107,7 @@ static struct option long_options[] = {
 #ifdef CONFIG_WEBSERVER
 	{"webserver", required_argument, NULL, 'w'},
 #endif
-	{"check", required_argument, NULL, 'c'},
+	{"check", no_argument, NULL, 'c'},
 	{NULL, 0, NULL, 0}
 };
 
