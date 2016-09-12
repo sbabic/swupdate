@@ -149,6 +149,7 @@ static void get_value_libconfig(const config_setting_t *e, void *dest)
 	switch (type) {
 	case CONFIG_TYPE_INT:
 		*(int *)dest = config_setting_get_int(e);
+		break;
 	case CONFIG_TYPE_INT64:
 		*(long long *)dest = config_setting_get_int64(e);
 		break;
@@ -160,6 +161,7 @@ static void get_value_libconfig(const config_setting_t *e, void *dest)
 		break;
 	case CONFIG_TYPE_FLOAT:
 		*(double *)dest = config_setting_get_float(e);
+		break;
 		/* Do nothing, add if needed */
 	}
 }
