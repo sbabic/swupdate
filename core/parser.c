@@ -29,6 +29,7 @@
 #include "sslapi.h"
 #include "util.h"
 #include "progress.h"
+#include "handler.h"
 
 static parser_fn parsers[] = {
 	parse_cfg,
@@ -82,6 +83,38 @@ int parse(struct swupdate_cfg *sw, const char *descfile)
 
 	if (ret != 0)
 		return ret;
+
+	struct img_type *item;
+	if (!LIST_EMPTY(&sw->scripts)) {
+		LIST_FOREACH(item, &sw->scripts, next)
+		{
+			if (!find_handler(item)) {
+				ERROR("feature '%s' required for script "
+				      "'%s' in %s is absent!",
+				      item->type, item->fname,
+				      SW_DESCRIPTION_FILENAME);
+				return -1;
+			}
+		}
+	}
+	if (!LIST_EMPTY(&sw->images)) {
+		LIST_FOREACH(item, &sw->images, next)
+		{
+			if (!find_handler(item)) {
+				ERROR("feature '%s' required for image "
+				      "'%s' in %s is absent!",
+				      item->type, item->fname,
+				      SW_DESCRIPTION_FILENAME);
+				return -1;
+			}
+		}
+	}
+	struct img_type item_uboot = {.type = "uboot"};
+	if (!LIST_EMPTY(&sw->uboot) && !find_handler(&item_uboot)) {
+		ERROR("feature 'uboot' absent but %s has 'uboot' section!",
+		      SW_DESCRIPTION_FILENAME);
+		return -1;
+	}
 
 #ifdef CONFIG_SIGNED_IMAGES
 	sigfile = malloc(strlen(descfile) + strlen(".sig") + 1);
