@@ -30,39 +30,10 @@
 #include "bsdqueue.h"
 #include "util.h"
 #include "swupdate.h"
+#include "parse_settings.h"
 #include "parsers.h"
 
-#ifdef CONFIG_LIBCONFIG
-#include <libconfig.h>
-#define LIBCONFIG_VERSION ((LIBCONFIG_VER_MAJOR << 16) | \
-	(LIBCONFIG_VER_MINOR << 8) | LIBCONFIG_VER_REVISION)
-#if LIBCONFIG_VERSION < 0x10500
-#define config_setting_lookup config_lookup_from
-#endif
-#else
-#define config_setting_get_elem(a,b)	(NULL)
-#define config_setting_length(a)	(0)
-#define config_setting_lookup_string(a, b, str) (0)
-#define find_node_libconfig(cfg, field, swcfg) (NULL)
-#define get_field_string_libconfig(e, path, dest, n)
-#define get_field_cfg(e, path, dest)
-#endif
-
-#ifdef CONFIG_JSON
-#include <json-c/json.h>
-#else
-#define find_node_json(a, b, c)		(NULL)
-#define get_field_string_json(e, path, dest, n)
-#define get_field_json(e, path, dest)
-#define json_object_object_get_ex(a,b,c) (0)
-#define json_object_array_get_idx(a, b)	(0)
-#define json_object_array_length(a)	(0)
-#endif
-
 #define MODULE_NAME	"PARSER"
-
-#define GET_FIELD_STRING(p, e, name, d) \
-	get_field_string(p, e, name, d, sizeof(d))
 
 #define NODEROOT (!strlen(CONFIG_LIBCONFIGROOT) ? \
 			"software" : CONFIG_LIBCONFIGROOT)
@@ -71,20 +42,6 @@ typedef enum {
 	LIBCFG_PARSER,
 	JSON_PARSER
 } parsertype;
-
-static void check_field_string(const char *src, char *dst, const size_t max_len)
-{
-	assert(max_len>0);
-	size_t act_len = strnlen(src, SWUPDATE_GENERAL_STRING_SIZE);
-	if (act_len > max_len) {
-		((char*)dst)[max_len-1] = '\0';
-		WARN("Configuration Key '%s...' is > %u chars, cropping it.\n",
-			(char*)dst, (unsigned int)max_len - 1);
-	}
-	if (act_len == 0) {
-		WARN("Configuration Key is empty!\n");
-	}
-}
 
 #ifdef CONFIG_LIBCONFIG
 static config_setting_t *find_node_libconfig(config_t *cfg,
@@ -143,63 +100,6 @@ static config_setting_t *find_node_libconfig(config_t *cfg,
 	return config_lookup(cfg, node);
 }
 
-static void get_value_libconfig(const config_setting_t *e, void *dest)
-{
-	int type = config_setting_type(e);
-	switch (type) {
-	case CONFIG_TYPE_INT:
-		*(int *)dest = config_setting_get_int(e);
-		break;
-	case CONFIG_TYPE_INT64:
-		*(long long *)dest = config_setting_get_int64(e);
-		break;
-	case CONFIG_TYPE_STRING:
-		dest = (void *)config_setting_get_string(e);
-		break;
-	case CONFIG_TYPE_BOOL:
-		*(int *)dest = config_setting_get_bool(e);
-		break;
-	case CONFIG_TYPE_FLOAT:
-		*(double *)dest = config_setting_get_float(e);
-		break;
-		/* Do nothing, add if needed */
-	}
-}
-
-static void get_field_cfg(config_setting_t *e, const char *path, void *dest)
-{
-	config_setting_t *elem;
-
-	if (path)
-		elem = config_setting_lookup(e, path);
-	else
-		elem = e;
-
-	if (!elem)
-		return;
-
-	get_value_libconfig(elem, dest);
-}
-
-static void get_field_string_libconfig(config_setting_t *e, const char *path, void *dest, size_t n)
-{
-	config_setting_t *elem;
-	const char *str;
-
-	if (path)
-		elem = config_setting_lookup(e, path);
-	else
-		elem = e;
-
-	if (!elem || config_setting_type(elem) != CONFIG_TYPE_STRING)
-		return;
-
-	if ( ( ( path) && (config_setting_lookup_string(e, path, &str))  ) ||
-	     ( (!path) && ((str = config_setting_get_string(e)) != NULL) ) ) {
-		strncpy(dest, str, n);
-		check_field_string(str, dest, n);
-	}
-}
 #endif
 
 #ifdef CONFIG_JSON
@@ -254,53 +154,6 @@ static json_object *find_node_json(json_object *root, const char *node,
 	}
 
 	return find_recursive_node(root, simple_nodes);
-}
-
-static void get_field_string_json(json_object *e, const char *path, char *dest, size_t n)
-{
-	const char *str;
-	json_object *node;
-
-	if (json_object_object_get_ex(e, path, &node) &&
-		(json_object_get_type(node) == json_type_string)) {
-		str = json_object_get_string(node);
-		strncpy(dest, str, n);
-		check_field_string(str, dest, n);
-	}
-}
-
-static void get_value_json(json_object *e, void *dest)
-{
-	enum json_type type;
-	type = json_object_get_type(e);
-	switch (type) {
-	case json_type_boolean:
-		*(unsigned int *)dest = json_object_get_boolean(e);
-		break;
-	case json_type_int:
-		*(unsigned int *)dest = json_object_get_int(e);
-		break;
-	case json_type_string:
-		strcpy(dest, json_object_get_string(e));
-		break;
-	case json_type_double:
-		*(double *)dest = json_object_get_double(e);
-		break;
-	default:
-		break;
-	}
-}
-
-static void get_field_json(json_object *e, const char *path, void *dest)
-{
-	json_object *fld = NULL;
-
-	if (path) {
-		if (json_object_object_get_ex(e, path, &fld))
-			get_value_json(fld, dest);
-	} else {
-		get_value_json(e, dest);
-	}
 }
 #endif
 
