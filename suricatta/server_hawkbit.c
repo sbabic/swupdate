@@ -65,7 +65,7 @@ server_op_res_t server_handle_initial_state(update_state_t stateovrrd);
 int server_update_status_callback(ipc_message *msg);
 int server_update_done_callback(RECOVERY_STATUS status);
 server_op_res_t server_process_update_artifact(json_object *json_data_artifact);
-void server_print_help(void);
+void suricatta_print_help(void);
 server_op_res_t server_set_polling_interval(json_object *json_root);
 server_op_res_t
 server_send_deployment_reply(const int action_id, const int job_cnt_max,
@@ -866,27 +866,27 @@ cleanup:
 	return result;
 }
 
-void server_print_help(void)
+void suricatta_print_help(void)
 {
 	fprintf(
 	    stderr,
-	    "Arguments (mandatory arguments are marked with '*'):\n"
-	    "  -t, --tenant      * Set hawkBit tenant ID for this device.\n"
-	    "  -u, --url         * Host and port of the hawkBit instance, "
+	    "\tsuricatta arguments (mandatory arguments are marked with '*'):\n"
+	    "\t  -t, --tenant      * Set hawkBit tenant ID for this device.\n"
+	    "\t  -u, --url         * Host and port of the hawkBit instance, "
 	    "e.g., localhost:8080\n"
-	    "  -i, --id          * The device ID to communicate to hawkBit.\n"
-	    "  -c, --confirm       Confirm update status to server: 1=AGAIN, "
+	    "\t  -i, --id          * The device ID to communicate to hawkBit.\n"
+	    "\t  -c, --confirm       Confirm update status to server: 1=AGAIN, "
 	    "2=SUCCESS, 3=FAILED\n"
-	    "  -x, --nocheckcert   Do not abort on flawed server "
+	    "\t  -x, --nocheckcert   Do not abort on flawed server "
 	    "certificates.\n"
-	    "  -p, --polldelay     Delay in seconds between two hawkBit "
+	    "\t  -p, --polldelay     Delay in seconds between two hawkBit "
 	    "poll operations (default: %ds).\n"
-	    "  -r, --retry         Resume and retry interrupted downloads "
+	    "\t  -r, --retry         Resume and retry interrupted downloads "
 	    "(default: %d tries).\n"
-	    "  -w, --retrywait     Time to wait between prior to retry and "
+	    "\t  -w, --retrywait     Time to wait between prior to retry and "
 	    "resume a download (default: %ds).\n"
-	    "  -l, --loglevel      set log level (0=OFF, ..., 5=TRACE)\n"
-	    "  -v, --verbose       Verbose operation, i.e., loglevel=TRACE\n",
+	    "\t  -l, --loglevel      set log level (0=OFF, ..., 5=TRACE)\n"
+	    "\t  -v, --verbose       Verbose operation, i.e., loglevel=TRACE\n",
 	    DEFAULT_POLLING_INTERVAL, DEFAULT_RESUME_TRIES,
 	    DEFAULT_RESUME_DELAY);
 }
@@ -915,7 +915,7 @@ server_op_res_t server_start(int argc, char *argv[])
 				     long_options, NULL)) != -1) {
 		switch (choice) {
 		case 'h':
-			server_print_help();
+			suricatta_print_help();
 			exit(EXIT_SUCCESS);
 		case 't':
 			server_hawkbit.tenant = strdup(optarg);
@@ -939,7 +939,7 @@ server_op_res_t server_start(int argc, char *argv[])
 				fprintf(
 				    stderr,
 				    "Error: Invalid update status given.\n");
-				server_print_help();
+				suricatta_print_help();
 				exit(EXIT_FAILURE);
 			}
 			break;
@@ -985,12 +985,12 @@ server_op_res_t server_start(int argc, char *argv[])
 	}
 	if (mandatory_argument_count != 3) {
 		fprintf(stderr, "Mandatory arguments missing!\n");
-		server_print_help();
+		suricatta_print_help();
 		return SERVER_EINIT;
 	}
 	if (argc > optind) {
 		fprintf(stderr, "Unused arguments.\n");
-		server_print_help();
+		suricatta_print_help();
 		return SERVER_EINIT;
 	}
 	if (channel.open() != CHANNEL_OK) {

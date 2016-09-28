@@ -55,3 +55,4 @@ typedef enum {
 } server_op_res_t;
 
 void start_suricatta(int argc, char *argv[]) __attribute__((noreturn));
+void suricatta_print_help(void);

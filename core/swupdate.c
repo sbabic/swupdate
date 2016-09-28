@@ -115,8 +115,10 @@ int loglevel = 0;
 
 static void usage(char *programname)
 {
-	printf("%s (compiled %s)\n", programname, __DATE__);
-	printf(("Usage %s [OPTION]\n"
+	fprintf(stdout, "%s (compiled %s)\n", programname, __DATE__);
+	fprintf(stdout, "Usage %s [OPTION]\n", 
+			programname);
+	fprintf(stdout,
 #ifdef CONFIG_MTD
 		" -b, --blacklist <list of mtd>  : MTDs that must not be scanned for UBI\n"
 #endif
@@ -143,9 +145,6 @@ static void usage(char *programname)
 		" -s, --server                   : run as daemon waiting from\n"
 		"                                  IPC interface.\n"
 		" -v, --verbose                  : be verbose, set maximum loglevel\n"
-#ifdef CONFIG_SURICATTA
-		" -u, --suricatta [OPTIONS]      : Parameters to be passed to suricatta\n"
-#endif
 #ifdef CONFIG_WEBSERVER
 		" -w, --webserver [OPTIONS]      : Parameters to be passed to webserver\n"
 #endif
@@ -153,8 +152,13 @@ static void usage(char *programname)
 		" -H, --hwrevision <board>:<rev> : Set hardware revision\n"
 #endif
 		" -c, --check                    : check image and exit, use with -i <filename>\n"
-		" -h, --help                     : print this help and exit\n"),
-	       programname);
+		" -h, --help                     : print this help and exit\n"
+		);
+#ifdef CONFIG_SURICATTA
+	fprintf(stdout,
+		" -u, --suricatta [OPTIONS]      : Parameters to be passed to suricatta\n");
+	suricatta_print_help();
+#endif
 }
 
 static int check_provided(struct imglist *list)
