@@ -476,6 +476,25 @@ static const char *config_options[] = {
   NULL
 };
 
+void mongoose_print_help(void)
+{
+	int i;
+
+	fprintf(
+	    stdout,
+	    "\tmongoose arguments:\n");
+
+	for (i = 0; config_options[i] != NULL; i += 2) {
+		fprintf(stdout,
+			"\t  -%s %s %s %s\n",
+			config_options[i],
+			(config_options[i + 1] != NULL) ? "(default : " : "",
+			(config_options[i + 1] != NULL) ? config_options[i + 1] : "",
+			(config_options[i + 1] != NULL) ? ")" : ""
+		);
+	}
+}
+
 struct mg_context {
   volatile int stop_flag;         // Should we stop event loop
   SSL_CTX *ssl_ctx;               // SSL context

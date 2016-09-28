@@ -26,4 +26,6 @@
  */
 void start_mongoose(int argc, char *argv[]);
 
+void mongoose_print_help(void);
+
 #endif

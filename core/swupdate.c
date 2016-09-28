@@ -145,9 +145,6 @@ static void usage(char *programname)
 		" -s, --server                   : run as daemon waiting from\n"
 		"                                  IPC interface.\n"
 		" -v, --verbose                  : be verbose, set maximum loglevel\n"
-#ifdef CONFIG_WEBSERVER
-		" -w, --webserver [OPTIONS]      : Parameters to be passed to webserver\n"
-#endif
 #ifdef CONFIG_HW_COMPATIBILITY
 		" -H, --hwrevision <board>:<rev> : Set hardware revision\n"
 #endif
@@ -158,6 +155,11 @@ static void usage(char *programname)
 	fprintf(stdout,
 		" -u, --suricatta [OPTIONS]      : Parameters to be passed to suricatta\n");
 	suricatta_print_help();
+#endif
+#ifdef CONFIG_WEBSERVER
+	fprintf(stdout,
+		" -w, --webserver [OPTIONS]      : Parameters to be passed to webserver\n");
+	mongoose_print_help();
 #endif
 }
 
