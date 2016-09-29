@@ -120,6 +120,8 @@ int gpio_direction_output(int gpio_number, int value);
 int gpio_set_value(int gpio_number, int value);
 int gpio_get_value(int gpio_number);
 
+char *sdup(const char *str);
+
 /*
  * Function to extract / copy images
  */

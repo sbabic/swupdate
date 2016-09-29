@@ -38,6 +38,14 @@ struct decryption_key {
 
 static struct decryption_key *aes_key = NULL;
 
+char *sdup(const char *str) {
+	char *p;
+	if ((p = (char *) malloc(strlen(str) + 1)) != NULL) {
+		strcpy(p, str);
+	}
+	return p;
+}
+
 /*
  * Replacement for fw_setenv() for calling inside
  * the library

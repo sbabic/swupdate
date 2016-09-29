@@ -44,6 +44,7 @@
 #include "mongoose.h"
 #include "mongoose_interface.h"
 #include "network_ipc.h"
+#include "util.h"
 
 #ifdef USE_LUA
 #include <lua.h>
@@ -101,14 +102,6 @@ static void verify_document_root(const char *root) {
 	if (stat(path, &st) != 0 || !S_ISDIR(st.st_mode)) {
 		die("Invalid root directory: [%s]: %s", root, strerror(errno));
 	}
-}
-
-static char *sdup(const char *str) {
-	char *p;
-	if ((p = (char *) malloc(strlen(str) + 1)) != NULL) {
-		strcpy(p, str);
-	}
-	return p;
 }
 
 static void set_option(char **options, const char *name, const char *value) {
