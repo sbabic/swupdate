@@ -70,8 +70,6 @@ static struct option long_options[] = {
     {"nocheckcert", no_argument, NULL, 'x'},
     {"retry", required_argument, NULL, 'r'},
     {"retrywait", required_argument, NULL, 'w'},
-    {"loglevel", required_argument, NULL, 'l'},
-    {"verbose", no_argument, NULL, 'v'},
     {NULL, 0, NULL, 0}};
 
 static unsigned short mandatory_argument_count = 0;
@@ -916,9 +914,7 @@ void suricatta_print_help(void)
 	    "\t  -r, --retry         Resume and retry interrupted downloads "
 	    "(default: %d tries).\n"
 	    "\t  -w, --retrywait     Time to wait between prior to retry and "
-	    "resume a download (default: %ds).\n"
-	    "\t  -l, --loglevel      set log level (0=OFF, ..., 5=TRACE)\n"
-	    "\t  -v, --verbose       Verbose operation, i.e., loglevel=TRACE\n",
+	    "resume a download (default: %ds).\n",
 	    DEFAULT_POLLING_INTERVAL, DEFAULT_RESUME_TRIES,
 	    DEFAULT_RESUME_DELAY);
 }
@@ -984,7 +980,7 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 
 	/* reset to optind=1 to parse suricatta's argument vector */
 	optind = 1;
-	while ((choice = getopt_long(argc, argv, "t:i:c:u:p:xr:w:l:v",
+	while ((choice = getopt_long(argc, argv, "t:i:c:u:p:xr:w:",
 				     long_options, NULL)) != -1) {
 		switch (choice) {
 		case 't':
@@ -1032,27 +1028,19 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 			channel_data_defaults.retry_sleep =
 			    (unsigned int)strtoul(optarg, NULL, 10);
 			break;
-		case 'l':
-			loglevel = (int)strtoul(optarg, NULL, 10);
-			if (loglevel >= DEBUGLEVEL) {
-				server_hawkbit.debug = true;
-			}
-			if (loglevel >= TRACELEVEL) {
-				channel_data_defaults.debug = true;
-			}
-			break;
-		case 'v':
-			/* set SWUpdate's loglevel to TRACE to see
-			 * suricatta's TRACE() calls */
-			loglevel = TRACELEVEL;
-			server_hawkbit.debug = true;
-			channel_data_defaults.debug = true;
-			break;
 		case '?':
 		default:
 			return SERVER_EINIT;
 		}
 	}
+
+	if (loglevel >= DEBUGLEVEL) {
+		server_hawkbit.debug = true;
+	}
+	if (loglevel >= TRACELEVEL) {
+		channel_data_defaults.debug = true;
+	}
+
 	if (mandatory_argument_count != ALL_MANDATORY_SET) {
 		fprintf(stderr, "Mandatory arguments missing!\n");
 		suricatta_print_help();
