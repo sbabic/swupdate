@@ -324,14 +324,18 @@ channel_op_res_t channel_set_options(channel_data_t *channel_data,
 	}
 
 	if (channel_data->strictssl == true) {
-		/* TODO set CURLOPT_CAINFO to the path to the system's CA bundle
-		 *      file to verify the peer with, default is set at curl's
-		 *      build time. */
-		/* TODO set CURLOPT_CAPATH to the OpenSSL directory holding the
-		 *      multiple CA certificates. */
 		if ((curl_easy_setopt(channel_curl.handle,
 				      CURLOPT_SSL_VERIFYHOST,
 				      2L) != CURLE_OK) ||
+		    (curl_easy_setopt(channel_curl.handle,
+				      CURLOPT_CAINFO,
+				      channel_data->cafile) != CURLE_OK) ||
+		    (curl_easy_setopt(channel_curl.handle,
+				      CURLOPT_SSLKEY,
+				      channel_data->sslkey) != CURLE_OK) ||
+		    (curl_easy_setopt(channel_curl.handle,
+				      CURLOPT_SSLCERT,
+				      channel_data->sslcert) != CURLE_OK) ||
 		    (curl_easy_setopt(channel_curl.handle,
 				      CURLOPT_SSL_VERIFYPEER,
 				      1L) != CURLE_OK)) {

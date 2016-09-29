@@ -955,6 +955,15 @@ static int suricatta_settings(void *elem, void  __attribute__ ((__unused__)) *da
 	if (strlen(tmp))
 		channel_data_defaults.retry_sleep =
 			(unsigned int)strtoul(tmp, NULL, 10);
+	GET_FIELD_STRING(LIBCFG_PARSER, elem, "cafile", tmp);
+	if (strlen(tmp))
+		SETSTRING(channel_data_defaults.cafile, tmp);
+	GET_FIELD_STRING(LIBCFG_PARSER, elem, "sslkey", tmp);
+	if (strlen(tmp))
+		SETSTRING(channel_data_defaults.sslkey, tmp);
+	GET_FIELD_STRING(LIBCFG_PARSER, elem, "sslcert", tmp);
+	if (strlen(tmp))
+		SETSTRING(channel_data_defaults.sslcert, tmp);
 
 	return 0;
 

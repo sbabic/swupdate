@@ -38,10 +38,11 @@ typedef struct {
 	bool debug;
 	unsigned char retries;
 	bool strictssl;
-	char _pad;
 	unsigned int retry_sleep;
+	char *cafile;
+	char *sslkey;
+	char *sslcert;
 #ifdef CONFIG_SURICATTA_SSL
 	char sha1hash[SHA_DIGEST_LENGTH * 2 + 1];
-	char _pad2[7];
 #endif
 } channel_data_t;
