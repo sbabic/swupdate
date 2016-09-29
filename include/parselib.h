@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013
+ * (C) Copyright 2016
  * Stefano Babic, DENX Software Engineering, sbabic@denx.de.
  *
  * This program is free software; you can redistribute it and/or
@@ -14,11 +14,16 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc. 
+ * Foundation, Inc.
  */
 
-#ifndef _PARSE_SETTINGS_H
-#define _PARSE_SETTINGS_H
+#ifndef _PARSE_LIBRARY_H
+#define _PARSE_LIBRARY_H
+
+typedef enum {
+	LIBCFG_PARSER,
+	JSON_PARSER
+} parsertype;
 
 #define GET_FIELD_STRING(p, e, name, d) \
 	get_field_string(p, e, name, d, sizeof(d))
@@ -34,7 +39,7 @@
 void get_value_libconfig(const config_setting_t *e, void *dest);
 void get_field_cfg(config_setting_t *e, const char *path, void *dest);
 void get_field_string_libconfig(config_setting_t *e, const char *path,
-	       			void *dest, size_t n);
+				void *dest, size_t n);
 
 #else
 #define config_setting_get_elem(a,b)	(NULL)
@@ -51,6 +56,7 @@ void get_field_string_libconfig(config_setting_t *e, const char *path,
 void get_field_string_json(json_object *e, const char *path, char *dest, size_t n);
 void get_value_json(json_object *e, void *dest);
 void get_field_json(json_object *e, const char *path, void *dest);
+json_object *find_json_recursive_node(json_object *root, const char **names);
 
 #else
 #define find_node_json(a, b, c)		(NULL)
@@ -61,6 +67,15 @@ void get_field_json(json_object *e, const char *path, void *dest);
 #define json_object_array_length(a)	(0)
 #endif
 
+typedef int (*settings_callback)(void *elem, void *data);
+
+int get_array_length(parsertype p, void *root);
+void *get_elem_from_idx(parsertype p, void *node, int idx);
+void get_field_string(parsertype p, void *e, const char *path, char *dest, size_t n);
+void get_field(parsertype p, void *e, const char *path, void *dest);
+int exist_field_string(parsertype p, void *e, const char *path);
+void get_hash_value(parsertype p, void *elem, unsigned char *hash);
+
+int read_module_settings(char *filename, const char *module, settings_callback fcn, void *data);
+
 #endif
-
-

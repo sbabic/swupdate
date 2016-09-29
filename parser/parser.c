@@ -30,18 +30,13 @@
 #include "bsdqueue.h"
 #include "util.h"
 #include "swupdate.h"
-#include "parse_settings.h"
+#include "parselib.h"
 #include "parsers.h"
 
 #define MODULE_NAME	"PARSER"
 
 #define NODEROOT (!strlen(CONFIG_LIBCONFIGROOT) ? \
 			"software" : CONFIG_LIBCONFIGROOT)
-
-typedef enum {
-	LIBCFG_PARSER,
-	JSON_PARSER
-} parsertype;
 
 #ifdef CONFIG_LIBCONFIG
 static config_setting_t *find_node_libconfig(config_t *cfg,
@@ -103,24 +98,6 @@ static config_setting_t *find_node_libconfig(config_t *cfg,
 #endif
 
 #ifdef CONFIG_JSON
-static json_object *find_recursive_node(json_object *root, const char **names)
-{
-	json_object *node = root;
-
-	while (*names) {
-		const char *n = *names;
-		json_object *cnode = NULL;
-
-		if (json_object_object_get_ex(node, n, &cnode))
-			node = cnode;
-		else
-			return NULL;
-		names++;
-	}
-
-	return node;
-}
-
 static json_object *find_node_json(json_object *root, const char *node,
 			struct swupdate_cfg *swcfg)
 {
@@ -134,13 +111,13 @@ static json_object *find_node_json(json_object *root, const char *node,
 		if (strlen(hardware->boardname)) {
 			const char *nodes[] = {hardware->boardname, swcfg->software_set,
 					       swcfg->running_mode, node, NULL};
-			jnode = find_recursive_node(root, nodes);
+			jnode = find_json_recursive_node(root, nodes);
 			if (jnode)
 				return jnode;
 		} else {
 			const char *nodes[] = {swcfg->software_set, swcfg->running_mode,
 					       node, NULL};
-			jnode = find_recursive_node(root, nodes);
+			jnode = find_json_recursive_node(root, nodes);
 			if (jnode)
 				return jnode;
 		}
@@ -148,39 +125,14 @@ static json_object *find_node_json(json_object *root, const char *node,
 
 	if (strlen(hardware->boardname)) {
 		const char *nodes[] = {hardware->boardname, node, NULL};
-		jnode = find_recursive_node(root, nodes);
+		jnode = find_json_recursive_node(root, nodes);
 		if (jnode)
 			return jnode;
 	}
 
-	return find_recursive_node(root, simple_nodes);
+	return find_json_recursive_node(root, simple_nodes);
 }
 #endif
-
-static int get_array_length(parsertype p, void *root)
-{
-	switch (p) {
-	case LIBCFG_PARSER:
-		return config_setting_length(root);
-	case JSON_PARSER:
-		return json_object_array_length(root);
-	}
-
-	return 0;
-}
-
-static void *get_elem_from_idx(parsertype p, void *node, int idx)
-{
-	switch (p) {
-	case LIBCFG_PARSER:
-		return config_setting_get_elem(node, idx);
-	case JSON_PARSER:
-		return json_object_array_get_idx(node, idx);
-	}
-
-	return NULL;
-}
-
 
 static void *find_node(parsertype p, void *root, const char *node,
 			struct swupdate_cfg *swcfg)
@@ -193,52 +145,6 @@ static void *find_node(parsertype p, void *root, const char *node,
 	}
 
 	return NULL;
-}
-
-static void get_field_string(parsertype p, void *e, const char *path, char *dest, size_t n)
-{
-	switch (p) {
-	case LIBCFG_PARSER:
-		get_field_string_libconfig(e, path, dest, n);
-		break;
-	case JSON_PARSER:
-		get_field_string_json(e, path, dest, n);
-		break;
-	}
-}
-
-static void get_field(parsertype p, void *e, const char *path, void *dest)
-{
-	switch (p) {
-	case LIBCFG_PARSER:
-		return get_field_cfg((config_setting_t *)e, path, dest);
-	case JSON_PARSER:
-		return get_field_json((json_object *)e, path, dest);
-	}
-}
-
-static int exist_field_string(parsertype p, void *e, const char *path)
-{
-	const char *str;
-	switch (p) {
-	case LIBCFG_PARSER:
-		return config_setting_lookup_string((const config_setting_t *)e,
-							path, &str);
-	case JSON_PARSER:
-		return json_object_object_get_ex((json_object *)e,  path, NULL);
-	}
-
-	return 0;
-}
-
-static void get_hash_value(parsertype p, void *elem, unsigned char *hash)
-{
-	char hash_ascii[80];
-
-	memset(hash_ascii, 0, sizeof(hash_ascii));
-	GET_FIELD_STRING(p, elem, "sha256", hash_ascii);
-
-	ascii_to_hash(hash, hash_ascii);
 }
 
 #ifdef CONFIG_HW_COMPATIBILITY

@@ -29,7 +29,7 @@
 #include "bsdqueue.h"
 #include "util.h"
 #include "swupdate.h"
-#include "parse_settings.h"
+#include "parselib.h"
 
 static void check_field_string(const char *src, char *dst, const size_t max_len)
 {
@@ -106,6 +106,25 @@ void get_field_string_libconfig(config_setting_t *e, const char *path, void *des
 #endif
 
 #ifdef CONFIG_JSON
+
+json_object *find_json_recursive_node(json_object *root, const char **names)
+{
+	json_object *node = root;
+
+	while (*names) {
+		const char *n = *names;
+		json_object *cnode = NULL;
+
+		if (json_object_object_get_ex(node, n, &cnode))
+			node = cnode;
+		else
+			return NULL;
+		names++;
+	}
+
+	return node;
+}
+
 void get_field_string_json(json_object *e, const char *path, char *dest, size_t n)
 {
 	const char *str;
@@ -153,3 +172,73 @@ void get_field_json(json_object *e, const char *path, void *dest)
 	}
 }
 #endif
+
+int get_array_length(parsertype p, void *root)
+{
+	switch (p) {
+	case LIBCFG_PARSER:
+		return config_setting_length(root);
+	case JSON_PARSER:
+		return json_object_array_length(root);
+	}
+
+	return 0;
+}
+
+void *get_elem_from_idx(parsertype p, void *node, int idx)
+{
+	switch (p) {
+	case LIBCFG_PARSER:
+		return config_setting_get_elem(node, idx);
+	case JSON_PARSER:
+		return json_object_array_get_idx(node, idx);
+	}
+
+	return NULL;
+}
+
+void get_field_string(parsertype p, void *e, const char *path, char *dest, size_t n)
+{
+	switch (p) {
+	case LIBCFG_PARSER:
+		get_field_string_libconfig(e, path, dest, n);
+		break;
+	case JSON_PARSER:
+		get_field_string_json(e, path, dest, n);
+		break;
+	}
+}
+
+void get_field(parsertype p, void *e, const char *path, void *dest)
+{
+	switch (p) {
+	case LIBCFG_PARSER:
+		return get_field_cfg((config_setting_t *)e, path, dest);
+	case JSON_PARSER:
+		return get_field_json((json_object *)e, path, dest);
+	}
+}
+
+int exist_field_string(parsertype p, void *e, const char *path)
+{
+	const char *str;
+	switch (p) {
+	case LIBCFG_PARSER:
+		return config_setting_lookup_string((const config_setting_t *)e,
+							path, &str);
+	case JSON_PARSER:
+		return json_object_object_get_ex((json_object *)e,  path, NULL);
+	}
+
+	return 0;
+}
+
+void get_hash_value(parsertype p, void *elem, unsigned char *hash)
+{
+	char hash_ascii[80];
+
+	memset(hash_ascii, 0, sizeof(hash_ascii));
+	GET_FIELD_STRING(p, elem, "sha256", hash_ascii);
+
+	ascii_to_hash(hash, hash_ascii);
+}
