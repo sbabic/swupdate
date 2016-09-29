@@ -23,6 +23,7 @@
 #include <sys/types.h>
 #include "bsdqueue.h"
 #include "globals.h"
+#include "mongoose_interface.h"
 
 /*
  * swupdate uses SHA256 hashes
@@ -48,7 +49,6 @@ enum {
 	INSTALL_FROM_STREAM
 };
 
-
 struct sw_version {
 	char name[SWUPDATE_GENERAL_STRING_SIZE];
 	char version[SWUPDATE_GENERAL_STRING_SIZE];
@@ -57,7 +57,6 @@ struct sw_version {
 };
 
 LIST_HEAD(swver, sw_version);
-
 
 struct img_type {
 	struct sw_version id;		/* This is used to compare versions */
@@ -109,6 +108,16 @@ struct uboot_var {
 
 LIST_HEAD(ubootvarlist, uboot_var);
 
+struct swupdate_global_cfg {
+	int verbose;
+	char mtdblacklist[SWUPDATE_GENERAL_STRING_SIZE];
+	int loglevel;
+	int syslog_enabled;
+	char publickeyfname[SWUPDATE_GENERAL_STRING_SIZE];
+	char aeskeyfname[SWUPDATE_GENERAL_STRING_SIZE];
+
+};
+
 struct swupdate_cfg {
 	char name[SWUPDATE_GENERAL_STRING_SIZE];
 	char version[SWUPDATE_GENERAL_STRING_SIZE];
@@ -122,6 +131,7 @@ struct swupdate_cfg {
 	struct imglist scripts;
 	struct ubootvarlist uboot;
 	void *dgst;	/* Structure for signed images */
+	struct swupdate_global_cfg globals;
 };
 
 #define SEARCH_FILE(type, list, found, offs) do { \

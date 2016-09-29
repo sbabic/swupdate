@@ -44,6 +44,7 @@
 #include "mongoose.h"
 #include "mongoose_interface.h"
 #include "network_ipc.h"
+#include "parselib.h"
 #include "util.h"
 
 #ifdef USE_LUA
@@ -52,12 +53,10 @@
 #endif
 
 #define DIRSEP '/'
-#define MAX_OPTIONS 40
 #define MAX_CONF_FILE_LINE_SIZE (8 * 1024)
 #define BUF_LEN 8192
 
 static char server_name[40];        // Set by init_server_name()
-static char config_file[PATH_MAX];  // Set by process_command_line_arguments()
 static struct mg_context *ctx;      // Set by start_mongoose()
 
 #if !defined(CONFIG_FILE)
@@ -125,56 +124,39 @@ static void set_option(char **options, const char *name, const char *value) {
 	}
 }
 
-static void process_command_line_arguments(int argc, char *argv[], char **options) {
-	char line[MAX_CONF_FILE_LINE_SIZE], opt[sizeof(line)], val[sizeof(line)], *p;
-	FILE *fp = NULL;
-	size_t i, cmd_line_opts_start = 1, line_no = 0;
+static int mongoose_settings(void *elem, void *data)
+{
+	char **options = (char **)data;
+	const char **names = mg_get_valid_option_names();
+	int i;
+	char tmp[128];
+
+	for (i = 0; names[i] != NULL; i += 2) {
+		tmp[0] = '\0';
+		GET_FIELD_STRING(LIBCFG_PARSER, elem,
+					names[i], tmp);
+		if (strlen(tmp)) {
+			set_option(options, names[i], tmp);
+			fprintf(stdout, "Setting %s --> %s\n", names[i], tmp);
+		}
+
+	}
+
+	return 0;
+
+}
+
+static void process_command_line_arguments(char *filename, int argc, char *argv[], char **options) {
+	size_t i, cmd_line_opts_start = 1;
 
 	options[0] = NULL;
 
-	// Should we use a config file ?
-	if (argv[1] != NULL && argv[1][0] != '-') {
-		snprintf(config_file, sizeof(config_file), "%s", argv[1]);
-		cmd_line_opts_start = 2;
-	} else if ((p = strrchr(argv[0], DIRSEP)) == NULL) {
-		// No command line flags specified. Look where binary lives
-		snprintf(config_file, sizeof(config_file), "%s", CONFIG_FILE);
-	} else {
-		snprintf(config_file, sizeof(config_file), "%.*s%c%s",
-				(int) (p - argv[0]), argv[0], DIRSEP, CONFIG_FILE);
-	}
+	if (filename)
+		read_module_settings(filename, "webserver", mongoose_settings, options);
 
-	fp = fopen(config_file, "r");
+	if (!argc)
+		return;
 
-	// If config file was set in command line and open failed, die
-	if (cmd_line_opts_start == 2 && fp == NULL) {
-		die("Cannot open config file %s: %s", config_file, strerror(errno));
-	}
-
-	// Load config file settings first
-	if (fp != NULL) {
-		fprintf(stderr, "Loading config file %s\n", config_file);
-
-		// Loop over the lines in config file
-		while (fgets(line, sizeof(line), fp) != NULL) {
-			line_no++;
-
-			// Ignore empty lines and comments
-			for (i = 0; isspace(* (unsigned char *) &line[i]); ) i++;
-			if (line[i] == '#' || line[i] == '\0') {
-				continue;
-			}
-
-			if (sscanf(line, "%s %[^\r\n#]", opt, val) != 2) {
-				printf("%s: line %d is invalid, ignoring it:\n %s",
-						config_file, (int) line_no, line);
-			} else {
-				set_option(options, opt, val);
-			}
-		}
-
-		(void) fclose(fp);
-	}
 	// Handle command line flags.
 	// They override config file and default settings.
 	for (i = cmd_line_opts_start; argv[i] != NULL && i < argc - 1; i += 2) {
@@ -413,15 +395,11 @@ static int begin_request_handler(struct mg_connection *conn) {
 	return 0;
 }
 
-void start_mongoose(__attribute__((unused)) int argc, char *argv[]) {
+static void start_mongoose_server(char **options) {
 	struct mg_callbacks callbacks;
-	char *options[MAX_OPTIONS];
 	int i;
 
 	init_server_name();
-
-	/* Update config based on command line arguments */
-	process_command_line_arguments(argc, argv, options);
 
 	/* Start Mongoose */
 	memset(&callbacks, 0, sizeof(callbacks));
@@ -429,7 +407,6 @@ void start_mongoose(__attribute__((unused)) int argc, char *argv[]) {
 
 	callbacks.begin_request = begin_request_handler;
 	callbacks.upload = upload_handler;
-
 
 	ctx = mg_start(&callbacks, NULL, (const char **) options);
 	for (i = 0; options[i] != NULL; i++) {
@@ -446,3 +423,13 @@ void start_mongoose(__attribute__((unused)) int argc, char *argv[]) {
 
 }
 
+void start_mongoose(char *cfgfname, int argc, char *argv[])
+{
+
+	char *options[MAX_OPTIONS];
+
+	/* Update config based on command line arguments */
+	process_command_line_arguments(cfgfname, argc, argv, options);
+
+	start_mongoose_server(options);
+}

@@ -22,9 +22,14 @@
 #define _MONGOOSE_INTERFACE_H
 
 /*
+ * Max number of command line options
+ * to be passed to the mongoose webserver
+ */
+#define MAX_OPTIONS 40
+/*
  * This is used by swupdate to start the Webserver
  */
-void start_mongoose(int argc, char *argv[]);
+void start_mongoose(char *cfgfname, int argc, char *argv[]);
 
 void mongoose_print_help(void);
 
