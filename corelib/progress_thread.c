@@ -42,11 +42,9 @@
 #include "network_interface.h"
 #include <progress.h>
 
-#define MAX_PROGRESS_CONNS	20
-
 struct progress_conn {
-	int sockfd;
 	SIMPLEQ_ENTRY(progress_conn) next;
+	int sockfd;
 };
 
 SIMPLEQ_HEAD(connections, progress_conn);
@@ -60,8 +58,8 @@ struct swupdate_progress {
 	char *current_image;
 	const handler *curhnd;
 	struct connections conns;
-	bool step_running;
 	pthread_mutex_t lock;
+	bool step_running;
 };
 static struct swupdate_progress progress;
 
@@ -74,13 +72,14 @@ static void send_progress_msg(void)
 	struct progress_conn *conn;
 	struct swupdate_progress *prbar = &progress;
 	void *buf;
-	int count, n;
+	size_t count;
+	ssize_t n;
 
 	SIMPLEQ_FOREACH(conn, &prbar->conns, next) {
 		buf = &prbar->msg;
 		count = sizeof(prbar->msg);
 		while (count > 0) {
-			n = write(conn->sockfd, buf, count); 	
+			n = write(conn->sockfd, buf, count);
 			if (n <= 0) {
 				close(conn->sockfd);
 				SIMPLEQ_REMOVE(&prbar->conns, conn,
@@ -88,13 +87,13 @@ static void send_progress_msg(void)
 				free(conn);
 				break;
 			}
-			count -= n;
-			buf += n;
+			count -= (size_t)n;
+			buf = (char*)buf + n;
 		}
 	}
 }
 
-void swupdate_progress_init(int nsteps) {
+void swupdate_progress_init(unsigned int nsteps) {
 	struct swupdate_progress *prbar = &progress;
 	pthread_mutex_lock(&prbar->lock);
 	prbar->msg.nsteps = nsteps;
@@ -105,7 +104,7 @@ void swupdate_progress_init(int nsteps) {
 	pthread_mutex_unlock(&prbar->lock);
 }
 
-void swupdate_progress_update(int perc)
+void swupdate_progress_update(unsigned int perc)
 {
 	struct swupdate_progress *prbar = &progress;
 	pthread_mutex_lock(&prbar->lock);
@@ -188,6 +187,4 @@ void *progress_bar_thread (void __attribute__ ((__unused__)) *data)
 		SIMPLEQ_INSERT_TAIL(&prbar->conns, conn, next);
 		pthread_mutex_unlock(&prbar->lock);
 	} while(1);
-
-	return (void *)0; 
 }

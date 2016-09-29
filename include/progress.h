@@ -32,7 +32,7 @@
  */
 struct progress_msg {
 	unsigned int	magic;		/* Magic Number */
-	unsigned int	status;		/* Update Status (Running, Failure) */
+	RECOVERY_STATUS	status;		/* Update Status (Running, Failure) */
 	unsigned int	dwl_percent;	/* % downloaded data */
 	unsigned int	nsteps;		/* No. total of steps */
 	unsigned int	cur_step;	/* Current step index */
@@ -41,8 +41,8 @@ struct progress_msg {
 	char		hnd_name[64];	/* Name of running hanler */
 };
 
-void swupdate_progress_init(int nsteps);
-void swupdate_progress_update(int perc);
+void swupdate_progress_init(unsigned int nsteps);
+void swupdate_progress_update(unsigned int perc);
 void swupdate_progress_inc_step(char *image);
 void swupdate_progress_step_completed(void);
 void swupdate_progress_end(RECOVERY_STATUS status);
