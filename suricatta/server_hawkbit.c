@@ -897,7 +897,6 @@ server_op_res_t server_start(int argc, char *argv[])
 	int choice = 0;
 	unsigned short mandatory_argument_count = 0;
 	static struct option long_options[] = {
-	    {"help", no_argument, NULL, 'h'},
 	    {"tenant", required_argument, NULL, 't'},
 	    {"id", required_argument, NULL, 'i'},
 	    {"confirm", required_argument, NULL, 'c'},
@@ -911,12 +910,9 @@ server_op_res_t server_start(int argc, char *argv[])
 	    {NULL, 0, NULL, 0}};
 	/* reset to optind=1 to parse suricatta's argument vector */
 	optind = 1;
-	while ((choice = getopt_long(argc, argv, "ht:i:c:u:p:xr:w:l:v",
+	while ((choice = getopt_long(argc, argv, "t:i:c:u:p:xr:w:l:v",
 				     long_options, NULL)) != -1) {
 		switch (choice) {
-		case 'h':
-			suricatta_print_help();
-			exit(EXIT_SUCCESS);
 		case 't':
 			server_hawkbit.tenant = strdup(optarg);
 			mandatory_argument_count++;
