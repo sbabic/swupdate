@@ -35,6 +35,7 @@
 #include "channel_hawkbit.h"
 #include "suricatta/state.h"
 #include "server_hawkbit.h"
+#include "parselib.h"
 
 #define DEFAULT_POLLING_INTERVAL 45
 #define DEFAULT_RESUME_TRIES 5
@@ -53,6 +54,37 @@
 #else
 #define STATE_KEY "none"
 #endif
+
+#define SETSTRING(p, v) do { \
+	if (p) \
+		free(p); \
+	p = strdup(v); \
+} while (0)
+
+static struct option long_options[] = {
+    {"tenant", required_argument, NULL, 't'},
+    {"id", required_argument, NULL, 'i'},
+    {"confirm", required_argument, NULL, 'c'},
+    {"url", required_argument, NULL, 'u'},
+    {"polldelay", required_argument, NULL, 'p'},
+    {"nocheckcert", no_argument, NULL, 'x'},
+    {"retry", required_argument, NULL, 'r'},
+    {"retrywait", required_argument, NULL, 'w'},
+    {"loglevel", required_argument, NULL, 'l'},
+    {"verbose", no_argument, NULL, 'v'},
+    {NULL, 0, NULL, 0}};
+
+static unsigned short mandatory_argument_count = 0;
+
+/*
+ * These are used to check if all mandatory fields
+ * are set
+ */
+#define TENANT_BIT	1
+#define ID_BIT		2
+#define URL_BIT		2
+#define ALL_MANDATORY_SET	(TENANT_BIT | ID_BIT | URL_BIT)
+
 
 /* Prototypes for "internal" functions */
 /* Note that they're not `static` so that they're callable from unit tests. */
@@ -88,7 +120,7 @@ static channel_data_t channel_data_defaults = {.debug = false,
 /* Prototypes for "public" functions */
 server_op_res_t server_has_pending_action(int *action_id);
 server_op_res_t server_stop(void);
-server_op_res_t server_start(int argc, char *argv[]);
+server_op_res_t server_start(char *fname, int argc, char *argv[]);
 server_op_res_t server_install_update(void);
 unsigned int server_get_polling_interval(void);
 
@@ -891,35 +923,68 @@ void suricatta_print_help(void)
 	    DEFAULT_RESUME_DELAY);
 }
 
-server_op_res_t server_start(int argc, char *argv[])
+static int suricatta_settings(void *elem, void  __attribute__ ((__unused__)) *data)
+{
+	char tmp[128];
+
+	GET_FIELD_STRING(LIBCFG_PARSER, elem, "tenant", tmp);
+	if (strlen(tmp)) {
+		SETSTRING(server_hawkbit.tenant, tmp);
+		mandatory_argument_count |= TENANT_BIT;
+	}
+	GET_FIELD_STRING(LIBCFG_PARSER, elem, "id", tmp);
+	if (strlen(tmp)) {
+		SETSTRING(server_hawkbit.device_id, tmp);
+		mandatory_argument_count |= ID_BIT;
+	}
+	GET_FIELD_STRING(LIBCFG_PARSER, elem, "url", tmp);
+	if (strlen(tmp)) {
+		SETSTRING(server_hawkbit.url, tmp);
+		mandatory_argument_count |= URL_BIT;
+	}
+	GET_FIELD_STRING(LIBCFG_PARSER, elem, "polldelay", tmp);
+	if (strlen(tmp))
+		server_hawkbit.polling_interval =
+			(unsigned int)strtoul(tmp, NULL, 10);
+
+	GET_FIELD_STRING(LIBCFG_PARSER, elem, "retry", tmp);
+	if (strlen(tmp))
+		channel_data_defaults.retries =
+			(unsigned int)strtoul(tmp, NULL, 10);
+	GET_FIELD_STRING(LIBCFG_PARSER, elem, "retrywait", tmp);
+	if (strlen(tmp))
+		channel_data_defaults.retry_sleep =
+			(unsigned int)strtoul(tmp, NULL, 10);
+
+	return 0;
+
+}
+
+
+server_op_res_t server_start(char *fname, int argc, char *argv[])
 {
 	update_state_t update_state = STATE_NOT_AVAILABLE;
 	int choice = 0;
-	unsigned short mandatory_argument_count = 0;
-	static struct option long_options[] = {
-	    {"tenant", required_argument, NULL, 't'},
-	    {"id", required_argument, NULL, 'i'},
-	    {"confirm", required_argument, NULL, 'c'},
-	    {"url", required_argument, NULL, 'u'},
-	    {"polldelay", required_argument, NULL, 'p'},
-	    {"nocheckcert", no_argument, NULL, 'x'},
-	    {"retry", required_argument, NULL, 'r'},
-	    {"retrywait", required_argument, NULL, 'w'},
-	    {"loglevel", required_argument, NULL, 'l'},
-	    {"verbose", no_argument, NULL, 'v'},
-	    {NULL, 0, NULL, 0}};
+
+	mandatory_argument_count = 0;
+
+	if (fname)
+		read_module_settings(fname, "suricatta", suricatta_settings,
+					NULL);
+
+
 	/* reset to optind=1 to parse suricatta's argument vector */
 	optind = 1;
 	while ((choice = getopt_long(argc, argv, "t:i:c:u:p:xr:w:l:v",
 				     long_options, NULL)) != -1) {
 		switch (choice) {
 		case 't':
-			server_hawkbit.tenant = strdup(optarg);
-			mandatory_argument_count++;
+			SETSTRING(server_hawkbit.tenant, optarg);
+			mandatory_argument_count |= TENANT_BIT;
 			break;
 		case 'i':
-			server_hawkbit.device_id = strdup(optarg);
-			mandatory_argument_count++;
+			SETSTRING(server_hawkbit.device_id, optarg);
+			mandatory_argument_count |= ID_BIT;
 			break;
 		case 'c':
 			/* When no persistent update state storage is available,
@@ -940,8 +1005,8 @@ server_op_res_t server_start(int argc, char *argv[])
 			}
 			break;
 		case 'u':
-			server_hawkbit.url = strdup(optarg);
-			mandatory_argument_count++;
+			SETSTRING(server_hawkbit.url, optarg);
+			mandatory_argument_count |= URL_BIT;
 			break;
 		case 'p':
 			server_hawkbit.polling_interval =
@@ -979,7 +1044,7 @@ server_op_res_t server_start(int argc, char *argv[])
 			return SERVER_EINIT;
 		}
 	}
-	if (mandatory_argument_count != 3) {
+	if (mandatory_argument_count != ALL_MANDATORY_SET) {
 		fprintf(stderr, "Mandatory arguments missing!\n");
 		suricatta_print_help();
 		return SERVER_EINIT;

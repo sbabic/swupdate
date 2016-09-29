@@ -730,7 +730,7 @@ int main(int argc, char **argv)
 
 #if defined(CONFIG_SURICATTA)
 	if (opt_u) {
-		start_suricatta(argcount, argvalues);
+		start_suricatta(cfgfname, argcount, argvalues);
     }
 #endif
 

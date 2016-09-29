@@ -25,10 +25,10 @@
 #include "suricatta/suricatta.h"
 #include "suricatta/server.h"
 
-void start_suricatta(int argc, char *argv[])
+void start_suricatta(char *cfgfname, int argc, char *argv[])
 {
 	int action_id;
-	if (server.start(argc, argv) != SERVER_OK) {
+	if (server.start(cfgfname, argc, argv) != SERVER_OK) {
 		exit(EXIT_FAILURE);
 	}
 	TRACE("Server initialized, entering suricatta main loop.\n");
