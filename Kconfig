@@ -266,9 +266,17 @@ config DOWNLOAD
 comment "Image downloading support needs libcurl"
 	depends on !HAVE_LIBCURL
 
+config HASH_VERIFY
+	bool "Allow to add sha256 hash to each image"
+	depends on HAVE_LIBSSL
+	help
+	  Allow to add a sha256 hash to an artifact.
+	  This is automatically set in case of Signed Image
+
 config SIGNED_IMAGES
 	bool "Enable verification of signed images"
 	depends on HAVE_LIBSSL
+	select HASH_VERIFY
 comment "Image verification (signed images) needs libssl"
 	depends on !HAVE_LIBSSL
 

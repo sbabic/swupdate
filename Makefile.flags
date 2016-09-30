@@ -123,7 +123,7 @@ LDLIBS += json-c
 endif
 
 # signed images require openssl (digest)
-ifneq ($(CONFIG_SIGNED_IMAGES),)
+ifneq ($(CONFIG_HASH_VERIFY),)
 LDLIBS += crypto ssl
 endif
 

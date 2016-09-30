@@ -24,7 +24,7 @@
  * openSSL is not mandatory
  * Let compile when openSSL is not activated
  */
-#if defined(CONFIG_SIGNED_IMAGES) || defined(CONFIG_ENCRYPTED_IMAGES)
+#if defined(CONFIG_HASH_VERIFY) || defined(CONFIG_ENCRYPTED_IMAGES)
 
 #include <openssl/bio.h>
 #include <openssl/objects.h>
@@ -58,7 +58,7 @@ struct swupdate_digest {
 #define AES_BLOCK_SIZE	16
 #endif
 
-#if defined(CONFIG_SIGNED_IMAGES) 
+#if defined(CONFIG_HASH_VERIFY)
 int swupdate_dgst_init(struct swupdate_cfg *sw, const char *keyfile);
 struct swupdate_digest *swupdate_HASH_init(void);
 int swupdate_HASH_update(struct swupdate_digest *dgst, unsigned char *buf,
