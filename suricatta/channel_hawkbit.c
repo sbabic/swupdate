@@ -360,6 +360,9 @@ channel_op_res_t channel_set_options(channel_data_t *channel_data,
 			result = CHANNEL_EINIT;
 			goto cleanup;
 		}
+		if (channel_data->debug) {
+			TRACE("Post: %s\n", channel_data->json_string);
+		}
 		break;
 	}
 
@@ -723,6 +726,9 @@ channel_op_res_t channel_get(void *data)
 		      json_tokener_error_desc(json_res));
 		result = CHANNEL_EBADMSG;
 		goto cleanup_json_tokenizer;
+	}
+	if (channel_data->debug) {
+		TRACE("Get JSON: %s\n", chunk.memory);
 	}
 
 cleanup_json_tokenizer:
