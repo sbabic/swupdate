@@ -36,6 +36,7 @@
 #include "suricatta/state.h"
 #include "server_hawkbit.h"
 #include "parselib.h"
+#include "swupdate_settings.h"
 
 #define DEFAULT_POLLING_INTERVAL 45
 #define DEFAULT_RESUME_TRIES 5

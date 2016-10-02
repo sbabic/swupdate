@@ -76,6 +76,4 @@ void get_field(parsertype p, void *e, const char *path, void *dest);
 int exist_field_string(parsertype p, void *e, const char *path);
 void get_hash_value(parsertype p, void *elem, unsigned char *hash);
 
-int read_module_settings(char *filename, const char *module, settings_callback fcn, void *data);
-
 #endif

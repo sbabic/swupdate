@@ -2,7 +2,8 @@ lib-y				+= installer.o \
 				   network_thread.o \
 				   stream_interface.o \
 				   progress_thread.o \
-				   parsing_library.o
+				   parsing_library.o \
+				   artifacts_versions.o
 lib-$(CONFIG_DOWNLOAD)		+= downloader.o
 lib-$(CONFIG_MTD)		+= mtd-interface.o
 lib-$(CONFIG_LUA)		+= lua_interface.o

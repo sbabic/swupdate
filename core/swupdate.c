@@ -53,6 +53,7 @@
 #include "suricatta/suricatta.h"
 #include "progress.h"
 #include "parselib.h"
+#include "swupdate_settings.h"
 
 #define MODULE_NAME	"swupdate"
 
@@ -694,7 +695,7 @@ int main(int argc, char **argv)
 	}
 
 	/* Read sw-versions */
-	get_sw_versions(&swcfg);
+	get_sw_versions(cfgfname, &swcfg);
 
 	/*
 	 *  Do not start daemon if just a check is required

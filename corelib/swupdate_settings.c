@@ -36,6 +36,7 @@
 #include "util.h"
 #include "swupdate.h"
 #include "parselib.h"
+#include "swupdate_settings.h"
 
 static config_setting_t *find_settings_node(config_t *cfg,
 						const char *field)

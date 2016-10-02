@@ -46,6 +46,7 @@
 #include "network_ipc.h"
 #include "parselib.h"
 #include "util.h"
+#include "swupdate_settings.h"
 
 #ifdef USE_LUA
 #include <lua.h>
