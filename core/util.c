@@ -54,12 +54,12 @@ char *sdup(const char *str) {
 int fw_set_one_env (const char *name, const char *value)
 {
 
-	if (fw_env_open (NULL)) {
+	if (fw_env_open (fw_env_opts)) {
 		fprintf (stderr, "Error: environment not initialized\n");
 		return -1;
 	}
 	fw_env_write ((char *)name, (char *)value);
-	return fw_env_close (NULL);
+	return fw_env_close (fw_env_opts);
 }
 #else
 int fw_set_one_env (const char __attribute__ ((__unused__)) *name,

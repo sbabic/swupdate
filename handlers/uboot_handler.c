@@ -25,12 +25,17 @@
 #include <unistd.h>
 
 #include <mtd/mtd-user.h>
+#include "generated/autoconf.h"
 #include "swupdate.h"
 #include "handler.h"
 #include "fw_env.h"
 #include "util.h"
 
 static void uboot_handler(void);
+
+struct env_opts *fw_env_opts = &(struct env_opts) {
+	.config_file = (char *)CONFIG_UBOOT_FWENV
+};
 
 static int install_uboot_environment(struct img_type *img,
 	void __attribute__ ((__unused__)) *data)
@@ -54,7 +59,7 @@ static int install_uboot_environment(struct img_type *img,
 		close(fdout);
 	}
 
-	ret = fw_parse_script(filename, NULL);
+	ret = fw_parse_script(filename, fw_env_opts);
 
 	if (ret < 0)
 		snprintf(buf, sizeof(buf), "Error setting U-Boot environment");

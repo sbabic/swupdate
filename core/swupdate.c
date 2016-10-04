@@ -38,7 +38,6 @@
 #include "cpiohdr.h"
 #include "util.h"
 #include "swupdate.h"
-#include "fw_env.h"
 #include "parsers.h"
 #include "network_interface.h"
 #include "handler.h"

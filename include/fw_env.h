@@ -18,27 +18,17 @@
  * MA 02111-1307 USA
  */
 
-/*
- * To build the utility with the static configuration
- * comment out the next line.
- * See included "fw_env.config" sample file
- * for notes on configuration.
- */
-#ifndef CONFIG_UBOOT_FWENV
-#define CONFIG_UBOOT_ENV     "/etc/fw_env.config"
-#endif
-
 #include <stdint.h>
 
 #define AES_KEY_LENGTH  (128 / 8)
 
 struct env_opts {
-#ifdef CONFIG_FILE
         char *config_file;
-#endif
         int aes_flag; /* Is AES encryption used? */
         uint8_t aes_key[AES_KEY_LENGTH];
 };
+
+extern struct env_opts *fw_env_opts;
 
 int fw_parse_script(char *fname, struct env_opts *opts);
 char *fw_getenv(char *name);

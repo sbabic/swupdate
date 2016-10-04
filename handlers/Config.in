@@ -145,8 +145,7 @@ config UBOOT_FWENV
 	default "/etc/fw_env.config"
 	help
 	  This is the file described in U-Boot documentation
-	  in the tools directory. It tells to the user space
-	  where U-Boot environment is saved, that is, on which
-	  MTD device.
+	  in the tools directory. It tells where the U-Boot
+	  environment is saved.
 
 endmenu
