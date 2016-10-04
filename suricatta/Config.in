@@ -62,7 +62,7 @@ choice
 config SURICATTA_HAWKBIT
 	bool "hawkBit support"
 	depends on HAVE_LIBCURL
-	depends on HAVE_JSON_C
+	depends on JSON
 	help
 	  Support for hawkBit server.
 	  https://projects.eclipse.org/projects/iot.hawkbit
@@ -77,8 +77,11 @@ config SURICATTA_HAWKBIT_PROXY
 	  Proxy server to use for communication with hawkBit.
 	  Leave blank for no proxy usage.
 
-comment "hawkBit support needs curl and json-c"
-	depends on !HAVE_LIBCURL && !HAVE_JSON_C
+comment "hawkBit support needs libcurl and CONFIG_JSON=y"
+	depends on !HAVE_LIBCURL || !JSON
+
+comment "you have to choose one server implementation"
+	depends on !SURICATTA_HAWKBIT
 
 endmenu
 
