@@ -32,3 +32,27 @@ void notify(RECOVERY_STATUS status, int level, const char *msg)
 	(void)msg;
 	return;
 }
+
+typedef int (*settings_callback)(void *elem, void *data);
+typedef enum { LIBCFG_PARSER, JSON_PARSER } parsertype;
+
+int read_module_settings(char *filename, const char *module,
+			 settings_callback fcn, void *data)
+{
+	(void)filename;
+	(void)module;
+	(void)fcn;
+	(void)data;
+	return 0;
+}
+
+void get_field_string(parsertype p, void *e, const char *path, char *dest,
+		      size_t n)
+{
+	(void)p;
+	(void)e;
+	(void)path;
+	(void)dest;
+	(void)n;
+	return;
+}
