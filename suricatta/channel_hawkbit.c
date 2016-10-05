@@ -361,7 +361,7 @@ channel_op_res_t channel_set_options(channel_data_t *channel_data,
 			goto cleanup;
 		}
 		if (channel_data->debug) {
-			TRACE("Post: %s\n", channel_data->json_string);
+			TRACE("Post JSON: %s\n", channel_data->json_string);
 		}
 		break;
 	}
