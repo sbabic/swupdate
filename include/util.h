@@ -53,7 +53,7 @@ typedef void (*notifier) (RECOVERY_STATUS status, int level, const char *msg);
 
 #define swupdate_notify(status, format, level, arg...) do { \
 	if (loglevel >= level) { \
-		char tmpbuf[1024]; \
+		char tmpbuf[2048]; \
 		if (status == FAILURE) { \
 			if (loglevel >= DEBUGLEVEL) \
 				snprintf(tmpbuf, sizeof(tmpbuf), \

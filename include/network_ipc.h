@@ -40,7 +40,7 @@ typedef union {
 		int current;
 		int last_result;
 		int error;
-		char desc[1024];
+		char desc[2048];
 	} status;
 } msgdata;
 	
