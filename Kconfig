@@ -288,6 +288,8 @@ comment "Image verification (signed images) needs libssl"
 
 config SURICATTA
 	bool "Enable Suricatta Daemon Mode"
+	depends on HAVE_JSON_C
+	select JSON
 	default n
 	help
 	  Suricatta daemon mode regularly polls a remote server for
