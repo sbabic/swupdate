@@ -37,6 +37,7 @@
 #include "server_hawkbit.h"
 #include "parselib.h"
 #include "swupdate_settings.h"
+#include "swupdate_dict.h"
 
 #define DEFAULT_POLLING_INTERVAL 45
 #define DEFAULT_RESUME_TRIES 5
@@ -966,6 +967,34 @@ static int suricatta_settings(void *elem, void  __attribute__ ((__unused__)) *da
 
 }
 
+static int suricatta_configdata_settings(void *settings, void  __attribute__ ((__unused__)) *data)
+{
+	void *elem;
+	int count, i;
+	char name[80], value[80];
+
+	count = get_array_length(LIBCFG_PARSER, settings);
+
+	for(i = 0; i < count; ++i) {
+		elem = get_elem_from_idx(LIBCFG_PARSER, settings, i);
+
+		if (!elem)
+			continue;
+
+		if(!(exist_field_string(LIBCFG_PARSER, elem, "name")))
+			continue;
+		if(!(exist_field_string(LIBCFG_PARSER, elem, "value")))
+			continue;
+
+		GET_FIELD_STRING(LIBCFG_PARSER, elem, "name", name);
+		GET_FIELD_STRING(LIBCFG_PARSER, elem, "value", value);
+		dict_set_value(&server_hawkbit.configdata, name, value);
+		TRACE("Identify: %s --> %s\n",
+				name, value);
+	}
+
+	return 0;
+}
 
 server_op_res_t server_start(char *fname, int argc, char *argv[])
 {
@@ -974,10 +1003,14 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 
 	mandatory_argument_count = 0;
 
-	if (fname)
+	LIST_INIT(&server_hawkbit.configdata);
+
+	if (fname) {
 		read_module_settings(fname, "suricatta", suricatta_settings,
 					NULL);
-
+		read_module_settings(fname, "identify", suricatta_configdata_settings,
+					NULL);
+	}
 
 	/* reset to optind=1 to parse suricatta's argument vector */
 	optind = 1;
