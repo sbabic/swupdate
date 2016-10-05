@@ -99,6 +99,14 @@ void get_field_string_libconfig(config_setting_t *e, const char *path, void *des
 
 	if ( ( ( path) && (config_setting_lookup_string(e, path, &str))  ) ||
 	     ( (!path) && ((str = config_setting_get_string(e)) != NULL) ) ) {
+
+		if (!n) {
+			n = strlen(str);
+			dest = malloc(strlen(str) + 1);
+			if (!dest)
+				return;
+		}
+
 		strncpy(dest, str, n);
 		check_field_string(str, dest, n);
 	}
@@ -133,6 +141,14 @@ void get_field_string_json(json_object *e, const char *path, char *dest, size_t 
 	if (json_object_object_get_ex(e, path, &node) &&
 		(json_object_get_type(node) == json_type_string)) {
 		str = json_object_get_string(node);
+
+		if (!n) {
+			n = strlen(str);
+			dest = malloc(strlen(str) + 1);
+			if (!dest)
+				return;
+		}
+
 		strncpy(dest, str, n);
 		check_field_string(str, dest, n);
 	}

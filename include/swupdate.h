@@ -24,6 +24,7 @@
 #include "bsdqueue.h"
 #include "globals.h"
 #include "mongoose_interface.h"
+#include "swupdate_dict.h"
 
 /*
  * swupdate uses SHA256 hashes
@@ -100,14 +101,6 @@ enum {
 	SCRIPT_POSTINSTALL
 };
 
-struct uboot_var {
-	char varname[UBOOT_VAR_LENGTH];
-	char value[255];
-	LIST_ENTRY(uboot_var) next;
-};
-
-LIST_HEAD(ubootvarlist, uboot_var);
-
 struct swupdate_global_cfg {
 	int verbose;
 	char mtdblacklist[SWUPDATE_GENERAL_STRING_SIZE];
@@ -129,7 +122,7 @@ struct swupdate_cfg {
 	struct imglist images;
 	struct imglist partitions;
 	struct imglist scripts;
-	struct ubootvarlist uboot;
+	struct dictlist uboot;
 	void *dgst;	/* Structure for signed images */
 	struct swupdate_global_cfg globals;
 };

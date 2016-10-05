@@ -308,7 +308,7 @@ static void parse_uboot(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 {
 	void *setting, *elem;
 	int count, i;
-	struct uboot_var *uboot;
+	struct dict_entry *uboot;
 
 	setting = find_node(p, cfg, "uboot", swcfg);
 
@@ -330,14 +330,18 @@ static void parse_uboot(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 			continue;
 		}
 
-		uboot = (struct uboot_var *)calloc(1, sizeof(struct uboot_var));
+		uboot = (struct dict_entry *)calloc(1, sizeof(struct dict_entry));
 		if (!uboot) {
 			ERROR( "No memory: malloc failed\n");
 			return;
 		}
 
-		GET_FIELD_STRING(p, elem, "name", uboot->varname);
-		GET_FIELD_STRING(p, elem, "value", uboot->value);
+		/*
+		 * Call directly get_field_string with size 0
+		 * to let allocate the place for the strings
+		 */
+		get_field_string(p, elem, "name", uboot->varname, 0);
+		get_field_string(p, elem, "value", uboot->value, 0);
 		TRACE("U-Boot var: %s = %s\n",
 			uboot->varname,
 			uboot->value);
