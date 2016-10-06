@@ -46,6 +46,7 @@
 typedef enum {
 	CHANNEL_GET,
 	CHANNEL_POST,
+	CHANNEL_PUT,
 } channel_method_t;
 
 typedef struct {
@@ -87,6 +88,7 @@ channel_op_res_t channel_open(void);
 channel_op_res_t channel_get(void *data);
 channel_op_res_t channel_get_file(void *data);
 channel_op_res_t channel_post(void *data);
+channel_op_res_t channel_put(void *data);
 
 channel_op_res_t channel_close(void)
 {
@@ -352,6 +354,15 @@ channel_op_res_t channel_set_options(channel_data_t *channel_data,
 			goto cleanup;
 		}
 		break;
+	case CHANNEL_PUT:
+		if ((curl_easy_setopt(channel_curl.handle, CURLOPT_PUT, 1L) !=
+		     CURLE_OK) ||
+		     (curl_easy_setopt(channel_curl.handle, CURLOPT_UPLOAD, 1L) !=
+		      CURLE_OK)) {
+			result = CHANNEL_EINIT;
+			goto cleanup;
+		}
+		break;
 	case CHANNEL_POST:
 		if ((curl_easy_setopt(channel_curl.handle, CURLOPT_POST, 1L) !=
 		     CURLE_OK) ||
@@ -399,6 +410,26 @@ cleanup:
 	return result;
 }
 
+static size_t put_read_callback(void *ptr, size_t size, size_t nmemb, void *data)
+{
+	channel_data_t *channel_data = (channel_data_t *)data;
+	unsigned int bytes;
+	size_t n;
+
+	/* Check data to be sent */
+	bytes = strlen(channel_data->json_string) - channel_data->offs;
+
+	if (!bytes)
+		return 0;
+
+	n = min(bytes, size * nmemb);
+
+	memcpy(ptr, &channel_data->json_string[channel_data->offs], n);
+	channel_data->offs += n;
+
+	return n;
+}
+
 channel_op_res_t channel_post(void *data)
 {
 	assert(data != NULL);
@@ -425,6 +456,76 @@ channel_op_res_t channel_post(void *data)
 
 	if ((result = channel_set_options(channel_data, CHANNEL_POST)) !=
 	    CHANNEL_OK) {
+		ERROR("Set channel option failed.\n");
+		goto cleanup_header;
+	}
+
+	CURLcode curlrc = curl_easy_perform(channel_curl.handle);
+	if (curlrc != CURLE_OK) {
+		ERROR("Channel put operation failed (%d): '%s'\n", curlrc,
+		      curl_easy_strerror(curlrc));
+		result = channel_map_curl_error(curlrc);
+		goto cleanup_header;
+	}
+
+	channel_log_effective_url();
+
+	long http_response_code;
+	if ((result = channel_map_http_code(
+		 channel_curl.proxy == NULL ? false : true,
+		 &http_response_code)) != CHANNEL_OK) {
+		ERROR("Channel operation returned HTTP error code %ld.\n",
+		      http_response_code);
+		goto cleanup_header;
+	}
+	TRACE("Channel put operation returned HTTP error code %ld.\n",
+	      http_response_code);
+
+cleanup_header:
+	curl_easy_reset(channel_curl.handle);
+	curl_slist_free_all(channel_curl.header);
+	channel_curl.header = NULL;
+
+	return result;
+}
+
+channel_op_res_t channel_put(void *data)
+{
+	assert(data != NULL);
+	assert(channel_curl.handle != NULL);
+
+	channel_op_res_t result = CHANNEL_OK;
+	channel_data_t *channel_data = (channel_data_t *)data;
+	channel_data->offs = 0;
+
+	if (channel_data->debug) {
+		curl_easy_setopt(channel_curl.handle, CURLOPT_VERBOSE, 1L);
+	}
+
+	if (((channel_curl.header = curl_slist_append(
+		  channel_curl.header, "Content-Type: application/json")) ==
+	     NULL) ||
+	    ((channel_curl.header = curl_slist_append(
+		  channel_curl.header, "Accept: application/json")) == NULL) ||
+	    ((channel_curl.header = curl_slist_append(
+		  channel_curl.header, "charsets: utf-8")) == NULL)) {
+		ERROR("Set channel header failed.\n");
+		result = CHANNEL_EINIT;
+		goto cleanup_header;
+	}
+
+	if ((result = channel_set_options(channel_data, CHANNEL_PUT)) !=
+	    CHANNEL_OK) {
+		ERROR("Set channel option failed.\n");
+		goto cleanup_header;
+	}
+
+	if ((curl_easy_setopt(channel_curl.handle, CURLOPT_READFUNCTION, put_read_callback) !=
+		CURLE_OK) ||
+	   (curl_easy_setopt(channel_curl.handle, CURLOPT_INFILESIZE_LARGE, strlen(channel_data->json_string)) !=
+		CURLE_OK) ||
+	   (curl_easy_setopt(channel_curl.handle, CURLOPT_READDATA, channel_data) !=
+			CURLE_OK)) {
 		ERROR("Set channel option failed.\n");
 		goto cleanup_header;
 	}

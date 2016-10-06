@@ -39,6 +39,7 @@ typedef struct {
 	char *sslkey;
 	char *sslcert;
 	unsigned int retry_sleep;
+	unsigned int offs;
 	unsigned char retries;
 	bool debug;
 	bool strictssl;

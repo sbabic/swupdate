@@ -34,6 +34,8 @@ typedef struct {
 	unsigned int polling_interval;
 	bool debug;
 	struct dictlist configdata;
+	bool has_to_send_configData;
+	char *configData_url;
 } server_hawkbit_t;
 
 extern server_hawkbit_t server_hawkbit;

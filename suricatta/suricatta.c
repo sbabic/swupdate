@@ -38,6 +38,9 @@ void start_suricatta(char *cfgfname, int argc, char *argv[])
 			DEBUG("About to process available update.\n");
 			server.install_update();
 			break;
+		case SERVER_ID_REQUESTED:
+			server.send_target_data();
+			break;
 		case SERVER_EINIT:
 			break;
 		case SERVER_OK:

@@ -99,6 +99,7 @@ int server_update_done_callback(RECOVERY_STATUS status);
 server_op_res_t server_process_update_artifact(json_object *json_data_artifact);
 void suricatta_print_help(void);
 server_op_res_t server_set_polling_interval(json_object *json_root);
+server_op_res_t server_set_config_data(json_object *json_root);
 server_op_res_t
 server_send_deployment_reply(const int action_id, const int job_cnt_max,
 			     const int job_cnt_cur, const char *finished,
@@ -122,6 +123,7 @@ server_op_res_t server_has_pending_action(int *action_id);
 server_op_res_t server_stop(void);
 server_op_res_t server_start(char *fname, int argc, char *argv[]);
 server_op_res_t server_install_update(void);
+server_op_res_t server_send_target_data(void);
 unsigned int server_get_polling_interval(void);
 
 json_object *json_get_key(json_object *json_root, const char *key)
@@ -361,6 +363,23 @@ unsigned int server_get_polling_interval(void)
 	return server_hawkbit.polling_interval;
 }
 
+
+server_op_res_t server_set_config_data(json_object *json_root)
+{
+	char *tmp;
+
+	tmp = json_get_data_url(json_root, "configData");
+
+	if (tmp != NULL) {
+		if (server_hawkbit.configData_url)
+			free(server_hawkbit.configData_url);
+		server_hawkbit.configData_url = tmp;
+		server_hawkbit.has_to_send_configData = true;
+		TRACE("ConfigData: %s\n", server_hawkbit.configData_url);
+	}
+	return SERVER_OK;
+}
+
 static server_op_res_t server_get_device_info(channel_data_t *channel_data)
 {
 	assert(channel_data != NULL);
@@ -386,6 +405,12 @@ static server_op_res_t server_get_device_info(channel_data_t *channel_data)
 	    SERVER_OK) {
 		goto cleanup;
 	}
+
+	if ((result = server_set_config_data(channel_data->json_reply)) !=
+	    SERVER_OK) {
+		goto cleanup;
+	}
+
 cleanup:
 	if (channel_data->url != NULL) {
 		free(channel_data->url);
@@ -419,8 +444,13 @@ static server_op_res_t server_get_deployment_info(channel_data_t *channel_data,
 		channel_data->url = url_deployment_base;
 		TRACE("Update action available at %s\n", url_deployment_base);
 	} else {
-		TRACE("No pending action on server.\n");
-		result = SERVER_NO_UPDATE_AVAILABLE;
+		if (server_hawkbit.has_to_send_configData) {
+			result = SERVER_ID_REQUESTED;
+			TRACE("No pending action on server, send configData.\n");
+		} else {
+			TRACE("No pending action on server.\n");
+			result = SERVER_NO_UPDATE_AVAILABLE;
+		}
 		goto cleanup;
 	}
 	if ((result = map_channel_retcode(channel.get((void *)channel_data))) !=
@@ -457,6 +487,7 @@ cleanup:
 
 server_op_res_t server_has_pending_action(int *action_id)
 {
+
 	channel_data_t channel_data = channel_data_defaults;
 	server_op_res_t result =
 	    server_get_deployment_info(&channel_data, action_id);
@@ -526,6 +557,7 @@ server_op_res_t server_handle_initial_state(update_state_t stateovrrd)
 	    server_get_deployment_info(&channel_data, &action_id);
 	switch (result) {
 	case SERVER_OK:
+	case SERVER_ID_REQUESTED:
 	case SERVER_UPDATE_CANCELED:
 	case SERVER_NO_UPDATE_AVAILABLE:
 		DEBUG("No active update available, nothing to report to "
@@ -720,6 +752,7 @@ server_op_res_t server_install_update(void)
 	switch (result) {
 	case SERVER_UPDATE_CANCELED:
 	case SERVER_UPDATE_AVAILABLE:
+	case SERVER_ID_REQUESTED:
 	case SERVER_OK:
 		break;
 	case SERVER_EERR:
@@ -898,6 +931,109 @@ cleanup:
 	return result;
 }
 
+server_op_res_t server_send_target_data(void)
+{
+	struct dict_entry *entry;
+	bool first = true;
+	int len = 0;
+	server_op_res_t result = SERVER_OK;
+
+	LIST_FOREACH(entry, &server_hawkbit.configdata, next) {
+		len += strlen(entry->varname) + strlen(entry->value) + strlen (" : ") + 6;
+	}
+
+	if (!len)
+		return SERVER_OK;
+
+	char *configData = (char *)(malloc(len + 16));
+	memset(configData, 0, len + 16);
+
+	static const char* const config_data = STRINGIFY(
+		%c"%s": "%s"
+	);
+
+	char *keyvalue = NULL;
+	LIST_FOREACH(entry, &server_hawkbit.configdata, next) {
+		if (ENOMEM_ASPRINTF ==
+		    asprintf(&keyvalue, config_data,
+				((first) ? ' ' : ','),
+				entry->varname,
+				entry->value)) {
+			ERROR("hawkBit server reply cannot be sent because of OOM.\n");
+			result = SERVER_EINIT;
+			goto cleanup;
+		}
+		first = false;
+		TRACE("KEYVALUE=%s %s %s", keyvalue, entry->varname, entry->value);
+		strcat(configData, keyvalue);
+		free(keyvalue);
+
+	}
+
+	TRACE("CONFIGDATA=%s", configData);
+
+	static const char* const json_hawkbit_config_data = STRINGIFY(
+	{
+		"id": "%s",
+		"time": "%s",
+		"status": {
+			"result": {
+				"finished": "%s"
+			},
+			"execution": "%s",
+			"details" : [ "%s" ]
+		},
+		"data" : {
+			%s
+		}
+	}
+	);
+
+	char *url = NULL;
+	char *json_reply_string = NULL;
+	channel_data_t channel_data_reply = channel_data_defaults;
+	char fdate[15 + 1];
+	time_t now = time(NULL) == (time_t)-1 ? 0 : time(NULL);
+	(void)strftime(fdate, sizeof(fdate), "%Y%m%dT%H%M%S", localtime(&now));
+
+	if (ENOMEM_ASPRINTF ==
+	    asprintf(&json_reply_string, json_hawkbit_config_data,
+		     "", fdate, reply_status_result_finished.success,
+		     reply_status_execution.closed,
+		     "", configData)) {
+		ERROR("hawkBit server reply cannot be sent because of OOM.\n");
+		result = SERVER_EINIT;
+		goto cleanup;
+	}
+	if (ENOMEM_ASPRINTF ==
+	    asprintf(&url, "%s/%s/controller/v1/%s/configData",
+		     server_hawkbit.url, server_hawkbit.tenant,
+		     server_hawkbit.device_id)) {
+		ERROR("hawkBit server reply cannot be sent because of OOM.\n");
+		result = SERVER_EINIT;
+		goto cleanup;
+	}
+
+	channel_data_reply.url = url;
+	channel_data_reply.json_string = json_reply_string;
+	TRACE("URL=%s JSON=%s", channel_data_reply.url, channel_data_reply.json_string);
+	result = map_channel_retcode(channel.put((void *)&channel_data_reply));
+
+	if (result == SERVER_OK)
+		server_hawkbit.has_to_send_configData = false;
+
+cleanup:
+
+	free(configData);
+	if (url != NULL)
+		free(url);
+
+	if (json_reply_string)
+		free(json_reply_string);
+
+	return result;
+}
+
 void suricatta_print_help(void)
 {
 	fprintf(
@@ -989,7 +1125,7 @@ static int suricatta_configdata_settings(void *settings, void  __attribute__ ((_
 		GET_FIELD_STRING(LIBCFG_PARSER, elem, "name", name);
 		GET_FIELD_STRING(LIBCFG_PARSER, elem, "value", value);
 		dict_set_value(&server_hawkbit.configdata, name, value);
-		TRACE("Identify: %s --> %s\n",
+		TRACE("Identify for configData: %s --> %s\n",
 				name, value);
 	}
 
