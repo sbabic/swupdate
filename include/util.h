@@ -112,14 +112,6 @@ int IsValidHash(const unsigned char *hash);
 		typeof(b) _b = b;\
 		_a < _b ? _a : _b; })
 
-
-int gpio_export(int gpio);
-int gpio_unexport(int gpio);
-int gpio_direction_input(int gpio_number);
-int gpio_direction_output(int gpio_number, int value);
-int gpio_set_value(int gpio_number, int value);
-int gpio_get_value(int gpio_number);
-
 char *sdup(const char *str);
 
 /*

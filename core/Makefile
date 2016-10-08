@@ -10,7 +10,6 @@
 
 obj-y += swupdate.o \
 	 cpio_utils.o \
-	 gpio.o \
 	 notifier.o \
 	 handler.o \
 	 util.o \
