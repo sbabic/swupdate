@@ -737,7 +737,7 @@ server_op_res_t server_install_update(void)
 	if (strncmp(json_object_get_string(json_deployment_update_action),
 		    deployment_update_action.forced,
 		    strlen(deployment_update_action.forced)) == 0) {
-		INFO("Update classified as 'FORCEd' by server.");
+		INFO("Update classified as 'FORCED' by server.");
 	} else if (strncmp(
 		       json_object_get_string(json_deployment_update_action),
 		       deployment_update_action.attempt,
