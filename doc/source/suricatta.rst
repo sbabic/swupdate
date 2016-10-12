@@ -34,26 +34,14 @@ support,
 
 .. code::
 
-  ./swupdate --suricatta --help
-  [...]
-  Arguments (mandatory arguments are marked with '*'):
-  -t, --tenant      * Set hawkBit tenant ID for this device.
-  -u, --url         * Host and port of the hawkBit instance, e.g., localhost:8080
-  -i, --id          * The device ID to communicate to hawkBit.
-  -c, --confirm       Confirm update status to server: 1=AGAIN, 2=SUCCESS, 3=FAILED
-  -x, --nocheckcert   Do not abort on flawed server certificates.
-  -p, --polldelay     Delay in seconds between two hawkBit poll operations (default: 45s).
-  -r, --retry         Resume and retry interrupted downloads (default: 5 tries).
-  -w, --retrywait     Time to wait between prior to retry and resume a download (default: 5s).
-  -l, --loglevel      set log level (0=OFF, ..., 5=TRACE)
-  -v, --verbose       Verbose operation, i.e., loglevel=TRACE
+  ./swupdate --help
 
 lists the mandatory and optional arguments to be provided to suricatta
 when using hawkBit as server. As an example,
 
 .. code:: bash
 
-    ./swupdate -u '-t default -u http://10.0.0.2:8080 -i 25 -l 5'
+    ./swupdate -l 5 -u '-t default -u http://10.0.0.2:8080 -i 25'
 
 runs SWUpdate in suricatta daemon mode with log-level ``TRACE``, polling
 a hawkBit instance at ``http://10.0.0.2:8080`` with tenant ``default``
