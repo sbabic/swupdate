@@ -17,23 +17,11 @@
  * Foundation, Inc.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
 #include <unistd.h>
-#include <string.h>
-#include <getopt.h>
-#include <errno.h>
-#include <ctype.h>
-#include <sys/types.h>
-#include <fcntl.h>
 
 #include "generated/autoconf.h"
-#include "bsdqueue.h"
 #include "cpiohdr.h"
 #include "util.h"
-#include "swupdate.h"
-#include "parsers.h"
 #include "sslapi.h"
 #include "progress.h"
 
