@@ -28,22 +28,13 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
  * MA 02111-1307 USA
  */
-
-#include <sys/types.h>
 #include <stdio.h>
-#include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <errno.h>
-#include <math.h>
-#include <string.h>
-#include <stdarg.h>
-#include <stdint.h>
-#include <ctype.h>
 #include <linux/version.h>
-#include <time.h>
 #include <sys/ioctl.h>
 
 #include <mtd/mtd-user.h>
