@@ -22,6 +22,7 @@
 #define _UTIL_H
 
 #include <stdint.h>
+#include <string.h>
 #include "swupdate.h"
 #include "swupdate_status.h"
 
