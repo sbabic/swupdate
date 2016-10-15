@@ -19,15 +19,12 @@
  * MA 02111-1307 USA
  */
 
-#include <sys/types.h>
 #include <stdio.h>
-#include <sys/stat.h>
 #include <sys/mount.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdlib.h>
 #include <errno.h>
-#include <string.h>
 
 #include "swupdate.h"
 #include "handler.h"
