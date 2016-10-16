@@ -19,14 +19,9 @@
  * MA 02111-1307 USA
  */
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <getopt.h>
-#include <errno.h>
-#include <sys/ioctl.h>
-#include <fcntl.h>
 #include "swupdate.h"
 #include "handler.h"
 #include "lua_util.h"
