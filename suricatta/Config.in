@@ -1,7 +1,7 @@
 menu "Suricatta"
-depends on SURICATTA
 
 menu "Features"
+depends on SURICATTA
 config SURICATTA_SSL
 	bool "SSL support"
 	default n
@@ -63,9 +63,15 @@ config SURICATTA_HAWKBIT
 	bool "hawkBit support"
 	depends on HAVE_LIBCURL
 	depends on JSON
+	select SURICATTA
 	help
 	  Support for hawkBit server.
 	  https://projects.eclipse.org/projects/iot.hawkbit
+
+config SURICATTA_SERVER_NONE
+	bool "None"
+	help
+	  Do not start suricatta mode
 
 endchoice
 
@@ -79,9 +85,6 @@ config SURICATTA_HAWKBIT_PROXY
 
 comment "hawkBit support needs libcurl and CONFIG_JSON=y"
 	depends on !HAVE_LIBCURL || !JSON
-
-comment "you have to choose one server implementation"
-	depends on !SURICATTA_HAWKBIT
 
 endmenu
 
