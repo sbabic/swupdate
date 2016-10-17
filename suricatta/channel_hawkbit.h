@@ -35,13 +35,13 @@ typedef struct {
 	char *url;
 	char *json_string;
 	json_object *json_reply;
-	bool debug;
-	unsigned char retries;
-	bool strictssl;
-	unsigned int retry_sleep;
 	char *cafile;
 	char *sslkey;
 	char *sslcert;
+	unsigned int retry_sleep;
+	unsigned char retries;
+	bool debug;
+	bool strictssl;
 #ifdef CONFIG_SURICATTA_SSL
 	char sha1hash[SHA_DIGEST_LENGTH * 2 + 1];
 #endif
