@@ -86,7 +86,7 @@ channel_op_res_t channel_close(void);
 channel_op_res_t channel_open(void);
 channel_op_res_t channel_get(void *data);
 channel_op_res_t channel_get_file(void *data);
-channel_op_res_t channel_put(void *data);
+channel_op_res_t channel_post(void *data);
 
 channel_op_res_t channel_close(void)
 {
@@ -399,7 +399,7 @@ cleanup:
 	return result;
 }
 
-channel_op_res_t channel_put(void *data)
+channel_op_res_t channel_post(void *data)
 {
 	assert(data != NULL);
 	assert(channel_curl.handle != NULL);

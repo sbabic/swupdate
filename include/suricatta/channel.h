@@ -29,6 +29,7 @@
 
 extern channel_op_res_t channel_open(void);
 extern channel_op_res_t channel_close(void);
+extern channel_op_res_t channel_post(void *data);
 extern channel_op_res_t channel_put(void *data);
 extern channel_op_res_t channel_get(void *data);
 extern channel_op_res_t channel_get_file(void *data);
@@ -38,9 +39,11 @@ static struct channel_t {
 	channel_op_res_t (*close)(void);
 	channel_op_res_t (*get)(void *data);
 	channel_op_res_t (*get_file)(void *data);
+	channel_op_res_t (*post)(void *data);
 	channel_op_res_t (*put)(void *data);
 } channel = {.open = &channel_open,
 	     .close = &channel_close,
 	     .get = &channel_get,
 	     .get_file = &channel_get_file,
+	     .post = &channel_post,
 	     .put = &channel_put};
