@@ -66,20 +66,26 @@ int dict_set_value(struct dictlist *dictionary, char *key, char *value)
 		free(entry);
 	}
 
-	entry = (struct dict_entry *)malloc(sizeof(*entry) + strlen(key) + strlen(value) + 2);
+	entry = (struct dict_entry *)malloc(sizeof(*entry));
 
 	if (!entry)
 		return -ENOMEM;
 
-	entry->varname = (char *)entry + sizeof(*entry);
-	entry->value = entry->varname + strlen(key) + 1;
-	printf("Entry: %p %p %p\n", entry, entry->varname, entry->value);
-	strncpy(entry->varname, key, strlen(key));
-	strncpy(entry->value, value, strlen(value));
+	memset(entry, 0, sizeof(*entry));
+	entry->varname = strdup(key);
+	entry->value = strdup(value);
 
 	LIST_INSERT_HEAD(dictionary, entry, next);
 
 	return 0;
+}
+
+void dict_remove_entry(struct dict_entry *entry)
+{
+	LIST_REMOVE(entry, next);
+	free(entry->varname);
+	free(entry->value);
+	free(entry);
 }
 
 void dict_remove(struct dictlist *dictionary, char *key)
@@ -89,7 +95,6 @@ void dict_remove(struct dictlist *dictionary, char *key)
 
 	if (!entry)
 		return;
-	LIST_REMOVE(entry, next);
-	free(entry);
-}
 
+	dict_remove_entry(entry);
+}

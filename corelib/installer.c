@@ -383,8 +383,7 @@ void cleanup_files(struct swupdate_cfg *software) {
 		free(img);
 	}
 	LIST_FOREACH(ubootvar, &software->uboot, next) {
-		LIST_REMOVE(ubootvar, next);
-		free(ubootvar);
+		dict_remove_entry(ubootvar);
 	}
 
 	LIST_FOREACH(hw, &software->hardware, next) {
