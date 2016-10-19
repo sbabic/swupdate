@@ -48,6 +48,18 @@ a hawkBit instance at ``http://10.0.0.2:8080`` with tenant ``default``
 and device ID ``25``.
 
 
+Note that initially and after having installed an update, suricatta
+tries to report the update status to its upstream server, e.g.,
+hawkBit, prior to entering the main loop awaiting further updates.
+If this initial report fails, e.g., because of a not (yet) configured
+network or a currently unavailable hawkBit server, swupdate may exit
+with an according error code. This behavior allows to, for example,
+try several upstream servers sequentially.
+If suricatta should keep retrying until the update status is reported
+to its upstream server irrespective of the error conditions, this has
+to be realized externally in terms of restarting swupdate on exit.
+
+
 Supporting different Servers
 ----------------------------
 
