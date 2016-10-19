@@ -17,7 +17,10 @@
  * Foundation, Inc.
  */
 
+#include <stdlib.h>
+#include <stdio.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include "generated/autoconf.h"
 #include "cpiohdr.h"

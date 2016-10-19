@@ -20,8 +20,10 @@
  */
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <unistd.h>
 #include <string.h>
+
 #include "swupdate.h"
 #include "handler.h"
 #include "lua_util.h"
