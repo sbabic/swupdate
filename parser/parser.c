@@ -233,7 +233,7 @@ static void parse_partitions(parsertype p, void *cfg, struct swupdate_cfg *swcfg
 
 		partition->provided = 1;
 
-		if (!partition->volname || !partition->device) {
+		if (!strlen(partition->volname) || !strlen(partition->device)) {
 			ERROR("Partition incompleted in description file");
 			return;
 		}
