@@ -81,7 +81,7 @@ static unsigned short mandatory_argument_count = 0;
  */
 #define TENANT_BIT	1
 #define ID_BIT		2
-#define URL_BIT		2
+#define URL_BIT		4
 #define ALL_MANDATORY_SET	(TENANT_BIT | ID_BIT | URL_BIT)
 
 
