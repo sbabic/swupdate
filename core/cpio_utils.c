@@ -53,7 +53,7 @@ static int get_cpiohdr(unsigned char *buf, long *size, long *namesize, long *chk
 int fill_buffer(int fd, unsigned char *buf, int nbytes, unsigned long *offs,
 	uint32_t *checksum, void *dgst)
 {
-	unsigned long len;
+	ssize_t len;
 	unsigned long count = 0;
 	int i;
 
