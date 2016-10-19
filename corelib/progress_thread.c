@@ -124,6 +124,7 @@ void swupdate_progress_inc_step(char *image)
 	prbar->msg.cur_percent = 0;
 	strncpy(prbar->msg.cur_image, image, sizeof(prbar->msg.cur_image));
 	prbar->step_running = true;
+	prbar->msg.status = RUN;
 	send_progress_msg();
 	pthread_mutex_unlock(&prbar->lock);
 }
@@ -133,6 +134,7 @@ void swupdate_progress_step_completed(void)
 	struct swupdate_progress *prbar = &progress;
 	pthread_mutex_lock(&prbar->lock);
 	prbar->step_running = false;
+	prbar->msg.status = IDLE;
 	pthread_mutex_unlock(&prbar->lock);
 }
 
@@ -144,6 +146,11 @@ void swupdate_progress_end(RECOVERY_STATUS status)
 	prbar->msg.status = status;
 	send_progress_msg();
 	pthread_mutex_unlock(&prbar->lock);
+}
+
+void swupdate_progress_done(void)
+{
+	swupdate_progress_end(DONE);
 }
 
 void *progress_bar_thread (void __attribute__ ((__unused__)) *data)

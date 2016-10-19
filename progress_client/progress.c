@@ -90,9 +90,11 @@ static void psplash_progress(char *pipe, struct progress_msg *pmsg)
 	if (!buf)
 		return;
 
-	if (pmsg->status != START) {
+	switch (pmsg->status) {
+	case SUCCESS:
+	case FAILURE:
 		snprintf(buf, PSPLASH_MSG_SIZE - 1, "MSG %s",
-			pmsg->status == SUCCESS ? "SUCCESS" : "FAILURE");
+			 pmsg->status == SUCCESS ? "SUCCESS" : "FAILURE");
 		psplash_write_fifo(pipe, buf);
 
 		sleep(5);
@@ -101,6 +103,12 @@ static void psplash_progress(char *pipe, struct progress_msg *pmsg)
 		psplash_write_fifo(pipe, buf);
 		free(buf);
 		return;
+		break;
+	case DONE:
+		return;
+		break;
+	default:
+		break;
 	}
 
 	snprintf(buf, PSPLASH_MSG_SIZE - 1, "MSG step %d of %d",
@@ -179,11 +187,20 @@ int main(void) {
 			percent = msg.cur_percent;
 		}
 
-		if (msg.status != START) {
-			fprintf(stdout, "\n\n%s !\n", msg.status == SUCCESS ? "SUCCESS" : "FAILURE");
+		switch (msg.status) {
+		case SUCCESS:
+		case FAILURE:
+			fprintf(stdout, "\n\n%s !\n", msg.status == SUCCESS
+							  ? "SUCCESS"
+							  : "FAILURE");
 			psplash_progress(psplash_pipe_path, &msg);
 			psplash_ok = 0;
+			break;
+		case DONE:
+			fprintf(stdout, "\nDONE.\n");
+			break;
+		default:
+			break;
 		}
-
 	}
 }

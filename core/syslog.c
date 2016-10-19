@@ -41,6 +41,7 @@ void syslog_notifier(RECOVERY_STATUS status, int error, const char *msg)
       case RUN: statusMsg = "RUN"; break;
       case SUCCESS: statusMsg = "SUCCESS"; break;
       case FAILURE: statusMsg = "FAILURE"; break;
+      case DONE: statusMsg = "DONE"; break;
       default: statusMsg = "UNKNOWN"; break;
    }
 

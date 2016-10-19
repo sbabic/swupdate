@@ -82,6 +82,9 @@ static void console_notifier (RECOVERY_STATUS status, int error, const char *msg
 	case FAILURE:
 		snprintf(current, sizeof(current), "SWUPDATE failed [%d]", error);
 		break;
+	case DONE:
+		strncpy(current, "SWUPDATE done : ", sizeof(current));
+		break;
 	}
 
 	fprintf(stdout, "[NOTIFY] : %s %s\n", current, msg ? msg : "");

@@ -46,6 +46,7 @@ void swupdate_progress_update(unsigned int perc);
 void swupdate_progress_inc_step(char *image);
 void swupdate_progress_step_completed(void);
 void swupdate_progress_end(RECOVERY_STATUS status);
+void swupdate_progress_done(void);
 
 void *progress_bar_thread (void *data);
 

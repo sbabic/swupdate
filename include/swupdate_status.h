@@ -23,11 +23,9 @@
 #define _SWUPDATE_STATUS_H
 
 /*
- * this is used to send back the result of an update
- * It is part of the API of the Webserver, and it is
- * strictly forbidden to change the order of entries.
- * New values should be put at the end without
- * altering the order.
+ * This is used to send back the result of an update.
+ * It is strictly forbidden to change the order of entries.
+ * New values should be put at the end without altering the order.
  */
 
 typedef enum {
@@ -37,6 +35,7 @@ typedef enum {
 	SUCCESS,
 	FAILURE,
 	DOWNLOAD,
+	DONE,
 } RECOVERY_STATUS;
 
 #endif

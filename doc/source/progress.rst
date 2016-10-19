@@ -40,7 +40,7 @@ back after any change in the update process with the following data
 The single fields have the following meaning:
 
         - *magic* is not yet used, it could be added for simply verification of the frame.
-        - *status* is one of the values in swupdate_status.h (START, RUN, SUCCESS, FAILURE, DOWNLOAD).
+        - *status* is one of the values in swupdate_status.h (START, RUN, SUCCESS, FAILURE, DOWNLOAD, DONE).
         - *dwl_percent* is the percentage of downloaded data when status = DOWNLOAD.
         - *nsteps* is the total number of installers (handlers) to be run.
         - *cur_step* is the index of the running handler. cur_step is in the range 1..nsteps

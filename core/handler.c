@@ -175,6 +175,7 @@ static int luaopen_swupdate(lua_State *L) {
 	lua_push_enum(L, "SUCCESS", SUCCESS);
 	lua_push_enum(L, "FAILURE", FAILURE);
 	lua_push_enum(L, "DOWNLOAD", DOWNLOAD);
+	lua_push_enum(L, "DONE", DONE);
 	lua_settable(L, -3);
 
 	return 1;
