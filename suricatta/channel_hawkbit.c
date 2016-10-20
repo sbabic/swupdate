@@ -478,7 +478,7 @@ channel_op_res_t channel_post(void *data)
 		      http_response_code);
 		goto cleanup_header;
 	}
-	TRACE("Channel put operation returned HTTP error code %ld.\n",
+	TRACE("Channel put operation returned HTTP status code %ld.\n",
 	      http_response_code);
 
 cleanup_header:
@@ -705,7 +705,7 @@ channel_op_res_t channel_get_file(void *data)
 		      http_response_code);
 		goto cleanup_file;
 	}
-	TRACE("Channel operation returned HTTP error code %ld.\n",
+	TRACE("Channel operation returned HTTP status code %ld.\n",
 	      http_response_code);
 
 	if (result_channel_callback_write_file != CHANNEL_OK) {
@@ -811,7 +811,7 @@ channel_op_res_t channel_get(void *data)
 		}
 		goto cleanup_chunk;
 	}
-	TRACE("Channel operation returned HTTP error code %ld.\n",
+	TRACE("Channel operation returned HTTP status code %ld.\n",
 	      http_response_code);
 
 	assert(channel_data->json_reply == NULL);
