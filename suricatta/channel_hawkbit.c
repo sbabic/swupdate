@@ -43,12 +43,6 @@
 #define EXPANDTOKL2(token) token
 #define EXPANDTOK(token) EXPANDTOKL2(token)
 
-typedef enum {
-	CHANNEL_GET,
-	CHANNEL_POST,
-	CHANNEL_PUT,
-} channel_method_t;
-
 typedef struct {
 	char *memory;
 	size_t size;
@@ -430,7 +424,7 @@ static size_t put_read_callback(void *ptr, size_t size, size_t nmemb, void *data
 	return n;
 }
 
-channel_op_res_t channel_post(void *data)
+static channel_op_res_t channel_post_method(void *data)
 {
 	assert(data != NULL);
 	assert(channel_curl.handle != NULL);
@@ -489,7 +483,7 @@ cleanup_header:
 	return result;
 }
 
-channel_op_res_t channel_put(void *data)
+static channel_op_res_t channel_put_method(void *data)
 {
 	assert(data != NULL);
 	assert(channel_curl.handle != NULL);
@@ -557,6 +551,24 @@ cleanup_header:
 	channel_curl.header = NULL;
 
 	return result;
+}
+
+channel_op_res_t channel_post(void *data)
+{
+	assert(data != NULL);
+	assert(channel_curl.handle != NULL);
+
+	channel_data_t *channel_data = (channel_data_t *)data;
+
+	switch (channel_data->method) {
+	case CHANNEL_PUT:
+		return channel_put_method(data);
+	case CHANNEL_POST:
+		return channel_post_method(data);
+	default:
+		TRACE("Channel method (POST, PUT) is not set !\n");
+		return CHANNEL_EINIT;
+	}
 }
 
 channel_op_res_t channel_get_file(void *data)

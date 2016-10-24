@@ -31,6 +31,12 @@
  * and unit tests only.
  */
 
+typedef enum {
+	CHANNEL_GET,
+	CHANNEL_POST,
+	CHANNEL_PUT,
+} channel_method_t;
+
 typedef struct {
 	char *url;
 	char *json_string;
@@ -40,6 +46,7 @@ typedef struct {
 	char *sslcert;
 	unsigned int retry_sleep;
 	unsigned int offs;
+	unsigned int method;
 	unsigned char retries;
 	bool debug;
 	bool strictssl;
