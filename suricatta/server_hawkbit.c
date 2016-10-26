@@ -241,7 +241,7 @@ server_op_res_t server_send_cancel_reply(const int action_id)
 	channel_data_reply.url = url;
 	channel_data_reply.json_string = json_reply_string;
 	channel_data_reply.method = CHANNEL_POST;
-	result = map_channel_retcode(channel.post((void *)&channel_data_reply));
+	result = map_channel_retcode(channel.put((void *)&channel_data_reply));
 
 cleanup:
 	if (url != NULL) {
@@ -316,7 +316,7 @@ server_send_deployment_reply(const int action_id, const int job_cnt_max,
 	channel_data.json_string = json_reply_string;
 	TRACE("PUTing to %s: %s\n", channel_data.url, channel_data.json_string);
 	channel_data.method = CHANNEL_POST;
-	result = map_channel_retcode(channel.post((void *)&channel_data));
+	result = map_channel_retcode(channel.put((void *)&channel_data));
 
 cleanup:
 	if (url != NULL) {
@@ -1020,7 +1020,7 @@ server_op_res_t server_send_target_data(void)
 	channel_data_reply.json_string = json_reply_string;
 	TRACE("URL=%s JSON=%s", channel_data_reply.url, channel_data_reply.json_string);
 	channel_data_reply.method = CHANNEL_PUT;
-	result = map_channel_retcode(channel.post((void *)&channel_data_reply));
+	result = map_channel_retcode(channel.put((void *)&channel_data_reply));
 
 	if (result == SERVER_OK)
 		server_hawkbit.has_to_send_configData = false;
