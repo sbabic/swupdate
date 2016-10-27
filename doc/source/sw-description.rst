@@ -543,6 +543,9 @@ There are 4 main sections inside sw-description:
   be run twice (as pre- and post- install scripts).
 - uboot: entries are pair with U-Boot variable name and its value.
 
+.. table:: Attributes
+        ::widths: grid
+
 +-------------+----------+------------+---------------------------------------+
 |  Name       |  Type    | Applies to |  Description                          |
 +=============+==========+============+=======================================+
@@ -586,7 +589,7 @@ There are 4 main sections inside sw-description:
 |             |          |            | decompressed before beeing installed  |
 +-------------+----------+------------+---------------------------------------+
 | installed-  | bool     | images     | flag to indicate that image is        |
-|  directly   |          |            | streamed into the target without any  |
+| directly    |          |            | streamed into the target without any  |
 |             |          |            | temporary copy. Not all handlers      |
 |             |          |            | support streaming.                    |
 +-------------+----------+------------+---------------------------------------+
@@ -605,11 +608,11 @@ There are 4 main sections inside sw-description:
 |             |          |            | compared with the entries in          |
 |             |          |            | sw-versions                           |
 +-------------+----------+------------+---------------------------------------+
-| install-if  | boolean  | images     | flag                                  |
+| install-if  | bool     | images     | flag                                  |
 | different   |          | files      | if set, name and version are          |
 |             |          |            | compared with the entries in          |
 +-------------+----------+------------+---------------------------------------+
-| encrypted   | boolean  | images     | flag                                  |
+| encrypted   | bool     | images     | flag                                  |
 |             |          | files      | if set, file is encrypted             |
 |             |          | scripts    | and must be decrypted before          |
 |             |          |            | installing.                           |
