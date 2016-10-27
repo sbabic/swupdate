@@ -1,6 +1,6 @@
-=============================================
+==================
 Project's road-map
-=============================================
+==================
 
 Please take into account that most of the items here are proposals.
 I get some ideas talking with customers, some ideas are my own thoughts.
@@ -8,53 +8,52 @@ There is no plan when these features will be implemented - this depends
 if enough interest is raised and if there will be contribution to the project.
 
 Thanks again to all companies that have supported my work up now and to
-everybody who contributes to the project, let me bring SWUpdate
+everybody who has contributed to the project, let me bring SWUpdate
 to the current status !
 
-SWUpdate's road-map
-===================
 
 Main goal
----------
+=========
 
 First goal is to reach a quite big audience, making
 SWUpdate suitable for a large number of products.
 This will help to build a community around the project
 itself.
 
-Encryption of artifacts
------------------------
-
-Images can be verified to check for their authenticity. Anyway,
-thare are cases where it is requested that the artifacts are
-encrypted, and decrypted on the fly before installing.
-
-Deployment in the IoT world
----------------------------
-
-The thing is not just updating the single device, but all
-devices in the field having a consistent status.
-
-Interface with the world - progress status
-------------------------------------------
-
-The interface to the outside world is currently poor. If a target
-has a display and desires to show the progress of the update,
-it must fight with the poor status message. There is no standard way to
-get a percentage.
-An improvement is desired, as well as having a simple example to
-display the status using the Linux framebuffer.
-
 Binary delta updates
---------------------
+====================
 
 A whole update could be very traffic intensive. Specially in case
 of low-bandwidth connections, it could be interesting to introduce
-a way for delta binary updates. Of course, the feature should not
-introduce leaks and make the system more vulnerable.
+a way for delta binary updates.
+There was already several discussions on the Mailing List about
+this. If introducing binary delta is high desired, on the other side
+it is strictly required to not reduce the reliability of the update
+and the feature should not introduce leaks and make the system
+more vulnerable.
 
-Handlers desired
-----------------
+There are two major aspects to be considered for binary deltas
+that must be investigated:
+
+- which is the reference ? A delta means there is a untouched copy
+  of the software that can be used as base. It must be verified
+  that this copy is not corrupted or changed after its delivery
+  and it is suitable for an update. Nevertheless, it should be
+  avoided to waste resources and space on the target just to store
+  a further copy of the software.
+- recources applying binary deltas. Known mechanism uses a lot of
+  memory because they do in-memory patching. It is required to have
+  memory usage under control.
+- in case of backend, do we need some sort of communication ?
+  SWUpdate could communicate the version running and the backend could
+  be able to compute on-the-fly the delta package, and also check
+  if it is worth to transfer the delta or switch to the whole image.
+
+Handlers:
+=========
+
+New Handlers
+------------
 
 Surely the implemented handlers cover the majority of cases. Anyway,
 new methods can be considered, and new handlers can be added to mainline
@@ -80,22 +79,26 @@ Current release supports verified images. That means that a handler
 written in LUA could be now be part of the compound image, because
 a unauthenticated handler cannot run.
 
-Extended IPC-based Post-Upgrade Handler
----------------------------------------
+Support for evaluation boards
+=============================
 
-It may be desirable to, e.g., reboot the system after having installed
-an update transaction completely but only after having signaled all
-applications to shut down cleanly. The IPC mechanism should be extended
-in this regard to allow for such functionality.
+There is already an example in meta-swupdate regarding
+the beaglebone black. Some more examples and use cases
+can better explain the different usage of the project.
 
-Configuration File Support
---------------------------
+Backend support (suricatta mode)
+================================
 
-As the number of command-line parameters is growing, support for reading
-the run-time configuration from a configuration file should be supported.
+Backend: Support for other Servers
+----------------------------------
 
-Suricatta road-map
-==================
+SWUpdate supports Hawkbit, but SWUpdate is unaware about which
+backend is used. Further connectors can be implemented to connect to
+other type of backend solutions.
+
+It is surely desired to have SWUpdate compatible with the most
+deployment system, and any user project can decide which is their
+backend solution.
 
 Support for multiple Servers simultaneously
 -------------------------------------------
@@ -117,28 +120,7 @@ such as, e.g., `grub`_.
 .. _grub:   https://www.gnu.org/software/grub/
 .. _U-Boot: http://www.denx.de/wiki/U-Boot/
 
-User Feedback while Installing
-------------------------------
+Documentation
+=============
 
-Currently, there's no concurrent feedback reported to the user while
-SWUpdate is installing the update payload. Hence, if the update payload
-is large, it is hard to tell from the outside whether the update is
-still in progress or, e.g., the system has halted. Therefore, a second
-thread may report the current update status on a regular basis, e.g.,
-every 10 seconds, to the server in order to assert the user the update
-is still running.
-
-Sanity Checking of Update Payload
----------------------------------
-
-Currently, suricatta hands over the update payload to SWUpdate and
-awaits its installation result. Suricatta has no means to inspect the
-payload, e.g., for a misconfiguration resulting in overwriting the
-currently used root file system partition, rendering the system broken.
-SWUpdate's IPC mechanism may be extended to report (meta-)data about
-a to be installed update payload such as the target partition. Only if
-this information is ACK'd by the IPC client, SWUpdate continues the
-installation or aborts otherwise.
-While one could argue that the payload should be thoroughly tested and
-can be assumed to be correct, a "last line of defense" may prove
-valuable.
+Documentation should be improved.

@@ -36,8 +36,15 @@ Help and support
    :maxdepth: 2
 
    help_and_support.rst
+
+############################################
+Roadmap
+############################################
+
+.. toctree::
+   :maxdepth: 2
+
    roadmap.rst
-   
 
 Indices and tables
 ==================
