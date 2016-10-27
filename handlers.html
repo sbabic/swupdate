@@ -8,7 +8,7 @@
     
     <title>Handlers &mdash; Embedded Software Update Documentation 2016.10 documentation</title>
     
-    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
@@ -27,8 +27,8 @@
     <link rel="next" title="SWUpdate: API for external programs" href="swupdate-ipc.html" />
     <link rel="prev" title="Update images from verified source" href="signed_images.html" /> 
   </head>
-  <body>
-    <div class="related">
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -40,14 +40,14 @@
         <li class="right" >
           <a href="signed_images.html" title="Update images from verified source"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">Embedded Software Update Documentation 2016.10 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">Embedded Software Update Documentation 2016.10 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="handlers">
 <h1>Handlers<a class="headerlink" href="#handlers" title="Permalink to this headline">¶</a></h1>
@@ -165,13 +165,62 @@ These handlers cannot be integrated into the image to be installed.
 Even if this can be theoretical possible, arise a lot of
 security questions, because it changes SWUpdate&#8217;s behavior.</p>
 </div>
+<div class="section" id="remote-handlers">
+<h2>Remote handlers<a class="headerlink" href="#remote-handlers" title="Permalink to this headline">¶</a></h2>
+<p>Remote handlers are thought for binding legacy installers
+without having the necessity to rewrite them in LUA. The remote
+handler forward the image to be installed to another process,
+waiting for an anknowledge to be sure that the image is installed
+correctly.
+The remote handler makes use of the zeromq library - this is
+to simplify the IPC with Unix Domain Socket. The remote handler
+is quite general, describing in sw-description with the
+&#8220;data&#8221; attribute how to communicate with the external process.
+The remote handler always acts as client, and try a connect()
+using the socket identified by the &#8220;data&#8221; attribute. For example,
+a possible setup using a remote handler could be:</p>
+<div class="highlight-python"><div class="highlight"><pre>images: (
+        {
+            filename = &quot;myimage&quot;&quot;;
+            type = &quot;remote&quot;;
+            data = &quot;test_remote&quot;;
+         }
+)
+</pre></div>
+</div>
+<p>The connectiion is instantiated using the socket &#8220;/tmp/test_remote&#8221;. If
+connect() failes, the remote handler signals that the update is not successful.
+Each Zeromq Message from SWUpdate is a multi-part message split into two frames:</p>
+<blockquote>
+<div><ul class="simple">
+<li>first frame contains a string with a command.</li>
+<li>second frame contains data and can be of 0 bytes.</li>
+</ul>
+</div></blockquote>
+<p>There are currently just two possible commands: INIT and DATA. After
+a successful connect, SWUpdate sends the initialization string in the
+format:</p>
+<div class="highlight-python"><div class="highlight"><pre>INIT:&lt;size of image to be installed&gt;
+</pre></div>
+</div>
+<p>The external installer is informed about the size of the image to be
+installed, and it can assign resources if it needs. It will answer
+with the string <em>ACK</em> or <em>NACK</em>. The first NACK received by SWUpdate
+will interrupt the update. After sending the INIT command, the remote
+handler will send a sequence of <em>DATA</em> commands, where the second
+frame in message will contain chunks of the image to be installed.
+It is duty of the external process to take care of the amount of
+data transferred and to release resources when the last chunk
+is received. For each DATA message, the external process answers with a
+<em>ACK</em> or <em>NACK</em> message.</p>
+</div>
 </div>
 
 
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
@@ -181,6 +230,7 @@ security questions, because it changes SWUpdate&#8217;s behavior.</p>
 <li><a class="reference internal" href="#creating-own-handlers">Creating own handlers</a></li>
 <li><a class="reference internal" href="#handler-for-ubi-volumes">Handler for UBI Volumes</a></li>
 <li><a class="reference internal" href="#extend-swupdate-with-handlers-in-lua">Extend SWUpdate with handlers in LUA</a></li>
+<li><a class="reference internal" href="#remote-handlers">Remote handlers</a></li>
 </ul>
 </li>
 </ul>
@@ -191,12 +241,14 @@ security questions, because it changes SWUpdate&#8217;s behavior.</p>
   <h4>Next topic</h4>
   <p class="topless"><a href="swupdate-ipc.html"
                         title="next chapter">SWUpdate: API for external programs</a></p>
-  <h3>This Page</h3>
-  <ul class="this-page-menu">
-    <li><a href="_sources/handlers.txt"
-           rel="nofollow">Show Source</a></li>
-  </ul>
-<div id="searchbox" style="display: none">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/handlers.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
       <input type="text" name="q" />
@@ -213,7 +265,7 @@ security questions, because it changes SWUpdate&#8217;s behavior.</p>
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -225,12 +277,12 @@ security questions, because it changes SWUpdate&#8217;s behavior.</p>
         <li class="right" >
           <a href="signed_images.html" title="Update images from verified source"
              >previous</a> |</li>
-        <li><a href="index.html">Embedded Software Update Documentation 2016.10 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">Embedded Software Update Documentation 2016.10 documentation</a> &raquo;</li> 
       </ul>
     </div>
-    <div class="footer">
+    <div class="footer" role="contentinfo">
         &copy; Copyright 2013-2016, Stefano Babic.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.6.
     </div>
   </body>
 </html>

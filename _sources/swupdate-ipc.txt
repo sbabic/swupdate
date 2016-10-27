@@ -19,7 +19,7 @@ and the final result. The API is at the moment very simple, but it can
 easy be extended in the future if new use cases will arise.
 
 API Description
----------------
+===============
 
 The communication runs via UDS (Unix Domain Socket). The socket is created
 at the startup by SWUpdate in /tmp/sockinstdata.
@@ -54,7 +54,7 @@ will be ignored until a new REQ_INSTALL will be received.
 .. image:: images/API.png
 
 Client Library
---------------
+==============
 
 A library simplifies the usage of the IPC making available a way to
 start asynchrounosly an update.

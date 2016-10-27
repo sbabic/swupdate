@@ -8,7 +8,7 @@
     
     <title>Getting information on running update &mdash; Embedded Software Update Documentation 2016.10 documentation</title>
     
-    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
@@ -24,30 +24,30 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="Embedded Software Update Documentation 2016.10 documentation" href="index.html" />
-    <link rel="next" title="Help and support" href="help_and_support.html" />
+    <link rel="next" title="Mailing List" href="help_and_support.html" />
     <link rel="prev" title="SWUpdate: API for external programs" href="swupdate-ipc.html" /> 
   </head>
-  <body>
-    <div class="related">
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
-          <a href="help_and_support.html" title="Help and support"
+          <a href="help_and_support.html" title="Mailing List"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="swupdate-ipc.html" title="SWUpdate: API for external programs"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">Embedded Software Update Documentation 2016.10 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">Embedded Software Update Documentation 2016.10 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="getting-information-on-running-update">
 <h1>Getting information on running update<a class="headerlink" href="#getting-information-on-running-update" title="Permalink to this headline">¶</a></h1>
@@ -86,7 +86,7 @@ back after any change in the update process with the following data
 <blockquote>
 <div><ul class="simple">
 <li><em>magic</em> is not yet used, it could be added for simply verification of the frame.</li>
-<li><em>status</em> is one of the values in swupdate_status.h (START, RUN, SUCCESS, FAILURE, DOWNLOAD).</li>
+<li><em>status</em> is one of the values in swupdate_status.h (START, RUN, SUCCESS, FAILURE, DOWNLOAD, DONE).</li>
 <li><em>dwl_percent</em> is the percentage of downloaded data when status = DOWNLOAD.</li>
 <li><em>nsteps</em> is the total number of installers (handlers) to be run.</li>
 <li><em>cur_step</em> is the index of the running handler. cur_step is in the range 1..nsteps</li>
@@ -106,7 +106,7 @@ of image already copied into the destination.</li>
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
@@ -121,13 +121,15 @@ of image already copied into the destination.</li>
                         title="previous chapter">SWUpdate: API for external programs</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="help_and_support.html"
-                        title="next chapter">Help and support</a></p>
-  <h3>This Page</h3>
-  <ul class="this-page-menu">
-    <li><a href="_sources/progress.txt"
-           rel="nofollow">Show Source</a></li>
-  </ul>
-<div id="searchbox" style="display: none">
+                        title="next chapter">Mailing List</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/progress.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
       <input type="text" name="q" />
@@ -144,24 +146,24 @@ of image already copied into the destination.</li>
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
-          <a href="help_and_support.html" title="Help and support"
+          <a href="help_and_support.html" title="Mailing List"
              >next</a> |</li>
         <li class="right" >
           <a href="swupdate-ipc.html" title="SWUpdate: API for external programs"
              >previous</a> |</li>
-        <li><a href="index.html">Embedded Software Update Documentation 2016.10 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">Embedded Software Update Documentation 2016.10 documentation</a> &raquo;</li> 
       </ul>
     </div>
-    <div class="footer">
+    <div class="footer" role="contentinfo">
         &copy; Copyright 2013-2016, Stefano Babic.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.6.
     </div>
   </body>
 </html>

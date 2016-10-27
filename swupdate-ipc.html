@@ -8,7 +8,7 @@
     
     <title>SWUpdate: API for external programs &mdash; Embedded Software Update Documentation 2016.10 documentation</title>
     
-    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
@@ -27,8 +27,8 @@
     <link rel="next" title="Getting information on running update" href="progress.html" />
     <link rel="prev" title="Handlers" href="handlers.html" /> 
   </head>
-  <body>
-    <div class="related">
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -40,14 +40,14 @@
         <li class="right" >
           <a href="handlers.html" title="Handlers"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">Embedded Software Update Documentation 2016.10 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">Embedded Software Update Documentation 2016.10 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="swupdate-api-for-external-programs">
 <h1>SWUpdate: API for external programs<a class="headerlink" href="#swupdate-api-for-external-programs" title="Permalink to this headline">¶</a></h1>
@@ -64,8 +64,9 @@ to communicate with the installer. Clients can start an upgrade
 and stream an image to the installer, querying then for the status
 and the final result. The API is at the moment very simple, but it can
 easy be extended in the future if new use cases will arise.</p>
+</div>
 <div class="section" id="api-description">
-<h3>API Description<a class="headerlink" href="#api-description" title="Permalink to this headline">¶</a></h3>
+<h2>API Description<a class="headerlink" href="#api-description" title="Permalink to this headline">¶</a></h2>
 <p>The communication runs via UDS (Unix Domain Socket). The socket is created
 at the startup by SWUpdate in /tmp/sockinstdata.</p>
 <p>The exchanged packets are described in network_ipc.h</p>
@@ -93,7 +94,7 @@ will be ignored until a new REQ_INSTALL will be received.</p>
 <img alt="_images/API.png" src="_images/API.png" />
 </div>
 <div class="section" id="client-library">
-<h3>Client Library<a class="headerlink" href="#client-library" title="Permalink to this headline">¶</a></h3>
+<h2>Client Library<a class="headerlink" href="#client-library" title="Permalink to this headline">¶</a></h2>
 <p>A library simplifies the usage of the IPC making available a way to
 start asynchrounosly an update.</p>
 <p>The library consists of one function and several call-backs.</p>
@@ -115,22 +116,19 @@ of the upgrade.</p>
 <p>Example about using this library is in the examples/client directory.</p>
 </div>
 </div>
-</div>
 
 
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">SWUpdate: API for external programs</a><ul>
-<li><a class="reference internal" href="#overview">Overview</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
 <li><a class="reference internal" href="#api-description">API Description</a></li>
 <li><a class="reference internal" href="#client-library">Client Library</a></li>
-</ul>
-</li>
 </ul>
 </li>
 </ul>
@@ -141,12 +139,14 @@ of the upgrade.</p>
   <h4>Next topic</h4>
   <p class="topless"><a href="progress.html"
                         title="next chapter">Getting information on running update</a></p>
-  <h3>This Page</h3>
-  <ul class="this-page-menu">
-    <li><a href="_sources/swupdate-ipc.txt"
-           rel="nofollow">Show Source</a></li>
-  </ul>
-<div id="searchbox" style="display: none">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/swupdate-ipc.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
       <input type="text" name="q" />
@@ -163,7 +163,7 @@ of the upgrade.</p>
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -175,12 +175,12 @@ of the upgrade.</p>
         <li class="right" >
           <a href="handlers.html" title="Handlers"
              >previous</a> |</li>
-        <li><a href="index.html">Embedded Software Update Documentation 2016.10 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">Embedded Software Update Documentation 2016.10 documentation</a> &raquo;</li> 
       </ul>
     </div>
-    <div class="footer">
+    <div class="footer" role="contentinfo">
         &copy; Copyright 2013-2016, Stefano Babic.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.6.
     </div>
   </body>
 </html>

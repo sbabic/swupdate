@@ -1,7 +1,3 @@
-=============================================
-Help and support
-=============================================
-
 Mailing List
 ============
 
@@ -22,3 +18,5 @@ Presentations slides
        - `[RFC] Device-side support for software update in AGL by Matt Porter <https://lists.linuxfoundation.org/pipermail/automotive-discussions/2016-May/002061.html>`_
        - `Open Source secure software updates for Linux-based IVI systems by Arthur Taylor <http://events.linuxfoundation.org/sites/events/files/slides/Open%20Source%20secure%20software%20updates%20for%20Linux-based%20IVI%20systems.pdf>`_
        - `How do you update your embedded Linux devices? by Daniel Sangorrin / Keijiro Yano <http://events.linuxfoundation.org/sites/events/files/slides/linuxcon-japan-2016-softwre-updates-sangorrin.pdf>`_
+       - `Comparison of Linux Software Update Technologies by Matt Porter <http://events.linuxfoundation.org/sites/events/files/slides/Comparison%20of%20Linux%20Software%20Update%20Technologies_0.pdf>`_
+       - `Software update for IoT: the current state of play by Chris Simmonds <http://de.slideshare.net/chrissimmonds/software-update-for-iot-the-current-state-of-play>`_

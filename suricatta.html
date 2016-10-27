@@ -8,7 +8,7 @@
     
     <title>Suricatta daemon mode &mdash; Embedded Software Update Documentation 2016.10 documentation</title>
     
-    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
@@ -27,8 +27,8 @@
     <link rel="next" title="SWUpdate: syntax and tags with the default parser" href="sw-description.html" />
     <link rel="prev" title="SWUpdate: software update for embedded system" href="swupdate.html" /> 
   </head>
-  <body>
-    <div class="related">
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -40,14 +40,14 @@
         <li class="right" >
           <a href="swupdate.html" title="SWUpdate: software update for embedded system"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">Embedded Software Update Documentation 2016.10 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">Embedded Software Update Documentation 2016.10 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          <div class="body">
+          <div class="body" role="main">
             
   <div class="section" id="suricatta-daemon-mode">
 <h1>Suricatta daemon mode<a class="headerlink" href="#suricatta-daemon-mode" title="Permalink to this headline">¶</a></h1>
@@ -59,7 +59,7 @@ name suricatta (engl. meerkat) as it belongs to the mongoose family.</p>
 installs them. Thereafter, it reboots the system and reports the update
 status to the server, based on an update state variable currently stored
 in U-Boot&#8217;s environment ensuring persistent storage across reboots. Some
-U-Boot script logics or U-Boot&#8217;s <tt class="docutils literal"><span class="pre">bootcount</span></tt> feature may be utilized
+U-Boot script logics or U-Boot&#8217;s <code class="docutils literal"><span class="pre">bootcount</span></code> feature may be utilized
 to alter this update state variable, e.g., by setting it to reflect
 failure in case booting the newly flashed root file system has failed
 and a switchback had to be performed.</p>
@@ -72,41 +72,29 @@ Device Integration API</a>.</p>
 <h2>Running suricatta<a class="headerlink" href="#running-suricatta" title="Permalink to this headline">¶</a></h2>
 <p>After having configured and compiled SWUpdate with enabled suricatta
 support,</p>
-<div class="code highlight-python"><div class="highlight"><pre>./swupdate --suricatta --help
-[...]
-Arguments (mandatory arguments are marked with &#39;*&#39;):
--t, --tenant      * Set hawkBit tenant ID for this device.
--u, --url         * Host and port of the hawkBit instance, e.g., localhost:8080
--i, --id          * The device ID to communicate to hawkBit.
--c, --confirm       Confirm update status to server: 1=AGAIN, 2=SUCCESS, 3=FAILED
--x, --nocheckcert   Do not abort on flawed server certificates.
--p, --polldelay     Delay in seconds between two hawkBit poll operations (default: 45s).
--r, --retry         Resume and retry interrupted downloads (default: 5 tries).
--w, --retrywait     Time to wait between prior to retry and resume a download (default: 5s).
--l, --loglevel      set log level (0=OFF, ..., 5=TRACE)
--v, --verbose       Verbose operation, i.e., loglevel=TRACE
+<div class="code highlight-python"><div class="highlight"><pre>./swupdate --help
 </pre></div>
 </div>
 <p>lists the mandatory and optional arguments to be provided to suricatta
 when using hawkBit as server. As an example,</p>
-<div class="code bash highlight-python"><div class="highlight"><pre>./swupdate -u &#39;-t default -u http://10.0.0.2:8080 -i 25 -l 5&#39;
+<div class="code bash highlight-python"><div class="highlight"><pre>./swupdate -l 5 -u &#39;-t default -u http://10.0.0.2:8080 -i 25&#39;
 </pre></div>
 </div>
-<p>runs SWUpdate in suricatta daemon mode with log-level <tt class="docutils literal"><span class="pre">TRACE</span></tt>, polling
-a hawkBit instance at <tt class="docutils literal"><span class="pre">http://10.0.0.2:8080</span></tt> with tenant <tt class="docutils literal"><span class="pre">default</span></tt>
-and device ID <tt class="docutils literal"><span class="pre">25</span></tt>.</p>
+<p>runs SWUpdate in suricatta daemon mode with log-level <code class="docutils literal"><span class="pre">TRACE</span></code>, polling
+a hawkBit instance at <code class="docutils literal"><span class="pre">http://10.0.0.2:8080</span></code> with tenant <code class="docutils literal"><span class="pre">default</span></code>
+and device ID <code class="docutils literal"><span class="pre">25</span></code>.</p>
 </div>
 <div class="section" id="supporting-different-servers">
 <h2>Supporting different Servers<a class="headerlink" href="#supporting-different-servers" title="Permalink to this headline">¶</a></h2>
 <p>Support for servers other than hawkBit can be realized by implementing
-the &#8220;interfaces&#8221; described in <tt class="docutils literal"><span class="pre">include/suricatta/channel.h</span></tt> and
-<tt class="docutils literal"><span class="pre">include/suricatta/server.h</span></tt>. The former abstracts a particular
+the &#8220;interfaces&#8221; described in <code class="docutils literal"><span class="pre">include/suricatta/channel.h</span></code> and
+<code class="docutils literal"><span class="pre">include/suricatta/server.h</span></code>. The former abstracts a particular
 connection to the server, e.g., HTTP-based in case of hawkBit, while
 the latter implements the logics to poll and install updates.
-See <tt class="docutils literal"><span class="pre">suricatta/channel_hawkbit.{c,h}</span></tt> and
-<tt class="docutils literal"><span class="pre">suricatta/server_hawkbit.{c,h}</span></tt> for an example implementation
+See <code class="docutils literal"><span class="pre">suricatta/channel_hawkbit.{c,h}</span></code> and
+<code class="docutils literal"><span class="pre">suricatta/server_hawkbit.{c,h}</span></code> for an example implementation
 targeted towards hawkBit.</p>
-<p><tt class="docutils literal"><span class="pre">include/suricatta/channel.h</span></tt> describes the functionality a channel
+<p><code class="docutils literal"><span class="pre">include/suricatta/channel.h</span></code> describes the functionality a channel
 has to implement:</p>
 <div class="code c highlight-python"><div class="highlight"><pre>channel_op_res_t channel_open(void);
 channel_op_res_t channel_close(void);
@@ -115,7 +103,7 @@ channel_op_res_t channel_get(void* data);
 channel_op_res_t channel_get_file(void* data);
 </pre></div>
 </div>
-<p><tt class="docutils literal"><span class="pre">include/suricatta/server.h</span></tt> describes the functionality a server has
+<p><code class="docutils literal"><span class="pre">include/suricatta/server.h</span></code> describes the functionality a server has
 to implement:</p>
 <div class="code c highlight-python"><div class="highlight"><pre>server_op_res_t server_start(int argc, char* argv[]);
 server_op_res_t server_stop(void);
@@ -124,15 +112,15 @@ server_op_res_t server_install_update(void);
 unsigned int    server_get_polling_interval(void);
 </pre></div>
 </div>
-<p>The types <tt class="docutils literal"><span class="pre">channel_op_res_t</span></tt> and <tt class="docutils literal"><span class="pre">server_op_res_t</span></tt> are defined in
-<tt class="docutils literal"><span class="pre">include/suricatta/suricatta.h</span></tt> and represent the valid function
+<p>The types <code class="docutils literal"><span class="pre">channel_op_res_t</span></code> and <code class="docutils literal"><span class="pre">server_op_res_t</span></code> are defined in
+<code class="docutils literal"><span class="pre">include/suricatta/suricatta.h</span></code> and represent the valid function
 return codes for a channel&#8217;s and a server&#8217;s implementation,
 respectively.</p>
 <p>In addition to implementing the particular channel and server, the
-<tt class="docutils literal"><span class="pre">suricatta/Config.in</span></tt> file has to be adapted to include a new option
+<code class="docutils literal"><span class="pre">suricatta/Config.in</span></code> file has to be adapted to include a new option
 so that the new implementation becomes selectable in SWUpdate&#8217;s
 configuration. In the simplest case, adding an option like the following
-one for hawkBit into the <tt class="docutils literal"><span class="pre">menu</span> <span class="pre">&quot;Server&quot;</span></tt> section is sufficient.</p>
+one for hawkBit into the <code class="docutils literal"><span class="pre">menu</span> <span class="pre">&quot;Server&quot;</span></code> section is sufficient.</p>
 <div class="highlight-python"><div class="highlight"><pre>config SURICATTA_HAWKBIT
     bool &quot;hawkBit support&quot;
     depends on HAVE_LIBCURL
@@ -146,16 +134,16 @@ one for hawkBit into the <tt class="docutils literal"><span class="pre">menu</sp
 </div>
 <p>Note that the various server options and hence implementations should be
 selectable in a mutually exclusive manner, i.e., at most one should be
-active. Hence, include according <tt class="docutils literal"><span class="pre">depends</span> <span class="pre">on</span> <span class="pre">!&lt;SERVER_OPTION&gt;</span></tt> lines
+active. Hence, include according <code class="docutils literal"><span class="pre">depends</span> <span class="pre">on</span> <span class="pre">!&lt;SERVER_OPTION&gt;</span></code> lines
 into the configuration to specify this mutual exclusion of server
 implementations. Support for multiple channels and servers
 simultaneously is left for future work as outlined in suricatta&#8217;s
 road-map.</p>
 <p>Having included the new server implementation into the configuration,
-edit <tt class="docutils literal"><span class="pre">suricatta/Makefile</span></tt> to specify the implementation&#8217;s linkage into
+edit <code class="docutils literal"><span class="pre">suricatta/Makefile</span></code> to specify the implementation&#8217;s linkage into
 the SWUpdate binary, e.g., for the hawkBit example implementation, the
-following lines add <tt class="docutils literal"><span class="pre">channel_hawkbit.o</span></tt> and <tt class="docutils literal"><span class="pre">server_hawkbit.o</span></tt> to
-the resulting SWUpdate binary if <tt class="docutils literal"><span class="pre">SURICATTA_HAWKBIT</span></tt> was selected
+following lines add <code class="docutils literal"><span class="pre">channel_hawkbit.o</span></code> and <code class="docutils literal"><span class="pre">server_hawkbit.o</span></code> to
+the resulting SWUpdate binary if <code class="docutils literal"><span class="pre">SURICATTA_HAWKBIT</span></code> was selected
 while configuring SWUpdate.</p>
 <div class="highlight-python"><div class="highlight"><pre>ifneq ($(CONFIG_SURICATTA_HAWKBIT),)
 lib-$(CONFIG_SURICATTA) += channel_hawkbit.o server_hawkbit.o
@@ -169,7 +157,7 @@ endif
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar">
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
@@ -187,12 +175,14 @@ endif
   <h4>Next topic</h4>
   <p class="topless"><a href="sw-description.html"
                         title="next chapter">SWUpdate: syntax and tags with the default parser</a></p>
-  <h3>This Page</h3>
-  <ul class="this-page-menu">
-    <li><a href="_sources/suricatta.txt"
-           rel="nofollow">Show Source</a></li>
-  </ul>
-<div id="searchbox" style="display: none">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/suricatta.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
       <input type="text" name="q" />
@@ -209,7 +199,7 @@ endif
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="related">
+    <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
       <ul>
         <li class="right" style="margin-right: 10px">
@@ -221,12 +211,12 @@ endif
         <li class="right" >
           <a href="swupdate.html" title="SWUpdate: software update for embedded system"
              >previous</a> |</li>
-        <li><a href="index.html">Embedded Software Update Documentation 2016.10 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">Embedded Software Update Documentation 2016.10 documentation</a> &raquo;</li> 
       </ul>
     </div>
-    <div class="footer">
+    <div class="footer" role="contentinfo">
         &copy; Copyright 2013-2016, Stefano Babic.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.6.
     </div>
   </body>
 </html>
