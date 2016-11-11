@@ -179,7 +179,7 @@ The syntax is:
 		.....
 	);
 
-*volume* is only used to install the image in a UBI volume. volume and
+*volume* is only used to install the image in a UBI volume. *volume* and
 *device* cannot be used at the same time. If device is set,
 the raw handler is automatically selected.
 
@@ -586,7 +586,7 @@ There are 4 main sections inside sw-description:
 +-------------+----------+------------+---------------------------------------+
 | compressed  | bool     | images     | flag to indicate that "filename" is   |
 |             |          | files      | zlib-compressed and must be           |
-|             |          |            | decompressed before beeing installed  |
+|             |          |            | decompressed before being installed   |
 +-------------+----------+------------+---------------------------------------+
 | installed-  | bool     | images     | flag to indicate that image is        |
 | directly    |          |            | streamed into the target without any  |
@@ -603,7 +603,7 @@ There are 4 main sections inside sw-description:
 |             |          |            | compared with the entries in          |
 |             |          |            | sw-versions                           |
 +-------------+----------+------------+---------------------------------------+
-| version     | string   | images     | version for the  the sw-component     |
+| version     | string   | images     | version for the sw-component          |
 |             |          | files      | it can be any string and it is        |
 |             |          |            | compared with the entries in          |
 |             |          |            | sw-versions                           |

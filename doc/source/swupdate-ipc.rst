@@ -57,7 +57,7 @@ Client Library
 ==============
 
 A library simplifies the usage of the IPC making available a way to
-start asynchrounosly an update.
+start asynchronously an update.
 
 The library consists of one function and several call-backs.
 

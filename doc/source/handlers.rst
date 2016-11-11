@@ -138,7 +138,7 @@ Remote handlers
 Remote handlers are thought for binding legacy installers
 without having the necessity to rewrite them in LUA. The remote
 handler forward the image to be installed to another process,
-waiting for an anknowledge to be sure that the image is installed
+waiting for an acknowledge to be sure that the image is installed
 correctly.
 The remote handler makes use of the zeromq library - this is
 to simplify the IPC with Unix Domain Socket. The remote handler
@@ -159,8 +159,8 @@ a possible setup using a remote handler could be:
         )
 
 
-The connectiion is instantiated using the socket "/tmp/test_remote". If
-connect() failes, the remote handler signals that the update is not successful.
+The connection is instantiated using the socket "/tmp/test_remote". If
+connect() fails, the remote handler signals that the update is not successful.
 Each Zeromq Message from SWUpdate is a multi-part message split into two frames:
 
         - first frame contains a string with a command.

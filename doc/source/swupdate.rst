@@ -164,7 +164,7 @@ Where:
 - `<revision>` will be used for matching with hardware compatibility
   list
 
-- `<boardname>` can be used for grouping board specific settigns
+- `<boardname>` can be used for grouping board specific settings
 
 
 Software collections
@@ -314,7 +314,7 @@ an attached SD Card must be updated. In this case, it will help if the images
 are installed directly as stream by the corresponding handler, without temporary
 copies. Not all handlers support to stream directly into the target.
 Streaming with zero-copy is enabled by setting the flag "installed-directly"
-in the descriptionü of the single image.
+in the description of the single image.
 
 Configuration and build
 =======================
