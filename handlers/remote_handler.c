@@ -38,6 +38,8 @@
 
 #define REMOTE_IPC_TIMEOUT	2000
 
+static int timeout = REMOTE_IPC_TIMEOUT;
+
 struct RHmsg {
     zmq_msg_t frame[MSG_FRAMES];
 };
@@ -83,6 +85,8 @@ static int RHmsg_get_ack(struct RHmsg *self, void *request)
 	unsigned long size;
 	zmq_pollitem_t zpoll;
 	char *string;
+	int newtimeout;
+	int len;
 
 	zpoll.socket = request;
 	zpoll.events = ZMQ_POLLIN;
@@ -91,7 +95,7 @@ static int RHmsg_get_ack(struct RHmsg *self, void *request)
 	 * Wait for an answer, raise
 	 * an error if no message is received
 	 */
-	rc = zmq_poll(&zpoll, 1, REMOTE_IPC_TIMEOUT);
+	rc = zmq_poll(&zpoll, 1, timeout);
 	if (rc <= 0)
 		return -EFAULT;
 
@@ -107,9 +111,27 @@ static int RHmsg_get_ack(struct RHmsg *self, void *request)
 	string[size] = '\0';
 	zmq_msg_close(&self->frame[0]);
 
-	if (strncmp(string, "ACK", size) != 0) {
+	/*
+	 * Check if the remote send a new timeout
+	 */
+	len = size;
+
+	if (strchr(string, ':'))
+		len = (strchr(string, ':') - string - 1);
+	if (strncmp(string, "ACK", len) != 0) {
 		ERROR("Remote Handler returns error, exiting");
 		return -EFAULT;
+	}
+
+	/*
+	 * Check if the remote ask to wait longer
+	 * we get ack, check the rest of the received
+	 * string
+	 */
+	if ((size > 4) && (string[3] == ':')) {
+		newtimeout = strtoul(&string[4], NULL, 10);
+		if (newtimeout > 0)
+			timeout = newtimeout;
 	}
 
 	return 0;
@@ -165,6 +187,9 @@ static int install_remote_image(struct img_type *img,
 		ret = -ENODEV;
 		goto cleanup;
 	}
+
+	/* Initialize default timeout */
+	timeout = REMOTE_IPC_TIMEOUT;
 
 	/* Send initialization string */
 	snprintf(bufcmd, sizeof(bufcmd), "INIT:%lld", img->size);
