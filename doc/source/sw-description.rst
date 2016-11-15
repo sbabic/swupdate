@@ -621,3 +621,7 @@ There are 4 main sections inside sw-description:
 |             |          | files      | to a handler.                         |
 |             |          | scripts    |                                       |
 +-------------+----------+------------+---------------------------------------+
+| sha256      | string   | images     | sha256 hash of image, file or script. |
+|             |          | files      | Used for verification of signed       |
+|             |          | scripts    | images.                               |
++-------------+----------+------------+---------------------------------------+
