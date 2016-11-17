@@ -53,6 +53,7 @@
 #include "mongoose_interface.h"
 #include "installer.h"
 #include "progress.h"
+#include "pctl.h"
 
 #define BUFF_SIZE	 4096
 #define PERCENT_LB_INDEX	4

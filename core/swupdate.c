@@ -53,6 +53,7 @@
 #include "progress.h"
 #include "parselib.h"
 #include "swupdate_settings.h"
+#include "pctl.h"
 
 #define MODULE_NAME	"swupdate"
 

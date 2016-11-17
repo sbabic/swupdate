@@ -41,6 +41,7 @@
 
 #include "util.h"
 #include "network_ipc.h"
+#include "pctl.h"
 
 struct async_lib {
 	int connfd;
@@ -294,18 +295,4 @@ int swupdate_async_start(writedata wr_func, getstatus status_func,
 	return handle;
 }
 
-pthread_t start_thread(void *(* start_routine) (void *), void *arg)
-{
-	int ret;
-	pthread_t id;
-	pthread_attr_t attr;
 
-	pthread_attr_init(&attr);
-	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
-
-	ret = pthread_create(&id, &attr, start_routine, arg);
-	if (ret) {
-		exit(1);
-	}
-	return id;
-}

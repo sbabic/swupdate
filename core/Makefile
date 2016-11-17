@@ -14,4 +14,5 @@ obj-y += swupdate.o \
 	 handler.o \
 	 util.o \
 	 parser.o \
+	 pctl.o \
 	 syslog.o \
