@@ -631,11 +631,10 @@ int main(int argc, char **argv)
 		}
 	}
 
-#ifdef CONFIG_MTD
-	if (strlen(swcfg.globals.mtdblacklist))
-		mtd_set_ubiblacklist(swcfg.globals.mtdblacklist);
-#endif
-
+	/*
+	 * Parameters are parsed: now performs plausibility
+	 * tests before starting processes and threads
+	 */
 	if (public_key_mandatory && !strlen(swcfg.globals.publickeyfname)) {
 		fprintf(stderr,
 			 "swupdate built for signed image, provide a public key file\n");
@@ -659,6 +658,43 @@ int main(int argc, char **argv)
 			exit(1);
 		}
 	}
+
+	/*
+	 * If hust a check is required, do not 
+	 * start background processes and threads
+	 */
+	if (!opt_c) {
+		/* Start embedded web server */
+#if defined(CONFIG_MONGOOSE)
+		if (opt_w) {
+			uid_t webserver_uid;
+			gid_t webserver_gid;
+
+			read_settings_user_id(cfgfname, "webserver",
+						&webserver_uid, &webserver_gid);
+			spawn_process(webserver_uid, webserver_gid, cfgfname,
+				       	ac, av, start_mongoose);
+		}
+#endif
+
+#if defined(CONFIG_SURICATTA)
+		if (opt_u) {
+			uid_t suricatta_uid;
+			gid_t suricatta_gid;
+
+			read_settings_user_id(cfgfname, "suricatta",
+						&suricatta_uid, &suricatta_gid);
+
+			spawn_process(suricatta_uid, suricatta_gid, cfgfname,
+				       	argcount, argvalues, start_suricatta);
+		}
+#endif
+	}
+
+#ifdef CONFIG_MTD
+	if (strlen(swcfg.globals.mtdblacklist))
+		mtd_set_ubiblacklist(swcfg.globals.mtdblacklist);
+#endif
 
 	/*
 	 * If a aes key is passed, load it to allow
@@ -722,19 +758,6 @@ int main(int argc, char **argv)
 		else
 			exit(1);
 	}
-
-	/* Start embedded web server */
-#if defined(CONFIG_MONGOOSE)
-	if (opt_w)
-		start_mongoose(cfgfname, ac, av);
-#endif
-
-#if defined(CONFIG_SURICATTA)
-	if (opt_u) {
-		start_suricatta(cfgfname, argcount, argvalues);
-    }
-#endif
-
 	if (opt_w || opt_s || opt_u)
 		pthread_join(network_daemon, NULL);
 
