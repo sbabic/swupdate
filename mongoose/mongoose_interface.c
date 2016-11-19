@@ -418,13 +418,13 @@ static void start_mongoose_server(char **options) {
 		die("%s", "Failed to start Mongoose.");
 	}
 
-	printf("%s started on port(s) %s with web root [%s]\n",
-			server_name, mg_get_option(ctx, "listening_ports"),
+	printf("%s with pid %d started on port(s) %s with web root [%s]\n",
+			server_name, getpid(), mg_get_option(ctx, "listening_ports"),
 			mg_get_option(ctx, "document_root"));
 
 }
 
-void start_mongoose(char *cfgfname, int argc, char *argv[])
+int start_mongoose(char *cfgfname, int argc, char *argv[])
 {
 
 	char *options[MAX_OPTIONS];
@@ -433,4 +433,10 @@ void start_mongoose(char *cfgfname, int argc, char *argv[])
 	process_command_line_arguments(cfgfname, argc, argv, options);
 
 	start_mongoose_server(options);
+
+	while (1) {
+		sleep(1000);
+	}
+
+	return 0;
 }

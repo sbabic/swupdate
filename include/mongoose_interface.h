@@ -29,7 +29,7 @@
 /*
  * This is used by swupdate to start the Webserver
  */
-void start_mongoose(char *cfgfname, int argc, char *argv[]);
+int start_mongoose(char *cfgfname, int argc, char *argv[]);
 
 void mongoose_print_help(void);
 
