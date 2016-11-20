@@ -38,6 +38,11 @@
 #include "parselib.h"
 #include "swupdate_settings.h"
 
+struct run_as {
+	uid_t userid;
+	gid_t groupid;
+};
+
 static config_setting_t *find_settings_node(config_t *cfg,
 						const char *field)
 {
@@ -100,6 +105,34 @@ int read_module_settings(char *filename, const char *module, settings_callback f
 	fcn(elem, data);
 
 	config_destroy(&cfg);
+
+	return 0;
+}
+
+static int get_run_as(void *elem, void *data)
+{
+	struct run_as *pid = (struct run_as *)data;
+
+	get_field(LIBCFG_PARSER, elem, "userid", &pid->userid);
+	get_field(LIBCFG_PARSER, elem, "groupid", &pid->groupid);
+
+	return 0;
+}
+
+int read_settings_user_id(char *filename, const char *module, uid_t *userid, gid_t *groupid)
+{
+	struct run_as ids;
+	int ret;
+
+	ids.userid = getuid();
+	ids.groupid = getgid();
+
+	ret = read_module_settings(filename, module, get_run_as, &ids);
+	if (ret)
+		return -EINVAL;
+
+	*userid = ids.userid;
+	*groupid = ids.groupid;
 
 	return 0;
 }
