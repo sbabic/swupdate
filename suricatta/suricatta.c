@@ -25,7 +25,7 @@
 #include "suricatta/suricatta.h"
 #include "suricatta/server.h"
 
-void start_suricatta(char *cfgfname, int argc, char *argv[])
+int start_suricatta(char *cfgfname, int argc, char *argv[])
 {
 	int action_id;
 	if (server.start(cfgfname, argc, argv) != SERVER_OK) {
