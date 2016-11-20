@@ -1082,15 +1082,13 @@ static int suricatta_settings(void *elem, void  __attribute__ ((__unused__)) *da
 		SETSTRING(server_hawkbit.url, tmp);
 		mandatory_argument_count |= URL_BIT;
 	}
-	GET_FIELD_STRING(LIBCFG_PARSER, elem, "polldelay", tmp);
-	if (strlen(tmp))
-		server_hawkbit.polling_interval =
-			(unsigned int)strtoul(tmp, NULL, 10);
 
-	GET_FIELD_STRING(LIBCFG_PARSER, elem, "retry", tmp);
-	if (strlen(tmp))
-		channel_data_defaults.retries =
-			(unsigned int)strtoul(tmp, NULL, 10);
+	get_field(LIBCFG_PARSER, elem, "polldelay",
+		&server_hawkbit.polling_interval);
+
+	get_field(LIBCFG_PARSER, elem, "retry",
+		&channel_data_defaults.retries);
+
 	GET_FIELD_STRING(LIBCFG_PARSER, elem, "retrywait", tmp);
 	if (strlen(tmp))
 		channel_data_defaults.retry_sleep =
@@ -1269,6 +1267,7 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 		}
 		return state_handled; /* Report error to main loop, exiting. */
 	}
+
 	return SERVER_OK;
 }
 
