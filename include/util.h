@@ -26,6 +26,8 @@
 #include "swupdate.h"
 #include "swupdate_status.h"
 
+#define NOTIFY_BUF_SIZE 	2048
+
 extern int loglevel;
 
 typedef enum {
@@ -54,7 +56,7 @@ typedef void (*notifier) (RECOVERY_STATUS status, int level, const char *msg);
 
 #define swupdate_notify(status, format, level, arg...) do { \
 	if (loglevel >= level) { \
-		char tmpbuf[2048]; \
+		char tmpbuf[NOTIFY_BUF_SIZE]; \
 		if (status == FAILURE) { \
 			if (loglevel >= DEBUGLEVEL) \
 				snprintf(tmpbuf, sizeof(tmpbuf), \
