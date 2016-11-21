@@ -90,5 +90,7 @@ int spawn_process(uid_t run_as_userid, gid_t run_as_groupid, char *cfgname,
 	/* Save new pid */
 	pid = getpid();
 
+	notify_init();
+
 	return (*start)(cfgname, ac, av);
 }
