@@ -68,7 +68,6 @@ typedef void (*notifier) (RECOVERY_STATUS status, int level, const char *msg);
 			else \
 				snprintf(tmpbuf, sizeof(tmpbuf), \
 					       	"ERROR : " format, ## arg); \
-			fprintf(stderr, "%s\n", tmpbuf); \
 			notify(FAILURE, 0, tmpbuf); \
 		} else {\
 			snprintf(tmpbuf, sizeof(tmpbuf), \
