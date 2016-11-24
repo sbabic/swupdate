@@ -40,25 +40,18 @@
 #define KEEPALIVE_DELAY 204L
 #define KEEPALIVE_INTERVAL 120L
 
-#define EXPANDTOKL2(token) token
-#define EXPANDTOK(token) EXPANDTOKL2(token)
-
 typedef struct {
 	char *memory;
 	size_t size;
 } output_data_t;
 
 static struct channel_curl_t {
-	const char *proxy;
+	char *proxy;
 	char *effective_url;
 	CURL *handle;
 	struct curl_slist *header;
-} channel_curl = {.proxy = sizeof(EXPANDTOK(CONFIG_SURICATTA_HAWKBIT_PROXY)) > 1
-			       ? EXPANDTOK(CONFIG_SURICATTA_HAWKBIT_PROXY)
-			       : NULL,
-		  .handle = NULL,
-		  .header = NULL,
-		  .effective_url = NULL};
+} channel_curl = {
+    .proxy = NULL, .handle = NULL, .header = NULL, .effective_url = NULL};
 
 #ifdef CONFIG_SURICATTA_SSL
 static SHA_CTX checksum_ctx;
@@ -70,7 +63,7 @@ size_t channel_callback_write_file(void *streamdata, size_t size, size_t nmemb,
 				   void *output);
 size_t channel_callback_membuffer(void *streamdata, size_t size, size_t nmemb,
 				  void *output);
-channel_op_res_t channel_map_http_code(bool proxy, long *http_response_code);
+channel_op_res_t channel_map_http_code(long *http_response_code);
 channel_op_res_t channel_map_curl_error(CURLcode res);
 channel_op_res_t channel_set_options(channel_data_t *channel_data,
 				     channel_method_t method);
@@ -78,13 +71,17 @@ static void channel_log_effective_url(void);
 
 /* Prototypes for "public" functions */
 channel_op_res_t channel_close(void);
-channel_op_res_t channel_open(void);
+channel_op_res_t channel_open(void *cfg);
 channel_op_res_t channel_get(void *data);
 channel_op_res_t channel_get_file(void *data);
 channel_op_res_t channel_put(void *data);
 
 channel_op_res_t channel_close(void)
 {
+	if ((channel_curl.proxy != NULL) &&
+	    (channel_curl.proxy != USE_PROXY_ENV)) {
+		free(channel_curl.proxy);
+	}
 	if (channel_curl.handle == NULL) {
 		return CHANNEL_OK;
 	}
@@ -94,9 +91,20 @@ channel_op_res_t channel_close(void)
 	return CHANNEL_OK;
 }
 
-channel_op_res_t channel_open(void)
+channel_op_res_t channel_open(void *cfg)
 {
 	assert(channel_curl.handle == NULL);
+
+	channel_data_t *channel_cfg = (channel_data_t *)cfg;
+
+	if ((channel_cfg != NULL) && (channel_cfg->proxy != NULL)) {
+		channel_curl.proxy = channel_cfg->proxy == USE_PROXY_ENV
+					 ? USE_PROXY_ENV
+					 : strdup(channel_cfg->proxy);
+		if (channel_curl.proxy == NULL) {
+			return CHANNEL_EINIT;
+		}
+	}
 
 #ifdef CONFIG_SURICATTA_SSL
 #define CURL_FLAGS CURL_GLOBAL_SSL
@@ -195,12 +203,11 @@ static void channel_log_effective_url(void)
 	      channel_curl.effective_url);
 }
 
-channel_op_res_t channel_map_http_code(bool proxy, long *http_response_code)
+channel_op_res_t channel_map_http_code(long *http_response_code)
 {
-	CURLcode curlrc = curl_easy_getinfo(channel_curl.handle,
-					    proxy ? CURLINFO_HTTP_CONNECTCODE
-						  : CURLINFO_RESPONSE_CODE,
-					    http_response_code);
+	CURLcode curlrc =
+	    curl_easy_getinfo(channel_curl.handle, CURLINFO_RESPONSE_CODE,
+			      http_response_code);
 	if (curlrc != CURLE_OK && curlrc == CURLE_UNKNOWN_OPTION) {
 		ERROR("Get channel HTTP response code unsupported by libcURL "
 		      "%s.\n",
@@ -208,9 +215,14 @@ channel_op_res_t channel_map_http_code(bool proxy, long *http_response_code)
 		return CHANNEL_EINIT;
 	}
 	switch (*http_response_code) {
+	case 0:   /* libcURL: no server response code has been received yet */
+		DEBUG("No HTTP response code has been received yet!\n");
+		return CHANNEL_EBADMSG;
 	case 401: /* Unauthorized. The request requires user authentication. */
 	case 403: /* Forbidden. */
 	case 405: /* Method not Allowed. */
+	case 407: /* Proxy Authentication Required */
+	case 503: /* Service Unavailable */
 		return CHANNEL_EACCES;
 	case 400: /* Bad Request, e.g., invalid parameters */
 	case 404: /* Wrong URL */
@@ -370,11 +382,20 @@ channel_op_res_t channel_set_options(channel_data_t *channel_data,
 		break;
 	}
 
-	if ((channel_curl.proxy != NULL) &&
-	    (curl_easy_setopt(channel_curl.handle, CURLOPT_PROXY,
-			      channel_curl.proxy) != CURLE_OK)) {
-		result = CHANNEL_EINIT;
-		goto cleanup;
+	if (channel_curl.proxy != NULL) {
+		if (channel_curl.proxy != USE_PROXY_ENV) {
+			if (curl_easy_setopt(
+				channel_curl.handle, CURLOPT_PROXY,
+				channel_curl.proxy) != CURLE_OK) {
+				result = CHANNEL_EINIT;
+				goto cleanup;
+			}
+		}
+		if (curl_easy_setopt(channel_curl.handle, CURLOPT_NETRC,
+				     CURL_NETRC_OPTIONAL) != CURLE_OK) {
+			result = CHANNEL_EINIT;
+			goto cleanup;
+		}
 	}
 
 	CURLcode curlrc =
@@ -464,9 +485,8 @@ static channel_op_res_t channel_post_method(void *data)
 	channel_log_effective_url();
 
 	long http_response_code;
-	if ((result = channel_map_http_code(
-		 channel_curl.proxy == NULL ? false : true,
-		 &http_response_code)) != CHANNEL_OK) {
+	if ((result = channel_map_http_code(&http_response_code)) !=
+	    CHANNEL_OK) {
 		ERROR("Channel operation returned HTTP error code %ld.\n",
 		      http_response_code);
 		goto cleanup_header;
@@ -534,9 +554,7 @@ static channel_op_res_t channel_put_method(void *data)
 	channel_log_effective_url();
 
 	long http_response_code;
-	if ((result = channel_map_http_code(
-		 channel_curl.proxy == NULL ? false : true,
-		 &http_response_code)) != CHANNEL_OK) {
+	if ((result = channel_map_http_code(&http_response_code)) != CHANNEL_OK) {
 		ERROR("Channel operation returned HTTP error code %ld.\n",
 		      http_response_code);
 		goto cleanup_header;
@@ -709,9 +727,8 @@ channel_op_res_t channel_get_file(void *data)
 	      total_bytes_downloaded, total_bytes_downloaded / 1024 / 1024);
 
 	long http_response_code;
-	if ((result = channel_map_http_code(
-		 channel_curl.proxy == NULL ? false : true,
-		 &http_response_code)) != CHANNEL_OK) {
+	if ((result = channel_map_http_code(&http_response_code)) !=
+	    CHANNEL_OK) {
 		ERROR("Channel operation returned HTTP error code %ld.\n",
 		      http_response_code);
 		goto cleanup_file;
@@ -812,9 +829,8 @@ channel_op_res_t channel_get(void *data)
 	channel_log_effective_url();
 
 	long http_response_code;
-	if ((result = channel_map_http_code(
-		 channel_curl.proxy == NULL ? false : true,
-		 &http_response_code)) != CHANNEL_OK) {
+	if ((result = channel_map_http_code(&http_response_code)) !=
+	    CHANNEL_OK) {
 		ERROR("Channel operation returned HTTP error code %ld.\n",
 		      http_response_code);
 		if (http_response_code == 500) {

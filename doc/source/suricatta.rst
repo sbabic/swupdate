@@ -65,7 +65,7 @@ has to implement:
 
 .. code:: c
 
-    channel_op_res_t channel_open(void);
+    channel_op_res_t channel_open(void *cfg);
     channel_op_res_t channel_close(void);
     channel_op_res_t channel_put(void* data);
     channel_op_res_t channel_get(void* data);

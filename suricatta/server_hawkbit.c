@@ -72,6 +72,7 @@ static struct option long_options[] = {
     {"nocheckcert", no_argument, NULL, 'x'},
     {"retry", required_argument, NULL, 'r'},
     {"retrywait", required_argument, NULL, 'w'},
+    {"proxy", optional_argument, NULL, 'y'},
     {NULL, 0, NULL, 0}};
 
 static unsigned short mandatory_argument_count = 0;
@@ -1054,8 +1055,10 @@ void suricatta_print_help(void)
 	    "poll operations (default: %ds).\n"
 	    "\t  -r, --retry         Resume and retry interrupted downloads "
 	    "(default: %d tries).\n"
-	    "\t  -w, --retrywait     Time to wait between prior to retry and "
-	    "resume a download (default: %ds).\n",
+	    "\t  -w, --retrywait     Time to wait prior to retry and "
+	    "resume a download (default: %ds).\n"
+	    "\t  -y, --proxy         Use proxy. Either give proxy URL, else "
+	    "{http,all}_proxy env is tried.\n",
 	    DEFAULT_POLLING_INTERVAL, DEFAULT_RESUME_TRIES,
 	    DEFAULT_RESUME_DELAY);
 }
@@ -1101,6 +1104,9 @@ static int suricatta_settings(void *elem, void  __attribute__ ((__unused__)) *da
 	GET_FIELD_STRING(LIBCFG_PARSER, elem, "sslcert", tmp);
 	if (strlen(tmp))
 		SETSTRING(channel_data_defaults.sslcert, tmp);
+	GET_FIELD_STRING(LIBCFG_PARSER, elem, "proxy", tmp);
+	if (strlen(tmp))
+		SETSTRING(channel_data_defaults.proxy, tmp);
 
 	return 0;
 
@@ -1151,9 +1157,16 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 					NULL);
 	}
 
+	if (loglevel >= DEBUGLEVEL) {
+		server_hawkbit.debug = true;
+	}
+	if (loglevel >= TRACELEVEL) {
+		channel_data_defaults.debug = true;
+	}
+
 	/* reset to optind=1 to parse suricatta's argument vector */
 	optind = 1;
-	while ((choice = getopt_long(argc, argv, "t:i:c:u:p:xr:w:",
+	while ((choice = getopt_long(argc, argv, "t:i:c:u:p:xr:y::w:",
 				     long_options, NULL)) != -1) {
 		switch (choice) {
 		case 't':
@@ -1197,6 +1210,27 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 			channel_data_defaults.retries =
 			    (unsigned char)strtoul(optarg, NULL, 10);
 			break;
+		case 'y':
+			if ((!optarg) && (optind < argc) &&
+			    (argv[optind] != NULL) &&
+			    (argv[optind][0] != '-')) {
+				SETSTRING(channel_data_defaults.proxy,
+					  argv[optind++]);
+				break;
+			}
+			if (channel_data_defaults.proxy == NULL) {
+				if ((getenv("http_proxy") == NULL) &&
+				    (getenv("all_proxy") == NULL)) {
+					ERROR("Should use proxy but no "
+					      "proxy environment "
+					      "variables nor proxy URL "
+					      "set.\n");
+					return SERVER_EINIT;
+				}
+				channel_data_defaults.proxy =
+				    USE_PROXY_ENV;
+			}
+			break;
 		case 'w':
 			channel_data_defaults.retry_sleep =
 			    (unsigned int)strtoul(optarg, NULL, 10);
@@ -1205,13 +1239,6 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 		default:
 			return SERVER_EINIT;
 		}
-	}
-
-	if (loglevel >= DEBUGLEVEL) {
-		server_hawkbit.debug = true;
-	}
-	if (loglevel >= TRACELEVEL) {
-		channel_data_defaults.debug = true;
 	}
 
 	if (mandatory_argument_count != ALL_MANDATORY_SET) {
@@ -1224,7 +1251,7 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 		suricatta_print_help();
 		return SERVER_EINIT;
 	}
-	if (channel.open() != CHANNEL_OK) {
+	if (channel.open(&channel_data_defaults) != CHANNEL_OK) {
 		return SERVER_EINIT;
 	}
 	/* If an update was performed, report its status to the hawkBit server

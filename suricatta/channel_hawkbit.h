@@ -37,6 +37,8 @@ typedef enum {
 	CHANNEL_PUT,
 } channel_method_t;
 
+#define USE_PROXY_ENV (char *)0x11
+
 typedef struct {
 	char *url;
 	char *json_string;
@@ -44,6 +46,7 @@ typedef struct {
 	char *cafile;
 	char *sslkey;
 	char *sslcert;
+	char *proxy;
 	unsigned int retry_sleep;
 	unsigned int offs;
 	unsigned int method;

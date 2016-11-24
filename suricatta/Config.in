@@ -75,13 +75,6 @@ config SURICATTA_SERVER_NONE
 
 endchoice
 
-config SURICATTA_HAWKBIT_PROXY
-	string "hawkBit HTTP(S) proxy"
-	depends on SURICATTA_HAWKBIT
-	default ""
-	help
-	  Proxy server to use for communication with hawkBit.
-	  Leave blank for no proxy usage.
 
 comment "hawkBit support needs libcurl and CONFIG_JSON=y"
 	depends on !HAVE_LIBCURL || !JSON

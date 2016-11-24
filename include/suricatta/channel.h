@@ -27,14 +27,14 @@
  * [hawkBit](https://projects.eclipse.org/projects/iot.hawkbit) server.
  */
 
-extern channel_op_res_t channel_open(void);
+extern channel_op_res_t channel_open(void *cfg);
 extern channel_op_res_t channel_close(void);
 extern channel_op_res_t channel_put(void *data);
 extern channel_op_res_t channel_get(void *data);
 extern channel_op_res_t channel_get_file(void *data);
 
 static struct channel_t {
-	channel_op_res_t (*open)(void);
+	channel_op_res_t (*open)(void *cfg);
 	channel_op_res_t (*close)(void);
 	channel_op_res_t (*get)(void *data);
 	channel_op_res_t (*get_file)(void *data);
