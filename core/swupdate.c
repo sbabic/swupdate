@@ -47,6 +47,7 @@
 #endif
 #include "lua_util.h"
 #include "mongoose_interface.h"
+#include "download_interface.h"
 #include "network_ipc.h"
 #include "sslapi.h"
 #include "suricatta/suricatta.h"
@@ -442,10 +443,8 @@ int main(int argc, char **argv)
 	int opt_w = 0;
 	int opt_c = 0;
 	char image_url[MAX_URL];
-	int opt_d = 0;
 	unsigned long __attribute__ ((__unused__)) opt_t = DL_LOWSPEED_TIME;
 	int __attribute__ ((__unused__)) opt_r = 3;
-	RECOVERY_STATUS result;
 	char main_options[256];
 	unsigned int public_key_mandatory = 0;
 
@@ -458,6 +457,13 @@ int main(int argc, char **argv)
 	char weboptions[1024];
 	char **av = NULL;
 	int ac = 0;
+#endif
+
+#ifdef CONFIG_DOWNLOAD
+	char dwloptions[1024];
+	char **dwlav = NULL;
+	int dwlac = 0;
+	int opt_d = 0;
 #endif
 
 #ifdef CONFIG_MTD
@@ -584,10 +590,13 @@ int main(int argc, char **argv)
 			usage(argv[0]);
 			exit(0);
 			break;
+#ifdef CONFIG_DOWNLOAD
 		case 'd':
-			strncpy(image_url, optarg, sizeof(image_url));
+			(void)snprintf(dwloptions, sizeof(dwloptions), "%s %s", argv[0], optarg);
+			dwlav = splitargs(dwloptions, &dwlac);
 			opt_d = 1;
 			break;
+#endif
 		case 'r':
 			errno = 0;
 			opt_r = strtoul(optarg, NULL, 10);
@@ -688,6 +697,19 @@ int main(int argc, char **argv)
 			spawn_process(suricatta_uid, suricatta_gid, cfgfname,
 				       	argcount, argvalues, start_suricatta);
 		}
+
+#endif
+
+#ifdef CONFIG_DOWNLOAD
+		if (opt_d) {
+			uid_t dwl_uid;
+			gid_t dwl_gid;
+
+			read_settings_user_id(cfgfname, "download",
+						&dwl_uid, &dwl_gid);
+			spawn_process(dwl_uid, dwl_gid, cfgfname,
+				       	dwlac, dwlav, start_download);
+		}
 #endif
 	}
 
@@ -751,14 +773,7 @@ int main(int argc, char **argv)
 		notify(SUCCESS, 0, 0);
 	}
 
-	if (opt_d) {
-		result = download_from_url(image_url, opt_r, opt_t);
-		if (result == SUCCESS)
-			exit(0);
-		else
-			exit(1);
-	}
-	if (opt_w || opt_s || opt_u)
+	if (opt_w || opt_s || opt_u || opt_d)
 		pthread_join(network_daemon, NULL);
 
 }

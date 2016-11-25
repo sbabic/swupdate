@@ -24,6 +24,7 @@
 #include <string.h>
 #include <errno.h>
 #include <ctype.h>
+#include <getopt.h>
 #include <sys/types.h>
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -35,8 +36,24 @@
 #include "swupdate.h"
 #include "installer.h"
 #include "network_ipc.h"
+#include "parselib.h"
+#include "swupdate_status.h"
+#include "swupdate_settings.h"
+#include "download_interface.h"
+
+#define SETSTRING(p, v) do { \
+	if (p) \
+		free(p); \
+	p = strdup(v); \
+} while (0)
 
 static int cnt = 0;
+
+struct dwl_options {
+	char *url;
+	int retries;
+	int timeout;
+};
 
 /* notify download progress each second */
 #define MINIMAL_PROGRESS_INTERVAL     1
@@ -45,6 +62,13 @@ struct dlprogress {
 	double lastruntime;
 	CURL *curl;
 };
+
+static struct option long_options[] = {
+    {"url", required_argument, NULL, 'u'},
+    {"retry", required_argument, NULL, 'r'},
+    {"timeout", required_argument, NULL, 't'},
+    {NULL, 0, NULL, 0}};
+
 
 /*
  * Callback from the libcurl API to progress meter function
@@ -166,19 +190,20 @@ static void set_option_common(CURL *curl_handle,
  * It si not thought to work with local (file://)
  * for that, the -i option is used.
  */
-RECOVERY_STATUS download_from_url(char *image_url, int retries,
+static RECOVERY_STATUS download_from_url(char *image_url, int retries,
 					unsigned long lowspeed_time)
 {
 	CURL *curl_handle;
 	CURLcode res = CURLE_GOT_NOTHING;
 	int fd;
-	int attempt = 3;
+	int attempt = 10;
 	int result;
 	double dummy;
 	unsigned long long dwlbytes = 0;
 	int i;
 	struct dlprogress progress;
 
+	TRACE("download from url started : %s", image_url);
 	if (!strlen(image_url)) {
 		ERROR("Image URL not provided... aborting download and update\n");
 		return FAILURE;
@@ -258,7 +283,6 @@ RECOVERY_STATUS download_from_url(char *image_url, int retries,
 	curl_global_cleanup();
 
 	if (res == CURLE_OK) {
-		INFO("Success : %llu bytes", dwlbytes);
 		result = ipc_wait_for_complete(NULL);
 	} else {
 		INFO("Error : %s", curl_easy_strerror(res));
@@ -268,4 +292,69 @@ RECOVERY_STATUS download_from_url(char *image_url, int retries,
 	ipc_end(fd);
 
 	return result;
+}
+
+static int download_settings(void *elem, void  __attribute__ ((__unused__)) *data)
+{
+	struct dwl_options *opt = (struct dwl_options *)data;
+	char tmp[128];
+
+	GET_FIELD_STRING(LIBCFG_PARSER, elem, "url", tmp);
+	if (strlen(tmp)) {
+		SETSTRING(opt->url, tmp);
+	}
+
+	get_field(LIBCFG_PARSER, elem, "retry",
+		&opt->retries);
+	get_field(LIBCFG_PARSER, elem, "timeout",
+		&opt->timeout);
+
+	return 0;
+}
+
+int start_download(char *fname, int argc, char *argv[])
+{
+	struct dwl_options options;
+	int choice = 0;
+	RECOVERY_STATUS result;
+
+	memset(&options, 0, sizeof(options));
+	if (fname) {
+		read_module_settings(fname, "download", download_settings,
+					&options);
+	}
+
+
+	/* reset to optind=1 to parse download's argument vector */
+	optind = 1;
+	while ((choice = getopt_long(argc, argv, "t:u:r:",
+				     long_options, NULL)) != -1) {
+		switch (choice) {
+		case 't':
+			options.timeout =
+			    (unsigned char)strtoul(optarg, NULL, 10);
+			break;
+		case 'u':
+			SETSTRING(options.url, optarg);
+			break;
+		case 'r':
+			options.retries =
+			    (unsigned char)strtoul(optarg, NULL, 10);
+			break;
+		case '?':
+		default:
+			return -EINVAL;
+		}
+	}
+
+	result = FAILURE;
+
+	while (1) {
+		if (result == FAILURE)
+			result = download_from_url(options.url, options.retries,
+					options.timeout);
+		sleep(60);
+	}
+
+	return 0;
 }
