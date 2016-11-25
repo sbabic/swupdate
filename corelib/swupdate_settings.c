@@ -82,7 +82,7 @@ int read_module_settings(char *filename, const char *module, settings_callback f
 	config_t cfg;
 	config_setting_t *elem;
 
-	if (!fcn)
+	if (!fcn || !filename)
 		return -EINVAL;
 
 	memset(&cfg, 0, sizeof(cfg));
