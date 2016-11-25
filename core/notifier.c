@@ -104,7 +104,10 @@ void notify(RECOVERY_STATUS status, int error, const char *msg)
 		if (notifyfd > 0) {
 			notifymsg.status = status;
 			notifymsg.error = error;
-			strcpy(notifymsg.buf, msg);
+			if (msg)
+				strcpy(notifymsg.buf, msg);
+			else
+				notifymsg.buf[0] = '\0';
 			sendto(notifyfd, &notifymsg, sizeof(notifymsg), 0,
 			      (struct sockaddr *) &notify_server,
 				sizeof(struct sockaddr_un));
