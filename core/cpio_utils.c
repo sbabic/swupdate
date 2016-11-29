@@ -278,8 +278,6 @@ copyfile_exit:
 	if (dgst)
 		swupdate_HASH_cleanup(dgst);
 
-	close(fdout);
-
 	return ret;
 }
 
