@@ -352,10 +352,12 @@ off_t extract_sw_description(int fd, const char *descfile, off_t start)
 
 	if (lseek(fd, offset, SEEK_SET) < 0) {
 		ERROR("CPIO file corrupted : %s\n", strerror(errno));
+		close(fdout);
 		return -1;
 	}
 	if (copyfile(fd, &fdout, fdh.size, &offset, 0, 0, &checksum, NULL, 0, NULL) < 0) {
 		ERROR("%s corrupted or not valid\n", descfile);
+		close(fdout);
 		return -1;
 	}
 
