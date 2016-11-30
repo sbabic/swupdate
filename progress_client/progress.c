@@ -34,10 +34,29 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <pthread.h>
+#include <getopt.h>
 
 #include <progress.h>
 
 #define PSPLASH_MSG_SIZE	64
+
+static struct option long_options[] = {
+	{"psplash", no_argument, NULL, 'p'},
+	{"wait", no_argument, NULL, 'w'},
+	{NULL, 0, NULL, 0}
+};
+
+static void usage(char *programname)
+{
+	fprintf(stdout, "%s (compiled %s)\n", programname, __DATE__);
+	fprintf(stdout, "Usage %s [OPTION]\n",
+			programname);
+	fprintf(stdout,
+		" -w, --wait              : wait for a connection with SWUpdate\n"
+		" -p, --psplash           : send info to the psplash process\n"
+		" -h, --help                     : print this help and exit\n"
+		);
+}
 
 static int psplash_init(char *pipe)
 {
@@ -123,7 +142,8 @@ static void psplash_progress(char *pipe, struct progress_msg *pmsg)
 	free(buf);
 }
 
-int main(void) {
+int main(int argc, char **argv)
+{
 	int connfd;
 	struct sockaddr_un servaddr;
 	struct progress_msg msg;
@@ -135,7 +155,31 @@ int main(void) {
 	int percent = 0;
 	char bar[60];
 	int filled_len;
+	int opt_w = 0;
+	int opt_p = 0;
+	int c;
 
+	/* Process options with getopt */
+	while ((c = getopt_long(argc, argv, "wph",
+				long_options, NULL)) != EOF) {
+		switch (c) {
+		case 'w':
+			opt_w = 1;
+			break;
+		case 'p':
+			opt_p = 1;
+			break;
+		case 'h':
+			usage(argv[0]);
+			exit(0);
+			break;
+		default:
+			usage(argv[0]);
+			exit(1);
+			break;
+		}
+	}
+		
 	tmpdir = getenv("TMPDIR");
 	if (!tmpdir)
 		tmpdir = "/tmp";
@@ -150,10 +194,18 @@ int main(void) {
 	servaddr.sun_family = AF_LOCAL;
 	strcpy(servaddr.sun_path, SOCKET_PROGRESS_PATH);
 
-	ret = connect(connfd, (struct sockaddr *) &servaddr, sizeof(servaddr));
-	if (ret < 0) {
-		fprintf(stderr, "no communication with swupdate\n");
-	}
+	/* Connection to SWUpdate */
+	do {
+		ret = connect(connfd, (struct sockaddr *) &servaddr, sizeof(servaddr));
+		if (ret == 0)
+			break;
+		if (!opt_w) {
+			fprintf(stderr, "no communication with swupdate\n");
+			exit(1);
+		}
+
+		sleep(1);
+	} while (1);
 
 	while (1) {
 		ret = read(connfd, &msg, sizeof(msg));
@@ -161,7 +213,7 @@ int main(void) {
 			close(connfd);
 			exit(1);
 		}
-		if (!psplash_ok) {
+		if (!psplash_ok && opt_p) {
 			psplash_ok = psplash_init(psplash_pipe_path);
 		}
 
@@ -193,7 +245,8 @@ int main(void) {
 			fprintf(stdout, "\n\n%s !\n", msg.status == SUCCESS
 							  ? "SUCCESS"
 							  : "FAILURE");
-			psplash_progress(psplash_pipe_path, &msg);
+			if (psplash_ok)
+				psplash_progress(psplash_pipe_path, &msg);
 			psplash_ok = 0;
 			break;
 		case DONE:
