@@ -197,6 +197,14 @@ void *network_thread (void *data)
 				TRACE("Incoming network request: processing...");
 				if (instp->status == IDLE) {
 					instp->fd = ctrlconnfd;
+					instp->source = msg.data.instmsg.source;
+					instp->len = min(msg.data.instmsg.len, sizeof(instp->info));
+					memcpy(instp->info, msg.data.instmsg.buf,
+						instp->len);
+
+					/*
+					 * Prepare answer
+					 */
 					msg.type = ACK;
 
 					/* Drop all old notification from last run */

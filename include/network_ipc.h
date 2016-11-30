@@ -23,6 +23,7 @@
 #define _IPC_H
 
 #include "swupdate_status.h"
+#include "util.h"
 
 #define IPC_MAGIC		0x14052001
 #define SOCKET_CTRL_PATH	"/tmp/sockinstctrl"
@@ -42,6 +43,14 @@ typedef union {
 		int error;
 		char desc[2048];
 	} status;
+	struct {
+		sourcetype source; /* Who triggered the update */
+		unsigned int len;    /* Len of data valid in buf */
+		char	buf[2048];   /*
+				      * Buffer that each source can fill
+				      * with additional information
+				      */
+	} instmsg;
 } msgdata;
 	
 typedef struct {
@@ -51,6 +60,7 @@ typedef struct {
 } ipc_message;
 
 int ipc_inst_start(void);
+int ipc_inst_start_ext(sourcetype source, int len, char *info);
 int ipc_send_data(int connfd, char *buf, int size);
 void ipc_end(int connfd);
 int ipc_get_status(ipc_message *msg);

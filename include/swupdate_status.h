@@ -38,4 +38,12 @@ typedef enum {
 	DONE,
 } RECOVERY_STATUS;
 
+typedef enum {
+	SOURCE_UNKNOWN,
+	SOURCE_WEBSERVER,
+	SOURCE_SURICATTA,
+	SOURCE_DOWNLOADER,
+	SOURCE_LOCAL
+} sourcetype;
+
 #endif

@@ -45,11 +45,14 @@ enum {
 };
 
 struct installer {
-	int	fd;				//!< install image file handle
-	RECOVERY_STATUS	status;			//!< "idle" or "request source" info
-	RECOVERY_STATUS	last_install;		//!< result from last installation
-	int	last_error;			//!< error code if installation failed
-	char	errormsg[64];			//!< error message if installation failed
+	int	fd;			/* install image file handle */
+	RECOVERY_STATUS	status;		/* "idle" or "request source" info */
+	RECOVERY_STATUS	last_install;	/* result from last installation */
+	int	last_error;		/* error code if installation failed */
+	char	errormsg[64];		/* error message if installation failed */
+	sourcetype source; 		/* Who triggered the update */
+	unsigned int len;    		/* Len of data valid in info */
+	char	info[2048];   		/* info */
 };
 
 typedef void (*notifier) (RECOVERY_STATUS status, int level, const char *msg);

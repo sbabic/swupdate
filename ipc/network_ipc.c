@@ -112,7 +112,7 @@ int ipc_get_status(ipc_message *msg)
 	return ret;
 }
 
-int ipc_inst_start(void)
+int ipc_inst_start_ext(sourcetype source, int len, char *buf)
 {
 	int connfd;
 	ipc_message msg;
@@ -123,8 +123,26 @@ int ipc_inst_start(void)
 		return -1;
 
 	memset(&msg, 0, sizeof(msg));
+
+	/*
+	 * Command is request to install
+	 */
 	msg.magic = IPC_MAGIC;
 	msg.type = REQ_INSTALL;
+
+	/*
+	 * Pass data from interface originating
+	 * the update, if any
+	 */
+	msg.data.instmsg.source = source;
+	if (len > sizeof(msg.data.instmsg.buf))
+		len = sizeof(msg.data.instmsg.buf);
+	if (!source) {
+		msg.data.instmsg.len = 0;
+	} else {
+		msg.data.instmsg.len = len;
+		memcpy(msg.data.instmsg.buf, buf, len);
+	}
 
 	ret = write(connfd, &msg, sizeof(msg));
 	if (ret != sizeof(msg)) {
@@ -144,6 +162,15 @@ int ipc_inst_start(void)
 	}
 
 	return connfd;
+}
+
+/*
+ * this is for compatibiity to not break external API
+ * Use better the _ext() version
+ */
+int ipc_inst_start(void)
+{
+	return ipc_inst_start_ext(SOURCE_UNKNOWN, 0, NULL);
 }
 
 /*
