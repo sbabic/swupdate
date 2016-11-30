@@ -442,6 +442,7 @@ int main(int argc, char **argv)
 	int opt_u = 0;
 	int opt_w = 0;
 	int opt_c = 0;
+	int opt_d = 0;
 	char image_url[MAX_URL];
 	unsigned long __attribute__ ((__unused__)) opt_t = DL_LOWSPEED_TIME;
 	int __attribute__ ((__unused__)) opt_r = 3;
@@ -463,7 +464,6 @@ int main(int argc, char **argv)
 	char dwloptions[1024];
 	char **dwlav = NULL;
 	int dwlac = 0;
-	int opt_d = 0;
 #endif
 
 #ifdef CONFIG_MTD
