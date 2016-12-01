@@ -56,3 +56,41 @@ void get_field_string(parsertype p, void *e, const char *path, char *dest,
 	(void)n;
 	return;
 }
+
+int get_array_length(parsertype p, void *root)
+{
+	(void)p;
+	(void)root;
+	return 0;
+}
+
+void *get_elem_from_idx(parsertype p, void *node, int idx)
+{
+	(void)p;
+	(void)node;
+	(void)idx;
+	return NULL;
+}
+
+int exist_field_string(parsertype p, void *e, const char *path)
+{
+	(void)p;
+	(void)e;
+	(void)path;
+	return 0;
+}
+
+void get_field(parsertype p, void *e, const char *path, void *dest)
+{
+	(void)p;
+	(void)e;
+	(void)path;
+	(void)dest;
+}
+
+pthread_t start_thread(void *(* start_routine) (void *), void *arg)
+{
+	(void)start_routine;
+	(void)arg;
+	return 0;
+}

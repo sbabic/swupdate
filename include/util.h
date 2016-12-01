@@ -104,6 +104,9 @@ int ascii_to_hash(unsigned char *hash, const char *s);
 void hash_to_ascii(const unsigned char *hash, char *s);
 int IsValidHash(const unsigned char *hash);
 
+#ifndef typeof
+#define typeof __typeof__
+#endif
 #define max(a, b) ({\
 		typeof(a) _a = a;\
 		typeof(b) _b = b;\
