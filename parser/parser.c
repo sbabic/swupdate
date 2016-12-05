@@ -482,7 +482,7 @@ static void parse_files(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 	}
 }
 
-static void parser(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
+static int parser(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 {
 
 	get_hw_revision(&swcfg->hw);
@@ -499,6 +499,16 @@ static void parser(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 	 * before other images
 	 */
 	parse_partitions(p, cfg, swcfg);
+
+	if (LIST_EMPTY(&swcfg->images) &&
+	    LIST_EMPTY(&swcfg->partitions) &&
+	    LIST_EMPTY(&swcfg->scripts) &&
+	    LIST_EMPTY(&swcfg->uboot)) {
+		ERROR("Found nothing to install\n");
+		return -1;
+	}
+
+	return 0;
 }
 
 #ifdef CONFIG_LIBCONFIG
@@ -508,6 +518,7 @@ int parse_cfg (struct swupdate_cfg *swcfg, const char *filename)
 	const char *str;
 	char node[128];
 	parsertype p = LIBCFG_PARSER;
+	int ret;
 
 	memset(&cfg, 0, sizeof(cfg));
 	config_init(&cfg);
@@ -536,11 +547,11 @@ int parse_cfg (struct swupdate_cfg *swcfg, const char *filename)
 		fprintf(stdout, "Version %s\n", swcfg->version);
 	}
 
-	parser(p, &cfg, swcfg);
+	ret = parser(p, &cfg, swcfg);
 
 	config_destroy(&cfg);
 
-	return 0;
+	return ret;
 }
 #else
 int parse_cfg (struct swupdate_cfg __attribute__ ((__unused__)) *swcfg,
@@ -587,13 +598,13 @@ int parse_json(struct swupdate_cfg *swcfg, const char *filename)
 		return -1;
 	}
 
-	parser(p, cfg, swcfg);
+	ret = parser(p, cfg, swcfg);
 
 	json_object_put(cfg);
 
 	free(string);
 
-	return 0;
+	return ret;
 }
 #else
 int parse_json(struct swupdate_cfg __attribute__ ((__unused__)) *swcfg,
