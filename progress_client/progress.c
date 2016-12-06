@@ -142,10 +142,43 @@ static void psplash_progress(char *pipe, struct progress_msg *pmsg)
 	free(buf);
 }
 
+static int connect_to_swupdate(int reconnect)
+{
+	struct sockaddr_un servaddr;
+	int fd, ret;
+
+	/*
+	 * The thread read from swupdate progress thread
+	 * and forward messages to psplash
+	 */
+	fd = socket(AF_LOCAL, SOCK_STREAM, 0);
+	bzero(&servaddr, sizeof(servaddr));
+	servaddr.sun_family = AF_LOCAL;
+	strcpy(servaddr.sun_path, SOCKET_PROGRESS_PATH);
+
+	fprintf(stdout, "Trying to connect to SWUpdate...\n");
+
+	/* Connection to SWUpdate */
+	do {
+		ret = connect(fd, (struct sockaddr *) &servaddr, sizeof(servaddr));
+		if (ret == 0)
+			break;
+		if (!reconnect) {
+			fprintf(stderr, "no communication with swupdate\n");
+			exit(1);
+		}
+
+		sleep(1);
+	} while (1);
+
+	fprintf(stdout, "Connected\n");
+
+	return fd;
+}
+
 int main(int argc, char **argv)
 {
 	int connfd;
-	struct sockaddr_un servaddr;
 	struct progress_msg msg;
 	int ret;
 	const char *tmpdir;
@@ -185,34 +218,48 @@ int main(int argc, char **argv)
 		tmpdir = "/tmp";
 	snprintf(psplash_pipe_path, sizeof(psplash_pipe_path), "%s/psplash_fifo", tmpdir);
 
-	/*
-	 * The thread read from swupdate progress thread
-	 * and forward messages to psplash
-	 */
-	connfd = socket(AF_LOCAL, SOCK_STREAM, 0);
-	bzero(&servaddr, sizeof(servaddr));
-	servaddr.sun_family = AF_LOCAL;
-	strcpy(servaddr.sun_path, SOCKET_PROGRESS_PATH);
 
-	/* Connection to SWUpdate */
-	do {
-		ret = connect(connfd, (struct sockaddr *) &servaddr, sizeof(servaddr));
-		if (ret == 0)
-			break;
-		if (!opt_w) {
-			fprintf(stderr, "no communication with swupdate\n");
-			exit(1);
+	connfd = -1;
+	while (1) {
+		if (connfd < 0) {
+			connfd = connect_to_swupdate(opt_w);
 		}
 
-		sleep(1);
-	} while (1);
-
-	while (1) {
 		ret = read(connfd, &msg, sizeof(msg));
 		if (ret != sizeof(msg)) {
+			fprintf(stdout, "Connection closing..\n");
 			close(connfd);
-			exit(1);
+			connfd = -1;
+			continue;
 		}
+
+		/*
+		 * Something happens, show the info
+		 */
+		if ((status == IDLE) && (msg.status != IDLE)) {
+			fprintf(stdout, "\nUpdate started !\n");
+			fprintf(stdout, "Interface: ");
+			switch (msg.source) {
+			case SOURCE_UNKNOWN:
+				fprintf(stdout, "UNKNOWN\n\n");
+				break;
+			case SOURCE_WEBSERVER:
+				fprintf(stdout, "WEBSERVER\n\n");
+				break;
+			case SOURCE_SURICATTA:
+				fprintf(stdout, "BACKEND\n\n");
+				break;
+			case SOURCE_DOWNLOADER:
+				fprintf(stdout, "DOWNLOADER\n\n");
+				break;
+			case SOURCE_LOCAL:
+				fprintf(stdout, "LOCAL\n\n");
+				break;
+			}
+
+			fprintf(stdout, "INFO : %s\n\n", msg.info);
+		}
+
 		if (!psplash_ok && opt_p) {
 			psplash_ok = psplash_init(psplash_pipe_path);
 		}
@@ -255,5 +302,7 @@ int main(int argc, char **argv)
 		default:
 			break;
 		}
+
+		status = msg.status;
 	}
 }
