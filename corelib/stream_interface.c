@@ -368,3 +368,19 @@ void *network_initializer(void *data)
 
 	pthread_exit((void *)0);
 }
+
+/*
+ * Retrieve additional info sent by the source
+ * The data is not locked because it is retrieve
+ * at different times
+ */
+int get_install_info(sourcetype *source, char *buf, int len)
+{
+	len = min(len, inst.len);
+
+	memcpy(buf, inst.info, len);
+	*source = inst.source;
+
+	return len;
+}
+
