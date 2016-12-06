@@ -97,7 +97,11 @@ void server_reboot(void);
 server_op_res_t server_handle_initial_state(update_state_t stateovrrd);
 int server_update_status_callback(ipc_message *msg);
 int server_update_done_callback(RECOVERY_STATUS status);
-server_op_res_t server_process_update_artifact(json_object *json_data_artifact);
+server_op_res_t server_process_update_artifact(json_object *json_data_artifact,
+						const char *update_action,
+						const char *part,
+						const char *version,
+						const char *name);
 void suricatta_print_help(void);
 server_op_res_t server_set_polling_interval(json_object *json_root);
 server_op_res_t server_set_config_data(json_object *json_root);
@@ -607,12 +611,18 @@ int server_update_status_callback(ipc_message *msg)
 	 *      `ipc_wait_for_complete()`. */
 	/* TODO notify() status here to hawkBit or to some syslog service for
 	 *      log persistency. */
+#if 0
 	printf("Update status: %d message: %s\n", msg->data.status.current,
 	       msg->data.status.desc);
+#endif
 	return 0;
 }
 
-server_op_res_t server_process_update_artifact(json_object *json_data_artifact)
+server_op_res_t server_process_update_artifact(json_object *json_data_artifact,
+						const char *update_action,
+						const char *part,
+						const char *version,
+						const char *name)
 {
 	assert(json_data_artifact != NULL);
 	assert(json_object_get_type(json_data_artifact) == json_type_array);
@@ -694,12 +704,35 @@ server_op_res_t server_process_update_artifact(json_object *json_data_artifact)
 		channel_data_t channel_data = channel_data_defaults;
 		channel_data.url =
 		    strdup(json_object_get_string(json_data_artifact_url));
+
+		static const char* const update_info = STRINGIFY(
+		{
+		"update": "%s",
+		"part": "%s",
+		"version": "%s",
+		"name": "%s"
+		}
+		);
+		if (ENOMEM_ASPRINTF ==
+		    asprintf(&channel_data.info, update_info,
+			    update_action,
+			    part,
+			    version,
+			    name)) {
+			ERROR("hawkBit server reply cannot be sent because of OOM.\n");
+			result = SERVER_EBADMSG;
+			goto cleanup_loop;
+		}
+
 		channel_op_res_t cresult =
 		    channel.get_file((void *)&channel_data);
 		if ((result = map_channel_retcode(cresult)) != SERVER_OK) {
 			ERROR("Error while downloading artifact.\n");
 			goto cleanup_loop;
 		}
+
+
+
 
 #ifdef CONFIG_SURICATTA_SSL
 		if (strncmp((char *)&channel_data.sha1hash,
@@ -737,6 +770,9 @@ server_op_res_t server_process_update_artifact(json_object *json_data_artifact)
 		}
 		if (filename != NULL) {
 			free(filename);
+		}
+		if (channel_data.info != NULL) {
+			free(channel_data.info);
 		}
 		if (result != SERVER_OK) {
 			break;
@@ -871,7 +907,12 @@ server_op_res_t server_install_update(void)
 		assert(json_object_get_type(json_data_chunk_artifacts) ==
 		       json_type_array);
 		result =
-		    server_process_update_artifact(json_data_chunk_artifacts);
+		    server_process_update_artifact(json_data_chunk_artifacts,
+				json_object_get_string(json_deployment_update_action),
+				json_object_get_string(json_data_chunk_part),
+				json_object_get_string(json_data_chunk_version),
+				json_object_get_string(json_data_chunk_name));
+
 		if (result != SERVER_OK) {
 			/* TODO handle partial installations and rollback if
 			 *      more than one artifact is available on hawkBit.

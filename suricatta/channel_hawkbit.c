@@ -628,9 +628,10 @@ channel_op_res_t channel_get_file(void *data)
 
 	int file_handle = 0;
 	for (int retries = 3; retries >= 0; retries--) {
-		if ((file_handle = ipc_inst_start()) > 0) {
+		file_handle = ipc_inst_start_ext(SOURCE_SURICATTA,
+			strlen(channel_data->info), channel_data->info);
+		if (file_handle > 0)
 			break;
-		}
 		sleep(1);
 	}
 	if (file_handle < 0) {
