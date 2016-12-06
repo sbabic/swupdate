@@ -605,16 +605,12 @@ server_op_res_t server_handle_initial_state(update_state_t stateovrrd)
 	return SERVER_OK;
 }
 
-int server_update_status_callback(ipc_message *msg)
+int server_update_status_callback(ipc_message __attribute__ ((__unused__)) *msg)
 {
 	/* NOTE The return code is actually irrelevant as it's not used by
 	 *      `ipc_wait_for_complete()`. */
 	/* TODO notify() status here to hawkBit or to some syslog service for
 	 *      log persistency. */
-#if 0
-	printf("Update status: %d message: %s\n", msg->data.status.current,
-	       msg->data.status.desc);
-#endif
 	return 0;
 }
 
