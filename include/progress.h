@@ -39,6 +39,9 @@ struct progress_msg {
 	unsigned int	cur_percent;	/* % in current step */
 	char		cur_image[256];	/* Name of image to be installed */
 	char		hnd_name[64];	/* Name of running hanler */
+	sourcetype	source;		/* Interface that triggered the update */
+	unsigned int 	infolen;    	/* Len of data valid in info */
+	char		info[2048];   	/* additional information about install */
 };
 
 void swupdate_progress_init(unsigned int nsteps);

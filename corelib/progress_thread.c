@@ -97,10 +97,13 @@ static void send_progress_msg(void)
 void swupdate_progress_init(unsigned int nsteps) {
 	struct swupdate_progress *prbar = &progress;
 	pthread_mutex_lock(&prbar->lock);
+
 	prbar->msg.nsteps = nsteps;
 	prbar->msg.cur_step = 0;
 	prbar->msg.status = START;
 	prbar->msg.cur_percent = 0;
+	prbar->msg.infolen = get_install_info(&prbar->msg.source, prbar->msg.info,
+						sizeof(prbar->msg.info));
 	send_progress_msg();
 	pthread_mutex_unlock(&prbar->lock);
 }
