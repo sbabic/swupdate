@@ -40,9 +40,40 @@
 
 #define PSPLASH_MSG_SIZE	64
 
+#define RESET		0
+#define BRIGHT 		1
+#define DIM		2
+#define UNDERLINE 	3
+#define BLINK		4
+#define REVERSE		7
+#define HIDDEN		8
+
+#define BLACK 		0
+#define RED		1
+#define GREEN		2
+#define YELLOW		3
+#define BLUE		4
+#define MAGENTA		5
+#define CYAN		6
+#define	WHITE		7
+
+static void resetterm(void)
+{
+	fprintf(stdout, "%c[%dm", 0x1B, RESET);
+}
+
+static void textcolor(int attr, int fg, int bg)
+{	char command[13];
+
+	/* Command is the control command to the terminal */
+	sprintf(command, "%c[%d;%d;%dm", 0x1B, attr, fg + 30, bg + 40);
+	fprintf(stdout, "%s", command);
+}
+
 static struct option long_options[] = {
 	{"psplash", no_argument, NULL, 'p'},
 	{"wait", no_argument, NULL, 'w'},
+	{"color", no_argument, NULL, 'c'},
 	{NULL, 0, NULL, 0}
 };
 
@@ -52,6 +83,7 @@ static void usage(char *programname)
 	fprintf(stdout, "Usage %s [OPTION]\n",
 			programname);
 	fprintf(stdout,
+		" -c, --color             : Use colors to show results\n"
 		" -w, --wait              : wait for a connection with SWUpdate\n"
 		" -p, --psplash           : send info to the psplash process\n"
 		" -h, --help                     : print this help and exit\n"
@@ -188,14 +220,19 @@ int main(int argc, char **argv)
 	int percent = 0;
 	char bar[60];
 	int filled_len;
+	int opt_c = 0;
 	int opt_w = 0;
 	int opt_p = 0;
 	int c;
+	RECOVERY_STATUS	status = IDLE;		/* Update Status (Running, Failure) */
 
 	/* Process options with getopt */
-	while ((c = getopt_long(argc, argv, "wph",
+	while ((c = getopt_long(argc, argv, "cwph",
 				long_options, NULL)) != EOF) {
 		switch (c) {
+		case 'c':
+			opt_c = 1;
+			break;
 		case 'w':
 			opt_w = 1;
 			break;
@@ -289,9 +326,18 @@ int main(int argc, char **argv)
 		switch (msg.status) {
 		case SUCCESS:
 		case FAILURE:
-			fprintf(stdout, "\n\n%s !\n", msg.status == SUCCESS
+			fprintf(stdout, "\n\n");
+			if (opt_c) {
+				if (msg.status == FAILURE)
+					textcolor(BLINK, RED, BLACK);
+				else
+					textcolor(BRIGHT, GREEN, BLACK);
+			}
+
+			fprintf(stdout, "%s !\n", msg.status == SUCCESS
 							  ? "SUCCESS"
 							  : "FAILURE");
+			resetterm();
 			if (psplash_ok)
 				psplash_progress(psplash_pipe_path, &msg);
 			psplash_ok = 0;
