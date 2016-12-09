@@ -23,6 +23,19 @@
 #include <fw_env.h>
 #include "suricatta/state.h"
 
+/*
+ * This check is to avoid to corrupt the environment
+ * An empty key is accepted, but U-Boot reports a corrupted
+ * environment/
+ */
+#define CHECK_STATE_VAR(v) do { \
+	if (strnlen(v, UBOOT_VAR_LENGTH) == 0) { \
+		WARN("Update Status Storage Key (CONFIG_SURICATTA_STATE_UBOOT) " \
+			"is empty, setting it to 'ustate'\n"); \
+		v = (char *)"ustate"; \
+	} \
+} while(0)
+
 #ifndef CONFIG_SURICATTA_STATE_CHOICE_UBOOT
 server_op_res_t save_state(char *key, update_state_t value)
 {
@@ -44,11 +57,11 @@ server_op_res_t reset_state(char *key)
 	(void)key;
 	return SERVER_OK;
 }
-#endif /* !CONFIG_SURICATTA_STATE_CHOICE_UBOOT */
+#else
 
-#ifdef CONFIG_SURICATTA_STATE_CHOICE_UBOOT
 server_op_res_t save_state(char *key, update_state_t value)
 {
+	CHECK_STATE_VAR(key);
 	if (fw_env_open(fw_env_opts) != 0) {
 		ERROR("Error: Cannot initialize U-Boot environment.\n");
 		return SERVER_EERR;
@@ -62,6 +75,7 @@ server_op_res_t save_state(char *key, update_state_t value)
 
 server_op_res_t read_state(char *key, update_state_t *value)
 {
+	CHECK_STATE_VAR(key);
 	if (fw_env_open(fw_env_opts) != 0) {
 		ERROR("Error: Cannot initialize U-Boot environment.\n");
 		return SERVER_EERR;
@@ -79,6 +93,7 @@ server_op_res_t read_state(char *key, update_state_t *value)
 }
 server_op_res_t reset_state(char *key)
 {
+	CHECK_STATE_VAR(key);
 	if (fw_env_open(fw_env_opts) != 0) {
 		ERROR("Error: Cannot initialize U-Boot environment.\n");
 		return SERVER_EERR;

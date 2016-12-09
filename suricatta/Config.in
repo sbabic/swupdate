@@ -39,7 +39,7 @@ endchoice
 
 config SURICATTA_STATE_UBOOT
 	string "Store Update Status in U-Boot Environment variable"
-	default ""
+	default "ustate"
 	depends on SURICATTA_STATE_CHOICE_UBOOT
 	help
 	  Store update information in U-Boot's environment.
