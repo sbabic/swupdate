@@ -75,7 +75,7 @@ config HW_COMPATIBILITY
 	default n
 	help
 	  If enabled, check if the hardware revision
-	  supports the softwrae version. Detecting the hardware
+	  supports the software version. Detecting the hardware
 	  revision is very board specific, and it cannot be generalized.
 	  For this reason, the software expects that the detected
 	  version is written into a file by a previous software.
