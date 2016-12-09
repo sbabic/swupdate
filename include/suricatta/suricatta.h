@@ -55,5 +55,5 @@ typedef enum {
 	SERVER_ID_REQUESTED,
 } server_op_res_t;
 
-int start_suricatta(char *cfgname, int argc, char *argv[]) __attribute__((noreturn));
+int start_suricatta(const char *cfgname, int argc, char *argv[]) __attribute__((noreturn));
 void suricatta_print_help(void);

@@ -147,7 +147,7 @@ static int mongoose_settings(void *elem, void *data)
 
 }
 
-static void process_command_line_arguments(char *filename, int argc, char *argv[], char **options) {
+static void process_command_line_arguments(const char *filename, int argc, char *argv[], char **options) {
 	size_t i, cmd_line_opts_start = 1;
 
 	options[0] = NULL;
@@ -424,7 +424,7 @@ static void start_mongoose_server(char **options) {
 
 }
 
-int start_mongoose(char *cfgfname, int argc, char *argv[])
+int start_mongoose(const char *cfgfname, int argc, char *argv[])
 {
 
 	char *options[MAX_OPTIONS];

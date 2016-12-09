@@ -23,8 +23,8 @@
 #define _SWUPDATE_SETTINGS_H
 
 #ifdef CONFIG_LIBCONFIG
-int read_module_settings(char *filename, const char *module, settings_callback fcn, void *data);
-int read_settings_user_id(char *filename, const char *module, uid_t *userid, gid_t *groupid);
+int read_module_settings(const char *filename, const char *module, settings_callback fcn, void *data);
+int read_settings_user_id(const char *filename, const char *module, uid_t *userid, gid_t *groupid);
 #else
 static inline int read_module_settings(char __attribute__ ((__unused__))*filename,
 		const char __attribute__ ((__unused__)) *module,
@@ -37,7 +37,7 @@ static inline int read_module_settings(char __attribute__ ((__unused__))*filenam
 /*
  * Without LIBCONFIG, let run with current user
  */
-int read_settings_user_id(char *filename, const char *module,
+int read_settings_user_id(const char *filename, const char *module,
 				uid_t *userid, gid_t *groupid);
 {
 	*userid = getuid();

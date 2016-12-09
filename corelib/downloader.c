@@ -312,7 +312,7 @@ static int download_settings(void *elem, void  __attribute__ ((__unused__)) *dat
 	return 0;
 }
 
-int start_download(char *fname, int argc, char *argv[])
+int start_download(const char *fname, int argc, char *argv[])
 {
 	struct dwl_options options;
 	int choice = 0;

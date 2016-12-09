@@ -77,7 +77,7 @@ static int read_settings_file(config_t *cfg, const char *filename)
 	return ret;
 }
 
-int read_module_settings(char *filename, const char *module, settings_callback fcn, void *data)
+int read_module_settings(const char *filename, const char *module, settings_callback fcn, void *data)
 {
 	config_t cfg;
 	config_setting_t *elem;
@@ -119,7 +119,7 @@ static int get_run_as(void *elem, void *data)
 	return 0;
 }
 
-int read_settings_user_id(char *filename, const char *module, uid_t *userid, gid_t *groupid)
+int read_settings_user_id(const char *filename, const char *module, uid_t *userid, gid_t *groupid)
 {
 	struct run_as ids;
 	int ret;

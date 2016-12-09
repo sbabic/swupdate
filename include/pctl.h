@@ -25,9 +25,9 @@ extern int pid;
 
 pthread_t start_thread(void *(* start_routine) (void *), void *arg);
 
-typedef int (*swupdate_process)(char *cfgname, int argc, char **argv);
+typedef int (*swupdate_process)(const char *cfgname, int argc, char **argv);
 
-int spawn_process(uid_t userid, gid_t groupid, char *cfgname, int ac, char **av,
+int spawn_process(uid_t userid, gid_t groupid, const char *cfgname, int ac, char **av,
 			swupdate_process start);
 
 #endif
