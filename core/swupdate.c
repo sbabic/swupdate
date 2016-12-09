@@ -430,6 +430,16 @@ static int read_globals_settings(void *elem, void *data)
 	return 0;
 }
 
+static int start_subprocess(const char *name, const char *cfgfile, int argc, char **argv,
+			swupdate_process start)
+{
+	uid_t uid;
+	gid_t gid;
+
+	read_settings_user_id(cfgfile, name, &uid, &gid);
+	return spawn_process(uid, gid, cfgfile, argc, argv, start);
+}
+
 int main(int argc, char **argv)
 {
 	int c;
@@ -676,39 +686,23 @@ int main(int argc, char **argv)
 		/* Start embedded web server */
 #if defined(CONFIG_MONGOOSE)
 		if (opt_w) {
-			uid_t webserver_uid;
-			gid_t webserver_gid;
-
-			read_settings_user_id(cfgfname, "webserver",
-						&webserver_uid, &webserver_gid);
-			spawn_process(webserver_uid, webserver_gid, cfgfname,
-				       	ac, av, start_mongoose);
+			start_subprocess("webserver", cfgfname, ac, av,
+						start_mongoose);
 		}
 #endif
 
 #if defined(CONFIG_SURICATTA)
 		if (opt_u) {
-			uid_t suricatta_uid;
-			gid_t suricatta_gid;
-
-			read_settings_user_id(cfgfname, "suricatta",
-						&suricatta_uid, &suricatta_gid);
-
-			spawn_process(suricatta_uid, suricatta_gid, cfgfname,
-				       	argcount, argvalues, start_suricatta);
+			start_subprocess("suricatta", cfgfname, argcount,
+				       	 argvalues, start_suricatta);
 		}
 
 #endif
 
 #ifdef CONFIG_DOWNLOAD
 		if (opt_d) {
-			uid_t dwl_uid;
-			gid_t dwl_gid;
-
-			read_settings_user_id(cfgfname, "download",
-						&dwl_uid, &dwl_gid);
-			spawn_process(dwl_uid, dwl_gid, cfgfname,
-				       	dwlac, dwlav, start_download);
+			start_subprocess("download", cfgfname, dwlac,
+				       	 dwlav, start_download);
 		}
 #endif
 	}
