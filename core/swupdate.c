@@ -33,6 +33,8 @@
 #include <sys/stat.h>
 #include <sys/mount.h>
 #include <pthread.h>
+#include <signal.h>
+#include <sys/wait.h>
 
 #include "bsdqueue.h"
 #include "cpiohdr.h"
@@ -69,6 +71,15 @@ static pthread_t network_daemon;
 
 /* Tree derived from the configuration file */
 static struct swupdate_cfg swcfg;
+
+/* the array contains the pid of the subprocesses */
+#define MAX_PROCESSES	10
+struct processes {
+	pid_t	pid;
+	const char	*name;
+};
+static struct processes procs[MAX_PROCESSES];
+static int    nprocs = 0;
 
 #ifdef CONFIG_MTD
 /* Global MTD configuration */
@@ -440,6 +451,71 @@ static int start_subprocess(const char *name, const char *cfgfile, int argc, cha
 	return spawn_process(uid, gid, cfgfile, argc, argv, start);
 }
 
+/*
+ * The handler supervises the subprocesses
+ * (Downloader, Webserver, Suricatta)
+ * if one of them dies, SWUpdate exits
+ * and sends a SIGTERM signal to all other subprocesses
+ */
+static void sigchld_handler (int __attribute__ ((__unused__)) signum)
+{
+	int childpid, status, serrno;
+	serrno = errno;
+	int exitstatus;
+	int hasdied;
+	int i;
+	while (1) {
+		childpid = waitpid (WAIT_ANY, &status, WNOHANG);
+		if (childpid < 0) {
+			perror ("waitpid, no childs");
+			break;
+		}
+		if (childpid == 0)
+			break;
+
+		/*
+		 * One process stops, find who is
+		 */
+		for (i = 0; i < nprocs; i++) {
+			if (procs[i].pid == childpid) {
+				printf("Child %d(%s) ", childpid, procs[i].name);
+				hasdied = 0;
+				if (WIFEXITED(status)) {
+					hasdied = 1;
+					exitstatus = WEXITSTATUS(status);
+					printf("exited, status=%d\n", exitstatus);
+				} else if (WIFSIGNALED(status)) {
+					hasdied = 1;
+					exitstatus = WTERMSIG(status);
+					printf("killed by signal %d\n", WTERMSIG(status));
+				} else if (WIFSTOPPED(status)) {
+					printf("stopped by signal %d\n", WSTOPSIG(status));
+				} else if (WIFCONTINUED(status)) {
+					printf("continued\n");
+				}
+
+				break;
+			}
+		}
+
+		/*
+		 * Communicate to all other processes that something happened
+		 * and exit
+		 */
+		if (hasdied) {
+			signal(SIGCHLD, SIG_IGN);
+			for (i = 0; i < nprocs; i++) {
+				if (procs[i].pid != childpid) {
+					kill(procs[i].pid, SIGTERM);
+				}
+			}
+
+			exit(exitstatus);
+		}
+		errno = serrno;
+	}
+}
+
 int main(int argc, char **argv)
 {
 	int c;
@@ -448,7 +524,6 @@ int main(int argc, char **argv)
 	const char *software_select = NULL;
 	int opt_i = 0;
 	int opt_e = 0;
-	int opt_s = 0;
 	int opt_u = 0;
 	int opt_w = 0;
 	int opt_c = 0;
@@ -458,6 +533,7 @@ int main(int argc, char **argv)
 	int __attribute__ ((__unused__)) opt_r = 3;
 	char main_options[256];
 	unsigned int public_key_mandatory = 0;
+	struct sigaction sa;
 
 #ifdef CONFIG_SURICATTA
 	char suricattaoptions[1024];
@@ -616,9 +692,6 @@ int main(int argc, char **argv)
 				exit(1);
 			}
 			break;
-		case 's': /* run as server */
-			opt_s = 1;
-			break;
 		case 'H':
 			if (opt_to_hwrev(optarg, &swcfg.hw) < 0)
 				exit(1);
@@ -679,6 +752,14 @@ int main(int argc, char **argv)
 	}
 
 	/*
+	 * Install a child handler to check if a subprocess
+	 * dies
+	 */
+	memset(&sa, 0, sizeof(sa));
+	sa.sa_handler = sigchld_handler;
+	sigaction(SIGCHLD, &sa, NULL);
+
+	/*
 	 * If hust a check is required, do not 
 	 * start background processes and threads
 	 */
@@ -686,23 +767,26 @@ int main(int argc, char **argv)
 		/* Start embedded web server */
 #if defined(CONFIG_MONGOOSE)
 		if (opt_w) {
-			start_subprocess("webserver", cfgfname, ac, av,
+			procs[nprocs].pid = start_subprocess("webserver", cfgfname, ac, av,
 						start_mongoose);
+			procs[nprocs++].name = "webserver";
 		}
 #endif
 
 #if defined(CONFIG_SURICATTA)
 		if (opt_u) {
-			start_subprocess("suricatta", cfgfname, argcount,
+			procs[nprocs].pid = start_subprocess("suricatta", cfgfname, argcount,
 				       	 argvalues, start_suricatta);
+			procs[nprocs++].name = "suricatta";
 		}
 
 #endif
 
 #ifdef CONFIG_DOWNLOAD
 		if (opt_d) {
-			start_subprocess("download", cfgfname, dwlac,
+			procs[nprocs].pid = start_subprocess("download", cfgfname, dwlac,
 				       	 dwlav, start_download);
+			procs[nprocs++].name = "downloader";
 		}
 #endif
 	}
@@ -767,7 +851,10 @@ int main(int argc, char **argv)
 		notify(SUCCESS, 0, 0);
 	}
 
-	if (opt_w || opt_s || opt_u || opt_d)
+	/*
+	 * Go into supervisor loop
+	 */
+	if (!opt_c && !opt_i)
 		pthread_join(network_daemon, NULL);
 
 }
