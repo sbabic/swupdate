@@ -65,6 +65,22 @@ int get_mtd_from_device(char *s) {
 	return mtdnum;
 }
 
+int get_mtd_from_name(const char *s)
+{
+	struct flash_description *flash = get_flash_info();
+	struct mtd_dev_info *info;
+	int i;
+
+	for (i = flash->mtd.lowest_mtd_num;
+	     i <= flash->mtd.highest_mtd_num; i++) {
+		info = &flash->mtd_info[i].mtd;
+		if (!strcmp(info->name, s))
+			return i;
+	}
+
+	return -1;
+}
+
 void ubi_init(void)
 {
 	struct flash_description *nand = get_flash_info();
