@@ -385,6 +385,7 @@ static void parse_images(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 		GET_FIELD_STRING(p, elem, "filename", image->fname);
 		GET_FIELD_STRING(p, elem, "volume", image->volname);
 		GET_FIELD_STRING(p, elem, "device", image->device);
+		GET_FIELD_STRING(p, elem, "mtdname", image->path);
 		GET_FIELD_STRING(p, elem, "type", image->type);
 		GET_FIELD_STRING(p, elem, "data", image->type_data);
 		get_hash_value(p, elem, image->sha256);
@@ -408,7 +409,8 @@ static void parse_images(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 			image->id.version,
 			image->fname,
 			strlen(image->volname) ? "volume" : "device",
-			strlen(image->volname) ? image->volname : image->device,
+			strlen(image->volname) ? image->volname :
+			strlen(image->path) ? image->path : image->device,
 			strlen(image->type) ? image->type : "NOT FOUND",
 			image->install_directly ? " (installed from stream)" : "",
 			(strlen(image->id.name) && image->id.install_if_different) ?
