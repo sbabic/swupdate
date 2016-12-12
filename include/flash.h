@@ -66,6 +66,7 @@ void ubi_init(void);
 int scan_mtd_devices (void);
 void mtd_cleanup (void);
 int get_mtd_from_device(char *s);
+int get_mtd_from_name(const char *s);
 
 struct flash_description *get_flash_info(void);
 #define isNand(flash, index) \
