@@ -171,6 +171,7 @@ The syntax is:
 			filename[mandatory] = <Name in CPIO Archive>;
 			volume[optional] = <destination volume>;
 			device[optional] = <destination volume>;
+			mtdname[optional] = <destination mtd name>;
 			type[optional] = <handler>;
 			/* optionally, the image can be compressed if it is in raw mode */
 			compressed;
@@ -220,9 +221,19 @@ For example, to copy the kernel into the MTD7 of a NAND flash:
 			type = "flash";
 		}
 
-filename is mandatory. Its is the Name of the file extracted by the stream.
-volume is only mandatory in case of UBI volumes. It should be not used
+The *filename* is mandatory. It is the Name of the file extracted by the stream.
+*volume* is only mandatory in case of UBI volumes. It should be not used
 in other cases.
+
+Alternatively, for the handler “flash”, the *mtdname* can be specified, instead of the device name:
+
+::
+
+		{
+			filename = "uImage";
+			mtdname = "kernel";
+			type = "flash";
+		}
 
 
 Files
