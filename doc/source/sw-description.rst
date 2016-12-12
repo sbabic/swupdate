@@ -636,3 +636,8 @@ There are 4 main sections inside sw-description:
 |             |          | files      | Used for verification of signed       |
 |             |          | scripts    | images.                               |
 +-------------+----------+------------+---------------------------------------+
+| mtdname     | string   | images     | name of the MTD to update. Used only  |
+|             |          |            | by the flash handler to identify the  |
+|             |          |            | the mtd to update, instead of         |
+|             |          |            | specifying the devicenode             |
++-------------+----------+------------+---------------------------------------+
