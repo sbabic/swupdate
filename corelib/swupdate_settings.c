@@ -124,8 +124,8 @@ int read_settings_user_id(const char *filename, const char *module, uid_t *useri
 	struct run_as ids;
 	int ret;
 
-	ids.userid = getuid();
-	ids.groupid = getgid();
+	*userid = ids.userid = getuid();
+	*groupid = ids.groupid = getgid();
 
 	ret = read_module_settings(filename, module, get_run_as, &ids);
 	if (ret)
