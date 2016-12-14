@@ -69,13 +69,13 @@ static struct swupdate_progress progress;
  */
 static void send_progress_msg(void)
 {
-	struct progress_conn *conn;
+	struct progress_conn *conn, *tmp;
 	struct swupdate_progress *prbar = &progress;
 	void *buf;
 	size_t count;
 	ssize_t n;
 
-	SIMPLEQ_FOREACH(conn, &prbar->conns, next) {
+	SIMPLEQ_FOREACH_SAFE(conn, &prbar->conns, next, tmp) {
 		buf = &prbar->msg;
 		count = sizeof(prbar->msg);
 		while (count > 0) {
