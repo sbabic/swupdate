@@ -60,6 +60,10 @@
 
 #define MODULE_NAME	"swupdate"
 
+#ifndef WAIT_ANY
+#define WAIT_ANY (-1)
+#endif
+
 /*
  * Number of seconds while below low speed
  * limit before aborting
