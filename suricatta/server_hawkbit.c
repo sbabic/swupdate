@@ -1104,17 +1104,17 @@ static int suricatta_settings(void *elem, void  __attribute__ ((__unused__)) *da
 {
 	char tmp[128];
 
-	GET_FIELD_STRING(LIBCFG_PARSER, elem, "tenant", tmp);
+	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "tenant", tmp);
 	if (strlen(tmp)) {
 		SETSTRING(server_hawkbit.tenant, tmp);
 		mandatory_argument_count |= TENANT_BIT;
 	}
-	GET_FIELD_STRING(LIBCFG_PARSER, elem, "id", tmp);
+	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "id", tmp);
 	if (strlen(tmp)) {
 		SETSTRING(server_hawkbit.device_id, tmp);
 		mandatory_argument_count |= ID_BIT;
 	}
-	GET_FIELD_STRING(LIBCFG_PARSER, elem, "url", tmp);
+	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "url", tmp);
 	if (strlen(tmp)) {
 		SETSTRING(server_hawkbit.url, tmp);
 		mandatory_argument_count |= URL_BIT;
@@ -1126,20 +1126,20 @@ static int suricatta_settings(void *elem, void  __attribute__ ((__unused__)) *da
 	get_field(LIBCFG_PARSER, elem, "retry",
 		&channel_data_defaults.retries);
 
-	GET_FIELD_STRING(LIBCFG_PARSER, elem, "retrywait", tmp);
+	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "retrywait", tmp);
 	if (strlen(tmp))
 		channel_data_defaults.retry_sleep =
 			(unsigned int)strtoul(tmp, NULL, 10);
-	GET_FIELD_STRING(LIBCFG_PARSER, elem, "cafile", tmp);
+	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "cafile", tmp);
 	if (strlen(tmp))
 		SETSTRING(channel_data_defaults.cafile, tmp);
-	GET_FIELD_STRING(LIBCFG_PARSER, elem, "sslkey", tmp);
+	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "sslkey", tmp);
 	if (strlen(tmp))
 		SETSTRING(channel_data_defaults.sslkey, tmp);
-	GET_FIELD_STRING(LIBCFG_PARSER, elem, "sslcert", tmp);
+	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "sslcert", tmp);
 	if (strlen(tmp))
 		SETSTRING(channel_data_defaults.sslcert, tmp);
-	GET_FIELD_STRING(LIBCFG_PARSER, elem, "proxy", tmp);
+	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "proxy", tmp);
 	if (strlen(tmp))
 		SETSTRING(channel_data_defaults.proxy, tmp);
 

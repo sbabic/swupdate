@@ -28,6 +28,11 @@ typedef enum {
 #define GET_FIELD_STRING(p, e, name, d) \
 	get_field_string(p, e, name, d, sizeof(d))
 
+#define GET_FIELD_STRING_RESET(p, e, name, d) do { \
+	d[0] = '\0'; \
+	GET_FIELD_STRING(p, e, name, d); \
+} while (0)
+
 #ifdef CONFIG_LIBCONFIG
 #include <libconfig.h>
 #define LIBCONFIG_VERSION ((LIBCONFIG_VER_MAJOR << 16) | \
