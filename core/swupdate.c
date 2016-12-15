@@ -114,7 +114,6 @@ static struct option long_options[] = {
 #ifdef CONFIG_HW_COMPATIBILITY
 	{"hwrevision", required_argument, NULL, 'H'},
 #endif
-	{"server", no_argument, NULL, 's'},
 #ifdef CONFIG_DOWNLOAD
 	{"download", required_argument, NULL, 'd'},
 	{"retries", required_argument, NULL, 'r'},
@@ -161,8 +160,6 @@ static void usage(char *programname)
 		" -K, --key-aes <key file>       : the file contains the symmetric key to be used\n"
 		"                                  to decrypt images\n"
 #endif
-		" -s, --server                   : run as daemon waiting from\n"
-		"                                  IPC interface.\n"
 		" -v, --verbose                  : be verbose, set maximum loglevel\n"
 #ifdef CONFIG_HW_COMPATIBILITY
 		" -H, --hwrevision <board>:<rev> : Set hardware revision\n"
@@ -561,7 +558,7 @@ int main(int argc, char **argv)
 #endif
 	memset(main_options, 0, sizeof(main_options));
 	memset(image_url, 0, sizeof(image_url));
-	strcpy(main_options, "pvhi:se:l:Lcf:");
+	strcpy(main_options, "pvhi:e:l:Lcf:");
 #ifdef CONFIG_MTD
 	strcat(main_options, "b:");
 #endif
