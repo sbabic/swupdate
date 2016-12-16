@@ -55,9 +55,9 @@ struct new_ascii_header
 };
 
 struct filehdr {
-	long size;
-	long namesize;
-	long chksum;
+	unsigned long size;
+	unsigned long namesize;
+	unsigned long chksum;
 	char filename[MAX_IMAGE_FNAME];
 };
 
