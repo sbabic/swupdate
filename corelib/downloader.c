@@ -318,13 +318,13 @@ int start_download(const char *fname, int argc, char *argv[])
 	struct dwl_options options;
 	int choice = 0;
 	RECOVERY_STATUS result;
+	int attempt = 0;
 
 	memset(&options, 0, sizeof(options));
 	if (fname) {
 		read_module_settings(fname, "download", download_settings,
 					&options);
 	}
-
 
 	/* reset to optind=1 to parse download's argument vector */
 	optind = 1;
@@ -350,12 +350,18 @@ int start_download(const char *fname, int argc, char *argv[])
 
 	result = FAILURE;
 
-	while (1) {
-		if (result == FAILURE)
-			result = download_from_url(options.url, options.retries,
-					options.timeout);
-		sleep(60);
-	}
+	/*
+	 * Maybe we need a different option as retries
+	 * to check if an updated must be retried
+	 */
+	do {
+		result = download_from_url(options.url, options.retries,
+						options.timeout);
+		if (result != FAILURE)
+			break;
 
-	return 0;
+		sleep(60);
+	} while ((options.retries != 0) && (attempt < options.retries));
+
+	exit(result);
 }
