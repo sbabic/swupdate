@@ -461,60 +461,60 @@ static int start_subprocess(const char *name, const char *cfgfile, int argc, cha
 static void sigchld_handler (int __attribute__ ((__unused__)) signum)
 {
 	int childpid, status, serrno;
-	serrno = errno;
 	int exitstatus;
-	int hasdied;
+	int hasdied = 0;
 	int i;
-	while (1) {
-		childpid = waitpid (WAIT_ANY, &status, WNOHANG);
+
+	serrno = errno;
+
+	/*
+	 * One process stops, find who is
+	 */
+	for (i = 0; i < nprocs; i++) {
+		childpid = waitpid (procs[i].pid, &status, WNOHANG);
 		if (childpid < 0) {
 			perror ("waitpid, no childs");
-			break;
+			continue;
 		}
 		if (childpid == 0)
+			continue;
+
+		if (procs[i].pid == childpid) {
+			printf("Child %d(%s) ", childpid, procs[i].name);
+			hasdied = 0;
+			if (WIFEXITED(status)) {
+				hasdied = 1;
+				exitstatus = WEXITSTATUS(status);
+				printf("exited, status=%d\n", exitstatus);
+			} else if (WIFSIGNALED(status)) {
+				hasdied = 1;
+				exitstatus = WTERMSIG(status);
+				printf("killed by signal %d\n", WTERMSIG(status));
+			} else if (WIFSTOPPED(status)) {
+				printf("stopped by signal %d\n", WSTOPSIG(status));
+			} else if (WIFCONTINUED(status)) {
+				printf("continued\n");
+			}
 			break;
-
-		/*
-		 * One process stops, find who is
-		 */
-		for (i = 0; i < nprocs; i++) {
-			if (procs[i].pid == childpid) {
-				printf("Child %d(%s) ", childpid, procs[i].name);
-				hasdied = 0;
-				if (WIFEXITED(status)) {
-					hasdied = 1;
-					exitstatus = WEXITSTATUS(status);
-					printf("exited, status=%d\n", exitstatus);
-				} else if (WIFSIGNALED(status)) {
-					hasdied = 1;
-					exitstatus = WTERMSIG(status);
-					printf("killed by signal %d\n", WTERMSIG(status));
-				} else if (WIFSTOPPED(status)) {
-					printf("stopped by signal %d\n", WSTOPSIG(status));
-				} else if (WIFCONTINUED(status)) {
-					printf("continued\n");
-				}
-
-				break;
-			}
 		}
-
-		/*
-		 * Communicate to all other processes that something happened
-		 * and exit
-		 */
-		if (hasdied) {
-			signal(SIGCHLD, SIG_IGN);
-			for (i = 0; i < nprocs; i++) {
-				if (procs[i].pid != childpid) {
-					kill(procs[i].pid, SIGTERM);
-				}
-			}
-
-			exit(exitstatus);
-		}
-		errno = serrno;
 	}
+
+	/*
+	 * Communicate to all other processes that something happened
+	 * and exit
+	 */
+	if (hasdied) {
+		signal(SIGCHLD, SIG_IGN);
+		for (i = 0; i < nprocs; i++) {
+			if (procs[i].pid != childpid) {
+				kill(procs[i].pid, SIGTERM);
+			}
+		}
+
+		exit(exitstatus);
+	}
+
+	errno = serrno;
 }
 
 int main(int argc, char **argv)
