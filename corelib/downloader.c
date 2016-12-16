@@ -203,11 +203,6 @@ static RECOVERY_STATUS download_from_url(char *image_url, int retries,
 	int i;
 	struct dlprogress progress;
 
-	TRACE("download from url started : %s", image_url);
-	if (!strlen(image_url)) {
-		ERROR("Image URL not provided... aborting download and update\n");
-		return FAILURE;
-	}
 
 	/*
 	 * Maybe daemon is not yet started,
@@ -225,6 +220,12 @@ static RECOVERY_STATUS download_from_url(char *image_url, int retries,
 		return FAILURE;
 	}
 	errno = 0;
+
+	TRACE("download from url started : %s", image_url);
+	if (!image_url || !strlen(image_url)) {
+		ERROR("Image URL not provided... aborting download and update\n");
+		return FAILURE;
+	}
 
 	/* We are starting a download */
 	notify(DOWNLOAD, 0, 0);
