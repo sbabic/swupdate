@@ -858,4 +858,5 @@ int main(int argc, char **argv)
 	if (!opt_c && !opt_i)
 		pthread_join(network_daemon, NULL);
 
+	return EXIT_SUCCESS;
 }
