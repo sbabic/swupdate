@@ -20,6 +20,8 @@
 #ifndef _PARSE_LIBRARY_H
 #define _PARSE_LIBRARY_H
 
+#include <assert.h>
+
 typedef enum {
 	LIBCFG_PARSER,
 	JSON_PARSER
@@ -80,5 +82,6 @@ void get_field_string(parsertype p, void *e, const char *path, char *dest, size_
 void get_field(parsertype p, void *e, const char *path, void *dest);
 int exist_field_string(parsertype p, void *e, const char *path);
 void get_hash_value(parsertype p, void *elem, unsigned char *hash);
+void check_field_string(const char *src, char *dst, const size_t max_len);
 
 #endif
