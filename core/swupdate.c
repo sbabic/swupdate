@@ -525,29 +525,27 @@ int main(int argc, char **argv)
 	const char *software_select = NULL;
 	int opt_i = 0;
 	int opt_e = 0;
-	int opt_u = 0;
-	int opt_w = 0;
 	int opt_c = 0;
-	int opt_d = 0;
 	char image_url[MAX_URL];
 	unsigned long __attribute__ ((__unused__)) opt_t = DL_LOWSPEED_TIME;
 	int __attribute__ ((__unused__)) opt_r = 3;
 	char main_options[256];
 	unsigned int public_key_mandatory = 0;
 	struct sigaction sa;
-
 #ifdef CONFIG_SURICATTA
+	int opt_u = 0;
 	char suricattaoptions[1024];
 	char **argvalues = NULL;
 	int argcount = 0;
 #endif
 #ifdef CONFIG_WEBSERVER
+	int opt_w = 0;
 	char weboptions[1024];
 	char **av = NULL;
 	int ac = 0;
 #endif
-
 #ifdef CONFIG_DOWNLOAD
+	int opt_d = 0;
 	char dwloptions[1024];
 	char **dwlav = NULL;
 	int dwlac = 0;
@@ -761,7 +759,7 @@ int main(int argc, char **argv)
 	sigaction(SIGCHLD, &sa, NULL);
 
 	/*
-	 * If hust a check is required, do not 
+	 * If just a check is required, do not
 	 * start background processes and threads
 	 */
 	if (!opt_c) {
