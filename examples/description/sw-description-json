@@ -1,0 +1,76 @@
+{
+  "software": {
+    "myboard": {
+      "images": [
+        {
+          "volume": "rootfs",
+          "type": "ubivol",
+          "filename": "core-image-base-myboard.ubifs"
+        },
+        {
+          "version": "2016.01",
+          "name": "bootloader",
+          "device": "mtd1",
+          "install-if-different": true,
+          "type": "flash",
+          "filename": "u-boot.sb"
+        },
+        {
+          "type": "uboot",
+          "filename": "uboot-env"
+        },
+        {
+          "volume": "kernel",
+          "type": "ubivol",
+          "filename": "uImage"
+        },
+        {
+          "type": "fpga",
+          "filename": "fpga.txt"
+        }
+      ],
+      "hardware-compatibility": [
+        "1.0",
+        "1.3",
+        "16#010071"
+      ],
+      "scripts": [
+        {
+          "type": "lua",
+          "filename": "test.lua"
+        },
+        {
+          "type": "lua",
+          "filename": "sdcard.lua"
+        },
+        {
+          "type": "shellscript",
+          "filename": "test_shell.sh"
+        }
+      ],
+      "uboot": [
+        {
+          "name": "myvar",
+          "value": "4M"
+        },
+        {
+          "name": "addmyvar",
+          "value": "setenv bootargs ${bootargs} myvar=${myvar}"
+        }
+      ],
+      "partitions": [
+        {
+          "device": "mtd10",
+          "name": "rootfs",
+          "size": 104896512
+        },
+        {
+          "device": "mtd9",
+          "name": "kernel",
+          "size": 4194304
+        }
+      ]
+    },
+    "version": "0.1.0"
+  }
+}
