@@ -382,6 +382,7 @@ server_op_res_t server_set_config_data(json_object *json_root)
 			free(server_hawkbit.configData_url);
 		server_hawkbit.configData_url = tmp;
 		server_hawkbit.has_to_send_configData = true;
+		server_hawkbit.polling_interval /= 10;
 		TRACE("ConfigData: %s\n", server_hawkbit.configData_url);
 	}
 	return SERVER_OK;
@@ -451,13 +452,8 @@ static server_op_res_t server_get_deployment_info(channel_data_t *channel_data,
 		channel_data->url = url_deployment_base;
 		TRACE("Update action available at %s\n", url_deployment_base);
 	} else {
-		if (server_hawkbit.has_to_send_configData) {
-			result = SERVER_ID_REQUESTED;
-			TRACE("No pending action on server, send configData.\n");
-		} else {
-			TRACE("No pending action on server.\n");
-			result = SERVER_NO_UPDATE_AVAILABLE;
-		}
+		TRACE("No pending action on server.\n");
+		result = SERVER_NO_UPDATE_AVAILABLE;
 		goto cleanup;
 	}
 	if ((result = map_channel_retcode(channel.get((void *)channel_data))) !=
@@ -494,6 +490,12 @@ cleanup:
 
 server_op_res_t server_has_pending_action(int *action_id)
 {
+	/*
+	 * if configData was not yet sent,
+	 * send it without asking for deviceInfo
+	 */
+	if (server_hawkbit.has_to_send_configData)
+		return SERVER_ID_REQUESTED;
 
 	channel_data_t channel_data = channel_data_defaults;
 	server_op_res_t result =
