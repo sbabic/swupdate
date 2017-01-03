@@ -263,7 +263,10 @@ static void test_server_send_cancel_reply(void **state)
 }
 
 extern server_op_res_t
-server_process_update_artifact(json_object *json_data_artifact);
+server_process_update_artifact(json_object *json_data_artifact,
+			       const char *update_action, const char *part,
+			       const char *version, const char *name);
+
 static void test_server_process_update_artifact(void **state)
 {
 	(void)state;
@@ -297,8 +300,10 @@ static void test_server_process_update_artifact(void **state)
 	will_return(__wrap_channel_get_file, "CAFFEE");
 	will_return(__wrap_channel_get_file, CHANNEL_OK);
 	will_return(__wrap_ipc_wait_for_complete, SUCCESS);
-	assert_int_equal(SERVER_OK, server_process_update_artifact(json_get_key(
-					json_data_artifact, "artifacts")));
+	assert_int_equal(SERVER_OK,
+			 server_process_update_artifact(
+			     json_get_key(json_data_artifact, "artifacts"),
+			     "update action", "part", "version", "name"));
 	assert_int_equal(json_object_put(json_data_artifact),
 			 JSON_OBJECT_FREED);
 }
