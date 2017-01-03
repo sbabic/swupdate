@@ -539,9 +539,9 @@ Command line parameters
 | -t <timeout>| integer  | Timeout for connection lost when           |
 |             |          | downloading                                |
 +-------------+----------+--------------------------------------------+
-| -c          |    -     | This will check *.swu file against internal|
-|             |          | tests. It ensures that files referenced in |
-|             |          | sw-description are present.                |
+| -c          |    -     | This will check ``*.swu`` file against     |
+|             |          | internal tests. It ensures that files      |
+|             |          | referenced in sw-description are present.  |
 |             |          | Usage: swupdate -c -i <file>               |
 +-------------+----------+--------------------------------------------+
 

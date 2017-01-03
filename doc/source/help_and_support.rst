@@ -20,4 +20,4 @@ Presentations slides
        - `How do you update your embedded Linux devices? by Daniel Sangorrin / Keijiro Yano <http://events.linuxfoundation.org/sites/events/files/slides/linuxcon-japan-2016-softwre-updates-sangorrin.pdf>`_
        - `Comparison of Linux Software Update Technologies by Matt Porter <http://events.linuxfoundation.org/sites/events/files/slides/Comparison%20of%20Linux%20Software%20Update%20Technologies_0.pdf>`_
        - `Software update for IoT: the current state of play by Chris Simmonds <http://de.slideshare.net/chrissimmonds/software-update-for-iot-the-current-state-of-play>`_
-        - `OSS Remote Firmware Updates for IoT-like Projects by Silvanop Cirujano Cuesta <http://events.linuxfoundation.org/sites/events/files/slides/OSS_Remote_Firmware_Updates_for_IoT-like_Projects.pdf>`_
+       - `OSS Remote Firmware Updates for IoT-like Projects by Silvanop Cirujano Cuesta <http://events.linuxfoundation.org/sites/events/files/slides/OSS_Remote_Firmware_Updates_for_IoT-like_Projects.pdf>`_

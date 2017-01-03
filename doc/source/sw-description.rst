@@ -554,90 +554,89 @@ There are 4 main sections inside sw-description:
   be run twice (as pre- and post- install scripts).
 - uboot: entries are pair with U-Boot variable name and its value.
 
-.. table:: Attributes
-        ::widths: grid
+.. table::
 
-+-------------+----------+------------+---------------------------------------+
-|  Name       |  Type    | Applies to |  Description                          |
-+=============+==========+============+=======================================+
-| filename    | string   | images     |  filename as found in the cpio archive|
-|             |          | files      |                                       |
-|             |          | scripts    |                                       |
-+-------------+----------+------------+---------------------------------------+
-| volume      | string   | images     | Just if type = "ubivol". UBI volume   |
-|             |          |            | where image must be installed.        |
-+-------------+----------+------------+---------------------------------------+
-| ubipartition| string   | images     | Just if type = "ubivol". Volume to be |
-|             |          |            | created or adjusted with a new size   |
-+-------------+----------+------------+---------------------------------------+
-| device      | string   | images     | devicenode as found in /dev. Usage    |
-|             |          | files      | depends on handler.                   |
-|             |          |            | For files, it indicates on which      |
-|             |          |            | device the "filesystem" must be       |
-|             |          |            | mounted. If not specified, the current|
-|             |          |            | rootfs will be used.                  |
-+-------------+----------+------------+---------------------------------------+
-| filesystem  | string   | files      | indicates the filesystem type where   |
-|             |          |            | the file must be installed. Only      |
-|             |          |            | used if "device" attribute is set.    |
-+-------------+----------+------------+---------------------------------------+
-| path        | string   | files      | For files: indicates the path         |
-|             |          |            | (absolute) where the file must be     |
-|             |          |            | installed. If "device" and            |
-|             |          |            | "filesystem" are set,                 |
-|             |          |            | SWUpdate will install the             |
-|             |          |            | file after mounting "device" with     |
-|             |          |            | "filesystem" type. (path is always    |
-|             |          |            | relative to the mount point.)         |
-+-------------+----------+------------+---------------------------------------+
-| type        | string   | images     | string identifier for the handler,    |
-|             |          | files      | as it is set by the handler when it   |
-|             |          | scripts    | regitsters itself.                    |
-|             |          |            | Example: "ubivol", "raw", "rawfile",  |
-+-------------+----------+------------+---------------------------------------+
-| compressed  | bool     | images     | flag to indicate that "filename" is   |
-|             |          | files      | zlib-compressed and must be           |
-|             |          |            | decompressed before being installed   |
-+-------------+----------+------------+---------------------------------------+
-| installed-  | bool     | images     | flag to indicate that image is        |
-| directly    |          |            | streamed into the target without any  |
-|             |          |            | temporary copy. Not all handlers      |
-|             |          |            | support streaming.                    |
-+-------------+----------+------------+---------------------------------------+
-| name        | string   | uboot      | name of the U-Boot variable to be set.|
-+-------------+----------+------------+---------------------------------------+
-| value       | string   | uboot      | value to be assigned to the U-Boot    |
-|             |          |            | variable                              |
-+-------------+----------+------------+---------------------------------------+
-| name        | string   | images     | name that identifies the sw-component |
-|             |          | files      | it can be any string and it is        |
-|             |          |            | compared with the entries in          |
-|             |          |            | sw-versions                           |
-+-------------+----------+------------+---------------------------------------+
-| version     | string   | images     | version for the sw-component          |
-|             |          | files      | it can be any string and it is        |
-|             |          |            | compared with the entries in          |
-|             |          |            | sw-versions                           |
-+-------------+----------+------------+---------------------------------------+
-| install-if  | bool     | images     | flag                                  |
-| different   |          | files      | if set, name and version are          |
-|             |          |            | compared with the entries in          |
-+-------------+----------+------------+---------------------------------------+
-| encrypted   | bool     | images     | flag                                  |
-|             |          | files      | if set, file is encrypted             |
-|             |          | scripts    | and must be decrypted before          |
-|             |          |            | installing.                           |
-+-------------+----------+------------+---------------------------------------+
-| data        | string   | images     | This is used to pass arbitrary data   |
-|             |          | files      | to a handler.                         |
-|             |          | scripts    |                                       |
-+-------------+----------+------------+---------------------------------------+
-| sha256      | string   | images     | sha256 hash of image, file or script. |
-|             |          | files      | Used for verification of signed       |
-|             |          | scripts    | images.                               |
-+-------------+----------+------------+---------------------------------------+
-| mtdname     | string   | images     | name of the MTD to update. Used only  |
-|             |          |            | by the flash handler to identify the  |
-|             |          |            | the mtd to update, instead of         |
-|             |          |            | specifying the devicenode             |
-+-------------+----------+------------+---------------------------------------+
+   +-------------+----------+------------+---------------------------------------+
+   |  Name       |  Type    | Applies to |  Description                          |
+   +=============+==========+============+=======================================+
+   | filename    | string   | images     |  filename as found in the cpio archive|
+   |             |          | files      |                                       |
+   |             |          | scripts    |                                       |
+   +-------------+----------+------------+---------------------------------------+
+   | volume      | string   | images     | Just if type = "ubivol". UBI volume   |
+   |             |          |            | where image must be installed.        |
+   +-------------+----------+------------+---------------------------------------+
+   | ubipartition| string   | images     | Just if type = "ubivol". Volume to be |
+   |             |          |            | created or adjusted with a new size   |
+   +-------------+----------+------------+---------------------------------------+
+   | device      | string   | images     | devicenode as found in /dev. Usage    |
+   |             |          | files      | depends on handler.                   |
+   |             |          |            | For files, it indicates on which      |
+   |             |          |            | device the "filesystem" must be       |
+   |             |          |            | mounted. If not specified, the current|
+   |             |          |            | rootfs will be used.                  |
+   +-------------+----------+------------+---------------------------------------+
+   | filesystem  | string   | files      | indicates the filesystem type where   |
+   |             |          |            | the file must be installed. Only      |
+   |             |          |            | used if "device" attribute is set.    |
+   +-------------+----------+------------+---------------------------------------+
+   | path        | string   | files      | For files: indicates the path         |
+   |             |          |            | (absolute) where the file must be     |
+   |             |          |            | installed. If "device" and            |
+   |             |          |            | "filesystem" are set,                 |
+   |             |          |            | SWUpdate will install the             |
+   |             |          |            | file after mounting "device" with     |
+   |             |          |            | "filesystem" type. (path is always    |
+   |             |          |            | relative to the mount point.)         |
+   +-------------+----------+------------+---------------------------------------+
+   | type        | string   | images     | string identifier for the handler,    |
+   |             |          | files      | as it is set by the handler when it   |
+   |             |          | scripts    | regitsters itself.                    |
+   |             |          |            | Example: "ubivol", "raw", "rawfile",  |
+   +-------------+----------+------------+---------------------------------------+
+   | compressed  | bool     | images     | flag to indicate that "filename" is   |
+   |             |          | files      | zlib-compressed and must be           |
+   |             |          |            | decompressed before being installed   |
+   +-------------+----------+------------+---------------------------------------+
+   | installed-  | bool     | images     | flag to indicate that image is        |
+   | directly    |          |            | streamed into the target without any  |
+   |             |          |            | temporary copy. Not all handlers      |
+   |             |          |            | support streaming.                    |
+   +-------------+----------+------------+---------------------------------------+
+   | name        | string   | uboot      | name of the U-Boot variable to be set.|
+   +-------------+----------+------------+---------------------------------------+
+   | value       | string   | uboot      | value to be assigned to the U-Boot    |
+   |             |          |            | variable                              |
+   +-------------+----------+------------+---------------------------------------+
+   | name        | string   | images     | name that identifies the sw-component |
+   |             |          | files      | it can be any string and it is        |
+   |             |          |            | compared with the entries in          |
+   |             |          |            | sw-versions                           |
+   +-------------+----------+------------+---------------------------------------+
+   | version     | string   | images     | version for the sw-component          |
+   |             |          | files      | it can be any string and it is        |
+   |             |          |            | compared with the entries in          |
+   |             |          |            | sw-versions                           |
+   +-------------+----------+------------+---------------------------------------+
+   | install-if  | bool     | images     | flag                                  |
+   | different   |          | files      | if set, name and version are          |
+   |             |          |            | compared with the entries in          |
+   +-------------+----------+------------+---------------------------------------+
+   | encrypted   | bool     | images     | flag                                  |
+   |             |          | files      | if set, file is encrypted             |
+   |             |          | scripts    | and must be decrypted before          |
+   |             |          |            | installing.                           |
+   +-------------+----------+------------+---------------------------------------+
+   | data        | string   | images     | This is used to pass arbitrary data   |
+   |             |          | files      | to a handler.                         |
+   |             |          | scripts    |                                       |
+   +-------------+----------+------------+---------------------------------------+
+   | sha256      | string   | images     | sha256 hash of image, file or script. |
+   |             |          | files      | Used for verification of signed       |
+   |             |          | scripts    | images.                               |
+   +-------------+----------+------------+---------------------------------------+
+   | mtdname     | string   | images     | name of the MTD to update. Used only  |
+   |             |          |            | by the flash handler to identify the  |
+   |             |          |            | the mtd to update, instead of         |
+   |             |          |            | specifying the devicenode             |
+   +-------------+----------+------------+---------------------------------------+
