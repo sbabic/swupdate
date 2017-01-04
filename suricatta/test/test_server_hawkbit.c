@@ -73,10 +73,20 @@ channel_op_res_t __wrap_channel_get(void *data)
 }
 
 extern server_op_res_t __real_save_state(char *key, update_state_t value);
-server_op_res_t __wrap_save_state(void *data);
-server_op_res_t __wrap_save_state(void *data)
+server_op_res_t __wrap_save_state(char *key, update_state_t *value);
+server_op_res_t __wrap_save_state(char *key, update_state_t *value)
 {
-	(void)data;
+	(void)key;
+	(void)value;
+	return mock_type(server_op_res_t);
+}
+
+extern server_op_res_t __real_read_state(char *key, update_state_t *value);
+server_op_res_t __wrap_read_state(char *key, update_state_t *value);
+server_op_res_t __wrap_read_state(char *key, update_state_t *value)
+{
+	(void)key;
+	*value = mock_type(update_state_t);
 	return mock_type(server_op_res_t);
 }
 
@@ -158,14 +168,28 @@ static void test_server_has_pending_action(void **state)
 	assert_int_equal(SERVER_NO_UPDATE_AVAILABLE,
 			 server_has_pending_action(&action_id));
 
-	/* Test Case: Update Action available. */
+	/* Test Case: Update Action available && !STATE_INSTALLED. */
 	will_return(__wrap_channel_get,
 		    json_tokener_parse(json_reply_update_available));
 	will_return(__wrap_channel_get, CHANNEL_OK);
 	will_return(__wrap_channel_get,
 		    json_tokener_parse(json_reply_update_data));
 	will_return(__wrap_channel_get, CHANNEL_OK);
+	will_return(__wrap_read_state, STATE_NOT_AVAILABLE);
+	will_return(__wrap_read_state, SERVER_OK);
 	assert_int_equal(SERVER_UPDATE_AVAILABLE,
+			 server_has_pending_action(&action_id));
+
+	/* Test Case: Update Action available && STATE_INSTALLED. */
+	will_return(__wrap_channel_get,
+		    json_tokener_parse(json_reply_update_available));
+	will_return(__wrap_channel_get, CHANNEL_OK);
+	will_return(__wrap_channel_get,
+		    json_tokener_parse(json_reply_update_data));
+	will_return(__wrap_channel_get, CHANNEL_OK);
+	will_return(__wrap_read_state, STATE_INSTALLED);
+	will_return(__wrap_read_state, SERVER_OK);
+	assert_int_equal(SERVER_NO_UPDATE_AVAILABLE,
 			 server_has_pending_action(&action_id));
 
 	/* Test Case: Cancel Action available. */

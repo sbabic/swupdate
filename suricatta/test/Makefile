@@ -37,10 +37,16 @@ TEST_SRCS = $(wildcard test_*.c)
 TEST_OBJS = $(addsuffix .o, $(basename $(TEST_SRCS)))
 TARGETS   = $(basename $(TEST_SRCS))
 
-SURICATTA_OBJS = $(SURICATTA_DIR)/server_hawkbit.o $(SURICATTA_DIR)/channel_hawkbit.o $(SURICATTA_DIR)/state.o $(SURICATTA_DIR)/suricatta.o
+SURICATTA_OBJS = $(SURICATTA_DIR)/server_hawkbit.o \
+				 $(SURICATTA_DIR)/channel_hawkbit.o \
+				 $(SURICATTA_DIR)/state.o \
+				 $(SURICATTA_DIR)/suricatta.o
+
 SURICATTA_SRCS = $(addsuffix .c, $(basename $(SURICATTA_OBJS)))
 
-SWUPDATE_OBJS  = $(SWUPDATE_DIR)/ipc/network_ipc.o $(SWUPDATE_DIR)/corelib/swupdate_dict.o
+SWUPDATE_OBJS  = $(SWUPDATE_DIR)/ipc/network_ipc.o \
+				 $(SWUPDATE_DIR)/corelib/swupdate_dict.o \
+				 $(SWUPDATE_DIR)/corelib/progress_thread.o
 
 COMPILE.c = $(CC) $(CFLAGS) $(SURICATTA_CFLAGS)  $(SURICATTA_DEFINES) $(SURICATTA_INCLUDES) -c
 LINK.c    = $(CC) $(CFLAGS) $(SURICATTA_LDFLAGS) $(SURICATTA_LIBS)    $(SURICATTA_LDMOCKS)
@@ -56,7 +62,8 @@ test_server_hawkbit test_json: % : clean %.c $(SURICATTA_OBJS) $(SURICATTA_SRCS)
 	@$(COMPILE.c) $@.c -o $@.o
 	## NOTE: assuming libubootenv.a is available in $(SWUPDATE_DIR)/ for linking
 	## NOTE: assuming network_ipc.o is available in $(SWUPDATE_DIR)/ipc/ for linking
-	## NOTE: assuming swupdate_dict.o is available in $(SWUPDATE_DIR)/corelib/swupdate_dict.o for linking
+	## NOTE: assuming swupdate_dict.o is available in $(SWUPDATE_DIR)/corelib/ for linking
+	## NOTE: assuming progress_thread.o is available in $(SWUPDATE_DIR)/corelib/ for linking
 	@$(LINK.c) $(SWUPDATE_OBJS) $(SURICATTA_OBJS) $@.o -L$(SWUPDATE_DIR) -lubootenv -o $@
 	@CMOCKA_MESSAGE_OUTPUT=TAP $(SURICATTA_TEST_DIR)/$@
 

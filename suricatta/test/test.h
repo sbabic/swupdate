@@ -94,3 +94,16 @@ pthread_t start_thread(void *(* start_routine) (void *), void *arg)
 	(void)arg;
 	return 0;
 }
+
+int listener_create(const char *path, int type) {
+	(void)path;
+	(void)type;
+	return 99;
+}
+
+int get_install_info(sourcetype *source, char *buf, int len) {
+	(void)source;
+	(void)buf;
+	(void)len;
+	return 0;
+}
