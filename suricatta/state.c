@@ -18,6 +18,7 @@
  */
 
 #include <stdio.h>
+#include <stdbool.h>
 #include <errno.h>
 #include <util.h>
 #include <fw_env.h>
@@ -35,6 +36,14 @@
 		v = (char *)"ustate"; \
 	} \
 } while(0)
+
+bool is_state_valid(update_state_t state) {
+	if ((state < STATE_OK) || (state > STATE_ERROR)) {
+		ERROR("Unknown update state=%c\n", state);
+		return false;
+	}
+	return true;
+}
 
 #ifndef CONFIG_SURICATTA_STATE_CHOICE_UBOOT
 server_op_res_t save_state(char *key, update_state_t value)

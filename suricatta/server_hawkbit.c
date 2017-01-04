@@ -105,6 +105,7 @@ server_op_res_t server_process_update_artifact(json_object *json_data_artifact,
 void suricatta_print_help(void);
 server_op_res_t server_set_polling_interval(json_object *json_root);
 server_op_res_t server_set_config_data(json_object *json_root);
+static update_state_t get_state(void);
 server_op_res_t
 server_send_deployment_reply(const int action_id, const int job_cnt_max,
 			     const int job_cnt_cur, const char *finished,
@@ -514,24 +515,32 @@ server_op_res_t server_has_pending_action(int *action_id)
 	return result;
 }
 
+
+static update_state_t get_state(void) {
+	update_state_t state;
+
+	if (read_state((char *)STATE_KEY, &state) != SERVER_OK) {
+		ERROR("Cannot read stored update state.\n");
+		return STATE_ERROR;
+	}
+	TRACE("Read state=%c from persistent storage.\n", state);
+
+	return is_state_valid(state) ? state : STATE_ERROR;
+}
+
 server_op_res_t server_handle_initial_state(update_state_t stateovrrd)
 {
 	update_state_t state = STATE_OK;
 	if (stateovrrd != STATE_NOT_AVAILABLE) {
 		state = stateovrrd;
 		TRACE("Got state=%c from command line.\n", state);
-	} else {
-		if (read_state((char *)STATE_KEY, &state) != SERVER_OK) {
-			ERROR("Cannot read stored update state.\n");
-			return SERVER_OK;
+		if (!is_state_valid(state)) {
+			return SERVER_EINIT;
 		}
-		TRACE("Read state=%c from persistent storage.\n", state);
-	}
-
-	if ((state < STATE_OK) || (state > STATE_NOT_AVAILABLE)) {
-		ERROR("Unknown persistent state=%c, please fix it manually!\n",
-		      state);
-		return SERVER_EINIT;
+	} else {
+		if ((state = get_state()) == STATE_ERROR) {
+			return SERVER_EINIT;
+		}
 	}
 
 	const char *reply_result;
@@ -555,6 +564,7 @@ server_op_res_t server_handle_initial_state(update_state_t stateovrrd)
 		break;
 	case STATE_OK:
 	case STATE_NOT_AVAILABLE:
+	default:
 		DEBUG("State is STATE_OK/STATE_NOT_AVAILABLE, nothing to "
 		      "report to server.\n");
 		return SERVER_OK;

@@ -18,6 +18,7 @@
  */
 
 #pragma once
+#include <stdbool.h>
 #include "suricatta.h"
 
 /* (Persistent) Update State Management Functions.
@@ -34,8 +35,10 @@ typedef enum {
 	STATE_TESTING = '2',
 	STATE_FAILED = '3',
 	STATE_NOT_AVAILABLE = '4',
+	STATE_ERROR = '5'
 } update_state_t;
 
 server_op_res_t save_state(char *key, update_state_t value);
 server_op_res_t read_state(char *key, update_state_t *value);
 server_op_res_t reset_state(char *key);
+bool is_state_valid(update_state_t state);
