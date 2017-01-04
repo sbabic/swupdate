@@ -31,7 +31,7 @@ int check_if_required(struct imglist *list, struct filehdr *pfdh,
 int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile);
 int install_single_image(struct img_type *img);
 int run_prepost_scripts(struct swupdate_cfg *sw, script_fn type);
-
+int postupdate(struct swupdate_cfg *swcfg);
 void cleanup_files(struct swupdate_cfg *software);
 
 #endif

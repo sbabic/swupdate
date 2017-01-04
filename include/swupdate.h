@@ -108,7 +108,7 @@ struct swupdate_global_cfg {
 	int syslog_enabled;
 	char publickeyfname[SWUPDATE_GENERAL_STRING_SIZE];
 	char aeskeyfname[SWUPDATE_GENERAL_STRING_SIZE];
-
+	char postupdatecmd[SWUPDATE_GENERAL_STRING_SIZE];
 };
 
 struct swupdate_cfg {
@@ -144,5 +144,6 @@ struct swupdate_cfg {
 
 off_t extract_sw_description(int fd, const char *descfile, off_t start);
 int cpio_scan(int fd, struct swupdate_cfg *cfg, off_t start);
+struct swupdate_cfg *get_swupdate_cfg(void);
 
 #endif

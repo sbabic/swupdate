@@ -544,6 +544,8 @@ Command line parameters
 |             |          | referenced in sw-description are present.  |
 |             |          | Usage: swupdate -c -i <file>               |
 +-------------+----------+--------------------------------------------+
+| -p          | string   | Execute post-update command.               |
++-------------+----------+--------------------------------------------+
 
 Changes in boot-loader code
 ===========================

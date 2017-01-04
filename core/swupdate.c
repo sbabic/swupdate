@@ -126,6 +126,7 @@ static struct option long_options[] = {
 	{"webserver", required_argument, NULL, 'w'},
 #endif
 	{"check", no_argument, NULL, 'c'},
+	{"postupdate", required_argument, NULL, 'p'},
 	{NULL, 0, NULL, 0}
 };
 
@@ -148,6 +149,7 @@ static void usage(char *programname)
 		"                                  connection is broken (0 means undefinetly retries)\n"
 		" -t, --timeout                  : timeout to check if a connection is lost\n"
 #endif
+		" -p, --postupdate               : execute post-update command\n"
 		" -e, --select <software>,<mode> : Select software images set and source\n"
 		"                                  Ex.: stable,main\n"
 		" -i, --image <filename>         : Software to be installed\n"
@@ -194,6 +196,10 @@ static int check_provided(struct imglist *list)
 	}
 
 	return ret;
+}
+
+struct swupdate_cfg *get_swupdate_cfg(void) {
+	return &swcfg;
 }
 
 /*
@@ -438,6 +444,7 @@ static int read_globals_settings(void *elem, void *data)
 	get_field(LIBCFG_PARSER, elem, "verbose", &sw->globals.verbose);
 	get_field(LIBCFG_PARSER, elem, "loglevel", &sw->globals.loglevel);
 	get_field(LIBCFG_PARSER, elem, "syslog", &sw->globals.syslog_enabled);
+	get_field(LIBCFG_PARSER, elem, "postupdatecmd", &sw->globals.postupdatecmd);
 
 	return 0;
 }
@@ -556,7 +563,7 @@ int main(int argc, char **argv)
 #endif
 	memset(main_options, 0, sizeof(main_options));
 	memset(image_url, 0, sizeof(image_url));
-	strcpy(main_options, "pvhi:e:l:Lcf:");
+	strcpy(main_options, "vhi:e:l:Lcf:p:");
 #ifdef CONFIG_MTD
 	strcat(main_options, "b:");
 #endif
@@ -714,6 +721,10 @@ int main(int argc, char **argv)
 #endif
 		case 'c':
 			opt_c = 1;
+			break;
+		case 'p':
+			strncpy(swcfg.globals.postupdatecmd, optarg,
+				sizeof(swcfg.globals.postupdatecmd));
 			break;
 		default:
 			usage(argv[0]);

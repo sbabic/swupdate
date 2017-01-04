@@ -39,6 +39,8 @@
 #include "util.h"
 #include "network_ipc.h"
 #include "network_interface.h"
+#include "installer.h"
+#include "swupdate.h"
 
 #define LISTENQ	1024
 
@@ -193,6 +195,15 @@ void *network_thread (void *data)
 		pthread_mutex_lock(&stream_mutex);
 		if (msg.magic == IPC_MAGIC)  {
 			switch (msg.type) {
+			case POST_UPDATE:
+				if (postupdate(get_swupdate_cfg()) == 0) {
+					msg.type = ACK;
+					sprintf(msg.data.msg, "Post-update actions successfully executed.");
+				} else {
+					msg.type = NACK;
+					sprintf(msg.data.msg, "Post-update actions failed.");
+				}
+				break;
 			case REQ_INSTALL:
 				TRACE("Incoming network request: processing...");
 				if (instp->status == IDLE) {

@@ -32,7 +32,8 @@ typedef enum {
 	REQ_INSTALL,
 	ACK,
 	NACK,
-	GET_STATUS
+	GET_STATUS,
+	POST_UPDATE
 } msgtype;
 
 typedef union {
@@ -64,6 +65,7 @@ int ipc_inst_start_ext(sourcetype source, int len, char *info);
 int ipc_send_data(int connfd, char *buf, int size);
 void ipc_end(int connfd);
 int ipc_get_status(ipc_message *msg);
+int ipc_postupdate(ipc_message *msg);
 
 typedef int (*writedata)(char **buf, int *size);
 typedef int (*getstatus)(ipc_message *msg);

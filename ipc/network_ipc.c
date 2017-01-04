@@ -79,6 +79,31 @@ static int prepare_ipc(void) {
 	return connfd;
 }
 
+int ipc_postupdate(ipc_message *msg) {
+	int connfd = prepare_ipc();
+	if (connfd < 0) {
+		return -1;
+	}
+
+	ssize_t ret;
+	memset(msg, 0, sizeof(*msg));
+	msg->magic = IPC_MAGIC;
+	msg->type = POST_UPDATE;
+	ret = write(connfd, msg, sizeof(*msg));
+	if (ret != sizeof(*msg)) {
+		close(connfd);
+		return -1;
+	}
+	ret = read(connfd, msg, sizeof(*msg));
+	if (ret <= 0) {
+		close(connfd);
+		return -1;
+	}
+
+	close(connfd);
+	return 0;
+}
+
 static int __ipc_get_status(int connfd, ipc_message *msg)
 {
 	ssize_t ret;

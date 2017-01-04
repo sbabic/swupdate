@@ -398,3 +398,24 @@ void cleanup_files(struct swupdate_cfg *software) {
 	remove_sw_file(fn);
 #endif
 }
+
+int postupdate(struct swupdate_cfg *swcfg)
+{
+	swupdate_progress_done();
+
+	if ((swcfg) && (swcfg->globals.postupdatecmd) &&
+	    (strnlen(swcfg->globals.postupdatecmd,
+		     SWUPDATE_GENERAL_STRING_SIZE) > 0)) {
+		DEBUG("Executing post-update command '%s'",
+		      swcfg->globals.postupdatecmd);
+		int ret = system(swcfg->globals.postupdatecmd);
+		if (WIFEXITED(ret)) {
+			DEBUG("Post-update command returned %d", WEXITSTATUS(ret));
+		} else {
+			ERROR("Post-update command returned %d: '%s'", ret, strerror(errno));
+			return -1;
+		}
+	}
+
+	return 0;
+}
