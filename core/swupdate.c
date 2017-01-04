@@ -859,6 +859,9 @@ int main(int argc, char **argv)
 		cleanup_files(&swcfg);
 
 		notify(SUCCESS, 0, 0);
+		if (postupdate(&swcfg) != 0) {
+			ERROR("Post-update command execution failed.");
+		}
 	}
 
 	/*
