@@ -93,7 +93,6 @@ json_object *json_get_key(json_object *json_root, const char *key);
 json_object *json_get_path_key(json_object *json_root, const char **json_path);
 char *json_get_data_url(json_object *json_root, const char *key);
 server_op_res_t map_channel_retcode(channel_op_res_t response);
-void server_reboot(void);
 server_op_res_t server_handle_initial_state(update_state_t stateovrrd);
 int server_update_status_callback(ipc_message *msg);
 int server_update_done_callback(RECOVERY_STATUS status);
@@ -186,17 +185,6 @@ server_op_res_t map_channel_retcode(channel_op_res_t response)
 	}
 	return SERVER_EERR;
 }
-
-#ifdef UNIT_TESTING
-void server_reboot(void) { return; }
-#else
-__attribute__((noreturn)) void server_reboot(void)
-{
-	(void)execl("/bin/sh", "sh", "-c", "reboot", (char *)0);
-	ERROR("Cannot reboot system: %s\n", strerror(errno));
-	exit(EXIT_FAILURE);
-}
-#endif
 
 server_op_res_t server_send_cancel_reply(const int action_id)
 {
@@ -511,6 +499,14 @@ server_op_res_t server_has_pending_action(int *action_id)
 		DEBUG("Acknowledging cancelled update.\n");
 		(void)server_send_cancel_reply(*action_id);
 		result = SERVER_OK;
+	}
+	if ((result == SERVER_UPDATE_AVAILABLE) &&
+	    (get_state() == STATE_INSTALLED)) {
+		WARN("An already installed update is pending testing, "
+		     "ignoring available update action.");
+		INFO("Please restart SWUpdate to report the test results "
+		     "upstream.");
+		result = SERVER_NO_UPDATE_AVAILABLE;
 	}
 	return result;
 }
@@ -971,14 +967,14 @@ cleanup:
 		ERROR("JSON object should be freed but was not.\n");
 	}
 	if (result == SERVER_OK) {
-		/* TODO Notify running applications of successful installation
-		 *      and a pending reboot via IPC and time-out wait. The
-		 *      reboot cannot be done in a post-install script as this
-		 *      is called immediately after installation, after which
-		 *      actions such as, e.g., setting the U-Boot environment
-		 *      are performed. */
-		INFO("Update successful, rebooting the system now.\n");
-		server_reboot();
+		INFO("Update successful, executing post-update actions.\n");
+		ipc_message msg;
+		if (ipc_postupdate(&msg) != 0) {
+			result = SERVER_EERR;
+		} else {
+			result = msg.type == ACK ? SERVER_OK : SERVER_EERR;
+			DEBUG("%s\n", msg.data.msg);
+		}
 	}
 	return result;
 }
