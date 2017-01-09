@@ -443,9 +443,9 @@ static void test_server_install_update(void **state)
 static int server_hawkbit_setup(void **state)
 {
 	(void)state;
-	server_hawkbit.url = "http://void.me";
-	server_hawkbit.tenant = "tenant";
-	server_hawkbit.device_id = "deviceID";
+	server_hawkbit.url = (char *)"http://void.me";
+	server_hawkbit.tenant = (char *)"tenant";
+	server_hawkbit.device_id = (char *)"deviceID";
 	return 0;
 }
 
