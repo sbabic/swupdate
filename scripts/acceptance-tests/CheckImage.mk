@@ -18,7 +18,7 @@
 #
 # test commands for --check comand-line option
 #
-SWU_CHECK = ./swupdate -l 5 -c $(if $(strip $(filter-out FORCE,$<)),-i $<)
+SWU_CHECK = ./swupdate -l 5 -c $(if $(strip $(filter-out FORCE,$<)),-i $<) >/dev/null 2>&1
 
 quiet_cmd_swu_check_assert_false = RUN     $@
       cmd_swu_check_assert_false = $(SWU_CLEAN); if $(SWU_CHECK); then false; fi
@@ -27,10 +27,10 @@ quiet_cmd_swu_check_assert_true = RUN     $@
       cmd_swu_check_assert_true = $(SWU_CLEAN); $(SWU_CHECK)
 
 quiet_cmd_swu_check_inv_websrv = RUN     $@
-      cmd_swu_check_inv_websrv = $(SWU_CLEAN); if ./swupdate -l 5 -c -w "-document_root $(srctree)"; then false; fi
+      cmd_swu_check_inv_websrv = $(SWU_CLEAN); if ./swupdate -l 5 -c -w "-document_root $(srctree)" >/dev/null 2>&1; then false; fi
 
 quiet_cmd_swu_check_inv_suricatta = RUN     $@
-      cmd_swu_check_inv_suricatta = $(SWU_CLEAN); if ./swupdate -l 5 -c -u "-t default -i 42 -u localhost:8080"; then false; fi
+      cmd_swu_check_inv_suricatta = $(SWU_CLEAN); if ./swupdate -l 5 -c -u "-t default -i 42 -u localhost:8080" >/dev/null 2>&1; then false; fi
 
 quiet_cmd_mkswu = MKSWU   $@
       cmd_mkswu = mkdir -p $(dir $@); cd $(dir $<); for l in $(patsubst $(dir $<)%,%,$(filter-out FORCE,$^)); do echo "$$l"; done | cpio -ov -H crc > $(objtree)/$@
