@@ -44,6 +44,13 @@ int __wrap_ipc_wait_for_complete(getstatus callback)
 	return mock_type(RECOVERY_STATUS);
 }
 
+extern int __real_ipc_postupdate(ipc_message *msg);
+int __wrap_ipc_postupdate(ipc_message *msg);
+int __wrap_ipc_postupdate(ipc_message *msg) {
+	msg->type = ACK;
+	return 0;
+}
+
 extern channel_op_res_t __real_channel_put(void *data);
 channel_op_res_t __wrap_channel_put(void *data);
 channel_op_res_t __wrap_channel_put(void *data)
@@ -56,9 +63,13 @@ extern channel_op_res_t __real_channel_get_file(void *data);
 channel_op_res_t __wrap_channel_get_file(void *data);
 channel_op_res_t __wrap_channel_get_file(void *data)
 {
+#ifdef CONFIG_SURICATTA_SSL
 	channel_data_t *channel_data = (channel_data_t *)data;
 	strncpy(channel_data->sha1hash, mock_type(char *),
 		SHA_DIGEST_LENGTH * 2 + 1);
+#else
+	(void)data;
+#endif
 	return mock_type(channel_op_res_t);
 }
 
@@ -318,6 +329,16 @@ static void test_server_process_update_artifact(void **state)
 	);
 	/* clang-format on */
 
+#ifndef CONFIG_SURICATTA_SSL
+	/* Test Case: No HTTP download URL given in JSON. */
+	json_object *json_data_artifact = json_tokener_parse(json_artifact);
+	assert_int_equal(SERVER_EBADMSG,
+			 server_process_update_artifact(
+			     json_get_key(json_data_artifact, "artifacts"),
+			     "update action", "part", "version", "name"));
+#endif
+
+#ifdef CONFIG_SURICATTA_SSL
 	/* Test Case: Artifact installed successfully. */
 	json_object *json_data_artifact = json_tokener_parse(json_artifact);
 	will_return(__wrap_channel_get_file, "CAFFEE");
@@ -329,9 +350,10 @@ static void test_server_process_update_artifact(void **state)
 			     "update action", "part", "version", "name"));
 	assert_int_equal(json_object_put(json_data_artifact),
 			 JSON_OBJECT_FREED);
+#endif
 }
 
-extern server_op_res_t server_install_update();
+extern server_op_res_t server_install_update(void);
 static void test_server_install_update(void **state)
 {
 	(void)state;
@@ -368,7 +390,7 @@ static void test_server_install_update(void **state)
 		}
 	}
 	);
-	static const char *json_reply_update_valid_data = JSONQUOTE(
+	static const char *json_reply_update_valid_data_https = JSONQUOTE(
 	{
 		"id" : "12",
 		"deployment" : {
@@ -389,6 +411,40 @@ static void test_server_install_update(void **state)
 					"size" : 12,
 					"_links" : {
 						"download" : {
+							"href" : "http://download"
+						},
+						"md5sum" : {
+							"href" : "http://md5sum"
+						}
+					}
+				}
+			]
+			}
+		]
+		}
+	}
+	);
+	static const char *json_reply_update_valid_data_http = JSONQUOTE(
+	{
+		"id" : "12",
+		"deployment" : {
+		"download" : "forced",
+		"update" : "forced",
+		"chunks" : [
+			{
+			"part" : "part01",
+			"version" : "v1.0.77",
+			"name" : "oneapplication",
+			"artifacts": [
+				{
+					"filename" : "afile",
+					"hashes" : {
+						"sha1" : "CAFFEE",
+						"md5" : "DEADBEEF",
+					},
+					"size" : 12,
+					"_links" : {
+						"download-http" : {
 							"href" : "http://download"
 						},
 						"md5sum" : {
@@ -424,20 +480,29 @@ static void test_server_install_update(void **state)
 	/* Test Case: Update works. */
 	json_data_update_available =
 	    json_tokener_parse(json_reply_update_available);
+#ifdef CONFIG_SURICATTA_SSL
 	json_data_update_details_valid =
-	    json_tokener_parse(json_reply_update_valid_data);
+	    json_tokener_parse(json_reply_update_valid_data_https);
+	(void)json_reply_update_valid_data_http;
+#else
+	json_data_update_details_valid =
+		json_tokener_parse(json_reply_update_valid_data_http);
+	(void)json_reply_update_valid_data_https;
+#endif
 	will_return(__wrap_channel_get, json_data_update_available);
 	will_return(__wrap_channel_get, CHANNEL_OK);
 	will_return(__wrap_channel_get, json_data_update_details_valid);
 	will_return(__wrap_channel_get, CHANNEL_OK);
 	will_return(__wrap_channel_put, CHANNEL_OK);
+#ifdef CONFIG_SURICATTA_SSL
 	will_return(__wrap_channel_get_file, "CAFFEE");
+#endif
 	will_return(__wrap_channel_get_file, CHANNEL_OK);
 	will_return(__wrap_ipc_wait_for_complete, SUCCESS);
 	will_return(__wrap_channel_put, CHANNEL_OK);
 	will_return(__wrap_save_state, SERVER_OK);
 	will_return(__wrap_channel_put, CHANNEL_OK);
-	server_install_update();
+	assert_int_equal(SERVER_OK, server_install_update());
 }
 
 static int server_hawkbit_setup(void **state)
