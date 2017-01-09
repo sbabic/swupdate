@@ -23,7 +23,6 @@
 #include <setjmp.h>
 #include <cmocka.h>
 #include <json-c/json.h>
-#include "test.h"
 #include "suricatta/suricatta.h"
 
 #define JSON_OBJECT_FREED 1
