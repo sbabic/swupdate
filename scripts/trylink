@@ -1,6 +1,8 @@
 #!/bin/sh
 
 debug=false
+verbose=false
+[ -n "${VERBOSE:-}" ] && verbose=true
 
 # Linker flags used:
 #
@@ -115,7 +117,7 @@ fi
 LDLIBS=`echo "$LDLIBS" | xargs -n1 | uniq | xargs`
 
 # First link with all libs. If it fails, bail out
-echo "Trying libraries: $LDLIBS"
+$verbose && echo "Trying libraries: $LDLIBS"
 # "lib1 lib2 lib3" -> "-llib1 -llib2 -llib3"
 l_list=`echo "$LDLIBS" | sed -e 's/ / -l/g' -e 's/^/-l/' -e 's/^-l$//'`
 test "x$l_list" != "x" && l_list="$START_GROUP $l_list $END_GROUP"
@@ -152,12 +154,12 @@ while test "$LDLIBS"; do
 		$START_GROUP $O_FILES $A_FILES $END_GROUP \
 		$l_list
 	if test $? = 0; then
-	    echo " Library $one is not needed, excluding it"
+	    $verbose && echo " Library $one is not needed, excluding it"
 	    LDLIBS="$without_one"
 	    all_needed=false
 	    last_needed=false
 	else
-	    echo " Library $one is needed, can't exclude it (yet)"
+	    $verbose && echo " Library $one is needed, can't exclude it (yet)"
 	    last_needed=true
 	fi
     done
@@ -171,7 +173,7 @@ while test "$LDLIBS"; do
 done
 
 # Make the binary with final, minimal list of libs
-echo "Final link with: ${LDLIBS:-<none>}"
+$verbose && echo "Final link with: ${LDLIBS:-<none>}"
 l_list=`echo "$LDLIBS" | sed -e 's/ / -l/g' -e 's/^/-l/' -e 's/^-l$//'`
 test "x$l_list" != "x" && l_list="$START_GROUP $l_list $END_GROUP"
 # --verbose gives us gobs of info to stdout (e.g. linker script used)
