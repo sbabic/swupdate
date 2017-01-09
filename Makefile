@@ -403,8 +403,9 @@ else
 endif
 
 PHONY += run-tests
-run-tests: \
-	acceptance-tests
+tests: \
+	acceptance-tests \
+	suricatta-tests
 
 PHONY += acceptance-tests
 acceptance-tests: FORCE
