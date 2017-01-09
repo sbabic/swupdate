@@ -41,10 +41,10 @@ quiet_cmd_mkswu = MKSWU   $@
 tests-y += FileNotFoundTest
 tests-y += CrapFileTest
 tests-y += ImgNameErrorTest
-tests-y += ValidImageTest
+tests-$(CONFIG_LIBCONFIG) += ValidImageTest
 tests-y += InvOptsNoImg
-tests-y += InvOptsCheckWithWeb
-tests-y += InvOptsCheckWithSur
+tests-$(CONFIG_MONGOOSE) += InvOptsCheckWithWeb
+tests-$(CONFIG_SURICATTA) += InvOptsCheckWithSur
 
 #
 # file not found test
