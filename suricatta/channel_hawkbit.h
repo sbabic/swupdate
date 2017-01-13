@@ -51,7 +51,7 @@ typedef struct {
 	unsigned int retry_sleep;
 	unsigned int offs;
 	unsigned int method;
-	unsigned char retries;
+	unsigned int retries;
 	bool debug;
 	bool strictssl;
 #ifdef CONFIG_SURICATTA_SSL
