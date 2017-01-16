@@ -368,7 +368,11 @@ static int install_from_file(char *fname, int check)
 		mtd_cleanup();
 		scan_mtd_devices();
 #endif
-	/* copy images */
+	/*
+	 * Set "recovery_status" as begin of the transaction"
+	 */
+	fw_set_one_env("recovery_status", "in_progress");
+
 	ret = install_images(&swcfg, fdsw, 1);
 
 	swupdate_progress_end(ret == 0 ? SUCCESS : FAILURE);
@@ -377,9 +381,11 @@ static int install_from_file(char *fname, int check)
 
 	if (ret) {
 		fprintf(stdout, "Software updated failed\n");
+		fw_set_one_env("recovery_status", "failed");
 		exit(1);
 	}
 
+	fw_set_one_env("recovery_status", "");
 	fprintf(stdout, "Software updated successfully\n");
 	fprintf(stdout, "Please reboot the device to start the new software\n");
 
