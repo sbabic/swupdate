@@ -60,10 +60,6 @@
 
 #define MODULE_NAME	"swupdate"
 
-#ifndef WAIT_ANY
-#define WAIT_ANY (-1)
-#endif
-
 /*
  * Number of seconds while below low speed
  * limit before aborting
@@ -75,15 +71,6 @@ static pthread_t network_daemon;
 
 /* Tree derived from the configuration file */
 static struct swupdate_cfg swcfg;
-
-/* the array contains the pid of the subprocesses */
-#define MAX_PROCESSES	10
-struct processes {
-	pid_t	pid;
-	const char	*name;
-};
-static struct processes procs[MAX_PROCESSES];
-static int    nprocs = 0;
 
 #ifdef CONFIG_MTD
 /* Global MTD configuration */
@@ -455,81 +442,6 @@ static int read_globals_settings(void *elem, void *data)
 	return 0;
 }
 
-static int start_subprocess(const char *name, const char *cfgfile, int argc, char **argv,
-			swupdate_process start)
-{
-	uid_t uid;
-	gid_t gid;
-
-	read_settings_user_id(cfgfile, name, &uid, &gid);
-	return spawn_process(uid, gid, cfgfile, argc, argv, start);
-}
-
-/*
- * The handler supervises the subprocesses
- * (Downloader, Webserver, Suricatta)
- * if one of them dies, SWUpdate exits
- * and sends a SIGTERM signal to all other subprocesses
- */
-static void sigchld_handler (int __attribute__ ((__unused__)) signum)
-{
-	int childpid, status, serrno;
-	int exitstatus;
-	int hasdied = 0;
-	int i;
-
-	serrno = errno;
-
-	/*
-	 * One process stops, find who is
-	 */
-	for (i = 0; i < nprocs; i++) {
-		childpid = waitpid (procs[i].pid, &status, WNOHANG);
-		if (childpid < 0) {
-			perror ("waitpid, no childs");
-			continue;
-		}
-		if (childpid == 0)
-			continue;
-
-		if (procs[i].pid == childpid) {
-			printf("Child %d(%s) ", childpid, procs[i].name);
-			hasdied = 0;
-			if (WIFEXITED(status)) {
-				hasdied = 1;
-				exitstatus = WEXITSTATUS(status);
-				printf("exited, status=%d\n", exitstatus);
-			} else if (WIFSIGNALED(status)) {
-				hasdied = 1;
-				exitstatus = WTERMSIG(status);
-				printf("killed by signal %d\n", WTERMSIG(status));
-			} else if (WIFSTOPPED(status)) {
-				printf("stopped by signal %d\n", WSTOPSIG(status));
-			} else if (WIFCONTINUED(status)) {
-				printf("continued\n");
-			}
-			break;
-		}
-	}
-
-	/*
-	 * Communicate to all other processes that something happened
-	 * and exit
-	 */
-	if (hasdied) {
-		signal(SIGCHLD, SIG_IGN);
-		for (i = 0; i < nprocs; i++) {
-			if (procs[i].pid != childpid) {
-				kill(procs[i].pid, SIGTERM);
-			}
-		}
-
-		exit(exitstatus);
-	}
-
-	errno = serrno;
-}
-
 int main(int argc, char **argv)
 {
 	int c;
@@ -783,26 +695,25 @@ int main(int argc, char **argv)
 		/* Start embedded web server */
 #if defined(CONFIG_MONGOOSE)
 		if (opt_w) {
-			procs[nprocs].pid = start_subprocess("webserver", cfgfname, ac, av,
+			start_subprocess(SOURCE_WEBSERVER, "webserver",
+						cfgfname, ac, av,
 						start_mongoose);
-			procs[nprocs++].name = "webserver";
 		}
 #endif
 
 #if defined(CONFIG_SURICATTA)
 		if (opt_u) {
-			procs[nprocs].pid = start_subprocess("suricatta", cfgfname, argcount,
+			start_subprocess(SOURCE_SURICATTA, "suricatta",
+					 cfgfname, argcount,
 				       	 argvalues, start_suricatta);
-			procs[nprocs++].name = "suricatta";
 		}
-
 #endif
 
 #ifdef CONFIG_DOWNLOAD
 		if (opt_d) {
-			procs[nprocs].pid = start_subprocess("download", cfgfname, dwlac,
+			start_subprocess(SOURCE_DOWNLOADER, "download",
+				       	 cfgfname, dwlac,
 				       	 dwlav, start_download);
-			procs[nprocs++].name = "downloader";
 		}
 #endif
 	}
