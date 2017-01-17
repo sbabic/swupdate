@@ -29,6 +29,7 @@
 #include <generated/autoconf.h>
 #include <util.h>
 #include <network_ipc.h>
+#include <sys/time.h>
 #include <swupdate_status.h>
 #include "suricatta/suricatta.h"
 #include "suricatta/channel.h"
@@ -87,6 +88,7 @@ static unsigned short mandatory_argument_count = 0;
 #define ALL_MANDATORY_SET	(TENANT_BIT | ID_BIT | URL_BIT)
 
 
+extern channel_op_res_t channel_hawkbit_init(void);
 /* Prototypes for "internal" functions */
 /* Note that they're not `static` so that they're callable from unit tests. */
 json_object *json_get_key(json_object *json_root, const char *key);
@@ -115,13 +117,16 @@ server_hawkbit_t server_hawkbit = {.url = NULL,
 				   .polling_interval = DEFAULT_POLLING_INTERVAL,
 				   .debug = false,
 				   .device_id = NULL,
-				   .tenant = NULL};
+				   .tenant = NULL,
+				   .channel = NULL};
 
 static channel_data_t channel_data_defaults = {.debug = false,
 					       .retries = DEFAULT_RESUME_TRIES,
 					       .retry_sleep =
 						   DEFAULT_RESUME_DELAY,
 					       .strictssl = true};
+
+static struct timeval server_time;
 
 /* Prototypes for "public" functions */
 server_op_res_t server_has_pending_action(int *action_id);
@@ -189,6 +194,7 @@ server_op_res_t map_channel_retcode(channel_op_res_t response)
 
 server_op_res_t server_send_cancel_reply(const int action_id)
 {
+	channel_t *channel = server_hawkbit.channel;
 	assert(server_hawkbit.url != NULL);
 	assert(server_hawkbit.tenant != NULL);
 	assert(server_hawkbit.device_id != NULL);
@@ -236,7 +242,7 @@ server_op_res_t server_send_cancel_reply(const int action_id)
 	channel_data_reply.url = url;
 	channel_data_reply.json_string = json_reply_string;
 	channel_data_reply.method = CHANNEL_POST;
-	result = map_channel_retcode(channel.put((void *)&channel_data_reply));
+	result = map_channel_retcode(channel->put(channel, (void *)&channel_data_reply));
 
 cleanup:
 	if (url != NULL) {
@@ -258,6 +264,8 @@ server_send_deployment_reply(const int action_id, const int job_cnt_max,
 			     const int job_cnt_cur, const char *finished,
 			     const char *execution_status, const char *details)
 {
+	channel_t *channel = server_hawkbit.channel;
+	assert(channel != NULL);
 	assert(finished != NULL);
 	assert(execution_status != NULL);
 	assert(details != NULL);
@@ -311,7 +319,7 @@ server_send_deployment_reply(const int action_id, const int job_cnt_max,
 	channel_data.json_string = json_reply_string;
 	TRACE("PUTing to %s: %s\n", channel_data.url, channel_data.json_string);
 	channel_data.method = CHANNEL_POST;
-	result = map_channel_retcode(channel.put((void *)&channel_data));
+	result = map_channel_retcode(channel->put(channel, (void *)&channel_data));
 
 cleanup:
 	if (url != NULL) {
@@ -360,6 +368,15 @@ unsigned int server_get_polling_interval(void)
 	return server_hawkbit.polling_interval;
 }
 
+static void server_get_current_time(struct timeval *tv)
+{
+	struct timespec ts;
+
+	/* use timespec for monotonic clock */
+	clock_gettime(CLOCK_MONOTONIC, &ts);
+
+	TIMESPEC_TO_TIMEVAL(tv, &ts);
+}
 
 server_op_res_t server_set_config_data(json_object *json_root)
 {
@@ -378,8 +395,9 @@ server_op_res_t server_set_config_data(json_object *json_root)
 	return SERVER_OK;
 }
 
-static server_op_res_t server_get_device_info(channel_data_t *channel_data)
+static server_op_res_t server_get_device_info(channel_t *channel, channel_data_t *channel_data)
 {
+	assert(channel != NULL);
 	assert(channel_data != NULL);
 	assert(server_hawkbit.url != NULL);
 	assert(server_hawkbit.tenant != NULL);
@@ -395,7 +413,7 @@ static server_op_res_t server_get_device_info(channel_data_t *channel_data)
 		result = SERVER_EINIT;
 		goto cleanup;
 	}
-	if ((result = map_channel_retcode(channel.get((void *)channel_data))) !=
+	if ((result = map_channel_retcode(channel->get(channel, (void *)channel_data))) !=
 	    SERVER_OK) {
 		goto cleanup;
 	}
@@ -416,9 +434,10 @@ cleanup:
 	return result;
 }
 
-static server_op_res_t server_get_deployment_info(channel_data_t *channel_data,
+static server_op_res_t server_get_deployment_info(channel_t *channel, channel_data_t *channel_data,
 						  int *action_id)
 {
+	assert(channel != NULL);
 	assert(channel_data != NULL);
 	assert(action_id != NULL);
 	server_op_res_t update_status = SERVER_OK;
@@ -426,7 +445,7 @@ static server_op_res_t server_get_deployment_info(channel_data_t *channel_data,
 	char *url_deployment_base = NULL;
 	char *url_cancel = NULL;
 	channel_data_t channel_data_device_info = channel_data_defaults;
-	if ((result = server_get_device_info(&channel_data_device_info)) !=
+	if ((result = server_get_device_info(channel, &channel_data_device_info)) !=
 	    SERVER_OK) {
 		goto cleanup;
 	}
@@ -446,7 +465,7 @@ static server_op_res_t server_get_deployment_info(channel_data_t *channel_data,
 		result = SERVER_NO_UPDATE_AVAILABLE;
 		goto cleanup;
 	}
-	if ((result = map_channel_retcode(channel.get((void *)channel_data))) !=
+	if ((result = map_channel_retcode(channel->get(channel, (void *)channel_data))) !=
 	    SERVER_OK) {
 		goto cleanup;
 	}
@@ -478,6 +497,63 @@ cleanup:
 	return result;
 }
 
+static int server_check_during_dwl(void)
+{
+	struct timeval now;
+	channel_data_t channel_data = channel_data_defaults;
+	int action_id;
+	int ret = 0;
+
+	server_get_current_time(&now);
+
+	/*
+	 * The download can take a very long time
+	 * In the meantime, check with current polling time
+	 * if something on the server was changed and a cancel
+	 * was requested
+	 */
+	if ((now.tv_sec - server_time.tv_sec) < server_get_polling_interval())
+		return 0;
+
+	/* Update current server time */
+	server_time = now;
+
+	/*
+	 * We need a separate channel because we want to run
+	 * a connection parallel to the download
+	 */
+	channel_t *channel = channel_new();
+
+	if (channel->open(channel, &channel_data_defaults) != CHANNEL_OK) {
+		/*
+		 * it is not possible to check for a cancelUpdate,
+		 * go on downloading
+		 */
+		free(channel);
+		return 0;
+	}
+
+	/*
+	 * Send a device Info to the Hawkbit Server
+	 */
+	server_op_res_t result =
+	    server_get_deployment_info(channel, &channel_data, &action_id);
+	if (channel_data.json_reply != NULL &&
+	    json_object_put(channel_data.json_reply) != JSON_OBJECT_FREED) {
+		ERROR("JSON object should be freed but was not.\n");
+	}
+	if (result == SERVER_UPDATE_CANCELED) {
+		TRACE("Acknowledging cancelled update.\n");
+		(void)server_send_cancel_reply(action_id);
+		ret = -1;
+	}
+
+	channel->close(channel);
+	free(channel);
+
+	return ret;
+}
+
 server_op_res_t server_has_pending_action(int *action_id)
 {
 
@@ -497,7 +573,8 @@ server_op_res_t server_has_pending_action(int *action_id)
 
 	channel_data_t channel_data = channel_data_defaults;
 	server_op_res_t result =
-	    server_get_deployment_info(&channel_data, action_id);
+	    server_get_deployment_info(server_hawkbit.channel,
+			    		&channel_data, action_id);
 	/* TODO don't throw away reply JSON as it's fetched again by succinct
 	 *      server_install_update() */
 	if (channel_data.json_reply != NULL &&
@@ -542,7 +619,7 @@ static server_op_res_t handle_feedback(update_state_t state,
 	int action_id;
 	channel_data_t channel_data = channel_data_defaults;
 	server_op_res_t result =
-	    server_get_deployment_info(&channel_data, &action_id);
+	    server_get_deployment_info(server_hawkbit.channel, &channel_data, &action_id);
 	switch (result) {
 	case SERVER_OK:
 	case SERVER_ID_REQUESTED:
@@ -652,6 +729,8 @@ server_op_res_t server_process_update_artifact(json_object *json_data_artifact,
 						const char *version,
 						const char *name)
 {
+	channel_t *channel = server_hawkbit.channel;
+	assert(channel != NULL);
 	assert(json_data_artifact != NULL);
 	assert(json_object_get_type(json_data_artifact) == json_type_array);
 	server_op_res_t result = SERVER_OK;
@@ -752,8 +831,18 @@ server_op_res_t server_process_update_artifact(json_object *json_data_artifact,
 			goto cleanup_loop;
 		}
 
+		channel_data.checkdwl = server_check_during_dwl;
+
+		/*
+		 * Retrieve current time to check download time
+		 * This is used in the callback to ask again the hawkbit
+		 * server if the download is longer as the polling time
+		 */
+
+		server_get_current_time(&server_time);
+
 		channel_op_res_t cresult =
-		    channel.get_file((void *)&channel_data);
+		    channel->get_file(channel, (void *)&channel_data);
 		if ((result = map_channel_retcode(cresult)) != SERVER_OK) {
 			ERROR("Error while downloading artifact.\n");
 			goto cleanup_loop;
@@ -815,7 +904,7 @@ server_op_res_t server_install_update(void)
 	int action_id;
 	channel_data_t channel_data = channel_data_defaults;
 	server_op_res_t result =
-	    server_get_deployment_info(&channel_data, &action_id);
+	    server_get_deployment_info(server_hawkbit.channel, &channel_data, &action_id);
 	switch (result) {
 	case SERVER_UPDATE_CANCELED:
 	case SERVER_UPDATE_AVAILABLE:
@@ -1005,11 +1094,13 @@ cleanup:
 
 server_op_res_t server_send_target_data(void)
 {
+	channel_t *channel = server_hawkbit.channel;
 	struct dict_entry *entry;
 	bool first = true;
 	int len = 0;
 	server_op_res_t result = SERVER_OK;
 
+	assert(channel != NULL);
 	LIST_FOREACH(entry, &server_hawkbit.configdata, next) {
 		len += strlen(entry->varname) + strlen(entry->value) + strlen (" : ") + 6;
 	}
@@ -1090,7 +1181,7 @@ server_op_res_t server_send_target_data(void)
 	channel_data_reply.json_string = json_reply_string;
 	TRACE("URL=%s JSON=%s", channel_data_reply.url, channel_data_reply.json_string);
 	channel_data_reply.method = CHANNEL_PUT;
-	result = map_channel_retcode(channel.put((void *)&channel_data_reply));
+	result = map_channel_retcode(channel->put(channel, (void *)&channel_data_reply));
 
 	if (result == SERVER_OK)
 		server_hawkbit.has_to_send_configData = false;
@@ -1319,7 +1410,18 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 		suricatta_print_help();
 		return SERVER_EINIT;
 	}
-	if (channel.open(&channel_data_defaults) != CHANNEL_OK) {
+
+	if (channel_hawkbit_init() != CHANNEL_OK)
+		return SERVER_EINIT;
+
+	/*
+	 * Allocate a channel to communicate with the server
+	 */
+	server_hawkbit.channel = channel_new();
+	if (!server_hawkbit.channel)
+		return SERVER_EINIT;
+
+	if (server_hawkbit.channel->open(server_hawkbit.channel, &channel_data_defaults) != CHANNEL_OK) {
 		return SERVER_EINIT;
 	}
 	/* If an update was performed, report its status to the hawkBit server
@@ -1351,7 +1453,7 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 
 server_op_res_t server_stop(void)
 {
-	(void)channel.close();
+	(void)server_hawkbit.channel->close(server_hawkbit.channel);
 	return SERVER_OK;
 }
 

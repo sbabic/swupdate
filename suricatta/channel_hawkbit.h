@@ -54,6 +54,7 @@ typedef struct {
 	unsigned int retries;
 	bool debug;
 	bool strictssl;
+	int (*checkdwl)(void);
 #ifdef CONFIG_SURICATTA_SSL
 	char sha1hash[SHA_DIGEST_LENGTH * 2 + 1];
 #endif

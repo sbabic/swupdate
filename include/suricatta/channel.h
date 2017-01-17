@@ -26,21 +26,19 @@
  * Cf. `channel_hawkbit.c` for an example implementation targeted towards the
  * [hawkBit](https://projects.eclipse.org/projects/iot.hawkbit) server.
  */
+typedef struct channel channel_t;
+struct channel {
+	channel_op_res_t (*open)(channel_t *this, void *cfg);
+	channel_op_res_t (*close)(channel_t *this);
+	channel_op_res_t (*get)(channel_t *this, void *data);
+	channel_op_res_t (*get_file)(channel_t *this, void *data);
+	channel_op_res_t (*put)(channel_t *this, void *data);
+	void *priv;
+};
 
-extern channel_op_res_t channel_open(void *cfg);
-extern channel_op_res_t channel_close(void);
-extern channel_op_res_t channel_put(void *data);
-extern channel_op_res_t channel_get(void *data);
-extern channel_op_res_t channel_get_file(void *data);
-
-static struct channel_t {
-	channel_op_res_t (*open)(void *cfg);
-	channel_op_res_t (*close)(void);
-	channel_op_res_t (*get)(void *data);
-	channel_op_res_t (*get_file)(void *data);
-	channel_op_res_t (*put)(void *data);
-} channel = {.open = &channel_open,
-	     .close = &channel_close,
-	     .get = &channel_get,
-	     .get_file = &channel_get_file,
-	     .put = &channel_put};
+extern channel_op_res_t channel_open(channel_t *this, void *cfg);
+extern channel_op_res_t channel_close(channel_t *this);
+extern channel_op_res_t channel_put(channel_t *this, void *data);
+extern channel_op_res_t channel_get(channel_t *this, void *data);
+extern channel_op_res_t channel_get_file(channel_t *this, void *data);
+channel_t *channel_new(void);

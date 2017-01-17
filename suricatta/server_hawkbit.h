@@ -19,6 +19,7 @@
 
 #pragma once
 #include <stdbool.h>
+#include <suricatta/channel.h>
 
 /* hawkBit Server Implementation Private Header File.
  *
@@ -37,6 +38,7 @@ typedef struct {
 	bool has_to_send_configData;
 	char *configData_url;
 	update_state_t update_state;
+	channel_t *channel;
 } server_hawkbit_t;
 
 extern server_hawkbit_t server_hawkbit;
