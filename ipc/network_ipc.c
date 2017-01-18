@@ -368,4 +368,29 @@ int swupdate_async_start(writedata wr_func, getstatus status_func,
 	return handle;
 }
 
+int ipc_send_cmd(ipc_message *msg)
+{
+	int connfd = prepare_ipc();
+	int ret;
 
+	if (connfd < 0) {
+		return -1;
+	}
+
+	/* TODO: Check source type */
+	msg->magic = IPC_MAGIC;
+	msg->type = SWUPDATE_SUBPROCESS;
+	ret = write(connfd, msg, sizeof(*msg));
+	if (ret != sizeof(*msg)) {
+		close(connfd);
+		return -1;
+	}
+	ret = read(connfd, msg, sizeof(*msg));
+	if (ret <= 0) {
+		close(connfd);
+		return -1;
+	}
+	close(connfd);
+
+	return 0;
+}
