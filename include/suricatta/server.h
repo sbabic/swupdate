@@ -32,6 +32,7 @@ extern server_op_res_t server_send_target_data(void);
 extern unsigned int server_get_polling_interval(void);
 extern server_op_res_t server_start(const char *cfgfname, int argc, char *argv[]);
 extern server_op_res_t server_stop(void);
+extern server_op_res_t server_ipc(int fd);
 
 static struct server_t {
 	server_op_res_t (*has_pending_action)(int *action_id);
@@ -40,9 +41,11 @@ static struct server_t {
 	unsigned int (*get_polling_interval)(void);
 	server_op_res_t (*start)(const char *fname, int argc, char *argv[]);
 	server_op_res_t (*stop)(void);
+	server_op_res_t (*ipc)(int fd);
 } server = {.has_pending_action = &server_has_pending_action,
 	    .install_update = &server_install_update,
 	    .send_target_data = &server_send_target_data,
 	    .get_polling_interval = &server_get_polling_interval,
+	    .ipc = &server_ipc,
 	    .start = &server_start,
 	    .stop = &server_stop};

@@ -126,6 +126,7 @@ static channel_data_t channel_data_defaults = {.debug = false,
 /* Prototypes for "public" functions */
 server_op_res_t server_has_pending_action(int *action_id);
 server_op_res_t server_stop(void);
+server_op_res_t server_ipc(int fd);
 server_op_res_t server_start(char *fname, int argc, char *argv[]);
 server_op_res_t server_install_update(void);
 server_op_res_t server_send_target_data(void);
@@ -1319,5 +1320,17 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 server_op_res_t server_stop(void)
 {
 	(void)channel.close();
+	return SERVER_OK;
+}
+
+server_op_res_t server_ipc(int fd)
+{
+	char buf[4096];
+	int ret;
+
+	ret = read(fd, buf, sizeof(buf));
+
+	printf("%s read %d bytes\n", __func__, ret);
+
 	return SERVER_OK;
 }
