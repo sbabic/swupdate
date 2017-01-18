@@ -41,10 +41,12 @@
 #include "network_interface.h"
 #include "installer.h"
 #include "swupdate.h"
+#include "pctl.h"
 
 #define LISTENQ	1024
 
 #define NUM_CACHED_MESSAGES 100
+#define DEFAULT_INTERNAL_TIMEOUT 60
 
 struct msg_elem {
 	RECOVERY_STATUS status;
@@ -155,6 +157,9 @@ void *network_thread (void *data)
 	int nread;
 	struct msg_elem *notification;
 	int ret;
+	int pipe;
+	fd_set pipefds;
+	struct timeval tv;
 
 	if (!instp) {
 		TRACE("Fatal error: Network thread aborting...");
@@ -203,6 +208,70 @@ void *network_thread (void *data)
 					msg.type = NACK;
 					sprintf(msg.data.msg, "Post-update actions failed.");
 				}
+				break;
+			case SWUPDATE_SUBPROCESS:
+				/*
+				 *  this request is not for the installer,
+				 *  but for one of the subprocesses
+				 *  forward the request without checking
+				 *  the payload
+				 */
+			       
+				pipe = pctl_getfd_from_type(msg.data.instmsg.source);
+				if (pipe < 0) {
+					ERROR("Cannot find channel for requested process");
+					msg.type = NACK;
+					break;
+				}
+				TRACE("Received Message for %s",
+					pctl_getname_from_type(msg.data.instmsg.source));
+				if (fcntl(pipe, F_GETFL) < 0 && errno == EBADF) {
+					ERROR("Pipe not available or closed: %d", pipe);
+					msg.type = NACK;
+					break;
+				}
+
+				ret = write(pipe, &msg, sizeof(msg));
+				if (ret != sizeof(msg)) {
+					ERROR("Writing to pipe failed !");
+					msg.type = NACK;
+					break;
+				}
+
+				/*
+				 * Do not block forever for an answer
+				 * This would block the whole thread
+				 * If a message requires more time,
+				 * the destination process should sent an
+				 * answer back explaining this in the payload
+				 */
+				FD_ZERO(&pipefds);
+				FD_SET(pipe, &pipefds);
+				tv.tv_sec = DEFAULT_INTERNAL_TIMEOUT;
+				tv.tv_usec = 0;
+				ret = select(pipe + 1, &pipefds, NULL, NULL, &tv);
+
+				/*
+				 * If there is an error or timeout,
+				 * send a NACK back
+				 */
+				if (ret <= 0 || !FD_ISSET(pipe, &pipefds)) {
+					msg.type = NACK;
+					break;
+				}
+
+				ret = read(pipe, &msg, sizeof(msg));
+				if (ret != sizeof(msg)) {
+					ERROR("Reading from pipe failed !");
+					msg.type = NACK;
+					break;
+				}
+
+				/*
+				 * ACK/NACK was inserted by the called SUBPROCESS
+				 * It should not be touched here
+				 */
+
 				break;
 			case REQ_INSTALL:
 				TRACE("Incoming network request: processing...");
