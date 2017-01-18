@@ -315,6 +315,27 @@ static void *swupdate_async_thread(void *data)
 }
 
 /*
+ * This is duplicated from pctl
+ * to let build the ipc library without
+ * linking pctl code
+ */
+static pthread_t start_ipc_thread(void *(* start_routine) (void *), void *arg)
+{
+	int ret;
+	pthread_t id;
+	pthread_attr_t attr;
+
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+
+	ret = pthread_create(&id, &attr, start_routine, arg);
+	if (ret) {
+		exit(1);
+	}
+	return id;
+}
+
+/*
  * This is part of the library for an external client.
  * Only one running request is accepted
  */
@@ -340,7 +361,7 @@ int swupdate_async_start(writedata wr_func, getstatus status_func,
 
 	rq->connfd = connfd;
 
-	async_thread_id = start_thread(swupdate_async_thread, rq);
+	async_thread_id = start_ipc_thread(swupdate_async_thread, rq);
 
 	handle++;
 
