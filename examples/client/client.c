@@ -41,6 +41,7 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <pthread.h>
 #include "network_ipc.h"
 
 void usage(void) {
