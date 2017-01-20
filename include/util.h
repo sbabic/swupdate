@@ -148,6 +148,7 @@ void notify_init(void);
 int syslog_init(void);
 
 char **splitargs(char *args, int *argc);
+char** string_split(char* a_str, const char a_delim);
 void freeargs (char **argv);
 int isDirectoryEmpty(const char *dirname);
 int get_hw_revision(struct hw_type *hw);
