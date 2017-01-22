@@ -480,6 +480,14 @@ cleanup:
 
 server_op_res_t server_has_pending_action(int *action_id)
 {
+
+	/*
+	 * First check if initialization was completed or
+	 * a feedback should be sent to Hawkbit
+	 */
+	if (server_hawkbit.update_state == STATE_WAIT)
+		return SERVER_OK;
+
 	/*
 	 * if configData was not yet sent,
 	 * send it without asking for deviceInfo
@@ -525,6 +533,52 @@ static update_state_t get_state(void) {
 	return is_state_valid(state) ? state : STATE_ERROR;
 }
 
+static server_op_res_t handle_feedback(update_state_t state,
+					const char *reply_result,
+					const char *reply_execution,
+					const char *reply_message)
+{
+
+	int action_id;
+	channel_data_t channel_data = channel_data_defaults;
+	server_op_res_t result =
+	    server_get_deployment_info(&channel_data, &action_id);
+	switch (result) {
+	case SERVER_OK:
+	case SERVER_ID_REQUESTED:
+	case SERVER_UPDATE_CANCELED:
+	case SERVER_NO_UPDATE_AVAILABLE:
+		TRACE("No active update available, nothing to report to "
+		      "server.\n");
+		if ((state != STATE_OK) && (state != STATE_NOT_AVAILABLE)) {
+			WARN("Persistent state=%c but no active update on "
+			     "server?!\n",
+			     state);
+		}
+		return SERVER_OK;
+	case SERVER_EERR:
+	case SERVER_EBADMSG:
+	case SERVER_EINIT:
+	case SERVER_EACCES:
+	case SERVER_EAGAIN:
+		return result;
+	case SERVER_UPDATE_AVAILABLE:
+		break;
+	}
+
+	TRACE("Reporting Installation progress for ID %d: %s / %s / %s\n",
+	      action_id, reply_result, reply_execution, reply_message);
+	if (server_send_deployment_reply(action_id, 0, 0, reply_result,
+					 reply_execution,
+					 reply_message) != SERVER_OK) {
+		ERROR("Error while reporting installation status to server.\n");
+		return SERVER_EAGAIN;
+	}
+
+	return SERVER_UPDATE_AVAILABLE;
+}
+
+
 server_op_res_t server_handle_initial_state(update_state_t stateovrrd)
 {
 	update_state_t state = STATE_OK;
@@ -566,42 +620,11 @@ server_op_res_t server_handle_initial_state(update_state_t stateovrrd)
 		      "report to server.\n");
 		return SERVER_OK;
 	}
+	server_op_res_t result;
+	result = handle_feedback(state, reply_result, reply_execution, reply_message);
 
-	int action_id;
-	channel_data_t channel_data = channel_data_defaults;
-	server_op_res_t result =
-	    server_get_deployment_info(&channel_data, &action_id);
-	switch (result) {
-	case SERVER_OK:
-	case SERVER_ID_REQUESTED:
-	case SERVER_UPDATE_CANCELED:
-	case SERVER_NO_UPDATE_AVAILABLE:
-		DEBUG("No active update available, nothing to report to "
-		      "server.\n");
-		if ((state != STATE_OK) && (state != STATE_NOT_AVAILABLE)) {
-			WARN("Persistent state=%c but no active update on "
-			     "server?!\n",
-			     state);
-		}
-		return SERVER_OK;
-	case SERVER_EERR:
-	case SERVER_EBADMSG:
-	case SERVER_EINIT:
-	case SERVER_EACCES:
-	case SERVER_EAGAIN:
+	if (result != SERVER_UPDATE_AVAILABLE)
 		return result;
-	case SERVER_UPDATE_AVAILABLE:
-		break;
-	}
-
-	DEBUG("Reporting Installation progress for ID %d: %s / %s / %s\n",
-	      action_id, reply_result, reply_execution, reply_message);
-	if (server_send_deployment_reply(action_id, 0, 0, reply_result,
-					 reply_execution,
-					 reply_message) != SERVER_OK) {
-		ERROR("Error while reporting installation status to server.\n");
-		return SERVER_EAGAIN;
-	}
 
 	/* NOTE (Re-)setting STATE_KEY=STATE_OK == '0' instead of deleting it
 	 *      as it may be required for the switchback/recovery U-Boot logics.
@@ -1230,6 +1253,7 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 			case STATE_INSTALLED:
 			case STATE_TESTING:
 			case STATE_FAILED:
+			case STATE_WAIT:
 				break;
 			default:
 				fprintf(
@@ -1303,15 +1327,23 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 	 * unavailable. In case of an error, the error is returned to the main
 	 * loop, thereby exiting suricatta. */
 	server_op_res_t state_handled;
-	while ((state_handled = server_handle_initial_state(update_state)) !=
-	       SERVER_OK) {
-		if (state_handled == SERVER_EAGAIN) {
-			INFO("Sleeping for %ds until retrying...\n",
-			     INITIAL_STATUS_REPORT_WAIT_DELAY);
-			sleep(INITIAL_STATUS_REPORT_WAIT_DELAY);
-			continue;
+	server_hawkbit.update_state = update_state;
+
+	/*
+	 * If in WAIT state, the updated was finished
+	 * by an external process and we have to wait for it
+	 */
+	if (update_state != STATE_WAIT) {
+		while ((state_handled = server_handle_initial_state(update_state)) !=
+		       SERVER_OK) {
+			if (state_handled == SERVER_EAGAIN) {
+				INFO("Sleeping for %ds until retrying...\n",
+				     INITIAL_STATUS_REPORT_WAIT_DELAY);
+				sleep(INITIAL_STATUS_REPORT_WAIT_DELAY);
+				continue;
+			}
+			return state_handled; /* Report error to main loop, exiting. */
 		}
-		return state_handled; /* Report error to main loop, exiting. */
 	}
 
 	return SERVER_OK;
@@ -1325,12 +1357,99 @@ server_op_res_t server_stop(void)
 
 server_op_res_t server_ipc(int fd)
 {
-	char buf[4096];
+	ipc_message msg;
 	int ret;
+	int i;
+	char **s;
+	server_op_res_t result = SERVER_OK;
+	char *cmd;
+	char *state;
+	update_state_t update_state = STATE_NOT_AVAILABLE;
 
-	ret = read(fd, buf, sizeof(buf));
+	ret = read(fd, &msg, sizeof(msg));
+	if (ret != sizeof(msg))
+		return SERVER_EERR;
 
-	printf("%s read %d bytes\n", __func__, ret);
+	/*
+	 * MAGIC and header is checked by the
+	 * network daemon, do not repeat checks
+	 * here. Test just payload.
+	 */
+	s = string_split(msg.data.instmsg.buf, ',');
+
+	if (!s) {
+		result = SERVER_EERR;
+		goto server_ipc_end;
+	}
+
+	/*
+	 * it accepts a comma separated list of options,
+	 * first of them is the command
+	 */
+
+	for (i = 0; *(s + i); i++) {
+		switch (i) {
+		case 0:
+			cmd = *s;
+			/* check for command, at the momen just feedback */
+			if (strcmp(cmd, "feedback")) {
+				result = SERVER_EERR;
+				goto server_ipc_end;
+			}
+			break;
+		case 1:
+			state = *(s + i);
+			update_state = (unsigned int)*state;
+			switch (update_state) {
+			case STATE_INSTALLED:
+			case STATE_TESTING:
+			case STATE_FAILED:
+				break;
+
+			default:
+				goto server_ipc_end;
+			}
+			break;
+		}
+	} 
+
+	/*
+	 * feedback requires arguments, if not found returns an error
+	 */
+
+	if (i < 5) {
+		result = SERVER_EERR;
+		goto server_ipc_end;
+	}
+
+	const char *reply_result = *(s + 2);
+	const char *reply_execution = *(s + 3);
+	const char *reply_message = *(s + 4);
+
+	if (handle_feedback(update_state, reply_result, reply_execution,
+			    reply_message) != SERVER_UPDATE_AVAILABLE)
+		result = SERVER_EERR;
+	else
+		server_hawkbit.update_state = SERVER_OK;
+	
+server_ipc_end:
+	if (result == SERVER_EERR) {
+		msg.type = NACK;
+	} else
+		msg.type = ACK;
+
+	msg.data.instmsg.len = 0;
+
+	if (write(fd, &msg, sizeof(msg)) != sizeof(msg)) {
+		TRACE("IPC ERROR: sending back msg");
+	}
+
+	/* Send ipc back */
+
+	for (i = 0; *(s + i); i++) {
+		free(*(s + i));
+	}
+	free(s);
 
 	return SERVER_OK;
 }

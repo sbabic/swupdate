@@ -35,7 +35,8 @@ typedef enum {
 	STATE_TESTING = '2',
 	STATE_FAILED = '3',
 	STATE_NOT_AVAILABLE = '4',
-	STATE_ERROR = '5'
+	STATE_ERROR = '5',
+	STATE_WAIT = '6'
 } update_state_t;
 
 server_op_res_t save_state(char *key, update_state_t value);

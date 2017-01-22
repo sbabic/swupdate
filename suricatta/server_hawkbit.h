@@ -36,6 +36,7 @@ typedef struct {
 	struct dictlist configdata;
 	bool has_to_send_configData;
 	char *configData_url;
+	update_state_t update_state;
 } server_hawkbit_t;
 
 extern server_hawkbit_t server_hawkbit;
