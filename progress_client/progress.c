@@ -71,6 +71,7 @@ static void textcolor(int attr, int fg, int bg)
 }
 
 static struct option long_options[] = {
+	{"help", no_argument, NULL, 'h'},
 	{"psplash", no_argument, NULL, 'p'},
 	{"wait", no_argument, NULL, 'w'},
 	{"color", no_argument, NULL, 'c'},
@@ -86,7 +87,7 @@ static void usage(char *programname)
 		" -c, --color             : Use colors to show results\n"
 		" -w, --wait              : wait for a connection with SWUpdate\n"
 		" -p, --psplash           : send info to the psplash process\n"
-		" -h, --help                     : print this help and exit\n"
+		" -h, --help              : print this help and exit\n"
 		);
 }
 
