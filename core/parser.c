@@ -81,8 +81,10 @@ int parse(struct swupdate_cfg *sw, const char *descfile)
 			break;
 	}
 
-	if (ret != 0)
+	if (ret != 0) {
+		ERROR("no parser available to parse " SW_DESCRIPTION_FILENAME "!\n");
 		return ret;
+	}
 
 	struct img_type *item;
 	if (!LIST_EMPTY(&sw->scripts)) {
