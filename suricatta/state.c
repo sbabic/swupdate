@@ -70,27 +70,22 @@ server_op_res_t reset_state(char *key)
 
 server_op_res_t save_state(char *key, update_state_t value)
 {
+	int ret;
+
 	CHECK_STATE_VAR(key);
-	if (fw_env_open(fw_env_opts) != 0) {
-		ERROR("Error: Cannot initialize U-Boot environment.\n");
-		return SERVER_EERR;
-	}
-	if (fw_env_write(key, (char *)&value) != 0) {
-		ERROR("Error: Cannot write to U-Boot's environment.\n");
-		return SERVER_EERR;
-	}
-	return fw_env_close(fw_env_opts) == 0 ? SERVER_OK : SERVER_EERR;
+
+	ret = fw_set_one_env(key, (char *)&value);
+
+	return ret == 0 ? SERVER_OK : SERVER_EERR;
 }
 
 server_op_res_t read_state(char *key, update_state_t *value)
 {
-	CHECK_STATE_VAR(key);
-	if (fw_env_open(fw_env_opts) != 0) {
-		ERROR("Error: Cannot initialize U-Boot environment.\n");
-		return SERVER_EERR;
-	}
 	char *envval;
-	if ((envval = fw_getenv(key)) == NULL) {
+	CHECK_STATE_VAR(key);
+
+	envval = fw_get_one_env(key);
+	if (envval == NULL) {
 		INFO("Key '%s' not found in U-Boot environment.\n", key);
 		*value = STATE_NOT_AVAILABLE;
 		return SERVER_OK;
@@ -102,15 +97,10 @@ server_op_res_t read_state(char *key, update_state_t *value)
 }
 server_op_res_t reset_state(char *key)
 {
+	int ret;
+
 	CHECK_STATE_VAR(key);
-	if (fw_env_open(fw_env_opts) != 0) {
-		ERROR("Error: Cannot initialize U-Boot environment.\n");
-		return SERVER_EERR;
-	}
-	if (fw_env_write(key, NULL) != 0) {
-		ERROR("Error: Cannot write to U-Boot's environment.\n");
-		return SERVER_EERR;
-	}
-	return fw_env_close(fw_env_opts) == 0 ? SERVER_OK : SERVER_EERR;
+	ret = fw_set_one_env(key, NULL);
+	return ret == 0 ? SERVER_OK : SERVER_EERR;
 }
 #endif /* CONFIG_SURICATTA_STATE_CHOICE_UBOOT */
