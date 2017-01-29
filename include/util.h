@@ -131,7 +131,13 @@ int fill_buffer(int fd, unsigned char *buf, int nbytes, unsigned long *offs,
 	uint32_t *checksum, void *dgst);
 int decompress_image(int infile, unsigned long *offs, int nbytes,
 	int outfile, uint32_t *checksum, void *dgst);
+
+/* Functions for U-Boot environment */
 int fw_set_one_env(const char *name, const char *value);
+char *fw_get_one_env(char *name);
+int lock_uboot_env(void);
+void unlock_uboot_env(int lock);
+
 int openfile(const char *filename);
 int copyfile(int fdin, void *out, int nbytes, unsigned long *offs,
 	int skip_file, int compressed, uint32_t *checksum,
