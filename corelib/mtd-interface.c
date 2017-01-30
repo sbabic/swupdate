@@ -51,13 +51,21 @@ void mtd_set_ubiblacklist(char *mtdlist)
 int get_mtd_from_device(char *s) {
 	int ret;
 	int mtdnum;
+	char *real_s;
 
 	if (!s)
 		return -1;
 
-	ret = sscanf(s, "mtd%d", &mtdnum);
+	real_s = realpath(s, NULL);
+	if (real_s == NULL)
+		return -1;
+
+	TRACE("mtd name [%s] resolved to [%s]\n", s, real_s);
+	ret = sscanf(real_s, "mtd%d", &mtdnum);
 	if (ret <= 0)
-		ret = sscanf(s, "/dev/mtd%d", &mtdnum);
+		ret = sscanf(real_s, "/dev/mtd%d", &mtdnum);
+
+	free (real_s);
 
 	if (ret <= 0)
 		return -1;
