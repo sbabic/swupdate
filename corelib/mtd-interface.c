@@ -178,7 +178,7 @@ static void scan_for_ubi_devices(void)
 		}
 		mtd = dev_info.mtd_num;
 		mtd_info = &flash->mtd_info[mtd];
-		if (mtd < 0 || mtd > MAX_MTD_DEVICES || flash->mtd_info[mtd].skipubi)
+		if (mtd < 0 || flash->mtd_info[mtd].skipubi)
 			continue;
 		memcpy(&mtd_info->dev_info, &dev_info, sizeof(struct ubi_dev_info));
 
@@ -193,7 +193,7 @@ static void scan_ubi_partitions(int mtd)
 	int err;
 	struct mtd_ubi_info *mtd_info;
 
-	if (mtd < 0 || mtd > MAX_MTD_DEVICES) {
+	if (mtd < 0) {
 		ERROR("wrong MTD device /dev/mtd%d", mtd);
 		return;
 	}
