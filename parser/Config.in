@@ -11,9 +11,9 @@ config LIBCONFIG
 comment "Default config parser support needs libconfig"
 	depends on !HAVE_LIBCONFIG
 
-config LIBCONFIGROOT
+config PARSERROOT
 	string "Name of root node"
-	depends on LIBCONFIG
+	depends on LIBCONFIG || JSON
 	help
 	  For compatibility reasons, the root node
 	  can be set to something else as "software".

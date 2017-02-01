@@ -36,8 +36,8 @@
 
 #define MODULE_NAME	"PARSER"
 
-#define NODEROOT (!strlen(CONFIG_LIBCONFIGROOT) ? \
-			"software" : CONFIG_LIBCONFIGROOT)
+#define NODEROOT (!strlen(CONFIG_PARSERROOT) ? \
+			"software" : CONFIG_PARSERROOT)
 
 #ifdef CONFIG_LIBCONFIG
 static config_setting_t *find_node_libconfig(config_t *cfg,
@@ -102,21 +102,22 @@ static json_object *find_node_json(json_object *root, const char *node,
 			struct swupdate_cfg *swcfg)
 {
 	json_object *jnode = NULL;
-	const char *simple_nodes[] = {node, NULL};
+	const char *simple_nodes[] = {NODEROOT, node, NULL};
 	struct hw_type *hardware;
 
 	hardware = &swcfg->hw;
 
 	if (strlen(swcfg->running_mode) && strlen(swcfg->software_set)) {
 		if (strlen(hardware->boardname)) {
-			const char *nodes[] = {hardware->boardname, swcfg->software_set,
-					       swcfg->running_mode, node, NULL};
+			const char *nodes[] = {NODEROOT, hardware->boardname,
+				swcfg->software_set, swcfg->running_mode,
+				node, NULL};
 			jnode = find_json_recursive_node(root, nodes);
 			if (jnode)
 				return jnode;
 		} else {
-			const char *nodes[] = {swcfg->software_set, swcfg->running_mode,
-					       node, NULL};
+			const char *nodes[] = {NODEROOT, swcfg->software_set,
+				swcfg->running_mode, node, NULL};
 			jnode = find_json_recursive_node(root, nodes);
 			if (jnode)
 				return jnode;
@@ -124,7 +125,8 @@ static json_object *find_node_json(json_object *root, const char *node,
 	}
 
 	if (strlen(hardware->boardname)) {
-		const char *nodes[] = {hardware->boardname, node, NULL};
+		const char *nodes[] = {NODEROOT, hardware->boardname, node,
+					NULL};
 		jnode = find_json_recursive_node(root, nodes);
 		if (jnode)
 			return jnode;
