@@ -54,8 +54,13 @@ void get_field_string_json(json_object *e, const char *path, char *dest, size_t 
 	const char *str;
 	json_object *node;
 
-	if (json_object_object_get_ex(e, path, &node) &&
-		(json_object_get_type(node) == json_type_string)) {
+	if (path) {
+		if (!json_object_object_get_ex(e, path, &node))
+			return;
+	} else
+		node = e;
+
+	if (json_object_get_type(node) == json_type_string) {
 		str = json_object_get_string(node);
 
 		if (!n) {
