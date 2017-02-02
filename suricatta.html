@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Suricatta daemon mode &mdash; Embedded Software Update Documentation 2016.10 documentation</title>
+    <title>Suricatta daemon mode &mdash; Embedded Software Update Documentation 2017.01 documentation</title>
     
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '2016.10',
+        VERSION:     '2017.01',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="Embedded Software Update Documentation 2016.10 documentation" href="index.html" />
+    <link rel="top" title="Embedded Software Update Documentation 2017.01 documentation" href="index.html" />
     <link rel="next" title="SWUpdate: syntax and tags with the default parser" href="sw-description.html" />
     <link rel="prev" title="SWUpdate: software update for embedded system" href="swupdate.html" /> 
   </head>
@@ -40,7 +40,7 @@
         <li class="right" >
           <a href="swupdate.html" title="SWUpdate: software update for embedded system"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">Embedded Software Update Documentation 2016.10 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">Embedded Software Update Documentation 2017.01 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -83,6 +83,30 @@ when using hawkBit as server. As an example,</p>
 <p>runs SWUpdate in suricatta daemon mode with log-level <code class="docutils literal"><span class="pre">TRACE</span></code>, polling
 a hawkBit instance at <code class="docutils literal"><span class="pre">http://10.0.0.2:8080</span></code> with tenant <code class="docutils literal"><span class="pre">default</span></code>
 and device ID <code class="docutils literal"><span class="pre">25</span></code>.</p>
+<p>Note that on startup when having installed an update, suricatta
+tries to report the update status to its upstream server, e.g.,
+hawkBit, prior to entering the main loop awaiting further updates.
+If this initial report fails, e.g., because of a not (yet) configured
+network or a currently unavailable hawkBit server, swupdate may exit
+with an according error code. This behavior allows to, for example,
+try several upstream servers sequentially.
+If suricatta should keep retrying until the update status is reported
+to its upstream server irrespective of the error conditions, this has
+to be realized externally in terms of restarting swupdate on exit.</p>
+<p>After an update has been performed, an agent listening on the progress
+interface may execute post-update actions, e.g., a reboot, on receiving
+<code class="docutils literal"><span class="pre">DONE</span></code>.
+Additionally, a post-update command specified in the configuration file or
+given by the <code class="docutils literal"><span class="pre">-p</span></code> command line option can be executed.</p>
+<p>Note that currently, at least a restart of SWUpdate has to be performed
+as post-update action since only then suricatta tries to report the
+update status to its upstream server.
+Otherwise, on the next polling interval elapsed, the very same update is
+announced by hawkBit as pending and is installed again if no update
+status storage, i.e., <code class="docutils literal"><span class="pre">CONFIG_SURICATTA_STATE_CHOICE_NONE</span></code>, is selected.
+If an update status storage, e.g., <code class="docutils literal"><span class="pre">CONFIG_SURICATTA_STATE_CHOICE_UBOOT</span></code>,
+is selected, succinct update actions announced by hawkBit are skipped until
+a restart of SWUpdate.</p>
 </div>
 <div class="section" id="supporting-different-servers">
 <h2>Supporting different Servers<a class="headerlink" href="#supporting-different-servers" title="Permalink to this headline">¶</a></h2>
@@ -96,7 +120,7 @@ See <code class="docutils literal"><span class="pre">suricatta/channel_hawkbit.{
 targeted towards hawkBit.</p>
 <p><code class="docutils literal"><span class="pre">include/suricatta/channel.h</span></code> describes the functionality a channel
 has to implement:</p>
-<div class="code c highlight-python"><div class="highlight"><pre>channel_op_res_t channel_open(void);
+<div class="code c highlight-python"><div class="highlight"><pre>channel_op_res_t channel_open(void *cfg);
 channel_op_res_t channel_close(void);
 channel_op_res_t channel_put(void* data);
 channel_op_res_t channel_get(void* data);
@@ -211,11 +235,11 @@ endif
         <li class="right" >
           <a href="swupdate.html" title="SWUpdate: software update for embedded system"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">Embedded Software Update Documentation 2016.10 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">Embedded Software Update Documentation 2017.01 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &copy; Copyright 2013-2016, Stefano Babic.
+        &copy; Copyright 2013-2017, Stefano Babic.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.6.
     </div>
   </body>

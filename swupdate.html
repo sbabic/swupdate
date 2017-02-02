@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>SWUpdate: software update for embedded system &mdash; Embedded Software Update Documentation 2016.10 documentation</title>
+    <title>SWUpdate: software update for embedded system &mdash; Embedded Software Update Documentation 2017.01 documentation</title>
     
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '2016.10',
+        VERSION:     '2017.01',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="Embedded Software Update Documentation 2016.10 documentation" href="index.html" />
+    <link rel="top" title="Embedded Software Update Documentation 2017.01 documentation" href="index.html" />
     <link rel="next" title="Suricatta daemon mode" href="suricatta.html" />
     <link rel="prev" title="Software Management on embedded systems" href="overview.html" /> 
   </head>
@@ -40,7 +40,7 @@
         <li class="right" >
           <a href="overview.html" title="Software Management on embedded systems"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">Embedded Software Update Documentation 2016.10 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">Embedded Software Update Documentation 2017.01 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -187,7 +187,7 @@ following format:</p>
 <ul class="simple">
 <li><cite>&lt;revision&gt;</cite> will be used for matching with hardware compatibility
 list</li>
-<li><cite>&lt;boardname&gt;</cite> can be used for grouping board specific settigns</li>
+<li><cite>&lt;boardname&gt;</cite> can be used for grouping board specific settings</li>
 </ul>
 </div>
 <div class="section" id="software-collections">
@@ -311,7 +311,7 @@ an attached SD Card must be updated. In this case, it will help if the images
 are installed directly as stream by the corresponding handler, without temporary
 copies. Not all handlers support to stream directly into the target.
 Streaming with zero-copy is enabled by setting the flag &#8220;installed-directly&#8221;
-in the descriptionü of the single image.</p>
+in the description of the single image.</p>
 </div>
 </div>
 <div class="section" id="configuration-and-build">
@@ -523,54 +523,51 @@ Filename with the public key</td>
 </td>
 <td>Send LOG output to syslog(local)</td>
 </tr>
-<tr class="row-even"><td>-s</td>
-<td><ul class="first last simple">
-<li></li>
-</ul>
-</td>
-<td>run SWUpdate in daemon mode</td>
-</tr>
-<tr class="row-odd"><td>-i &lt;file&gt;</td>
+<tr class="row-even"><td>-i &lt;file&gt;</td>
 <td>string</td>
 <td>run SWUpdate with a local .swu file</td>
 </tr>
-<tr class="row-even"><td>-v</td>
+<tr class="row-odd"><td>-v</td>
 <td><ul class="first last simple">
 <li></li>
 </ul>
 </td>
 <td>activate verbose output</td>
 </tr>
-<tr class="row-odd"><td>-w &lt;parms&gt;</td>
+<tr class="row-even"><td>-w &lt;parms&gt;</td>
 <td>string</td>
 <td>start internal webserver and pass to it
 a command line string.</td>
 </tr>
-<tr class="row-even"><td>-u &lt;parms&gt;</td>
+<tr class="row-odd"><td>-u &lt;parms&gt;</td>
 <td>string</td>
 <td>start internal suricatta client daemon and
 pass to it a command line string.
 see suricatta&#8217;s documentation for details.</td>
 </tr>
-<tr class="row-odd"><td>-H
+<tr class="row-even"><td>-H
 &lt;board:rev&gt;</td>
 <td>string</td>
 <td>set board name and Hardware revision</td>
 </tr>
-<tr class="row-even"><td>-t &lt;timeout&gt;</td>
+<tr class="row-odd"><td>-t &lt;timeout&gt;</td>
 <td>integer</td>
 <td>Timeout for connection lost when
 downloading</td>
 </tr>
-<tr class="row-odd"><td>-c</td>
+<tr class="row-even"><td>-c</td>
 <td><ul class="first last simple">
 <li></li>
 </ul>
 </td>
-<td>This will check <a href="#id1"><span class="problematic" id="id2">*</span></a>.swu file against internal
-tests. It ensures that files referenced in
-sw-description are present.
+<td>This will check <code class="docutils literal"><span class="pre">*.swu</span></code> file against
+internal tests. It ensures that files
+referenced in sw-description are present.
 Usage: swupdate -c -i &lt;file&gt;</td>
+</tr>
+<tr class="row-odd"><td>-p</td>
+<td>string</td>
+<td>Execute post-update command.</td>
 </tr>
 </tbody>
 </table>
@@ -702,11 +699,11 @@ To check your generated image you can run the following command:</p>
         <li class="right" >
           <a href="overview.html" title="Software Management on embedded systems"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">Embedded Software Update Documentation 2016.10 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">Embedded Software Update Documentation 2017.01 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &copy; Copyright 2013-2016, Stefano Babic.
+        &copy; Copyright 2013-2017, Stefano Babic.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.6.
     </div>
   </body>

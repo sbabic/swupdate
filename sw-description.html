@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>SWUpdate: syntax and tags with the default parser &mdash; Embedded Software Update Documentation 2016.10 documentation</title>
+    <title>SWUpdate: syntax and tags with the default parser &mdash; Embedded Software Update Documentation 2017.01 documentation</title>
     
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '2016.10',
+        VERSION:     '2017.01',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,7 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="Embedded Software Update Documentation 2016.10 documentation" href="index.html" />
+    <link rel="top" title="Embedded Software Update Documentation 2017.01 documentation" href="index.html" />
     <link rel="next" title="Update images from verified source" href="signed_images.html" />
     <link rel="prev" title="Suricatta daemon mode" href="suricatta.html" /> 
   </head>
@@ -40,7 +40,7 @@
         <li class="right" >
           <a href="suricatta.html" title="Suricatta daemon mode"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">Embedded Software Update Documentation 2016.10 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">Embedded Software Update Documentation 2017.01 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -203,6 +203,7 @@ The syntax is:</p>
                 filename[mandatory] = &lt;Name in CPIO Archive&gt;;
                 volume[optional] = &lt;destination volume&gt;;
                 device[optional] = &lt;destination volume&gt;;
+                mtdname[optional] = &lt;destination mtd name&gt;;
                 type[optional] = &lt;handler&gt;;
                 /* optionally, the image can be compressed if it is in raw mode */
                 compressed;
@@ -212,7 +213,7 @@ The syntax is:</p>
 );
 </pre></div>
 </div>
-<p><em>volume</em> is only used to install the image in a UBI volume. volume and
+<p><em>volume</em> is only used to install the image in a UBI volume. <em>volume</em> and
 <em>device</em> cannot be used at the same time. If device is set,
 the raw handler is automatically selected.</p>
 <p>The following example is to update a UBI volume:</p>
@@ -241,9 +242,17 @@ handler &#8220;flash&#8221; must be selected:</p>
 }
 </pre></div>
 </div>
-<p>filename is mandatory. Its is the Name of the file extracted by the stream.
-volume is only mandatory in case of UBI volumes. It should be not used
+<p>The <em>filename</em> is mandatory. It is the Name of the file extracted by the stream.
+<em>volume</em> is only mandatory in case of UBI volumes. It should be not used
 in other cases.</p>
+<p>Alternatively, for the handler “flash”, the <em>mtdname</em> can be specified, instead of the device name:</p>
+<div class="highlight-python"><div class="highlight"><pre>{
+        filename = &quot;uImage&quot;;
+        mtdname = &quot;kernel&quot;;
+        type = &quot;flash&quot;;
+}
+</pre></div>
+</div>
 </div>
 <div class="section" id="files">
 <h2>Files<a class="headerlink" href="#files" title="Permalink to this headline">¶</a></h2>
@@ -595,7 +604,7 @@ Example: &#8220;ubivol&#8221;, &#8220;raw&#8221;, &#8220;rawfile&#8221;,</td>
 files</td>
 <td>flag to indicate that &#8220;filename&#8221; is
 zlib-compressed and must be
-decompressed before beeing installed</td>
+decompressed before being installed</td>
 </tr>
 <tr class="row-even"><td>installed-
 directly</td>
@@ -630,7 +639,7 @@ sw-versions</td>
 <td>string</td>
 <td>images
 files</td>
-<td>version for the  the sw-component
+<td>version for the sw-component
 it can be any string and it is
 compared with the entries in
 sw-versions</td>
@@ -661,6 +670,23 @@ files
 scripts</td>
 <td>This is used to pass arbitrary data
 to a handler.</td>
+</tr>
+<tr class="row-even"><td>sha256</td>
+<td>string</td>
+<td>images
+files
+scripts</td>
+<td>sha256 hash of image, file or script.
+Used for verification of signed
+images.</td>
+</tr>
+<tr class="row-odd"><td>mtdname</td>
+<td>string</td>
+<td>images</td>
+<td>name of the MTD to update. Used only
+by the flash handler to identify the
+the mtd to update, instead of
+specifying the devicenode</td>
 </tr>
 </tbody>
 </table>
@@ -739,11 +765,11 @@ to a handler.</td>
         <li class="right" >
           <a href="suricatta.html" title="Suricatta daemon mode"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">Embedded Software Update Documentation 2016.10 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">Embedded Software Update Documentation 2017.01 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &copy; Copyright 2013-2016, Stefano Babic.
+        &copy; Copyright 2013-2017, Stefano Babic.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.6.
     </div>
   </body>

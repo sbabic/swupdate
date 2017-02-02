@@ -41,7 +41,7 @@ that must be investigated:
   and it is suitable for an update. Nevertheless, it should be
   avoided to waste resources and space on the target just to store
   a further copy of the software.
-- recources applying binary deltas. Known mechanism uses a lot of
+- resources applying binary deltas. Known mechanism uses a lot of
   memory because they do in-memory patching. It is required to have
   memory usage under control.
 - in case of backend, do we need some sort of communication ?
