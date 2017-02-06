@@ -535,8 +535,8 @@ static channel_op_res_t channel_put_method(void *data)
 
 	if ((curl_easy_setopt(channel_curl.handle, CURLOPT_READFUNCTION, put_read_callback) !=
 		CURLE_OK) ||
-	   (curl_easy_setopt(channel_curl.handle, CURLOPT_INFILESIZE_LARGE, strlen(channel_data->json_string)) !=
-		CURLE_OK) ||
+	   (curl_easy_setopt(channel_curl.handle, CURLOPT_INFILESIZE_LARGE,
+			     (curl_off_t)strlen(channel_data->json_string)) != CURLE_OK) ||
 	   (curl_easy_setopt(channel_curl.handle, CURLOPT_READDATA, channel_data) !=
 			CURLE_OK)) {
 		ERROR("Set channel option failed.\n");
