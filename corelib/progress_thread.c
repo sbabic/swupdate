@@ -170,7 +170,7 @@ void *progress_bar_thread (void __attribute__ ((__unused__)) *data)
 	/* Initialize and bind to UDS */
 	listen = listener_create(SOCKET_PROGRESS_PATH, SOCK_STREAM);
 	if (listen < 0 ) {
-		TRACE("Error creating IPC sockets");
+		ERROR("Error creating IPC socket %s, exiting.", SOCKET_PROGRESS_PATH);
 		exit(2);
 	}
 
