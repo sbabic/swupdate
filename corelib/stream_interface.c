@@ -290,7 +290,6 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 void *network_initializer(void *data)
 {
 	int ret;
-	pthread_mutex_t condmutex = PTHREAD_MUTEX_INITIALIZER;
 	struct swupdate_cfg *software = data;
 
 	/* No installation in progress */
@@ -307,8 +306,10 @@ void *network_initializer(void *data)
 		printf ("Main loop Daemon\n");
 
 		/* wait for someone to issue an install request */
-		pthread_cond_wait(&stream_wkup, &condmutex);
+		pthread_mutex_lock(&stream_mutex);
+		pthread_cond_wait(&stream_wkup, &stream_mutex);
 		inst.status = RUN;
+		pthread_mutex_unlock(&stream_mutex);
 		notify(START, RECOVERY_NO_ERROR, "Software Update started !");
 
 #ifdef CONFIG_MTD
