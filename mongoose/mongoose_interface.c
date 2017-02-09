@@ -397,7 +397,6 @@ static void post_update_cmd(struct mg_connection *conn) {
 
 static int begin_request_handler(struct mg_connection *conn) {
 	if (!strcmp(mg_get_request_info(conn)->uri, "/handle_post_request")) {
-		mg_printf(conn, "%s", "HTTP/1.0 200 OK\r\n\r\n");
 		recovery_upload(conn);
 		return 1;
 	}
