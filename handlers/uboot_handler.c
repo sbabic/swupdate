@@ -43,6 +43,7 @@ static int install_uboot_environment(struct img_type *img,
 	int ret;
 	int fdout;
 	char buf[64];
+	int lockfd;
 
 	char filename[64];
 	struct stat statbuf;
@@ -59,7 +60,9 @@ static int install_uboot_environment(struct img_type *img,
 		close(fdout);
 	}
 
-	ret = fw_parse_script(filename, fw_env_opts);
+	lockfd = lock_uboot_env();
+	if (lockfd > 0)
+		ret = fw_parse_script(filename, fw_env_opts);
 
 	if (ret < 0)
 		snprintf(buf, sizeof(buf), "Error setting U-Boot environment");
@@ -67,6 +70,9 @@ static int install_uboot_environment(struct img_type *img,
 		snprintf(buf, sizeof(buf), "U-Boot environment updated");
 
 	notify(RUN, RECOVERY_NO_ERROR, buf);
+
+	if (lockfd > 0)
+		unlock_uboot_env(lockfd);
 
 	return ret;
 
