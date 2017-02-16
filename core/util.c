@@ -127,8 +127,7 @@ int fw_set_one_env (const char __attribute__ ((__unused__)) *name,
 {
 	return 0;
 }
-char *fw_get_one_env(const char __attribute__ ((__unused__)) **name,
-			char __attribute__ ((__unused__)) *value)
+char *fw_get_one_env(char __attribute__ ((__unused__)) *name)
 {
 	return NULL;
 }
