@@ -73,6 +73,7 @@ static void textcolor(int attr, int fg, int bg)
 static struct option long_options[] = {
 	{"help", no_argument, NULL, 'h'},
 	{"psplash", no_argument, NULL, 'p'},
+	{"reboot", no_argument, NULL, 'r'},
 	{"wait", no_argument, NULL, 'w'},
 	{"color", no_argument, NULL, 'c'},
 	{NULL, 0, NULL, 0}
@@ -85,6 +86,7 @@ static void usage(char *programname)
 			programname);
 	fprintf(stdout,
 		" -c, --color             : Use colors to show results\n"
+		" -r, --reboot            : reboot after a successful update\n"
 		" -w, --wait              : wait for a connection with SWUpdate\n"
 		" -p, --psplash           : send info to the psplash process\n"
 		" -h, --help              : print this help and exit\n"
@@ -223,12 +225,13 @@ int main(int argc, char **argv)
 	int filled_len;
 	int opt_c = 0;
 	int opt_w = 0;
+	int opt_r = 0;
 	int opt_p = 0;
 	int c;
 	RECOVERY_STATUS	status = IDLE;		/* Update Status (Running, Failure) */
 
 	/* Process options with getopt */
-	while ((c = getopt_long(argc, argv, "cwph",
+	while ((c = getopt_long(argc, argv, "cwprh",
 				long_options, NULL)) != EOF) {
 		switch (c) {
 		case 'c':
@@ -239,6 +242,9 @@ int main(int argc, char **argv)
 			break;
 		case 'p':
 			opt_p = 1;
+			break;
+		case 'r':
+			opt_r = 1;
 			break;
 		case 'h':
 			usage(argv[0]);
@@ -342,6 +348,12 @@ int main(int argc, char **argv)
 			if (psplash_ok)
 				psplash_progress(psplash_pipe_path, &msg);
 			psplash_ok = 0;
+			if ((msg.status == SUCCESS) && opt_r) {
+				sleep(5);
+				if (system("reboot") < 0) { /* It should never happen */
+					fprintf(stdout, "Please reset the board.\n");
+				}
+			}
 			break;
 		case DONE:
 			fprintf(stdout, "\nDONE.\n");
