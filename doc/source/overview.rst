@@ -292,6 +292,17 @@ Generally, the behavior can be split according to the chosen scenario:
   The same version of software, that was not touched by the update, is
   started again.
 
+To be completely safe, SWUpdate and the bootloader need to exchange some
+information. The bootloader must detect if an update was interrupted due
+to a power-off, and restart SWUpdate until an update is successful.
+SWUpdate supports the U-Boot bootloader. U-Boot has a power-safe environemnt,
+that SWUpdate is able to change to communicate with U-Boot.
+Setting / Clearing variables let SWUpdate and U-Boot to communicate.
+SWUpdate sets a variable as flag when it starts to update the system, and
+resets the same variable after completion. U-Boot can detect this flag
+to check if an update was running before a power-off.
+
+.. image:: images/SoftwareUpdateU-Boot.png
 
 What about upgrading SWUpdate itself ?
 --------------------------------------
@@ -300,7 +311,7 @@ SWUpdate is thought to be used in the whole development process, replacing
 customized process to update the software during the development. Before going into production,
 SWUpdate is well tested for a project.
 
-If SWUpdate itself should be update, the update cannot be safe if there is only
+If SWUpdate itself should be updated, the update cannot be safe if there is only
 one copy of SWUpdate in the storage. Safe update can be guaranteed only if
 SWUpdate is duplicated.
 
