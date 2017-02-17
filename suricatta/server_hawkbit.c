@@ -803,6 +803,19 @@ server_op_res_t server_process_update_artifact(json_object *json_data_artifact,
 		       json_type_int);
 		assert(json_object_get_type(json_data_artifact_url) ==
 		       json_type_string);
+
+		/*
+		 * Check if the file is a .swu image
+		 * and skip if it not
+		 */
+		const char *s = json_object_get_string(json_data_artifact_filename);
+		int endfilename = strlen(s) - strlen(".swu");
+		if (endfilename <= 0 ||
+		    strncmp(&s[endfilename], ".swu", 4)) {
+			DEBUG("File '%s' is not a SWU image, skipping", s);
+			goto cleanup;
+		}
+
 		DEBUG("Processing '%s' from '%s'\n",
 		      json_object_get_string(json_data_artifact_filename),
 		      json_object_get_string(json_data_artifact_url));
