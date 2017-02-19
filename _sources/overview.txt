@@ -295,7 +295,7 @@ Generally, the behavior can be split according to the chosen scenario:
 To be completely safe, SWUpdate and the bootloader need to exchange some
 information. The bootloader must detect if an update was interrupted due
 to a power-off, and restart SWUpdate until an update is successful.
-SWUpdate supports the U-Boot bootloader. U-Boot has a power-dafe environemnt,
+SWUpdate supports the U-Boot bootloader. U-Boot has a power-safe environment,
 that SWUpdate is able to change to communicate with U-Boot.
 Setting / Clearing variables let SWUpdate and U-Boot to communicate.
 SWUpdate sets a variable as flag when it starts to update the system, and
