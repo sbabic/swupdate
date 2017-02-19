@@ -1,53 +1,176 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>SWUpdate: software update for embedded system &mdash; Embedded Software Update Documentation 2017.01 documentation</title>
-    
-    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '2017.01',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="Embedded Software Update Documentation 2017.01 documentation" href="index.html" />
-    <link rel="next" title="Suricatta daemon mode" href="suricatta.html" />
-    <link rel="prev" title="Software Management on embedded systems" href="overview.html" /> 
-  </head>
-  <body role="document">
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="suricatta.html" title="Suricatta daemon mode"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
-          <a href="overview.html" title="Software Management on embedded systems"
-             accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">Embedded Software Update Documentation 2017.01 documentation</a> &raquo;</li> 
-      </ul>
-    </div>  
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>SWUpdate: software update for embedded system &mdash; Embedded Software Update Documentation 2017.01 documentation</title>
+  
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="Embedded Software Update Documentation 2017.01 documentation" href="index.html"/>
+        <link rel="next" title="Suricatta daemon mode" href="suricatta.html"/>
+        <link rel="prev" title="Software Management on embedded systems" href="overview.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Embedded Software Update Documentation
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2017.01
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Software Management on embedded systems</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="">SWUpdate: software update for embedded system</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#single-image-delivery">Single image delivery</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#handling-configuration-differences">Handling configuration differences</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#software-collections">Software collections</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#streaming-feature">Streaming feature</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#list-of-supported-features">List of supported features</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#images-fully-streamed">Images fully streamed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration-and-build">Configuration and build</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#requirements">Requirements</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#building-with-yocto">Building with Yocto</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#what-about-libubootenv">What about libubootenv ?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#configuring-swupdate">Configuring SWUpdate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#building">Building</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#running-swupdate">Running SWUpdate</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#what-is-expected-from-a-swupdate-run">What is expected from a SWUpdate run</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#command-line-parameters">Command line parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#changes-in-boot-loader-code">Changes in boot-loader code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#building-a-single-image">Building a single image</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#support-of-compound-image">Support of compound image</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sw-description.html">SWUpdate: syntax and tags with the default parser</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed_images.html">Update images from verified source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="handlers.html">Handlers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">SWUpdate: API for external programs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="help_and_support.html">Mailing List</a></li>
+<li class="toctree-l1"><a class="reference internal" href="help_and_support.html#presentations-slides">Presentations slides</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project&#8217;s road-map</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">Embedded Software Update Documentation</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>SWUpdate: software update for embedded system</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/swupdate.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
             
   <div class="section" id="swupdate-software-update-for-embedded-system">
 <h1>SWUpdate: software update for embedded system<a class="headerlink" href="#swupdate-software-update-for-embedded-system" title="Permalink to this headline">¶</a></h1>
@@ -269,35 +392,66 @@ The filesystem where to put the file must be described.</li>
 using the <a class="reference external" href="http://www.hyperrealm.com/libconfig/">libconfig</a> library as default parser, that uses a
 JSON-like description.</li>
 </ul>
-<ul class="simple">
-<li>use custom&#8217;s choice for the description of the image. It is
+<ul>
+<li><p class="first">use custom&#8217;s choice for the description of the image. It is
 possible to write an own parser using the LUA language.
 An example using a XML description in LUA is provided
-in the examples directory.</li>
-<li>Support for setting / erasing U-Boot variables</li>
-<li>Support for preinstall scripts. They run before updating the images</li>
-<li>Support for postinstall scripts. They run after updating the images.</li>
-<li>Network installer using an embedded Web-server (Mongoose Server
+in the examples directory.</p>
+</li>
+<li><p class="first">Support for setting / erasing U-Boot variables</p>
+</li>
+<li><p class="first">Support for preinstall scripts. They run before updating the images</p>
+</li>
+<li><p class="first">Support for postinstall scripts. They run after updating the images.</p>
+</li>
+<li><p class="first">Network installer using an embedded Web-server (Mongoose Server
 was chosen, in the version under LUA license). A different
-Web-server can be used.</li>
-<li>Multiple interfaces for getting software (local Storage,
-integrated Web-Server, remote Server)</li>
-<li>Can be configured to check for compatibility between software and hardware
+Web-server can be used.</p>
+</li>
+<li><dl class="first docutils">
+<dt>Multiple interfaces for getting software</dt>
+<dd><ul class="first last simple">
+<li>local Storage: USB, SD, UART,..</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>OTA / Remote</dt>
+<dd><ul class="first last simple">
+<li>integrated Web-Server</li>
+<li>pulling from remote Server (HTTP, HTTPS, ..)</li>
+<li>using a Backend. SWUpdate is open to talk with back end
+servers for rolling out software updates.
+Current version supports the Hawkbit server, but other
+backend can be added.</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p class="first">Can be configured to check for compatibility between software and hardware
 revisions. The software image must contain an entry declaring on which
 HW revision the software is allowed to run.
-SWUpdate refuses to install if the compatibility is not verified.</li>
-<li>support for image extraction. A manufacturer can require to have
+SWUpdate refuses to install if the compatibility is not verified.</p>
+</li>
+<li><p class="first">support for image extraction. A manufacturer can require to have
 a single image that contains the software for more as one device.
 This simplifies the manufacturer&#8217;s management and reduces
 their administrative costs having a single software product.
 SWUpdate receives the software as stream without temporary storing,
 and extracts only the required components for the device
-to be installed.</li>
-<li>allow custom handlers for installing FPGA firmware,
-micro-controller firmware via custom protocols.</li>
-<li>Features are enabled / disabled using &#8220;make menuconfig&#8221;.
-(Kbuild is inherited from busybox project)</li>
-<li>Power-Off safe</li>
+to be installed.</p>
+</li>
+<li><p class="first">allow custom handlers for installing FPGA firmware,
+micro-controller firmware via custom protocols.</p>
+</li>
+<li><p class="first">Features are enabled / disabled using &#8220;make menuconfig&#8221;.
+(Kbuild is inherited from busybox project)</p>
+</li>
+<li><p class="first">Images are authenticated and verified before installing</p>
+</li>
+<li><p class="first">Power-Off safe</p>
+</li>
 </ul>
 </div>
 <div class="section" id="images-fully-streamed">
@@ -329,7 +483,9 @@ MTD and UBI volumes.</li>
 <li>libz, libcrypto are always linked.</li>
 <li>libconfig: it is used by the default parser.</li>
 <li>libarchive (optional) for archive handler</li>
-<li>libjson (optional) for JSON parser</li>
+<li>libjson (optional) for JSON parser and Hawkbit</li>
+<li>libubootenv (optional) if support for U-Boot is enabled</li>
+<li>libcurl used to communicate with network</li>
 </ul>
 <p>New handlers can add some other libraries to the requirement list -
 check if you need all handlers in case you get build errors,
@@ -337,11 +493,15 @@ and drop what you do not need.</p>
 </div>
 <div class="section" id="building-with-yocto">
 <h3>Building with Yocto<a class="headerlink" href="#building-with-yocto" title="Permalink to this headline">¶</a></h3>
-<p>A meta-SWUpdate layer is provided. It contains the required changes
+<p>A <a href="#id1"><span class="problematic" id="id2">meta-swUpdate_</span></a> layer is provided. It contains the required changes
 for mtd-utils and for generating LUA. Using meta-SWUpdate is a
 straightforward process.</p>
-<p>Firstly, clone meta-SWUpdate from:</p>
-<p>Add meta-SWUpdate as usual to your bblayers.conf.</p>
+<p>Firstly, clone meta-SWUpdate.</p>
+<div class="highlight-python"><div class="highlight"><pre>git clone https://github.com/sbabic/meta-swupdate.git
+</pre></div>
+</div>
+<p>Add meta-SWUpdate as usual to your bblayers.conf. You have also
+to add meta-oe to the list.</p>
 <p>In meta-SWUpdate there is a recipe to generate a initrd with a
 rescue system with SWUpdate. Use:</p>
 <div class="highlight-python"><div class="highlight"><pre>MACHINE=&lt;your machine&gt; bitbake swupdate-image
@@ -350,6 +510,24 @@ rescue system with SWUpdate. Use:</p>
 <p>You will find the result in your tmp/deploy/&lt;your machine&gt; directory.
 How to install and start a initrd is very target specific - please
 check in the documentation of your bootloader.</p>
+</div>
+<div class="section" id="what-about-libubootenv">
+<h3>What about libubootenv ?<a class="headerlink" href="#what-about-libubootenv" title="Permalink to this headline">¶</a></h3>
+<p>This is a common issue when SWUpdate is built. SWUpdate depends on this library,
+that is generated from the U-Boot&#8217;s sources. This library allows to safe modify
+the U-Boot environment. It is not required if U-Boot is not used as bootloader.
+If SWUpdate cannot be linked, you are using a old version of U-Boot (you need
+at least 2016.05). If this is the case, you can add your own recipe for
+the package u-boot-fw-utils, adding the code for the library.</p>
+<p>It is important that the package u-boot-fw-utils is built with the same
+sources of the bootloader and for the same machine. In fact, the target
+cna have a default environment linked together with U-Boot&#8217;s code,
+and it is not (yet) stored into a storage. SWUpdate should be aware of
+it, because it cannot read it: the default environment must be linked
+as well to SWUpdate&#8217;s code. This is done inside the libubootenv.</p>
+<p>If you build for a different machine, SWUpdate will destroy the
+environment when it tries to change it the first time. In fact,
+a wrong default environment is taken, and your board won&#8217;t boot again.</p>
 </div>
 <div class="section" id="configuring-swupdate">
 <h3>Configuring SWUpdate<a class="headerlink" href="#configuring-swupdate" title="Permalink to this headline">¶</a></h3>
@@ -373,7 +551,33 @@ make menuconfig.</li>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">make</span>
 </pre></div>
 </div>
-<p>The result is the binary &#8220;SWUpdate&#8221;.</p>
+<p>The result is the binary &#8220;swupdate&#8221;. A second binary &#8220;progress&#8221; is built,
+but it is not strictly required. It is an example how to build your
+own interface to SWUpdate to show a progress bar or whatever you want on your
+HMI. The example simply prints on the console the current status of the update.</p>
+<p>In the Yocto buildsystem,:</p>
+<div class="highlight-python"><div class="highlight"><pre>bitbake swupdate
+</pre></div>
+</div>
+<p>This will build the package</p>
+<div class="highlight-python"><div class="highlight"><pre>bitbake swupdate-image
+</pre></div>
+</div>
+<p>This builds a rescue image. The result is a Ramdisk that
+can be loaded directly by the bootloader.
+To use SWUpdate in the double-copy mode, put the package
+swupdate into your rootfs. Check your image recipe, and
+simply add it to the list of the installed packages.</p>
+<p>For example, if we want to add it to the standard &#8220;core-image-full-cmdline&#8221;
+image, we can add a <em>recipes-extended/images/core-image-full-cmdline.bbappend</em></p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">IMAGE_INSTALL</span> <span class="o">+=</span> <span class="s2">&quot; </span><span class="se">\</span>
+<span class="s2">                        swupdate </span><span class="se">\</span>
+<span class="s2">                        swupdate-www </span><span class="se">\</span>
+<span class="s2">                 &quot;</span>
+</pre></div>
+</div>
+<p>swupdate-www is the package with the website, that you can customize with
+your own logo, template ans style.</p>
 </div>
 </div>
 <div class="section" id="running-swupdate">
@@ -422,8 +626,12 @@ an error is reported.</p>
 </div>
 <p>The embedded web-server is taken from the Mongoose project (last release
 with LUA license). Additional parameters can be found in mongoose
-documentation.
-This uses as website the pages delivered with the code. Of course,
+documentation.</p>
+<p>The whole list of options will be retrieved with:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">swupdate</span> <span class="o">-</span><span class="n">h</span>
+</pre></div>
+</div>
+<p>This uses as website the pages delivered with the code. Of course,
 they can be customized and replaced. The website uses AJAX to communicate
 with SWUpdate, and to show the progress of the update to the operator.</p>
 <p>The default port of the Web-server is 8080. You can then connect to the target with:</p>
@@ -618,93 +826,81 @@ To check your generated image you can run the following command:</p>
 <div class="highlight-python"><div class="highlight"><pre>swupdate -c -i my-software_1.0.swu
 </pre></div>
 </div>
+<div class="section" id="support-of-compound-image">
+<h3>Support of compound image<a class="headerlink" href="#support-of-compound-image" title="Permalink to this headline">¶</a></h3>
+<p>The single image can be built automatically inside Yocto.
+meta-swupdate extends the classes with the swupdate class. A recipe
+should inherit it, and add your own sw-description file to generate the image.</p>
+</div>
 </div>
 </div>
 
 
+           </div>
           </div>
-        </div>
-      </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-  <h3><a href="index.html">Table Of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">SWUpdate: software update for embedded system</a><ul>
-<li><a class="reference internal" href="#overview">Overview</a><ul>
-<li><a class="reference internal" href="#single-image-delivery">Single image delivery</a></li>
-<li><a class="reference internal" href="#handling-configuration-differences">Handling configuration differences</a></li>
-<li><a class="reference internal" href="#software-collections">Software collections</a></li>
-<li><a class="reference internal" href="#streaming-feature">Streaming feature</a></li>
-<li><a class="reference internal" href="#list-of-supported-features">List of supported features</a></li>
-<li><a class="reference internal" href="#images-fully-streamed">Images fully streamed</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#configuration-and-build">Configuration and build</a><ul>
-<li><a class="reference internal" href="#requirements">Requirements</a></li>
-<li><a class="reference internal" href="#building-with-yocto">Building with Yocto</a></li>
-<li><a class="reference internal" href="#configuring-swupdate">Configuring SWUpdate</a></li>
-<li><a class="reference internal" href="#building">Building</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#running-swupdate">Running SWUpdate</a><ul>
-<li><a class="reference internal" href="#what-is-expected-from-a-swupdate-run">What is expected from a SWUpdate run</a></li>
-<li><a class="reference internal" href="#command-line-parameters">Command line parameters</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#changes-in-boot-loader-code">Changes in boot-loader code</a></li>
-<li><a class="reference internal" href="#building-a-single-image">Building a single image</a></li>
-</ul>
-</li>
-</ul>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="suricatta.html" class="btn btn-neutral float-right" title="Suricatta daemon mode" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="overview.html" class="btn btn-neutral" title="Software Management on embedded systems" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
 
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="overview.html"
-                        title="previous chapter">Software Management on embedded systems</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="suricatta.html"
-                        title="next chapter">Suricatta daemon mode</a></p>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="_sources/swupdate.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013-2017, Stefano Babic.
+
     </p>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
         </div>
       </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="suricatta.html" title="Suricatta daemon mode"
-             >next</a> |</li>
-        <li class="right" >
-          <a href="overview.html" title="Software Management on embedded systems"
-             >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">Embedded Software Update Documentation 2017.01 documentation</a> &raquo;</li> 
-      </ul>
-    </div>
-    <div class="footer" role="contentinfo">
-        &copy; Copyright 2013-2017, Stefano Babic.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.6.
-    </div>
-  </body>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'2017.01',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
 </html>

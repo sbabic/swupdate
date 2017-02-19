@@ -278,8 +278,15 @@ List of supported features
   was chosen, in the version under LUA license). A different
   Web-server can be used.
 
-- Multiple interfaces for getting software (local Storage,
-  integrated Web-Server, remote Server)
+- Multiple interfaces for getting software
+       - local Storage: USB, SD, UART,..
+- OTA / Remote
+       - integrated Web-Server
+       - pulling from remote Server (HTTP, HTTPS, ..)
+       - using a Backend. SWUpdate is open to talk with back end
+         servers for rolling out software updates.
+         Current version supports the Hawkbit server, but other
+         backend can be added.
 
 - Can be configured to check for compatibility between software and hardware
   revisions. The software image must contain an entry declaring on which
@@ -299,6 +306,8 @@ List of supported features
 
 - Features are enabled / disabled using "make menuconfig".
   (Kbuild is inherited from busybox project)
+
+- Images are authenticated and verified before installing
 
 - Power-Off safe
 
@@ -333,7 +342,9 @@ There are only a few libraries that are required to compile SWUpdate.
 - libz, libcrypto are always linked.
 - libconfig: it is used by the default parser.
 - libarchive (optional) for archive handler
-- libjson (optional) for JSON parser
+- libjson (optional) for JSON parser and Hawkbit
+- libubootenv (optional) if support for U-Boot is enabled
+- libcurl used to communicate with network
 
 New handlers can add some other libraries to the requirement list -
 check if you need all handlers in case you get build errors,
@@ -342,15 +353,20 @@ and drop what you do not need.
 Building with Yocto
 -------------------
 
-A meta-SWUpdate layer is provided. It contains the required changes
+A meta-swUpdate_ layer is provided. It contains the required changes
 for mtd-utils and for generating LUA. Using meta-SWUpdate is a
 straightforward process.
 
-Firstly, clone meta-SWUpdate from:
+Firstly, clone meta-SWUpdate.
+
+::
+
+        git clone https://github.com/sbabic/meta-swupdate.git
 
 .. _meta_SWUpdate:  https://github.com/sbabic/meta-swupdate.git
 
-Add meta-SWUpdate as usual to your bblayers.conf.
+Add meta-SWUpdate as usual to your bblayers.conf. You have also
+to add meta-oe to the list.
 
 In meta-SWUpdate there is a recipe to generate a initrd with a
 rescue system with SWUpdate. Use:
@@ -362,6 +378,27 @@ rescue system with SWUpdate. Use:
 You will find the result in your tmp/deploy/<your machine> directory.
 How to install and start a initrd is very target specific - please
 check in the documentation of your bootloader.
+
+What about libubootenv ?
+------------------------
+
+This is a common issue when SWUpdate is built. SWUpdate depends on this library,
+that is generated from the U-Boot's sources. This library allows to safe modify
+the U-Boot environment. It is not required if U-Boot is not used as bootloader.
+If SWUpdate cannot be linked, you are using a old version of U-Boot (you need
+at least 2016.05). If this is the case, you can add your own recipe for
+the package u-boot-fw-utils, adding the code for the library.
+
+It is important that the package u-boot-fw-utils is built with the same
+sources of the bootloader and for the same machine. In fact, the target
+cna have a default environment linked together with U-Boot's code,
+and it is not (yet) stored into a storage. SWUpdate should be aware of
+it, because it cannot read it: the default environment must be linked
+as well to SWUpdate's code. This is done inside the libubootenv.
+
+If you build for a different machine, SWUpdate will destroy the
+environment when it tries to change it the first time. In fact,
+a wrong default environment is taken, and your board won't boot again.
 
 Configuring SWUpdate
 --------------------
@@ -389,7 +426,42 @@ Building
 
 	make
 
-The result is the binary "SWUpdate".
+The result is the binary "swupdate". A second binary "progress" is built,
+but it is not strictly required. It is an example how to build your
+own interface to SWUpdate to show a progress bar or whatever you want on your
+HMI. The example simply prints on the console the current status of the update.
+
+In the Yocto buildsystem,:
+
+::
+
+        bitbake swupdate
+
+This will build the package
+
+::
+
+        bitbake swupdate-image
+
+This builds a rescue image. The result is a Ramdisk that
+can be loaded directly by the bootloader.
+To use SWUpdate in the double-copy mode, put the package
+swupdate into your rootfs. Check your image recipe, and
+simply add it to the list of the installed packages.
+
+For example, if we want to add it to the standard "core-image-full-cmdline"
+image, we can add a *recipes-extended/images/core-image-full-cmdline.bbappend*
+
+::
+
+        IMAGE_INSTALL += " \
+                                swupdate \
+                                swupdate-www \
+                         "
+
+swupdate-www is the package with the website, that you can customize with
+your own logo, template ans style.
+
 
 Running SWUpdate
 ================
@@ -447,6 +519,13 @@ The main important parameter for the web-server is "document_root".
 The embedded web-server is taken from the Mongoose project (last release
 with LUA license). Additional parameters can be found in mongoose
 documentation.
+
+The whole list of options will be retrieved with:
+
+::
+
+        swupdate -h
+
 This uses as website the pages delivered with the code. Of course,
 they can be customized and replaced. The website uses AJAX to communicate
 with SWUpdate, and to show the progress of the update to the operator.
@@ -602,3 +681,9 @@ To check your generated image you can run the following command:
     swupdate -c -i my-software_1.0.swu
 
 
+Support of compound image
+-------------------------
+
+The single image can be built automatically inside Yocto.
+meta-swupdate extends the classes with the swupdate class. A recipe
+should inherit it, and add your own sw-description file to generate the image.
