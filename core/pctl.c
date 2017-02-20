@@ -23,6 +23,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/prctl.h>
 #include <errno.h>
 #include <pthread.h>
 #include <network_ipc.h>
@@ -58,6 +59,12 @@ int pid = 0;
  */
 
 int sw_sockfd = -1;
+
+static void parent_dead_handler(int dummy)
+{
+	dummy = 0;
+	exit(1);
+}
 
 /*
  * This is used to spawn internal threads
@@ -139,6 +146,17 @@ int spawn_process(struct swupdate_task *task,
 	pid = getpid();
 
 	notify_init();
+
+	if (signal(SIGUSR1, parent_dead_handler) == SIG_ERR) {
+		/*
+		 * this is not a reason to break, just a warning
+		 */
+		WARN("Cannot track if parent dies, sorry...");
+	}
+
+	if (prctl(PR_SET_PDEATHSIG, SIGUSR1) < 0)
+		ERROR("Fail to call prctl, maybe not Linux ?");
+
 
 	return (*start)(cfgname, ac, av);
 }
