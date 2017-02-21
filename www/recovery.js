@@ -3,19 +3,20 @@ filedrag.js - HTML5 File Drag & Drop demonstration
 Featured on SitePoint.com
 Developed by Craig Buckler (@craigbuckler) of OptimalWorks.net
 */
+
+// getElementById
+function $id(id) {
+	return document.getElementById(id);
+}
+
+
+// output information
+function Output(msg) {
+	var m = $id("messages");
+	m.innerHTML = msg + m.innerHTML;
+}
+
 (function() {
-
-	// getElementById
-	function $id(id) {
-		return document.getElementById(id);
-	}
-
-
-	// output information
-	function Output(msg) {
-		var m = $id("messages");
-		m.innerHTML = msg + m.innerHTML;
-	}
 
 
 	// file drag hover
@@ -166,3 +167,32 @@ Developed by Craig Buckler (@craigbuckler) of OptimalWorks.net
 
 
 })();
+
+function postUpdateCommand() {
+	var code = 0;
+	var error = "";
+	var detail = "";
+	$.post("postUpdateCommand", {}, function(data){
+		$.each(data, function(key, val) {
+			if (key == "code")
+				code = val;
+			else if (key == "error")
+				error = val;
+			else if (key == "detail")
+				detail = val;
+		});
+
+		switch (code) {
+		case 200:
+			Output("<p>Reboot started</p>");
+			break;
+		case 0:
+			Output("<p><strong>no response</strong></p>");
+			break;
+		default:
+			Output("<p><strong>" + error + ": " + detail + "</strong></p>");
+		break;
+		}
+
+	});
+}
