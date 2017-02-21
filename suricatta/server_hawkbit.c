@@ -1544,8 +1544,14 @@ server_op_res_t server_ipc(int fd)
 	if (handle_feedback(update_state, reply_result, reply_execution,
 			    reply_message) != SERVER_UPDATE_AVAILABLE)
 		result = SERVER_EERR;
-	else
+	else {
 		server_hawkbit.update_state = SERVER_OK;
+
+		/*
+		 * Save permanent the state if U-Boot is enabled
+		 */
+		save_state((char *)STATE_KEY, update_state);
+	}
 	
 server_ipc_end:
 	if (result == SERVER_EERR) {
