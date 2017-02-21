@@ -379,6 +379,23 @@ static void reboot_target(struct mg_connection *conn) {
 	}
 }
 
+static void post_update_cmd(struct mg_connection *conn) {
+	ipc_message msg;
+	int ret = ipc_postupdate(&msg);
+	mg_printf(conn,
+		"HTTP/1.1 200 OK\r\n"
+		"Content-Type: application/json\r\n"
+		"\r\n"
+		"{\r\n"
+		"\t\"code\": %d,\r\n"
+		"\t\"error\": \"%s\",\r\n"
+		"\t\"detail\": \"%s\"\r\n"
+		"}",
+		(ret == 0) ? 200 : 501,
+		(ret == 0) ? "" : "Internal server error",
+		(ret == 0) ? "" : "Failed to queue command");
+}
+
 static int begin_request_handler(struct mg_connection *conn) {
 	if (!strcmp(mg_get_request_info(conn)->uri, "/handle_post_request")) {
 		mg_printf(conn, "%s", "HTTP/1.0 200 OK\r\n\r\n");
@@ -391,6 +408,11 @@ static int begin_request_handler(struct mg_connection *conn) {
 	}
 	if (!strcmp(mg_get_request_info(conn)->uri, "/rebootTarget")) {
 		reboot_target(conn);
+		return 1;
+	}
+	if (!strcmp(mg_get_request_info(conn)->uri, "/postUpdateCommand")
+		&& !strcmp(mg_get_request_info(conn)->request_method,"POST")) {
+		post_update_cmd(conn);
 		return 1;
 	}
 	return 0;
