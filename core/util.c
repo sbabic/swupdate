@@ -90,6 +90,7 @@ int fw_set_one_env(const char *name, const char *value)
 
 	if (fw_env_open (fw_env_opts)) {
 		fprintf (stderr, "Error: environment not initialized\n");
+		unlock_uboot_env(lock);
 		return -1;
 	}
 	fw_env_write ((char *)name, (char *)value);
@@ -111,6 +112,7 @@ char *fw_get_one_env(char *name)
 
 	if (fw_env_open (fw_env_opts)) {
 		fprintf (stderr, "Error: environment not initialized\n");
+		unlock_uboot_env(lock);
 		return NULL;
 	}
 
