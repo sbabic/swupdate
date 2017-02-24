@@ -266,6 +266,7 @@ channel_op_res_t channel_map_http_code(channel_t *this, long *http_response_code
 	case 429: /* Bad Request, i.e., too many requests. Try again later. */
 		return CHANNEL_EAGAIN;
 	case 200:
+	case 206:
 		return CHANNEL_OK;
 	case 500:
 		return CHANNEL_EBADMSG;
