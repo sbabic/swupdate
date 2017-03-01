@@ -35,9 +35,11 @@
 #include <openssl/evp.h>
 #include <openssl/hmac.h>
 #include <openssl/aes.h>
+#include <openssl/cms.h>
 
 struct swupdate_digest {
-	EVP_PKEY *pkey;
+	EVP_PKEY *pkey;		/* this is used for RSA key */
+	X509_STORE *certs;	/* this is used if CMS is set */
 	EVP_MD_CTX *ctx;
 	EVP_CIPHER_CTX ctxdec;
 };

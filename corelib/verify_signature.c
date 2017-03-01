@@ -29,6 +29,25 @@
 
 #define BUFSIZE	(1024 * 8)
 
+static int dgst_init(struct swupdate_digest *dgst)
+{
+	int rc;
+
+	ERR_clear_error();
+	rc = EVP_DigestInit_ex(dgst->ctx, EVP_sha256(), NULL);
+	if (rc != 1) {
+		ERROR("EVP_DigestInit_ex failed: %s\n", ERR_error_string(ERR_get_error(), NULL));
+		return -EINVAL; /* failed */
+	}
+
+	return 0;
+}
+
+/*
+ * depending on the algorithm, load a RSA public key
+ * or a certificate
+ */
+#if defined(CONFIG_SIGALG_RAWRSA)
 static EVP_PKEY *load_pubkey(const char *file)
 {
 	BIO *key=NULL;
@@ -60,25 +79,15 @@ end:
 	return(pkey);
 }
 
-static int dgst_init(struct swupdate_digest *dgst,
-	bool init_verify)
+static int dgst_verify_init(struct swupdate_digest *dgst)
 {
 	int rc;
 
-	ERR_clear_error();
-	rc = EVP_DigestInit_ex(dgst->ctx, EVP_sha256(), NULL);
+	rc = EVP_DigestVerifyInit(dgst->ctx, NULL, EVP_sha256(), NULL, dgst->pkey);
 	if (rc != 1) {
-		ERROR("EVP_DigestInit_ex failed: %s\n", ERR_error_string(ERR_get_error(), NULL));
-		return -EINVAL; /* failed */
+		ERROR("EVP_DigestVerifyInit failed, error 0x%lx\n", ERR_get_error());
+		return -EFAULT; /* failed */
 	}
-
-	if (init_verify) {
-		rc = EVP_DigestVerifyInit(dgst->ctx, NULL, EVP_sha256(), NULL, dgst->pkey);
-		if(rc != 1) {
-			ERROR("EVP_DigestVerifyInit failed, error 0x%lx\n", ERR_get_error());
-			return -EFAULT; /* failed */
-		}
-        }
 
 	return 0;
 }
@@ -109,62 +118,6 @@ static int verify_final(struct swupdate_digest *dgst, unsigned char *sig, unsign
 	}
 
 	return rc;
-}
-
-struct swupdate_digest *swupdate_HASH_init(void)
-{
-	struct swupdate_digest *dgst;
-	int ret;
-
-	dgst = calloc(1, sizeof(*dgst));
-	if (!dgst) {
-		return NULL;
-	}
-
- 	dgst->ctx = EVP_MD_CTX_create();
-	if(dgst->ctx == NULL) {
-		ERROR("EVP_MD_CTX_create failed, error 0x%lx\n", ERR_get_error());
-		free(dgst);
-		return NULL;
-	}
-
-	ret = dgst_init(dgst, false);
-	if (ret) {
-		free(dgst);
-		return NULL;
-	}
-
-	return dgst;
-}
-
-int swupdate_HASH_update(struct swupdate_digest *dgst, unsigned char *buf,
-				size_t len)
-{
-	if (!dgst)
-		return -EFAULT;
-
-	EVP_DigestUpdate (dgst->ctx, buf, len);
-
-	return 0;
-}
-
-int swupdate_HASH_final(struct swupdate_digest *dgst, unsigned char *md_value,
-		unsigned int *md_len)
-{
-	if (!dgst)
-		return -EFAULT;
-
-	return EVP_DigestFinal_ex (dgst->ctx, md_value, md_len);
-
-}
-
-void swupdate_HASH_cleanup(struct swupdate_digest *dgst)
-{
-	if (dgst) {
-		EVP_MD_CTX_destroy(dgst->ctx);
-		free(dgst);
-		dgst = NULL;
-	}
 }
 
 int swupdate_verify_file(struct swupdate_digest *dgst, const char *sigfile,
@@ -205,8 +158,7 @@ int swupdate_verify_file(struct swupdate_digest *dgst, const char *sigfile,
 		goto out;
 	}
 
-	i = dgst_init(dgst, true);
-	if (i < 0) {
+	if ((dgst_init(dgst) < 0) || (dgst_verify_init(dgst) < 0)) {
 		status = -ENOKEY;
 		goto out;
 	}
@@ -254,6 +206,158 @@ out:
 	return status;
 }
 
+#elif defined(CONFIG_SIGALG_CMS)
+static X509_STORE *load_cert_chain(const char *file)
+{
+	X509_STORE *castore = X509_STORE_new();
+	if (!castore) {
+		return NULL;
+	}
+
+	BIO *castore_bio = BIO_new_file(file, "r");
+	if (!castore_bio) {
+		TRACE("failed: BIO_new_file(%s)", file);
+		return NULL;
+	}
+
+	int crt_count = 0;
+	X509 *crt = NULL;
+	do {
+		crt = PEM_read_bio_X509(castore_bio, NULL, 0, NULL);
+		if (crt) {
+			crt_count++;
+			TRACE("Read PEM #%d: %s", crt_count, crt->name);
+			if (X509_STORE_add_cert(castore, crt) == 0) {
+				TRACE("Adding certificate to X509_STORE failed");
+				BIO_free(castore_bio);
+				X509_STORE_free(castore);
+				return NULL;
+			}
+		}
+	} while (crt);
+	BIO_free(castore_bio);
+
+	if (crt_count == 0) {
+		X509_STORE_free(castore);
+		return NULL;
+	}
+
+	return castore;
+}
+
+int swupdate_verify_file(struct swupdate_digest *dgst, const char *sigfile,
+		const char *file)
+{
+	int status = -EFAULT;
+	CMS_ContentInfo *cms = NULL;
+	BIO *content_bio = NULL;
+
+	/* Open CMS blob that needs to be checked */
+	BIO *sigfile_bio = BIO_new_file(sigfile, "rb");
+	if (!sigfile_bio) {
+		ERROR("%s cannot be opened", sigfile);
+		status = -EBADF;
+		goto out;
+	}
+
+	/* Parse the DER-encoded CMS message */
+	cms = d2i_CMS_bio(sigfile_bio, NULL);
+	if (!cms) {
+		ERROR("%s cannot be parsed as DER-encoded CMS signature blob", sigfile);
+		status = -EFAULT;
+		goto out;
+	}
+
+	/* Open the content file (data which was signed) */
+	content_bio = BIO_new_file(file, "rb");
+	if (!content_bio) {
+		ERROR("%s cannot be opened", file);
+		status = -EBADF;
+		goto out;
+	}
+
+	/* Then try to verify signature */
+	if (!CMS_verify(cms, NULL, dgst->certs, content_bio, NULL, 0)) {
+		ERR_print_errors_fp(stderr);
+		ERROR("Signature verification failed");
+		status = -EBADMSG;
+		goto out;
+	}
+
+	TRACE("Verified OK\n");
+
+	/* Signature is valid */
+	status = 0;
+out:
+
+	if (cms) {
+		CMS_ContentInfo_free(cms);
+	}
+	if (content_bio) {
+		BIO_free(content_bio);
+	}
+	if (sigfile_bio) {
+		BIO_free(sigfile_bio);
+	}
+	return status;
+}
+#endif
+struct swupdate_digest *swupdate_HASH_init(void)
+{
+	struct swupdate_digest *dgst;
+	int ret;
+
+	dgst = calloc(1, sizeof(*dgst));
+	if (!dgst) {
+		return NULL;
+	}
+
+ 	dgst->ctx = EVP_MD_CTX_create();
+	if(dgst->ctx == NULL) {
+		ERROR("EVP_MD_CTX_create failed, error 0x%lx\n", ERR_get_error());
+		free(dgst);
+		return NULL;
+	}
+
+	ret = dgst_init(dgst);
+	if (ret) {
+		free(dgst);
+		return NULL;
+	}
+
+	return dgst;
+}
+
+int swupdate_HASH_update(struct swupdate_digest *dgst, unsigned char *buf,
+				size_t len)
+{
+	if (!dgst)
+		return -EFAULT;
+
+	EVP_DigestUpdate (dgst->ctx, buf, len);
+
+	return 0;
+}
+
+int swupdate_HASH_final(struct swupdate_digest *dgst, unsigned char *md_value,
+		unsigned int *md_len)
+{
+	if (!dgst)
+		return -EFAULT;
+
+	return EVP_DigestFinal_ex (dgst->ctx, md_value, md_len);
+
+}
+
+void swupdate_HASH_cleanup(struct swupdate_digest *dgst)
+{
+	if (dgst) {
+		EVP_MD_CTX_destroy(dgst->ctx);
+		free(dgst);
+		dgst = NULL;
+	}
+}
+
 /*
  * Just a wrap function to memcmp
  */
@@ -286,6 +390,7 @@ int swupdate_dgst_init(struct swupdate_cfg *sw, const char *keyfile)
 		goto dgst_init_error;
 	}
 
+#if defined(CONFIG_SIGALG_RAWRSA)
 	/*
 	 * Load public key
 	 */
@@ -295,6 +400,19 @@ int swupdate_dgst_init(struct swupdate_cfg *sw, const char *keyfile)
 		ret = -EINVAL;
 		goto dgst_init_error;
 	}
+#elif defined(CONFIG_SIGALG_CMS)
+	/*
+	 * Load certificate chain
+	 */
+	dgst->certs = load_cert_chain(keyfile);
+	if (!dgst->certs) {
+		ERROR("Error loading certificate chain from %s", keyfile);
+		ret = -EINVAL;
+		goto dgst_init_error;
+	}
+#else
+	TRACE("public key / cert %s ignored, you need to set SIGALG", keyfile);
+#endif
 
 	/*
 	 * Create context

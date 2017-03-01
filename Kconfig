@@ -280,6 +280,22 @@ config SIGNED_IMAGES
 comment "Image verification (signed images) needs libssl"
 	depends on !HAVE_LIBSSL
 
+choice
+	prompt "Signature verification algorithm"
+	depends on SIGNED_IMAGES
+	default SIGALG_RAWRSA
+	help
+	  Select if the signature algorithm for signed images is a raw RSA signature
+	  (following PKCS#1.5) or if it uses Cryptographic Message Syntax (CMS).
+
+	config SIGALG_RAWRSA
+			bool "RSA PKCS#1.5"
+
+	config SIGALG_CMS
+			bool "Cryptographic Message Syntax (CMS)"
+
+endchoice
+
 config ENCRYPTED_IMAGES
 	bool "Images can be encrypted with a symmetric key"
 	depends on HAVE_LIBSSL
