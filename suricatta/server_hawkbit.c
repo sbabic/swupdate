@@ -111,7 +111,7 @@ server_op_res_t
 server_send_deployment_reply(const int action_id, const int job_cnt_max,
 			     const int job_cnt_cur, const char *finished,
 			     const char *execution_status, const char *details);
-server_op_res_t server_send_cancel_reply(const int action_id);
+server_op_res_t server_send_cancel_reply(channel_t *channel, const int action_id);
 
 server_hawkbit_t server_hawkbit = {.url = NULL,
 				   .polling_interval = DEFAULT_POLLING_INTERVAL,
@@ -192,9 +192,8 @@ server_op_res_t map_channel_retcode(channel_op_res_t response)
 	return SERVER_EERR;
 }
 
-server_op_res_t server_send_cancel_reply(const int action_id)
+server_op_res_t server_send_cancel_reply(channel_t *channel, const int action_id)
 {
-	channel_t *channel = server_hawkbit.channel;
 	assert(server_hawkbit.url != NULL);
 	assert(server_hawkbit.tenant != NULL);
 	assert(server_hawkbit.device_id != NULL);
@@ -512,7 +511,7 @@ static int server_check_during_dwl(void)
 	 * if something on the server was changed and a cancel
 	 * was requested
 	 */
-	if ((now.tv_sec - server_time.tv_sec) < server_get_polling_interval())
+	if ((now.tv_sec - server_time.tv_sec) < (server_get_polling_interval()))
 		return 0;
 
 	/* Update current server time */
@@ -544,7 +543,7 @@ static int server_check_during_dwl(void)
 	}
 	if (result == SERVER_UPDATE_CANCELED) {
 		TRACE("Acknowledging cancelled update.\n");
-		(void)server_send_cancel_reply(action_id);
+		(void)server_send_cancel_reply(channel, action_id);
 		ret = -1;
 	}
 
@@ -583,7 +582,7 @@ server_op_res_t server_has_pending_action(int *action_id)
 	}
 	if (result == SERVER_UPDATE_CANCELED) {
 		DEBUG("Acknowledging cancelled update.\n");
-		(void)server_send_cancel_reply(*action_id);
+		(void)server_send_cancel_reply(server_hawkbit.channel, *action_id);
 		result = SERVER_OK;
 	}
 	if ((result == SERVER_UPDATE_AVAILABLE) &&
@@ -860,9 +859,6 @@ server_op_res_t server_process_update_artifact(json_object *json_data_artifact,
 			ERROR("Error while downloading artifact.\n");
 			goto cleanup_loop;
 		}
-
-
-
 
 #ifdef CONFIG_SURICATTA_SSL
 		if (strncmp((char *)&channel_data.sha1hash,
