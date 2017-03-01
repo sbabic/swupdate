@@ -53,7 +53,7 @@ static EVP_PKEY *load_pubkey(const char *file)
 	}
 
 	pkey=PEM_read_bio_PUBKEY(key, NULL, NULL, NULL);
- end:
+end:
 	if (key != NULL) BIO_free(key);
 	if (pkey == NULL)
 		ERROR("unable to load key filename %s\n", file);
@@ -65,15 +65,15 @@ static int dgst_init(struct swupdate_digest *dgst,
 {
 	int rc;
 
-        ERR_clear_error();
-        rc = EVP_DigestInit_ex(dgst->ctx, EVP_sha256(), NULL);
-        if(rc != 1) {
-            ERROR("EVP_DigestInit_ex failed: %s\n", ERR_error_string(ERR_get_error(), NULL));
-            return -EINVAL; /* failed */
-        }
+	ERR_clear_error();
+	rc = EVP_DigestInit_ex(dgst->ctx, EVP_sha256(), NULL);
+	if (rc != 1) {
+		ERROR("EVP_DigestInit_ex failed: %s\n", ERR_error_string(ERR_get_error(), NULL));
+		return -EINVAL; /* failed */
+	}
 
 	if (init_verify) {
-	        rc = EVP_DigestVerifyInit(dgst->ctx, NULL, EVP_sha256(), NULL, dgst->pkey);
+		rc = EVP_DigestVerifyInit(dgst->ctx, NULL, EVP_sha256(), NULL, dgst->pkey);
 		if(rc != 1) {
 			ERROR("EVP_DigestVerifyInit failed, error 0x%lx\n", ERR_get_error());
 			return -EFAULT; /* failed */
@@ -87,11 +87,11 @@ static int verify_update(struct swupdate_digest *dgst, char *msg, unsigned int m
 {
 	int rc;
 
-        rc = EVP_DigestVerifyUpdate(dgst->ctx, msg, mlen);
-        if(rc != 1) {
-            ERROR("EVP_DigestVerifyUpdate failed, error 0x%lx\n", ERR_get_error());
-	    return -EFAULT;
-        }
+	rc = EVP_DigestVerifyUpdate(dgst->ctx, msg, mlen);
+	if(rc != 1) {
+		ERROR("EVP_DigestVerifyUpdate failed, error 0x%lx\n", ERR_get_error());
+		return -EFAULT;
+	}
 
 	return 0;
 }
@@ -100,13 +100,13 @@ static int verify_final(struct swupdate_digest *dgst, unsigned char *sig, unsign
 {
 	unsigned int rc;
 
-        /* Clear any errors for the call below */
-        ERR_clear_error();
-        rc = EVP_DigestVerifyFinal(dgst->ctx, sig, slen);
-        if(rc != 1) {
-            ERROR("EVP_DigestVerifyFinal failed, error 0x%lx %d\n", ERR_get_error(), rc);
-	    return -1;
-        }
+	/* Clear any errors for the call below */
+	ERR_clear_error();
+	rc = EVP_DigestVerifyFinal(dgst->ctx, sig, slen);
+	if(rc != 1) {
+		ERROR("EVP_DigestVerifyFinal failed, error 0x%lx %d\n", ERR_get_error(), rc);
+		return -1;
+	}
 
 	return rc;
 }
@@ -126,13 +126,13 @@ struct swupdate_digest *swupdate_HASH_init(void)
 		ERROR("EVP_MD_CTX_create failed, error 0x%lx\n", ERR_get_error());
 		free(dgst);
 		return NULL;
-        }
+	}
 
 	ret = dgst_init(dgst, false);
 	if (ret) {
 		free(dgst);
 		return NULL;
-        }
+	}
 
 	return dgst;
 }
@@ -149,12 +149,12 @@ int swupdate_HASH_update(struct swupdate_digest *dgst, unsigned char *buf,
 }
 
 int swupdate_HASH_final(struct swupdate_digest *dgst, unsigned char *md_value,
-	       			unsigned int *md_len)
+		unsigned int *md_len)
 {
 	if (!dgst)
 		return -EFAULT;
 
- 	return EVP_DigestFinal_ex (dgst->ctx, md_value, md_len);
+	return EVP_DigestFinal_ex (dgst->ctx, md_value, md_len);
 
 }
 
@@ -168,7 +168,7 @@ void swupdate_HASH_cleanup(struct swupdate_digest *dgst)
 }
 
 int swupdate_verify_file(struct swupdate_digest *dgst, const char *sigfile,
-	       	const char *file)
+		const char *file)
 {
 	FILE *fp = NULL;
 	BIO *sigbio;
@@ -299,12 +299,12 @@ int swupdate_dgst_init(struct swupdate_cfg *sw, const char *keyfile)
 	/*
 	 * Create context
 	 */
-        dgst->ctx = EVP_MD_CTX_create();
+	dgst->ctx = EVP_MD_CTX_create();
 	if(dgst->ctx == NULL) {
 		ERROR("EVP_MD_CTX_create failed, error 0x%lx\n", ERR_get_error());
 		ret = -ENOMEM;
 		goto dgst_init_error;
-        }
+	}
 
 	sw->dgst = dgst;
 
