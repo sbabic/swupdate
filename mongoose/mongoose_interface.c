@@ -66,12 +66,12 @@ static struct mg_context *ctx;      // Set by start_mongoose()
 
 static void upload_handler(struct mg_connection *conn,
 		const char __attribute__ ((__unused__)) *path) {
-	mg_printf(conn, "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\n"
+	mg_printf(conn, "%s", "HTTP/1.1 200 OK\r\n\r\n");
+	mg_printf(conn, "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"\n"
 		"\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n"
-		"<html xmlns=\\\"http://www.w3.org/1999/xhtml\">");
+		"<html xmlns=\"http://www.w3.org/1999/xhtml\">");
 	mg_printf(conn, "<head><meta http-equiv=\"refresh\" content=\"0; url=./update.html\" />"
 		"</head></html>");
-
 }
 
 static void die(const char *fmt, ...) {
@@ -313,7 +313,6 @@ static int recovery_upload(struct mg_connection *conn) {
 	} while ((n = mg_read(conn, buf + len, sizeof(buf) - len)) > 0);
 	ipc_end(instfd);
 
-	mg_printf(conn, "%s", "HTTP/1.0 200 OK\r\n\r\n");
 	return num_uploaded_files;
 }
 
