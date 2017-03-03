@@ -25,7 +25,10 @@ Presentations slides
        - `Open Source secure software updates for Linux-based IVI systems by Arthur Taylor <http://events.linuxfoundation.org/sites/events/files/slides/Open%20Source%20secure%20software%20updates%20for%20Linux-based%20IVI%20systems.pdf>`_
        - `How do you update your embedded Linux devices? by Daniel Sangorrin / Keijiro Yano <http://events.linuxfoundation.org/sites/events/files/slides/linuxcon-japan-2016-softwre-updates-sangorrin.pdf>`_
        - `Comparison of Linux Software Update Technologies by Matt Porter <http://events.linuxfoundation.org/sites/events/files/slides/Comparison%20of%20Linux%20Software%20Update%20Technologies_0.pdf>`_
-       - `Software update for IoT: the current state of play by Chris Simmonds <http://de.slideshare.net/chrissimmonds/software-update-for-iot-the-current-state-of-play>`_
-       - `OSS Remote Firmware Updates for IoT-like Projects by Silvano Cirujano Cuesta <http://events.linuxfoundation.org/sites/events/files/slides/OSS_Remote_Firmware_Updates_for_IoT-like_Projects.pdf>`_
+       - Software update for IoT: the current state of play by Chris Simmonds, ELCE 2016, `Slides <http://de.slideshare.net/chrissimmonds/software-update-for-iot-the-current-state-of-play>`_, 
+         `Video <https://youtu.be/GZGnBK2NycI?list=PLbzoR-pLrL6pRFP6SOywVJWdEHlmQE51q>`_
+       - OSS Remote Firmware Updates for IoT-like Projects by Silvano Cirujano Cuesta, ELCE 2016,
+         `Slides <http://events.linuxfoundation.org/sites/events/files/slides/OSS_Remote_Firmware_Updates_for_IoT-like_Projects.pdf>`_, 
+         `Video <https://youtu.be/vVS-ZRNE0Lc?list=PLbzoR-pLrL6pRFP6SOywVJWdEHlmQE51q>`_
        - System Upgrade with SWUpdate by Gabriel Huau, ELC 2017, `Slides <http://events.linuxfoundation.org/sites/events/files/slides/ELC2017_SWUpdate.pdf>`_, `Video <https://www.youtube.com/watch?v=ePRTTfGJUI4&t=16s>`_
 
