@@ -1,0 +1,17 @@
+
+dist: trusty
+sudo: required
+
+language: c
+
+before_install:
+    - sudo apt-get -qq update
+    - sudo apt-get install -y libzmq3-dev
+    - sudo apt-get install -y libcurl4-openssl-dev
+    - sudo apt-get install -y liblua5.2-dev
+    - sudo apt-get install -y libconfig-dev
+    - sudo apt-get install -y libarchive-dev
+    - sudo apt-get install -y libjson0-dev
+    - sudo apt-get install -y zlib1g-dev
+
+script: make test_defconfig && make
