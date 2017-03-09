@@ -81,7 +81,7 @@ protected against intrusion.
 
         openssl genrsa -aes256 -passout file:passout -out priv.pem
 
-The public key is used to generate the public key with:
+The private key is used to export the public key with:
 
 ::
 
@@ -105,9 +105,6 @@ Usage with certificates ans CMS
 
 Generating certificates
 .......................
-
-openSSL project. A complete documentation can be found at
-https://www.openssl.org/docs/manmaster/apps/openssl.html.
 
 
 ::
