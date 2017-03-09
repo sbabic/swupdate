@@ -26,6 +26,7 @@
 #include <sys/mount.h>
 #include <unistd.h>
 #include <errno.h>
+#include <limits.h>
 #include "bsdqueue.h"
 #include "util.h"
 #include "flash.h"
@@ -57,8 +58,17 @@ int get_mtd_from_device(char *s) {
 		return -1;
 
 	real_s = realpath(s, NULL);
-	if (real_s == NULL)
-		return -1;
+	if (real_s == NULL) {
+		char tmp_s[PATH_MAX] = {0};
+
+		if (! strncmp(s, "/dev/", 5))
+			return -1;
+
+		snprintf(tmp_s, sizeof(tmp_s), "/dev/%s", s);
+		real_s = realpath(tmp_s, NULL);
+		if (real_s == NULL)
+			return -1;
+	}
 
 	TRACE("mtd name [%s] resolved to [%s]\n", s, real_s);
 	ret = sscanf(real_s, "mtd%d", &mtdnum);
