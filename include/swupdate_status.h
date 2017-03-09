@@ -36,6 +36,7 @@ typedef enum {
 	FAILURE,
 	DOWNLOAD,
 	DONE,
+	SUBPROCESS,
 } RECOVERY_STATUS;
 
 typedef enum {

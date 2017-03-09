@@ -33,6 +33,7 @@
 #include "bsdqueue.h"
 #include "util.h"
 #include "pctl.h"
+#include "progress.h"
 
 /*
  * There is a list of notifier. Each registered
@@ -143,6 +144,9 @@ static void console_notifier (RECOVERY_STATUS status, int error, const char *msg
 	case FAILURE:
 		snprintf(current, sizeof(current), "SWUPDATE failed [%d]", error);
 		break;
+	case SUBPROCESS:
+		strncpy(current, "EVENT : ", sizeof(current));
+		break;
 	case DONE:
 		strncpy(current, "SWUPDATE done : ", sizeof(current));
 		break;
@@ -150,6 +154,21 @@ static void console_notifier (RECOVERY_STATUS status, int error, const char *msg
 
 	fprintf(stdout, "[NOTIFY] : %s %s\n", current, msg ? msg : "");
 	fflush(stdout);
+}
+
+/*
+ * Process notifier: this is called when a process has something to say
+ * and wants that the information is passed to the progress interface
+ */
+static void process_notifier (RECOVERY_STATUS status, int error, const char *msg)
+{
+
+	/* Check just in case a process want to send an info outside */
+	if (status != SUBPROCESS)
+	       return;
+
+	swupdate_progress_info(error, msg);
+
 }
 
 /*
@@ -231,6 +250,7 @@ void notify_init(void)
 	} else {
 		STAILQ_INIT(&clients);
 		register_notifier(console_notifier);
+		register_notifier(process_notifier);
 		start_thread(notifier_thread, NULL);
 	}
 }
