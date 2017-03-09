@@ -301,8 +301,10 @@ int main(int argc, char **argv)
 				break;
 			}
 
-			fprintf(stdout, "INFO : %s\n\n", msg.info);
 		}
+
+		if (msg.infolen > 0)
+			fprintf(stdout, "INFO : %s\n\n", msg.info);
 
 		if (!psplash_ok && opt_p) {
 			psplash_ok = psplash_init(psplash_pipe_path);
