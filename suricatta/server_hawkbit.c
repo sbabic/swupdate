@@ -544,6 +544,8 @@ static int server_check_during_dwl(void)
 	if (result == SERVER_UPDATE_CANCELED) {
 		TRACE("Acknowledging cancelled update.\n");
 		(void)server_send_cancel_reply(channel, action_id);
+		/* Inform the installer that a CANCEL was received */
+		notify(SUBPROCESS, 0, "Update cancelled");
 		ret = -1;
 	}
 
@@ -583,6 +585,8 @@ server_op_res_t server_has_pending_action(int *action_id)
 	if (result == SERVER_UPDATE_CANCELED) {
 		DEBUG("Acknowledging cancelled update.\n");
 		(void)server_send_cancel_reply(server_hawkbit.channel, *action_id);
+		/* Inform the installer that a CANCEL was received */
+		notify(SUBPROCESS, 0, "Update cancelled");
 		result = SERVER_OK;
 	}
 	if ((result == SERVER_UPDATE_AVAILABLE) &&
