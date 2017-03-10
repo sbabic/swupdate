@@ -62,7 +62,7 @@ choice
 config SURICATTA_HAWKBIT
 	bool "hawkBit support"
 	depends on HAVE_LIBCURL
-	depends on JSON
+	select JSON
 	select SURICATTA
 	help
 	  Support for hawkBit server.
@@ -74,10 +74,6 @@ config SURICATTA_SERVER_NONE
 	  Do not start suricatta mode
 
 endchoice
-
-
-comment "hawkBit support needs libcurl and CONFIG_JSON=y"
-	depends on !HAVE_LIBCURL || !JSON
 
 endmenu
 
