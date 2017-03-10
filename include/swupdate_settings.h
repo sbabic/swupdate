@@ -26,6 +26,7 @@
 int read_module_settings(const char *filename, const char *module, settings_callback fcn, void *data);
 int read_settings_user_id(const char *filename, const char *module, uid_t *userid, gid_t *groupid);
 #else
+#include <unistd.h>
 static inline int read_module_settings(const char __attribute__ ((__unused__))*filename,
 		const char __attribute__ ((__unused__)) *module,
 		settings_callback __attribute__ ((__unused__)) fcn,
