@@ -39,6 +39,7 @@ typedef struct {
 	char *configData_url;
 	update_state_t update_state;
 	channel_t *channel;
+	bool	cancelDuringUpdate;
 } server_hawkbit_t;
 
 extern server_hawkbit_t server_hawkbit;

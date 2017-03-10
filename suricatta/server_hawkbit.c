@@ -542,10 +542,8 @@ static int server_check_during_dwl(void)
 		ERROR("JSON object should be freed but was not.\n");
 	}
 	if (result == SERVER_UPDATE_CANCELED) {
-		TRACE("Acknowledging cancelled update.\n");
-		(void)server_send_cancel_reply(channel, action_id);
-		/* Inform the installer that a CANCEL was received */
-		notify(SUBPROCESS, 0, "Update cancelled");
+		/* Mark that an update was cancelled by the server */
+		server_hawkbit.cancelDuringUpdate = true;
 		ret = -1;
 	}
 
@@ -1036,6 +1034,8 @@ server_op_res_t server_install_update(void)
 		}
 		assert(json_object_get_type(json_data_chunk_artifacts) ==
 		       json_type_array);
+		/* reset flag, will be set if a cancel is detected */
+		server_hawkbit.cancelDuringUpdate = false;
 		result =
 		    server_process_update_artifact(json_data_chunk_artifacts,
 				json_object_get_string(json_deployment_update_action),
@@ -1044,21 +1044,30 @@ server_op_res_t server_install_update(void)
 				json_object_get_string(json_data_chunk_name));
 
 		if (result != SERVER_OK) {
-			/* TODO handle partial installations and rollback if
-			 *      more than one artifact is available on hawkBit.
-			 */
-			ERROR("Error processing update chunk named '%s', "
-			      "version %s, part %s\n",
-			      json_object_get_string(json_data_chunk_name),
-			      json_object_get_string(json_data_chunk_version),
-			      json_object_get_string(json_data_chunk_part));
-			(void)server_send_deployment_reply(
-			    action_id, json_data_chunk_max,
-			    json_data_chunk_count,
-			    reply_status_result_finished.failure,
-			    reply_status_execution.closed,
-			    (const char *)"Installing Update Chunk "
+
+			/* Check if failed because it was cancelled */
+			if (server_hawkbit.cancelDuringUpdate) {
+				TRACE("Acknowledging cancelled update.\n");
+				(void)server_send_cancel_reply(server_hawkbit.channel, action_id);
+				/* Inform the installer that a CANCEL was received */
+				notify(SUBPROCESS, 0, "Update cancelled");
+			} else {
+				/* TODO handle partial installations and rollback if
+				 *      more than one artifact is available on hawkBit.
+				 */
+				ERROR("Error processing update chunk named '%s', "
+				      "version %s, part %s\n",
+				json_object_get_string(json_data_chunk_name),
+			        json_object_get_string(json_data_chunk_version),
+			        json_object_get_string(json_data_chunk_part));
+				(void)server_send_deployment_reply(
+			 	    action_id, json_data_chunk_max,
+				    json_data_chunk_count,
+				    reply_status_result_finished.failure,
+				    reply_status_execution.closed,
+				    (const char *)"Installing Update Chunk "
 					  "Artifacts failed.");
+			}
 			goto cleanup;
 		}
 		if (server_send_deployment_reply(
