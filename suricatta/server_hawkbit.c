@@ -740,6 +740,7 @@ server_op_res_t server_process_update_artifact(json_object *json_data_artifact,
 	    json_object_get_array(json_data_artifact);
 	int json_data_artifact_max =
 	    json_object_array_length(json_data_artifact);
+	int json_data_artifact_installed = 0;
 	json_object *json_data_artifact_item = NULL;
 	for (int json_data_artifact_count = 0;
 	     json_data_artifact_count < json_data_artifact_max;
@@ -886,6 +887,7 @@ server_op_res_t server_process_update_artifact(json_object *json_data_artifact,
 		case RUN:
 		case SUCCESS:
 			result = SERVER_OK;
+			json_data_artifact_installed++;
 			break;
 		case FAILURE:
 			result = SERVER_EERR;
@@ -907,6 +909,10 @@ server_op_res_t server_process_update_artifact(json_object *json_data_artifact,
 		}
 	}
 cleanup:
+	/* Nothing installed ? Report that something was wrong */
+	if (!json_data_artifact_installed)
+		result = SERVER_EERR;
+
 	return result;
 }
 
