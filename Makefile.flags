@@ -73,11 +73,6 @@ $(1)_LIBS := $(shell $(PKG_CONFIG) $(PKG_CONFIG_FLAGS) --libs $(2))
 $(1)_LDLIBS := $(patsubst -l%,%,$(shell $(PKG_CONFIG) $(PKG_CONFIG_FLAGS) --libs-only-l $(2)))
 endef
 
-ifeq ($(CONFIG_STATIC),y)
-CFLAGS_swupdate += -static
-PKG_CONFIG_FLAGS += --static
-endif
-
 ifneq ($(CONFIG_EXTRA_CFLAGS),)
 KBUILD_CFLAGS += $(strip $(subst ",,$(CONFIG_EXTRA_CFLAGS)))
 #"))
