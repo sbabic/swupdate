@@ -85,6 +85,7 @@ int check_if_required(struct imglist *list, struct filehdr *pfdh,
 {
 	int skip = SKIP_FILE;
 	struct img_type *img;
+	int img_skip = 0;
 
 	/*
 	 * Check that not more as one image wnat to be streamed
@@ -104,7 +105,8 @@ int check_if_required(struct imglist *list, struct filehdr *pfdh,
 				 *  drop this from the list of images to be installed
 				 */
 				LIST_REMOVE(img, next);
-				return SKIP_FILE;
+				img_skip++;
+				continue;
 			}
 
 			skip = COPY_FILE;
@@ -131,6 +133,9 @@ int check_if_required(struct imglist *list, struct filehdr *pfdh,
 			*pimg = img;
 		}
 	}
+
+	if (img_skip > 0)
+		skip = SKIP_FILE;
 
 	return skip;
 }
