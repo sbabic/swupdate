@@ -207,12 +207,41 @@ out:
 }
 
 #elif defined(CONFIG_SIGALG_CMS)
+static int cms_verify_callback(int ok, X509_STORE_CTX *ctx) {
+	int cert_error = X509_STORE_CTX_get_error(ctx);
+
+	if (!ok) {
+		switch (cert_error) {
+#if defined(CONFIG_CMS_IGNORE_CERTIFICATE_PURPOSE)
+		case X509_V_ERR_CERT_HAS_EXPIRED:
+		case X509_V_ERR_CERT_NOT_YET_VALID:
+			ok = 1;
+			break;
+#endif
+#if defined(CONFIG_CMS_IGNORE_CERTIFICATE_PURPOSE)
+		case X509_V_ERR_INVALID_PURPOSE:
+			ok = 1;
+			break;
+#endif
+		default:
+			break;
+		}
+	}
+
+	return ok;
+}
 static X509_STORE *load_cert_chain(const char *file)
 {
 	X509_STORE *castore = X509_STORE_new();
 	if (!castore) {
 		return NULL;
 	}
+
+	/*
+	 * Set error callback function for verification of CRTs and CRLs in order
+	 * to ignore some errors depending on configuration
+	 */
+	X509_STORE_set_verify_cb(castore, cms_verify_callback);
 
 	BIO *castore_bio = BIO_new_file(file, "r");
 	if (!castore_bio) {

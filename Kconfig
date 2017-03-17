@@ -282,6 +282,19 @@ choice
 
 endchoice
 
+menu "CMS signature verification options"
+depends on SIGALG_CMS
+
+config CMS_IGNORE_EXPIRED_CERTIFICATE
+	bool "Ignore expired certificates"
+	depends on SIGALG_CMS
+
+config CMS_IGNORE_CERTIFICATE_PURPOSE
+	bool "Ignore X.509 certificate purpose"
+	depends on SIGALG_CMS
+endmenu
+
+
 config ENCRYPTED_IMAGES
 	bool "Images can be encrypted with a symmetric key"
 	depends on HAVE_LIBSSL
