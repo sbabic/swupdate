@@ -313,6 +313,7 @@ channel_op_res_t channel_map_curl_error(CURLcode res)
 	case CURLE_RECV_ERROR:
 	case CURLE_GOT_NOTHING:
 	case CURLE_HTTP_POST_ERROR:
+	case CURLE_PARTIAL_FILE:
 		return CHANNEL_EAGAIN;
 	case CURLE_OUT_OF_MEMORY:
 		return CHANNEL_ENOMEM;
@@ -322,7 +323,6 @@ channel_op_res_t channel_map_curl_error(CURLcode res)
 	case CURLE_ABORTED_BY_CALLBACK:
 	case CURLE_WRITE_ERROR:
 	case CURLE_CHUNK_FAILED:
-	case CURLE_PARTIAL_FILE:
 	case CURLE_SSL_SHUTDOWN_FAILED:
 		return CHANNEL_EIO;
 	case CURLE_TOO_MANY_REDIRECTS:
