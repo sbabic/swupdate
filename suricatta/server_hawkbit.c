@@ -98,7 +98,8 @@ server_op_res_t map_channel_retcode(channel_op_res_t response);
 server_op_res_t server_handle_initial_state(update_state_t stateovrrd);
 int server_update_status_callback(ipc_message *msg);
 int server_update_done_callback(RECOVERY_STATUS status);
-server_op_res_t server_process_update_artifact(json_object *json_data_artifact,
+server_op_res_t server_process_update_artifact(int action_id,
+						json_object *json_data_artifact,
 						const char *update_action,
 						const char *part,
 						const char *version,
@@ -724,7 +725,8 @@ int server_update_status_callback(ipc_message __attribute__ ((__unused__)) *msg)
 	return 0;
 }
 
-server_op_res_t server_process_update_artifact(json_object *json_data_artifact,
+server_op_res_t server_process_update_artifact(int action_id,
+						json_object *json_data_artifact,
 						const char *update_action,
 						const char *part,
 						const char *version,
@@ -832,7 +834,8 @@ server_op_res_t server_process_update_artifact(json_object *json_data_artifact,
 		"update": "%s",
 		"part": "%s",
 		"version": "%s",
-		"name": "%s"
+		"name": "%s",
+		"id" : "%d"
 		}
 		);
 		if (ENOMEM_ASPRINTF ==
@@ -840,7 +843,7 @@ server_op_res_t server_process_update_artifact(json_object *json_data_artifact,
 			    update_action,
 			    part,
 			    version,
-			    name)) {
+			    name, action_id)) {
 			ERROR("hawkBit server reply cannot be sent because of OOM.\n");
 			result = SERVER_EBADMSG;
 			goto cleanup_loop;
@@ -1043,7 +1046,7 @@ server_op_res_t server_install_update(void)
 		/* reset flag, will be set if a cancel is detected */
 		server_hawkbit.cancelDuringUpdate = false;
 		result =
-		    server_process_update_artifact(json_data_chunk_artifacts,
+		    server_process_update_artifact(action_id, json_data_chunk_artifacts,
 				json_object_get_string(json_deployment_update_action),
 				json_object_get_string(json_data_chunk_part),
 				json_object_get_string(json_data_chunk_version),
