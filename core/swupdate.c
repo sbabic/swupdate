@@ -60,13 +60,6 @@
 
 #define MODULE_NAME	"swupdate"
 
-/*
- * Number of seconds while below low speed
- * limit before aborting
- * it can be overwritten by -t
- */
-#define DL_LOWSPEED_TIME	300
-
 static pthread_t network_daemon;
 
 /* Tree derived from the configuration file */
@@ -103,8 +96,6 @@ static struct option long_options[] = {
 #endif
 #ifdef CONFIG_DOWNLOAD
 	{"download", required_argument, NULL, 'd'},
-	{"retries", required_argument, NULL, 'r'},
-	{"timeout", required_argument, NULL, 't'},
 #endif
 #ifdef CONFIG_SURICATTA
 	{"suricatta", required_argument, NULL, 'u'},
@@ -122,19 +113,11 @@ int loglevel = ERRORLEVEL;
 static void usage(char *programname)
 {
 	fprintf(stdout, "%s (compiled %s)\n", programname, __DATE__);
-	fprintf(stdout, "Usage %s [OPTION]\n", 
+	fprintf(stdout, "Usage %s [OPTION]\n",
 			programname);
 	fprintf(stdout,
 #ifdef CONFIG_MTD
 		" -b, --blacklist <list of mtd>  : MTDs that must not be scanned for UBI\n"
-#endif
-#ifdef CONFIG_DOWNLOAD
-		" -d, --download <url>           : URL of image to be downloaded. Image will be\n"
-		"                                  downloaded completely to --image filename, then\n"
-		"                                  installation will proceed as usual.\n"
-		" -r, --retries                  : number of retries (resumed download) if\n"
-		"                                  connection is broken (0 means undefinetly retries)\n"
-		" -t, --timeout                  : timeout to check if a connection is lost\n"
 #endif
 		" -p, --postupdate               : execute post-update command\n"
 		" -e, --select <software>,<mode> : Select software images set and source\n"
@@ -156,6 +139,11 @@ static void usage(char *programname)
 		" -c, --check                    : check image and exit, use with -i <filename>\n"
 		" -h, --help                     : print this help and exit\n"
 		);
+#ifdef CONFIG_DOWNLOAD
+	fprintf(stdout,
+		" -d, --download [OPTIONS]       : Parameters to be passed to the downloader\n");
+	download_print_help();
+#endif
 #ifdef CONFIG_SURICATTA
 	fprintf(stdout,
 		" -u, --suricatta [OPTIONS]      : Parameters to be passed to suricatta\n");
@@ -452,8 +440,6 @@ int main(int argc, char **argv)
 	int opt_e = 0;
 	int opt_c = 0;
 	char image_url[MAX_URL];
-	unsigned long __attribute__ ((__unused__)) opt_t = DL_LOWSPEED_TIME;
-	int __attribute__ ((__unused__)) opt_r = 3;
 	char main_options[256];
 	unsigned int public_key_mandatory = 0;
 	struct sigaction sa;
@@ -487,8 +473,6 @@ int main(int argc, char **argv)
 #endif
 #ifdef CONFIG_DOWNLOAD
 	strcat(main_options, "d:");
-	strcat(main_options, "r:");
-	strcat(main_options, "t:");
 #endif
 #ifdef CONFIG_SURICATTA
 	strcat(main_options, "u:");
@@ -607,21 +591,9 @@ int main(int argc, char **argv)
 			opt_d = 1;
 			break;
 #endif
-		case 'r':
-			errno = 0;
-			opt_r = strtoul(optarg, NULL, 10);
-			if (errno) {
-				printf("Wrong number of retries, check your value again !\n");
-				usage(argv[0]);
-				exit(1);
-			}
-			break;
 		case 'H':
 			if (opt_to_hwrev(optarg, &swcfg.hw) < 0)
 				exit(1);
-			break;
-		case 't':
-			opt_t = strtoul(optarg, NULL, 10);
 			break;
 #ifdef CONFIG_SURICATTA
 		case 'u':

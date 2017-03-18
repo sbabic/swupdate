@@ -47,6 +47,15 @@
 	p = strdup(v); \
 } while (0)
 
+/*
+ * Number of seconds while below low speed
+ * limit before aborting
+ * it can be overwritten by -t
+ */
+#define DL_LOWSPEED_TIME	300
+
+#define DL_DEFAULT_RETRIES	3
+
 static int cnt = 0;
 
 struct dwl_options {
@@ -65,7 +74,7 @@ struct dlprogress {
 
 static struct option long_options[] = {
     {"url", required_argument, NULL, 'u'},
-    {"retry", required_argument, NULL, 'r'},
+    {"retries", required_argument, NULL, 'r'},
     {"timeout", required_argument, NULL, 't'},
     {NULL, 0, NULL, 0}};
 
@@ -305,12 +314,24 @@ static int download_settings(void *elem, void  __attribute__ ((__unused__)) *dat
 		SETSTRING(opt->url, tmp);
 	}
 
-	get_field(LIBCFG_PARSER, elem, "retry",
+	get_field(LIBCFG_PARSER, elem, "retries",
 		&opt->retries);
 	get_field(LIBCFG_PARSER, elem, "timeout",
 		&opt->timeout);
 
 	return 0;
+}
+
+void download_print_help(void)
+{
+	fprintf(
+	    stdout,
+	    "\tdownload arguments (mandatory arguments are marked with '*'):\n"
+	    "\t  -u, --url <url>   * <url> is a link to the .swu update image\n"
+	    "\t  -r, --retries       number of retries (resumed download) if connection\n"
+	    "\t                      is broken (0 means indefinitely retries) (default: %d)\n"
+	    "\t  -t, --timeout       timeout to check if a connection is lost (default: %d)\n",
+	    DL_DEFAULT_RETRIES, DL_LOWSPEED_TIME);
 }
 
 int start_download(const char *fname, int argc, char *argv[])
@@ -321,6 +342,10 @@ int start_download(const char *fname, int argc, char *argv[])
 	int attempt = 0;
 
 	memset(&options, 0, sizeof(options));
+
+	options.retries = DL_DEFAULT_RETRIES;
+	options.timeout = DL_LOWSPEED_TIME;
+
 	if (fname) {
 		read_module_settings(fname, "download", download_settings,
 					&options);
