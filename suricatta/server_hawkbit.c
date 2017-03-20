@@ -585,7 +585,7 @@ server_op_res_t server_has_pending_action(int *action_id)
 		DEBUG("Acknowledging cancelled update.\n");
 		(void)server_send_cancel_reply(server_hawkbit.channel, *action_id);
 		/* Inform the installer that a CANCEL was received */
-		notify(SUBPROCESS, 0, "Update cancelled");
+		notify(SUBPROCESS, CANCELUPDATE, "Update cancelled");
 		result = SERVER_OK;
 	}
 	if ((result == SERVER_UPDATE_AVAILABLE) &&

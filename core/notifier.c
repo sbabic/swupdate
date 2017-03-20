@@ -145,7 +145,7 @@ static void console_notifier (RECOVERY_STATUS status, int error, const char *msg
 		snprintf(current, sizeof(current), "SWUPDATE failed [%d]", error);
 		break;
 	case SUBPROCESS:
-		strncpy(current, "EVENT : ", sizeof(current));
+		snprintf(current, sizeof(current), "EVENT [%d] : ", error );
 		break;
 	case DONE:
 		strncpy(current, "SWUPDATE done : ", sizeof(current));

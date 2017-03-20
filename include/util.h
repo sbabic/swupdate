@@ -30,14 +30,28 @@
 
 extern int loglevel;
 
+/*
+ * loglevel is used into TRACE / ERROR
+ * for values > LASTLOGLEVEL, it is an encoded field 
+ * to inform the installer about a change in a subprocess
+ */
 typedef enum {
 	OFF,
 	ERRORLEVEL,
 	WARNLEVEL,
 	INFOLEVEL,
 	DEBUGLEVEL,
-	TRACELEVEL
+	TRACELEVEL,
+	LASTLOGLEVEL=TRACELEVEL
 } LOGLEVEL;
+
+/*
+ * Following are used for notification from another process
+ */
+
+typedef enum {
+	CANCELUPDATE=LASTLOGLEVEL + 1,
+} NOTIFY_CAUSE;
 
 enum {
 	RECOVERY_NO_ERROR,
