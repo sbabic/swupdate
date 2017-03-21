@@ -34,8 +34,8 @@
 #include <sys/socket.h>
 #include "network_ipc.h"
 
-void usage(void) {
-	printf("sendcmd <state> <finished> <execution> <details>\n");
+void usage(char *program) {
+	printf("%s <state> <finished> <execution> <detail 1> <detail 2> ..\n", program);
 }
 
 char buf[256];
@@ -55,32 +55,55 @@ int main(int argc, char *argv[]) {
 	char *buf;
 
 	if (argc < 3) {
-		usage;
+		usage(argv[0]);
 		exit(1);
 	}
 
 	memset(&msg, 0, sizeof(msg));
 	msg.data.instmsg.source = SOURCE_SURICATTA;
+	msg.data.instmsg.cmd = 0;
 
 	size = sizeof(msg.data.instmsg.buf);
 	buf = msg.data.instmsg.buf;
 
 	/*
+	 * Build a json string with the command line parameters
 	 * do not check anything, let SWUpdate
 	 * doing the checks
 	 * An error or a NACK is returned in
 	 * case of failure
 	 */
 	for (i = 1; i < argc; i++) {
-		if (i == 1) {
-			written = snprintf(buf, size, "%s", argv[i]);
-		} else {
-			written = snprintf(buf, size, ",%s", argv[i]);
+		switch (i) {
+		case 1:
+			written = snprintf(buf, size, "{ \"status\" : \"%s\"", argv[i]);
+			break;
+		case 2:
+			written = snprintf(buf, size, ",\"finished\" : \"%s\"", argv[i]);
+			break;
+		case 3:
+			written = snprintf(buf, size, ",\"execution\" : \"%s\"", argv[i]);
+			break;
+		case 4:
+			written = snprintf(buf, size, ",\"details\" : [ \"%s\"", argv[i]);
+			break;
+		default:
+			written = snprintf(buf, size, ",\"%s\"", argv[i]);
+			break;
 		}
 
 		buf += written;
 		size -= written;
+
+		if (size <= 0)
+			break;
 	}
+
+	if (i > 4)
+		written = snprintf(buf, size, "]}");
+	else
+		written = snprintf(buf, size, "}");
+
 	fprintf(stdout, "Sending: '%s'", msg.data.instmsg.buf);
 
 	rc = ipc_send_cmd(&msg);

@@ -1,8 +1,8 @@
 
-all: sendcmd
+all: sendtohawkbit
 
-sendcmd: sendcmd.c
-	${CC} -g -o sendcmd -I../../include sendcmd.c ../../ipc/lib.a -lpthread
+sendtohawkbit: sendtohawkbit.c
+	${CC} -g -o sendtohawkbit -I../../include sendtohawkbit.c ../../ipc/lib.a -lpthread
 
 clean:
-	@rm -f sendcmd
+	@rm -f sendtohawkbit
