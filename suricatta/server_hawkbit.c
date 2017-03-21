@@ -111,7 +111,7 @@ static update_state_t get_state(void);
 server_op_res_t
 server_send_deployment_reply(const int action_id, const int job_cnt_max,
 			     const int job_cnt_cur, const char *finished,
-			     const char *execution_status, const char *details);
+			     const char *execution_status, int numdetails, const char *details[]);
 server_op_res_t server_send_cancel_reply(channel_t *channel, const int action_id);
 
 server_hawkbit_t server_hawkbit = {.url = NULL,
@@ -259,10 +259,34 @@ cleanup:
 	return result;
 }
 
+static char *server_create_details(int numdetails, const char *details[])
+{
+	int i, ret;
+	char *prev = NULL;
+	char *next = NULL;
+
+	for (i = 0; i < numdetails; i++) {
+		TRACE("Detail %d %s", i, details[i]);
+		if (i == 0) {
+			ret = asprintf(&next, "\"%s\"", details[i]);
+		} else {
+			ret = asprintf(&next, "%s,\"%s\"", prev, details[i]);
+			free(prev);
+		}
+		if (ret == ENOMEM_ASPRINTF)
+			return NULL;
+		prev = next;
+	}
+
+	TRACE("Final details: %s\n", next);
+
+	return next;
+}
+
 server_op_res_t
 server_send_deployment_reply(const int action_id, const int job_cnt_max,
 			     const int job_cnt_cur, const char *finished,
-			     const char *execution_status, const char *details)
+			     const char *execution_status, int numdetails, const char *details[])
 {
 	channel_t *channel = server_hawkbit.channel;
 	assert(channel != NULL);
@@ -273,6 +297,10 @@ server_send_deployment_reply(const int action_id, const int job_cnt_max,
 	assert(server_hawkbit.tenant != NULL);
 	assert(server_hawkbit.device_id != NULL);
 
+	char *detail = server_create_details(numdetails, details);
+
+	TRACE("Reporting Installation progress for ID %d: %s / %s / %s \n",
+	      action_id, finished, execution_status, detail);
 	/* clang-format off */
 	static const char* const json_hawkbit_deployment_feedback = STRINGIFY(
 	{
@@ -287,7 +315,7 @@ server_send_deployment_reply(const int action_id, const int job_cnt_max,
 				"finished": "%s"
 			},
 			"execution": "%s",
-			"details" : [ "%s" ]
+			"details" : [ %s ]
 		}
 	}
 	);
@@ -302,7 +330,7 @@ server_send_deployment_reply(const int action_id, const int job_cnt_max,
 	if (ENOMEM_ASPRINTF ==
 	    asprintf(&json_reply_string, json_hawkbit_deployment_feedback,
 		     action_id, fdate, job_cnt_cur, job_cnt_max, finished,
-		     execution_status, details)) {
+		     execution_status, detail)) {
 		ERROR("hawkBit server reply cannot be sent because of OOM.\n");
 		result = SERVER_EINIT;
 		goto cleanup;
@@ -322,6 +350,8 @@ server_send_deployment_reply(const int action_id, const int job_cnt_max,
 	result = map_channel_retcode(channel->put(channel, (void *)&channel_data));
 
 cleanup:
+	if (detail != NULL)
+		free(detail);
 	if (url != NULL) {
 		free(url);
 	}
@@ -615,7 +645,8 @@ static update_state_t get_state(void) {
 static server_op_res_t handle_feedback(update_state_t state,
 					const char *reply_result,
 					const char *reply_execution,
-					const char *reply_message)
+					int numdetails,
+					const char *details[])
 {
 
 	int action_id;
@@ -645,11 +676,9 @@ static server_op_res_t handle_feedback(update_state_t state,
 		break;
 	}
 
-	TRACE("Reporting Installation progress for ID %d: %s / %s / %s\n",
-	      action_id, reply_result, reply_execution, reply_message);
 	if (server_send_deployment_reply(action_id, 0, 0, reply_result,
 					 reply_execution,
-					 reply_message) != SERVER_OK) {
+					 numdetails, details) != SERVER_OK) {
 		ERROR("Error while reporting installation status to server.\n");
 		return SERVER_EAGAIN;
 	}
@@ -700,7 +729,7 @@ server_op_res_t server_handle_initial_state(update_state_t stateovrrd)
 		return SERVER_OK;
 	}
 	server_op_res_t result;
-	result = handle_feedback(state, reply_result, reply_execution, reply_message);
+	result = handle_feedback(state, reply_result, reply_execution, 1, &reply_message);
 
 	if (result != SERVER_UPDATE_AVAILABLE)
 		return result;
@@ -957,11 +986,12 @@ server_op_res_t server_install_update(void)
 		       json_object_get_string(json_deployment_update_action),
 		       deployment_update_action.skip,
 		       strlen(deployment_update_action.skip)) == 0) {
+		const char *details = "Skipped Update.";
 		INFO("Update classified as to be 'skipped' by server.");
 		if (server_send_deployment_reply(
 			action_id, 0, 0, reply_status_result_finished.success,
-			reply_status_execution.closed,
-			(const char *)"Skipped Update.") != SERVER_OK) {
+			reply_status_execution.closed, 1,
+			&details) != SERVER_OK) {
 			ERROR("Error while reporting installation progress to "
 			      "server.\n");
 		}
@@ -986,6 +1016,11 @@ server_op_res_t server_install_update(void)
 	int json_data_chunk_count = 0;
 	int json_data_chunk_max = json_object_array_length(json_data_chunk);
 	json_object *json_data_chunk_item = NULL;
+	const char *details[] = {"Installing Update Chunk Artifacts.",
+				 "Installing Update Chunk Artifacts failed.",
+				 "Installed Chunk.",
+				 "All Chunks Installed."};
+
 	for (json_data_chunk_count = 0;
 	     json_data_chunk_count < json_data_chunk_max;
 	     json_data_chunk_count++) {
@@ -1034,9 +1069,8 @@ server_op_res_t server_install_update(void)
 		if (server_send_deployment_reply(
 			action_id, json_data_chunk_max, json_data_chunk_count,
 			reply_status_result_finished.none,
-			reply_status_execution.proceeding,
-			(const char *)"Installing Update Chunk Artifacts.") !=
-		    SERVER_OK) {
+			reply_status_execution.proceeding, 1,
+			&details[0]) != SERVER_OK) {
 			ERROR("Error while reporting installation progress to "
 			      "server.\n");
 			goto cleanup;
@@ -1073,9 +1107,8 @@ server_op_res_t server_install_update(void)
 			 	    action_id, json_data_chunk_max,
 				    json_data_chunk_count,
 				    reply_status_result_finished.failure,
-				    reply_status_execution.closed,
-				    (const char *)"Installing Update Chunk "
-					  "Artifacts failed.");
+				    reply_status_execution.closed, 1,
+				    &details[1]);
 			}
 			goto cleanup;
 		}
@@ -1083,8 +1116,8 @@ server_op_res_t server_install_update(void)
 			action_id, json_data_chunk_max,
 			json_data_chunk_count + 1,
 			reply_status_result_finished.none,
-			reply_status_execution.proceeding,
-			(const char *)"Installed Chunk.") != SERVER_OK) {
+			reply_status_execution.proceeding, 1,
+			&details[2]) != SERVER_OK) {
 			ERROR("Error while reporting installation progress to "
 			      "server.\n");
 		}
@@ -1099,8 +1132,8 @@ server_op_res_t server_install_update(void)
 	if (server_send_deployment_reply(
 		action_id, json_data_chunk_max, json_data_chunk_count,
 		reply_status_result_finished.none,
-		reply_status_execution.proceeding,
-		(const char *)"All Chunks Installed.") != SERVER_OK) {
+		reply_status_execution.proceeding, 1,
+		&details[3]) != SERVER_OK) {
 		ERROR("Error while reporting installation success to "
 		      "server.\n");
 	}
