@@ -36,8 +36,13 @@ typedef enum {
 	STATE_FAILED = '3',
 	STATE_NOT_AVAILABLE = '4',
 	STATE_ERROR = '5',
-	STATE_WAIT = '6'
+	STATE_WAIT = '6',
+	STATE_LAST = STATE_WAIT
 } update_state_t;
+
+static inline bool is_valid_state(update_state_t state) {
+	return (state >= STATE_OK && state <= STATE_LAST);
+}
 
 server_op_res_t save_state(char *key, update_state_t value);
 server_op_res_t read_state(char *key, update_state_t *value);
