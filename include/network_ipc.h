@@ -47,6 +47,7 @@ typedef union {
 	} status;
 	struct {
 		sourcetype source; /* Who triggered the update */
+		int	cmd;	   /* Optional encoded command */
 		unsigned int len;    /* Len of data valid in buf */
 		char	buf[2048];   /*
 				      * Buffer that each source can fill
