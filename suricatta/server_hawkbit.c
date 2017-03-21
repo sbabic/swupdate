@@ -79,6 +79,24 @@ static struct option long_options[] = {
 static unsigned short mandatory_argument_count = 0;
 
 /*
+ * See Hawkbit's API for an explanation
+ *
+ */
+static const char *execution_values[] = { "closed", "proceeding", "canceled","scheduled", "rejected", "resumed", NULL };
+static const char *finished_values[] = { "success", "failure", "none", NULL};
+
+typedef struct {
+	const char *key;
+	const char **values;
+} hawkbit_enums_t;
+
+static hawkbit_enums_t hawkbit_enums[] = {
+	{ "execution", execution_values },
+	{ "finished", finished_values },
+	{ NULL, NULL }, /* marker */
+};
+
+/*
  * These are used to check if all mandatory fields
  * are set
  */
@@ -92,6 +110,8 @@ extern channel_op_res_t channel_hawkbit_init(void);
 /* Prototypes for "internal" functions */
 /* Note that they're not `static` so that they're callable from unit tests. */
 json_object *json_get_key(json_object *json_root, const char *key);
+const char *json_get_value(struct json_object *json_root,
+			   const char *key);
 json_object *json_get_path_key(json_object *json_root, const char **json_path);
 char *json_get_data_url(json_object *json_root, const char *key);
 server_op_res_t map_channel_retcode(channel_op_res_t response);
@@ -138,6 +158,27 @@ server_op_res_t server_install_update(void);
 server_op_res_t server_send_target_data(void);
 unsigned int server_get_polling_interval(void);
 
+static bool hawkbit_enum_check(const char *key, const char *value)
+{
+	hawkbit_enums_t *table = hawkbit_enums;
+	const char **values;
+
+	while (table->key) {
+		if (!strcmp(key, table->key)) {
+			values = table->values;
+			while (*values != NULL) {
+				if (!strcmp(value, *values))
+					return true;
+				values++;
+			}
+
+			return false;
+		}
+		table++;
+	}
+	return false;
+}
+
 json_object *json_get_key(json_object *json_root, const char *key)
 {
 	json_object *json_child;
@@ -145,6 +186,17 @@ json_object *json_get_key(json_object *json_root, const char *key)
 		return json_child;
 	}
 	return NULL;
+}
+
+const char *json_get_value(struct json_object *json_root,
+			   const char *key)
+{
+	json_object *json_data = json_get_key(json_root, key);
+
+	if (json_data == NULL)
+		return "";
+
+	return json_object_get_string(json_data);
 }
 
 json_object *json_get_path_key(json_object *json_root, const char **json_path)
@@ -1521,79 +1573,80 @@ server_op_res_t server_stop(void)
 	return SERVER_OK;
 }
 
+/*
+ * Currently the only implemented IPC is the feedback for the
+ * Hawkbit server.
+ * This can be extended in future by checking the "cmd" field in the
+ * IPC message
+ */
+
 server_op_res_t server_ipc(int fd)
 {
 	ipc_message msg;
-	int ret;
-	int i;
-	char **s;
 	server_op_res_t result = SERVER_OK;
-	char *cmd;
-	char *state;
+	int ret;
 	update_state_t update_state = STATE_NOT_AVAILABLE;
 
 	ret = read(fd, &msg, sizeof(msg));
 	if (ret != sizeof(msg))
 		return SERVER_EERR;
 
-	/*
-	 * MAGIC and header is checked by the
-	 * network daemon, do not repeat checks
-	 * here. Test just payload.
-	 */
-	s = string_split(msg.data.instmsg.buf, ',');
+	struct json_tokener *json_tokenizer = json_tokener_new();
+	enum json_tokener_error json_res;
+	struct json_object *json_root;
+	do {
+		json_root = json_tokener_parse_ex(
+		    json_tokenizer, msg.data.instmsg.buf, sizeof(msg.data.instmsg.buf));
+	} while ((json_res = json_tokener_get_error(json_tokenizer)) ==
+		 json_tokener_continue);
+	if (json_res != json_tokener_success) {
+		ERROR("Error while parsing channel's returned JSON data: %s\n",
+		      json_tokener_error_desc(json_res));
+		result = SERVER_EERR;
+		json_tokener_free(json_tokenizer);
+		goto server_ipc_end;
+	}
 
-	if (!s) {
+	json_tokener_free(json_tokenizer);
+
+	json_object *json_data = json_get_path_key(
+	    json_root, (const char *[]){"status", NULL});
+	if (json_data == NULL) {
+		ERROR("Got malformed JSON: Could not find field status");
+		DEBUG("Got JSON: %s\n", json_object_to_json_string(json_data));
+		result = SERVER_EERR;
+		goto server_ipc_end;
+	}
+	update_state = (unsigned int)*json_object_get_string(json_data);
+	DEBUG("Got status %c", update_state);
+
+	const char *reply_result = json_get_value(json_root, "finished");
+	const char *reply_execution = json_get_value(json_root, "execution");
+	json_data = json_get_key(json_root, "details");
+
+	if (!hawkbit_enum_check("finished", reply_result) ||
+	    !hawkbit_enum_check("execution", reply_execution) ||
+	    !is_valid_state(update_state)) {
+		ERROR("Wrong values \"execution\" : %s, \"finished\" : %s , \"status\" : %c",
+		       	reply_execution, reply_result, update_state);
 		result = SERVER_EERR;
 		goto server_ipc_end;
 	}
 
-	/*
-	 * it accepts a comma separated list of options,
-	 * first of them is the command
-	 */
-
-	for (i = 0; *(s + i); i++) {
-		switch (i) {
-		case 0:
-			cmd = *s;
-			/* check for command, at the momen just feedback */
-			if (strcmp(cmd, "feedback")) {
-				result = SERVER_EERR;
-				goto server_ipc_end;
-			}
-			break;
-		case 1:
-			state = *(s + i);
-			update_state = (unsigned int)*state;
-			switch (update_state) {
-			case STATE_INSTALLED:
-			case STATE_TESTING:
-			case STATE_FAILED:
-				break;
-
-			default:
-				goto server_ipc_end;
-			}
-			break;
+	int numdetails = json_object_array_length(json_data);
+	const char **details = (const char **)malloc((numdetails + 1) * (sizeof (char *)));
+	if (!numdetails)
+		details[0] = "";
+	else {
+		int i;
+		for (i = 0; i < numdetails; i++) {
+			details[i] = json_object_get_string(json_object_array_get_idx(json_data, i));
+			TRACE("Detail %d : %s", i, details[i]);
 		}
-	} 
-
-	/*
-	 * feedback requires arguments, if not found returns an error
-	 */
-
-	if (i < 5) {
-		result = SERVER_EERR;
-		goto server_ipc_end;
 	}
-
-	const char *reply_result = *(s + 2);
-	const char *reply_execution = *(s + 3);
-	const char *reply_message = *(s + 4);
 
 	if (handle_feedback(update_state, reply_result, reply_execution,
-			    reply_message) != SERVER_UPDATE_AVAILABLE)
+			    numdetails == 0 ? 1 : numdetails, details) != SERVER_UPDATE_AVAILABLE)
 		result = SERVER_EERR;
 	else {
 		server_hawkbit.update_state = SERVER_OK;
@@ -1603,7 +1656,7 @@ server_op_res_t server_ipc(int fd)
 		 */
 		save_state((char *)STATE_KEY, update_state);
 	}
-	
+
 server_ipc_end:
 	if (result == SERVER_EERR) {
 		msg.type = NACK;
@@ -1617,11 +1670,6 @@ server_ipc_end:
 	}
 
 	/* Send ipc back */
-
-	for (i = 0; *(s + i); i++) {
-		free(*(s + i));
-	}
-	free(s);
 
 	return SERVER_OK;
 }
