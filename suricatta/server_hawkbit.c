@@ -1645,16 +1645,25 @@ server_op_res_t server_ipc(int fd)
 		}
 	}
 
-	if (handle_feedback(update_state, reply_result, reply_execution,
-			    numdetails == 0 ? 1 : numdetails, details) != SERVER_UPDATE_AVAILABLE)
+	server_op_res_t response = SERVER_OK;
+	response = handle_feedback(update_state, reply_result, reply_execution,
+				   numdetails == 0 ? 1 : numdetails, details);
+
+	/*
+	 * Only in case of errors report respond with NAK else send ACK
+	 * It is useful when there is no deployment (deployment might be deleted)
+	 * and external process tries to send the information to backend again
+	 */
+
+	if ((response != SERVER_UPDATE_AVAILABLE) && (response != SERVER_OK))
 		result = SERVER_EERR;
 	else {
 		server_hawkbit.update_state = SERVER_OK;
 
 		/*
-		 * Save permanent the state if U-Boot is enabled
+		 * Save the state
 		 */
-		save_state((char *)STATE_KEY, update_state);
+		save_state((char *)STATE_KEY, STATE_OK);
 	}
 
 server_ipc_end:
