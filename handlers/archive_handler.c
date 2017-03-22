@@ -190,7 +190,7 @@ static int install_archive_image(struct img_type *img,
 	 */
 	ret = chdir(path);
 	if (ret) {
-		TRACE("Fault: chdir not possible\n");
+		ERROR("Fault: chdir not possible\n");
 		return -EFAULT;
 	}
 
