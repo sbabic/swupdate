@@ -797,12 +797,19 @@ server_op_res_t server_handle_initial_state(update_state_t stateovrrd)
 	return SERVER_OK;
 }
 
-int server_update_status_callback(ipc_message __attribute__ ((__unused__)) *msg)
+int server_update_status_callback(ipc_message *msg)
 {
-	/* NOTE The return code is actually irrelevant as it's not used by
-	 *      `ipc_wait_for_complete()`. */
-	/* TODO notify() status here to hawkBit or to some syslog service for
-	 *      log persistency. */
+	int cnt = server_hawkbit.errorcnt;
+	/* Store locally just the errors to send them back to hawkbit */
+	if ((msg->data.status.desc) &&
+		(!strncmp(msg->data.status.desc, "ERROR", 5)) &&
+		(cnt < HAWKBIT_MAX_REPORTED_ERRORS)) {
+
+		server_hawkbit.errors[cnt] = strdup(msg->data.status.desc);
+		if (server_hawkbit.errors[cnt])
+			server_hawkbit.errorcnt++;
+	}
+
 	return 0;
 }
 
@@ -818,6 +825,11 @@ server_op_res_t server_process_update_artifact(int action_id,
 	assert(json_data_artifact != NULL);
 	assert(json_object_get_type(json_data_artifact) == json_type_array);
 	server_op_res_t result = SERVER_OK;
+
+	/* Initialize list of errors */
+	for (int i = 0; i < HAWKBIT_MAX_REPORTED_ERRORS; i++)
+		server_hawkbit.errors[i] = NULL;
+	server_hawkbit.errorcnt = 0;
 
 	struct array_list *json_data_artifact_array =
 	    json_object_get_array(json_data_artifact);
@@ -1159,8 +1171,8 @@ server_op_res_t server_install_update(void)
 			 	    action_id, json_data_chunk_max,
 				    json_data_chunk_count,
 				    reply_status_result_finished.failure,
-				    reply_status_execution.closed, 1,
-				    &details[1]);
+				    reply_status_execution.closed, server_hawkbit.errorcnt,
+				    (const char **)server_hawkbit.errors);
 			}
 			goto cleanup;
 		}
@@ -1191,6 +1203,12 @@ server_op_res_t server_install_update(void)
 	}
 
 cleanup:
+	for (int i = 0; i < HAWKBIT_MAX_REPORTED_ERRORS; i++) {
+		if (server_hawkbit.errors[i]) {
+			free(server_hawkbit.errors[i]);
+			server_hawkbit.errors[i] = NULL;
+		}
+	}
 	if (channel_data.json_reply != NULL &&
 	    json_object_put(channel_data.json_reply) != JSON_OBJECT_FREED) {
 		ERROR("JSON object should be freed but was not.\n");

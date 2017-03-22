@@ -21,6 +21,9 @@
 #include <stdbool.h>
 #include <suricatta/channel.h>
 
+/* Have a queue for errors reported by installer */
+#define HAWKBIT_MAX_REPORTED_ERRORS	10
+
 /* hawkBit Server Implementation Private Header File.
  *
  * This is a "private" header for testability, i.e., the declarations and
@@ -40,6 +43,8 @@ typedef struct {
 	update_state_t update_state;
 	channel_t *channel;
 	bool	cancelDuringUpdate;
+	char *errors[HAWKBIT_MAX_REPORTED_ERRORS];
+	int errorcnt;
 } server_hawkbit_t;
 
 extern server_hawkbit_t server_hawkbit;
