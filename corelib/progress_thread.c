@@ -153,13 +153,14 @@ void swupdate_progress_end(RECOVERY_STATUS status)
 	pthread_mutex_unlock(&prbar->lock);
 }
 
-void swupdate_progress_info(int cause, const char *info)
+void swupdate_progress_info(RECOVERY_STATUS status, int cause, const char *info)
 {
 	struct swupdate_progress *prbar = &progress;
 	pthread_mutex_lock(&prbar->lock);
 	snprintf(prbar->msg.info, sizeof(prbar->msg.info), "%d: %s",
 			cause, info);
 	prbar->msg.infolen = strlen(prbar->msg.info);
+	prbar->msg.status = status;
 	send_progress_msg();
 	/* Info is just an event, reset it after sending */
 	prbar->msg.infolen = 0;

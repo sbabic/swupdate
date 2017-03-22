@@ -160,14 +160,20 @@ static void console_notifier (RECOVERY_STATUS status, int error, const char *msg
  * Process notifier: this is called when a process has something to say
  * and wants that the information is passed to the progress interface
  */
-static void process_notifier (RECOVERY_STATUS status, int error, const char *msg)
+static void process_notifier (RECOVERY_STATUS status, int event, const char *msg)
 {
 
 	/* Check just in case a process want to send an info outside */
 	if (status != SUBPROCESS)
 	       return;
 
-	swupdate_progress_info(error, msg);
+	switch (event) {
+	case (CANCELUPDATE):
+		status = FAILURE;
+		break;
+	}
+
+	swupdate_progress_info(status, event, msg);
 
 }
 
