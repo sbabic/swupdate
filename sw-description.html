@@ -116,6 +116,7 @@
 <li class="toctree-l1"><a class="reference internal" href="help_and_support.html">Mailing List</a></li>
 <li class="toctree-l1"><a class="reference internal" href="help_and_support.html#swupdate-flyer">SWUpdate Flyer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="help_and_support.html#presentations-slides">Presentations slides</a></li>
+<li class="toctree-l1"><a class="reference internal" href="help_and_support.html#they-use-swupdate">They use SWUpdate</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project&#8217;s road-map</a></li>
@@ -676,8 +677,14 @@ created or adjusted with a new size</td>
 <td>string</td>
 <td>images
 files</td>
-<td>devicenode as found in /dev. Usage
-depends on handler.
+<td>devicenode as found in /dev or a
+symlink to it. Can be specified as
+absolute path or a name in /dev folder
+For example if /dev/mtd-dtb is a link
+to /dev/mtd3 &#8220;mtd3&#8221;, &#8220;mtd-dtb&#8221;,
+&#8220;/dev/mtd3&#8221; and &#8220;/dev/mtd-dtb&#8221; are
+valid names.
+Usage depends on handler.
 For files, it indicates on which
 device the &#8220;filesystem&#8221; must be
 mounted. If not specified, the current

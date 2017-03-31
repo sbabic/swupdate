@@ -573,16 +573,6 @@ Command line parameters
 |             |          | Example: U-Boot and environment in MTD0-1: |
 |             |          | **swupdate -b "0 1"**                      |
 +-------------+----------+--------------------------------------------+
-| -d <URL>    | string   | Active only if CONFIG_DOWNLOAD is set      |
-|             |          | This is the URL where new software is      |
-|             |          | pulled. URL is a link to a valid .swu image|
-+-------------+----------+--------------------------------------------+
-| -r <retries>| integer  | Active only if CONFIG_DOWNLOAD is set      |
-|             |          | Number of retries before a download is     |
-|             |          | considered broken. With "-r 0", SWUpdate   |
-|             |          | will not stop until a valid software is    |
-|             |          | loaded.                                    |
-+-------------+----------+--------------------------------------------+
 | -e <sel>    | string   | sel is in the format <software>,<mode>     |
 |             |          | It allows to find a subset of rules in     |
 |             |          | the sw-description file. With it,          |
@@ -615,15 +605,30 @@ Command line parameters
 | -H          | string   | set board name and Hardware revision       |
 | <board:rev> |          |                                            |
 +-------------+----------+--------------------------------------------+
-| -t <timeout>| integer  | Timeout for connection lost when           |
-|             |          | downloading                                |
-+-------------+----------+--------------------------------------------+
 | -c          |    -     | This will check ``*.swu`` file against     |
 |             |          | internal tests. It ensures that files      |
 |             |          | referenced in sw-description are present.  |
 |             |          | Usage: swupdate -c -i <file>               |
 +-------------+----------+--------------------------------------------+
 | -p          | string   | Execute post-update command.               |
++-------------+----------+--------------------------------------------+
++-------------+----------+--------------------------------------------+
+| -d <parms>  | string   | Active only if CONFIG_DOWNLOAD is set      |
+|             |          | start internal downloader client and pass  |
+|             |          | to it a command line string.               |
+|             |          | See below the internal command line        |
+|             |          | arguments for the downloader               |
++-------------+----------+--------------------------------------------+
+| -u <url>    | string   | This is the URL where new software is      |
+|             |          | pulled. URL is a link to a valid .swu image|
++-------------+----------+--------------------------------------------+
+| -r <retries>| integer  | Number of retries before a download is     |
+|             |          | considered broken. With "-r 0", SWUpdate   |
+|             |          | will not stop until a valid software is    |
+|             |          | loaded.                                    |
++-------------+----------+--------------------------------------------+
+| -t <timeout>| integer  | Timeout for connection lost when           |
+|             |          | downloading                                |
 +-------------+----------+--------------------------------------------+
 
 Changes in boot-loader code

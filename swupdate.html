@@ -126,6 +126,7 @@
 <li class="toctree-l1"><a class="reference internal" href="help_and_support.html">Mailing List</a></li>
 <li class="toctree-l1"><a class="reference internal" href="help_and_support.html#swupdate-flyer">SWUpdate Flyer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="help_and_support.html#presentations-slides">Presentations slides</a></li>
+<li class="toctree-l1"><a class="reference internal" href="help_and_support.html#they-use-swupdate">They use SWUpdate</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project&#8217;s road-map</a></li>
@@ -684,20 +685,6 @@ searches for UBI volumes.
 Example: U-Boot and environment in MTD0-1:
 <strong>swupdate -b &#8220;0 1&#8221;</strong></td>
 </tr>
-<tr class="row-odd"><td>-d &lt;URL&gt;</td>
-<td>string</td>
-<td>Active only if CONFIG_DOWNLOAD is set
-This is the URL where new software is
-pulled. URL is a link to a valid .swu image</td>
-</tr>
-<tr class="row-even"><td>-r &lt;retries&gt;</td>
-<td>integer</td>
-<td>Active only if CONFIG_DOWNLOAD is set
-Number of retries before a download is
-considered broken. With &#8220;-r 0&#8221;, SWUpdate
-will not stop until a valid software is
-loaded.</td>
-</tr>
 <tr class="row-odd"><td>-e &lt;sel&gt;</td>
 <td>string</td>
 <td>sel is in the format &lt;software&gt;,&lt;mode&gt;
@@ -759,12 +746,7 @@ see suricatta&#8217;s documentation for details.</td>
 <td>string</td>
 <td>set board name and Hardware revision</td>
 </tr>
-<tr class="row-odd"><td>-t &lt;timeout&gt;</td>
-<td>integer</td>
-<td>Timeout for connection lost when
-downloading</td>
-</tr>
-<tr class="row-even"><td>-c</td>
+<tr class="row-odd"><td>-c</td>
 <td><ul class="first last simple">
 <li></li>
 </ul>
@@ -774,9 +756,38 @@ internal tests. It ensures that files
 referenced in sw-description are present.
 Usage: swupdate -c -i &lt;file&gt;</td>
 </tr>
-<tr class="row-odd"><td>-p</td>
+<tr class="row-even"><td>-p</td>
 <td>string</td>
 <td>Execute post-update command.</td>
+</tr>
+<tr class="row-odd"><td>&nbsp;</td>
+<td>&nbsp;</td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td>-d &lt;parms&gt;</td>
+<td>string</td>
+<td>Active only if CONFIG_DOWNLOAD is set
+start internal downloader client and pass
+to it a command line string.
+See below the internal command line
+arguments for the downloader</td>
+</tr>
+<tr class="row-odd"><td>-u &lt;url&gt;</td>
+<td>string</td>
+<td>This is the URL where new software is
+pulled. URL is a link to a valid .swu image</td>
+</tr>
+<tr class="row-even"><td>-r &lt;retries&gt;</td>
+<td>integer</td>
+<td>Number of retries before a download is
+considered broken. With &#8220;-r 0&#8221;, SWUpdate
+will not stop until a valid software is
+loaded.</td>
+</tr>
+<tr class="row-odd"><td>-t &lt;timeout&gt;</td>
+<td>integer</td>
+<td>Timeout for connection lost when
+downloading</td>
 </tr>
 </tbody>
 </table>

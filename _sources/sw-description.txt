@@ -569,8 +569,14 @@ There are 4 main sections inside sw-description:
    | ubipartition| string   | images     | Just if type = "ubivol". Volume to be |
    |             |          |            | created or adjusted with a new size   |
    +-------------+----------+------------+---------------------------------------+
-   | device      | string   | images     | devicenode as found in /dev. Usage    |
-   |             |          | files      | depends on handler.                   |
+   | device      | string   | images     | devicenode as found in /dev or a      |
+   |             |          | files      | symlink to it. Can be specified as    |
+   |             |          |            | absolute path or a name in /dev folder|
+   |             |          |            | For example if /dev/mtd-dtb is a link |
+   |             |          |            | to /dev/mtd3 "mtd3", "mtd-dtb",       |
+   |             |          |            | "/dev/mtd3" and "/dev/mtd-dtb" are    |
+   |             |          |            | valid names.                          |
+   |             |          |            | Usage depends on handler.             |
    |             |          |            | For files, it indicates on which      |
    |             |          |            | device the "filesystem" must be       |
    |             |          |            | mounted. If not specified, the current|
