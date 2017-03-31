@@ -15,8 +15,8 @@ A short description about the project and the features (in english and german)
 can be found in the `flyer <http://www.denx.de/en/pub/Software/WebHome/we-update.pdf>`_
 
 
-Presentations slides
-=====================
+Talks about SWUpdate
+====================
 
        - `Software Update in Embedded Systems by Stefano Babic <http://events.linuxfoundation.org/sites/events/files/slides/SoftwareUpdateForEmbedded.pdf>`_
        - `Updating Embedded Linux devices in field by Chris Simmonds <http://de.slideshare.net/chrissimmonds/linux-fieldupdate2015>`_
@@ -32,3 +32,7 @@ Presentations slides
          `Video <https://youtu.be/vVS-ZRNE0Lc?list=PLbzoR-pLrL6pRFP6SOywVJWdEHlmQE51q>`_
        - System Upgrade with SWUpdate by Gabriel Huau, ELC 2017, `Slides <http://events.linuxfoundation.org/sites/events/files/slides/ELC2017_SWUpdate.pdf>`_, `Video <https://www.youtube.com/watch?v=ePRTTfGJUI4&t=16s>`_
 
+Useful references
+=================
+
+        - `Boundary Devices, Using SWUpdate to upgrade your system <https://boundarydevices.com/using-swupdate-upgrade-system>`_
