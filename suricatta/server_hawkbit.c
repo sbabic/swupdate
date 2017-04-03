@@ -116,7 +116,7 @@ json_object *json_get_path_key(json_object *json_root, const char **json_path);
 char *json_get_data_url(json_object *json_root, const char *key);
 server_op_res_t map_channel_retcode(channel_op_res_t response);
 server_op_res_t server_handle_initial_state(update_state_t stateovrrd);
-int server_update_status_callback(ipc_message *msg);
+static int server_update_status_callback(ipc_message *msg);
 int server_update_done_callback(RECOVERY_STATUS status);
 server_op_res_t server_process_update_artifact(int action_id,
 						json_object *json_data_artifact,
@@ -157,6 +157,28 @@ server_op_res_t server_start(char *fname, int argc, char *argv[]);
 server_op_res_t server_install_update(void);
 server_op_res_t server_send_target_data(void);
 unsigned int server_get_polling_interval(void);
+
+/*
+ * This is called when a general error is found before sending the stream
+ * to the installer. In this way, errors are collected in the same way as
+ * when the installer is called.
+ */
+static inline void server_hawkbit_error(const char *s)
+{
+	int cnt = server_hawkbit.errorcnt;
+	/* Store locally just the errors to send them back to hawkbit */
+	if ((s) &&
+		(cnt < HAWKBIT_MAX_REPORTED_ERRORS)) {
+		server_hawkbit.errors[cnt] = strdup(s);
+		if (server_hawkbit.errors[cnt])
+			server_hawkbit.errorcnt++;
+	}
+	/*
+	 * Be careful: this function should *not* be called when update
+	 * is started, because the same error is sent twice
+	 */
+	ERROR("%s", s);
+}
 
 static bool hawkbit_enum_check(const char *key, const char *value)
 {
@@ -694,6 +716,19 @@ static update_state_t get_state(void) {
 	return is_state_valid(state) ? state : STATE_ERROR;
 }
 
+static void add_detail_error(const char *s)
+{
+	int cnt = server_hawkbit.errorcnt;
+	/* Store locally just the errors to send them back to hawkbit */
+	if ((s) && (!strncmp(s, "ERROR", 5)) &&
+		(cnt < HAWKBIT_MAX_REPORTED_ERRORS)) {
+
+		server_hawkbit.errors[cnt] = strdup(s);
+		if (server_hawkbit.errors[cnt])
+			server_hawkbit.errorcnt++;
+	}
+}
+
 static server_op_res_t handle_feedback(update_state_t state,
 					const char *reply_result,
 					const char *reply_execution,
@@ -797,18 +832,10 @@ server_op_res_t server_handle_initial_state(update_state_t stateovrrd)
 	return SERVER_OK;
 }
 
-int server_update_status_callback(ipc_message *msg)
+static int server_update_status_callback(ipc_message *msg)
 {
-	int cnt = server_hawkbit.errorcnt;
 	/* Store locally just the errors to send them back to hawkbit */
-	if ((msg->data.status.desc) &&
-		(!strncmp(msg->data.status.desc, "ERROR", 5)) &&
-		(cnt < HAWKBIT_MAX_REPORTED_ERRORS)) {
-
-		server_hawkbit.errors[cnt] = strdup(msg->data.status.desc);
-		if (server_hawkbit.errors[cnt])
-			server_hawkbit.errorcnt++;
-	}
+	add_detail_error(msg->data.status.desc);
 
 	return 0;
 }
@@ -864,8 +891,8 @@ server_op_res_t server_process_update_artifact(int action_id,
 		    (const char *[]){"_links", "download-http", "href", NULL});
 #ifndef CONFIG_SURICATTA_SSL
 		if (json_data_artifact_url_http == NULL) {
-			ERROR("No artifact download HTTP URL reported by "
-			      "server.\n");
+			server_hawkbit_error("No artifact download HTTP URL reported by "
+			      "server.");
 			result = SERVER_EBADMSG;
 			goto cleanup;
 		}
@@ -876,7 +903,7 @@ server_op_res_t server_process_update_artifact(int action_id,
 			? json_data_artifact_url_http
 			: json_data_artifact_url_https;
 		if (json_data_artifact_url == NULL) {
-			ERROR("No artifact download URL reported by server.\n");
+			server_hawkbit_error("No artifact download URL reported by server.\n");
 			result = SERVER_EBADMSG;
 			goto cleanup;
 		}
@@ -884,7 +911,7 @@ server_op_res_t server_process_update_artifact(int action_id,
 		if (json_data_artifact_filename == NULL ||
 		    json_data_artifact_sha1hash == NULL ||
 		    json_data_artifact_size == NULL) {
-			ERROR(
+			server_hawkbit_error(
 			    "Got malformed JSON: Could not find fields "
 			    "'filename', 'hashes->sha1', or 'size' in JSON.\n");
 			DEBUG("Got JSON: %s\n", json_object_to_json_string(
@@ -1006,8 +1033,10 @@ server_op_res_t server_process_update_artifact(int action_id,
 	}
 cleanup:
 	/* Nothing installed ? Report that something was wrong */
-	if (!json_data_artifact_installed)
+	if (!json_data_artifact_installed) {
+		server_hawkbit_error("No suitable .swu image found");
 		result = SERVER_EERR;
+	}
 
 	return result;
 }
@@ -1066,8 +1095,8 @@ server_op_res_t server_install_update(void)
 	    json_get_path_key(channel_data.json_reply,
 			      (const char *[]){"deployment", "chunks", NULL});
 	if (json_data_chunk == NULL) {
-		ERROR("Got malformed JSON: Could not find field "
-		      "deployment->chunks.\n");
+		server_hawkbit_error("Got malformed JSON: Could not find field "
+		      "deployment->chunks.");
 		DEBUG("Got JSON: %s\n",
 		      json_object_to_json_string(channel_data.json_reply));
 		result = SERVER_EBADMSG;
@@ -1101,8 +1130,8 @@ server_op_res_t server_install_update(void)
 		if ((json_data_chunk_part == NULL) ||
 		    (json_data_chunk_version == NULL) ||
 		    (json_data_chunk_name == NULL)) {
-			ERROR("Got malformed JSON: Could not find fields "
-			      "'part', 'version', or 'name'.\n");
+			server_hawkbit_error("Got malformed JSON: Could not find fields "
+			      "'part', 'version', or 'name'.");
 			DEBUG("Got JSON: %s\n", json_object_to_json_string(
 						    channel_data.json_reply));
 			result = SERVER_EBADMSG;
@@ -1122,8 +1151,8 @@ server_op_res_t server_install_update(void)
 		json_object *json_data_chunk_artifacts = json_get_path_key(
 		    json_data_chunk_item, (const char *[]){"artifacts", NULL});
 		if (json_data_chunk_artifacts == NULL) {
-			ERROR("Got malformed JSON: Could not find field "
-			      "deployment->chunks->artifacts.\n");
+			server_hawkbit_error("Got malformed JSON: Could not find field "
+			      "deployment->chunks->artifacts.");
 			DEBUG("Got JSON: %s\n", json_object_to_json_string(
 						    channel_data.json_reply));
 			result = SERVER_EBADMSG;
