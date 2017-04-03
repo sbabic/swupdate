@@ -886,6 +886,9 @@ channel_op_res_t channel_get(channel_t *this, void *data)
 		if (http_response_code == 500) {
 			DEBUG("The error's message is: '%s'\n", chunk.memory);
 		}
+		if (http_response_code == 404) {
+			DEBUG("The error's message is: '%s'\n", chunk.memory);
+		}
 		goto cleanup_chunk;
 	}
 	TRACE("Channel operation returned HTTP status code %ld.\n",
