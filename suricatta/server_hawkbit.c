@@ -382,7 +382,7 @@ server_send_deployment_reply(const int action_id, const int job_cnt_max,
 	if (ENOMEM_ASPRINTF ==
 	    asprintf(&json_reply_string, json_hawkbit_deployment_feedback,
 		     action_id, fdate, job_cnt_cur, job_cnt_max, finished,
-		     execution_status, detail)) {
+		     execution_status, detail ? detail : " ")) {
 		ERROR("hawkBit server reply cannot be sent because of OOM.\n");
 		result = SERVER_EINIT;
 		goto cleanup;
