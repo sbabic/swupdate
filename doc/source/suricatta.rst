@@ -94,7 +94,7 @@ has to implement:
     channel_op_res_t channel_close(channel_t *this);
     channel_op_res_t channel_put(channel_t *this, void* data);
     channel_op_res_t channel_get(channel_t *this, void* data);
-    channel_op_res_t channel_get_file(channel_t *this, void* data);
+    channel_op_res_t channel_get_file(channel_t *this, void* data, int file_handle);
 
 ``include/suricatta/server.h`` describes the functionality a server has
 to implement:

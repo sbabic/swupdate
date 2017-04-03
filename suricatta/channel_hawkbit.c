@@ -80,7 +80,7 @@ channel_op_res_t channel_hawkbit_init(void);
 channel_op_res_t channel_close(channel_t *this);
 channel_op_res_t channel_open(channel_t *this, void *cfg);
 channel_op_res_t channel_get(channel_t *this, void *data);
-channel_op_res_t channel_get_file(channel_t *this, void *data);
+channel_op_res_t channel_get_file(channel_t *this, void *data, int file_handle);
 channel_op_res_t channel_put(channel_t *this, void *data);
 channel_t *channel_new(void);
 
@@ -626,7 +626,7 @@ channel_op_res_t channel_put(channel_t *this, void *data)
 	}
 }
 
-channel_op_res_t channel_get_file(channel_t *this, void *data)
+channel_op_res_t channel_get_file(channel_t *this, void *data, int file_handle)
 {
 	channel_curl_t *channel_curl = this->priv;
 	assert(data != NULL);
@@ -665,19 +665,22 @@ channel_op_res_t channel_get_file(channel_t *this, void *data)
 		goto cleanup_header;
 	}
 
-	int file_handle = 0;
-	for (int retries = 3; retries >= 0; retries--) {
-		file_handle = ipc_inst_start_ext(SOURCE_SURICATTA,
-			channel_data->info == NULL ? 0 : strlen(channel_data->info),
-			channel_data->info);
-		if (file_handle > 0)
-			break;
-		sleep(1);
-	}
-	if (file_handle < 0) {
-		ERROR("Cannot open SWUpdate IPC stream: %s\n", strerror(errno));
-		result = CHANNEL_EIO;
-		goto cleanup_header;
+	if (file_handle == 0) {
+		for (int retries = 3; retries >= 0; retries--) {
+			file_handle = ipc_inst_start_ext(SOURCE_SURICATTA,
+				channel_data->info == NULL ? 0 : strlen(channel_data->info),
+				channel_data->info);
+			if (file_handle > 0)
+				break;
+			sleep(1);
+		}
+		if (file_handle < 0) {
+			ERROR("Cannot open SWUpdate IPC stream: %s\n", strerror(errno));
+			result = CHANNEL_EIO;
+			goto cleanup_header;
+		}
+	} else {
+		assert(file_handle > 0);
 	}
 
 	write_callback_t wrdata;
@@ -800,9 +803,11 @@ channel_op_res_t channel_get_file(channel_t *this, void *data)
 
 cleanup_file:
 	/* NOTE ipc_end() calls close() but does not return its error code,
-	 *      so use close() here directly to issue an error in case. */
+	 *      so use close() here directly to issue an error in case.
+	 *      Also, for a given file handle, calling ipc_end() would make
+	 *      no semantic sense. */
 	if (close(file_handle) != 0) {
-		ERROR("Channel error while closing SWUpdate IPC stream: '%s'\n",
+		ERROR("Channel error while closing download target handle: '%s'\n",
 		      strerror(errno));
 	}
 cleanup_header:
