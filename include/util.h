@@ -184,4 +184,6 @@ unsigned char *get_aes_ivt(void);
 /* Getting global information */
 int get_install_info(sourcetype *source, char *buf, int len);
 
+unsigned long long ustrtoull(const char *cp, char **endp, unsigned int base);
+
 #endif
