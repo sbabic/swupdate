@@ -982,7 +982,8 @@ server_op_res_t server_process_update_artifact(int action_id,
 		channel_op_res_t cresult =
 		    channel->get_file(channel, (void *)&channel_data);
 		if ((result = map_channel_retcode(cresult)) != SERVER_OK) {
-			ERROR("Error while downloading artifact.\n");
+			/* this is called to collect errors */
+			ipc_wait_for_complete(server_update_status_callback);
 			goto cleanup_loop;
 		}
 
@@ -990,11 +991,12 @@ server_op_res_t server_process_update_artifact(int action_id,
 		if (strncmp((char *)&channel_data.sha1hash,
 			    json_object_get_string(json_data_artifact_sha1hash),
 			    SHA_DIGEST_LENGTH) != 0) {
-			ERROR(
+				ERROR(
 			    "Checksum does not match: Should be '%s', but "
 			    "actually is '%s'.\n",
 			    json_object_get_string(json_data_artifact_sha1hash),
 			    channel_data.sha1hash);
+			ipc_wait_for_complete(server_update_status_callback);
 			result = SERVER_EBADMSG;
 			goto cleanup_loop;
 		}
