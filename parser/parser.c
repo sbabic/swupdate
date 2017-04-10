@@ -17,6 +17,7 @@
  * Foundation, Inc.
  */
 
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -357,6 +358,8 @@ static void parse_images(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 	void *setting, *elem;
 	int count, i;
 	struct img_type *image;
+	char seek_str[MAX_SEEK_STRING_SIZE];
+	char *endp = NULL;
 
 	setting = find_node(p, cfg, "images", swcfg);
 
@@ -392,8 +395,21 @@ static void parse_images(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 		GET_FIELD_STRING(p, elem, "device", image->device);
 		GET_FIELD_STRING(p, elem, "mtdname", image->path);
 		GET_FIELD_STRING(p, elem, "type", image->type);
+		GET_FIELD_STRING(p, elem, "offset", seek_str);
 		GET_FIELD_STRING(p, elem, "data", image->type_data);
 		get_hash_value(p, elem, image->sha256);
+
+		/* convert the offset handling multiplicative suffixes */
+		if (seek_str != NULL && strnlen(seek_str, MAX_SEEK_STRING_SIZE) != 0) {
+			errno = 0;
+			image->seek = ustrtoull(seek_str, &endp, 0);
+			if (seek_str == endp || (image->seek == ULLONG_MAX && \
+					errno == ERANGE)) {
+				ERROR("offset argument: ustrtoull failed");
+				return;
+			}
+		} else
+			image->seek = 0;
 
 		/* if the handler is not explicit set, try to find the right one */
 		if (!strlen(image->type)) {

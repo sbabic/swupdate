@@ -31,6 +31,7 @@
 #define BOOTLOADER_VAR_LENGTH 16
 #define MAX_REVISION_LENGTH	SWUPDATE_GENERAL_STRING_SIZE
 #define MAX_BOOT_SCRIPT_LINE_LENGTH	1024
+#define MAX_SEEK_STRING_SIZE	32
 
 /* These are fixed path to temporary files */
 #define SCRIPTS_DIR	TMPDIR "scripts/"

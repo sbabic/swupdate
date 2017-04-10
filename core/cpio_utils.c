@@ -110,7 +110,7 @@ static int copy_write(void *out, const void *buf, int len)
 	return 0;
 }
 
-int copyfile(int fdin, void *out, int nbytes, unsigned long *offs,
+int copyfile(int fdin, void *out, int nbytes, unsigned long *offs, unsigned long long seek,
 	int skip_file, int __attribute__ ((__unused__)) compressed,
 	uint32_t *checksum, unsigned char *hash, int encrypted, writeimage callback)
 {
@@ -169,6 +169,16 @@ int copyfile(int fdin, void *out, int nbytes, unsigned long *offs,
 		dcrypt = swupdate_DECRYPT_init(aes_key, ivt);
 		if (!dcrypt) {
 			ERROR("decrypt initialization failure, aborting");
+			ret = -EFAULT;
+			goto copyfile_exit;
+		}
+	}
+
+	if (seek) {
+		int fdout = (out != NULL) ? *(int *)out : -1;
+		TRACE("offset has been defined: %llu bytes\n", seek);
+		if (lseek(fdout, seek, SEEK_SET) < 0) {
+			ERROR("offset argument: seek failed\n");
 			ret = -EFAULT;
 			goto copyfile_exit;
 		}
@@ -291,6 +301,7 @@ int copyimage(void *out, struct img_type *img, writeimage callback)
 			out,
 			img->size,
 			(unsigned long *)&img->offset,
+			img->seek,
 			0, /* no skip */
 			img->compressed,
 			&img->checksum,
@@ -359,7 +370,7 @@ off_t extract_sw_description(int fd, const char *descfile, off_t start)
 		close(fdout);
 		return -1;
 	}
-	if (copyfile(fd, &fdout, fdh.size, &offset, 0, 0, &checksum, NULL, 0, NULL) < 0) {
+	if (copyfile(fd, &fdout, fdh.size, &offset, 0, 0, 0, &checksum, NULL, 0, NULL) < 0) {
 		ERROR("%s corrupted or not valid\n", descfile);
 		close(fdout);
 		return -1;
@@ -421,7 +432,7 @@ off_t extract_next_file(int fd, int fdout, off_t start, int compressed,
 
 	if (lseek(fd, offset, SEEK_SET) < 0)
 		ERROR("CPIO file corrupted : %s\n", strerror(errno));
-	if (copyfile(fd, &fdout, fdh.size, &offset, 0, compressed, &checksum, hash, encrypted, NULL) < 0) {
+	if (copyfile(fd, &fdout, fdh.size, &offset, 0, 0, compressed, &checksum, hash, encrypted, NULL) < 0) {
 		ERROR("Error copying extracted file\n");
 	}
 
@@ -470,7 +481,7 @@ int cpio_scan(int fd, struct swupdate_cfg *cfg, off_t start)
 		 * use copyfile for checksum verification, as we skip file
 		 * we do not have to provide fdout
 		 */
-		if (copyfile(fd, NULL, fdh.size, &offset, 1, 0, &checksum, NULL, 0, NULL) != 0) {
+		if (copyfile(fd, NULL, fdh.size, &offset, 0, 1, 0, &checksum, NULL, 0, NULL) != 0) {
 			ERROR("invalid archive\n");
 			return -1;
 		}

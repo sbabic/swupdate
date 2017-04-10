@@ -69,6 +69,7 @@ struct img_type {
 	char type_data[SWUPDATE_GENERAL_STRING_SIZE];	/* Data for handler */
 	char extract_file[MAX_IMAGE_FNAME];
 	char filesystem[MAX_IMAGE_FNAME];
+	unsigned long long seek;
 	int required;
 	int provided;
 	int compressed;

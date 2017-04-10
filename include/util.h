@@ -148,6 +148,7 @@ int decompress_image(int infile, unsigned long *offs, int nbytes,
 
 int openfile(const char *filename);
 int copyfile(int fdin, void *out, int nbytes, unsigned long *offs,
+	unsigned long long seek,
 	int skip_file, int compressed, uint32_t *checksum,
 	unsigned char *hash, int encrypted, writeimage callback);
 int copyimage(void *out, struct img_type *img, writeimage callback);
