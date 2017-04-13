@@ -35,7 +35,7 @@
 #include "network_ipc.h"
 
 void usage(char *program) {
-	printf("%s <state> <finished> <execution> <detail 1> <detail 2> ..\n", program);
+	printf("%s <action id> <status> <finished> <execution> <detail 1> <detail 2> ..\n", program);
 }
 
 char buf[256];
@@ -76,15 +76,18 @@ int main(int argc, char *argv[]) {
 	for (i = 1; i < argc; i++) {
 		switch (i) {
 		case 1:
-			written = snprintf(buf, size, "{ \"status\" : \"%s\"", argv[i]);
+			written = snprintf(buf, size, "{ \"id\" : \"%lu\"", strtoul(argv[i], NULL, 10));
 			break;
 		case 2:
-			written = snprintf(buf, size, ",\"finished\" : \"%s\"", argv[i]);
+			written = snprintf(buf, size, ", \"status\" : \"%s\"", argv[i]);
 			break;
 		case 3:
-			written = snprintf(buf, size, ",\"execution\" : \"%s\"", argv[i]);
+			written = snprintf(buf, size, ",\"finished\" : \"%s\"", argv[i]);
 			break;
 		case 4:
+			written = snprintf(buf, size, ",\"execution\" : \"%s\"", argv[i]);
+			break;
+		case 5:
 			written = snprintf(buf, size, ",\"details\" : [ \"%s\"", argv[i]);
 			break;
 		default:
