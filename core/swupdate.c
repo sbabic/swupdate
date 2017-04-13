@@ -57,6 +57,7 @@
 #include "parselib.h"
 #include "swupdate_settings.h"
 #include "pctl.h"
+#include "bootloader.h"
 
 #define MODULE_NAME	"swupdate"
 
@@ -346,7 +347,7 @@ static int install_from_file(char *fname, int check)
 	/*
 	 * Set "recovery_status" as begin of the transaction"
 	 */
-	fw_set_one_env("recovery_status", "in_progress");
+	bootloader_env_set("recovery_status", "in_progress");
 
 	ret = install_images(&swcfg, fdsw, 1);
 
@@ -356,11 +357,11 @@ static int install_from_file(char *fname, int check)
 
 	if (ret) {
 		fprintf(stdout, "Software updated failed\n");
-		fw_set_one_env("recovery_status", "failed");
+		bootloader_env_set("recovery_status", "failed");
 		exit(1);
 	}
 
-	fw_set_one_env("recovery_status", "");
+	bootloader_env_unset("recovery_status");
 	fprintf(stdout, "Software updated successfully\n");
 	fprintf(stdout, "Please reboot the device to start the new software\n");
 
@@ -398,7 +399,7 @@ static void swupdate_init(struct swupdate_cfg *sw)
 	LIST_INIT(&sw->partitions);
 	LIST_INIT(&sw->hardware);
 	LIST_INIT(&sw->scripts);
-	LIST_INIT(&sw->uboot);
+	LIST_INIT(&sw->bootloader);
 
 
 	/* Create directories for scripts */

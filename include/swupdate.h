@@ -122,7 +122,7 @@ struct swupdate_cfg {
 	struct imglist images;
 	struct imglist partitions;
 	struct imglist scripts;
-	struct dictlist uboot;
+	struct dictlist bootloader;
 	void *dgst;	/* Structure for signed images */
 	struct swupdate_global_cfg globals;
 };

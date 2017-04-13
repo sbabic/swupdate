@@ -28,22 +28,18 @@
 #include "generated/autoconf.h"
 #include "swupdate.h"
 #include "handler.h"
-#include "fw_env.h"
 #include "util.h"
+#include "bootloader.h"
 
 static void uboot_handler(void);
+static void boot_handler(void);
 
-struct env_opts *fw_env_opts = &(struct env_opts) {
-	.config_file = (char *)CONFIG_UBOOT_FWENV
-};
-
-static int install_uboot_environment(struct img_type *img,
+static int install_boot_environment(struct img_type *img,
 	void __attribute__ ((__unused__)) *data)
 {
 	int ret;
 	int fdout;
 	char buf[64];
-	int lockfd;
 
 	char filename[64];
 	struct stat statbuf;
@@ -53,33 +49,31 @@ static int install_uboot_environment(struct img_type *img,
 	if (ret) {
 		fdout = openfileoutput(filename);
 		/*
-		 * U-Boot environment is set inside sw-description
+		 * Bootloader environment is set inside sw-description
 		 * there is no hash but sw-description was already verified
 		 */
 		ret = copyimage(&fdout, img, NULL);
 		close(fdout);
 	}
 
-	lockfd = lock_uboot_env();
-	if (lockfd > 0)
-		ret = fw_parse_script(filename, fw_env_opts);
-
+	ret = bootloader_apply_list(filename);
 	if (ret < 0)
-		snprintf(buf, sizeof(buf), "Error setting U-Boot environment");
+		snprintf(buf, sizeof(buf), "Error setting bootloader environment");
 	else
-		snprintf(buf, sizeof(buf), "U-Boot environment updated");
+		snprintf(buf, sizeof(buf), "Bootloader environment updated");
 
 	notify(RUN, RECOVERY_NO_ERROR, buf);
 
-	if (lockfd > 0)
-		unlock_uboot_env(lockfd);
-
 	return ret;
-
 }
 
 __attribute__((constructor))
 static void uboot_handler(void)
 {
-	register_handler("uboot", install_uboot_environment, NULL);
+	register_handler("uboot", install_boot_environment, NULL);
+}
+__attribute__((constructor))
+static void boot_handler(void)
+{
+	register_handler("bootloader", install_boot_environment, NULL);
 }

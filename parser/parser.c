@@ -306,7 +306,7 @@ static void parse_scripts(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 	}
 }
 
-static void parse_uboot(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
+static void parse_bootloader(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 {
 	void *setting, *elem;
 	int count, i;
@@ -315,8 +315,11 @@ static void parse_uboot(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 
 	setting = find_node(p, cfg, "uboot", swcfg);
 
-	if (setting == NULL)
-		return;
+	if (setting == NULL) {
+		setting = find_node(p, cfg, "bootenv", swcfg);
+		if (setting == NULL)
+			return;
+	}
 
 	count = get_array_length(p, setting);
 	for(i = (count - 1); i >= 0; --i) {
@@ -329,7 +332,7 @@ static void parse_uboot(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 		 * Check for mandatory field
 		 */
 		if(!(exist_field_string(p, elem, "name"))) {
-			TRACE("U-Boot entry without variable name field, skipping..");
+			TRACE("bootloader entry without variable name field, skipping..");
 			continue;
 		}
 
@@ -340,11 +343,11 @@ static void parse_uboot(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 		 */
 		GET_FIELD_STRING(p, elem, "name", name);
 		GET_FIELD_STRING(p, elem, "value", value);
-		dict_set_value(&swcfg->uboot, name, value);
+		dict_set_value(&swcfg->bootloader, name, value);
 
 		TRACE("U-Boot var: %s = %s\n",
 			name,
-			dict_get_value(&swcfg->uboot, name));
+			dict_get_value(&swcfg->bootloader, name));
 
 	}
 }
@@ -495,7 +498,7 @@ static int parser(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 	parse_hw_compatibility(p, cfg, swcfg);
 	parse_images(p, cfg, swcfg);
 	parse_scripts(p, cfg, swcfg);
-	parse_uboot(p, cfg, swcfg);
+	parse_bootloader(p, cfg, swcfg);
 	parse_files(p, cfg, swcfg);
 
 	/*
@@ -507,7 +510,7 @@ static int parser(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 	if (LIST_EMPTY(&swcfg->images) &&
 	    LIST_EMPTY(&swcfg->partitions) &&
 	    LIST_EMPTY(&swcfg->scripts) &&
-	    LIST_EMPTY(&swcfg->uboot)) {
+	    LIST_EMPTY(&swcfg->bootloader)) {
 		ERROR("Found nothing to install\n");
 		return -1;
 	}

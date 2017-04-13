@@ -241,6 +241,13 @@ endmenu
 
 endmenu
 
+config BOOTLOADER
+	bool
+	default n
+
+source bootloader/Config.in
+
+
 config DOWNLOAD
 	bool "Enable image downloading"
 	default n

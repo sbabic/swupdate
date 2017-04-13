@@ -41,7 +41,7 @@
 #include "handler.h"
 #include "cpiohdr.h"
 #include "parsers.h"
-#include "fw_env.h"
+#include "bootloader.h"
 #include "progress.h"
 
 static int isImageInstalled(struct swver *sw_ver_list,
@@ -168,23 +168,23 @@ static int extract_script(int fd, struct imglist *head, const char *dest)
 	return 0;
 }
 
-static int prepare_uboot_script(struct swupdate_cfg *cfg, const char *script)
+static int prepare_boot_script(struct swupdate_cfg *cfg, const char *script)
 {
 	int fd;
 	int ret = 0;
-	struct dict_entry *ubootvar;
-	char buf[MAX_UBOOT_SCRIPT_LINE_LENGTH];
+	struct dict_entry *bootvar;
+	char buf[MAX_BOOT_SCRIPT_LINE_LENGTH];
 
 	fd = openfileoutput(script);
 	if (fd < 0)
 		return -1;
 
-	LIST_FOREACH(ubootvar, &cfg->uboot, next) {
-		if (!ubootvar->varname || !ubootvar->value)
+	LIST_FOREACH(bootvar, &cfg->bootloader, next) {
+		if (!bootvar->varname || !bootvar->value)
 			continue;
 		snprintf(buf, sizeof(buf), "%s %s\n",
-			ubootvar->varname,
-			ubootvar->value);
+			bootvar->varname,
+			bootvar->value);
 		if (write(fd, buf, strlen(buf)) != strlen(buf)) {
 			  TRACE("Error saving temporary file");
 			  ret = -1;
@@ -195,16 +195,15 @@ static int prepare_uboot_script(struct swupdate_cfg *cfg, const char *script)
 	return ret;
 }
 
-static int update_uboot_env(void)
+static int update_bootloader_env(void)
 {
 	int ret = 0;
 
-#ifdef CONFIG_UBOOT
-	TRACE("Updating U-boot environment");
-	ret = fw_parse_script((char *)UBOOT_SCRIPT, fw_env_opts);
+	TRACE("Updating bootloader environment");
+	ret = bootloader_apply_list((char *)BOOT_SCRIPT);
 	if (ret < 0)
-		ERROR("Error updating U-Boot environment");
-#endif
+		ERROR("Error updating bootloader environment");
+
 	return ret;
 }
 
@@ -265,7 +264,7 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 	}
 
 	/* Update u-boot environment */
-	ret = prepare_uboot_script(sw, UBOOT_SCRIPT);
+	ret = prepare_boot_script(sw, BOOT_SCRIPT);
 	if (ret) {
 		return ret;
 	}
@@ -329,8 +328,8 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 		return ret;
 	}
 
-	if (!LIST_EMPTY(&sw->uboot))
-		ret = update_uboot_env();
+	if (!LIST_EMPTY(&sw->bootloader))
+		ret = update_bootloader_env();
 
 	return ret;
 }
@@ -368,7 +367,7 @@ static void remove_sw_file(char __attribute__ ((__unused__)) *fname)
 void cleanup_files(struct swupdate_cfg *software) {
 	char fn[64];
 	struct img_type *img;
-	struct dict_entry *ubootvar;
+	struct dict_entry *bootvar;
 	struct hw_type *hw;
 
 	LIST_FOREACH(img, &software->images, next) {
@@ -387,8 +386,8 @@ void cleanup_files(struct swupdate_cfg *software) {
 		LIST_REMOVE(img, next);
 		free(img);
 	}
-	LIST_FOREACH(ubootvar, &software->uboot, next) {
-		dict_remove_entry(ubootvar);
+	LIST_FOREACH(bootvar, &software->bootloader, next) {
+		dict_remove_entry(bootvar);
 	}
 
 	LIST_FOREACH(hw, &software->hardware, next) {

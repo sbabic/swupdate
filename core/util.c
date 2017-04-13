@@ -29,7 +29,6 @@
 #include <dirent.h>
 #include "swupdate.h"
 #include "util.h"
-#include "fw_env.h"
 #include "generated/autoconf.h"
 
 struct decryption_key {
@@ -46,94 +45,6 @@ char *sdup(const char *str) {
 	}
 	return p;
 }
-
-/*
- * Replacement for fw_setenv() for calling inside
- * the library
- */
-#ifdef CONFIG_UBOOT
-/*
- * The lockfile is the same as defined in U-Boot for
- * the fw_printenv utilities
- */
-static const char *lockname = "/var/lock/fw_printenv.lock";
-int lock_uboot_env(void)
-{
-	int lockfd = -1;
-	lockfd = open(lockname, O_WRONLY | O_CREAT | O_TRUNC, 0666);
-	if (lockfd < 0) {
-		ERROR("Error opening U-Boot lock file %s\n", lockname);
-		return -1;
-	}
-	if (flock(lockfd, LOCK_EX) < 0) {
-		ERROR("Error locking file %s\n", lockname);
-		close(lockfd);
-		return -1;
-	}
-
-	return lockfd;
-}
-
-void unlock_uboot_env(int lock)
-{
-	flock(lock, LOCK_UN);
-	close(lock);
-}
-
-int fw_set_one_env(const char *name, const char *value)
-{
-	int lock = lock_uboot_env();
-	int ret;
-
-	if (lock < 0)
-		return -1;
-
-	if (fw_env_open (fw_env_opts)) {
-		fprintf (stderr, "Error: environment not initialized\n");
-		unlock_uboot_env(lock);
-		return -1;
-	}
-	fw_env_write ((char *)name, (char *)value);
-	ret = fw_env_close (fw_env_opts);
-
-	unlock_uboot_env(lock);
-
-	return ret;
-}
-
-char *fw_get_one_env(char *name)
-{
-	int lock;
-	char *value;
-
-	lock = lock_uboot_env();
-	if (lock < 0)
-		return NULL;
-
-	if (fw_env_open (fw_env_opts)) {
-		fprintf (stderr, "Error: environment not initialized\n");
-		unlock_uboot_env(lock);
-		return NULL;
-	}
-
-	value = fw_getenv(name);
-
-	unlock_uboot_env(lock);
-
-	return value;
-}
-
-#else
-int fw_set_one_env (const char __attribute__ ((__unused__)) *name,
-			const char __attribute__ ((__unused__)) *value)
-{
-	return 0;
-}
-char *fw_get_one_env(char __attribute__ ((__unused__)) *name)
-{
-	return NULL;
-}
-#endif
 
 static int countargc(char *args, char **argv)
 {

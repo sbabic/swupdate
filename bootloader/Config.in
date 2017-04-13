@@ -1,0 +1,31 @@
+choice
+	prompt "Bootloader (U-Boot, ..)"
+	default UBOOT
+	help
+	  Choose the bootloader
+
+config UBOOT
+	bool "Support for U-Boot environment"
+	depends on HAVE_LIBUBOOTENV
+	depends on HAVE_ZLIB
+	help
+	  Support for U-Boot
+
+comment "uboot support needs libubootenv, libz"
+	depends on !HAVE_ZLIB
+
+config BOOTLOADER_NONE
+	bool "None"
+	help
+	  No interface to the bootloader
+
+endchoice
+
+config UBOOT_FWENV
+	string "U-Boot Environment Configuration file"
+	depends on UBOOT
+	default "/etc/fw_env.config"
+	help
+	  This is the file described in U-Boot documentation
+	  in the tools directory. It tells where the U-Boot
+	  environment is saved.

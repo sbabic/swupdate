@@ -344,7 +344,7 @@ include $(srctree)/Makefile.flags
 all: swupdate progress
 
 objs-y		:= core handlers
-libs-y		:= archival corelib ipc mongoose parser suricatta
+libs-y		:= archival corelib ipc mongoose parser suricatta bootloader
 client-y	:= progress_client
 
 swupdate-dirs	:= $(objs-y) $(libs-y)

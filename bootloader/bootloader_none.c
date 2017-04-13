@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014
+ * (C) Copyright 2017
  * Stefano Babic, DENX Software Engineering, sbabic@denx.de.
  *
  * This program is free software; you can redistribute it and/or
@@ -14,29 +14,29 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc. 
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+ * MA 02111-1307 USA
  */
 
-#ifndef _GLOBALS_H
-#define _GLOBALS_H
+#include <unistd.h>
+#include "bootloader.h"
+int bootloader_env_set(const char __attribute__ ((__unused__)) *name,
+			const char __attribute__ ((__unused__)) *value)
+{
+	return 0;
+}
 
-#define BANNER "Swupdate v" SWU_VER "\n"
+int bootloader_env_unset(const char __attribute__ ((__unused__)) *name)
+{
+	return 0;
+}
 
-#define SWUPDATE_GENERAL_STRING_SIZE	256
-#define MAX_IMAGE_FNAME	SWUPDATE_GENERAL_STRING_SIZE
-#define MAX_URL		SWUPDATE_GENERAL_STRING_SIZE
-#define MAX_VOLNAME	SWUPDATE_GENERAL_STRING_SIZE
-#define MAX_HW_VERSIONS	10
-#define MAX_LINE	80
-#define UBOOT_VAR_LENGTH 16
-#define MAX_REVISION_LENGTH	SWUPDATE_GENERAL_STRING_SIZE
-#define MAX_BOOT_SCRIPT_LINE_LENGTH	1024
+char *bootloader_env_get(const char __attribute__ ((__unused__)) *name)
+{
+	return NULL;
+}
 
-/* These are fixed path to temporary files */
-#define SCRIPTS_DIR	TMPDIR "scripts/"
-#define DATASRC_DIR	TMPDIR "datasrc/"
-#define DATADST_DIR	TMPDIR "datadst/"
-#define BOOT_SCRIPT	TMPDIR "boot-script"
-
-#endif
-
+int bootloader_apply_list(const char __attribute__ ((__unused__)) *filename)
+{
+	return 0;
+}
