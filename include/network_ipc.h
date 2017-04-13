@@ -53,6 +53,7 @@ typedef union {
 	struct {
 		sourcetype source; /* Who triggered the update */
 		int	cmd;	   /* Optional encoded command */
+		int	timeout;     /* timeout in seconds if an aswer is expected */
 		unsigned int len;    /* Len of data valid in buf */
 		char	buf[2048];   /*
 				      * Buffer that each source can fill

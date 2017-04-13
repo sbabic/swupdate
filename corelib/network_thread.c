@@ -273,8 +273,11 @@ void *network_thread (void *data)
 				 */
 				FD_ZERO(&pipefds);
 				FD_SET(pipe, &pipefds);
-				tv.tv_sec = DEFAULT_INTERNAL_TIMEOUT;
 				tv.tv_usec = 0;
+				if (!msg.data.instmsg.timeout)
+					tv.tv_sec = DEFAULT_INTERNAL_TIMEOUT;
+				else
+					tv.tv_sec = msg.data.instmsg.timeout;
 				ret = select(pipe + 1, &pipefds, NULL, NULL, &tv);
 
 				/*
