@@ -147,6 +147,26 @@ static void cleanum_msg_list(void)
 	pthread_mutex_unlock(&msglock);
 }
 
+static void empty_pipe(int fd)
+{
+	fd_set fds;
+	int ret;
+	ipc_message msg;
+
+	do {
+		FD_ZERO(&fds);
+		FD_SET(fd, &fds);
+		ret = select(fd + 1, &fds, NULL, NULL, NULL);
+		if (ret <= 0 || !FD_ISSET(fd, &fds))
+			break;
+		/*
+		 * simply read to drop old messages
+		 */
+		if (read(fd, &msg, sizeof(msg)) < 0)
+			break;
+	} while (1);
+}
+
 void *network_thread (void *data)
 {
 	struct installer *instp = (struct installer *)data;
@@ -230,6 +250,12 @@ void *network_thread (void *data)
 					msg.type = NACK;
 					break;
 				}
+
+				/*
+				 * Cleanup the queue to be sure there are not
+				 * outstanding messages
+				 */
+				empty_pipe(pipe);
 
 				ret = write(pipe, &msg, sizeof(msg));
 				if (ret != sizeof(msg)) {
