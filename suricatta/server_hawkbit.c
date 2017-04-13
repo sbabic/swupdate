@@ -729,17 +729,14 @@ static void add_detail_error(const char *s)
 	}
 }
 
-static server_op_res_t handle_feedback(update_state_t state,
+static server_op_res_t handle_feedback(int action_id, server_op_res_t result,
+					update_state_t state,
 					const char *reply_result,
 					const char *reply_execution,
 					int numdetails,
 					const char *details[])
 {
 
-	int action_id;
-	channel_data_t channel_data = channel_data_defaults;
-	server_op_res_t result =
-	    server_get_deployment_info(server_hawkbit.channel, &channel_data, &action_id);
 	switch (result) {
 	case SERVER_OK:
 	case SERVER_ID_REQUESTED:
@@ -776,6 +773,7 @@ static server_op_res_t handle_feedback(update_state_t state,
 
 server_op_res_t server_handle_initial_state(update_state_t stateovrrd)
 {
+	int action_id;
 	update_state_t state = STATE_OK;
 	if (stateovrrd != STATE_NOT_AVAILABLE) {
 		state = stateovrrd;
@@ -816,7 +814,16 @@ server_op_res_t server_handle_initial_state(update_state_t stateovrrd)
 		return SERVER_OK;
 	}
 	server_op_res_t result;
-	result = handle_feedback(state, reply_result, reply_execution, 1, &reply_message);
+
+	/*
+	 * Retrieving current action id
+	 */
+	channel_data_t channel_data = channel_data_defaults;
+	result =
+	    server_get_deployment_info(server_hawkbit.channel, &channel_data, &action_id);
+
+	result = handle_feedback(action_id, result, state, reply_result,
+				 reply_execution, 1, &reply_message);
 
 	if (result != SERVER_UPDATE_AVAILABLE)
 		return result;
@@ -1659,6 +1666,16 @@ server_op_res_t server_ipc(int fd)
 	json_tokener_free(json_tokenizer);
 
 	json_object *json_data = json_get_path_key(
+	    json_root, (const char *[]){"id", NULL});
+	if (json_data == NULL) {
+		ERROR("Got malformed JSON: Could not find action id");
+		DEBUG("Got JSON: %s\n", json_object_to_json_string(json_data));
+		result = SERVER_EERR;
+		goto server_ipc_end;
+	}
+	int action_id = json_object_get_int(json_data);
+
+	json_data = json_get_path_key(
 	    json_root, (const char *[]){"status", NULL});
 	if (json_data == NULL) {
 		ERROR("Got malformed JSON: Could not find field status");
@@ -1667,7 +1684,7 @@ server_op_res_t server_ipc(int fd)
 		goto server_ipc_end;
 	}
 	update_state = (unsigned int)*json_object_get_string(json_data);
-	DEBUG("Got status %c", update_state);
+	DEBUG("Got action_id %d status %c", action_id, update_state);
 
 	const char *reply_result = json_get_value(json_root, "finished");
 	const char *reply_execution = json_get_value(json_root, "execution");
@@ -1694,10 +1711,20 @@ server_op_res_t server_ipc(int fd)
 		}
 	}
 
-	server_op_res_t response = SERVER_OK;
-	response = handle_feedback(update_state, reply_result, reply_execution,
-				   numdetails == 0 ? 1 : numdetails, details);
+	channel_data_t channel_data = channel_data_defaults;
+	int server_action_id;
+	result =
+	    server_get_deployment_info(server_hawkbit.channel, &channel_data, &server_action_id);
 
+	server_op_res_t response = SERVER_OK;
+	if (action_id != server_action_id) {
+		TRACE("Deployment changed on server: our id %d, on server %d",
+			action_id, server_action_id);
+	} else {
+		response = handle_feedback(action_id, result, update_state, reply_result,
+					   reply_execution,
+					   numdetails == 0 ? 1 : numdetails, details);
+	}
 	/*
 	 * Only in case of errors report respond with NAK else send ACK
 	 * It is useful when there is no deployment (deployment might be deleted)
