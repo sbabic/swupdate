@@ -19,6 +19,10 @@ config BOOTLOADER_NONE
 	help
 	  No interface to the bootloader
 
+config BOOTLOADER_GRUB
+	bool "GRUB Bootloader"
+	help
+	  Select GRUB as used bootloader
 endchoice
 
 config UBOOT_FWENV
@@ -29,3 +33,10 @@ config UBOOT_FWENV
 	  This is the file described in U-Boot documentation
 	  in the tools directory. It tells where the U-Boot
 	  environment is saved.
+
+config GRUBENV_PATH
+	string "GRUB Environment block file path"
+	depends on BOOTLOADER_GRUB
+	default "/boot/efi/EFI/BOOT/grub/grubenv"
+	help
+	  Provide path to GRUB environment block file
