@@ -22,8 +22,13 @@
 #ifndef _IPC_H
 #define _IPC_H
 
+/*
+ * Be careful to include further headers here. This file is the interface
+ * to external programs interfacing with SWUpdate as client, and further
+ * headers are not exported.
+ */
+
 #include "swupdate_status.h"
-#include "util.h"
 
 #define IPC_MAGIC		0x14052001
 #define SOCKET_CTRL_PATH	"/tmp/sockinstctrl"
