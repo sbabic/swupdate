@@ -30,9 +30,13 @@ Talks about SWUpdate
        - OSS Remote Firmware Updates for IoT-like Projects by Silvano Cirujano Cuesta, ELCE 2016,
          `Slides <http://events.linuxfoundation.org/sites/events/files/slides/OSS_Remote_Firmware_Updates_for_IoT-like_Projects.pdf>`_, 
          `Video <https://youtu.be/vVS-ZRNE0Lc?list=PLbzoR-pLrL6pRFP6SOywVJWdEHlmQE51q>`_
-       - System Upgrade with SWUpdate by Gabriel Huau, ELC 2017, `Slides <http://events.linuxfoundation.org/sites/events/files/slides/ELC2017_SWUpdate.pdf>`_, `Video <https://www.youtube.com/watch?v=ePRTTfGJUI4&t=16s>`_
+       - System Upgrade with SWUpdate by Gabriel Huau, ELC 2017,
+         `Slides <http://events.linuxfoundation.org/sites/events/files/slides/ELC2017_SWUpdate.pdf>`_,
+         `Video <https://www.youtube.com/watch?v=ePRTTfGJUI4&t=16s>`_
 
 Useful references
 =================
 
         - `Boundary Devices, Using SWUpdate to upgrade your system <https://boundarydevices.com/using-swupdate-upgrade-system>`_
+        - `Présentation de Software Update (French) <http://www.linuxembedded.fr/2016/09/presentation-de-software-update>`_
+        - `Easy OS upgrades with SWUpdate <http://warpx.io/blog/tutorial/easy-os-upgrades-swupdate>`_
