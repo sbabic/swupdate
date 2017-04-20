@@ -139,6 +139,7 @@ server_hawkbit_t server_hawkbit = {.url = NULL,
 				   .debug = false,
 				   .device_id = NULL,
 				   .tenant = NULL,
+				   .cancel_url = NULL,
 				   .channel = NULL};
 
 static channel_data_t channel_data_defaults = {.debug = false,
@@ -273,6 +274,10 @@ server_op_res_t server_send_cancel_reply(channel_t *channel, const int action_id
 	assert(server_hawkbit.tenant != NULL);
 	assert(server_hawkbit.device_id != NULL);
 
+	/* First retry cancel URL to get stopId */
+	channel_data_t channel_data_reply = channel_data_defaults;
+	int stop_id = server_hawkbit.stop_id;
+
 	/* clang-format off */
 	static const char* const json_hawkbit_cancelation_feedback = STRINGIFY(
 	{
@@ -288,14 +293,13 @@ server_op_res_t server_send_cancel_reply(channel_t *channel, const int action_id
 	}
 	);
 	/* clang-format on */
-	channel_data_t channel_data_reply = channel_data_defaults;
 	server_op_res_t result = SERVER_OK;
 	char *url = NULL;
 	char *json_reply_string = NULL;
+
 	if (ENOMEM_ASPRINTF ==
-	    asprintf(&url, "%s/%s/controller/v1/%s/cancelAction/%d/feedback",
-		     server_hawkbit.url, server_hawkbit.tenant,
-		     server_hawkbit.device_id, action_id)) {
+	    asprintf(&url, "%s/feedback",
+		     server_hawkbit.cancel_url)) {
 		ERROR("hawkBit server reply cannot be sent because of OOM.\n");
 		result = SERVER_EINIT;
 		goto cleanup;
@@ -306,7 +310,7 @@ server_op_res_t server_send_cancel_reply(channel_t *channel, const int action_id
 	(void)strftime(fdate, sizeof(fdate), "%Y%m%dT%H%M%S", localtime(&now));
 	if (ENOMEM_ASPRINTF ==
 	    asprintf(&json_reply_string, json_hawkbit_cancelation_feedback,
-		     action_id, fdate, reply_status_result_finished.success,
+		     stop_id, fdate, reply_status_result_finished.success,
 		     reply_status_execution.closed,
 		     "cancellation acknowledged.")) {
 		ERROR("hawkBit server reply cannot be sent because of OOM.\n");
@@ -330,6 +334,20 @@ cleanup:
 		JSON_OBJECT_FREED) {
 		ERROR("JSON object should be freed but was not.\n");
 	}
+
+	/*
+	 * Send always a notification
+	 */
+	char *notifybuf = NULL;
+	if (ENOMEM_ASPRINTF ==
+	    asprintf(&notifybuf, "{ \"id\" : \"%d\", \"stopId\" : \"%d\"}",
+		     action_id, stop_id)) {
+		notify(SUBPROCESS, CANCELUPDATE, "Update cancelled");
+	}  else {
+		notify(SUBPROCESS, CANCELUPDATE, notifybuf);
+		free(notifybuf);
+	}
+
 	return result;
 }
 
@@ -557,6 +575,9 @@ static server_op_res_t server_get_deployment_info(channel_t *channel, channel_da
 					    "cancelAction")) != NULL) {
 		update_status = SERVER_UPDATE_CANCELED;
 		channel_data->url = url_cancel;
+		if (server_hawkbit.cancel_url)
+			free(server_hawkbit.cancel_url);
+		server_hawkbit.cancel_url = strdup(url_cancel);
 		TRACE("Cancel action available at %s\n", url_cancel);
 	} else if ((url_deployment_base =
 			json_get_data_url(channel_data_device_info.json_reply,
@@ -583,6 +604,22 @@ static server_op_res_t server_get_deployment_info(channel_t *channel, channel_da
 		goto cleanup;
 	}
 	*action_id = json_object_get_int(json_data);
+
+	/*
+	 * Read stopId if cancelUpdate is detected
+	 */
+	server_hawkbit.stop_id = *action_id;
+	if (update_status == SERVER_UPDATE_CANCELED) {
+		json_data = json_get_path_key(
+		    channel_data->json_reply, (const char *[]){"cancelAction", "stopId", NULL});
+		if (json_data == NULL) {
+			ERROR("Got malformed JSON: Could not find field 'stopId', reuse actionId.\n");
+			DEBUG("Got JSON: %s\n",
+			      json_object_to_json_string(channel_data->json_reply));
+		} else {
+			server_hawkbit.stop_id = json_object_get_int(json_data);
+		}
+	}
 	TRACE("Associated Action ID for Update Action is %d\n", *action_id);
 	result = update_status == SERVER_OK ? result : update_status;
 
@@ -689,7 +726,6 @@ server_op_res_t server_has_pending_action(int *action_id)
 		DEBUG("Acknowledging cancelled update.\n");
 		(void)server_send_cancel_reply(server_hawkbit.channel, *action_id);
 		/* Inform the installer that a CANCEL was received */
-		notify(SUBPROCESS, CANCELUPDATE, "Update cancelled");
 		result = SERVER_OK;
 	}
 	if ((result == SERVER_UPDATE_AVAILABLE) &&
@@ -1195,7 +1231,6 @@ server_op_res_t server_install_update(void)
 				TRACE("Acknowledging cancelled update.\n");
 				(void)server_send_cancel_reply(server_hawkbit.channel, action_id);
 				/* Inform the installer that a CANCEL was received */
-				notify(SUBPROCESS, 0, "Update cancelled");
 			} else {
 				/* TODO handle partial installations and rollback if
 				 *      more than one artifact is available on hawkBit.

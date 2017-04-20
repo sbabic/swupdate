@@ -40,7 +40,9 @@ typedef struct {
 	struct dictlist configdata;
 	bool has_to_send_configData;
 	char *configData_url;
+	char *cancel_url;
 	update_state_t update_state;
+	int stop_id;
 	channel_t *channel;
 	bool	cancelDuringUpdate;
 	char *errors[HAWKBIT_MAX_REPORTED_ERRORS];
