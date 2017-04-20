@@ -1638,6 +1638,13 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 	server_op_res_t state_handled;
 	server_hawkbit.update_state = update_state;
 
+
+	/*
+	 * After a successful startup, a configData is always sent
+	 * Prepare default values
+	 */
+	server_hawkbit.has_to_send_configData = true;
+
 	/*
 	 * If in WAIT state, the updated was finished
 	 * by an external process and we have to wait for it
