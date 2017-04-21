@@ -357,8 +357,7 @@ int start_download(const char *fname, int argc, char *argv[])
 				     long_options, NULL)) != -1) {
 		switch (choice) {
 		case 't':
-			options.timeout =
-			    (unsigned char)strtoul(optarg, NULL, 10);
+			options.timeout = (int)strtoul(optarg, NULL, 10);
 			break;
 		case 'u':
 			SETSTRING(options.url, optarg);
