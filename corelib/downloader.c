@@ -60,8 +60,8 @@ static int cnt = 0;
 
 struct dwl_options {
 	char *url;
-	int retries;
-	int timeout;
+	unsigned int retries;
+	unsigned int timeout;
 };
 
 /* notify download progress each second */
@@ -199,7 +199,7 @@ static void set_option_common(CURL *curl_handle,
  * It si not thought to work with local (file://)
  * for that, the -i option is used.
  */
-static RECOVERY_STATUS download_from_url(char *image_url, int retries,
+static RECOVERY_STATUS download_from_url(char *image_url, unsigned int retries,
 					unsigned long lowspeed_time)
 {
 	CURL *curl_handle;
@@ -357,14 +357,13 @@ int start_download(const char *fname, int argc, char *argv[])
 				     long_options, NULL)) != -1) {
 		switch (choice) {
 		case 't':
-			options.timeout = (int)strtoul(optarg, NULL, 10);
+			options.timeout = strtoul(optarg, NULL, 10);
 			break;
 		case 'u':
 			SETSTRING(options.url, optarg);
 			break;
 		case 'r':
-			options.retries =
-			    (unsigned char)strtoul(optarg, NULL, 10);
+			options.retries = strtoul(optarg, NULL, 10);
 			break;
 		case '?':
 		default:
