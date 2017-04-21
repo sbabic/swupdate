@@ -284,7 +284,7 @@ static RECOVERY_STATUS download_from_url(char *image_url, unsigned int retries,
 		dwlbytes += dummy;
 
 		/* Check if max attempts is reached */
-		if (retries && (i > retries))
+		if (retries && (i >= retries))
 			break;
 
 	}
