@@ -270,7 +270,7 @@ static RECOVERY_STATUS download_from_url(char *image_url, unsigned int retries,
 				break;
 			}
 
-			/* Let some time before tries */
+			/* motivation: router restart, DNS reconfiguration */
 			sleep(20);
 		}
 		res = curl_easy_perform(curl_handle);
@@ -337,9 +337,8 @@ void download_print_help(void)
 int start_download(const char *fname, int argc, char *argv[])
 {
 	struct dwl_options options;
-	int choice = 0;
+	int attempt, choice = 0;
 	RECOVERY_STATUS result;
-	int attempt = 0;
 
 	memset(&options, 0, sizeof(options));
 
@@ -377,14 +376,22 @@ int start_download(const char *fname, int argc, char *argv[])
 	 * Maybe we need a different option as retries
 	 * to check if an updated must be retried
 	 */
-	do {
+	for (attempt = 0;; attempt++) {
 		result = download_from_url(options.url, options.retries,
 						options.timeout);
 		if (result != FAILURE)
 			break;
 
+		if (options.retries > 0 && attempt >= options.retries)
+			break;
+
+		/*
+		 * motivation: slow connection, download_from_url fetched half the
+		 * image, then aborted due to lowspeed_timeout, if we retry immediately
+		 * we would just waste our bandwidth. Useful for A/B images.
+		 */
 		sleep(60);
-	} while ((options.retries != 0) && (attempt < options.retries));
+	}
 
 	exit(result);
 }
