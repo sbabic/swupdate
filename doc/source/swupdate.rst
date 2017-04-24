@@ -353,7 +353,7 @@ and drop what you do not need.
 Building with Yocto
 -------------------
 
-A meta-swUpdate_ layer is provided. It contains the required changes
+A meta-SWUpdate_ layer is provided. It contains the required changes
 for mtd-utils and for generating LUA. Using meta-SWUpdate is a
 straightforward process.
 
@@ -363,7 +363,7 @@ Firstly, clone meta-SWUpdate.
 
         git clone https://github.com/sbabic/meta-swupdate.git
 
-.. _meta_SWUpdate:  https://github.com/sbabic/meta-swupdate.git
+.. _meta-SWUpdate:  https://github.com/sbabic/meta-swupdate.git
 
 Add meta-SWUpdate as usual to your bblayers.conf. You have also
 to add meta-oe to the list.
