@@ -24,7 +24,7 @@ In mainline there are the handlers for the most common cases. They include:
 	- flash devices in raw mode (both NOR and NAND)
 	- UBI volumes
 	- raw devices, such as a SD Card partition
-	- U-Boot environment
+	- bootloader (U-Boot, GRUB) environment
 	- LUA scripts
 
 For example, if an image is marked to be updated into a UBI volume,

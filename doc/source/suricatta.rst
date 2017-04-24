@@ -11,7 +11,7 @@ name suricatta (engl. meerkat) as it belongs to the mongoose family.
 Suricatta regularly polls a remote server for updates, downloads, and
 installs them. Thereafter, it reboots the system and reports the update
 status to the server, based on an update state variable currently stored
-in U-Boot's environment ensuring persistent storage across reboots. Some
+in bootloader's environment ensuring persistent storage across reboots. Some
 U-Boot script logics or U-Boot's ``bootcount`` feature may be utilized
 to alter this update state variable, e.g., by setting it to reflect
 failure in case booting the newly flashed root file system has failed

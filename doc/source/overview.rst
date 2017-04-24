@@ -233,6 +233,8 @@ is corrupted or cannot run.
 With U-Boot as boot loader, SWUpdate is able to manage U-Boot's environment
 setting variables to indicate the start and the end of a transaction and
 that the storage contains a valid software.
+Similar feature for GRUB environment block modification has been introduced
+into SWUpdate lately.
 
 SWUpdate is mainly used in this configuration. The recipes for Yocto
 generate an initrd image containing the SWUpdate application, that is
@@ -245,8 +247,8 @@ Something went wrong ?
 
 Many things can go wrong, and it must be guaranteed that the system
 is able to run again and maybe able to reload a new software to fix
-a damaged image. SWUpdate works together with the U-Boot boot loader to
-identify the possible causes of failures.
+a damaged image. SWUpdate works together with the boot loader to identify the
+possible causes of failures. Currently U-Boot and GRUB are supported.
 
 We can at least group some of the common causes:
 
@@ -261,10 +263,10 @@ We can at least group some of the common causes:
 
 - power-failure
 
-SWUpdate works as transaction process. The U-Boot variable "recovery_status" is
-set to signal U-Boot the update's status. Of course, further variables can be added
-to fine tuning and report error causes. recovery_status can have the values "progress",
-"failed", or it can be unset.
+SWUpdate works as transaction process. The boot loader environment variable
+"recovery_status" is set to signal the update's status to the boot loader. Of
+course, further variables can be added to fine tuning and report error causes.
+recovery_status can have the values "progress", "failed", or it can be unset.
 
 When SWUpdate starts, it sets recovery_status to "progress". After an update is
 finished with success, the variable is erased. If the update ends with an
@@ -295,11 +297,12 @@ Generally, the behavior can be split according to the chosen scenario:
 To be completely safe, SWUpdate and the bootloader need to exchange some
 information. The bootloader must detect if an update was interrupted due
 to a power-off, and restart SWUpdate until an update is successful.
-SWUpdate supports the U-Boot bootloader. U-Boot has a power-safe environemnt,
-that SWUpdate is able to change to communicate with U-Boot.
-Setting / Clearing variables let SWUpdate and U-Boot to communicate.
+SWUpdate supports the U-Boot and GRUB bootloaders. U-Boot has a power-safe
+environment, that SWUpdate is able to change to communicate with U-Boot.
+In case of GRUB, fixed 1024-byte environment block file is used.
+Setting / Clearing variables lets SWUpdate and bootloader to communicate.
 SWUpdate sets a variable as flag when it starts to update the system, and
-resets the same variable after completion. U-Boot can detect this flag
+resets the same variable after completion. Bootloader can detect this flag
 to check if an update was running before a power-off.
 
 .. image:: images/SoftwareUpdateU-Boot.png
@@ -324,9 +327,9 @@ upgraded image:
 What about upgrading the Boot loader ?
 --------------------------------------
 
-Updating the boot loader is in most cases a one-way process. On most SOCs, there is no possibility
-to have multiple copies of the boot loader, and when U-Boot is broken,
-the board does not simply boot.
+Updating the boot loader is in most cases a one-way process. On most SOCs,
+there is no possibility to have multiple copies of the boot loader, and when
+boot loader is broken, the board does not simply boot.
 
 Some SOCs allow to have multiple copies of the
 boot loader. But again, there is no general solution for this because it

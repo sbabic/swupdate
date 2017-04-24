@@ -270,6 +270,10 @@ List of supported features
 
 - Support for setting / erasing U-Boot variables
 
+.. _GRUB: https://www.gnu.org/software/grub/manual/html_node/Environment-block.html
+
+- Support for setting / erasing `GRUB`_ environment block variables
+
 - Support for preinstall scripts. They run before updating the images
 
 - Support for postinstall scripts. They run after updating the images.
@@ -491,7 +495,7 @@ A run of SWUpdate consists mainly of the following steps:
 - iterates through all images and call the corresponding
   handler for installing on target.
 - runs post-install scripts
-- update u-boot environment, if changes are specified
+- update bootloader environment, if changes are specified
   in sw-description.
 - reports the status to the operator (stdout)
 

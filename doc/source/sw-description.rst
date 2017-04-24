@@ -64,8 +64,8 @@ The following example explains better the implemented tags:
 				volume = "splash";
 			},
 			{
-				filename = "uboot-env";
-				type = "uboot";
+				filename = "bootloader-env";
+				type = "bootloader";
 			},
 			{
 				filename = "uImage.bin";
@@ -97,7 +97,7 @@ The following example explains better the implemented tags:
 			}
 		);
 
-		uboot: (
+		bootenv: (
 			{
 				name = "vram";
 				value = "4M";
@@ -353,22 +353,25 @@ postinstall are shell scripts and called via system command.
 SWUpdate scans for all scripts and calls them after installing the images.
 
 
-uboot
------
+bootloader
+----------
 
-There are two ways to update the bootloader (U-Boot) environment.
+There are two ways to update the bootloader (currently U-Boot, GRUB) environment.
 First way is to add a file with the list of variables to be changed
-and setting "uboot" as type of the image. This inform SWUpdate to
-call the U-Boot handler to manage the file.
+and setting "bootloader" as type of the image. This informs SWUpdate to
+call the bootloader handler to manage the file (requires enabling bootloader
+handler in configuration). There is one bootloader handler for all supported
+bootloaders. Appropriate bootloader must be chosen from bootloader selection
+menu in menuconfig.
 
 ::
 
 		{
-			filename = "uboot-env";
-			type = "uboot";
+			filename = "bootloader-env";
+			type = "bootloader";
 		},
 
-The format of the file is described in u-boot documentation. Each line
+The format of the file is described in U-boot documentation. Each line
 is in the format
 
 ::
@@ -377,12 +380,15 @@ is in the format
 
 if value is missing, the variable is unset.
 
+In current implementation we have inherited above file format for GRUB
+environment modification as well.
+
 The second way is to define in a group setting the variables
 that must be changed:
 
 ::
 
-	uboot: (
+	bootenv: (
 		{
 			name = <Variable name>;
 			value = <Variable value>;
@@ -390,8 +396,10 @@ that must be changed:
 	)
 
 SWUpdate will internally generate a script that will be passed to the
-U-Boot handler for adjusting the environment.
+bootloader handler for adjusting the environment.
 
+For backward compatibility with previously built .swu images, "uboot "group name
+is still relevant (as an alias).
 
 Board specific settings
 -----------------------
@@ -412,7 +420,7 @@ and the following description::
 	        version = "0.1.0";
 
 	        my-board = {
-	                uboot: (
+	                bootenv: (
 	                {
 	                        name = "bootpart";
 	                        value = "0:2";
@@ -420,7 +428,7 @@ and the following description::
 	                );
 	        };
 
-	        uboot: (
+	        bootenv: (
 	        {
 	                name = "bootpart";
 	                value = "0:1";
@@ -428,7 +436,7 @@ and the following description::
 	        );
 	}
 
-SWUpdate will set `bootpart` to `0:2` in U-Boot's environment for this
+SWUpdate will set `bootpart` to `0:2` in bootloader's environment for this
 board. For all other boards, `bootpart` will be set to `0:1`. Board
 specific settings take precedence over default scoped settings.
 
@@ -444,7 +452,7 @@ stable and unstable images within a single update file.
 
 The mechanism uses a custom user-defined tags placed within `software`
 scope. The tag names must not be any of: `version`,
-`hardware-compatibility`, `uboot`, `files`, `scripts`, `partitions`,
+`hardware-compatibility`, `uboot`, `bootenv`, `files`, `scripts`, `partitions`,
 `images`
 
 An example description file:
@@ -469,7 +477,7 @@ An example description file:
 	                        }
 	                        );
 
-	                        uboot: (
+	                        bootenv: (
 	                        {
 	                                name = "bootpart";
 	                                value = "0:2";
@@ -485,7 +493,7 @@ An example description file:
 	                        }
 	                        );
 
-	                        uboot: (
+	                        bootenv: (
 	                        {
 	                                name = "bootpart";
 	                                value = "0:1";
@@ -552,7 +560,8 @@ There are 4 main sections inside sw-description:
   single files.
 - scripts: all entries are treated as executables, and they will
   be run twice (as pre- and post- install scripts).
-- uboot: entries are pair with U-Boot variable name and its value.
+- bootenv: entries are pair with bootloader environment variable name and its
+  value.
 
 .. table::
 
@@ -609,10 +618,11 @@ There are 4 main sections inside sw-description:
    |             |          |            | temporary copy. Not all handlers      |
    |             |          |            | support streaming.                    |
    +-------------+----------+------------+---------------------------------------+
-   | name        | string   | uboot      | name of the U-Boot variable to be set.|
+   | name        | string   | bootenv    | name of the bootloader variable to be |
+   |             |          |            | set.                                  |
    +-------------+----------+------------+---------------------------------------+
-   | value       | string   | uboot      | value to be assigned to the U-Boot    |
-   |             |          |            | variable                              |
+   | value       | string   | bootenv    | value to be assigned to the           |
+   |             |          |            | bootloader variable                   |
    +-------------+----------+------------+---------------------------------------+
    | name        | string   | images     | name that identifies the sw-component |
    |             |          | files      | it can be any string and it is        |
