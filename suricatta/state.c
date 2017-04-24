@@ -30,7 +30,7 @@
  * environment/
  */
 #define CHECK_STATE_VAR(v) do { \
-	if (strnlen(v, UBOOT_VAR_LENGTH) == 0) { \
+	if (strnlen(v, BOOTLOADER_VAR_LENGTH) == 0) { \
 		WARN("Update Status Storage Key " \
 			"is empty, setting it to 'ustate'\n"); \
 		v = (char *)"ustate"; \

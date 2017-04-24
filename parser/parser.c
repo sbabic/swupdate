@@ -345,7 +345,7 @@ static void parse_bootloader(parsertype p, void *cfg, struct swupdate_cfg *swcfg
 		GET_FIELD_STRING(p, elem, "value", value);
 		dict_set_value(&swcfg->bootloader, name, value);
 
-		TRACE("U-Boot var: %s = %s\n",
+		TRACE("Bootloader var: %s = %s\n",
 			name,
 			dict_get_value(&swcfg->bootloader, name));
 

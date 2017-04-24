@@ -115,7 +115,7 @@ int parse(struct swupdate_cfg *sw, const char *descfile)
 	if (!LIST_EMPTY(&sw->bootloader) &&
 		       	(!find_handler(&item_uboot) &&
 			 !find_handler(&item_bootloader))) {
-		ERROR("feature 'uboot' absent but %s has 'uboot' section!",
+		ERROR("bootloader support absent but %s has bootloader section!",
 		      SW_DESCRIPTION_FILENAME);
 		return -1;
 	}
