@@ -97,9 +97,9 @@ Boot loader's update advantages
 -------------------------------
 However, this approach has some advantages, too:
 
-- software for update is generally simpler.
-- smaller footprint: a stand-alone application only for software management requires an own kernel and a root file system.
-  Even if their size can be trimmed dropping what is not required
+- software for update is generally simpler.  - smaller footprint: a stand-alone
+  application only for software management requires an own kernel and a root
+  file system. Even if their size can be trimmed dropping what is not required
   for updating the software, their size is not negligible.
 
 Updating through a package manager
@@ -189,15 +189,15 @@ or triggered as required. There is no
 need of an own kernel, because the two copies guarantees that
 it is always possible to upgrade the not running copy.
 
-SWUpdate will set U-Boot's variable to signal the boot loader
-that a new image is successfully installed.
+SWUpdate will set bootloader's variable to signal the that a new image is
+successfully installed.
 
 Single copy - running as standalone image
 -----------------------------------------
 
 The software upgrade application consists of kernel (maybe reduced
-dropping not required drivers) and a small root file system, with the application
-and its libraries. The whole size is much less than a single copy of
+dropping not required drivers) and a small root file system, with the
+application and its libraries. The whole size is much less than a single copy of
 the system software. Depending on set up, I get sizes from 2.5 until 8 MB
 for the stand-alone root file system. If the size is very important on small
 systems, it becomes negligible on systems with a lot of storage
@@ -209,8 +209,8 @@ can differ, for example setting a boot loader environment or using
 and external GPIO.
 
 The boot loader starts "SWUpdate", booting the
-SWUpdate kernel and the initrd image as root file system. Because it runs in RAM,
-it is possible to upgrade the whole storage. Differently as in the
+SWUpdate kernel and the initrd image as root file system. Because it runs in
+RAM, it is possible to upgrade the whole storage. Differently as in the
 double-copy strategy, the systems must reboot to put itself in
 update mode.
 
@@ -266,9 +266,9 @@ set to signal U-Boot the update's status. Of course, further variables can be ad
 to fine tuning and report error causes. recovery_status can have the values "progress",
 "failed", or it can be unset.
 
-When SWUpdate starts, it sets recovery_status to "progress". After an update is finished
-with success, the variable is erased. If the update ends with an error, recovery_status
-has the value "failed".
+When SWUpdate starts, it sets recovery_status to "progress". After an update is
+finished with success, the variable is erased. If the update ends with an
+error, recovery_status has the value "failed".
 
 When an update is interrupted, independently from the cause, the boot loader
 recognizes it because the recovery_status variable is in "progress" or "failed".
@@ -308,8 +308,8 @@ What about upgrading SWUpdate itself ?
 --------------------------------------
 
 SWUpdate is thought to be used in the whole development process, replacing
-customized process to update the software during the development. Before going into production,
-SWUpdate is well tested for a project.
+customized process to update the software during the development. Before going
+into production, SWUpdate is well tested for a project.
 
 If SWUpdate itself should be updated, the update cannot be safe if there is only
 one copy of SWUpdate in the storage. Safe update can be guaranteed only if

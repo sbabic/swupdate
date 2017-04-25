@@ -20,7 +20,7 @@ can have a different installer.
 Supplied handlers
 -----------------
 
-In mainline there are the handler for the most common cases. They includes:
+In mainline there are the handlers for the most common cases. They include:
 	- flash devices in raw mode (both NOR and NAND)
 	- UBI volumes
 	- raw devices, such as a SD Card partition

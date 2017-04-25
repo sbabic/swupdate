@@ -316,8 +316,8 @@ Images fully streamed
 
 In case of remote update, SWUpdate extracts relevant images
 from the stream and copy them into /tmp before calling the handlers.
-This guarantee that an update is initiated only if all parts are present and correct.
-However, on some systems with less resources, the amount of RAM
+This guarantee that an update is initiated only if all parts are present and
+correct. However, on some systems with less resources, the amount of RAM
 to copy the images could be not enough, for example if the filesystem on
 an attached SD Card must be updated. In this case, it will help if the images
 are installed directly as stream by the corresponding handler, without temporary
@@ -530,7 +530,8 @@ This uses as website the pages delivered with the code. Of course,
 they can be customized and replaced. The website uses AJAX to communicate
 with SWUpdate, and to show the progress of the update to the operator.
 
-The default port of the Web-server is 8080. You can then connect to the target with:
+The default port of the Web-server is 8080. You can then connect to the target
+with:
 
 ::
 
@@ -640,30 +641,37 @@ In case using U-Boot, the following mechanism can be implemented:
 
 - U-Boot checks if a sw update is required (check gpio, serial console, etc.).
 - the script "altbootcmd" sets the rules to start SWUpdate
-- in case SWUpdate is required, u-boot run the script "altbootcmd"
+- in case SWUpdate is required, U-boot run the script "altbootcmd"
 
 Is it safe to change U-Boot environment ? Well, it is, but U-Boot must
 be configured correctly. U-Boot supports two copies of the environment
-to be power-off safe during a an evironment update. The board's
+to be power-off safe during an environment update. The board's
 configuration file must have defined CONFIG_ENV_OFFSET_REDUND or
 CONFIG_ENV_ADDR_REDUND. Check in U-Boot documentation for these
 constants and how to use them.
 
 There are a further enhancement that can be optionally integrated
-into u-boot to make the system safer. The most important I will
-suggest is to add support for boot counter in u-boot (documentation
+into U-boot to make the system safer. The most important I will
+suggest is to add support for boot counter in U-boot (documentation
 is in U-Boot docs). This allows U-Boot to track for attempts to
 successfully run the application, and if the boot counter is
 greater as a limit, can start automatically SWUpdate to replace
 a corrupt software.
+
+GRUB by default does not support double copies of environment as in case of
+U-Boot. This means that there is possibility that environment block get's
+corrupted when power-off occurs during environment update. To minimize the
+risk, we are not modifying original environment block. Variables are written
+into temporary file and after successful operation rename instruction is
+called.
 
 Building a single image
 =======================
 
 cpio is used as container for its simplicity. The resulting image is very
 simple to be built.
-The file describing the images ("sw-description", but the name can be configured)
-must be the first file in the cpio archive.
+The file describing the images ("sw-description", but the name can be
+configured) must be the first file in the cpio archive.
 
 To produce an image, a script like this can be used:
 
@@ -677,8 +685,8 @@ To produce an image, a script like this can be used:
 		echo $i;done | cpio -ov -H crc >  ${PRODUCT_NAME}_${CONTAINER_VER}.swu
 
 
-The single images can be put in any order inside the cpio container, with the exception
-of sw-description, that must be the first one.
+The single images can be put in any order inside the cpio container, with the
+exception of sw-description, that must be the first one.
 To check your generated image you can run the following command:
 
 ::
