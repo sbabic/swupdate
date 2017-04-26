@@ -39,9 +39,7 @@
 #include <errno.h>
 #include <pthread.h>
 
-#include "util.h"
 #include "network_ipc.h"
-#include "pctl.h"
 
 struct async_lib {
 	int connfd;
