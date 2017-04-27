@@ -203,7 +203,7 @@ static int connect_to_swupdate(int reconnect)
 			exit(1);
 		}
 
-		sleep(1);
+		usleep(10000);
 	} while (1);
 
 	fprintf(stdout, "Connected\n");
