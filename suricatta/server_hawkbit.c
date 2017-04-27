@@ -698,20 +698,6 @@ static int server_check_during_dwl(void)
 server_op_res_t server_has_pending_action(int *action_id)
 {
 
-	/*
-	 * First check if initialization was completed or
-	 * a feedback should be sent to Hawkbit
-	 */
-	if (server_hawkbit.update_state == STATE_WAIT)
-		return SERVER_OK;
-
-	/*
-	 * if configData was not yet sent,
-	 * send it without asking for deviceInfo
-	 */
-	if (server_hawkbit.has_to_send_configData)
-		return SERVER_ID_REQUESTED;
-
 	channel_data_t channel_data = channel_data_defaults;
 	server_op_res_t result =
 	    server_get_deployment_info(server_hawkbit.channel,
@@ -726,8 +712,24 @@ server_op_res_t server_has_pending_action(int *action_id)
 		DEBUG("Acknowledging cancelled update.\n");
 		(void)server_send_cancel_reply(server_hawkbit.channel, *action_id);
 		/* Inform the installer that a CANCEL was received */
-		result = SERVER_OK;
+		return SERVER_OK;
 	}
+
+	/*
+	 * First check if initialization was completed or
+	 * a feedback should be sent to Hawkbit
+	 */
+	if (server_hawkbit.update_state == STATE_WAIT)
+		return SERVER_OK;
+
+	/*
+	 * if configData was not yet sent,
+	 * send it without asking for deviceInfo
+	 */
+	if (server_hawkbit.has_to_send_configData)
+		return SERVER_ID_REQUESTED;
+
+
 	if ((result == SERVER_UPDATE_AVAILABLE) &&
 	    (get_state() == STATE_INSTALLED)) {
 		WARN("An already installed update is pending testing, "
@@ -736,6 +738,7 @@ server_op_res_t server_has_pending_action(int *action_id)
 		     "upstream.");
 		result = SERVER_NO_UPDATE_AVAILABLE;
 	}
+
 	return result;
 }
 
