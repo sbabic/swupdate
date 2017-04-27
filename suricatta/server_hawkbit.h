@@ -38,6 +38,7 @@ typedef struct {
 	char *device_id;
 	char *tenant;
 	unsigned int polling_interval;
+	bool polling_interval_from_server;
 	bool debug;
 	struct dictlist configdata;
 	bool has_to_send_configData;

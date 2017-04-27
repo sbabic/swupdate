@@ -35,6 +35,11 @@ typedef enum {
 	SWUPDATE_SUBPROCESS,
 } msgtype;
 
+enum {
+	CMD_ACTIVATION,
+	CMD_CONFIG
+};
+
 typedef union {
 	char msg[128];
 	struct { 

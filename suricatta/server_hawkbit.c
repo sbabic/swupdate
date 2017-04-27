@@ -136,6 +136,7 @@ server_op_res_t server_send_cancel_reply(channel_t *channel, const int action_id
 
 server_hawkbit_t server_hawkbit = {.url = NULL,
 				   .polling_interval = DEFAULT_POLLING_INTERVAL,
+				   .polling_interval_from_server = true,
 				   .debug = false,
 				   .device_id = NULL,
 				   .tenant = NULL,
@@ -459,6 +460,13 @@ cleanup:
 
 server_op_res_t server_set_polling_interval(json_object *json_root)
 {
+	/*
+	 * if poll time is ruled locally, do not read
+	 * the answer from server
+	 */
+	if (!server_hawkbit.polling_interval_from_server)
+		return SERVER_OK;
+
 	json_object *json_data = json_get_path_key(
 	    json_root, (const char *[]){"config", "polling", "sleep", NULL});
 	if (json_data == NULL) {
@@ -478,6 +486,15 @@ server_op_res_t server_set_polling_interval(json_object *json_root)
 	unsigned int polling_interval =
 	    (unsigned int)(abs(timedate.tm_sec) + (abs(timedate.tm_min) * 60) +
 			   (abs(timedate.tm_hour) * 60 * 60));
+
+	/*
+	 * Generally, the server sets the poll interval
+	 * However, at the startup, it makes sense to speed up the process
+	 * If SWUpdate is in wait state, try faster.
+	 */
+	if (server_hawkbit.update_state == STATE_WAIT)
+		polling_interval /= 10;
+
 	server_hawkbit.polling_interval =
 	    polling_interval == 0 ? DEFAULT_POLLING_INTERVAL : polling_interval;
 	DEBUG("Set polling interval to %ds as announced by server.\n",
@@ -511,7 +528,6 @@ server_op_res_t server_set_config_data(json_object *json_root)
 			free(server_hawkbit.configData_url);
 		server_hawkbit.configData_url = tmp;
 		server_hawkbit.has_to_send_configData = true;
-		server_hawkbit.polling_interval /= 10;
 		TRACE("ConfigData: %s\n", server_hawkbit.configData_url);
 	}
 	return SERVER_OK;
@@ -1675,48 +1691,49 @@ server_op_res_t server_stop(void)
 }
 
 /*
- * Currently the only implemented IPC is the feedback for the
- * Hawkbit server.
- * This can be extended in future by checking the "cmd" field in the
- * IPC message
+ * IPC is to control the Hawkbit's communication
  */
 
-server_op_res_t server_ipc(int fd)
+static struct json_object *server_tokenize_msg(char *buf, size_t size)
 {
-	ipc_message msg;
-	server_op_res_t result = SERVER_OK;
-	int ret;
-	update_state_t update_state = STATE_NOT_AVAILABLE;
-
-	ret = read(fd, &msg, sizeof(msg));
-	if (ret != sizeof(msg))
-		return SERVER_EERR;
 
 	struct json_tokener *json_tokenizer = json_tokener_new();
 	enum json_tokener_error json_res;
 	struct json_object *json_root;
 	do {
 		json_root = json_tokener_parse_ex(
-		    json_tokenizer, msg.data.instmsg.buf, sizeof(msg.data.instmsg.buf));
+		    json_tokenizer, buf, size);
 	} while ((json_res = json_tokener_get_error(json_tokenizer)) ==
 		 json_tokener_continue);
 	if (json_res != json_tokener_success) {
 		ERROR("Error while parsing channel's returned JSON data: %s\n",
 		      json_tokener_error_desc(json_res));
-		result = SERVER_EERR;
 		json_tokener_free(json_tokenizer);
-		goto server_ipc_end;
+		return NULL;
 	}
 
 	json_tokener_free(json_tokenizer);
+
+	return json_root;
+}
+
+static server_op_res_t server_activation_ipc(ipc_message *msg)
+{
+	server_op_res_t result = SERVER_OK;
+	update_state_t update_state = STATE_NOT_AVAILABLE;
+	struct json_object *json_root;
+
+	json_root = server_tokenize_msg(msg->data.instmsg.buf,
+					sizeof(msg->data.instmsg.buf));
+	if (!json_root)
+		return SERVER_EERR;
 
 	json_object *json_data = json_get_path_key(
 	    json_root, (const char *[]){"id", NULL});
 	if (json_data == NULL) {
 		ERROR("Got malformed JSON: Could not find action id");
 		DEBUG("Got JSON: %s\n", json_object_to_json_string(json_data));
-		result = SERVER_EERR;
-		goto server_ipc_end;
+		return SERVER_EERR;
 	}
 	int action_id = json_object_get_int(json_data);
 
@@ -1725,8 +1742,7 @@ server_op_res_t server_ipc(int fd)
 	if (json_data == NULL) {
 		ERROR("Got malformed JSON: Could not find field status");
 		DEBUG("Got JSON: %s\n", json_object_to_json_string(json_data));
-		result = SERVER_EERR;
-		goto server_ipc_end;
+		return SERVER_EERR;
 	}
 	update_state = (unsigned int)*json_object_get_string(json_data);
 	DEBUG("Got action_id %d status %c", action_id, update_state);
@@ -1740,8 +1756,7 @@ server_op_res_t server_ipc(int fd)
 	    !is_valid_state(update_state)) {
 		ERROR("Wrong values \"execution\" : %s, \"finished\" : %s , \"status\" : %c",
 		       	reply_execution, reply_result, update_state);
-		result = SERVER_EERR;
-		goto server_ipc_end;
+		return  SERVER_EERR;
 	}
 
 	int numdetails = json_object_array_length(json_data);
@@ -1787,7 +1802,58 @@ server_op_res_t server_ipc(int fd)
 		save_state((char *)STATE_KEY, STATE_OK);
 	}
 
-server_ipc_end:
+	msg->data.instmsg.len = 0;
+
+	return result;
+}
+
+static server_op_res_t server_configuration_ipc(ipc_message *msg)
+{
+	struct json_object *json_root;
+	unsigned int polling;
+	json_object *json_data;
+
+	json_root = server_tokenize_msg(msg->data.instmsg.buf,
+					sizeof(msg->data.instmsg.buf));
+	if (!json_root)
+		return SERVER_EERR;
+
+	json_data = json_get_path_key(
+	    json_root, (const char *[]){"polling", NULL});
+	if (json_data) {
+		polling = json_object_get_int(json_data);
+		if (polling > 0) {
+			server_hawkbit.polling_interval_from_server = false;
+			server_hawkbit.polling_interval = polling;
+		} else
+			server_hawkbit.polling_interval_from_server = true;
+	}
+
+	return SERVER_OK;
+}
+
+server_op_res_t server_ipc(int fd)
+{
+	ipc_message msg;
+	server_op_res_t result = SERVER_OK;
+	int ret;
+
+	ret = read(fd, &msg, sizeof(msg));
+	if (ret != sizeof(msg))
+		return SERVER_EERR;
+
+	switch (msg.data.instmsg.cmd) {
+	case CMD_ACTIVATION:
+		result = server_activation_ipc(&msg);
+		break;
+	case CMD_CONFIG:
+		result = server_configuration_ipc(&msg);
+		break;
+	default:
+		result = SERVER_EERR;
+		break;
+	}
+
 	if (result == SERVER_EERR) {
 		msg.type = NACK;
 	} else
