@@ -152,11 +152,14 @@ static void empty_pipe(int fd)
 	fd_set fds;
 	int ret;
 	ipc_message msg;
+	struct timeval tv;
 
 	do {
 		FD_ZERO(&fds);
 		FD_SET(fd, &fds);
-		ret = select(fd + 1, &fds, NULL, NULL, NULL);
+		tv.tv_sec = 0;
+		tv.tv_usec = 10000; /* Check for not more as 10 mSec */
+		ret = select(fd + 1, &fds, NULL, NULL, &tv);
 		if (ret <= 0 || !FD_ISSET(fd, &fds))
 			break;
 		/*
