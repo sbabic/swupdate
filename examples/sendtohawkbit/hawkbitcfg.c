@@ -35,7 +35,7 @@
 #include "network_ipc.h"
 
 void usage(char *program) {
-	printf("%s <action id> <status> <finished> <execution> <detail 1> <detail 2> ..\n", program);
+	printf("%s <polling interval 0=from server> ..\n", program);
 }
 
 char buf[256];
@@ -54,14 +54,14 @@ int main(int argc, char *argv[]) {
 	size_t size;
 	char *buf;
 
-	if (argc < 3) {
+	if (argc < 2) {
 		usage(argv[0]);
 		exit(1);
 	}
 
 	memset(&msg, 0, sizeof(msg));
 	msg.data.instmsg.source = SOURCE_SURICATTA;
-	msg.data.instmsg.cmd = CMD_ACTIVATION;
+	msg.data.instmsg.cmd = CMD_CONFIG;
 
 	size = sizeof(msg.data.instmsg.buf);
 	buf = msg.data.instmsg.buf;
@@ -73,39 +73,8 @@ int main(int argc, char *argv[]) {
 	 * An error or a NACK is returned in
 	 * case of failure
 	 */
-	for (i = 1; i < argc; i++) {
-		switch (i) {
-		case 1:
-			written = snprintf(buf, size, "{ \"id\" : \"%lu\"", strtoul(argv[i], NULL, 10));
-			break;
-		case 2:
-			written = snprintf(buf, size, ", \"status\" : \"%s\"", argv[i]);
-			break;
-		case 3:
-			written = snprintf(buf, size, ",\"finished\" : \"%s\"", argv[i]);
-			break;
-		case 4:
-			written = snprintf(buf, size, ",\"execution\" : \"%s\"", argv[i]);
-			break;
-		case 5:
-			written = snprintf(buf, size, ",\"details\" : [ \"%s\"", argv[i]);
-			break;
-		default:
-			written = snprintf(buf, size, ",\"%s\"", argv[i]);
-			break;
-		}
 
-		buf += written;
-		size -= written;
-
-		if (size <= 0)
-			break;
-	}
-
-	if (i > 4)
-		written = snprintf(buf, size, "]}");
-	else
-		written = snprintf(buf, size, "}");
+	written = snprintf(buf, size, "{ \"polling\" : \"%lu\"}", strtoul(argv[1], NULL, 10));
 
 	fprintf(stdout, "Sending: '%s'", msg.data.instmsg.buf);
 
@@ -118,4 +87,3 @@ int main(int argc, char *argv[]) {
 
 	exit(0);
 }
-

@@ -1,8 +1,8 @@
 
-all: sendtohawkbit
+all: sendtohawkbit hawkbitcfg
 
-sendtohawkbit: sendtohawkbit.c
-	${CC} -g -o sendtohawkbit -I../../include sendtohawkbit.c ../../ipc/lib.a -lpthread
+%: %.c
+	$(CC) -g -o $@ $< -I../../include ../../ipc/lib.a -lpthread
 
 clean:
 	@rm -f sendtohawkbit
