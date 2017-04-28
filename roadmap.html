@@ -95,8 +95,8 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="help_and_support.html">Mailing List</a></li>
 <li class="toctree-l1"><a class="reference internal" href="help_and_support.html#swupdate-flyer">SWUpdate Flyer</a></li>
-<li class="toctree-l1"><a class="reference internal" href="help_and_support.html#presentations-slides">Presentations slides</a></li>
-<li class="toctree-l1"><a class="reference internal" href="help_and_support.html#they-use-swupdate">They use SWUpdate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="help_and_support.html#talks-about-swupdate">Talks about SWUpdate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="help_and_support.html#useful-references">Useful references</a></li>
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="">Project&#8217;s road-map</a><ul>
@@ -257,11 +257,11 @@ backends to be mixed and matched at run-time.</p>
 </div>
 <div class="section" id="filesystem-based-persistent-update-status-storage">
 <h3>Filesystem-based Persistent Update Status Storage<a class="headerlink" href="#filesystem-based-persistent-update-status-storage" title="Permalink to this headline">¶</a></h3>
-<p>Currently, <a class="reference external" href="http://www.denx.de/wiki/U-Boot/">U-Boot</a>&#8216;s environment is used to persistently store the
-update status across reboots. On systems where U-Boot is not available
-or a different bootloader is used, a filesystem- or raw partition-based
-persistent storage should be made available to support other bootloaders
-such as, e.g., <a class="reference external" href="https://www.gnu.org/software/grub/">grub</a>.</p>
+<p>Originally, <a class="reference external" href="http://www.denx.de/wiki/U-Boot/">U-Boot</a>&#8216;s environment was used to persistently store the
+update status across reboots. Currently, <a class="reference external" href="https://www.gnu.org/software/grub/">GRUB</a> environment block has been
+added. On systems where different bootloader is used, a filesystem- or raw
+partition-based persistent storage should be made available to support other
+bootloaders.</p>
 </div>
 </div>
 <div class="section" id="documentation">

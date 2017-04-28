@@ -100,7 +100,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#postinstall">postinstall</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#uboot">uboot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bootloader">bootloader</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#board-specific-settings">Board specific settings</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#software-collections-and-operation-modes">Software collections and operation modes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#checking-version-of-installed-software">Checking version of installed software</a></li>
@@ -115,8 +115,8 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="help_and_support.html">Mailing List</a></li>
 <li class="toctree-l1"><a class="reference internal" href="help_and_support.html#swupdate-flyer">SWUpdate Flyer</a></li>
-<li class="toctree-l1"><a class="reference internal" href="help_and_support.html#presentations-slides">Presentations slides</a></li>
-<li class="toctree-l1"><a class="reference internal" href="help_and_support.html#they-use-swupdate">They use SWUpdate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="help_and_support.html#talks-about-swupdate">Talks about SWUpdate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="help_and_support.html#useful-references">Useful references</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project&#8217;s road-map</a></li>
@@ -222,8 +222,8 @@ using of the #include directive is not allowed by SWUpdate.</p>
                         volume = &quot;splash&quot;;
                 },
                 {
-                        filename = &quot;uboot-env&quot;;
-                        type = &quot;uboot&quot;;
+                        filename = &quot;bootloader-env&quot;;
+                        type = &quot;bootloader&quot;;
                 },
                 {
                         filename = &quot;uImage.bin&quot;;
@@ -255,7 +255,7 @@ using of the #include directive is not allowed by SWUpdate.</p>
                 }
         );
 
-        uboot: (
+        bootenv: (
                 {
                         name = &quot;vram&quot;;
                         value = &quot;4M&quot;;
@@ -463,27 +463,32 @@ SWUpdate scans for all scripts and calls them before installing the images.</p>
 SWUpdate scans for all scripts and calls them after installing the images.</p>
 </div>
 </div>
-<div class="section" id="uboot">
-<h2>uboot<a class="headerlink" href="#uboot" title="Permalink to this headline">¶</a></h2>
-<p>There are two ways to update the bootloader (U-Boot) environment.
+<div class="section" id="bootloader">
+<h2>bootloader<a class="headerlink" href="#bootloader" title="Permalink to this headline">¶</a></h2>
+<p>There are two ways to update the bootloader (currently U-Boot, GRUB) environment.
 First way is to add a file with the list of variables to be changed
-and setting &#8220;uboot&#8221; as type of the image. This inform SWUpdate to
-call the U-Boot handler to manage the file.</p>
+and setting &#8220;bootloader&#8221; as type of the image. This informs SWUpdate to
+call the bootloader handler to manage the file (requires enabling bootloader
+handler in configuration). There is one bootloader handler for all supported
+bootloaders. Appropriate bootloader must be chosen from bootloader selection
+menu in menuconfig.</p>
 <div class="highlight-python"><div class="highlight"><pre>{
-        filename = &quot;uboot-env&quot;;
-        type = &quot;uboot&quot;;
+        filename = &quot;bootloader-env&quot;;
+        type = &quot;bootloader&quot;;
 },
 </pre></div>
 </div>
-<p>The format of the file is described in u-boot documentation. Each line
+<p>The format of the file is described in U-boot documentation. Each line
 is in the format</p>
 <div class="highlight-python"><div class="highlight"><pre>&lt;name of variable&gt;      &lt;value&gt;
 </pre></div>
 </div>
 <p>if value is missing, the variable is unset.</p>
+<p>In current implementation we have inherited above file format for GRUB
+environment modification as well.</p>
 <p>The second way is to define in a group setting the variables
 that must be changed:</p>
-<div class="highlight-python"><div class="highlight"><pre>uboot: (
+<div class="highlight-python"><div class="highlight"><pre>bootenv: (
         {
                 name = &lt;Variable name&gt;;
                 value = &lt;Variable value&gt;;
@@ -492,7 +497,9 @@ that must be changed:</p>
 </pre></div>
 </div>
 <p>SWUpdate will internally generate a script that will be passed to the
-U-Boot handler for adjusting the environment.</p>
+bootloader handler for adjusting the environment.</p>
+<p>For backward compatibility with previously built .swu images, &#8220;uboot &#8220;group name
+is still relevant (as an alias).</p>
 </div>
 <div class="section" id="board-specific-settings">
 <h2>Board specific settings<a class="headerlink" href="#board-specific-settings" title="Permalink to this headline">¶</a></h2>
@@ -510,7 +517,7 @@ the following entry:</p>
         version = &quot;0.1.0&quot;;
 
         my-board = {
-                uboot: (
+                bootenv: (
                 {
                         name = &quot;bootpart&quot;;
                         value = &quot;0:2&quot;;
@@ -518,7 +525,7 @@ the following entry:</p>
                 );
         };
 
-        uboot: (
+        bootenv: (
         {
                 name = &quot;bootpart&quot;;
                 value = &quot;0:1&quot;;
@@ -527,7 +534,7 @@ the following entry:</p>
 }
 </pre></div>
 </div>
-<p>SWUpdate will set <cite>bootpart</cite> to <cite>0:2</cite> in U-Boot&#8217;s environment for this
+<p>SWUpdate will set <cite>bootpart</cite> to <cite>0:2</cite> in bootloader&#8217;s environment for this
 board. For all other boards, <cite>bootpart</cite> will be set to <cite>0:1</cite>. Board
 specific settings take precedence over default scoped settings.</p>
 </div>
@@ -540,7 +547,7 @@ be used for implementing a dual copy strategy or delivering both
 stable and unstable images within a single update file.</p>
 <p>The mechanism uses a custom user-defined tags placed within <cite>software</cite>
 scope. The tag names must not be any of: <cite>version</cite>,
-<cite>hardware-compatibility</cite>, <cite>uboot</cite>, <cite>files</cite>, <cite>scripts</cite>, <cite>partitions</cite>,
+<cite>hardware-compatibility</cite>, <cite>uboot</cite>, <cite>bootenv</cite>, <cite>files</cite>, <cite>scripts</cite>, <cite>partitions</cite>,
 <cite>images</cite></p>
 <p>An example description file:</p>
 <div class="highlight-python"><div class="highlight"><pre>software =
@@ -561,7 +568,7 @@ scope. The tag names must not be any of: <cite>version</cite>,
                         }
                         );
 
-                        uboot: (
+                        bootenv: (
                         {
                                 name = &quot;bootpart&quot;;
                                 value = &quot;0:2&quot;;
@@ -577,7 +584,7 @@ scope. The tag names must not be any of: <cite>version</cite>,
                         }
                         );
 
-                        uboot: (
+                        bootenv: (
                         {
                                 name = &quot;bootpart&quot;;
                                 value = &quot;0:1&quot;;
@@ -637,7 +644,8 @@ This is generally used to expand from a tar-ball or to update
 single files.</li>
 <li>scripts: all entries are treated as executables, and they will
 be run twice (as pre- and post- install scripts).</li>
-<li>uboot: entries are pair with U-Boot variable name and its value.</li>
+<li>bootenv: entries are pair with bootloader environment variable name and its
+value.</li>
 </ul>
 <table border="1" class="docutils">
 <colgroup>
@@ -738,14 +746,15 @@ support streaming.</td>
 </tr>
 <tr class="row-odd"><td>name</td>
 <td>string</td>
-<td>uboot</td>
-<td>name of the U-Boot variable to be set.</td>
+<td>bootenv</td>
+<td>name of the bootloader variable to be
+set.</td>
 </tr>
 <tr class="row-even"><td>value</td>
 <td>string</td>
-<td>uboot</td>
-<td>value to be assigned to the U-Boot
-variable</td>
+<td>bootenv</td>
+<td>value to be assigned to the
+bootloader variable</td>
 </tr>
 <tr class="row-odd"><td>name</td>
 <td>string</td>

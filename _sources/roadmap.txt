@@ -111,11 +111,11 @@ backends to be mixed and matched at run-time.
 Filesystem-based Persistent Update Status Storage
 -------------------------------------------------
 
-Currently, `U-Boot`_'s environment is used to persistently store the
-update status across reboots. On systems where U-Boot is not available
-or a different bootloader is used, a filesystem- or raw partition-based
-persistent storage should be made available to support other bootloaders
-such as, e.g., `grub`_.
+Originally, `U-Boot`_'s environment was used to persistently store the
+update status across reboots. Currently, `GRUB`_ environment block has been
+added. On systems where different bootloader is used, a filesystem- or raw
+partition-based persistent storage should be made available to support other
+bootloaders.
 
 .. _grub:   https://www.gnu.org/software/grub/
 .. _U-Boot: http://www.denx.de/wiki/U-Boot/

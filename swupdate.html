@@ -125,8 +125,8 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="help_and_support.html">Mailing List</a></li>
 <li class="toctree-l1"><a class="reference internal" href="help_and_support.html#swupdate-flyer">SWUpdate Flyer</a></li>
-<li class="toctree-l1"><a class="reference internal" href="help_and_support.html#presentations-slides">Presentations slides</a></li>
-<li class="toctree-l1"><a class="reference internal" href="help_and_support.html#they-use-swupdate">They use SWUpdate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="help_and_support.html#talks-about-swupdate">Talks about SWUpdate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="help_and_support.html#useful-references">Useful references</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project&#8217;s road-map</a></li>
@@ -394,13 +394,15 @@ The filesystem where to put the file must be described.</li>
 using the <a class="reference external" href="http://www.hyperrealm.com/libconfig/">libconfig</a> library as default parser, that uses a
 JSON-like description.</li>
 </ul>
-<ul>
-<li><p class="first">use custom&#8217;s choice for the description of the image. It is
+<ul class="simple">
+<li>use custom&#8217;s choice for the description of the image. It is
 possible to write an own parser using the LUA language.
 An example using a XML description in LUA is provided
-in the examples directory.</p>
-</li>
-<li><p class="first">Support for setting / erasing U-Boot variables</p>
+in the examples directory.</li>
+<li>Support for setting / erasing U-Boot variables</li>
+</ul>
+<ul>
+<li><p class="first">Support for setting / erasing <a class="reference external" href="https://www.gnu.org/software/grub/manual/html_node/Environment-block.html">GRUB</a> environment block variables</p>
 </li>
 <li><p class="first">Support for preinstall scripts. They run before updating the images</p>
 </li>
@@ -460,8 +462,8 @@ micro-controller firmware via custom protocols.</p>
 <h3>Images fully streamed<a class="headerlink" href="#images-fully-streamed" title="Permalink to this headline">¶</a></h3>
 <p>In case of remote update, SWUpdate extracts relevant images
 from the stream and copy them into /tmp before calling the handlers.
-This guarantee that an update is initiated only if all parts are present and correct.
-However, on some systems with less resources, the amount of RAM
+This guarantee that an update is initiated only if all parts are present and
+correct. However, on some systems with less resources, the amount of RAM
 to copy the images could be not enough, for example if the filesystem on
 an attached SD Card must be updated. In this case, it will help if the images
 are installed directly as stream by the corresponding handler, without temporary
@@ -495,7 +497,7 @@ and drop what you do not need.</p>
 </div>
 <div class="section" id="building-with-yocto">
 <h3>Building with Yocto<a class="headerlink" href="#building-with-yocto" title="Permalink to this headline">¶</a></h3>
-<p>A <a href="#id1"><span class="problematic" id="id2">meta-swUpdate_</span></a> layer is provided. It contains the required changes
+<p>A <a class="reference external" href="https://github.com/sbabic/meta-swupdate.git">meta-SWUpdate</a> layer is provided. It contains the required changes
 for mtd-utils and for generating LUA. Using meta-SWUpdate is a
 straightforward process.</p>
 <p>Firstly, clone meta-SWUpdate.</p>
@@ -608,7 +610,7 @@ resizing.</li>
 <li>iterates through all images and call the corresponding
 handler for installing on target.</li>
 <li>runs post-install scripts</li>
-<li>update u-boot environment, if changes are specified
+<li>update bootloader environment, if changes are specified
 in sw-description.</li>
 <li>reports the status to the operator (stdout)</li>
 </ul>
@@ -636,7 +638,8 @@ documentation.</p>
 <p>This uses as website the pages delivered with the code. Of course,
 they can be customized and replaced. The website uses AJAX to communicate
 with SWUpdate, and to show the progress of the update to the operator.</p>
-<p>The default port of the Web-server is 8080. You can then connect to the target with:</p>
+<p>The default port of the Web-server is 8080. You can then connect to the target
+with:</p>
 <div class="highlight-python"><div class="highlight"><pre>http://&lt;target_ip&gt;:8080
 </pre></div>
 </div>
@@ -801,28 +804,34 @@ In case using U-Boot, the following mechanism can be implemented:</p>
 <ul class="simple">
 <li>U-Boot checks if a sw update is required (check gpio, serial console, etc.).</li>
 <li>the script &#8220;altbootcmd&#8221; sets the rules to start SWUpdate</li>
-<li>in case SWUpdate is required, u-boot run the script &#8220;altbootcmd&#8221;</li>
+<li>in case SWUpdate is required, U-boot run the script &#8220;altbootcmd&#8221;</li>
 </ul>
 <p>Is it safe to change U-Boot environment ? Well, it is, but U-Boot must
 be configured correctly. U-Boot supports two copies of the environment
-to be power-off safe during a an evironment update. The board&#8217;s
+to be power-off safe during an environment update. The board&#8217;s
 configuration file must have defined CONFIG_ENV_OFFSET_REDUND or
 CONFIG_ENV_ADDR_REDUND. Check in U-Boot documentation for these
 constants and how to use them.</p>
 <p>There are a further enhancement that can be optionally integrated
-into u-boot to make the system safer. The most important I will
-suggest is to add support for boot counter in u-boot (documentation
+into U-boot to make the system safer. The most important I will
+suggest is to add support for boot counter in U-boot (documentation
 is in U-Boot docs). This allows U-Boot to track for attempts to
 successfully run the application, and if the boot counter is
 greater as a limit, can start automatically SWUpdate to replace
 a corrupt software.</p>
+<p>GRUB by default does not support double copies of environment as in case of
+U-Boot. This means that there is possibility that environment block get&#8217;s
+corrupted when power-off occurs during environment update. To minimize the
+risk, we are not modifying original environment block. Variables are written
+into temporary file and after successful operation rename instruction is
+called.</p>
 </div>
 <div class="section" id="building-a-single-image">
 <h2>Building a single image<a class="headerlink" href="#building-a-single-image" title="Permalink to this headline">¶</a></h2>
 <p>cpio is used as container for its simplicity. The resulting image is very
 simple to be built.
-The file describing the images (&#8220;sw-description&#8221;, but the name can be configured)
-must be the first file in the cpio archive.</p>
+The file describing the images (&#8220;sw-description&#8221;, but the name can be
+configured) must be the first file in the cpio archive.</p>
 <p>To produce an image, a script like this can be used:</p>
 <div class="highlight-python"><div class="highlight"><pre>CONTAINER_VER=&quot;1.0&quot;
 PRODUCT_NAME=&quot;my-software&quot;
@@ -832,8 +841,8 @@ for i in $FILES;do
         echo $i;done | cpio -ov -H crc &gt;  ${PRODUCT_NAME}_${CONTAINER_VER}.swu
 </pre></div>
 </div>
-<p>The single images can be put in any order inside the cpio container, with the exception
-of sw-description, that must be the first one.
+<p>The single images can be put in any order inside the cpio container, with the
+exception of sw-description, that must be the first one.
 To check your generated image you can run the following command:</p>
 <div class="highlight-python"><div class="highlight"><pre>swupdate -c -i my-software_1.0.swu
 </pre></div>

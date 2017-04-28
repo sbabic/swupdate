@@ -119,8 +119,8 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="help_and_support.html">Mailing List</a></li>
 <li class="toctree-l1"><a class="reference internal" href="help_and_support.html#swupdate-flyer">SWUpdate Flyer</a></li>
-<li class="toctree-l1"><a class="reference internal" href="help_and_support.html#presentations-slides">Presentations slides</a></li>
-<li class="toctree-l1"><a class="reference internal" href="help_and_support.html#they-use-swupdate">They use SWUpdate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="help_and_support.html#talks-about-swupdate">Talks about SWUpdate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="help_and_support.html#useful-references">Useful references</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project&#8217;s road-map</a></li>
@@ -251,9 +251,9 @@ because the whole range of services and libraries are not available.</p>
 <h3>Boot loader&#8217;s update advantages<a class="headerlink" href="#boot-loader-s-update-advantages" title="Permalink to this headline">¶</a></h3>
 <p>However, this approach has some advantages, too:</p>
 <ul class="simple">
-<li>software for update is generally simpler.</li>
-<li>smaller footprint: a stand-alone application only for software management requires an own kernel and a root file system.
-Even if their size can be trimmed dropping what is not required
+<li>software for update is generally simpler.  - smaller footprint: a stand-alone
+application only for software management requires an own kernel and a root
+file system. Even if their size can be trimmed dropping what is not required
 for updating the software, their size is not negligible.</li>
 </ul>
 </div>
@@ -326,14 +326,14 @@ should be installed in the root file system and started
 or triggered as required. There is no
 need of an own kernel, because the two copies guarantees that
 it is always possible to upgrade the not running copy.</p>
-<p>SWUpdate will set U-Boot&#8217;s variable to signal the boot loader
-that a new image is successfully installed.</p>
+<p>SWUpdate will set bootloader&#8217;s variable to signal the that a new image is
+successfully installed.</p>
 </div>
 <div class="section" id="single-copy-running-as-standalone-image">
 <h3>Single copy - running as standalone image<a class="headerlink" href="#single-copy-running-as-standalone-image" title="Permalink to this headline">¶</a></h3>
 <p>The software upgrade application consists of kernel (maybe reduced
-dropping not required drivers) and a small root file system, with the application
-and its libraries. The whole size is much less than a single copy of
+dropping not required drivers) and a small root file system, with the
+application and its libraries. The whole size is much less than a single copy of
 the system software. Depending on set up, I get sizes from 2.5 until 8 MB
 for the stand-alone root file system. If the size is very important on small
 systems, it becomes negligible on systems with a lot of storage
@@ -343,8 +343,8 @@ boot loader that the upgrading software must be started. The way
 can differ, for example setting a boot loader environment or using
 and external GPIO.</p>
 <p>The boot loader starts &#8220;SWUpdate&#8221;, booting the
-SWUpdate kernel and the initrd image as root file system. Because it runs in RAM,
-it is possible to upgrade the whole storage. Differently as in the
+SWUpdate kernel and the initrd image as root file system. Because it runs in
+RAM, it is possible to upgrade the whole storage. Differently as in the
 double-copy strategy, the systems must reboot to put itself in
 update mode.</p>
 <p>This concept consumes less space in storage as having two copies, but
@@ -362,7 +362,9 @@ system boots and it is ready to get a new software, if the old one
 is corrupted or cannot run.
 With U-Boot as boot loader, SWUpdate is able to manage U-Boot&#8217;s environment
 setting variables to indicate the start and the end of a transaction and
-that the storage contains a valid software.</p>
+that the storage contains a valid software.
+Similar feature for GRUB environment block modification has been introduced
+into SWUpdate lately.</p>
 <p>SWUpdate is mainly used in this configuration. The recipes for Yocto
 generate an initrd image containing the SWUpdate application, that is
 automatically started after mounting the root file system.</p>
@@ -373,8 +375,8 @@ automatically started after mounting the root file system.</p>
 <h2>Something went wrong ?<a class="headerlink" href="#something-went-wrong" title="Permalink to this headline">¶</a></h2>
 <p>Many things can go wrong, and it must be guaranteed that the system
 is able to run again and maybe able to reload a new software to fix
-a damaged image. SWUpdate works together with the U-Boot boot loader to
-identify the possible causes of failures.</p>
+a damaged image. SWUpdate works together with the boot loader to identify the
+possible causes of failures. Currently U-Boot and GRUB are supported.</p>
 <p>We can at least group some of the common causes:</p>
 <ul class="simple">
 <li>damage / corrupted image during installing.
@@ -385,13 +387,13 @@ is really copied into the target&#8217;s storage.</li>
 <li>remote update interrupted due to communication problem.</li>
 <li>power-failure</li>
 </ul>
-<p>SWUpdate works as transaction process. The U-Boot variable &#8220;recovery_status&#8221; is
-set to signal U-Boot the update&#8217;s status. Of course, further variables can be added
-to fine tuning and report error causes. recovery_status can have the values &#8220;progress&#8221;,
-&#8220;failed&#8221;, or it can be unset.</p>
-<p>When SWUpdate starts, it sets recovery_status to &#8220;progress&#8221;. After an update is finished
-with success, the variable is erased. If the update ends with an error, recovery_status
-has the value &#8220;failed&#8221;.</p>
+<p>SWUpdate works as transaction process. The boot loader environment variable
+&#8220;recovery_status&#8221; is set to signal the update&#8217;s status to the boot loader. Of
+course, further variables can be added to fine tuning and report error causes.
+recovery_status can have the values &#8220;progress&#8221;, &#8220;failed&#8221;, or it can be unset.</p>
+<p>When SWUpdate starts, it sets recovery_status to &#8220;progress&#8221;. After an update is
+finished with success, the variable is erased. If the update ends with an
+error, recovery_status has the value &#8220;failed&#8221;.</p>
 <p>When an update is interrupted, independently from the cause, the boot loader
 recognizes it because the recovery_status variable is in &#8220;progress&#8221; or &#8220;failed&#8221;.
 The boot loader can then start again SWUpdate to load again the software
@@ -413,19 +415,20 @@ started again.</li>
 <p>To be completely safe, SWUpdate and the bootloader need to exchange some
 information. The bootloader must detect if an update was interrupted due
 to a power-off, and restart SWUpdate until an update is successful.
-SWUpdate supports the U-Boot bootloader. U-Boot has a power-safe environemnt,
-that SWUpdate is able to change to communicate with U-Boot.
-Setting / Clearing variables let SWUpdate and U-Boot to communicate.
+SWUpdate supports the U-Boot and GRUB bootloaders. U-Boot has a power-safe
+environment, that SWUpdate is able to change to communicate with U-Boot.
+In case of GRUB, fixed 1024-byte environment block file is used.
+Setting / Clearing variables lets SWUpdate and bootloader to communicate.
 SWUpdate sets a variable as flag when it starts to update the system, and
-resets the same variable after completion. U-Boot can detect this flag
+resets the same variable after completion. Bootloader can detect this flag
 to check if an update was running before a power-off.</p>
 <img alt="_images/SoftwareUpdateU-Boot.png" src="_images/SoftwareUpdateU-Boot.png" />
 </div>
 <div class="section" id="what-about-upgrading-swupdate-itself">
 <h3>What about upgrading SWUpdate itself ?<a class="headerlink" href="#what-about-upgrading-swupdate-itself" title="Permalink to this headline">¶</a></h3>
 <p>SWUpdate is thought to be used in the whole development process, replacing
-customized process to update the software during the development. Before going into production,
-SWUpdate is well tested for a project.</p>
+customized process to update the software during the development. Before going
+into production, SWUpdate is well tested for a project.</p>
 <p>If SWUpdate itself should be updated, the update cannot be safe if there is only
 one copy of SWUpdate in the storage. Safe update can be guaranteed only if
 SWUpdate is duplicated.</p>
@@ -438,9 +441,9 @@ upgraded image:</p>
 </div>
 <div class="section" id="what-about-upgrading-the-boot-loader">
 <h3>What about upgrading the Boot loader ?<a class="headerlink" href="#what-about-upgrading-the-boot-loader" title="Permalink to this headline">¶</a></h3>
-<p>Updating the boot loader is in most cases a one-way process. On most SOCs, there is no possibility
-to have multiple copies of the boot loader, and when U-Boot is broken,
-the board does not simply boot.</p>
+<p>Updating the boot loader is in most cases a one-way process. On most SOCs,
+there is no possibility to have multiple copies of the boot loader, and when
+boot loader is broken, the board does not simply boot.</p>
 <p>Some SOCs allow to have multiple copies of the
 boot loader. But again, there is no general solution for this because it
 is <em>very</em> hardware specific.</p>

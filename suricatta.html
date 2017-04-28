@@ -101,8 +101,8 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="help_and_support.html">Mailing List</a></li>
 <li class="toctree-l1"><a class="reference internal" href="help_and_support.html#swupdate-flyer">SWUpdate Flyer</a></li>
-<li class="toctree-l1"><a class="reference internal" href="help_and_support.html#presentations-slides">Presentations slides</a></li>
-<li class="toctree-l1"><a class="reference internal" href="help_and_support.html#they-use-swupdate">They use SWUpdate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="help_and_support.html#talks-about-swupdate">Talks about SWUpdate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="help_and_support.html#useful-references">Useful references</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project&#8217;s road-map</a></li>
@@ -159,7 +159,7 @@ name suricatta (engl. meerkat) as it belongs to the mongoose family.</p>
 <p>Suricatta regularly polls a remote server for updates, downloads, and
 installs them. Thereafter, it reboots the system and reports the update
 status to the server, based on an update state variable currently stored
-in U-Boot&#8217;s environment ensuring persistent storage across reboots. Some
+in bootloader&#8217;s environment ensuring persistent storage across reboots. Some
 U-Boot script logics or U-Boot&#8217;s <code class="docutils literal"><span class="pre">bootcount</span></code> feature may be utilized
 to alter this update state variable, e.g., by setting it to reflect
 failure in case booting the newly flashed root file system has failed
@@ -221,7 +221,7 @@ has to implement:</p>
 channel_op_res_t channel_close(channel_t *this);
 channel_op_res_t channel_put(channel_t *this, void* data);
 channel_op_res_t channel_get(channel_t *this, void* data);
-channel_op_res_t channel_get_file(channel_t *this, void* data);
+channel_op_res_t channel_get_file(channel_t *this, void* data, int file_handle);
 </pre></div>
 </div>
 <p><code class="docutils literal"><span class="pre">include/suricatta/server.h</span></code> describes the functionality a server has
