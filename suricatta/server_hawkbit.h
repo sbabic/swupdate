@@ -20,6 +20,8 @@
 #pragma once
 #include <stdbool.h>
 #include <suricatta/channel.h>
+#include <suricatta/state.h>
+#include <swupdate_dict.h>
 
 /* Have a queue for errors reported by installer */
 #define HAWKBIT_MAX_REPORTED_ERRORS	10

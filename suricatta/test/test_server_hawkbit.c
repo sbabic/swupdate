@@ -51,17 +51,35 @@ int __wrap_ipc_postupdate(ipc_message *msg) {
 	return 0;
 }
 
-extern channel_op_res_t __real_channel_put(void *data);
-channel_op_res_t __wrap_channel_put(void *data);
-channel_op_res_t __wrap_channel_put(void *data)
+extern channel_op_res_t __real_channel_open(channel_t *this, void *cfg);
+channel_op_res_t __wrap_channel_open(channel_t *this, void *cfg);
+channel_op_res_t __wrap_channel_open(channel_t *this, void *cfg)
 {
-	(void)data;
+	(void)this;
+	(void)cfg;
 	return mock_type(channel_op_res_t);
 }
 
-extern channel_op_res_t __real_channel_get_file(void *data);
-channel_op_res_t __wrap_channel_get_file(void *data);
-channel_op_res_t __wrap_channel_get_file(void *data)
+extern channel_op_res_t __real_channel_close(channel_t *this);
+channel_op_res_t __wrap_channel_close(channel_t *this);
+channel_op_res_t __wrap_channel_close(channel_t *this)
+{
+	(void)this;
+	return mock_type(channel_op_res_t);
+}
+
+extern channel_op_res_t __real_channel_put(channel_t *this, void *data);
+channel_op_res_t __wrap_channel_put(channel_t *this, void *data);
+channel_op_res_t __wrap_channel_put(channel_t *this, void *data)
+{
+	(void)data;
+	(void)this;
+	return mock_type(channel_op_res_t);
+}
+
+extern channel_op_res_t __real_channel_get_file(channel_t *this, void *data, int file_handle);
+channel_op_res_t __wrap_channel_get_file(channel_t *this, void *data, int file_handle);
+channel_op_res_t __wrap_channel_get_file(channel_t *this, void *data, int file_handle)
 {
 #ifdef CONFIG_SURICATTA_SSL
 	channel_data_t *channel_data = (channel_data_t *)data;
@@ -70,13 +88,16 @@ channel_op_res_t __wrap_channel_get_file(void *data)
 #else
 	(void)data;
 #endif
+	(void)file_handle;
+	(void)this;
 	return mock_type(channel_op_res_t);
 }
 
-extern channel_op_res_t __real_channel_get(void *data);
-channel_op_res_t __wrap_channel_get(void *data);
-channel_op_res_t __wrap_channel_get(void *data)
+extern channel_op_res_t __real_channel_get(channel_t *this, void *data);
+channel_op_res_t __wrap_channel_get(channel_t *this, void *data);
+channel_op_res_t __wrap_channel_get(channel_t *this, void *data)
 {
+	(void)this;
 	channel_data_t *channel_data = (channel_data_t *)data;
 	channel_data->json_reply = mock_ptr_type(json_object *);
 	return mock_type(channel_op_res_t);
@@ -258,11 +279,12 @@ static void test_server_set_polling_interval(void **state)
 extern server_op_res_t
 server_send_deployment_reply(const int action_id, const int job_cnt_max,
 			     const int job_cnt_cur, const char *finished,
-			     const char *execution_status, const char *details);
+			     const char *execution_status, int numdetails, const char *details[]);
 static void test_server_send_deployment_reply(void **state)
 {
 	(void)state;
 	int action_id = 23;
+	const char *details[1] = { "UNIT TEST" };
 
 	/* Test Case: Channel sent reply. */
 	will_return(__wrap_channel_put, CHANNEL_OK);
@@ -270,7 +292,7 @@ static void test_server_send_deployment_reply(void **state)
 			 server_send_deployment_reply(
 			     action_id, 5, 5,
 			     reply_status_result_finished.success,
-			     reply_status_execution.closed, "UNIT TEST"));
+			     reply_status_execution.closed, 1, details));
 
 	/* Test Case: Channel didn't sent reply. */
 	will_return(__wrap_channel_put, CHANNEL_EIO);
@@ -278,10 +300,10 @@ static void test_server_send_deployment_reply(void **state)
 			 server_send_deployment_reply(
 			     action_id, 5, 5,
 			     reply_status_result_finished.success,
-			     reply_status_execution.closed, "UNIT TEST"));
+			     reply_status_execution.closed, 1, details));
 }
 
-extern server_op_res_t server_send_cancel_reply(const int action_id);
+extern server_op_res_t server_send_cancel_reply(channel_t *channel, const int action_id);
 static void test_server_send_cancel_reply(void **state)
 {
 	(void)state;
@@ -289,27 +311,28 @@ static void test_server_send_cancel_reply(void **state)
 
 	/* Test Case: Channel sent reply. */
 	will_return(__wrap_channel_put, CHANNEL_OK);
-	assert_int_equal(SERVER_OK, server_send_cancel_reply(action_id));
+	assert_int_equal(SERVER_OK, server_send_cancel_reply(server_hawkbit.channel, action_id));
 
 	/* Test Case: Channel didn't sent reply. */
 	will_return(__wrap_channel_put, CHANNEL_EIO);
-	assert_int_equal(SERVER_EERR, server_send_cancel_reply(action_id));
+	assert_int_equal(SERVER_EERR, server_send_cancel_reply(server_hawkbit.channel, action_id));
 }
 
 extern server_op_res_t
-server_process_update_artifact(json_object *json_data_artifact,
+server_process_update_artifact(int action_id, json_object *json_data_artifact,
 			       const char *update_action, const char *part,
 			       const char *version, const char *name);
 
 static void test_server_process_update_artifact(void **state)
 {
 	(void)state;
+	int action_id = 23;
 	/* clang-format off */
 	static const char *json_artifact = JSONQUOTE(
 	{
 		"artifacts": [
 		{
-			"filename" : "afile",
+			"filename" : "afile.swu",
 			"hashes" : {
 				"sha1" : "CAFFEE",
 				"md5" : "DEADBEEF",
@@ -332,8 +355,8 @@ static void test_server_process_update_artifact(void **state)
 #ifndef CONFIG_SURICATTA_SSL
 	/* Test Case: No HTTP download URL given in JSON. */
 	json_object *json_data_artifact = json_tokener_parse(json_artifact);
-	assert_int_equal(SERVER_EBADMSG,
-			 server_process_update_artifact(
+	assert_int_equal(SERVER_EERR,
+			 server_process_update_artifact(action_id,
 			     json_get_key(json_data_artifact, "artifacts"),
 			     "update action", "part", "version", "name"));
 #endif
@@ -345,7 +368,7 @@ static void test_server_process_update_artifact(void **state)
 	will_return(__wrap_channel_get_file, CHANNEL_OK);
 	will_return(__wrap_ipc_wait_for_complete, SUCCESS);
 	assert_int_equal(SERVER_OK,
-			 server_process_update_artifact(
+			 server_process_update_artifact(action_id,
 			     json_get_key(json_data_artifact, "artifacts"),
 			     "update action", "part", "version", "name"));
 	assert_int_equal(json_object_put(json_data_artifact),
@@ -403,7 +426,7 @@ static void test_server_install_update(void **state)
 			"name" : "oneapplication",
 			"artifacts": [
 				{
-					"filename" : "afile",
+					"filename" : "afile.swu",
 					"hashes" : {
 						"sha1" : "CAFFEE",
 						"md5" : "DEADBEEF",
@@ -437,7 +460,7 @@ static void test_server_install_update(void **state)
 			"name" : "oneapplication",
 			"artifacts": [
 				{
-					"filename" : "afile",
+					"filename" : "afile.swu",
 					"hashes" : {
 						"sha1" : "CAFFEE",
 						"md5" : "DEADBEEF",
@@ -511,6 +534,12 @@ static int server_hawkbit_setup(void **state)
 	server_hawkbit.url = (char *)"http://void.me";
 	server_hawkbit.tenant = (char *)"tenant";
 	server_hawkbit.device_id = (char *)"deviceID";
+	server_hawkbit.channel = channel_new();
+	server_hawkbit.channel->open = & channel_open;
+	server_hawkbit.channel->close = & channel_close;
+	server_hawkbit.channel->get = & channel_get;
+	server_hawkbit.channel->get_file = & channel_get_file;
+	server_hawkbit.channel->put = & channel_put;
 	return 0;
 }
 

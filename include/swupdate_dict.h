@@ -21,6 +21,8 @@
 #ifndef _SWDICT_H
 #define _SWDICT_H
 
+#include <bsdqueue.h>
+
 struct dict_entry {
 	char *varname;
 	char *value;
