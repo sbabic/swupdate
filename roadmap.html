@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Project’s road-map &mdash; Embedded Software Update Documentation 2017.01 documentation</title>
+  <title>Project’s road-map &mdash; Embedded Software Update Documentation 2017.04 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="Embedded Software Update Documentation 2017.01 documentation" href="index.html"/>
+    <link rel="top" title="Embedded Software Update Documentation 2017.04 documentation" href="index.html"/>
         <link rel="prev" title="Mailing List" href="help_and_support.html"/> 
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                2017.01
+                2017.04
               </div>
             
           
@@ -101,9 +101,13 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="">Project&#8217;s road-map</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#main-goal">Main goal</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#embedded-scripts-in-sw-description">Embedded scripts in sw-description</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#reuse-process-monitor-mechanism">Reuse process monitor mechanism</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#support-for-other-bootloader-as-u-boot">Support for other bootloader as U-Boot</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#binary-delta-updates">Binary delta updates</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#handlers">Handlers:</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#new-handlers">New Handlers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#flash-handler">Flash handler</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#handlers-installable-as-plugin-at-runtime">Handlers installable as plugin at runtime</a></li>
 </ul>
 </li>
@@ -111,9 +115,9 @@
 <li class="toctree-l2"><a class="reference internal" href="#backend-support-suricatta-mode">Backend support (suricatta mode)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#backend-support-for-other-servers">Backend: Support for other Servers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#support-for-multiple-servers-simultaneously">Support for multiple Servers simultaneously</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#filesystem-based-persistent-update-status-storage">Filesystem-based Persistent Update Status Storage</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#webserver-interface">Webserver / Interface</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#documentation">Documentation</a></li>
 </ul>
 </li>
@@ -177,6 +181,29 @@ SWUpdate suitable for a large number of products.
 This will help to build a community around the project
 itself.</p>
 </div>
+<div class="section" id="embedded-scripts-in-sw-description">
+<h2>Embedded scripts in sw-description<a class="headerlink" href="#embedded-scripts-in-sw-description" title="Permalink to this headline">¶</a></h2>
+<p>If an artifact is select to be installed immediately (&#8220;installed-directly&#8221;
+flag is set), no pre-install scripts are executed. This is because a script
+can be packed in the .swu file later after the artifact to be installed.
+A use case is when partitions must be prepared before installing an
+image. Another use case is to allow to change the sw-description on-the-fly,
+depending on run time conditions that only the target can know.</p>
+<p>If an embedded LUA script is inside sw-description, it is possible to evaluate
+it before any installation.</p>
+</div>
+<div class="section" id="reuse-process-monitor-mechanism">
+<h2>Reuse process monitor mechanism<a class="headerlink" href="#reuse-process-monitor-mechanism" title="Permalink to this headline">¶</a></h2>
+<p>Process monitoring and supoervising works fine for the subprocesses. There
+could be some use cases where a user wants to add own processes to it.
+This is more important on system where systemd is not the init system
+(systemd can do this) or there is no init system at all (rescue systems).</p>
+</div>
+<div class="section" id="support-for-other-bootloader-as-u-boot">
+<h2>Support for other bootloader as U-Boot<a class="headerlink" href="#support-for-other-bootloader-as-u-boot" title="Permalink to this headline">¶</a></h2>
+<p>A new generic interface for the bootloaders was introduced. U-Boot and GRUB are
+supported. It is open to other bootloader.</p>
+</div>
 <div class="section" id="binary-delta-updates">
 <h2>Binary delta updates<a class="headerlink" href="#binary-delta-updates" title="Permalink to this headline">¶</a></h2>
 <p>A whole update could be very traffic intensive. Specially in case
@@ -217,6 +244,12 @@ and so on.
 There are custom specific solutions - I will be glad if these additional
 handlers will be merged into mainline in the future.</p>
 </div>
+<div class="section" id="flash-handler">
+<h3>Flash handler<a class="headerlink" href="#flash-handler" title="Permalink to this headline">¶</a></h3>
+<p>The flash handler for raw-devices (mainly NOR flashes) does not allow to
+stream the image and an error is reported if &#8220;installed-directly&#8221; is set.
+The handler can be extended to stream images.</p>
+</div>
 <div class="section" id="handlers-installable-as-plugin-at-runtime">
 <h3>Handlers installable as plugin at runtime<a class="headerlink" href="#handlers-installable-as-plugin-at-runtime" title="Permalink to this headline">¶</a></h3>
 <p>The project supports LUA as script language for pre- and postinstall
@@ -235,7 +268,8 @@ a unauthenticated handler cannot run.</p>
 <h2>Support for evaluation boards<a class="headerlink" href="#support-for-evaluation-boards" title="Permalink to this headline">¶</a></h2>
 <p>There is already an example in meta-swupdate regarding
 the beaglebone black. Some more examples and use cases
-can better explain the different usage of the project.</p>
+can better explain the different usage of the project. A new meta-layer
+(meta-swupdate-boards) can be written to contain such as examples.</p>
 </div>
 <div class="section" id="backend-support-suricatta-mode">
 <h2>Backend support (suricatta mode)<a class="headerlink" href="#backend-support-suricatta-mode" title="Permalink to this headline">¶</a></h2>
@@ -255,18 +289,27 @@ compile-time choice. A proxy registrar and dispatcher should be plugged
 into the architecture to allow for different channels and server
 backends to be mixed and matched at run-time.</p>
 </div>
-<div class="section" id="filesystem-based-persistent-update-status-storage">
-<h3>Filesystem-based Persistent Update Status Storage<a class="headerlink" href="#filesystem-based-persistent-update-status-storage" title="Permalink to this headline">¶</a></h3>
-<p>Originally, <a class="reference external" href="http://www.denx.de/wiki/U-Boot/">U-Boot</a>&#8216;s environment was used to persistently store the
-update status across reboots. Currently, <a class="reference external" href="https://www.gnu.org/software/grub/">GRUB</a> environment block has been
-added. On systems where different bootloader is used, a filesystem- or raw
-partition-based persistent storage should be made available to support other
-bootloaders.</p>
 </div>
+<div class="section" id="webserver-interface">
+<h2>Webserver / Interface<a class="headerlink" href="#webserver-interface" title="Permalink to this headline">¶</a></h2>
+<p>On most systems, the interface shown in browser seems enough. However, it looks
+to me quite old and it could be really improved. Some ideas:</p>
+<ul class="simple">
+<li>drop the polling mechanism and switch to a websocket implementattion. This has
+the big advantage that a nice interface with progress bars, status, and so on
+can be realized.</li>
+<li>website graphic is old and IMHO quite nasty. Am I the only one to think this (and I
+am the one who developped it..) ? I see a lot of devices running the website  with the
+same graphic and just replacing the Logo. I think it could be really better as now.</li>
+<li>I have forwarded the traces to the browser just to show how we can debug issues and
+check what is wrong during an update - but I have not thought to let it on for
+the end products. They should be at least activated in some conditions, not always.</li>
+</ul>
 </div>
 <div class="section" id="documentation">
 <h2>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h2>
-<p>Documentation should be improved.</p>
+<p>Documentation should be improved. There is just a little documentation for meta-swupdate
+how to set it up with different configurations.</p>
 </div>
 </div>
 
@@ -309,7 +352,7 @@ bootloaders.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'2017.01',
+            VERSION:'2017.04',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

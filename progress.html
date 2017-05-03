@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Getting information on running update &mdash; Embedded Software Update Documentation 2017.01 documentation</title>
+  <title>Getting information on running update &mdash; Embedded Software Update Documentation 2017.04 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="Embedded Software Update Documentation 2017.01 documentation" href="index.html"/>
+    <link rel="top" title="Embedded Software Update Documentation 2017.04 documentation" href="index.html"/>
         <link rel="next" title="Mailing List" href="help_and_support.html"/>
         <link rel="prev" title="SWUpdate: API for external programs" href="swupdate-ipc.html"/> 
 
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                2017.01
+                2017.04
               </div>
             
           
@@ -178,6 +178,9 @@ back after any change in the update process with the following data
         unsigned int    cur_percent;    /* % in current step */
         char            cur_image[256]; /* Name of image to be installed */
         char            hnd_name[64];   /* Name of running handler */
+        sourcetype      source;         /* Interface that triggered the update */
+        unsigned int    infolen;        /* Len of data valid in info */
+        char            info[2048];     /* additional information about install */
 };
 </pre></div>
 </div>
@@ -189,11 +192,14 @@ back after any change in the update process with the following data
 <li><em>dwl_percent</em> is the percentage of downloaded data when status = DOWNLOAD.</li>
 <li><em>nsteps</em> is the total number of installers (handlers) to be run.</li>
 <li><em>cur_step</em> is the index of the running handler. cur_step is in the range 1..nsteps</li>
-<li>cur_percent is the percentage of work done inside the current handler. This is useful
+<li><em>cur_percent</em> is the percentage of work done inside the current handler. This is useful
 when updating a slow interface, such as a slow flash, and signals which is the percentage
 of image already copied into the destination.</li>
-<li>cur_image is the name of the image in sw-description that is currently being installed.</li>
-<li>hnd_name reports the name of the running handler.</li>
+<li><em>cur_image</em> is the name of the image in sw-description that is currently being installed.</li>
+<li><em>hnd_name</em> reports the name of the running handler.</li>
+<li><em>source</em> is the interface that triggered the update.</li>
+<li><em>infolen</em> length of data in the following info field.</li>
+<li><em>info</em> additional information about installation.</li>
 </ul>
 </div></blockquote>
 <p><em>progress_client</em> is an example of interface, printing the status on the console and driving
@@ -242,7 +248,7 @@ of image already copied into the destination.</li>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'2017.01',
+            VERSION:'2017.04',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -11,7 +11,6 @@ Thanks again to all companies that have supported my work up now and to
 everybody who has contributed to the project, let me bring SWUpdate
 to the current status !
 
-
 Main goal
 =========
 
@@ -19,6 +18,33 @@ First goal is to reach a quite big audience, making
 SWUpdate suitable for a large number of products.
 This will help to build a community around the project
 itself.
+
+Embedded scripts in sw-description
+==================================
+
+If an artifact is select to be installed immediately ("installed-directly"
+flag is set), no pre-install scripts are executed. This is because a script
+can be packed in the .swu file later after the artifact to be installed.
+A use case is when partitions must be prepared before installing an
+image. Another use case is to allow to change the sw-description on-the-fly,
+depending on run time conditions that only the target can know.
+
+If an embedded LUA script is inside sw-description, it is possible to evaluate
+it before any installation.
+
+Reuse process monitor mechanism
+===============================
+
+Process monitoring and supoervising works fine for the subprocesses. There
+could be some use cases where a user wants to add own processes to it.
+This is more important on system where systemd is not the init system
+(systemd can do this) or there is no init system at all (rescue systems).
+
+Support for other bootloader as U-Boot
+======================================
+
+A new generic interface for the bootloaders was introduced. U-Boot and GRUB are
+supported. It is open to other bootloader.
 
 Binary delta updates
 ====================
@@ -63,6 +89,13 @@ and so on.
 There are custom specific solutions - I will be glad if these additional
 handlers will be merged into mainline in the future.
 
+Flash handler
+-------------
+
+The flash handler for raw-devices (mainly NOR flashes) does not allow to
+stream the image and an error is reported if "installed-directly" is set.
+The handler can be extended to stream images.
+
 Handlers installable as plugin at runtime
 -----------------------------------------
 
@@ -84,7 +117,8 @@ Support for evaluation boards
 
 There is already an example in meta-swupdate regarding
 the beaglebone black. Some more examples and use cases
-can better explain the different usage of the project.
+can better explain the different usage of the project. A new meta-layer
+(meta-swupdate-boards) can be written to contain such as examples.
 
 Backend support (suricatta mode)
 ================================
@@ -108,19 +142,24 @@ compile-time choice. A proxy registrar and dispatcher should be plugged
 into the architecture to allow for different channels and server
 backends to be mixed and matched at run-time.
 
-Filesystem-based Persistent Update Status Storage
--------------------------------------------------
+Webserver / Interface
+=====================
 
-Originally, `U-Boot`_'s environment was used to persistently store the
-update status across reboots. Currently, `GRUB`_ environment block has been
-added. On systems where different bootloader is used, a filesystem- or raw
-partition-based persistent storage should be made available to support other
-bootloaders.
+On most systems, the interface shown in browser seems enough. However, it looks
+to me quite old and it could be really improved. Some ideas:
 
-.. _grub:   https://www.gnu.org/software/grub/
-.. _U-Boot: http://www.denx.de/wiki/U-Boot/
+- drop the polling mechanism and switch to a websocket implementattion. This has
+  the big advantage that a nice interface with progress bars, status, and so on
+  can be realized.
+- website graphic is old and IMHO quite nasty. Am I the only one to think this (and I
+  am the one who developped it..) ? I see a lot of devices running the website  with the 
+  same graphic and just replacing the Logo. I think it could be really better as now.
+- I have forwarded the traces to the browser just to show how we can debug issues and
+  check what is wrong during an update - but I have not thought to let it on for
+  the end products. They should be at least activated in some conditions, not always.
 
 Documentation
 =============
 
-Documentation should be improved.
+Documentation should be improved. There is just a little documentation for meta-swupdate
+how to set it up with different configurations.

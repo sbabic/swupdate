@@ -35,6 +35,9 @@ back after any change in the update process with the following data
         	unsigned int	cur_percent;	/* % in current step */
         	char		cur_image[256];	/* Name of image to be installed */
         	char		hnd_name[64];	/* Name of running handler */
+        	sourcetype	source;		/* Interface that triggered the update */
+        	unsigned int 	infolen;    	/* Len of data valid in info */
+        	char		info[2048];   	/* additional information about install */
         };
 
 The single fields have the following meaning:
@@ -44,11 +47,14 @@ The single fields have the following meaning:
         - *dwl_percent* is the percentage of downloaded data when status = DOWNLOAD.
         - *nsteps* is the total number of installers (handlers) to be run.
         - *cur_step* is the index of the running handler. cur_step is in the range 1..nsteps
-        - cur_percent is the percentage of work done inside the current handler. This is useful
+        - *cur_percent* is the percentage of work done inside the current handler. This is useful
           when updating a slow interface, such as a slow flash, and signals which is the percentage
           of image already copied into the destination.
-        - cur_image is the name of the image in sw-description that is currently being installed.
-        - hnd_name reports the name of the running handler.
+        - *cur_image* is the name of the image in sw-description that is currently being installed.
+        - *hnd_name* reports the name of the running handler.
+        - *source* is the interface that triggered the update.
+        - *infolen* length of data in the following info field.
+        - *info* additional information about installation.
 
 
 *progress_client* is an example of interface, printing the status on the console and driving
