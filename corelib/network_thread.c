@@ -224,7 +224,8 @@ void *network_thread (void *data)
 		if (msg.magic == IPC_MAGIC)  {
 			switch (msg.type) {
 			case POST_UPDATE:
-				if (postupdate(get_swupdate_cfg()) == 0) {
+				if (postupdate(get_swupdate_cfg(),
+							   msg.data.instmsg.len > 0 ? msg.data.instmsg.buf : NULL) == 0) {
 					msg.type = ACK;
 					sprintf(msg.data.msg, "Post-update actions successfully executed.");
 				} else {

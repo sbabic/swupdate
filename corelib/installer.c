@@ -403,9 +403,9 @@ void cleanup_files(struct swupdate_cfg *software) {
 #endif
 }
 
-int postupdate(struct swupdate_cfg *swcfg)
+int postupdate(struct swupdate_cfg *swcfg, const char *info)
 {
-	swupdate_progress_done();
+	swupdate_progress_done(info);
 
 	if ((swcfg) && (swcfg->globals.postupdatecmd) &&
 	    (strnlen(swcfg->globals.postupdatecmd,

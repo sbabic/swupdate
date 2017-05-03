@@ -167,9 +167,19 @@ void swupdate_progress_info(RECOVERY_STATUS status, int cause, const char *info)
 	pthread_mutex_unlock(&prbar->lock);
 }
 
-void swupdate_progress_done(void)
+void swupdate_progress_done(const char *info)
 {
-	swupdate_progress_end(DONE);
+	struct swupdate_progress *prbar = &progress;
+	pthread_mutex_lock(&prbar->lock);
+	if (info != NULL) {
+		snprintf(prbar->msg.info, sizeof(prbar->msg.info), "%s", info);
+		prbar->msg.infolen = strlen(prbar->msg.info);
+	}
+	prbar->step_running = false;
+	prbar->msg.status = DONE;
+	send_progress_msg();
+	prbar->msg.infolen = 0;
+	pthread_mutex_unlock(&prbar->lock);
 }
 
 void *progress_bar_thread (void __attribute__ ((__unused__)) *data)
