@@ -270,9 +270,9 @@ from_ascii (char const *where, size_t digs, unsigned logbase)
  * Convert a hash as hexa string into a sequence of bytes
  * hash must be a an array of 32 bytes as specified by SHA256
  */
-static int ascii_to_bin(unsigned char *hash, const char *s, int len)
+static int ascii_to_bin(unsigned char *hash, const char *s, size_t len)
 {
-	int i;
+	unsigned int i;
 	unsigned int val;
 
 	if (len % 2)

@@ -219,10 +219,10 @@ int main(int argc, char **argv)
 	const char *tmpdir;
 	char psplash_pipe_path[256];
 	int psplash_ok = 0;
-	int curstep = 0;
-	int percent = 0;
+	unsigned int curstep = 0;
+	unsigned int percent = 0;
 	char bar[60];
-	int filled_len;
+	unsigned int filled_len;
 	int opt_c = 0;
 	int opt_w = 0;
 	int opt_r = 0;

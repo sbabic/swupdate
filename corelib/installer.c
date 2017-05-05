@@ -185,7 +185,7 @@ static int prepare_boot_script(struct swupdate_cfg *cfg, const char *script)
 		snprintf(buf, sizeof(buf), "%s %s\n",
 			bootvar->varname,
 			bootvar->value);
-		if (write(fd, buf, strlen(buf)) != strlen(buf)) {
+		if (write(fd, buf, strlen(buf)) != (ssize_t)strlen(buf)) {
 			  TRACE("Error saving temporary file");
 			  ret = -1;
 			  break;

@@ -66,13 +66,12 @@ static int check_missing_hash(struct imglist *list)
 int parse(struct swupdate_cfg *sw, const char *descfile)
 {
 	int ret = -1;
-	int i;
 	parser_fn current;
 #ifdef CONFIG_SIGNED_IMAGES
 	char *sigfile;
 #endif
 
-	for (i = 0; i < ARRAY_SIZE(parsers); i++) {
+	for (unsigned int i = 0; i < ARRAY_SIZE(parsers); i++) {
 		current = parsers[i];
 
 		ret = current(sw, descfile);

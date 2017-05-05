@@ -376,7 +376,7 @@ void *network_initializer(void *data)
  * The data is not locked because it is retrieve
  * at different times
  */
-int get_install_info(sourcetype *source, char *buf, int len)
+int get_install_info(sourcetype *source, char *buf, size_t len)
 {
 	len = min(len, inst.len);
 

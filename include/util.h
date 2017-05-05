@@ -176,7 +176,7 @@ unsigned char *get_aes_key(void);
 unsigned char *get_aes_ivt(void);
 
 /* Getting global information */
-int get_install_info(sourcetype *source, char *buf, int len);
+int get_install_info(sourcetype *source, char *buf, size_t len);
 
 unsigned long long ustrtoull(const char *cp, char **endp, unsigned int base);
 

@@ -209,7 +209,7 @@ static RECOVERY_STATUS download_from_url(char *image_url, unsigned int retries,
 	int result;
 	double dummy;
 	unsigned long long dwlbytes = 0;
-	int i;
+	unsigned int i;
 	struct dlprogress progress;
 
 
@@ -337,7 +337,8 @@ void download_print_help(void)
 int start_download(const char *fname, int argc, char *argv[])
 {
 	struct dwl_options options;
-	int attempt, choice = 0;
+	unsigned int attempt;
+	int choice = 0;
 	RECOVERY_STATUS result;
 
 	memset(&options, 0, sizeof(options));

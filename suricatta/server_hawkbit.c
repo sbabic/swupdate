@@ -669,7 +669,7 @@ static int server_check_during_dwl(void)
 	 * if something on the server was changed and a cancel
 	 * was requested
 	 */
-	if ((now.tv_sec - server_time.tv_sec) < (server_get_polling_interval()))
+	if ((now.tv_sec - server_time.tv_sec) < ((int)server_get_polling_interval()))
 		return 0;
 
 	/* Update current server time */

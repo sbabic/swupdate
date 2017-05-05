@@ -71,8 +71,9 @@ int fill_buffer(int fd, unsigned char *buf, int nbytes, unsigned long *offs,
 			for (i = 0; i < len; i++)
 				*checksum += buf[i];
 
-		if (dgst)
+		if (dgst) {
 			swupdate_HASH_update(dgst, buf, len);
+		}
 		buf += len;
 		count += len;
 		nbytes -= len;
@@ -129,11 +130,9 @@ int copyfile(int fdin, void *out, int nbytes, unsigned long *offs,
 	unsigned int md_len = 0;
 	unsigned char *aes_key;
 	unsigned char *ivt;
-	int fdout = -1;
 
 	if (!callback) {
 		callback = copy_write;
-		fdout = (out != NULL) ? *(int *)out : -1;
 	}
 
 	if (IsValidHash(hash)) {
@@ -176,6 +175,7 @@ int copyfile(int fdin, void *out, int nbytes, unsigned long *offs,
 	}
 
 #ifdef CONFIG_GUNZIP
+	int fdout = (out != NULL) ? *(int *)out : -1;
 	if (compressed) {
 		ret = decompress_image(fdin, offs, nbytes, fdout, checksum, dgst);
 		if (ret < 0) {
@@ -273,12 +273,14 @@ int copyfile(int fdin, void *out, int nbytes, unsigned long *offs,
 copyfile_exit:
 	if (in)
 		free(in);
-	if (dcrypt)
+	if (dcrypt) {
 		swupdate_DECRYPT_cleanup(dcrypt);
+	}
 	if (decbuf)
 		free(decbuf);
-	if (dgst)
+	if (dgst) {
 		swupdate_HASH_cleanup(dgst);
+	}
 
 	return ret;
 }

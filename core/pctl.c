@@ -60,9 +60,8 @@ int pid = 0;
 
 int sw_sockfd = -1;
 
-static void parent_dead_handler(int dummy)
+static void parent_dead_handler(int __attribute__ ((__unused__)) dummy)
 {
-	dummy = 0;
 	exit(1);
 }
 

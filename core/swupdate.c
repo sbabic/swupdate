@@ -214,7 +214,6 @@ static int searching_for_image(char *name)
 	char *fpattern;
 	DIR *path;
 	struct dirent *dp;
-	int i;
 	int fd = -1;
 	int found;
 	char fname[MAX_IMAGE_FNAME];
@@ -250,7 +249,7 @@ static int searching_for_image(char *name)
 			/* Buffer for hexa output */
 			buf = (char *)malloc(3 * strlen(dp->d_name) + 1);
 			if (buf) {
-				for (i = 0; i < strlen(dp->d_name); i++) {
+				for (size_t i = 0; i < strlen(dp->d_name); i++) {
 					snprintf(hex, sizeof(hex), "%x ", dp->d_name[i]);
 					memcpy(&buf[3 * i], hex, 3);
 				}
