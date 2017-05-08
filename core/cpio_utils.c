@@ -169,6 +169,7 @@ int copyfile(int fdin, void *out, int nbytes, unsigned long *offs,
 		ivt = get_aes_ivt();
 		dcrypt = swupdate_DECRYPT_init(aes_key, ivt);
 		if (!dcrypt) {
+			ERROR("decrypt initialization failure, aborting");
 			ret = -EFAULT;
 			goto copyfile_exit;
 		}

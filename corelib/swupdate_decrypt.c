@@ -32,6 +32,11 @@ struct swupdate_digest *swupdate_DECRYPT_init(unsigned char *key, unsigned char 
 	struct swupdate_digest *dec;
 	int ret;
 
+	if ((key == NULL) || (iv == NULL)) {
+		ERROR("no key provided for decryption!");
+		return NULL;
+	}
+
 	dec = calloc(1, sizeof(*dec));
 	if (!dec) {
 		return NULL;
