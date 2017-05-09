@@ -1331,8 +1331,10 @@ server_op_res_t server_send_target_data(void)
 		len += strlen(entry->varname) + strlen(entry->value) + strlen (" : ") + 6;
 	}
 
-	if (!len)
+	if (!len) {
+		server_hawkbit.has_to_send_configData = false;
 		return SERVER_OK;
+	}
 
 	char *configData = (char *)(malloc(len + 16));
 	memset(configData, 0, len + 16);
