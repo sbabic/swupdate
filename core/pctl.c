@@ -91,7 +91,9 @@ pthread_t start_thread(void *(* start_routine) (void *), void *arg)
 static int spawn_process(struct swupdate_task *task,
 			uid_t run_as_userid, gid_t run_as_groupid,
 			const char *cfgname,
-	        	int ac, char **av, swupdate_process start)
+			int ac, char **av,
+			swupdate_process start,
+			const char *cmdline)
 {
 	int process_id;
 	int sockfd[2];
@@ -156,13 +158,17 @@ static int spawn_process(struct swupdate_task *task,
 	if (prctl(PR_SET_PDEATHSIG, SIGUSR1) < 0)
 		ERROR("Fail to call prctl, maybe not Linux ?");
 
-
-	return (*start)(cfgname, ac, av);
+	if (start)
+		return (*start)(cfgname, ac, av);
+	else
+		return execvp(cmdline, av);
 }
 
-void start_subprocess(sourcetype type, const char *name, const char *cfgfile,
+static void start_swupdate_subprocess(sourcetype type,
+			const char *name, const char *cfgfile,
 			int argc, char **argv,
-			swupdate_process start)
+			swupdate_process start,
+			const char *cmdline)
 {
 	uid_t uid;
 	gid_t gid;
@@ -170,13 +176,30 @@ void start_subprocess(sourcetype type, const char *name, const char *cfgfile,
 	read_settings_user_id(cfgfile, name, &uid, &gid);
 	procs[nprocs].name = name;
 	procs[nprocs].type = type;
-	if (spawn_process(&procs[nprocs], uid, gid, cfgfile, argc, argv, start) < 0) {
+	if (spawn_process(&procs[nprocs], uid, gid, cfgfile, argc, argv, start, cmdline) < 0) {
 		ERROR("SPAWN %s failed, exiting...\n", name);
 		return;
 	}
 
 	TRACE("Started %s with pid %d and fd %d", name, procs[nprocs].pid, procs[nprocs].pipe);
 	nprocs++;
+}
+
+
+void start_subprocess_from_file(sourcetype type, const char *name,
+			const char *cfgfile,
+			int argc, char **argv,
+			const char *cmdline)
+{
+	start_swupdate_subprocess(type, name, cfgfile, argc, argv, NULL, cmdline);
+}
+
+void start_subprocess(sourcetype type, const char *name, const char *cfgfile,
+			int argc, char **argv,
+			swupdate_process start)
+{
+
+	start_swupdate_subprocess(type, name, cfgfile, argc, argv, start, NULL);
 }
 
 /*

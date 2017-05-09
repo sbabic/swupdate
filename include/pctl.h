@@ -45,6 +45,10 @@ void start_subprocess(sourcetype type, const char *name, const char *cfgfile,
 			int argc, char **argv,
 			swupdate_process start);
 
+void start_subprocess_from_file(sourcetype type, const char *name, const char *cfgfile,
+			int argc, char **argv,
+			const char *cmd);
+
 void sigchld_handler (int __attribute__ ((__unused__)) signum);
 
 int pctl_getfd_from_type(sourcetype s);
