@@ -95,6 +95,15 @@ struct hw_type {
 
 LIST_HEAD(hwlist, hw_type);
 
+struct extproc {
+	char name[SWUPDATE_GENERAL_STRING_SIZE];
+	char exec[SWUPDATE_GENERAL_STRING_SIZE];
+	char options[SWUPDATE_GENERAL_STRING_SIZE];
+	LIST_ENTRY(extproc) next;
+};
+
+LIST_HEAD(proclist, extproc);
+
 enum {
 	SCRIPT_NONE,
 	SCRIPT_PREINSTALL,
@@ -123,6 +132,7 @@ struct swupdate_cfg {
 	struct imglist partitions;
 	struct imglist scripts;
 	struct dictlist bootloader;
+	struct proclist extprocs;
 	void *dgst;	/* Structure for signed images */
 	struct swupdate_global_cfg globals;
 };

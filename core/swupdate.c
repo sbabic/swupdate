@@ -399,6 +399,7 @@ static void swupdate_init(struct swupdate_cfg *sw)
 	LIST_INIT(&sw->hardware);
 	LIST_INIT(&sw->scripts);
 	LIST_INIT(&sw->bootloader);
+	LIST_INIT(&sw->extprocs);
 
 
 	/* Create directories for scripts */
@@ -427,6 +428,45 @@ static int read_globals_settings(void *elem, void *data)
 	get_field(LIBCFG_PARSER, elem, "verbose", &sw->globals.verbose);
 	get_field(LIBCFG_PARSER, elem, "loglevel", &sw->globals.loglevel);
 	get_field(LIBCFG_PARSER, elem, "syslog", &sw->globals.syslog_enabled);
+
+	return 0;
+}
+
+static int read_processes_settings(void *settings, void *data)
+{
+	struct swupdate_cfg *sw = (struct swupdate_cfg *)data;
+	void *elem;
+	int count, i;
+	struct extproc *proc, *last = NULL;
+
+	count = get_array_length(LIBCFG_PARSER, settings);
+
+	for(i = 0; i < count; ++i) {
+		elem = get_elem_from_idx(LIBCFG_PARSER, settings, i);
+
+		if (!elem)
+			continue;
+
+		if(!(exist_field_string(LIBCFG_PARSER, elem, "name")))
+			continue;
+		if(!(exist_field_string(LIBCFG_PARSER, elem, "exec")))
+			continue;
+
+		proc = (struct extproc *)calloc(1, sizeof(struct extproc));
+
+		GET_FIELD_STRING(LIBCFG_PARSER, elem, "name", proc->name);
+		GET_FIELD_STRING(LIBCFG_PARSER, elem, "exec", proc->exec);
+
+		if (!last)
+			LIST_INSERT_HEAD(&sw->extprocs, proc, next);
+		else
+			LIST_INSERT_AFTER(last, proc, next);
+
+		last = proc;
+
+		TRACE("External process \"%s\": \"%s %s\" will be started",
+		       proc->name, proc->exec, proc->options);
+	}
 
 	return 0;
 }
@@ -527,6 +567,18 @@ int main(int argc, char **argv)
 			loglevel = swcfg.globals.loglevel;
 			if (swcfg.globals.verbose)
 				loglevel = TRACELEVEL;
+
+			int ret = read_module_settings(cfgfname, "processes",
+							read_processes_settings,
+							&swcfg);
+			/*
+			 * ignore other errors, check only if file is parsed
+			 */
+			if (ret == -EINVAL) {
+				fprintf(stderr,
+					 "Error parsing configuration file, exiting..\n");
+				exit(1);
+			}
 			break;
 		}
 	}
@@ -671,6 +723,7 @@ int main(int argc, char **argv)
 			start_subprocess(SOURCE_WEBSERVER, "webserver",
 						cfgfname, ac, av,
 						start_mongoose);
+			freeargs(av);
 		}
 #endif
 
@@ -679,6 +732,8 @@ int main(int argc, char **argv)
 			start_subprocess(SOURCE_SURICATTA, "suricatta",
 					 cfgfname, argcount,
 				       	 argvalues, start_suricatta);
+
+			freeargs(argvalues);
 		}
 #endif
 
@@ -687,8 +742,26 @@ int main(int argc, char **argv)
 			start_subprocess(SOURCE_DOWNLOADER, "download",
 				       	 cfgfname, dwlac,
 				       	 dwlav, start_download);
+			freeargs(dwlav);
 		}
 #endif
+
+		/*
+		 * Start all processes added in the config file
+		 */
+		struct extproc *proc;
+
+		LIST_FOREACH(proc, &swcfg.extprocs, next) {
+			dwlav = splitargs(proc->exec, &dwlac);
+
+			dwlav[dwlac] = NULL;
+
+			start_subprocess_from_file(SOURCE_UNKNOWN, proc->name,
+						   cfgfname, dwlac,
+						   dwlav, dwlav[0]);
+
+			freeargs(dwlav);
+		}
 	}
 
 #ifdef CONFIG_MTD
