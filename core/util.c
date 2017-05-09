@@ -74,9 +74,10 @@ char **splitargs(char *args, int *argc)
 	if (args && *args
 		&& (args = strdup(args))
 		&& (argn = countargc(args, NULL))
-		&& (argv = malloc((argn + 1) * sizeof (char *)))) {
+		&& (argv = malloc((argn + 2) * sizeof (char *)))) {
 			*argv++ = args;
 			argn = countargc(args, argv);
+			argv[argn] = NULL;
 		}
 
 		if (args && !argv)
