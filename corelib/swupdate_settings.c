@@ -99,7 +99,7 @@ int read_module_settings(const char *filename, const char *module, settings_call
 
 	if (!elem) {
 		config_destroy(&cfg);
-		return -EINVAL;
+		return -ENODATA;
 	}
 
 	fcn(elem, data);
