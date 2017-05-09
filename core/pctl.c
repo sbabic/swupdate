@@ -88,7 +88,7 @@ pthread_t start_thread(void *(* start_routine) (void *), void *arg)
  * spawn_process forks and start a new process
  * under a new user
  */
-int spawn_process(struct swupdate_task *task,
+static int spawn_process(struct swupdate_task *task,
 			uid_t run_as_userid, gid_t run_as_groupid,
 			const char *cfgname,
 	        	int ac, char **av, swupdate_process start)

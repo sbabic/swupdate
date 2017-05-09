@@ -41,10 +41,6 @@ pthread_t start_thread(void *(* start_routine) (void *), void *arg);
 
 typedef int (*swupdate_process)(const char *cfgname, int argc, char **argv);
 
-int spawn_process(struct swupdate_task *task,uid_t userid, gid_t groupid,
-			const char *cfgname, int ac, char **av,
-			swupdate_process start);
-
 void start_subprocess(sourcetype type, const char *name, const char *cfgfile,
 			int argc, char **argv,
 			swupdate_process start);
