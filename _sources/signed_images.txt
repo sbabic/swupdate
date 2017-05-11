@@ -56,9 +56,9 @@ Key or certificate is passed to SWUpdate with the `-k` parameter.
 Tool to generate keys / certificates
 ------------------------------------
 
-The openssl tool is used to generate the keys. This is part of the
-openSSL project. A complete documentation can be found at
-the `openSSL Website <https://www.openssl.org/docs/manmaster/apps/openssl.html>`_.
+The `openssl` tool is used to generate the keys. This is part of the
+OpenSSL project. A complete documentation can be found at
+the `openSSL Website <https://www.openssl.org/docs/manmaster/man1/openssl.html>`_.
 
 
 Usage with RSA PKCS#1.5

@@ -24,6 +24,7 @@ SWUpdate Documentation
    suricatta.rst
    sw-description.rst
    signed_images.rst
+   encrypted_images.rst
    handlers.rst
    swupdate-ipc.rst
    progress.rst
