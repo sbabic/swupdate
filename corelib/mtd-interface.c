@@ -20,6 +20,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
+#include <fcntl.h>
 #include <string.h>
 #include <mtd/mtd-user.h>
 #include <sys/types.h>
@@ -32,6 +34,117 @@
 #include "flash.h"
 
 static char mtd_ubi_blacklist[100] = { 0 };
+
+/*
+ * Note: the functions here are derived directly
+ * with minor changes from mtd-utils.
+ */
+#define EMPTY_BYTE	0xFF
+
+int flash_erase(int mtdnum)
+{
+	int fd;
+	char mtd_device[80];
+	struct mtd_dev_info *mtd;
+	int noskipbad = 0;
+	int unlock = 0;
+	int ret = 0;
+	unsigned int eb, eb_start, eb_cnt, i;
+	uint8_t *buf;
+	struct flash_description *flash = get_flash_info();
+
+	if  (!mtd_dev_present(flash->libmtd, mtdnum)) {
+			ERROR("MTD %d does not exist\n", mtdnum);
+			return -ENODEV;
+	}
+	mtd = &flash->mtd_info[mtdnum].mtd;
+	snprintf(mtd_device, sizeof(mtd_device), "/dev/mtd%d", mtdnum);
+
+	if ((fd = open(mtd_device, O_RDWR)) < 0) {
+		ERROR( "%s: %s: %s", __func__, mtd_device, strerror(errno));
+		return -ENODEV;
+	}
+
+	/*
+	 * prepare to erase all of the MTD partition,
+	 */
+	buf = (uint8_t *)malloc(mtd->eb_size);
+	if (!buf) {
+		ERROR("No memory for temporary buffer of %d bytes",
+			mtd->eb_size);
+		close(fd);
+		return -ENOMEM;
+	}
+
+	eb_start = 0;
+	eb_cnt = (mtd->size / mtd->eb_size) - eb_start;
+	for (eb = 0; eb < eb_start + eb_cnt; eb++) {
+
+		/* Always skip bad sectors */
+		if (!noskipbad) {
+			int isbad = mtd_is_bad(mtd, fd, eb);
+			if (isbad > 0) {
+				continue;
+			} else if (isbad < 0) {
+				if (errno == EOPNOTSUPP) {
+					noskipbad = 1;
+				} else {
+					ERROR("%s: MTD get bad block failed", mtd_device);
+					ret  = -EFAULT;
+					goto erase_out;
+				}
+			}
+		}
+
+		/*
+		 * In case of NOR flash, check if the flash
+		 * is already empty. This can save
+		 * an amount of time because erasing
+		 * a NOR flash is very time expensive.
+		 * NAND flash is always erased.
+		 */
+		if (!isNand(flash, mtdnum)) {
+			if (mtd_read(mtd, fd, eb, 0, buf, mtd->eb_size) != 0) {
+				ERROR("%s: MTD Read failure", mtd_device);
+				ret  = -EIO;
+				goto erase_out;
+			}
+
+			/* check if already empty */
+			for (i = 0; i < mtd->eb_size; i++) {
+				if (buf[i] != EMPTY_BYTE)
+					break;
+			}
+
+			/* skip erase if empty */
+			if (i == mtd->eb_size)
+				continue;
+
+		}
+
+		/* The sector contains data and it must be erased */
+		if (unlock) {
+			if (mtd_unlock(mtd, fd, eb) != 0) {
+				TRACE("%s: MTD unlock failure", mtd_device);
+				continue;
+			}
+		}
+
+		if (mtd_erase(flash->libmtd, mtd, fd, eb) != 0) {
+			ERROR("%s: MTD Erase failure", mtd_device);
+			ret  = -EIO;
+			goto erase_out;
+		}
+	}
+
+erase_out:
+	free(buf);
+
+	close(fd);
+
+	return ret;
+}
+
 
 void mtd_init(void)
 {
