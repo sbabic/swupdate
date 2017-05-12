@@ -29,6 +29,18 @@ config UBIBLACKLIST
 	  Examples: "0 1 2"
 	  This excludes mtd0-mtd1-mtd2 to be searched for UBI volumes
 
+config UBIWHITELIST
+	string "List of MTD devices that must have UBI"
+	depends on UBIVOL
+	help
+	  Define a list of MTD devices that are planned to have
+	  always UBI. If first attach fails, the device is erased
+	  and tried again. 
+	  The list can be set as a string with the mtd numbers.
+	  Examples: "0 1 2"
+	  This sets mtd0-mtd1-mtd2 to be used as UBI volumes.
+	  UBIBLACKLIST has priority on UBIWHITELIST.
+
 config UBIVIDOFFSET
 	int "VID Header Offset"
 	depends on UBIVOL

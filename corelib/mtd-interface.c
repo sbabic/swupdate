@@ -236,12 +236,18 @@ void ubi_init(void)
 	}
 }
 
-static void ubi_insert_blacklist(int index, struct flash_description *flash)
+static void ubi_insert_list(int index, struct flash_description *flash, bool black)
 {
 	struct mtd_info *mtd = &flash->mtd;
 
 	if (index >= mtd->lowest_mtd_num && index <= mtd->highest_mtd_num) {
-		flash->mtd_info[index].skipubi = 1;
+		if (black) {
+			flash->mtd_info[index].skipubi = 1;
+			flash->mtd_info[index].has_ubi = 0;
+		} else {
+			flash->mtd_info[index].skipubi = 0;
+			flash->mtd_info[index].has_ubi = 1;
+		}
 	}
 }
 
@@ -321,7 +327,7 @@ static void scan_ubi_partitions(int mtd)
 {
 	struct flash_description *flash = get_flash_info();
 	libubi_t libubi = flash->libubi;
-	int err;
+	int err, tryattach = 0;
 	struct mtd_ubi_info *mtd_info;
 
 	if (mtd < 0) {
@@ -351,17 +357,29 @@ static void scan_ubi_partitions(int mtd)
 	 * and tries to get information, if not found
 	 * try to attach.
 	 */
-	err = ubi_attach(libubi, DEFAULT_CTRL_DEV, &mtd_info->req);
-	if (err) {
-		ERROR("cannot attach mtd%d - maybe not a NAND or raw device", mtd);
-		return;
-	}
+	do {
+		err = ubi_attach(libubi, DEFAULT_CTRL_DEV, &mtd_info->req);
+		if (err) {
+			if (mtd_info->has_ubi && !tryattach) {
+				TRACE("cannot attach mtd%d ..try erasing", mtd);
+				if (flash_erase(mtd)) {
+					ERROR("mtd%d cannot be erased", mtd);
+					return;
+				}
+			} else {
+				ERROR("cannot attach mtd%d - maybe not a NAND or raw device", mtd);
+				return;
+			}
+			tryattach++;
+		}
+	} while (err != 0 && tryattach < 2);
 
 	err = ubi_get_dev_info1(libubi, mtd_info->req.dev_num, &mtd_info->dev_info);
 	if (err) {
 		ERROR("cannot get information about UBI device %d", mtd_info->req.dev_num);
 		return;
 	}
+
 	scan_ubi_volumes(mtd_info);
 }
 #endif
@@ -373,18 +391,11 @@ int scan_mtd_devices (void)
 	struct mtd_info *mtd_info = &flash->mtd;
 	struct mtd_ubi_info *mtd_ubi_info;
 	libmtd_t libmtd = flash->libmtd;
-	char blacklist[100] = { 0 };
+	char list[100];
 	char *token;
 	char *saveptr;
 	int i, index;
-
-#if defined(CONFIG_UBIBLACKLIST)
-	strncpy(blacklist, CONFIG_UBIBLACKLIST, sizeof(blacklist));
-#endif
-
-	/* Blacklist passed on the command line has priority */
-	if (strlen(mtd_ubi_blacklist))
-		strncpy(blacklist, mtd_ubi_blacklist, sizeof(blacklist));
+	bool black;
 
 	if (!libmtd) {
 		ERROR("MTD is not present on the target");
@@ -406,19 +417,42 @@ int scan_mtd_devices (void)
 		return -ENOMEM;
 	}
 
-	token = strtok_r(blacklist, " ", &saveptr);
-	if (token) {
-		errno = 0;
-		index = strtoul(token, NULL, 10);
-		if (errno == 0) {
-			ubi_insert_blacklist(index, flash);
+	for (i = 0; i < 2; i++) {
+		memset(list, 0, sizeof(list));
+		switch (i) {
+		case 0:
+			black = true;
+#if defined(CONFIG_UBIBLACKLIST)
+			strncpy(list, CONFIG_UBIBLACKLIST,
+				sizeof(list));
+#endif
+			/* Blacklist passed on the command line has priority */
+			if (strlen(mtd_ubi_blacklist))
+				strncpy(list, mtd_ubi_blacklist, sizeof(list));
+			break;
+		case 1:
+			black = false;
+#if defined(CONFIG_UBIWHITELIST)
+			strncpy(list, CONFIG_UBIWHITELIST,
+				sizeof(list));
+#endif
+			break;
+		}
 
-			while ((token = strtok_r(NULL, " ", &saveptr))) {
-				errno = 0;
-				index = strtoul(token, NULL, 10);
-				if (errno != 0)
-					break;
-				ubi_insert_blacklist(index, flash);
+		token = strtok_r(list, " ", &saveptr);
+		if (token) {
+			errno = 0;
+			index = strtoul(token, NULL, 10);
+			if (errno == 0) {
+				ubi_insert_list(index, flash, black);
+
+				while ((token = strtok_r(NULL, " ", &saveptr))) {
+					errno = 0;
+					index = strtoul(token, NULL, 10);
+					if (errno != 0)
+						break;
+					ubi_insert_list(index, flash, black);
+				}
 			}
 		}
 	}

@@ -44,7 +44,8 @@ struct mtd_ubi_info {
 	struct ubilist ubi_partitions;
 	struct ubi_attach_request req;
 	struct mtd_dev_info mtd;
-	int skipubi;
+	int skipubi;	/* set if no UBI scan must run */
+	int has_ubi;	/* set if MTD must always have UBI */
 	int scanned;
 };
 
