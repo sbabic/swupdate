@@ -133,6 +133,7 @@ server_send_deployment_reply(const int action_id, const int job_cnt_max,
 			     const int job_cnt_cur, const char *finished,
 			     const char *execution_status, int numdetails, const char *details[]);
 server_op_res_t server_send_cancel_reply(channel_t *channel, const int action_id);
+static int get_target_data_length(void);
 
 server_hawkbit_t server_hawkbit = {.url = NULL,
 				   .polling_interval = DEFAULT_POLLING_INTERVAL,
@@ -527,7 +528,7 @@ server_op_res_t server_set_config_data(json_object *json_root)
 		if (server_hawkbit.configData_url)
 			free(server_hawkbit.configData_url);
 		server_hawkbit.configData_url = tmp;
-		server_hawkbit.has_to_send_configData = true;
+		server_hawkbit.has_to_send_configData = (get_target_data_length() > 0) ? true : false;
 		TRACE("ConfigData: %s\n", server_hawkbit.configData_url);
 	}
 	return SERVER_OK;
@@ -1318,6 +1319,18 @@ cleanup:
 	return result;
 }
 
+int get_target_data_length(void)
+{
+	int len = 0;
+	struct dict_entry *entry;
+
+	LIST_FOREACH(entry, &server_hawkbit.configdata, next) {
+		len += strlen(entry->varname) + strlen(entry->value) + strlen (" : ") + 6;
+	}
+
+	return len;
+}
+
 server_op_res_t server_send_target_data(void)
 {
 	channel_t *channel = server_hawkbit.channel;
@@ -1327,9 +1340,7 @@ server_op_res_t server_send_target_data(void)
 	server_op_res_t result = SERVER_OK;
 
 	assert(channel != NULL);
-	LIST_FOREACH(entry, &server_hawkbit.configdata, next) {
-		len += strlen(entry->varname) + strlen(entry->value) + strlen (" : ") + 6;
-	}
+	len = get_target_data_length();
 
 	if (!len) {
 		server_hawkbit.has_to_send_configData = false;
