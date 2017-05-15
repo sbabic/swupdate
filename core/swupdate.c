@@ -422,10 +422,11 @@ static int read_globals_settings(void *elem, void *data)
 				"aes-key-file", sw->globals.aeskeyfname);
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
 				"mtd-blacklist", sw->globals.mtdblacklist);
+	GET_FIELD_STRING(LIBCFG_PARSER, elem,
+				"postupdatecmd", sw->globals.postupdatecmd);
 	get_field(LIBCFG_PARSER, elem, "verbose", &sw->globals.verbose);
 	get_field(LIBCFG_PARSER, elem, "loglevel", &sw->globals.loglevel);
 	get_field(LIBCFG_PARSER, elem, "syslog", &sw->globals.syslog_enabled);
-	get_field(LIBCFG_PARSER, elem, "postupdatecmd", &sw->globals.postupdatecmd);
 
 	return 0;
 }
