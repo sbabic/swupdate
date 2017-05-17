@@ -36,25 +36,41 @@
 #include <openssl/hmac.h>
 #include <openssl/aes.h>
 #include <openssl/cms.h>
+#include <openssl/opensslv.h>
 
 struct swupdate_digest {
 	EVP_PKEY *pkey;		/* this is used for RSA key */
 	X509_STORE *certs;	/* this is used if CMS is set */
 	EVP_MD_CTX *ctx;
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
 	EVP_CIPHER_CTX ctxdec;
+#else
+	EVP_CIPHER_CTX *ctxdec;
+#endif
 };
+
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+#define SSL_GET_CTXDEC(dgst) &dgst->ctxdec
+#else
+#define SSL_GET_CTXDEC(dgst) dgst->ctxdec
+#endif
 
 /*
  * This just initialize globally the openSSL
  * library
  * It must be called just once
  */
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
 #define swupdate_crypto_init() { \
 	do { \
 		CRYPTO_malloc_init(); \
 		OpenSSL_add_all_algorithms(); \
 	} while (0); \
 }
+#else
+#define swupdate_crypto_init()
+#endif
+
 #else
 #define swupdate_crypto_init()
 #define AES_BLOCK_SIZE	16

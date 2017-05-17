@@ -23,13 +23,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <openssl/opensslv.h>
 #include "swupdate.h"
 #include "sslapi.h"
 #include "util.h"
 
 struct swupdate_digest *swupdate_DECRYPT_init(unsigned char *key, unsigned char *iv)
 {
-	struct swupdate_digest *dec;
+	struct swupdate_digest *dgst;
 	int ret;
 
 	if ((key == NULL) || (iv == NULL)) {
@@ -37,38 +38,46 @@ struct swupdate_digest *swupdate_DECRYPT_init(unsigned char *key, unsigned char 
 		return NULL;
 	}
 
-	dec = calloc(1, sizeof(*dec));
-	if (!dec) {
+	dgst = calloc(1, sizeof(*dgst));
+	if (!dgst) {
 		return NULL;
 	}
 
-	EVP_CIPHER_CTX_init(&dec->ctxdec);
-
-	/*
-	 * Check openSSL documentation for return errors
-	 */
-	ret = EVP_DecryptInit_ex(&dec->ctxdec, EVP_aes_256_cbc(), NULL, key, iv);
-	if (ret != 1) {
-		ERROR("Decrypt Engine not initialized, error 0x%lx\n", ERR_get_error());
-		free(dec);
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+	EVP_CIPHER_CTX_init(&dgst->ctxdec);
+#else
+	dgst->ctxdec = EVP_CIPHER_CTX_new();
+	if (dgst->ctxdec == NULL) {
+		ERROR("Cannot initialize cipher context.");
+		free(dgst);
 		return NULL;
 	}
-#if 0
-	if(!EVP_DecryptInit_ex(&dec->ctxdec, NULL, NULL, NULL, NULL)){
-		ERROR("ERROR in EVP_DecryptInit_ex, 0x%lx\n", ERR_get_error());
-		free(dec);
+	if (EVP_CIPHER_CTX_reset(dgst->ctxdec) != 1) {
+		ERROR("Cannot reset cipher context.");
+		EVP_CIPHER_CTX_free(dgst->ctxdec);
+		free(dgst);
 		return NULL;
 	}
 #endif
 
-	return dec;
+	/*
+	 * Check openSSL documentation for return errors
+	 */
+	ret = EVP_DecryptInit_ex(SSL_GET_CTXDEC(dgst), EVP_aes_256_cbc(), NULL, key, iv);
+	if (ret != 1) {
+		ERROR("Decrypt Engine not initialized, error 0x%lx\n", ERR_get_error());
+		free(dgst);
+		return NULL;
+	}
+
+	return dgst;
 }
 
 int swupdate_DECRYPT_update(struct swupdate_digest *dgst, unsigned char *buf, 
 				int *outlen, unsigned char *cryptbuf, int inlen)
 {
-	if (EVP_DecryptUpdate(&dgst->ctxdec, buf, outlen, cryptbuf, inlen) != 1) {
-		ERROR("Decryption error 0x%lx\n", ERR_get_error());
+	if (EVP_DecryptUpdate(SSL_GET_CTXDEC(dgst), buf, outlen, cryptbuf, inlen) != 1) {
+		ERROR("Update: Decryption error 0x%lx\n", ERR_get_error());
 		return -EFAULT;
 	}
 
@@ -81,7 +90,7 @@ int swupdate_DECRYPT_final(struct swupdate_digest *dgst, unsigned char *buf,
 	if (!dgst)
 		return -EINVAL;
 
-	if (EVP_DecryptFinal_ex(&dgst->ctxdec, buf, outlen) != 1) {
+	if (EVP_DecryptFinal_ex(SSL_GET_CTXDEC(dgst), buf, outlen) != 1) {
 		ERROR("Decryption error 0x%s\n", 
 				ERR_reason_error_string(ERR_get_error()));
 		return -EFAULT;
@@ -94,7 +103,11 @@ int swupdate_DECRYPT_final(struct swupdate_digest *dgst, unsigned char *buf,
 void swupdate_DECRYPT_cleanup(struct swupdate_digest *dgst)
 {
 	if (dgst) {
-		EVP_CIPHER_CTX_cleanup(&dgst->ctxdec);
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+		EVP_CIPHER_CTX_cleanup(SSL_GET_CTXDEC(dgst));
+#else
+		EVP_CIPHER_CTX_free(SSL_GET_CTXDEC(dgst));
+#endif
 		free(dgst);
 		dgst = NULL;
 	}
