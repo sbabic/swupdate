@@ -499,9 +499,9 @@ int main(int argc, char **argv)
 #ifdef CONFIG_DOWNLOAD
 	int opt_d = 0;
 	char dwloptions[1024];
+#endif
 	char **dwlav = NULL;
 	int dwlac = 0;
-#endif
 
 #ifdef CONFIG_MTD
 	memset(&flashdesc, 0, sizeof(flashdesc));
