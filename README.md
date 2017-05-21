@@ -1,3 +1,5 @@
+<p align ="center"><img src=SWUpdate.png width=400 height=400 /></p>
+
 SWUpdate - Software Update for Embedded Systems
 ===============================================
 
