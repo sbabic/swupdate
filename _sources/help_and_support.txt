@@ -40,3 +40,4 @@ Useful references
         - `Boundary Devices, Using SWUpdate to upgrade your system <https://boundarydevices.com/using-swupdate-upgrade-system>`_
         - `Présentation de Software Update (French) <http://www.linuxembedded.fr/2016/09/presentation-de-software-update>`_
         - `Easy OS upgrades with SWUpdate <http://warpx.io/blog/tutorial/easy-os-upgrades-swupdate>`_
+        - `SWUpdate for feature-rich IoT applications <http://blog.3mdeb.com/2017/05/21/swupdate-for-feature-rich-iot-applications>`_
