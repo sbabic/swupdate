@@ -1790,6 +1790,12 @@ static server_op_res_t server_activation_ipc(ipc_message *msg)
 	    server_get_deployment_info(server_hawkbit.channel, &channel_data, &server_action_id);
 
 	server_op_res_t response = SERVER_OK;
+
+	if (result == SERVER_UPDATE_CANCELED) {
+		DEBUG("Acknowledging cancelled update.\n");
+		(void)server_send_cancel_reply(server_hawkbit.channel, server_action_id);
+	}
+
 	if (action_id != server_action_id) {
 		TRACE("Deployment changed on server: our id %d, on server %d",
 			action_id, server_action_id);
