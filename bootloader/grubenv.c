@@ -305,7 +305,7 @@ cleanup:
 char *bootloader_env_get(const char *name)
 {
 	static struct grubenv_t grubenv;
-	char *value;
+	char *value = NULL, *var;
 	int ret = 0;
 
 	/* read env into dictionary list in RAM */
@@ -313,18 +313,14 @@ char *bootloader_env_get(const char *name)
 		goto cleanup;
 
 	/* retrieve value of given variable from dictionary list */
-	value = dict_get_value(&grubenv.vars, (char *)name);
+	var = dict_get_value(&grubenv.vars, (char *)name);
 
-	/* form grubenv format out of dictionary list and save it to file */
-	if ((ret = grubenv_write(&grubenv)))
-		goto cleanup;
-
+	if (var)
+		value = strdup(var);
+cleanup:
 	grubenv_close(&grubenv);
 	return value;
 
-cleanup:
-	grubenv_close(&grubenv);
-	return NULL;
 }
 
 int bootloader_apply_list(const char *script)

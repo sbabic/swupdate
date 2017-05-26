@@ -100,6 +100,10 @@ server_op_res_t read_state(char *key, update_state_t *value)
 	/* TODO It's a bit whacky just to cast this but as we're the only */
 	/*      ones touching the variable, it's maybe OK for a PoC now. */
 	*value = (update_state_t)*envval;
+
+	/* bootloader get env allocates space for the value */
+	free(envval);
+
 	return SERVER_OK;
 }
 server_op_res_t reset_state(char *key)

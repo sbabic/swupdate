@@ -102,7 +102,8 @@ int bootloader_env_unset(const char *name)
 char *bootloader_env_get(const char *name)
 {
 	int lock;
-	char *value;
+	char *value = NULL;
+	char *var;
 
 	lock = lock_uboot_env();
 	if (lock < 0)
@@ -116,7 +117,9 @@ char *bootloader_env_get(const char *name)
 
 	env_in_ram = true;
 
-	value = fw_getenv((char *)name);
+	var = fw_getenv((char *)name);
+	if (var)
+		value = strdup(var);
 
 	unlock_uboot_env(lock);
 
