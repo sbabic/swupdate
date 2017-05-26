@@ -35,5 +35,6 @@ char *fw_getenv(char *name);
 int fw_env_open(struct env_opts *opts);
 int fw_env_write(char *name, char *value);
 int fw_env_close(struct env_opts *opts);
+int fw_env_flush(struct env_opts *opts);
 
 extern unsigned	long  crc32	 (unsigned long, const unsigned char *, unsigned);
