@@ -57,3 +57,4 @@ typedef enum {
 
 int start_suricatta(const char *cfgname, int argc, char *argv[]) __attribute__((noreturn));
 void suricatta_print_help(void);
+int suricatta_wait(int seconds);
