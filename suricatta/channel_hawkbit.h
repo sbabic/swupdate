@@ -37,6 +37,8 @@ typedef enum {
 	CHANNEL_PUT,
 } channel_method_t;
 
+#define FD_USE_IPC -2
+
 #define USE_PROXY_ENV (char *)0x11
 
 typedef struct {

@@ -1043,7 +1043,7 @@ server_op_res_t server_process_update_artifact(int action_id,
 		server_get_current_time(&server_time);
 
 		channel_op_res_t cresult =
-		    channel->get_file(channel, (void *)&channel_data, 0);
+		    channel->get_file(channel, (void *)&channel_data, FD_USE_IPC);
 		if ((result = map_channel_retcode(cresult)) != SERVER_OK) {
 			/* this is called to collect errors */
 			ipc_wait_for_complete(server_update_status_callback);

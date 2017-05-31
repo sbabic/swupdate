@@ -665,7 +665,7 @@ channel_op_res_t channel_get_file(channel_t *this, void *data, int file_handle)
 		goto cleanup_header;
 	}
 
-	if (file_handle == 0) {
+	if (file_handle == FD_USE_IPC) {
 		for (int retries = 3; retries >= 0; retries--) {
 			file_handle = ipc_inst_start_ext(SOURCE_SURICATTA,
 				channel_data->info == NULL ? 0 : strlen(channel_data->info),
