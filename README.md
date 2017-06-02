@@ -49,8 +49,8 @@ http://sbabic.github.io/swupdate
 Submitting patches
 ------------------
 
-You can submit your patches (or post questions reagarding
-the project to the swupdate Mailing List:
+You can submit your patches (or post questions regarding
+the project) to the swupdate Mailing List:
 
 	swupdate@googlegroups.com
 
