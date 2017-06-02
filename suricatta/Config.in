@@ -54,6 +54,7 @@ choice
 config SURICATTA_HAWKBIT
 	bool "hawkBit support"
 	depends on HAVE_LIBCURL
+	depends on HAVE_JSON_C
 	select JSON
 	select SURICATTA
 	help
