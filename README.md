@@ -10,6 +10,9 @@ updates, multiple update strategies and it can
 be well integrated in the [Yocto](https://www.yoctoproject.org) build system by adding
 the [meta-swupdate](https://layers.openembedded.org/layerindex/branch/master/layer/meta-swupdate/) layer.
 
+Examples using this layer with evaluation boards (Beaglebone, RPI3) are provided in 
+[meta-swupdate-boards](https://layers.openembedded.org/layerindex/branch/master/layer/meta-swupdate-boards/) layer.
+
 It supports the common media on embedded devices 
 such as as NOR / NAND flashes, UBI volumes, SD / eMMC, and can
 be easy extended to introduce project specific update
