@@ -196,7 +196,7 @@ int lua_handlers_init(void)
 		ret = luaL_dostring(gL,"require (\"swupdate_handlers\")");
 		if(ret != 0)
 		{
-			puts(lua_tostring(gL, -1));
+			TRACE("No lua handler found:\n%s", lua_tostring(gL, -1));
 		} else
 			printf(" OK\n");
 	} else	{
