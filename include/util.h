@@ -51,6 +51,7 @@ typedef enum {
 
 typedef enum {
 	CANCELUPDATE=LASTLOGLEVEL + 1,
+	CHANGE,
 } NOTIFY_CAUSE;
 
 enum {

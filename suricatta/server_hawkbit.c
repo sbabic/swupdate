@@ -250,12 +250,19 @@ char *json_get_data_url(json_object *json_root, const char *key)
 
 static const char *json_get_deployment_update_action(json_object *json_reply)
 {
+	if (!json_reply)
+		return NULL;
+
 	json_object *json_deployment_update_action =
 	    json_get_path_key(json_reply,
 			      (const char *[]){"deployment", "update", NULL});
 	assert(json_object_get_type(json_deployment_update_action) ==
 	       json_type_string);
-	server_hawkbit.update_action = NULL;
+	if (!json_object_get_string(json_deployment_update_action)) {
+		ERROR("Server delivered empty 'update', skipping..");
+		return deployment_update_action.skip;
+	}
+
 	if (strncmp(json_object_get_string(json_deployment_update_action),
 		    deployment_update_action.forced,
 		    strlen(deployment_update_action.forced)) == 0) {
@@ -271,7 +278,7 @@ static const char *json_get_deployment_update_action(json_object *json_reply)
 		    strlen(deployment_update_action.skip)) == 0) {
 		return deployment_update_action.skip;
 	}
-
+	TRACE("Server delivered unknown 'update' field, skipping..");
 	/*
 	 * Hawkbit API has just skip, forced, attempt, this
 	 * does not happen
@@ -279,6 +286,28 @@ static const char *json_get_deployment_update_action(json_object *json_reply)
 	return deployment_update_action.skip;
 }
 
+static void check_action_changed(int action_id, const char *update_action)
+{
+
+	if (!update_action)
+		return;
+
+	if (update_action != server_hawkbit.update_action) {
+		char *notifybuf = NULL;
+		server_hawkbit.update_action = update_action;
+		INFO("Update classified as '%s' by server.",
+			server_hawkbit.update_action);
+
+		if (ENOMEM_ASPRINTF ==
+		    asprintf(&notifybuf, "{ \"id\" : \"%d\", \"update\" : \"%s\"}",
+				action_id, server_hawkbit.update_action)) {
+			notify(SUBPROCESS, CHANGE, "Update type changed by server");
+		}  else {
+			notify(SUBPROCESS, CHANGE, notifybuf);
+			free(notifybuf);
+		}
+	}
+}
 
 server_op_res_t map_channel_retcode(channel_op_res_t response)
 {
@@ -694,6 +723,7 @@ static int server_check_during_dwl(void)
 	channel_data_t channel_data = channel_data_defaults;
 	int action_id;
 	int ret = 0;
+	const char *update_action;
 
 	server_get_current_time(&now);
 
@@ -738,6 +768,8 @@ static int server_check_during_dwl(void)
 		server_hawkbit.cancelDuringUpdate = true;
 		ret = -1;
 	}
+	update_action = json_get_deployment_update_action(channel_data.json_reply);
+	check_action_changed(action_id, update_action);
 
 	channel->close(channel);
 	free(channel);
@@ -749,9 +781,18 @@ server_op_res_t server_has_pending_action(int *action_id)
 {
 
 	channel_data_t channel_data = channel_data_defaults;
+	const char *update_action = NULL;
 	server_op_res_t result =
 	    server_get_deployment_info(server_hawkbit.channel,
 			    		&channel_data, action_id);
+
+	/*
+	 * Retrieve if "update" changed before freeing object, used later
+	 */
+	if (result == SERVER_UPDATE_AVAILABLE) {
+		update_action = json_get_deployment_update_action(channel_data.json_reply);
+	}
+
 	/* TODO don't throw away reply JSON as it's fetched again by succinct
 	 *      server_install_update() */
 	if (channel_data.json_reply != NULL &&
@@ -769,8 +810,9 @@ server_op_res_t server_has_pending_action(int *action_id)
 	 * First check if initialization was completed or
 	 * a feedback should be sent to Hawkbit
 	 */
-	if (server_hawkbit.update_state == STATE_WAIT)
+	if (server_hawkbit.update_state == STATE_WAIT) {
 		return SERVER_OK;
+	}
 
 	/*
 	 * if configData was not yet sent,
@@ -786,6 +828,7 @@ server_op_res_t server_has_pending_action(int *action_id)
 		     "ignoring available update action.");
 		INFO("Please restart SWUpdate to report the test results "
 		     "upstream.");
+		check_action_changed(*action_id, update_action);
 		result = SERVER_NO_UPDATE_AVAILABLE;
 	}
 
@@ -1160,8 +1203,9 @@ server_op_res_t server_install_update(void)
 		goto cleanup;
 	}
 
-	server_hawkbit.update_action = json_get_deployment_update_action(channel_data.json_reply);
-	INFO("Update classified as '%s' by server.", server_hawkbit.update_action);
+	server_hawkbit.update_action = NULL;
+	const char *update_action = json_get_deployment_update_action(channel_data.json_reply);
+	check_action_changed(action_id, update_action);
 	if (server_hawkbit.update_action == deployment_update_action.skip) {
 		const char *details = "Skipped Update.";
 		if (server_send_deployment_reply(
