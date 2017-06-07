@@ -142,6 +142,7 @@ server_hawkbit_t server_hawkbit = {.url = NULL,
 				   .device_id = NULL,
 				   .tenant = NULL,
 				   .cancel_url = NULL,
+				   .update_action = NULL,
 				   .channel = NULL};
 
 static channel_data_t channel_data_defaults = {.debug = false,
@@ -246,6 +247,38 @@ char *json_get_data_url(json_object *json_root, const char *key)
 		   ? NULL
 		   : strndup(json_object_get_string(json_data), MAX_URL_LENGTH);
 }
+
+static const char *json_get_deployment_update_action(json_object *json_reply)
+{
+	json_object *json_deployment_update_action =
+	    json_get_path_key(json_reply,
+			      (const char *[]){"deployment", "update", NULL});
+	assert(json_object_get_type(json_deployment_update_action) ==
+	       json_type_string);
+	server_hawkbit.update_action = NULL;
+	if (strncmp(json_object_get_string(json_deployment_update_action),
+		    deployment_update_action.forced,
+		    strlen(deployment_update_action.forced)) == 0) {
+		return deployment_update_action.forced;
+	}
+	if (strncmp(json_object_get_string(json_deployment_update_action),
+	       	    deployment_update_action.attempt,
+	       	    strlen(deployment_update_action.attempt)) == 0) {
+		return deployment_update_action.attempt;
+	}
+	if (strncmp(json_object_get_string(json_deployment_update_action),
+		    deployment_update_action.skip,
+		    strlen(deployment_update_action.skip)) == 0) {
+		return deployment_update_action.skip;
+	}
+
+	/*
+	 * Hawkbit API has just skip, forced, attempt, this
+	 * does not happen
+	 */
+	return deployment_update_action.skip;
+}
+
 
 server_op_res_t map_channel_retcode(channel_op_res_t response)
 {
@@ -1126,26 +1159,11 @@ server_op_res_t server_install_update(void)
 	case SERVER_NO_UPDATE_AVAILABLE:
 		goto cleanup;
 	}
-	json_object *json_deployment_update_action =
-	    json_get_path_key(channel_data.json_reply,
-			      (const char *[]){"deployment", "update", NULL});
-	assert(json_object_get_type(json_deployment_update_action) ==
-	       json_type_string);
-	if (strncmp(json_object_get_string(json_deployment_update_action),
-		    deployment_update_action.forced,
-		    strlen(deployment_update_action.forced)) == 0) {
-		INFO("Update classified as 'FORCED' by server.");
-	} else if (strncmp(
-		       json_object_get_string(json_deployment_update_action),
-		       deployment_update_action.attempt,
-		       strlen(deployment_update_action.attempt)) == 0) {
-		INFO("Update classified as 'attempt' by server.");
-	} else if (strncmp(
-		       json_object_get_string(json_deployment_update_action),
-		       deployment_update_action.skip,
-		       strlen(deployment_update_action.skip)) == 0) {
+
+	server_hawkbit.update_action = json_get_deployment_update_action(channel_data.json_reply);
+	INFO("Update classified as '%s' by server.", server_hawkbit.update_action);
+	if (server_hawkbit.update_action == deployment_update_action.skip) {
 		const char *details = "Skipped Update.";
-		INFO("Update classified as to be 'skipped' by server.");
 		if (server_send_deployment_reply(
 			action_id, 0, 0, reply_status_result_finished.success,
 			reply_status_execution.closed, 1,
@@ -1239,7 +1257,7 @@ server_op_res_t server_install_update(void)
 		server_hawkbit.cancelDuringUpdate = false;
 		result =
 		    server_process_update_artifact(action_id, json_data_chunk_artifacts,
-				json_object_get_string(json_deployment_update_action),
+				server_hawkbit.update_action,
 				json_object_get_string(json_data_chunk_part),
 				json_object_get_string(json_data_chunk_version),
 				json_object_get_string(json_data_chunk_name));

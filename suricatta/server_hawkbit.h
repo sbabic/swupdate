@@ -50,6 +50,7 @@ typedef struct {
 	bool	cancelDuringUpdate;
 	char *errors[HAWKBIT_MAX_REPORTED_ERRORS];
 	int errorcnt;
+	const char *update_action;
 } server_hawkbit_t;
 
 extern server_hawkbit_t server_hawkbit;
