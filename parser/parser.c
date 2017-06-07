@@ -388,6 +388,12 @@ static void parse_images(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 			return;
 		}
 
+		/*
+		 * GET_FIELD_STRING does not touch the passed string if it is not
+		 * found, be sure that it is empty
+		 */
+		seek_str[0] = '\0';
+
 		GET_FIELD_STRING(p, elem, "name", image->id.name);
 		GET_FIELD_STRING(p, elem, "version", image->id.version);
 		GET_FIELD_STRING(p, elem, "filename", image->fname);
