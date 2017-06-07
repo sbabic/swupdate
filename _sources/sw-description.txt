@@ -173,6 +173,8 @@ The syntax is:
 			device[optional] = <destination volume>;
 			mtdname[optional] = <destination mtd name>;
 			type[optional] = <handler>;
+			/* optionally, the image can be copied at a specific offset */
+			offset[optional] = <offset>;
 			/* optionally, the image can be compressed if it is in raw mode */
 			compressed;
 		},
@@ -205,6 +207,18 @@ To update an image in raw mode, the syntax is:
 			device = "/dev/mmcblk0p1";
 		}
 
+To flash am image at a specific offset, the syntax is:
+
+
+::
+
+		{
+			filename = "u-boot.bin";
+			device = "/dev/mmcblk0p1";
+			offset = "16K";
+		}
+
+The offset handles the following multiplicative suffixes: K=1024 and M=1024*1024.
 
 However, writing to flash in raw mode must be managed in a special
 way. Flashes must be erased before copying, and writing into NAND

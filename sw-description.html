@@ -321,6 +321,8 @@ The syntax is:</p>
                 device[optional] = &lt;destination volume&gt;;
                 mtdname[optional] = &lt;destination mtd name&gt;;
                 type[optional] = &lt;handler&gt;;
+                /* optionally, the image can be copied at a specific offset */
+                offset[optional] = &lt;offset&gt;;
                 /* optionally, the image can be compressed if it is in raw mode */
                 compressed;
         },
@@ -346,6 +348,15 @@ the raw handler is automatically selected.</p>
 }
 </pre></div>
 </div>
+<p>To flash am image at a specific offset, the syntax is:</p>
+<div class="highlight-python"><div class="highlight"><pre>{
+        filename = &quot;u-boot.bin&quot;;
+        device = &quot;/dev/mmcblk0p1&quot;;
+        offset = &quot;16K&quot;;
+}
+</pre></div>
+</div>
+<p>The offset handles the following multiplicative suffixes: K=1024 and M=1024*1024.</p>
 <p>However, writing to flash in raw mode must be managed in a special
 way. Flashes must be erased before copying, and writing into NAND
 must take care of bad blocks and ECC errors. For this reasons, the
