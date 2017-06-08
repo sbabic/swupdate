@@ -5,4 +5,4 @@ all: sendtohawkbit hawkbitcfg
 	$(CC) -g -o $@ $< -I../../include ../../ipc/lib.a -lpthread
 
 clean:
-	@rm -f sendtohawkbit
+	@rm -f sendtohawkbit hawkbitcfg
