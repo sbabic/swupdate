@@ -77,3 +77,18 @@ cscope.*
 /tags
 /ctags
 /etags
+
+#
+# acceptance-tests
+#
+scripts/acceptance-tests
+
+#
+# mischellaneous
+#
+scripts/basic/docproc
+scripts/basic/split-include
+scripts/kconfig/conf
+scripts/kconfig/lex.zconf.c
+scripts/kconfig/lxdialog/lxdialog
+
