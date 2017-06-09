@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <util.h>
 #include <errno.h>
+#include <signal.h>
 #include <sys/select.h>
 #include "pctl.h"
 #include "suricatta/suricatta.h"
@@ -57,6 +58,12 @@ int suricatta_wait(int seconds)
 int start_suricatta(const char *cfgfname, int argc, char *argv[])
 {
 	int action_id;
+	sigset_t sigpipe_mask;
+	sigset_t saved_mask;
+
+	sigemptyset(&sigpipe_mask);
+	sigaddset(&sigpipe_mask, SIGPIPE);
+	sigprocmask(SIG_BLOCK, &sigpipe_mask, &saved_mask);
 
 	if (server.start(cfgfname, argc, argv) != SERVER_OK) {
 		exit(EXIT_FAILURE);
