@@ -37,8 +37,6 @@ struct env_opts *fw_env_opts = &(struct env_opts) {
 	.config_file = (char *)CONFIG_UBOOT_FWENV
 };
 
-static bool env_in_ram = false;
-
 /*
  * The lockfile is the same as defined in U-Boot for
  * the fw_printenv utilities
@@ -75,7 +73,7 @@ int bootloader_env_set(const char *name, const char *value)
 	if (lock < 0)
 		return -1;
 
-	if ((!env_in_ram) && (fw_env_open (fw_env_opts))) {
+	if (fw_env_open (fw_env_opts)) {
 		fprintf (stderr, "Error: environment not initialized\n");
 		unlock_uboot_env(lock);
 		return -1;
@@ -84,11 +82,6 @@ int bootloader_env_set(const char *name, const char *value)
 	ret = fw_env_flush(fw_env_opts);
 	fw_env_close (fw_env_opts);
 
-	/*
-	 * After fw_env_close() there is not a valid
-	 * environment anymore
-	 */
-	env_in_ram = false;
 	unlock_uboot_env(lock);
 
 	return ret;
@@ -109,17 +102,17 @@ char *bootloader_env_get(const char *name)
 	if (lock < 0)
 		return NULL;
 
-	if ((!env_in_ram) && (fw_env_open (fw_env_opts))) {
+	if (fw_env_open (fw_env_opts)) {
 		ERROR("Error: environment not initialized\n");
 		unlock_uboot_env(lock);
 		return NULL;
 	}
 
-	env_in_ram = true;
-
 	var = fw_getenv((char *)name);
 	if (var)
 		value = strdup(var);
+
+	fw_env_close (fw_env_opts);
 
 	unlock_uboot_env(lock);
 
@@ -137,17 +130,8 @@ int bootloader_apply_list(const char *filename)
 		return -ENODEV;
 	}
 
-	/*
-	 * Parse calls fw_env_open and fw_env_close
-	 * that means that the environment is not available
-	 * anymore after the functions returns
-	 */
-	if (env_in_ram)
-		fw_env_close(fw_env_opts);
-
-	env_in_ram = false;
-
 	ret = fw_parse_script((char *)filename, fw_env_opts);
+	fw_env_close (fw_env_opts);
 	unlock_uboot_env(lockfd);
 	
 	return ret;
