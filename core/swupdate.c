@@ -117,6 +117,7 @@ static void usage(char *programname)
 	fprintf(stdout, "Usage %s [OPTION]\n",
 			programname);
 	fprintf(stdout,
+		" -f, --file <filename>          : configuration file to use\n"
 #ifdef CONFIG_MTD
 		" -b, --blacklist <list of mtd>  : MTDs that must not be scanned for UBI\n"
 #endif
