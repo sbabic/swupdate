@@ -141,13 +141,13 @@ char *sdup(const char *str);
  */
 typedef int (*writeimage) (void *out, const void *buf, int len);
 
-int fill_buffer(int fd, unsigned char *buf, int nbytes, unsigned long *offs,
+int fill_buffer(int fd, unsigned char *buf, unsigned int nbytes, unsigned long *offs,
 	uint32_t *checksum, void *dgst);
 int decompress_image(int infile, unsigned long *offs, int nbytes,
 	int outfile, uint32_t *checksum, void *dgst);
 
 int openfile(const char *filename);
-int copyfile(int fdin, void *out, int nbytes, unsigned long *offs,
+int copyfile(int fdin, void *out, unsigned int nbytes, unsigned long *offs,
 	unsigned long long seek,
 	int skip_file, int compressed, uint32_t *checksum,
 	unsigned char *hash, int encrypted, writeimage callback);

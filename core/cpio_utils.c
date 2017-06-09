@@ -51,7 +51,7 @@ static int get_cpiohdr(unsigned char *buf, unsigned long *size,
 	return 0;
 }
 
-int fill_buffer(int fd, unsigned char *buf, int nbytes, unsigned long *offs,
+int fill_buffer(int fd, unsigned char *buf, unsigned int nbytes, unsigned long *offs,
 	uint32_t *checksum, void *dgst)
 {
 	ssize_t len;
@@ -110,7 +110,7 @@ static int copy_write(void *out, const void *buf, int len)
 	return 0;
 }
 
-int copyfile(int fdin, void *out, int nbytes, unsigned long *offs, unsigned long long seek,
+int copyfile(int fdin, void *out, unsigned int nbytes, unsigned long *offs, unsigned long long seek,
 	int skip_file, int __attribute__ ((__unused__)) compressed,
 	uint32_t *checksum, unsigned char *hash, int encrypted, writeimage callback)
 {
