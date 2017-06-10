@@ -79,10 +79,11 @@ server_op_res_t reset_state(char *key)
 server_op_res_t save_state(char *key, update_state_t value)
 {
 	int ret;
+	char value_str[2] = {value, '\0'};
 
 	CHECK_STATE_VAR(key);
 
-	ret = bootloader_env_set(key, (char *)&value);
+	ret = bootloader_env_set(key, value_str);
 
 	return ret == 0 ? SERVER_OK : SERVER_EERR;
 }
