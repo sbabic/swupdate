@@ -44,7 +44,11 @@ static int install_boot_environment(struct img_type *img,
 	char filename[64];
 	struct stat statbuf;
 
-	snprintf(filename, sizeof(filename), "%s%s", TMPDIR, img->fname);
+	if (snprintf(filename, sizeof(filename), "%s%s", TMPDIR,
+		     img->fname) >= (int)sizeof(filename)) {
+		ERROR("Path too long: %s%s", TMPDIR, img->fname);
+		return -1;
+	}
 	ret = stat(filename, &statbuf);
 	if (ret) {
 		fdout = openfileoutput(filename);

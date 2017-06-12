@@ -259,7 +259,10 @@ static int searching_for_image(char *name)
 			}
 			/* Take the first one as image */
 			if (fd < 0) {
-				snprintf(fname, sizeof(fname), "%s/%s", dirc, dp->d_name);
+				if (snprintf(fname, sizeof(fname), "%s/%s",
+					     dirc, dp->d_name) >= (int)sizeof(fname)) {
+					ERROR("Path too long: %s/%s", dirc, dp->d_name);
+				}
 				fd = open(fname, O_RDONLY);
 				if (fd > 0)
 					TRACE("\t\t**Used for upgrade\n");

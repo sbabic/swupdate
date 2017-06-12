@@ -99,7 +99,11 @@ static int extract_file_to_tmp(int fd, const char *fname, unsigned long *poffs)
 			fname);
 		return -1;
 	}
-	snprintf(output_file, sizeof(output_file), "%s%s", TMPDIR, fdh.filename);
+	if (snprintf(output_file, sizeof(output_file), "%s%s", TMPDIR,
+		     fdh.filename) >= (int)sizeof(output_file)) {
+		ERROR("Path too long: %s%s", TMPDIR, fdh.filename);
+		return -1;
+	}
 	TRACE("Found file:\n\tfilename %s\n\tsize %u", fdh.filename, (unsigned int)fdh.size);
 
 	fdout = openfileoutput(output_file);

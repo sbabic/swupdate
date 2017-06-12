@@ -73,10 +73,16 @@ static int install_raw_file(struct img_type *img,
 			return -1;
 		}
 
-		snprintf(path, sizeof(path), "%s%s",
-			DATADST_DIR, img->path);
+		if (snprintf(path, sizeof(path), "%s%s",
+					 DATADST_DIR, img->path) >= (int)sizeof(path)) {
+			ERROR("Path too long: %s%s", DATADST_DIR, img->path);
+			return -1;
+		}
 	} else {
-		snprintf(path, sizeof(path), "%s", img->path);
+		if (snprintf(path, sizeof(path), "%s", img->path) >= (int)sizeof(path)) {
+			ERROR("Path too long: %s", img->path);
+			return -1;
+		}
 	}
 
 	TRACE("Installing file %s on %s\n",

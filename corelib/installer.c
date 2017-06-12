@@ -113,8 +113,12 @@ int check_if_required(struct imglist *list, struct filehdr *pfdh,
 			img->provided = 1;
 			img->size = (unsigned int)pfdh->size;
 
-			snprintf(img->extract_file, sizeof(img->extract_file),
-					"%s%s", TMPDIR, pfdh->filename);
+			if (snprintf(img->extract_file,
+				     sizeof(img->extract_file), "%s%s",
+				     TMPDIR, pfdh->filename) >= (int)sizeof(img->extract_file)) {
+				ERROR("Path too long: %s%s", TMPDIR, pfdh->filename);
+				return -EBADF;
+			}
 			/*
 			 *  Streaming is possible to only one handler
 			 *  If more img requires the same file,
@@ -282,7 +286,11 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 			continue;
 
 		if (!fromfile) {
-			snprintf(filename, sizeof(filename), "%s%s", TMPDIR, img->fname);
+			if (snprintf(filename, sizeof(filename), "%s%s",
+				     TMPDIR, img->fname) >= (int)sizeof(filename)) {
+				ERROR("Path too long: %s%s", TMPDIR, img->fname);
+				return -1;
+			}
 
 			ret = stat(filename, &buf);
 			if (ret) {
@@ -372,7 +380,10 @@ void cleanup_files(struct swupdate_cfg *software) {
 
 	LIST_FOREACH(img, &software->images, next) {
 		if (img->fname[0]) {
-			snprintf(fn, sizeof(fn), "%s%s", TMPDIR, img->fname);
+			if (snprintf(fn, sizeof(fn), "%s%s", TMPDIR,
+				     img->fname) >= (int)sizeof(fn)) {
+				ERROR("Path too long: %s%s", TMPDIR, img->fname);
+			}
 			remove_sw_file(fn);
 		}
 		LIST_REMOVE(img, next);
@@ -380,7 +391,10 @@ void cleanup_files(struct swupdate_cfg *software) {
 	}
 	LIST_FOREACH(img, &software->scripts, next) {
 		if (img->fname[0]) {
-			snprintf(fn, sizeof(fn), "%s%s", TMPDIR, img->fname);
+			if (snprintf(fn, sizeof(fn), "%s%s", TMPDIR,
+				     img->fname) >= (int)sizeof(fn)) {
+				ERROR("Path too long: %s%s", TMPDIR, img->fname);
+			}
 			remove_sw_file(fn);
 		}
 		LIST_REMOVE(img, next);
