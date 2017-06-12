@@ -34,6 +34,7 @@
 #include "parselib.h"
 #include "parsers.h"
 #include "swupdate_dict.h"
+#include "lua_util.h"
 
 #define MODULE_NAME	"PARSER"
 
@@ -202,7 +203,20 @@ static int parse_hw_compatibility(parsertype __attribute__ ((__unused__))p,
 }
 #endif
 
-static void parse_partitions(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
+static int run_embscript(parsertype p, void *elem, struct img_type *img,
+			 lua_State *L, const char *embscript)
+{
+	const char *embfcn;
+	if (!embscript)
+		return 0;
+	if (!exist_field_string(p, elem, "hook"))
+		return 0;
+	embfcn = get_field_string(p, elem, "hook");
+
+	return lua_parser_fn(L, embfcn, img);
+}
+
+static int parse_partitions(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 {
 	void *setting, *elem;
 	int count, i;
@@ -211,7 +225,7 @@ static void parse_partitions(parsertype p, void *cfg, struct swupdate_cfg *swcfg
 	setting = find_node(p, cfg, "partitions", swcfg);
 
 	if (setting == NULL)
-		return;
+		return 0;
 
 	count = get_array_length(p, setting);
 	/*
@@ -227,7 +241,7 @@ static void parse_partitions(parsertype p, void *cfg, struct swupdate_cfg *swcfg
 		partition = (struct img_type *)calloc(1, sizeof(struct img_type));
 		if (!partition) {
 			ERROR("No memory: malloc failed\n");
-			return;
+			return -ENOMEM;
 		}
 		GET_FIELD_STRING(p, elem, "name", partition->volname);
 		GET_FIELD_STRING(p, elem, "device", partition->device);
@@ -238,7 +252,7 @@ static void parse_partitions(parsertype p, void *cfg, struct swupdate_cfg *swcfg
 
 		if (!strlen(partition->volname) || !strlen(partition->device)) {
 			ERROR("Partition incompleted in description file");
-			return;
+			return -1;
 		}
 
 		get_field(p, elem, "size", &partition->partsize);
@@ -249,9 +263,11 @@ static void parse_partitions(parsertype p, void *cfg, struct swupdate_cfg *swcfg
 
 		LIST_INSERT_HEAD(&swcfg->images, partition, next);
 	}
+
+	return 0;
 }
 
-static void parse_scripts(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
+static int parse_scripts(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 {
 	void *setting, *elem;
 	int count, i;
@@ -260,7 +276,7 @@ static void parse_scripts(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 	setting = find_node(p, cfg, "scripts", swcfg);
 
 	if (setting == NULL)
-		return;
+		return 0;
 
 	count = get_array_length(p, setting);
 	/*
@@ -284,7 +300,7 @@ static void parse_scripts(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 		script = (struct img_type *)calloc(1, sizeof(struct img_type));
 		if (!script) {
 			ERROR( "No memory: malloc failed\n");
-			return;
+			return -ENOMEM;
 		}
 
 		GET_FIELD_STRING(p, elem, "filename", script->fname);
@@ -305,9 +321,10 @@ static void parse_scripts(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 		TRACE("Found Script: %s\n",
 			script->fname);
 	}
+	return 0;
 }
 
-static void parse_bootloader(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
+static int parse_bootloader(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 {
 	void *setting, *elem;
 	int count, i;
@@ -319,7 +336,7 @@ static void parse_bootloader(parsertype p, void *cfg, struct swupdate_cfg *swcfg
 	if (setting == NULL) {
 		setting = find_node(p, cfg, "bootenv", swcfg);
 		if (setting == NULL)
-			return;
+			return 0;
 	}
 
 	count = get_array_length(p, setting);
@@ -351,9 +368,11 @@ static void parse_bootloader(parsertype p, void *cfg, struct swupdate_cfg *swcfg
 			dict_get_value(&swcfg->bootloader, name));
 
 	}
+
+	return 0;
 }
 
-static void parse_images(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
+static int parse_images(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua_State *L)
 {
 	void *setting, *elem;
 	int count, i;
@@ -364,7 +383,7 @@ static void parse_images(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 	setting = find_node(p, cfg, "images", swcfg);
 
 	if (setting == NULL)
-		return;
+		return 0;
 
 	count = get_array_length(p, setting);
 
@@ -385,7 +404,7 @@ static void parse_images(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 		image = (struct img_type *)calloc(1, sizeof(struct img_type));
 		if (!image) {
 			ERROR( "No memory: malloc failed\n");
-			return;
+			return -ENOMEM;
 		}
 
 		/*
@@ -412,7 +431,7 @@ static void parse_images(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 			if (seek_str == endp || (image->seek == ULLONG_MAX && \
 					errno == ERANGE)) {
 				ERROR("offset argument: ustrtoull failed");
-				return;
+				return -1;
 			}
 		} else
 			image->seek = 0;
@@ -444,11 +463,15 @@ static void parse_images(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 					"Version must be checked" : ""
 			);
 
+		if (run_embscript(p, elem, image, L, swcfg->embscript))
+			return -1;
 		LIST_INSERT_HEAD(&swcfg->images, image, next);
 	}
+
+	return 0;
 }
 
-static void parse_files(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
+static int parse_files(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua_State *L)
 {
 	void *setting, *elem;
 	int count, i;
@@ -457,7 +480,7 @@ static void parse_files(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 	setting = find_node(p, cfg, "files", swcfg);
 
 	if (setting == NULL)
-		return;
+		return 0;
 
 	count = get_array_length(p, setting);
 	for(i = 0; i < count; ++i) {
@@ -477,7 +500,7 @@ static void parse_files(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 		file = (struct img_type *)calloc(1, sizeof(struct img_type));
 		if (!file) {
 			ERROR( "No memory: malloc failed\n");
-			return;
+			return -ENOMEM;
 		}
 
 		GET_FIELD_STRING(p, elem, "name", file->id.name);
@@ -507,27 +530,52 @@ static void parse_files(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 			(strlen(file->id.name) && file->id.install_if_different) ?
 					"Version must be checked" : "");
 
+		if (run_embscript(p, elem, file, L, swcfg->embscript))
+			return -1;
 		LIST_INSERT_HEAD(&swcfg->images, file, next);
 	}
+
+	return 0;
 }
 
 static int parser(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 {
+	void *scriptnode;
+	lua_State *L = NULL;
+	int ret;
 
+	swcfg->embscript = NULL;
+	scriptnode = find_node(p, cfg, "embedded-script", swcfg);
+	if (scriptnode) {
+		TRACE("Getting script");
+		swcfg->embscript = get_field_string(p, scriptnode, NULL);
+	}
+
+	if (swcfg->embscript) {
+		TRACE("Found LUA Software:\n%s\n", swcfg->embscript);
+		L = lua_parser_init(swcfg->embscript);
+		if (!L) {
+			ERROR("Required embedded script that cannot be loaded");
+			return -1;
+		}
+	}
 	get_hw_revision(&swcfg->hw);
 
 	/* Now parse the single elements */
-	parse_hw_compatibility(p, cfg, swcfg);
-	parse_images(p, cfg, swcfg);
-	parse_scripts(p, cfg, swcfg);
-	parse_bootloader(p, cfg, swcfg);
-	parse_files(p, cfg, swcfg);
+	ret = parse_hw_compatibility(p, cfg, swcfg) ||
+		parse_images(p, cfg, swcfg, L) ||
+		parse_scripts(p, cfg, swcfg) ||
+		parse_bootloader(p, cfg, swcfg) ||
+		parse_files(p, cfg, swcfg, L);
 
 	/*
 	 * Move the partitions at the beginning to be processed
 	 * before other images
 	 */
 	parse_partitions(p, cfg, swcfg);
+
+	if (L)
+		lua_parser_exit(L);
 
 	if (LIST_EMPTY(&swcfg->images) &&
 	    LIST_EMPTY(&swcfg->partitions) &&
@@ -537,7 +585,7 @@ static int parser(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 		return -1;
 	}
 
-	return 0;
+	return ret;
 }
 
 #ifdef CONFIG_LIBCONFIG
@@ -574,6 +622,11 @@ int parse_cfg (struct swupdate_cfg *swcfg, const char *filename)
 	} else {
 		strncpy(swcfg->version, str, sizeof(swcfg->version));
 		fprintf(stdout, "Version %s\n", swcfg->version);
+	}
+	snprintf(node, sizeof(node), "%s.embedded-script",
+			NODEROOT);
+	if (config_lookup_string(&cfg, node, &str)) {
+		TRACE("Found LUA Software:\n%s\n", str);
 	}
 
 	ret = parser(p, &cfg, swcfg);

@@ -136,6 +136,7 @@ struct swupdate_cfg {
 	struct proclist extprocs;
 	void *dgst;	/* Structure for signed images */
 	struct swupdate_global_cfg globals;
+	const char *embscript;
 };
 
 #define SEARCH_FILE(type, list, found, offs) do { \
