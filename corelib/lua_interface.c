@@ -25,6 +25,24 @@
 #include "lua_util.h"
 #include "util.h"
 
+#define LUA_PUSH_IMG_STRING(img, attr, field)  do { \
+	lua_pushstring(L, attr);		\
+	lua_pushstring(L, img->field);		\
+	lua_settable(L, -3);			\
+} while (0)
+
+#define LUA_PUSH_IMG_BOOL(img, attr, field)  do { \
+	lua_pushstring(L, attr);		\
+	lua_pushboolean(L, img->field);		\
+	lua_settable(L, -3);			\
+} while (0)
+
+#define LUA_PUSH_IMG_NUMBER(img, attr, field)  do { \
+	lua_pushstring(L, attr);		\
+	lua_pushnumber(L, (double)img->field);	\
+	lua_settable(L, -3);			\
+} while (0)
+
 void LUAstackDump (lua_State *L) {
 	int i;
 	int top = lua_gettop(L);
@@ -104,50 +122,26 @@ int run_lua_script(char *script, char *function, char *parms)
 void image2table(lua_State* L, struct img_type *img) {
 	if (L && img) {
 		lua_newtable (L);
-		lua_pushstring(L, "filename");
-		lua_pushstring(L, img->fname);
-		lua_settable(L, -3);
-		lua_pushstring(L, "volname");
-		lua_pushstring(L, img->volname);
-		lua_settable(L, -3);
-		lua_pushstring(L, "type");
-		lua_pushstring(L, img->type);
-		lua_settable(L, -3);
+		LUA_PUSH_IMG_STRING(img, "name", id.name);
+		LUA_PUSH_IMG_STRING(img, "version", id.version);
+		LUA_PUSH_IMG_STRING(img, "filename", fname);
+		LUA_PUSH_IMG_STRING(img, "volume", volname);
+		LUA_PUSH_IMG_STRING(img, "type", type);
+		LUA_PUSH_IMG_STRING(img, "device", device);
+		LUA_PUSH_IMG_STRING(img, "path", path);
+		LUA_PUSH_IMG_STRING(img, "mtdname", path);
+		LUA_PUSH_IMG_STRING(img, "data", type_data);
 
-		lua_pushstring(L, "device");
-		lua_pushstring(L, img->device);
-		lua_settable(L, -3);
-		lua_pushstring(L, "path");
-		lua_pushstring(L, img->path);
-		lua_settable(L, -3);
-		lua_pushstring(L, "extracted");
-		lua_pushstring(L, img->extract_file);
-		lua_settable(L, -3);
+		LUA_PUSH_IMG_BOOL(img, "compressed", compressed);
+		LUA_PUSH_IMG_BOOL(img, "installed-directly", compressed);
+		LUA_PUSH_IMG_BOOL(img, "install-if-different", compressed);
+		LUA_PUSH_IMG_BOOL(img, "encrypted", is_encrypted);
+		LUA_PUSH_IMG_BOOL(img, "partition", is_partitioner);
+		LUA_PUSH_IMG_BOOL(img, "script", is_script);
 
-		lua_pushstring(L, "required");
-		lua_pushboolean(L, img->required);
-		lua_settable(L, -3);
+		LUA_PUSH_IMG_NUMBER(img, "offset", seek);
+		LUA_PUSH_IMG_NUMBER(img, "size", size);
+		LUA_PUSH_IMG_NUMBER(img, "checksum", checksum);
 
-		lua_pushstring(L, "compressed");
-		lua_pushboolean(L, img->compressed);
-		lua_settable(L, -3);
-		lua_pushstring(L, "required");
-		lua_pushboolean(L, img->required);
-		lua_settable(L, -3);
-		lua_pushstring(L, "provided");
-		lua_pushboolean(L, img->provided);
-		lua_settable(L, -3);
-		lua_pushstring(L, "is_script");
-		lua_pushboolean(L, img->is_script);
-		lua_settable(L, -3);
-		lua_pushstring(L, "offset");
-		lua_pushnumber(L, (double)img->offset);
-		lua_settable(L, -3);
-		lua_pushstring(L, "size");
-		lua_pushnumber(L, (double)img->size);
-		lua_settable(L, -3);
-		lua_pushstring(L, "checksum");
-		lua_pushnumber(L, (double)img->checksum);
-		lua_settable(L, -3);
 	}
 }
