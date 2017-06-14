@@ -113,6 +113,142 @@ The first tag is "software". The whole description is contained in
 this tag. It is possible to group settings per device by using `Board
 specific settings`_.
 
+Handling configuration differences
+----------------------------------
+
+The concept can be extended to deliver a single image
+containing the release for multiple devices. Each device has its own
+kernel, dtb and root filesystem, or they can share some parts.
+
+Currently this is managed (and already used in a real project) by
+writing an own parser, that checks which images must be installed
+after recognizing which is the device where software is running.
+
+Because the external parser can be written in LUA and it is
+completely customizable, everybody can set his own rules.
+For this specific example, the sw-description is written in XML format,
+with tags identifying the images for each device. To run it, the liblxp
+library is needed.
+
+::
+
+	<?xml version="1.0" encoding="UTF-8"?>
+	<software version="1.0">
+	  <name>Update Image</name>
+	  <version>1.0.0</version>
+	  <description>Firmware for XXXXX Project</description>
+
+	  <images>
+	    <image device="firstdevice" version="0.9">
+	      <stream name="dev1-uImage" type="ubivol" volume="kernel" />
+	      <stream name="dev1.dtb" type="ubivol" volume="dtb" />
+	      <stream name="dev1-rootfs.ubifs" type="ubivol" volume="rootfs"/>
+	      <stream name="dev1-uboot-env" type="uboot" />
+	      <stream name="raw_vfat" type="raw" dest="/dev/mmcblk0p4" />
+	      <stream name="sdcard.lua" type="lua" />
+	    </image>
+
+	    <image device="seconddevice" version="0.9">
+	      <stream name="dev2-uImage" type="ubivol" volume="kernel" />
+	      <stream name="dev2.dtb" rev="0.9" type="ubivol" volume="dtb" />
+	      <stream name="dev2-rootfs.ubifs" type="ubivol" volume="rootfs"/>
+	    </image>
+	  </images>
+	</software>
+
+
+The parser for this is in the /examples directory.
+By identifying which is the running device, the parser return
+a table containing the images that must be installed and their associated
+handlers.
+By reading the delivered image, SWUpdate will ignore all images that
+are not in the list processed by the parser. In this way, it is possible
+to have a single delivered image for the update of multiple devices.
+
+Multiple devices are supported by the default parser, too.
+
+::
+
+    software =
+    {
+        version = "0.1.0";
+
+        target-1 = {
+                images: (
+                        {
+                                ...
+                        }
+                );
+        };
+
+        target-2 = {
+                images: (
+                        {
+                                ...
+                        }
+                );
+        };
+    }
+
+In this way, it is possible to have a single image providing software
+for each device you have.
+
+By default the hardware information is extracted from
+`/etc/hwrevision` file. The file should contain a single line in the
+following format::
+
+  <boardname> <revision>
+
+Where:
+
+- `<revision>` will be used for matching with hardware compatibility
+  list
+
+- `<boardname>` can be used for grouping board specific settings
+
+
+Software collections
+--------------------
+
+Software collections and operation modes can be used to implement a
+dual copy strategy. The simplest case is to define two installation
+locations for the firmware image and call `SWUpdate` selecting the
+appropriate image.
+
+::
+
+    software =
+    {
+            version = "0.1.0";
+
+            stable = {
+                    copy-1: {
+                            images: (
+                            {
+                                    device = "/dev/mtd4"
+                                    ...
+                            }
+                            );
+                    }
+                    copy-2: {
+                            images: (
+                            {
+                                    device = "/dev/mtd5"
+                                    ...
+                            }
+                            );
+                    }
+            };
+    }
+
+In this way it is possible to specify that `copy-1` gets installed to
+`/dev/mtd4`, while `copy-2` to `/dev/mtd5`. By properly selecting the
+installation locations, `SWUpdate` will update the firmware in the
+other slot.
+
+The method of image selection is out of the scope of SWUpdate and user
+is responsible for calling `SWUpdate` passing proper settings.
+
 hardware-compatibility
 ----------------------
 
