@@ -572,6 +572,8 @@ Command line parameters
 +-------------+----------+--------------------------------------------+
 |  Parameter  | Type     | Description                                |
 +=============+==========+============================================+
+| -f <file>   | string   | SWUpdate config file to use                |
++-------------+----------+--------------------------------------------+
 | -b <string> | string   | Active only if CONFIG_MTD is set           |
 |             |          | It allows to blacklist MTDs when SWUpdate  |
 |             |          | searches for UBI volumes.                  |

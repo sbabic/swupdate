@@ -13,6 +13,8 @@
 
   
   
+    <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
+  
 
   
 
@@ -681,7 +683,11 @@ called like this:</p>
 </tr>
 </thead>
 <tbody valign="top">
-<tr class="row-even"><td>-b &lt;string&gt;</td>
+<tr class="row-even"><td>-f &lt;file&gt;</td>
+<td>string</td>
+<td>SWUpdate config file to use</td>
+</tr>
+<tr class="row-odd"><td>-b &lt;string&gt;</td>
 <td>string</td>
 <td>Active only if CONFIG_MTD is set
 It allows to blacklist MTDs when SWUpdate
@@ -689,7 +695,7 @@ searches for UBI volumes.
 Example: U-Boot and environment in MTD0-1:
 <strong>swupdate -b &#8220;0 1&#8221;</strong></td>
 </tr>
-<tr class="row-odd"><td>-e &lt;sel&gt;</td>
+<tr class="row-even"><td>-e &lt;sel&gt;</td>
 <td>string</td>
 <td>sel is in the format &lt;software&gt;,&lt;mode&gt;
 It allows to find a subset of rules in
@@ -700,57 +706,57 @@ copy approach. Example:
 -e &#8220;stable, copy1&#8221;  ==&gt; install on copy1
 -e &#8220;stable, copy2&#8221;  ==&gt; install on copy2</td>
 </tr>
-<tr class="row-even"><td>-h</td>
+<tr class="row-odd"><td>-h</td>
 <td><ul class="first last simple">
 <li></li>
 </ul>
 </td>
 <td>run usage with help</td>
 </tr>
-<tr class="row-odd"><td>-k</td>
+<tr class="row-even"><td>-k</td>
 <td>string</td>
 <td>Active if CONFIG_SIGNED is set
 Filename with the public key</td>
 </tr>
-<tr class="row-even"><td>-l &lt;level&gt;</td>
+<tr class="row-odd"><td>-l &lt;level&gt;</td>
 <td>int</td>
 <td>Set loglevel</td>
 </tr>
-<tr class="row-odd"><td>-L</td>
+<tr class="row-even"><td>-L</td>
 <td><ul class="first last simple">
 <li></li>
 </ul>
 </td>
 <td>Send LOG output to syslog(local)</td>
 </tr>
-<tr class="row-even"><td>-i &lt;file&gt;</td>
+<tr class="row-odd"><td>-i &lt;file&gt;</td>
 <td>string</td>
 <td>run SWUpdate with a local .swu file</td>
 </tr>
-<tr class="row-odd"><td>-v</td>
+<tr class="row-even"><td>-v</td>
 <td><ul class="first last simple">
 <li></li>
 </ul>
 </td>
 <td>activate verbose output</td>
 </tr>
-<tr class="row-even"><td>-w &lt;parms&gt;</td>
+<tr class="row-odd"><td>-w &lt;parms&gt;</td>
 <td>string</td>
 <td>start internal webserver and pass to it
 a command line string.</td>
 </tr>
-<tr class="row-odd"><td>-u &lt;parms&gt;</td>
+<tr class="row-even"><td>-u &lt;parms&gt;</td>
 <td>string</td>
 <td>start internal suricatta client daemon and
 pass to it a command line string.
 see suricatta&#8217;s documentation for details.</td>
 </tr>
-<tr class="row-even"><td>-H
+<tr class="row-odd"><td>-H
 &lt;board:rev&gt;</td>
 <td>string</td>
 <td>set board name and Hardware revision</td>
 </tr>
-<tr class="row-odd"><td>-c</td>
+<tr class="row-even"><td>-c</td>
 <td><ul class="first last simple">
 <li></li>
 </ul>
@@ -760,15 +766,15 @@ internal tests. It ensures that files
 referenced in sw-description are present.
 Usage: swupdate -c -i &lt;file&gt;</td>
 </tr>
-<tr class="row-even"><td>-p</td>
+<tr class="row-odd"><td>-p</td>
 <td>string</td>
 <td>Execute post-update command.</td>
 </tr>
-<tr class="row-odd"><td>&nbsp;</td>
+<tr class="row-even"><td>&nbsp;</td>
 <td>&nbsp;</td>
 <td>&nbsp;</td>
 </tr>
-<tr class="row-even"><td>-d &lt;parms&gt;</td>
+<tr class="row-odd"><td>-d &lt;parms&gt;</td>
 <td>string</td>
 <td>Active only if CONFIG_DOWNLOAD is set
 start internal downloader client and pass
@@ -776,19 +782,19 @@ to it a command line string.
 See below the internal command line
 arguments for the downloader</td>
 </tr>
-<tr class="row-odd"><td>-u &lt;url&gt;</td>
+<tr class="row-even"><td>-u &lt;url&gt;</td>
 <td>string</td>
 <td>This is the URL where new software is
 pulled. URL is a link to a valid .swu image</td>
 </tr>
-<tr class="row-even"><td>-r &lt;retries&gt;</td>
+<tr class="row-odd"><td>-r &lt;retries&gt;</td>
 <td>integer</td>
 <td>Number of retries before a download is
 considered broken. With &#8220;-r 0&#8221;, SWUpdate
 will not stop until a valid software is
 loaded.</td>
 </tr>
-<tr class="row-odd"><td>-t &lt;timeout&gt;</td>
+<tr class="row-even"><td>-t &lt;timeout&gt;</td>
 <td>integer</td>
 <td>Timeout for connection lost when
 downloading</td>

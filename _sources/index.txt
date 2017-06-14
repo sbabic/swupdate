@@ -1,5 +1,9 @@
 .. _contents: Table of contents
 
+.. image:: ../../SWUpdate.png
+        :scale: 25 %
+        :align: center
+
 ############################################
 Updating an embedded system
 ############################################
