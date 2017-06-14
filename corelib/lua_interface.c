@@ -257,12 +257,39 @@ static int l_notify (lua_State *L) {
 	return 0;
 }
 
+static int l_trace(lua_State *L) {
+
+	const char *msg   =  luaL_checkstring (L, 1);
+	if (strlen(msg))
+		TRACE("%s", msg);
+	return 0;
+}
+
+static int l_error(lua_State *L) {
+
+	const char *msg   =  luaL_checkstring (L, 1);
+	if (strlen(msg))
+		ERROR("%s", msg);
+	return 0;
+}
+
+static int l_info(lua_State *L) {
+
+	const char *msg   =  luaL_checkstring (L, 1);
+	if (strlen(msg))
+		INFO("%s", msg);
+	return 0;
+}
+
 /**
  * @brief array with the function which are exported to lua
  */
 static const luaL_Reg l_swupdate[] = {
         { "register_handler", l_register_handler },
         { "notify", l_notify },
+        { "error", l_error },
+        { "trace", l_trace },
+        { "info", l_info },
         { NULL, NULL }
 };
 
@@ -292,6 +319,7 @@ static int luaopen_swupdate(lua_State *L) {
 	lua_push_enum(L, "FAILURE", FAILURE);
 	lua_push_enum(L, "DOWNLOAD", DOWNLOAD);
 	lua_push_enum(L, "DONE", DONE);
+	lua_push_enum(L, "SUBPROCESS", SUBPROCESS);
 	lua_settable(L, -3);
 
 	return 1;
