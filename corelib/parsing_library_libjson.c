@@ -49,30 +49,24 @@ json_object *find_json_recursive_node(json_object *root, const char **names)
 	return node;
 }
 
-void get_field_string_json(json_object *e, const char *path, char *dest, size_t n)
+const char *get_field_string_json(json_object *e, const char *path)
 {
 	const char *str;
 	json_object *node;
 
 	if (path) {
 		if (!json_object_object_get_ex(e, path, &node))
-			return;
+			return NULL;
 	} else
 		node = e;
 
 	if (json_object_get_type(node) == json_type_string) {
 		str = json_object_get_string(node);
 
-		if (!n) {
-			n = strlen(str);
-			dest = malloc(strlen(str) + 1);
-			if (!dest)
-				return;
-		}
-
-		strncpy(dest, str, n);
-		check_field_string(str, dest, n);
+		return str;
 	}
+
+	return NULL;
 }
 
 void get_value_json(json_object *e, void *dest)

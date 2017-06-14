@@ -69,15 +69,25 @@ void *get_elem_from_idx(parsertype p, void *node, int idx)
 	return NULL;
 }
 
-void get_field_string(parsertype p, void *e, const char *path, char *dest, size_t n)
+const char *get_field_string(parsertype p, void *e, const char *path)
 {
 	switch (p) {
 	case LIBCFG_PARSER:
-		get_field_string_libconfig(e, path, dest, n);
-		break;
+		return get_field_string_libconfig(e, path);
 	case JSON_PARSER:
-		get_field_string_json(e, path, dest, n);
-		break;
+		return get_field_string_json(e, path);
+	}
+
+	return NULL;
+}
+
+void get_field_string_with_size(parsertype p, void *e, const char *path, char *d, size_t n)
+{
+	const char *s = NULL;
+	s = get_field_string(p, e, path);
+	if (s) {
+		strncpy(d, s, n);
+		check_field_string(s, d, n);
 	}
 }
 

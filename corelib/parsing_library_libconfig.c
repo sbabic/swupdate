@@ -69,7 +69,7 @@ void get_field_cfg(config_setting_t *e, const char *path, void *dest)
 	get_value_libconfig(elem, dest);
 }
 
-void get_field_string_libconfig(config_setting_t *e, const char *path, void *dest, size_t n)
+const char *get_field_string_libconfig(config_setting_t *e, const char *path)
 {
 	config_setting_t *elem;
 	const char *str;
@@ -80,19 +80,14 @@ void get_field_string_libconfig(config_setting_t *e, const char *path, void *des
 		elem = e;
 
 	if (!elem || config_setting_type(elem) != CONFIG_TYPE_STRING)
-		return;
+		return NULL;
 
 	if ( ( ( path) && (config_setting_lookup_string(e, path, &str))  ) ||
 	     ( (!path) && ((str = config_setting_get_string(e)) != NULL) ) ) {
 
-		if (!n) {
-			n = strlen(str);
-			dest = malloc(strlen(str) + 1);
-			if (!dest)
-				return;
-		}
+		return str;
 
-		strncpy(dest, str, n);
-		check_field_string(str, dest, n);
 	}
+
+	return NULL;
 }

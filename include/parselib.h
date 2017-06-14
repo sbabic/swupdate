@@ -27,14 +27,6 @@ typedef enum {
 	JSON_PARSER
 } parsertype;
 
-#define GET_FIELD_STRING(p, e, name, d) \
-	get_field_string(p, e, name, d, sizeof(d))
-
-#define GET_FIELD_STRING_RESET(p, e, name, d) do { \
-	d[0] = '\0'; \
-	GET_FIELD_STRING(p, e, name, d); \
-} while (0)
-
 #ifdef CONFIG_LIBCONFIG
 #include <libconfig.h>
 #define LIBCONFIG_VERSION ((LIBCONFIG_VER_MAJOR << 16) | \
@@ -45,22 +37,21 @@ typedef enum {
 
 void get_value_libconfig(const config_setting_t *e, void *dest);
 void get_field_cfg(config_setting_t *e, const char *path, void *dest);
-void get_field_string_libconfig(config_setting_t *e, const char *path,
-				void *dest, size_t n);
+const char *get_field_string_libconfig(config_setting_t *e, const char *path);
 
 #else
 #define config_setting_get_elem(a,b)	(NULL)
 #define config_setting_length(a)	(0)
 #define config_setting_lookup_string(a, b, str) (0)
 #define find_node_libconfig(cfg, field, swcfg) (NULL)
-#define get_field_string_libconfig(e, path, dest, n)
+#define get_field_string_libconfig(e, path)	(NULL)
 #define get_field_cfg(e, path, dest)
 #endif
 
 #ifdef CONFIG_JSON
 #include <json-c/json.h>
 
-void get_field_string_json(json_object *e, const char *path, char *dest, size_t n);
+const char *get_field_string_json(json_object *e, const char *path);
 void get_value_json(json_object *e, void *dest);
 void get_field_json(json_object *e, const char *path, void *dest);
 json_object *find_json_recursive_node(json_object *root, const char **names);
@@ -76,12 +67,23 @@ json_object *find_json_recursive_node(json_object *root, const char **names);
 
 typedef int (*settings_callback)(void *elem, void *data);
 
+const char *get_field_string(parsertype p, void *e, const char *path);
+void get_field_string_with_size(parsertype p, void *e, const char *path,
+				char *d, size_t n);
 int get_array_length(parsertype p, void *root);
 void *get_elem_from_idx(parsertype p, void *node, int idx);
-void get_field_string(parsertype p, void *e, const char *path, char *dest, size_t n);
 void get_field(parsertype p, void *e, const char *path, void *dest);
 int exist_field_string(parsertype p, void *e, const char *path);
 void get_hash_value(parsertype p, void *elem, unsigned char *hash);
 void check_field_string(const char *src, char *dst, const size_t max_len);
+
+#define GET_FIELD_STRING(p, e, name, d) \
+	get_field_string_with_size(p, e, name, d, sizeof(d))
+
+#define GET_FIELD_STRING_RESET(p, e, name, d) do { \
+	d[0] = '\0'; \
+	GET_FIELD_STRING(p, e, name, d); \
+} while (0)
+
 
 #endif
