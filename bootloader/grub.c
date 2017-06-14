@@ -18,7 +18,7 @@
  */
 
 #include "bootloader.h"
-#include "grubenv.h"
+#include "grub.h"
 
 
 /* read environment from storage into RAM */

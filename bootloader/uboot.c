@@ -29,7 +29,7 @@
 #include <sys/file.h>
 #include <dirent.h>
 #include "generated/autoconf.h"
-#include "fw_env.h"
+#include "uboot.h"
 #include "util.h"
 #include "bootloader.h"
 

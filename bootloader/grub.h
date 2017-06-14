@@ -25,7 +25,6 @@
 #include <string.h>
 #include <errno.h>
 #include "util.h"
-#include "grubenv.h"
 #include "swupdate_dict.h"
 
 
