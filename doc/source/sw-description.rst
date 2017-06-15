@@ -698,6 +698,96 @@ compared with the data in the versions file. install-if-different is a
 boolean that enables the check for this image. It is then possible to
 check the version just for a subset of the images to be installed.
 
+
+Embedded Script
+---------------
+
+It is possible to embed a script inside sw-description. This is useful in a lot
+of conditions where some parameters are known just by the target at runtime. The
+script is global to all sections, but it can contains several functions that can be specific
+for each entry in the sw-description file.
+
+These attributes are used for an embedded-script:
+
+::
+
+		embedded-script ="<LUA code">
+
+It must be taken into account that the parser has already run and usage of double quotes can
+infere with the parser. For this reason, each double quote in the script must be escaped.
+
+That means a simple lua code as :
+
+::
+
+        print ("Test")
+
+it must be changed with:
+
+::
+
+        print (\"Test\")
+
+If not, the parser thinks to have the closure of the script and this generates an error. 
+See the examples directory for examples how to use it.
+Any entry in files or images can trigger one function in the script. The "hook" attribute
+tells the parser to load the script and to search for the function pointed by the hook
+attribute. For example:
+
+::
+
+		files: (
+			{
+				filename = "examples.tar";
+				type = "archive";
+				path = "/tmp/test";
+				hook = "set_version";
+			}
+		);
+
+After the entry is parsed, the parser runs the LUA function pointed by hook. If LUA is not
+activated, the parser raises an error because a sw-description with an embedded script must
+be parsed, but the interpreter is not available.
+
+Each LUA function receives as parameter a table with the setup for the current entry. A hook
+in LUA is in the format:
+
+::
+
+        function lua_hook(image)
+
+image is a table where the keys are the list of available attributes. If an attribute contains
+a "-", it is replaced with "_", because "-" cannot be used in LUA. This means, for example, that:
+
+::
+
+        install-if-different ==> install_if_different
+        install-directly ==> install_directly
+
+Attributes can be changed into the LUA script and values are overtaken when the LUA is
+returning. The LUA function must returns 2 values:
+
+        - a boolean, to indicate if the parsing is correct
+        - the image table
+
+Example:
+
+::
+
+        function set_version(image)
+	        print (\"RECOVERY_STATUS.RUN: \".. swupdate.RECOVERY_STATUS.RUN)
+                for k,l in pairs(image) do
+                        swupdate.trace(\"image[\" .. tostring(k) .. \"] = \" .. tostring(l))
+                end
+	        image.version = \"1.0\"
+        	image.install_if_different = true
+        	return true, image
+        end
+
+
+The example sets a version for the installed image. Generally, this is detected at runtime
+reading from the target.
+
 Attribute reference
 -------------------
 
@@ -713,7 +803,10 @@ There are 4 main sections inside sw-description:
 - bootenv: entries are pair with bootloader environment variable name and its
   value.
 
-.. table::
+
+.. tabularcolumns:: |p{1.5cm}|p{1.5cm}|p{1.5cm}|L|
+.. table:: Attributes in sw-description
+
 
    +-------------+----------+------------+---------------------------------------+
    |  Name       |  Type    | Applies to |  Description                          |
@@ -800,6 +893,12 @@ There are 4 main sections inside sw-description:
    | sha256      | string   | images     | sha256 hash of image, file or script. |
    |             |          | files      | Used for verification of signed       |
    |             |          | scripts    | images.                               |
+   +-------------+----------+------------+---------------------------------------+
+   | embedded-   | string   |            | LUA code that is embedded in the      |
+   | script      |          |            | sw-description file.                  |
+   +-------------+----------+------------+---------------------------------------+
+   | hook        | string   | images     | The name of the function (LUA) to be  |
+   |             |          | files      | called when the entry is parsed.      |
    +-------------+----------+------------+---------------------------------------+
    | mtdname     | string   | images     | name of the MTD to update. Used only  |
    |             |          |            | by the flash handler to identify the  |
