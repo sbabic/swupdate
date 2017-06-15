@@ -14,4 +14,4 @@ before_install:
     - sudo apt-get install -y libjson0-dev
     - sudo apt-get install -y zlib1g-dev
 
-script: make test_defconfig && make
+script: for i in configs/*;do make `basename $i` && make;done
