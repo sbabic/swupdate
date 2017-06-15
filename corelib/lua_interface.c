@@ -20,6 +20,8 @@
  */
 
 #include <stdlib.h>
+#include <stdbool.h>
+#include <errno.h>
 #include "lua.h"
 #include "lauxlib.h"
 #include "lualib.h"
@@ -44,6 +46,10 @@
 	lua_pushnumber(L, (double)img->field);	\
 	lua_settable(L, -3);			\
 } while (0)
+
+#ifdef CONFIG_HANDLER_IN_LUA
+static int l_register_handler( lua_State *L );
+#endif
 
 void LUAstackDump (lua_State *L) {
 	int i;
@@ -121,7 +127,90 @@ int run_lua_script(char *script, char *function, char *parms)
  * @param L [inout] the lua stack
  * @param software [in] the software struct
  */
-void image2table(lua_State* L, struct img_type *img) {
+
+static void lua_string_to_img(struct img_type *img, const char *key,
+	       const char *value)
+{
+	const char offset[] = "offset";
+	char seek_str[MAX_SEEK_STRING_SIZE];
+	char *endp = NULL;
+
+	if (!strcmp(key, "name")) {
+		strncpy(img->id.name, value,
+			sizeof(img->id.name));
+	}
+	if (!strcmp(key, "version")) {
+		strncpy(img->id.version, value,
+			sizeof(img->id.version));
+	}
+	if (!strcmp(key, "filename")) {
+		strncpy(img->fname, value,
+			sizeof(img->fname));
+	}
+	if (!strcmp(key, "volume"))
+		strncpy(img->volname, value,
+			sizeof(img->volname));
+	if (!strcmp(key, "type"))
+		strncpy(img->type, value,
+			sizeof(img->type));
+	if (!strcmp(key, "device"))
+		strncpy(img->device, value,
+			sizeof(img->device));
+	if (!strcmp(key, "mtdname"))
+		strncpy(img->path, value,
+			sizeof(img->path));
+	if (!strcmp(key, "path"))
+		strncpy(img->path, value,
+			sizeof(img->path));
+	if (!strcmp(key, "data"))
+		strncpy(img->type_data, value,
+			sizeof(img->type_data));
+	if (!strcmp(key, "filesystem"))
+		strncpy(img->filesystem, value,
+			sizeof(img->filesystem));
+	if (!strcmp(key, "sha256"))
+		ascii_to_hash(img->sha256, value);
+
+	if (!strncmp(key, offset, sizeof(offset))) {
+		strncpy(seek_str, value,
+			sizeof(seek_str));
+		/* convert the offset handling multiplicative suffixes */
+		if (seek_str != NULL && strnlen(seek_str, MAX_SEEK_STRING_SIZE) != 0) {
+			errno = 0;
+			img->seek = ustrtoull(seek_str, &endp, 0);
+			if (seek_str == endp || (img->seek == ULLONG_MAX && \
+					errno == ERANGE)) {
+				ERROR("offset argument: ustrtoull failed");
+				return;
+			}
+		} else
+			img->seek = 0;
+	}
+}
+
+
+static void lua_bool_to_img(struct img_type *img, const char *key,
+	       bool val)
+{
+	if (!strcmp(key, "compressed"))
+		img->compressed = (bool)val;
+	if (!strcmp(key, "installed-directly"))
+		img->install_directly = (bool)val;
+	if (!strcmp(key, "install_if_different"))
+		img->id.install_if_different = (bool)val;
+	if (!strcmp(key, "encrypted"))
+		img->is_encrypted = (bool)val;
+}
+
+static void lua_number_to_img(struct img_type *img, const char *key,
+	       double val)
+{
+	if (!strcmp(key, "offset"))
+		img->seek = (unsigned long long)val;
+
+}
+
+static void image2table(lua_State* L, struct img_type *img) {
 	if (L && img) {
 		lua_newtable (L);
 		LUA_PUSH_IMG_STRING(img, "name", id.name);
@@ -133,10 +222,11 @@ void image2table(lua_State* L, struct img_type *img) {
 		LUA_PUSH_IMG_STRING(img, "path", path);
 		LUA_PUSH_IMG_STRING(img, "mtdname", path);
 		LUA_PUSH_IMG_STRING(img, "data", type_data);
+		LUA_PUSH_IMG_STRING(img, "filesystem", filesystem);
 
 		LUA_PUSH_IMG_BOOL(img, "compressed", compressed);
-		LUA_PUSH_IMG_BOOL(img, "installed-directly", compressed);
-		LUA_PUSH_IMG_BOOL(img, "install-if-different", compressed);
+		LUA_PUSH_IMG_BOOL(img, "installed_directly", install_directly);
+		LUA_PUSH_IMG_BOOL(img, "install_if_different", id.install_if_different);
 		LUA_PUSH_IMG_BOOL(img, "encrypted", is_encrypted);
 		LUA_PUSH_IMG_BOOL(img, "partition", is_partitioner);
 		LUA_PUSH_IMG_BOOL(img, "script", is_script);
@@ -148,8 +238,118 @@ void image2table(lua_State* L, struct img_type *img) {
 	}
 }
 
+static void table2image(lua_State* L, struct img_type *img) {
+	if (L && img && (lua_type(L, -1) == LUA_TTABLE)) {
+		lua_pushnil(L);
+		while (lua_next(L, -2) != 0) {
+			int t = lua_type(L, -1);
+			switch (t) {
+				case LUA_TSTRING: /* strings */
+					lua_string_to_img(img, lua_tostring(L, -2), lua_tostring(L, -1));
+					break;
+				case LUA_TBOOLEAN: /* booleans */
+					lua_bool_to_img(img, lua_tostring(L, -2), lua_toboolean(L, -1));
+					break;
+				case LUA_TNUMBER: /* numbers */
+					lua_number_to_img(img, lua_tostring(L, -2), lua_tonumber(L, -1));
+					break;
+			}
+			lua_pop(L, 1);
+		}
+	}
+}
+
+/**
+ * @brief function to send notifications to the recovery from lua
+ *
+ * This function is exported to the lua stack and can be called
+ * from any lua script in the same context (Stack)
+ *
+ * @param [in] the lua Stack
+ * @return This function returns 0 if successfull and -1 if unsuccessfull.
+ */
+static int l_notify (lua_State *L) {
+	lua_Number status =  luaL_checknumber (L, 1);
+	lua_Number error  =  luaL_checknumber (L, 2);
+	const char *msg   =  luaL_checkstring (L, 3);
+
+	if (strlen(msg))
+		notify((RECOVERY_STATUS)status, (int)error, msg);
+
+	return 0;
+}
+
+static int l_trace(lua_State *L) {
+
+	const char *msg   =  luaL_checkstring (L, 1);
+	if (strlen(msg))
+		TRACE("%s", msg);
+	return 0;
+}
+
+static int l_error(lua_State *L) {
+
+	const char *msg   =  luaL_checkstring (L, 1);
+	if (strlen(msg))
+		ERROR("%s", msg);
+	return 0;
+}
+
+static int l_info(lua_State *L) {
+
+	const char *msg   =  luaL_checkstring (L, 1);
+	if (strlen(msg))
+		INFO("%s", msg);
+	return 0;
+}
+
+/**
+ * @brief array with the function which are exported to lua
+ */
+static const luaL_Reg l_swupdate[] = {
 #ifdef CONFIG_HANDLER_IN_LUA
-#include "lua_util.h"
+        { "register_handler", l_register_handler },
+#endif
+        { "notify", l_notify },
+        { "error", l_error },
+        { "trace", l_trace },
+        { "info", l_info },
+        { NULL, NULL }
+};
+
+static void lua_push_enum(lua_State *L, const char *name, int value)
+{
+	lua_pushstring(L, name);
+	lua_pushnumber(L, (lua_Number) value );
+	lua_settable(L, -3);
+}
+
+/**
+ * @brief function to register the swupdate package in the lua Stack
+ *
+ * @param [in] the lua Stack
+ * @return This function returns 0 if successfull and -1 if unsuccessfull.
+ */
+static int luaopen_swupdate(lua_State *L) {
+	luaL_newlib (L, l_swupdate);
+
+	/* export the recovery status enum */
+	lua_pushstring(L, "RECOVERY_STATUS");
+	lua_newtable (L);
+	lua_push_enum(L, "IDLE", IDLE);
+	lua_push_enum(L, "START", START);
+	lua_push_enum(L, "RUN", RUN);
+	lua_push_enum(L, "SUCCESS", SUCCESS);
+	lua_push_enum(L, "FAILURE", FAILURE);
+	lua_push_enum(L, "DOWNLOAD", DOWNLOAD);
+	lua_push_enum(L, "DONE", DONE);
+	lua_push_enum(L, "SUBPROCESS", SUBPROCESS);
+	lua_settable(L, -3);
+
+	return 1;
+}
+
+#ifdef CONFIG_HANDLER_IN_LUA
 static lua_State *gL = NULL;
 
 /**
@@ -237,94 +437,6 @@ static int l_register_handler( lua_State *L ) {
 	}
 }
 
-/**
- * @brief function to send notifications to the recovery from lua
- *
- * This function is exported to the lua stack and can be called
- * from any lua script in the same context (Stack)
- *
- * @param [in] the lua Stack
- * @return This function returns 0 if successfull and -1 if unsuccessfull.
- */
-static int l_notify (lua_State *L) {
-	lua_Number status =  luaL_checknumber (L, 1);
-	lua_Number error  =  luaL_checknumber (L, 2);
-	const char *msg   =  luaL_checkstring (L, 3);
-
-	if (strlen(msg))
-		notify((RECOVERY_STATUS)status, (int)error, msg);
-
-	return 0;
-}
-
-static int l_trace(lua_State *L) {
-
-	const char *msg   =  luaL_checkstring (L, 1);
-	if (strlen(msg))
-		TRACE("%s", msg);
-	return 0;
-}
-
-static int l_error(lua_State *L) {
-
-	const char *msg   =  luaL_checkstring (L, 1);
-	if (strlen(msg))
-		ERROR("%s", msg);
-	return 0;
-}
-
-static int l_info(lua_State *L) {
-
-	const char *msg   =  luaL_checkstring (L, 1);
-	if (strlen(msg))
-		INFO("%s", msg);
-	return 0;
-}
-
-/**
- * @brief array with the function which are exported to lua
- */
-static const luaL_Reg l_swupdate[] = {
-        { "register_handler", l_register_handler },
-        { "notify", l_notify },
-        { "error", l_error },
-        { "trace", l_trace },
-        { "info", l_info },
-        { NULL, NULL }
-};
-
-static void lua_push_enum(lua_State *L, const char *name, int value)
-{
-	lua_pushstring(L, name);
-	lua_pushnumber(L, (lua_Number) value );
-	lua_settable(L, -3);
-}
-
-/**
- * @brief function to register the swupdate package in the lua Stack
- *
- * @param [in] the lua Stack
- * @return This function returns 0 if successfull and -1 if unsuccessfull.
- */
-static int luaopen_swupdate(lua_State *L) {
-	luaL_newlib (L, l_swupdate);
-
-	/* export the recovery status enum */
-	lua_pushstring(L, "RECOVERY_STATUS");
-	lua_newtable (L);
-	lua_push_enum(L, "IDLE", IDLE);
-	lua_push_enum(L, "START", START);
-	lua_push_enum(L, "RUN", RUN);
-	lua_push_enum(L, "SUCCESS", SUCCESS);
-	lua_push_enum(L, "FAILURE", FAILURE);
-	lua_push_enum(L, "DOWNLOAD", DOWNLOAD);
-	lua_push_enum(L, "DONE", DONE);
-	lua_push_enum(L, "SUBPROCESS", SUBPROCESS);
-	lua_settable(L, -3);
-
-	return 1;
-}
-
 int lua_handlers_init(void)
 {
 	int ret = -1;
@@ -370,4 +482,40 @@ lua_State *lua_parser_init(const char *buf)
 	}
 
 	return L;
+}
+
+int lua_parser_fn(lua_State *L, const char *fcn, struct img_type *img)
+{
+	int ret = -1;
+
+	lua_getglobal(L, fcn);
+	if(!lua_isfunction(L, lua_gettop(L))) {
+		lua_close(L);
+		TRACE("Script : no %s in script, exiting", fcn);
+		return -1;
+	}
+	TRACE("Prepared to run %s", fcn);
+
+	/*
+	 * passing arguments
+	 */
+	image2table(L, img);
+
+	if (lua_pcall(L, 1, 2, 0)) {
+		LUAstackDump(L);
+		ERROR("ERROR Calling LUA %s", fcn);
+		return -1;
+	}
+
+	if (lua_type(L, 2) == LUA_TBOOLEAN)
+		ret = lua_toboolean(L, 2) ? 0 : 1;
+
+	LUAstackDump(L);
+
+	table2image(L, img);
+
+	LUAstackDump(L);
+	TRACE("Script returns %d", ret);
+
+	return ret;
 }
