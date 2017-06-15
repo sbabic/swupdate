@@ -352,3 +352,22 @@ int lua_handlers_init(void)
 #else
 int lua_handlers_init(void) {return 0;}
 #endif
+
+lua_State *lua_parser_init(const char *buf)
+{
+	lua_State *L = luaL_newstate(); /* opens Lua */
+
+	if (!L)
+		return NULL;
+	luaL_openlibs(L); /* opens the standard libraries */
+	luaL_openlibs(L);
+	luaL_requiref(L, "swupdate", luaopen_swupdate, 1 );
+	if (luaL_loadstring(L, buf) || lua_pcall(L, 0, 0, 0)) {
+		LUAstackDump(L);
+		ERROR("ERROR preparing LUA embedded script in parser");
+		lua_close(L);
+		return NULL;
+	}
+
+	return L;
+}

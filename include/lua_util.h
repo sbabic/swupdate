@@ -32,6 +32,12 @@
 void LUAstackDump (lua_State *L);
 int run_lua_script(char *script, char *function, char *parms);
 void image2table(lua_State* L, struct img_type *img);
+lua_State *lua_parser_init(const char *buf);
+#define lua_parser_exit(L) lua_close((lua_State *)L)
+#else
+#define lua_State void
+#define lua_parser_exit
+static inline lua_State *lua_parser_init(const char *buf) { return NULL;}
 #endif
 
 int lua_handlers_init(void);
