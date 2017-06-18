@@ -67,7 +67,6 @@ config CFIHAMMING1
 	bool "NAND in raw mode with 1bit Hamming OOB (TI)"
 	depends on MTD
 	default n
-	select CFI
 	help
 	  On certain TI's omaps (for example, DM3730 or AM3517),
 	  the first bootloader (MLO or SPL) must be saved with one bit
