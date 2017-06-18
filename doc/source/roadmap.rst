@@ -19,32 +19,18 @@ SWUpdate suitable for a large number of products.
 This will help to build a community around the project
 itself.
 
-Embedded scripts in sw-description
-==================================
+SWUpdate als Updater Gateway
+============================
 
-If an artifact is select to be installed immediately ("installed-directly"
-flag is set), no pre-install scripts are executed. This is because a script
-can be packed in the .swu file later after the artifact to be installed.
-A use case is when partitions must be prepared before installing an
-image. Another use case is to allow to change the sw-description on-the-fly,
-depending on run time conditions that only the target can know.
+A lot of embedded devices have small processors and maybe not a full
+blown OS. Ensuring security for all of them can be a risk, and it is
+easier to make sure a single device. If the device running SWUpdate is
+acting as gateway, it can translate protocols from backend and send
+package update to the connected small devices.
 
-If an embedded LUA script is inside sw-description, it is possible to evaluate
-it before any installation.
-
-Reuse process monitor mechanism
-===============================
-
-Process monitoring and supoervising works fine for the subprocesses. There
-could be some use cases where a user wants to add own processes to it.
-This is more important on system where systemd is not the init system
-(systemd can do this) or there is no init system at all (rescue systems).
-
-Support for other bootloader as U-Boot
-======================================
-
-A new generic interface for the bootloaders was introduced. U-Boot and GRUB are
-supported. It is open to other bootloader.
+One example could be if SWUpdate runs as MQTT-broker and takes updates
+from Hawkbit. SWUpdate should be able to run multiple instances of
+suricatta to do this.
 
 Binary delta updates
 ====================
@@ -115,10 +101,9 @@ a unauthenticated handler cannot run.
 Support for evaluation boards
 =============================
 
-There is already an example in meta-swupdate regarding
-the beaglebone black. Some more examples and use cases
-can better explain the different usage of the project. A new meta-layer
-(meta-swupdate-boards) can be written to contain such as examples.
+New is meta-swupdate-boards - examples regarding evaluation boards are
+put there. Currently, there are examples for Beaglebone Black and
+Raspberri PI 3.
 
 Backend support (suricatta mode)
 ================================
