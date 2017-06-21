@@ -58,7 +58,7 @@ json_object *find_json_recursive_node(json_object *root, const char **names);
 
 #else
 #define find_node_json(a, b, c)		(NULL)
-#define get_field_string_json(e, path, dest, n)
+#define get_field_string_json(e, path)  (NULL)
 #define get_field_json(e, path, dest)
 #define json_object_object_get_ex(a,b,c) (0)
 #define json_object_array_get_idx(a, b)	(0)
