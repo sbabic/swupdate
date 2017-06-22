@@ -19,6 +19,25 @@ config BOOTLOADER_NONE
 	help
 	  No interface to the bootloader
 
+config BOOTLOADER_FILE
+	bool "File"
+	depends on HAVE_LIBCONFIG
+	help
+	  A file-backed boot settings interface that may be used
+	  for testing purposes when your actual boot-loader is not
+	  supported by swupdate
+
+config BOOTLOADER_FILE_PATH
+	string "Location of the boot settings file"
+        depends on BOOTLOADER_FILE
+	default "/etc/swu-boot.conf"
+	help
+	  This is the file where boot settings will be read from
+	  or written to (it should be placed on a separate partition
+	  so it does not get lost when software updates are applied;
+	  as such the default value of /etc/swu-boot.conf should be
+	  changed)
+
 config BOOTLOADER_GRUB
 	bool "GRUB Bootloader"
 	help
