@@ -58,5 +58,5 @@ When creating patches, please use something like:
 
     git format-patch -s <revision range>
 
-Please use 'git send- email' to send the generated patches to the ML
+Please use 'git send-email' to send the generated patches to the ML
 to bypass changes from your mailer.
