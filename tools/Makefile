@@ -8,5 +8,8 @@
 #
 # Licensed under GPLv2, see file LICENSE in this source tree.
 
-obj-y += \
-	 progress.o
+lib-y += \
+	 client.o \
+	 progress.o \
+	 hawkbitcfg.o \
+	 sendtohawkbit.o

@@ -341,20 +341,23 @@ include $(srctree)/Makefile.flags
 # command line.
 # This allow a user to issue only 'make' to build a kernel including modules
 # Defaults to vmlinux, but the arch makefile usually adds further targets
-all: swupdate progress
 
 objs-y		:= core handlers
 libs-y		:= archival corelib ipc mongoose parser suricatta bootloader
-client-y	:= progress_client
+tools-y		:= tools
 
 swupdate-dirs	:= $(objs-y) $(libs-y)
 swupdate-objs	:= $(patsubst %,%/built-in.o, $(objs-y))
 swupdate-libs	:= $(patsubst %,%/lib.a, $(libs-y))
 swupdate-all	:= $(swupdate-objs) $(swupdate-libs)
 
-progress-dirs	:= $(client-y)
-progress-objs	:= $(patsubst %,%/built-in.o, $(client-y))
-progress-all	:= $(progress-objs)
+tools-dirs	:= $(tools-y)
+tools-objs	:= $(patsubst %,%/built-in.o, $(tools-y))
+tools-bins	:= $(patsubst $(tools-y)/%.c,$(tools-y)/%,$(wildcard $(tools-y)/*.c))
+tools-bins-unstr:= $(patsubst %,%_unstripped,$(tools-bins))
+tools-all	:= $(tools-objs)
+
+all: swupdate ${tools-bins}
 
 # Do modpost on a prelinked vmlinux. The finally linked vmlinux has
 # relevant sections renamed as per the linker script.
@@ -371,36 +374,32 @@ quiet_cmd_swupdate = LD      $@
 swupdate_unstripped: $(swupdate-all) FORCE
 	$(call if_changed,swupdate)
 
-quiet_cmd_progress = LD      $@
-      cmd_progress = $(srctree)/scripts/trylink \
+quiet_cmd_addon = LD      $@
+      cmd_addon = $(srctree)/scripts/trylink \
       "$@" \
       "$(CC)" \
-      "$(KBUILD_CFLAGS) $(CFLAGS_progress)" \
-      "$(LDFLAGS) $(EXTRA_LDFLAGS) $(LDFLAGS_progress)" \
-      "$(progress-objs)"
+      "$(KBUILD_CFLAGS) $(CFLAGS_swupdate)" \
+      "$(LDFLAGS) $(EXTRA_LDFLAGS) $(LDFLAGS_swupdate)" \
+      "$(2)" \
+      "$(swupdate-libs)" \
+      "$(LDLIBS)"
 
-progress_unstripped: $(progress-all) FORCE
-	$(call if_changed,progress)
+ifeq ($(SKIP_STRIP),y)
+quiet_cmd_strip = NOSTRIP $@
+cmd_strip = cp $< $@
+else
+quiet_cmd_strip = STRIP   $@
+cmd_strip = $(STRIP) -s --remove-section=.note --remove-section=.comment \
+               $@_unstripped -o $@; chmod a+x $@
+endif
 
 swupdate: swupdate_unstripped
-ifeq ($(SKIP_STRIP),y)
-	$(Q)cp $< $@
-else
-	$(Q)$(STRIP) -s --remove-section=.note --remove-section=.comment \
-		swupdate_unstripped -o $@
-# strip is confused by PIE executable and does not set exec bits
-	$(Q)chmod a+x $@
-endif
+	$(call cmd,strip)
 
-progress: progress_unstripped
-ifeq ($(SKIP_STRIP),y)
-	$(Q)cp $< $@
-else
-	$(Q)$(STRIP) -s --remove-section=.note --remove-section=.comment \
-		progress_unstripped -o $@
-# strip is confused by PIE executable and does not set exec bits
-	$(Q)chmod a+x $@
-endif
+${tools-bins}: ${tools-objs} ${swupdate-libs} FORCE
+	$(call if_changed,addon,$@.o)
+	@mv $@ $@_unstripped
+	$(call cmd,strip)
 
 PHONY += run-tests
 tests: \
@@ -418,7 +417,7 @@ suricatta-tests: FORCE
 # The actual objects are generated when descending,
 # make sure no implicit rule kicks in
 $(sort $(swupdate-all)): $(swupdate-dirs) ;
-$(sort $(progress-all)): $(progress-dirs) ;
+$(sort $(tools-all)): $(tools-dirs) ;
 
 # Handle descending into subdirectories listed in $(vmlinux-dirs)
 # Preset locale variables to speed up the build process. Limit locale
@@ -426,10 +425,10 @@ $(sort $(progress-all)): $(progress-dirs) ;
 # make menuconfig etc.
 # Error messages still appears in the original language
 
-PHONY += $(swupdate-dirs) $(progress-dirs)
+PHONY += $(swupdate-dirs) $(tools-dirs)
 $(swupdate-dirs): scripts
 	$(Q)$(MAKE) $(build)=$@
-$(progress-dirs): scripts
+$(tools-dirs): scripts
 	$(Q)$(MAKE) $(build)=$@
 
 ###
@@ -441,7 +440,10 @@ $(progress-dirs): scripts
 
 # Directories & files removed with 'make clean'
 CLEAN_DIRS  +=
-CLEAN_FILES += swupdate swupdate_unstripped* progress progress_unstripped*
+CLEAN_FILES += swupdate swupdate_unstripped* ${tools-bins} \
+	$(patsubst %,%_unstripped,$(tools-bins)) \
+	$(patsubst %,%.out,$(tools-bins)) \
+	$(patsubst %,%.map,$(tools-bins)) \
 
 # Directories & files removed with 'make mrproper'
 MRPROPER_DIRS  += include/config include/generated
@@ -451,7 +453,7 @@ MRPROPER_FILES += .config .config.old tags TAGS cscope* GPATH GTAGS GRTAGS GSYMS
 #
 clean: rm-dirs  := $(CLEAN_DIRS)
 clean: rm-files := $(CLEAN_FILES)
-clean-dirs      := $(addprefix _clean_, $(swupdate-dirs) $(progress-dirs))
+clean-dirs      := $(addprefix _clean_, $(swupdate-dirs) $(tools-dirs))
 
 PHONY += $(clean-dirs) clean archclean
 $(clean-dirs):
