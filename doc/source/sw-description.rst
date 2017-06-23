@@ -704,25 +704,25 @@ Embedded Script
 
 It is possible to embed a script inside sw-description. This is useful in a lot
 of conditions where some parameters are known just by the target at runtime. The
-script is global to all sections, but it can contains several functions that can be specific
+script is global to all sections, but it can contain several functions that can be specific
 for each entry in the sw-description file.
 
 These attributes are used for an embedded-script:
 
 ::
 
-		embedded-script ="<LUA code">
+		embedded-script = "<LUA code">
 
 It must be taken into account that the parser has already run and usage of double quotes can
-infere with the parser. For this reason, each double quote in the script must be escaped.
+interfere with the parser. For this reason, each double quote in the script must be escaped.
 
-That means a simple lua code as :
+That means a simple lua code as:
 
 ::
 
         print ("Test")
 
-it must be changed with:
+must be changed to:
 
 ::
 
@@ -731,7 +731,7 @@ it must be changed with:
 If not, the parser thinks to have the closure of the script and this generates an error. 
 See the examples directory for examples how to use it.
 Any entry in files or images can trigger one function in the script. The "hook" attribute
-tells the parser to load the script and to search for the function pointed by the hook
+tells the parser to load the script and to search for the function pointed to by the hook
 attribute. For example:
 
 ::
@@ -745,7 +745,7 @@ attribute. For example:
 			}
 		);
 
-After the entry is parsed, the parser runs the LUA function pointed by hook. If LUA is not
+After the entry is parsed, the parser runs the LUA function pointed to by hook. If LUA is not
 activated, the parser raises an error because a sw-description with an embedded script must
 be parsed, but the interpreter is not available.
 
@@ -762,12 +762,12 @@ a "-", it is replaced with "_", because "-" cannot be used in LUA. This means, f
 ::
 
         install-if-different ==> install_if_different
-        install-directly ==> install_directly
+        install-directly     ==> install_directly
 
-Attributes can be changed into the LUA script and values are overtaken when the LUA is
-returning. The LUA function must returns 2 values:
+Attributes can be changed in the LUA script and values are taken over on return.
+The LUA function must return 2 values:
 
-        - a boolean, to indicate if the parsing is correct
+        - a boolean, to indicate whether the parsing was correct
         - the image table
 
 Example:
