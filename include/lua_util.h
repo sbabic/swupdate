@@ -41,7 +41,7 @@ int lua_handlers_init(void);
 #define lua_State void
 #define lua_parser_exit(L)
 static inline lua_State *lua_parser_init(const char __attribute__ ((__unused__)) *buf) { return NULL;}
-inline int lua_parser_fn(lua_State __attribute__ ((__unused__)) *L,
+static inline int lua_parser_fn(lua_State __attribute__ ((__unused__)) *L,
 			 const char __attribute__ ((__unused__)) *fcn,
 			 struct img_type __attribute__ ((__unused__)) *img) { return -1; }
 #define lua_handlers_init(void)  (0) 
