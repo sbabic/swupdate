@@ -19,14 +19,14 @@ SWUpdate suitable for a large number of products.
 This will help to build a community around the project
 itself.
 
-SWUpdate als Updater Gateway
-============================
+SWUpdate as Updater Gateway
+===========================
 
 A lot of embedded devices have small processors and maybe not a full
 blown OS. Ensuring security for all of them can be a risk, and it is
-easier to make sure a single device. If the device running SWUpdate is
+easier to make sure on a single device. If the device running SWUpdate is
 acting as gateway, it can translate protocols from backend and send
-package update to the connected small devices.
+package updates to the connected small devices.
 
 One example could be if SWUpdate runs as MQTT-broker and takes updates
 from Hawkbit. SWUpdate should be able to run multiple instances of
