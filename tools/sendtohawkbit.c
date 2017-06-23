@@ -34,11 +34,10 @@
 #include <sys/socket.h>
 #include "network_ipc.h"
 
-void usage(char *program) {
+static void usage(char *program) {
 	printf("%s <action id> <status> <finished> <execution> <detail 1> <detail 2> ..\n", program);
 }
 
-char buf[256];
 int fd;
 int verbose = 1;
 
@@ -46,10 +45,7 @@ int verbose = 1;
  * Simple example, it does nothing but calling the library
  */
 int main(int argc, char *argv[]) {
-	int c;
-	const char *fn;
 	int rc, written, i;
-	char *progname;
 	ipc_message msg;
 	size_t size;
 	char *buf;
