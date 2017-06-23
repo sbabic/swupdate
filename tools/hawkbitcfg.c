@@ -34,22 +34,15 @@
 #include <sys/socket.h>
 #include "network_ipc.h"
 
-void usage(char *program) {
+static void usage(char *program) {
 	printf("%s <polling interval 0=from server> ..\n", program);
 }
-
-char buf[256];
-int fd;
-int verbose = 1;
 
 /*
  * Simple example, it does nothing but calling the library
  */
 int main(int argc, char *argv[]) {
-	int c;
-	const char *fn;
-	int rc, written, i;
-	char *progname;
+	int rc;
 	ipc_message msg;
 	size_t size;
 	char *buf;
@@ -74,7 +67,7 @@ int main(int argc, char *argv[]) {
 	 * case of failure
 	 */
 
-	written = snprintf(buf, size, "{ \"polling\" : \"%lu\"}", strtoul(argv[1], NULL, 10));
+	snprintf(buf, size, "{ \"polling\" : \"%lu\"}", strtoul(argv[1], NULL, 10));
 
 	fprintf(stdout, "Sending: '%s'", msg.data.instmsg.buf);
 
