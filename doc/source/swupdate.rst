@@ -75,8 +75,8 @@ General Overview
 .. _libconfig:	http://www.hyperrealm.com/libconfig/
 
 - use custom's choice for the description of the image. It is
-  possible to write an own parser using the LUA language.
-  An example using a XML description in LUA is provided
+  possible to write an own parser using the Lua language.
+  An example using a XML description in Lua is provided
   in the examples directory.
 
 - Support for setting / erasing U-Boot variables
@@ -90,7 +90,7 @@ General Overview
 - Support for postinstall scripts. They run after updating the images.
 
 - Network installer using an embedded Web-server (Mongoose Server
-  was chosen, in the version under LUA license). A different
+  was chosen, in the version under Lua license). A different
   Web-server can be used.
 
 - Multiple interfaces for getting software
@@ -137,7 +137,7 @@ information about each single image.
 
 The format of sw-description can be customized: SWUpdate can be
 configured to use its internal parser (based on libconfig), or calling
-an external parser in LUA.
+an external parser in Lua.
 
 .. image:: images/image_format.png
 
@@ -206,7 +206,7 @@ There are only a few libraries that are required to compile SWUpdate.
   linked by SWUpdate to reuse the same functions for upgrading
   MTD and UBI volumes.
 - openssl: required with the Webserver
-- LUA: liblua and the development headers.
+- Lua: liblua and the development headers.
 - libz, libcrypto are always linked.
 - libconfig: it is used by the default parser.
 - libarchive (optional) for archive handler
@@ -222,7 +222,7 @@ Building with Yocto
 -------------------
 
 A meta-SWUpdate_ layer is provided. It contains the required changes
-for mtd-utils and for generating LUA. Using meta-SWUpdate is a
+for mtd-utils and for generating Lua. Using meta-SWUpdate is a
 straightforward process.
 
 Firstly, clone meta-SWUpdate.
@@ -385,7 +385,7 @@ The main important parameter for the web-server is "document_root".
 	         SWUpdate -w "-document_root ./www"
 
 The embedded web-server is taken from the Mongoose project (last release
-with LUA license). Additional parameters can be found in mongoose
+with Lua license). Additional parameters can be found in mongoose
 documentation.
 
 The whole list of options will be retrieved with:

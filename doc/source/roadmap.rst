@@ -85,9 +85,9 @@ The handler can be extended to stream images.
 Handlers installable as plugin at runtime
 -----------------------------------------
 
-The project supports LUA as script language for pre- and postinstall
+The project supports Lua as script language for pre- and postinstall
 script. It will be easy to add a way for installing a handler at runtime
-written in LUA, allowing to expand SWUpdate to the cases not covered
+written in Lua, allowing to expand SWUpdate to the cases not covered
 in the design phase of a product.
 
 Of course, this issue is related to the security features: it must be
@@ -95,7 +95,7 @@ ensured that only verified handlers can be added to the system to avoid
 that malware can get the control of the target.
 
 Current release supports verified images. That means that a handler
-written in LUA could be now be part of the compound image, because
+written in Lua could be now be part of the compound image, because
 a unauthenticated handler cannot run.
 
 Support for evaluation boards

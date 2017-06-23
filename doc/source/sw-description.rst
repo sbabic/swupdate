@@ -10,7 +10,7 @@ as default parser for the image description.
 However, it is possible to extend SWUpdate and add an own
 parser, based on a different syntax and language as the one
 supported by libconfig. In the examples directory
-there is the code for a parser written in LUA, with the
+there is the code for a parser written in Lua, with the
 description in XML.
 
 Using the default parser, sw-description follows the
@@ -124,7 +124,7 @@ Currently this is managed (and already used in a real project) by
 writing an own parser, that checks which images must be installed
 after recognizing which is the device where software is running.
 
-Because the external parser can be written in LUA and it is
+Because the external parser can be written in Lua and it is
 completely customizable, everybody can set his own rules.
 For this specific example, the sw-description is written in XML format,
 with tags identifying the images for each device. To run it, the liblxp
@@ -423,7 +423,7 @@ be unique inside the same cpio archive.
 
 If no type is given, SWUpdate default to "lua".
 
-LUA
+Lua
 ...
 
 ::
@@ -436,7 +436,7 @@ LUA
 	);
 
 
-LUA scripts are run using the internal interpreter.
+Lua scripts are run using the internal interpreter.
 
 They must have at least one of the following functions:
 
@@ -711,12 +711,12 @@ These attributes are used for an embedded-script:
 
 ::
 
-		embedded-script = "<LUA code">
+		embedded-script = "<Lua code">
 
 It must be taken into account that the parser has already run and usage of double quotes can
 interfere with the parser. For this reason, each double quote in the script must be escaped.
 
-That means a simple lua code as:
+That means a simple Lua code as:
 
 ::
 
@@ -745,27 +745,27 @@ attribute. For example:
 			}
 		);
 
-After the entry is parsed, the parser runs the LUA function pointed to by hook. If LUA is not
+After the entry is parsed, the parser runs the Lua function pointed to by hook. If Lua is not
 activated, the parser raises an error because a sw-description with an embedded script must
 be parsed, but the interpreter is not available.
 
-Each LUA function receives as parameter a table with the setup for the current entry. A hook
-in LUA is in the format:
+Each Lua function receives as parameter a table with the setup for the current entry. A hook
+in Lua is in the format:
 
 ::
 
         function lua_hook(image)
 
 image is a table where the keys are the list of available attributes. If an attribute contains
-a "-", it is replaced with "_", because "-" cannot be used in LUA. This means, for example, that:
+a "-", it is replaced with "_", because "-" cannot be used in Lua. This means, for example, that:
 
 ::
 
         install-if-different ==> install_if_different
         install-directly     ==> install_directly
 
-Attributes can be changed in the LUA script and values are taken over on return.
-The LUA function must return 2 values:
+Attributes can be changed in the Lua script and values are taken over on return.
+The Lua function must return 2 values:
 
         - a boolean, to indicate whether the parsing was correct
         - the image table
@@ -894,10 +894,10 @@ There are 4 main sections inside sw-description:
    |             |          | files      | Used for verification of signed       |
    |             |          | scripts    | images.                               |
    +-------------+----------+------------+---------------------------------------+
-   | embedded-   | string   |            | LUA code that is embedded in the      |
+   | embedded-   | string   |            | Lua code that is embedded in the      |
    | script      |          |            | sw-description file.                  |
    +-------------+----------+------------+---------------------------------------+
-   | hook        | string   | images     | The name of the function (LUA) to be  |
+   | hook        | string   | images     | The name of the function (Lua) to be  |
    |             |          | files      | called when the entry is parsed.      |
    +-------------+----------+------------+---------------------------------------+
    | mtdname     | string   | images     | name of the MTD to update. Used only  |

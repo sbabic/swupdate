@@ -25,7 +25,7 @@ In mainline there are the handlers for the most common cases. They include:
 	- UBI volumes
 	- raw devices, such as a SD Card partition
 	- bootloader (U-Boot, GRUB) environment
-	- LUA scripts
+	- Lua scripts
 
 For example, if an image is marked to be updated into a UBI volume,
 the parser must fill a supplied table setting "ubi" as required handler,
@@ -119,14 +119,14 @@ the same library from mtd-utils (libubi) is reused by SWUpdate.
 If the storage is empty, it is required to setup the layout
 and create the volumes. This can be easy done with a
 preinstall script. Building with meta-SWUpdate, the original
-mtd-utils are available and can be called by a LUA script.
+mtd-utils are available and can be called by a Lua script.
 
-Extend SWUpdate with handlers in LUA
+Extend SWUpdate with handlers in Lua
 ------------------------------------
 
 In an experimental phase, it is possible to add handlers
 that are not linked to SWUpdate but that are loaded by
-the LUA interpreter. The handlers must be copied into the
+the Lua interpreter. The handlers must be copied into the
 root filesystem and are loaded only at the startup.
 These handlers cannot be integrated into the image to be installed.
 Even if this can be theoretical possible, arise a lot of
@@ -136,7 +136,7 @@ Remote handlers
 ---------------
 
 Remote handlers are thought for binding legacy installers
-without having the necessity to rewrite them in LUA. The remote
+without having the necessity to rewrite them in Lua. The remote
 handler forward the image to be installed to another process,
 waiting for an acknowledge to be sure that the image is installed
 correctly.
