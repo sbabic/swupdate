@@ -384,14 +384,9 @@ quiet_cmd_addon = LD      $@
       "$(swupdate-libs)" \
       "$(LDLIBS)"
 
-ifeq ($(SKIP_STRIP),y)
-quiet_cmd_strip = NOSTRIP $@
-cmd_strip = cp $< $@
-else
 quiet_cmd_strip = STRIP   $@
 cmd_strip = $(STRIP) -s --remove-section=.note --remove-section=.comment \
                $@_unstripped -o $@; chmod a+x $@
-endif
 
 swupdate: swupdate_unstripped
 	$(call cmd,strip)
