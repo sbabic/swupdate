@@ -16,9 +16,9 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc.
  */
-#include "util.h"
 #include <syslog.h>
 #include <stdio.h>
+#include "util.h"
 
 static void syslog_notifier(RECOVERY_STATUS status, int error, const char *msg);
 

@@ -184,7 +184,6 @@ int copyfile(int fdin, void *out, unsigned int nbytes, unsigned long *offs, unsi
 		}
 	}
 
-#ifdef CONFIG_GUNZIP
 	int fdout = (out != NULL) ? *(int *)out : -1;
 	if (compressed) {
 		ret = decompress_image(fdin, offs, nbytes, fdout, checksum, dgst);
@@ -192,9 +191,7 @@ int copyfile(int fdin, void *out, unsigned int nbytes, unsigned long *offs, unsi
 			ERROR("gunzip failure %d (errno %d) -- aborting\n", ret, errno);
 			goto copyfile_exit;
 		}
-	}
-	else {
-#endif
+	} else {
 
 	while (nbytes > 0) {
 		size = (nbytes < BUFF_SIZE ? nbytes : BUFF_SIZE);
@@ -236,9 +233,7 @@ int copyfile(int fdin, void *out, unsigned int nbytes, unsigned long *offs, unsi
 		}
 	}
 
-#ifdef CONFIG_GUNZIP
 	}
-#endif
 
 	/*
 	 * Finalise the decryption. Further plaintext bytes may be written at
