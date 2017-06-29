@@ -5,24 +5,26 @@ choice
 	  Choose the bootloader
 
 config UBOOT
-	bool "Support for U-Boot environment"
+	bool "U-Boot"
 	depends on HAVE_LIBUBOOTENV
 	depends on HAVE_ZLIB
 	help
 	  Support for U-Boot
+	  https://www.denx.de/wiki/U-Boot
 
-comment "uboot support needs libubootenv, libz"
+comment "U-Boot support needs libubootenv, libz"
 	depends on !HAVE_ZLIB
 
 config BOOTLOADER_NONE
 	bool "None"
 	help
-	  No interface to the bootloader
+	  No interface to a bootloader
 
 config BOOTLOADER_GRUB
-	bool "GRUB Bootloader"
+	bool "GRUB"
 	help
-	  Select GRUB as used bootloader
+	  Support for GRUB
+	  https://www.gnu.org/software/grub/
 endchoice
 
 config UBOOT_FWENV
