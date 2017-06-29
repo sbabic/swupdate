@@ -183,7 +183,7 @@ unsigned long long ustrtoull(const char *cp, char **endp, unsigned int base);
 int decompress_image(int infile, unsigned long *offs, int nbytes,
 	int outfile, uint32_t *checksum, void *dgst);
 #else
-static int inline decompress_image(int __attribute__ ((__unused__))infile,
+static inline int decompress_image(int __attribute__ ((__unused__))infile,
 		   unsigned long __attribute__ ((__unused__)) *offs,
 		   int __attribute__ ((__unused__)) nbytes,
 		   int __attribute__ ((__unused__)) outfile,
