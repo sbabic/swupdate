@@ -74,7 +74,7 @@ int bootloader_env_set(const char *name, const char *value)
 		return -1;
 
 	if (fw_env_open (fw_env_opts)) {
-		fprintf (stderr, "Error: environment not initialized\n");
+		ERROR("Error: environment not initialized\n");
 		unlock_uboot_env(lock);
 		return -1;
 	}
