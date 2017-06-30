@@ -72,6 +72,16 @@ new methods can be considered, and new handlers can be added to mainline
 to support special ways. For example, downloading an image to a separate
 microprocessor/micro-controller, downloading a bit-stream to a FPGA,
 and so on.
+
+Some ideas for new handlers:
+        - UART based handler to microcontrollers
+        - FPGA updater for FPGA with Flash
+        - Package handler to install packages (ipk, deb)
+          Packages can be inserted into the SWU and the atomicity is
+          guaranteed by SWUpdate.
+        - LUA handlers should be added if possible to the project
+          to show how to solve custom install.
+
 There are custom specific solutions - I will be glad if these additional
 handlers will be merged into mainline in the future.
 
@@ -103,10 +113,19 @@ Support for evaluation boards
 
 New is meta-swupdate-boards - examples regarding evaluation boards are
 put there. Currently, there are examples for Beaglebone Black and
-Raspberri PI 3.
+Raspberri PI 3. Maybe some more boards ?
 
 Backend support (suricatta mode)
 ================================
+
+Backend: Offline support
+------------------------
+
+There are several discussions on Hawkbit's ML about how to synchronize
+an offline update (done locally or via the internal Webserver) with
+the Hawkbit's server. Currently, Hawkbit thinks to be the only one
+deploying software. Hawkbit DDI API should be extended, and afterwards
+changes must be implemented in SWUpdate.
 
 Backend: Support for other Servers
 ----------------------------------
