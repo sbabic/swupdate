@@ -513,7 +513,6 @@ int lua_parser_fn(lua_State *L, const char *fcn, struct img_type *img)
 
 	table2image(L, img);
 
-	LUAstackDump(L);
 	TRACE("Script returns %d", ret);
 
 	return ret;
