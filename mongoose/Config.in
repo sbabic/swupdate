@@ -22,7 +22,7 @@ config MONGOOSELUA
 	depends on LUA
 	default y
 	help
-	  It allows to use LUA scripts as CGI interpreter.
+	  It allows to use Lua scripts as CGI interpreter.
 
 config MONGOOSEIPV6
 	bool "ipv6"

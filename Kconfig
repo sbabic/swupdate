@@ -125,13 +125,13 @@ config LUA
 	default y
 	depends on HAVE_LUA
 	help
-	  Enable LUA interpreter.
+	  Enable Lua interpreter.
 
 comment "Lua support needs a Lua interpreter"
 	depends on !HAVE_LUA
 
 config LUAPKG
-	string "LUA pkg-config name"
+	string "Lua pkg-config name"
 	default "lua"
 	depends on LUA
 	help

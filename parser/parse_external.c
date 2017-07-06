@@ -130,7 +130,7 @@ int parse_external(struct swupdate_cfg *software, const char *filename)
 	ret = lua_pcall(L, 0, 0, 0);
 	if (ret) {
 		LUAstackDump(L);
-		ERROR("ERROR preparing Parser in LUA %d", ret);
+		ERROR("ERROR preparing Parser in Lua %d", ret);
 		
 		return 1;
 	}

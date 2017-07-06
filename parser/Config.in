@@ -35,7 +35,7 @@ config LUAEXTERNAL
 	depends on LUA
 	default n
 	help
-	  call an external parser written in LUA.
+	  call an external parser written in Lua.
 
 config SETEXTPARSERNAME
 	bool "Set external parser name"

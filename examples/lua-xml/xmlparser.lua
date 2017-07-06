@@ -95,7 +95,7 @@ function xmlparser(name, device)
 				img[count] = {}
 				img[count]["name"] = streams[i]["attr"]["name"]
 				img[count]["type"] = streams[i]["attr"]["type"]
-				--- check for all types that are scripts, for now only LUA scripts
+				--- check for all types that are scripts, for now only Lua scripts
 				if (streams[i]["attr"]["type"] == "lua") then
 					img[count]["script"] = 1
 				end

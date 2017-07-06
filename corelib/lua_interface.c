@@ -139,7 +139,7 @@ int run_lua_script(char *script, char *function, char *parms)
 	}
 
 	if (lua_type(L, 1) != LUA_TNUMBER) {
-		ERROR("LUA script returns wrong type");
+		ERROR("Lua script returns wrong type");
 		lua_close(L);
 		return 1;
 	}
@@ -474,7 +474,7 @@ int lua_handlers_init(void)
 	gL = NULL;
 	gL = luaL_newstate();
 	if (gL) {
-		printf("Searching for custom LUA handlers :");
+		printf("Searching for custom Lua handlers :");
 		/* load standard libraries */
 		luaL_openlibs(gL);
 		luaL_requiref( gL, "swupdate", luaopen_swupdate, 1 );
@@ -505,7 +505,7 @@ lua_State *lua_parser_init(const char *buf)
 	luaL_requiref(L, "swupdate", luaopen_swupdate, 1 );
 	if (luaL_loadstring(L, buf) || lua_pcall(L, 0, 0, 0)) {
 		LUAstackDump(L);
-		ERROR("ERROR preparing LUA embedded script in parser");
+		ERROR("ERROR preparing Lua embedded script in parser");
 		lua_close(L);
 		return NULL;
 	}
@@ -532,7 +532,7 @@ int lua_parser_fn(lua_State *L, const char *fcn, struct img_type *img)
 
 	if (lua_pcall(L, 1, 2, 0)) {
 		LUAstackDump(L);
-		ERROR("ERROR Calling LUA %s", fcn);
+		ERROR("ERROR Calling Lua %s", fcn);
 		return -1;
 	}
 

@@ -310,7 +310,7 @@ static int parse_scripts(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 
 		get_field(p, elem, "encrypted", &script->is_encrypted);
 
-		/* Scripts as default call the LUA interpreter */
+		/* Scripts as default call the Lua interpreter */
 		if (!strlen(script->type)) {
 			strcpy(script->type, "lua");
 		}
@@ -552,7 +552,7 @@ static int parser(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 	}
 
 	if (swcfg->embscript) {
-		TRACE("Found LUA Software:\n%s\n", swcfg->embscript);
+		TRACE("Found Lua Software:\n%s\n", swcfg->embscript);
 		L = lua_parser_init(swcfg->embscript);
 		if (!L) {
 			ERROR("Required embedded script that cannot be loaded");
@@ -626,7 +626,7 @@ int parse_cfg (struct swupdate_cfg *swcfg, const char *filename)
 	snprintf(node, sizeof(node), "%s.embedded-script",
 			NODEROOT);
 	if (config_lookup_string(&cfg, node, &str)) {
-		TRACE("Found LUA Software:\n%s\n", str);
+		TRACE("Found Lua Software:\n%s\n", str);
 	}
 
 	ret = parser(p, &cfg, swcfg);

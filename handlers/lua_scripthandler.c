@@ -66,7 +66,7 @@ static int start_lua_script(struct img_type *img, void *data)
 	}
 
 	snprintf(filename, sizeof(filename), "%s%s", TMPDIR, img->fname);
-	TRACE("Calling LUA %s", filename);
+	TRACE("Calling Lua %s", filename);
 
 	luaL_openlibs(L); /* opens the standard libraries */
 
@@ -79,7 +79,7 @@ static int start_lua_script(struct img_type *img, void *data)
 	ret = lua_pcall(L, 0, 0, 0);
 	if (ret) {
 		LUAstackDump(L);
-		ERROR("ERROR preparing LUA script %s %d",
+		ERROR("ERROR preparing Lua script %s %d",
 			filename, ret);
 		lua_close(L);
 		return -1;
@@ -98,7 +98,7 @@ static int start_lua_script(struct img_type *img, void *data)
 
 	if (lua_pcall(L, 1, 2, 0)) {
 		LUAstackDump(L);
-		ERROR("ERROR Calling LUA script %s", filename);
+		ERROR("ERROR Calling Lua script %s", filename);
 		lua_close(L);
 		return -1;
 	}

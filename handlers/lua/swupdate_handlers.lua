@@ -16,4 +16,4 @@ require("fpga")
 -- '/usr/lib/lua/5.2/loadall.so'
 -- './swupdate_handlers.so'
 -- It is duty of the buildsystem to install the self written
--- LUA handler. This file is not automatically installed.
+-- Lua handler. This file is not automatically installed.

@@ -23,7 +23,7 @@ interpreter helps to customize the update process.
 
 An update package is described by the sw-description file,
 using the libconfig syntax or JSON. It is even possible to
-use LUA with a custom syntax.
+use Lua with a custom syntax.
 
 Here a short list of the main features:
 

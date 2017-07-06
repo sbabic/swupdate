@@ -93,7 +93,7 @@ config LUASCRIPTHANDLER
 	default n
 	help
 	  Handler to be called for pre- and post scripts
-	  written in LUA.
+	  written in Lua.
 
 config SHELLSCRIPTHANDLER
 	bool "shellscript"
@@ -108,7 +108,7 @@ config HANDLER_IN_LUA
 	depends on LUASCRIPTHANDLER
 	default n
 	help
-	  Allow to write own handlers in LUA.
+	  Allow to write own handlers in Lua.
 	  They are loaded at the start-up.
 
 config ARCHIVE
