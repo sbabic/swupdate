@@ -358,7 +358,7 @@ static void lua_push_enum(lua_State *L, const char *name, int value)
  * @brief function to register the swupdate package in the lua Stack
  *
  * @param [in] the lua Stack
- * @return This function returns 0 if successfull and -1 if unsuccessfull.
+ * @return 1 (nr. of results on stack, the 'swupdate' module table)
  */
 static int luaopen_swupdate(lua_State *L) {
 	luaL_newlib (L, l_swupdate);
