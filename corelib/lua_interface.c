@@ -503,6 +503,7 @@ lua_State *lua_parser_init(const char *buf)
 		return NULL;
 	luaL_openlibs(L); /* opens the standard libraries */
 	luaL_requiref(L, "swupdate", luaopen_swupdate, 1 );
+	lua_pop(L, 1); /* remove unused copy left on stack */
 	if (luaL_loadstring(L, buf) || lua_pcall(L, 0, 0, 0)) {
 		LUAstackDump(L);
 		ERROR("ERROR preparing Lua embedded script in parser");
@@ -536,12 +537,14 @@ int lua_parser_fn(lua_State *L, const char *fcn, struct img_type *img)
 		return -1;
 	}
 
-	if (lua_type(L, 2) == LUA_TBOOLEAN)
-		ret = lua_toboolean(L, 2) ? 0 : 1;
+	if (lua_type(L, -2) == LUA_TBOOLEAN)
+		ret = lua_toboolean(L, -2) ? 0 : 1;
 
 	LUAstackDump(L);
 
 	table2image(L, img);
+
+	lua_pop(L, 2); /* clear stack */
 
 	TRACE("Script returns %d", ret);
 
