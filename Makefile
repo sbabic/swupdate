@@ -396,6 +396,13 @@ ${tools-bins}: ${tools-objs} ${swupdate-libs} FORCE
 	@mv $@ $@_unstripped
 	$(call cmd,strip)
 
+install: all
+	install -d ${DESTDIR}/usr/bin
+	install -m 755 swupdate ${DESTDIR}/usr/bin
+	for i in ${tools-bins};do \
+		install -m 755 $$i ${DESTDIR}/usr/bin; \
+	done
+
 PHONY += run-tests
 tests: \
 	acceptance-tests \
