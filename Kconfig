@@ -317,6 +317,7 @@ source suricatta/Config.in
 config WEBSERVER
 	bool "Enable webserver"
 	default n
+	select MONGOOSE
 	help
 	  Enable update from remote using a webserver on the target.
 
