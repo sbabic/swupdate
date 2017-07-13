@@ -102,12 +102,37 @@ static int end(RECOVERY_STATUS status)
 }
 
 /*
+ * Send file to main swupdate process
+ */
+static int send_file(const char* filename) {
+	int rc;
+	if ( (fd = open(filename, O_RDONLY)) < 0) {
+		printf ("I cannot open %s\n", filename);
+		return 1;
+	}
+
+	/* synchronize with a mutex */
+	pthread_mutex_lock(&mymutex);
+	rc = swupdate_async_start(readimage, printstatus,
+				end);
+	if (rc)
+		printf("swupdate_async_start returns %d\n", rc);
+
+	/* Now block */
+	pthread_mutex_lock(&mymutex);
+
+	/* End called, unlock and exit */
+	pthread_mutex_unlock(&mymutex);
+
+	return 0;
+}
+
+
+/*
  * Simple example, it does nothing but calling the library
  */
 int main(int argc, char *argv[]) {
 	int c;
-	const char *fn;
-	int rc;
 
 	pthread_mutex_init(&mymutex, NULL);
 
@@ -131,34 +156,12 @@ int main(int argc, char *argv[]) {
 	argc -= optind;
 	argv += optind;
 
-	/* remaining arguments are the filename spec */
-	if (argc > 0) {
-		if (strcmp(argv[0], "-") == 0) {
-			/* already the default, just offered for traditional purposes */
-			/* EMPTY */
-		} else {
-			fn = argv[0];
-			argc--; argv++;
-		}
+	if (argc == 0 || (argc == 1 && strcmp(argv[0], "-") == 0)) {
+		if (send_file(NULL)) exit(1);
+	} else {
+		if (send_file(argv[0])) exit(1);
 	}
 
-	if ( (fd = open(fn, O_RDONLY)) < 0) {
-		printf ("I cannot open %s\n", fn);
-		exit(1);
-	}
-
-	/* synchronize with a mutex */
-	pthread_mutex_lock(&mymutex);
-	rc = swupdate_async_start(readimage, printstatus,
-				end);
-	if (rc)
-		printf("swupdate_async_start returns %d\n", rc);
-
-	/* Now block */
-	pthread_mutex_lock(&mymutex);
-
-	/* End called, unlock and exit */
-	pthread_mutex_unlock(&mymutex);
 	sleep(1);
 
 	exit(0);
