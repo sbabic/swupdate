@@ -159,7 +159,9 @@ int main(int argc, char *argv[]) {
 	if (argc == 0 || (argc == 1 && strcmp(argv[0], "-") == 0)) {
 		if (send_file(NULL)) exit(1);
 	} else {
-		if (send_file(argv[0])) exit(1);
+		for (int i = 0; i < argc; i++) {
+			if (send_file(argv[i])) exit(1);
+		}
 	}
 
 	sleep(1);
