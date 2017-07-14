@@ -35,6 +35,9 @@
 #include <openssl/evp.h>
 #include <openssl/hmac.h>
 #include <openssl/aes.h>
+#ifdef CONFIG_SIGALG_CMS
+#include <openssl/cms.h>
+#endif
 #include <openssl/opensslv.h>
 
 struct swupdate_digest {
