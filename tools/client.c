@@ -20,7 +20,8 @@
 
 /*
  * This is a simple example how to control swupdate
- * triggering for a new update, streaming an image and asking for the result.
+ * triggering for a new update, streaming ore or more images
+ * and asking for the result.
  * This program is not thought to be used as it is, but as example
  * how to use the swupdateipc library.
  * A common use case is when swupdate is in double-copy option
@@ -45,7 +46,7 @@
 #include "network_ipc.h"
 
 static void usage(void) {
-	printf("client <image .swu to be installed>\n");
+	printf("client <image .swu to be installed>...\n");
 }
 
 char buf[256];
