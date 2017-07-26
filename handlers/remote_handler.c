@@ -137,7 +137,7 @@ static int RHmsg_get_ack(struct RHmsg *self, void *request)
 	return 0;
 }
 
-static int forward_data(void *request, const void *buf, int len)
+static int forward_data(void *request, const void *buf, unsigned int len)
 {
 	struct RHmsg RHmessage;
 	int ret;

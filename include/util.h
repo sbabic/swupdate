@@ -140,7 +140,7 @@ char *sdup(const char *str);
 /*
  * Function to extract / copy images
  */
-typedef int (*writeimage) (void *out, const void *buf, int len);
+typedef int (*writeimage) (void *out, const void *buf, unsigned int len);
 
 int fill_buffer(int fd, unsigned char *buf, unsigned int nbytes, unsigned long *offs,
 	uint32_t *checksum, void *dgst);

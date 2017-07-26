@@ -83,7 +83,7 @@ int fill_buffer(int fd, unsigned char *buf, unsigned int nbytes, unsigned long *
 	return count;
 }
 
-static int copy_write(void *out, const void *buf, int len)
+static int copy_write(void *out, const void *buf, unsigned int len)
 {
 	int ret;
 	int fd = (out != NULL) ? *(int *)out : -1;
