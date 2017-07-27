@@ -241,10 +241,6 @@ endmenu
 
 endmenu
 
-config BOOTLOADER
-	bool
-	default n
-
 source bootloader/Config.in
 
 
