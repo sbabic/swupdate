@@ -304,7 +304,7 @@ endmenu
 config ENCRYPTED_IMAGES
 	bool "Images can be encrypted with a symmetric key"
 	depends on HAVE_LIBSSL
-comment "Image verification (signed images) needs libssl"
+comment "Image encryption needs libssl"
 	depends on !HAVE_LIBSSL
 
 source suricatta/Config.in
