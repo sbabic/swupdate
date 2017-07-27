@@ -76,6 +76,9 @@ config SURICATTA_HAWKBIT
 	  Support for hawkBit server.
 	  https://projects.eclipse.org/projects/iot.hawkbit
 
+comment "hawkBit support needs libcurl, json-c"
+	depends on !HAVE_LIBCURL || !HAVE_JSON_C
+
 config SURICATTA_SERVER_NONE
 	bool "None"
 	help
