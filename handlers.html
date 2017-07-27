@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Handlers &mdash; Embedded Software Update Documentation 2017.04 documentation</title>
+  <title>Handlers &mdash; Embedded Software Update Documentation 2017.07 documentation</title>
   
 
   
@@ -32,8 +32,8 @@
   
 
   
-    <link rel="top" title="Embedded Software Update Documentation 2017.04 documentation" href="index.html"/>
-        <link rel="next" title="SWUpdate: API for external programs" href="swupdate-ipc.html"/>
+    <link rel="top" title="Embedded Software Update Documentation 2017.07 documentation" href="index.html"/>
+        <link rel="next" title="Suricatta daemon mode" href="suricatta.html"/>
         <link rel="prev" title="Symmetrically Encrypted Update Images" href="encrypted_images.html"/> 
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                2017.04
+                2017.07
               </div>
             
           
@@ -88,7 +88,6 @@
 </ul>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="swupdate.html">SWUpdate: software update for embedded system</a></li>
-<li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sw-description.html">SWUpdate: syntax and tags with the default parser</a></li>
 <li class="toctree-l1"><a class="reference internal" href="signed_images.html">Update images from verified source</a></li>
 <li class="toctree-l1"><a class="reference internal" href="encrypted_images.html">Symmetrically Encrypted Update Images</a></li>
@@ -97,10 +96,11 @@
 <li class="toctree-l2"><a class="reference internal" href="#supplied-handlers">Supplied handlers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#creating-own-handlers">Creating own handlers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#handler-for-ubi-volumes">Handler for UBI Volumes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#extend-swupdate-with-handlers-in-lua">Extend SWUpdate with handlers in LUA</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#extend-swupdate-with-handlers-in-lua">Extend SWUpdate with handlers in Lua</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#remote-handlers">Remote handlers</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">SWUpdate: API for external programs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
 </ul>
@@ -180,7 +180,7 @@ can have a different installer.</p>
 <li>UBI volumes</li>
 <li>raw devices, such as a SD Card partition</li>
 <li>bootloader (U-Boot, GRUB) environment</li>
-<li>LUA scripts</li>
+<li>Lua scripts</li>
 </ul>
 </dd>
 </dl>
@@ -260,13 +260,13 @@ the same library from mtd-utils (libubi) is reused by SWUpdate.</p>
 <p>If the storage is empty, it is required to setup the layout
 and create the volumes. This can be easy done with a
 preinstall script. Building with meta-SWUpdate, the original
-mtd-utils are available and can be called by a LUA script.</p>
+mtd-utils are available and can be called by a Lua script.</p>
 </div>
 <div class="section" id="extend-swupdate-with-handlers-in-lua">
-<h2>Extend SWUpdate with handlers in LUA<a class="headerlink" href="#extend-swupdate-with-handlers-in-lua" title="Permalink to this headline">¶</a></h2>
+<h2>Extend SWUpdate with handlers in Lua<a class="headerlink" href="#extend-swupdate-with-handlers-in-lua" title="Permalink to this headline">¶</a></h2>
 <p>In an experimental phase, it is possible to add handlers
 that are not linked to SWUpdate but that are loaded by
-the LUA interpreter. The handlers must be copied into the
+the Lua interpreter. The handlers must be copied into the
 root filesystem and are loaded only at the startup.
 These handlers cannot be integrated into the image to be installed.
 Even if this can be theoretical possible, arise a lot of
@@ -275,7 +275,7 @@ security questions, because it changes SWUpdate&#8217;s behavior.</p>
 <div class="section" id="remote-handlers">
 <h2>Remote handlers<a class="headerlink" href="#remote-handlers" title="Permalink to this headline">¶</a></h2>
 <p>Remote handlers are thought for binding legacy installers
-without having the necessity to rewrite them in LUA. The remote
+without having the necessity to rewrite them in Lua. The remote
 handler forward the image to be installed to another process,
 waiting for an acknowledge to be sure that the image is installed
 correctly.
@@ -330,7 +330,7 @@ is received. For each DATA message, the external process answers with a
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="swupdate-ipc.html" class="btn btn-neutral float-right" title="SWUpdate: API for external programs" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="suricatta.html" class="btn btn-neutral float-right" title="Suricatta daemon mode" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="encrypted_images.html" class="btn btn-neutral" title="Symmetrically Encrypted Update Images" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
@@ -364,7 +364,7 @@ is received. For each DATA message, the external process answers with a
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'2017.04',
+            VERSION:'2017.07',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -10,7 +10,7 @@ as default parser for the image description.
 However, it is possible to extend SWUpdate and add an own
 parser, based on a different syntax and language as the one
 supported by libconfig. In the examples directory
-there is the code for a parser written in LUA, with the
+there is the code for a parser written in Lua, with the
 description in XML.
 
 Using the default parser, sw-description follows the
@@ -112,6 +112,142 @@ The following example explains better the implemented tags:
 The first tag is "software". The whole description is contained in
 this tag. It is possible to group settings per device by using `Board
 specific settings`_.
+
+Handling configuration differences
+----------------------------------
+
+The concept can be extended to deliver a single image
+containing the release for multiple devices. Each device has its own
+kernel, dtb and root filesystem, or they can share some parts.
+
+Currently this is managed (and already used in a real project) by
+writing an own parser, that checks which images must be installed
+after recognizing which is the device where software is running.
+
+Because the external parser can be written in Lua and it is
+completely customizable, everybody can set his own rules.
+For this specific example, the sw-description is written in XML format,
+with tags identifying the images for each device. To run it, the liblxp
+library is needed.
+
+::
+
+	<?xml version="1.0" encoding="UTF-8"?>
+	<software version="1.0">
+	  <name>Update Image</name>
+	  <version>1.0.0</version>
+	  <description>Firmware for XXXXX Project</description>
+
+	  <images>
+	    <image device="firstdevice" version="0.9">
+	      <stream name="dev1-uImage" type="ubivol" volume="kernel" />
+	      <stream name="dev1.dtb" type="ubivol" volume="dtb" />
+	      <stream name="dev1-rootfs.ubifs" type="ubivol" volume="rootfs"/>
+	      <stream name="dev1-uboot-env" type="uboot" />
+	      <stream name="raw_vfat" type="raw" dest="/dev/mmcblk0p4" />
+	      <stream name="sdcard.lua" type="lua" />
+	    </image>
+
+	    <image device="seconddevice" version="0.9">
+	      <stream name="dev2-uImage" type="ubivol" volume="kernel" />
+	      <stream name="dev2.dtb" rev="0.9" type="ubivol" volume="dtb" />
+	      <stream name="dev2-rootfs.ubifs" type="ubivol" volume="rootfs"/>
+	    </image>
+	  </images>
+	</software>
+
+
+The parser for this is in the /examples directory.
+By identifying which is the running device, the parser return
+a table containing the images that must be installed and their associated
+handlers.
+By reading the delivered image, SWUpdate will ignore all images that
+are not in the list processed by the parser. In this way, it is possible
+to have a single delivered image for the update of multiple devices.
+
+Multiple devices are supported by the default parser, too.
+
+::
+
+    software =
+    {
+        version = "0.1.0";
+
+        target-1 = {
+                images: (
+                        {
+                                ...
+                        }
+                );
+        };
+
+        target-2 = {
+                images: (
+                        {
+                                ...
+                        }
+                );
+        };
+    }
+
+In this way, it is possible to have a single image providing software
+for each device you have.
+
+By default the hardware information is extracted from
+`/etc/hwrevision` file. The file should contain a single line in the
+following format::
+
+  <boardname> <revision>
+
+Where:
+
+- `<revision>` will be used for matching with hardware compatibility
+  list
+
+- `<boardname>` can be used for grouping board specific settings
+
+
+Software collections
+--------------------
+
+Software collections and operation modes can be used to implement a
+dual copy strategy. The simplest case is to define two installation
+locations for the firmware image and call `SWUpdate` selecting the
+appropriate image.
+
+::
+
+    software =
+    {
+            version = "0.1.0";
+
+            stable = {
+                    copy-1: {
+                            images: (
+                            {
+                                    device = "/dev/mtd4"
+                                    ...
+                            }
+                            );
+                    }
+                    copy-2: {
+                            images: (
+                            {
+                                    device = "/dev/mtd5"
+                                    ...
+                            }
+                            );
+                    }
+            };
+    }
+
+In this way it is possible to specify that `copy-1` gets installed to
+`/dev/mtd4`, while `copy-2` to `/dev/mtd5`. By properly selecting the
+installation locations, `SWUpdate` will update the firmware in the
+other slot.
+
+The method of image selection is out of the scope of SWUpdate and user
+is responsible for calling `SWUpdate` passing proper settings.
 
 hardware-compatibility
 ----------------------
@@ -287,7 +423,7 @@ be unique inside the same cpio archive.
 
 If no type is given, SWUpdate default to "lua".
 
-LUA
+Lua
 ...
 
 ::
@@ -300,7 +436,7 @@ LUA
 	);
 
 
-LUA scripts are run using the internal interpreter.
+Lua scripts are run using the internal interpreter.
 
 They must have at least one of the following functions:
 
@@ -562,6 +698,96 @@ compared with the data in the versions file. install-if-different is a
 boolean that enables the check for this image. It is then possible to
 check the version just for a subset of the images to be installed.
 
+
+Embedded Script
+---------------
+
+It is possible to embed a script inside sw-description. This is useful in a lot
+of conditions where some parameters are known just by the target at runtime. The
+script is global to all sections, but it can contain several functions that can be specific
+for each entry in the sw-description file.
+
+These attributes are used for an embedded-script:
+
+::
+
+		embedded-script = "<Lua code">
+
+It must be taken into account that the parser has already run and usage of double quotes can
+interfere with the parser. For this reason, each double quote in the script must be escaped.
+
+That means a simple Lua code as:
+
+::
+
+        print ("Test")
+
+must be changed to:
+
+::
+
+        print (\"Test\")
+
+If not, the parser thinks to have the closure of the script and this generates an error. 
+See the examples directory for examples how to use it.
+Any entry in files or images can trigger one function in the script. The "hook" attribute
+tells the parser to load the script and to search for the function pointed to by the hook
+attribute. For example:
+
+::
+
+		files: (
+			{
+				filename = "examples.tar";
+				type = "archive";
+				path = "/tmp/test";
+				hook = "set_version";
+			}
+		);
+
+After the entry is parsed, the parser runs the Lua function pointed to by hook. If Lua is not
+activated, the parser raises an error because a sw-description with an embedded script must
+be parsed, but the interpreter is not available.
+
+Each Lua function receives as parameter a table with the setup for the current entry. A hook
+in Lua is in the format:
+
+::
+
+        function lua_hook(image)
+
+image is a table where the keys are the list of available attributes. If an attribute contains
+a "-", it is replaced with "_", because "-" cannot be used in Lua. This means, for example, that:
+
+::
+
+        install-if-different ==> install_if_different
+        install-directly     ==> install_directly
+
+Attributes can be changed in the Lua script and values are taken over on return.
+The Lua function must return 2 values:
+
+        - a boolean, to indicate whether the parsing was correct
+        - the image table
+
+Example:
+
+::
+
+        function set_version(image)
+	        print (\"RECOVERY_STATUS.RUN: \".. swupdate.RECOVERY_STATUS.RUN)
+                for k,l in pairs(image) do
+                        swupdate.trace(\"image[\" .. tostring(k) .. \"] = \" .. tostring(l))
+                end
+	        image.version = \"1.0\"
+        	image.install_if_different = true
+        	return true, image
+        end
+
+
+The example sets a version for the installed image. Generally, this is detected at runtime
+reading from the target.
+
 Attribute reference
 -------------------
 
@@ -577,7 +803,10 @@ There are 4 main sections inside sw-description:
 - bootenv: entries are pair with bootloader environment variable name and its
   value.
 
-.. table::
+
+.. tabularcolumns:: |p{1.5cm}|p{1.5cm}|p{1.5cm}|L|
+.. table:: Attributes in sw-description
+
 
    +-------------+----------+------------+---------------------------------------+
    |  Name       |  Type    | Applies to |  Description                          |
@@ -664,6 +893,12 @@ There are 4 main sections inside sw-description:
    | sha256      | string   | images     | sha256 hash of image, file or script. |
    |             |          | files      | Used for verification of signed       |
    |             |          | scripts    | images.                               |
+   +-------------+----------+------------+---------------------------------------+
+   | embedded-   | string   |            | Lua code that is embedded in the      |
+   | script      |          |            | sw-description file.                  |
+   +-------------+----------+------------+---------------------------------------+
+   | hook        | string   | images     | The name of the function (Lua) to be  |
+   |             |          | files      | called when the entry is parsed.      |
    +-------------+----------+------------+---------------------------------------+
    | mtdname     | string   | images     | name of the MTD to update. Used only  |
    |             |          |            | by the flash handler to identify the  |

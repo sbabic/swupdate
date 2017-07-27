@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>SWUpdate: software update for embedded system &mdash; Embedded Software Update Documentation 2017.04 documentation</title>
+  <title>SWUpdate: software update for embedded system &mdash; Embedded Software Update Documentation 2017.07 documentation</title>
   
 
   
@@ -32,8 +32,8 @@
   
 
   
-    <link rel="top" title="Embedded Software Update Documentation 2017.04 documentation" href="index.html"/>
-        <link rel="next" title="Suricatta daemon mode" href="suricatta.html"/>
+    <link rel="top" title="Embedded Software Update Documentation 2017.07 documentation" href="index.html"/>
+        <link rel="next" title="SWUpdate: syntax and tags with the default parser" href="sw-description.html"/>
         <link rel="prev" title="Software Management on embedded systems" href="overview.html"/> 
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                2017.04
+                2017.07
               </div>
             
           
@@ -88,12 +88,11 @@
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="">SWUpdate: software update for embedded system</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#features">Features</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#general-overview">General Overview</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#single-image-delivery">Single image delivery</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#handling-configuration-differences">Handling configuration differences</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#software-collections">Software collections</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#streaming-feature">Streaming feature</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#list-of-supported-features">List of supported features</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#images-fully-streamed">Images fully streamed</a></li>
 </ul>
 </li>
@@ -117,11 +116,11 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sw-description.html">SWUpdate: syntax and tags with the default parser</a></li>
 <li class="toctree-l1"><a class="reference internal" href="signed_images.html">Update images from verified source</a></li>
 <li class="toctree-l1"><a class="reference internal" href="encrypted_images.html">Symmetrically Encrypted Update Images</a></li>
 <li class="toctree-l1"><a class="reference internal" href="handlers.html">Handlers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">SWUpdate: API for external programs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
 </ul>
@@ -198,180 +197,18 @@ the updating process reports only the status to the operator
 device or directed to a serial line (Linux console).</p>
 <p>It is generally used in the single copy approach, running in a initrd
 (recipes are provided to generate with Yocto).  However, it is
-possible to use it in a double-copy approach by use of <a class="reference internal" href="#software-collections">Software
-collections</a>.</p>
+possible to use it in a double-copy approach by use of <a href="#id1"><span class="problematic" id="id2">`Software
+collections`_</span></a>.</p>
 <p>If started for a remote update, SWUpdate starts an embedded
 Web-server and waits for requests. The operator must upload
 a suitable image, that SWUpdate checks and then install.
 All output is notified to the operator&#8217;s browser via AJAX
 notifications.</p>
-<div class="section" id="single-image-delivery">
-<h3>Single image delivery<a class="headerlink" href="#single-image-delivery" title="Permalink to this headline">¶</a></h3>
-<p>The main concept is that the manufacturer delivers a single
-big image. All single images are packed together (cpio was chosen
-for its simplicity and because can be streamed) together with
-an additional file (sw-description), that contains meta
-information about each single image.</p>
-<p>The format of sw-description can be customized: SWUpdate can be
-configured to use its internal parser (based on libconfig), or calling
-an external parser in LUA.</p>
-<img alt="_images/image_format.png" src="_images/image_format.png" />
-<p>Changing the rules to accept images with an external parser,
-let to extend to new image types and how they are installed.
-In fact, the scope of the parser is to retrieve which single
-images must be installed and how.
-SWUpdate implements &#8220;handlers&#8221; to install a single image:
-there are handlers to install images into UBI volumes,
-or to a SD card, a CFI Flash, and so on. It is then easy to
-add an own handler if a very special installer is required.</p>
-<p>For example we can think at a project with a main processor and
-one or several micro-controllers. Let&#8217;s say for simplicity that
-the main processor communicates with the micro-controllers via
-UARTS using a proprietary protocol. The software on the micro-controllers
-can be updated using the proprietary protocol.</p>
-<p>It is possible to extend SWUpdate writing a handler, that implements
-the part of the proprietary protocol to perform the upgrade
-on the micro-controller. The parser must recognize which image must be
-installed with the new handler, and SWUpdate will call the handler
-during the installation process.</p>
 </div>
-<div class="section" id="handling-configuration-differences">
-<h3>Handling configuration differences<a class="headerlink" href="#handling-configuration-differences" title="Permalink to this headline">¶</a></h3>
-<p>The concept can be extended to deliver a single image
-containing the release for multiple devices. Each device has its own
-kernel, dtb and root filesystem, or they can share some parts.</p>
-<p>Currently this is managed (and already used in a real project) by
-writing an own parser, that checks which images must be installed
-after recognizing which is the device where software is running.</p>
-<p>Because the external parser can be written in LUA and it is
-completely customizable, everybody can set his own rules.
-For this specific example, the sw-description is written in XML format,
-with tags identifying the images for each device. To run it, the liblxp
-library is needed.</p>
-<div class="highlight-python"><div class="highlight"><pre>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
-&lt;software version=&quot;1.0&quot;&gt;
-  &lt;name&gt;Update Image&lt;/name&gt;
-  &lt;version&gt;1.0.0&lt;/version&gt;
-  &lt;description&gt;Firmware for XXXXX Project&lt;/description&gt;
-
-  &lt;images&gt;
-    &lt;image device=&quot;firstdevice&quot; version=&quot;0.9&quot;&gt;
-      &lt;stream name=&quot;dev1-uImage&quot; type=&quot;ubivol&quot; volume=&quot;kernel&quot; /&gt;
-      &lt;stream name=&quot;dev1.dtb&quot; type=&quot;ubivol&quot; volume=&quot;dtb&quot; /&gt;
-      &lt;stream name=&quot;dev1-rootfs.ubifs&quot; type=&quot;ubivol&quot; volume=&quot;rootfs&quot;/&gt;
-      &lt;stream name=&quot;dev1-uboot-env&quot; type=&quot;uboot&quot; /&gt;
-      &lt;stream name=&quot;raw_vfat&quot; type=&quot;raw&quot; dest=&quot;/dev/mmcblk0p4&quot; /&gt;
-      &lt;stream name=&quot;sdcard.lua&quot; type=&quot;lua&quot; /&gt;
-    &lt;/image&gt;
-
-    &lt;image device=&quot;seconddevice&quot; version=&quot;0.9&quot;&gt;
-      &lt;stream name=&quot;dev2-uImage&quot; type=&quot;ubivol&quot; volume=&quot;kernel&quot; /&gt;
-      &lt;stream name=&quot;dev2.dtb&quot; rev=&quot;0.9&quot; type=&quot;ubivol&quot; volume=&quot;dtb&quot; /&gt;
-      &lt;stream name=&quot;dev2-rootfs.ubifs&quot; type=&quot;ubivol&quot; volume=&quot;rootfs&quot;/&gt;
-    &lt;/image&gt;
-  &lt;/images&gt;
-&lt;/software&gt;
-</pre></div>
-</div>
-<p>The parser for this is in the /examples directory.
-By identifying which is the running device, the parser return
-a table containing the images that must be installed and their associated
-handlers.
-By reading the delivered image, SWUpdate will ignore all images that
-are not in the list processed by the parser. In this way, it is possible
-to have a single delivered image for the update of multiple devices.</p>
-<p>Multiple devices are supported by the default parser, too.</p>
-<div class="highlight-python"><div class="highlight"><pre>software =
-{
-    version = &quot;0.1.0&quot;;
-
-    target-1 = {
-            images: (
-                    {
-                            ...
-                    }
-            );
-    };
-
-    target-2 = {
-            images: (
-                    {
-                            ...
-                    }
-            );
-    };
-}
-</pre></div>
-</div>
-<p>In this way, it is possible to have a single image providing software
-for each device you have.</p>
-<p>By default the hardware information is extracted from
-<cite>/etc/hwrevision</cite> file. The file should contain a single line in the
-following format:</p>
-<div class="highlight-python"><div class="highlight"><pre>&lt;boardname&gt; &lt;revision&gt;
-</pre></div>
-</div>
-<p>Where:</p>
-<ul class="simple">
-<li><cite>&lt;revision&gt;</cite> will be used for matching with hardware compatibility
-list</li>
-<li><cite>&lt;boardname&gt;</cite> can be used for grouping board specific settings</li>
-</ul>
-</div>
-<div class="section" id="software-collections">
-<h3>Software collections<a class="headerlink" href="#software-collections" title="Permalink to this headline">¶</a></h3>
-<p>Software collections and operation modes can be used to implement a
-dual copy strategy. The simplest case is to define two installation
-locations for the firmware image and call <cite>SWUpdate</cite> selecting the
-appropriate image.</p>
-<div class="highlight-python"><div class="highlight"><pre>software =
-{
-        version = &quot;0.1.0&quot;;
-
-        stable = {
-                copy-1: {
-                        images: (
-                        {
-                                device = &quot;/dev/mtd4&quot;
-                                ...
-                        }
-                        );
-                }
-                copy-2: {
-                        images: (
-                        {
-                                device = &quot;/dev/mtd5&quot;
-                                ...
-                        }
-                        );
-                }
-        };
-}
-</pre></div>
-</div>
-<p>In this way it is possible to specify that <cite>copy-1</cite> gets installed to
-<cite>/dev/mtd4</cite>, while <cite>copy-2</cite> to <cite>/dev/mtd5</cite>. By properly selecting the
-installation locations, <cite>SWUpdate</cite> will update the firmware in the
-other slot.</p>
-<p>The method of image selection is out of the scope of SWUpdate and user
-is responsible for calling <cite>SWUpdate</cite> passing proper settings.</p>
-</div>
-<div class="section" id="streaming-feature">
-<h3>Streaming feature<a class="headerlink" href="#streaming-feature" title="Permalink to this headline">¶</a></h3>
-<p>SWUpdate is thought to be able to stream the received image directly into
-the target, without any temporary copy. In fact, the single installer
-(handler) receive as input the file descriptor set at the beginning of
-the image that must be installed.</p>
-<p>The feature can be set on image basis, that means that a user can
-decide which partial images should be streamed. If not streamed (see
-installed-directly flag), files are temporary extracted into /tmp.
-Of course, by streaming it is not possible to make checks on the whole delivered
-software before installing.
-The temporary copy is done only when updated from network. When the image
-is stored on an external storage, there is no need of that copy.</p>
-</div>
-<div class="section" id="list-of-supported-features">
-<h3>List of supported features<a class="headerlink" href="#list-of-supported-features" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="features">
+<h2>Features<a class="headerlink" href="#features" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="general-overview">
+<h3>General Overview<a class="headerlink" href="#general-overview" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li>Install on embedded Media (eMMC, SD, Raw NAND,
 NOR and SPI-NOR flashes)</li>
@@ -399,8 +236,8 @@ JSON-like description.</li>
 </ul>
 <ul class="simple">
 <li>use custom&#8217;s choice for the description of the image. It is
-possible to write an own parser using the LUA language.
-An example using a XML description in LUA is provided
+possible to write an own parser using the Lua language.
+An example using a XML description in Lua is provided
 in the examples directory.</li>
 <li>Support for setting / erasing U-Boot variables</li>
 </ul>
@@ -412,7 +249,7 @@ in the examples directory.</li>
 <li><p class="first">Support for postinstall scripts. They run after updating the images.</p>
 </li>
 <li><p class="first">Network installer using an embedded Web-server (Mongoose Server
-was chosen, in the version under LUA license). A different
+was chosen, in the version under Lua license). A different
 Web-server can be used.</p>
 </li>
 <li><dl class="first docutils">
@@ -461,6 +298,50 @@ micro-controller firmware via custom protocols.</p>
 </li>
 </ul>
 </div>
+<div class="section" id="single-image-delivery">
+<h3>Single image delivery<a class="headerlink" href="#single-image-delivery" title="Permalink to this headline">¶</a></h3>
+<p>The main concept is that the manufacturer delivers a single
+big image. All single images are packed together (cpio was chosen
+for its simplicity and because can be streamed) together with
+an additional file (sw-description), that contains meta
+information about each single image.</p>
+<p>The format of sw-description can be customized: SWUpdate can be
+configured to use its internal parser (based on libconfig), or calling
+an external parser in Lua.</p>
+<img alt="_images/image_format.png" src="_images/image_format.png" />
+<p>Changing the rules to accept images with an external parser,
+let to extend to new image types and how they are installed.
+In fact, the scope of the parser is to retrieve which single
+images must be installed and how.
+SWUpdate implements &#8220;handlers&#8221; to install a single image:
+there are handlers to install images into UBI volumes,
+or to a SD card, a CFI Flash, and so on. It is then easy to
+add an own handler if a very special installer is required.</p>
+<p>For example we can think at a project with a main processor and
+one or several micro-controllers. Let&#8217;s say for simplicity that
+the main processor communicates with the micro-controllers via
+UARTS using a proprietary protocol. The software on the micro-controllers
+can be updated using the proprietary protocol.</p>
+<p>It is possible to extend SWUpdate writing a handler, that implements
+the part of the proprietary protocol to perform the upgrade
+on the micro-controller. The parser must recognize which image must be
+installed with the new handler, and SWUpdate will call the handler
+during the installation process.</p>
+</div>
+<div class="section" id="streaming-feature">
+<h3>Streaming feature<a class="headerlink" href="#streaming-feature" title="Permalink to this headline">¶</a></h3>
+<p>SWUpdate is thought to be able to stream the received image directly into
+the target, without any temporary copy. In fact, the single installer
+(handler) receive as input the file descriptor set at the beginning of
+the image that must be installed.</p>
+<p>The feature can be set on image basis, that means that a user can
+decide which partial images should be streamed. If not streamed (see
+installed-directly flag), files are temporary extracted into /tmp.
+Of course, by streaming it is not possible to make checks on the whole delivered
+software before installing.
+The temporary copy is done only when updated from network. When the image
+is stored on an external storage, there is no need of that copy.</p>
+</div>
 <div class="section" id="images-fully-streamed">
 <h3>Images fully streamed<a class="headerlink" href="#images-fully-streamed" title="Permalink to this headline">¶</a></h3>
 <p>In case of remote update, SWUpdate extracts relevant images
@@ -486,7 +367,7 @@ They are commonly not exported and not installed, but they are
 linked by SWUpdate to reuse the same functions for upgrading
 MTD and UBI volumes.</li>
 <li>openssl: required with the Webserver</li>
-<li>LUA: liblua and the development headers.</li>
+<li>Lua: liblua and the development headers.</li>
 <li>libz, libcrypto are always linked.</li>
 <li>libconfig: it is used by the default parser.</li>
 <li>libarchive (optional) for archive handler</li>
@@ -501,7 +382,7 @@ and drop what you do not need.</p>
 <div class="section" id="building-with-yocto">
 <h3>Building with Yocto<a class="headerlink" href="#building-with-yocto" title="Permalink to this headline">¶</a></h3>
 <p>A <a class="reference external" href="https://github.com/sbabic/meta-swupdate.git">meta-SWUpdate</a> layer is provided. It contains the required changes
-for mtd-utils and for generating LUA. Using meta-SWUpdate is a
+for mtd-utils and for generating Lua. Using meta-SWUpdate is a
 straightforward process.</p>
 <p>Firstly, clone meta-SWUpdate.</p>
 <div class="highlight-python"><div class="highlight"><pre>git clone https://github.com/sbabic/meta-swupdate.git
@@ -632,7 +513,7 @@ an error is reported.</p>
 </pre></div>
 </div>
 <p>The embedded web-server is taken from the Mongoose project (last release
-with LUA license). Additional parameters can be found in mongoose
+with Lua license). Additional parameters can be found in mongoose
 documentation.</p>
 <p>The whole list of options will be retrieved with:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">swupdate</span> <span class="o">-</span><span class="n">h</span>
@@ -870,7 +751,7 @@ should inherit it, and add your own sw-description file to generate the image.</
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="suricatta.html" class="btn btn-neutral float-right" title="Suricatta daemon mode" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="sw-description.html" class="btn btn-neutral float-right" title="SWUpdate: syntax and tags with the default parser" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="overview.html" class="btn btn-neutral" title="Software Management on embedded systems" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
@@ -904,7 +785,7 @@ should inherit it, and add your own sw-description file to generate the image.</
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'2017.04',
+            VERSION:'2017.07',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

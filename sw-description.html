@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>SWUpdate: syntax and tags with the default parser &mdash; Embedded Software Update Documentation 2017.04 documentation</title>
+  <title>SWUpdate: syntax and tags with the default parser &mdash; Embedded Software Update Documentation 2017.07 documentation</title>
   
 
   
@@ -32,9 +32,9 @@
   
 
   
-    <link rel="top" title="Embedded Software Update Documentation 2017.04 documentation" href="index.html"/>
+    <link rel="top" title="Embedded Software Update Documentation 2017.07 documentation" href="index.html"/>
         <link rel="next" title="Update images from verified source" href="signed_images.html"/>
-        <link rel="prev" title="Suricatta daemon mode" href="suricatta.html"/> 
+        <link rel="prev" title="SWUpdate: software update for embedded system" href="swupdate.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                2017.04
+                2017.07
               </div>
             
           
@@ -88,15 +88,16 @@
 </ul>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="swupdate.html">SWUpdate: software update for embedded system</a></li>
-<li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="">SWUpdate: syntax and tags with the default parser</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#handling-configuration-differences">Handling configuration differences</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#software-collections">Software collections</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#hardware-compatibility">hardware-compatibility</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#partitions-ubi-layout">partitions : UBI layout</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#images">images</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#files">Files</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#scripts">Scripts</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#lua">LUA</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#lua">Lua</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#shellscript">shellscript</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#preinstall">preinstall</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#postinstall">postinstall</a></li>
@@ -106,12 +107,14 @@
 <li class="toctree-l2"><a class="reference internal" href="#board-specific-settings">Board specific settings</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#software-collections-and-operation-modes">Software collections and operation modes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#checking-version-of-installed-software">Checking version of installed software</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#embedded-script">Embedded Script</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#attribute-reference">Attribute reference</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="signed_images.html">Update images from verified source</a></li>
 <li class="toctree-l1"><a class="reference internal" href="encrypted_images.html">Symmetrically Encrypted Update Images</a></li>
 <li class="toctree-l1"><a class="reference internal" href="handlers.html">Handlers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">SWUpdate: API for external programs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
 </ul>
@@ -176,7 +179,7 @@ as default parser for the image description.
 However, it is possible to extend SWUpdate and add an own
 parser, based on a different syntax and language as the one
 supported by libconfig. In the examples directory
-there is the code for a parser written in LUA, with the
+there is the code for a parser written in Lua, with the
 description in XML.</p>
 <p>Using the default parser, sw-description follows the
 syntax rules described in the libconfig manual.
@@ -274,6 +277,127 @@ using of the #include directive is not allowed by SWUpdate.</p>
 <p>The first tag is &#8220;software&#8221;. The whole description is contained in
 this tag. It is possible to group settings per device by using <a class="reference internal" href="#board-specific-settings">Board
 specific settings</a>.</p>
+</div>
+<div class="section" id="handling-configuration-differences">
+<h2>Handling configuration differences<a class="headerlink" href="#handling-configuration-differences" title="Permalink to this headline">¶</a></h2>
+<p>The concept can be extended to deliver a single image
+containing the release for multiple devices. Each device has its own
+kernel, dtb and root filesystem, or they can share some parts.</p>
+<p>Currently this is managed (and already used in a real project) by
+writing an own parser, that checks which images must be installed
+after recognizing which is the device where software is running.</p>
+<p>Because the external parser can be written in Lua and it is
+completely customizable, everybody can set his own rules.
+For this specific example, the sw-description is written in XML format,
+with tags identifying the images for each device. To run it, the liblxp
+library is needed.</p>
+<div class="highlight-python"><div class="highlight"><pre>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;software version=&quot;1.0&quot;&gt;
+  &lt;name&gt;Update Image&lt;/name&gt;
+  &lt;version&gt;1.0.0&lt;/version&gt;
+  &lt;description&gt;Firmware for XXXXX Project&lt;/description&gt;
+
+  &lt;images&gt;
+    &lt;image device=&quot;firstdevice&quot; version=&quot;0.9&quot;&gt;
+      &lt;stream name=&quot;dev1-uImage&quot; type=&quot;ubivol&quot; volume=&quot;kernel&quot; /&gt;
+      &lt;stream name=&quot;dev1.dtb&quot; type=&quot;ubivol&quot; volume=&quot;dtb&quot; /&gt;
+      &lt;stream name=&quot;dev1-rootfs.ubifs&quot; type=&quot;ubivol&quot; volume=&quot;rootfs&quot;/&gt;
+      &lt;stream name=&quot;dev1-uboot-env&quot; type=&quot;uboot&quot; /&gt;
+      &lt;stream name=&quot;raw_vfat&quot; type=&quot;raw&quot; dest=&quot;/dev/mmcblk0p4&quot; /&gt;
+      &lt;stream name=&quot;sdcard.lua&quot; type=&quot;lua&quot; /&gt;
+    &lt;/image&gt;
+
+    &lt;image device=&quot;seconddevice&quot; version=&quot;0.9&quot;&gt;
+      &lt;stream name=&quot;dev2-uImage&quot; type=&quot;ubivol&quot; volume=&quot;kernel&quot; /&gt;
+      &lt;stream name=&quot;dev2.dtb&quot; rev=&quot;0.9&quot; type=&quot;ubivol&quot; volume=&quot;dtb&quot; /&gt;
+      &lt;stream name=&quot;dev2-rootfs.ubifs&quot; type=&quot;ubivol&quot; volume=&quot;rootfs&quot;/&gt;
+    &lt;/image&gt;
+  &lt;/images&gt;
+&lt;/software&gt;
+</pre></div>
+</div>
+<p>The parser for this is in the /examples directory.
+By identifying which is the running device, the parser return
+a table containing the images that must be installed and their associated
+handlers.
+By reading the delivered image, SWUpdate will ignore all images that
+are not in the list processed by the parser. In this way, it is possible
+to have a single delivered image for the update of multiple devices.</p>
+<p>Multiple devices are supported by the default parser, too.</p>
+<div class="highlight-python"><div class="highlight"><pre>software =
+{
+    version = &quot;0.1.0&quot;;
+
+    target-1 = {
+            images: (
+                    {
+                            ...
+                    }
+            );
+    };
+
+    target-2 = {
+            images: (
+                    {
+                            ...
+                    }
+            );
+    };
+}
+</pre></div>
+</div>
+<p>In this way, it is possible to have a single image providing software
+for each device you have.</p>
+<p>By default the hardware information is extracted from
+<cite>/etc/hwrevision</cite> file. The file should contain a single line in the
+following format:</p>
+<div class="highlight-python"><div class="highlight"><pre>&lt;boardname&gt; &lt;revision&gt;
+</pre></div>
+</div>
+<p>Where:</p>
+<ul class="simple">
+<li><cite>&lt;revision&gt;</cite> will be used for matching with hardware compatibility
+list</li>
+<li><cite>&lt;boardname&gt;</cite> can be used for grouping board specific settings</li>
+</ul>
+</div>
+<div class="section" id="software-collections">
+<h2>Software collections<a class="headerlink" href="#software-collections" title="Permalink to this headline">¶</a></h2>
+<p>Software collections and operation modes can be used to implement a
+dual copy strategy. The simplest case is to define two installation
+locations for the firmware image and call <cite>SWUpdate</cite> selecting the
+appropriate image.</p>
+<div class="highlight-python"><div class="highlight"><pre>software =
+{
+        version = &quot;0.1.0&quot;;
+
+        stable = {
+                copy-1: {
+                        images: (
+                        {
+                                device = &quot;/dev/mtd4&quot;
+                                ...
+                        }
+                        );
+                }
+                copy-2: {
+                        images: (
+                        {
+                                device = &quot;/dev/mtd5&quot;
+                                ...
+                        }
+                        );
+                }
+        };
+}
+</pre></div>
+</div>
+<p>In this way it is possible to specify that <cite>copy-1</cite> gets installed to
+<cite>/dev/mtd4</cite>, while <cite>copy-2</cite> to <cite>/dev/mtd5</cite>. By properly selecting the
+installation locations, <cite>SWUpdate</cite> will update the firmware in the
+other slot.</p>
+<p>The method of image selection is out of the scope of SWUpdate and user
+is responsible for calling <cite>SWUpdate</cite> passing proper settings.</p>
 </div>
 <div class="section" id="hardware-compatibility">
 <h2>hardware-compatibility<a class="headerlink" href="#hardware-compatibility" title="Permalink to this headline">¶</a></h2>
@@ -413,7 +537,7 @@ with an error if the result is &lt;&gt; 0.</p>
 be unique inside the same cpio archive.</p>
 <p>If no type is given, SWUpdate default to &#8220;lua&#8221;.</p>
 <div class="section" id="lua">
-<h3>LUA<a class="headerlink" href="#lua" title="Permalink to this headline">¶</a></h3>
+<h3>Lua<a class="headerlink" href="#lua" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-python"><div class="highlight"><pre>scripts: (
         {
                 filename = &lt;Name in CPIO Archive&gt;;
@@ -422,7 +546,7 @@ be unique inside the same cpio archive.</p>
 );
 </pre></div>
 </div>
-<p>LUA scripts are run using the internal interpreter.</p>
+<p>Lua scripts are run using the internal interpreter.</p>
 <p>They must have at least one of the following functions:</p>
 <div class="highlight-python"><div class="highlight"><pre>function preinst()
 </pre></div>
@@ -647,6 +771,78 @@ compared with the data in the versions file. install-if-different is a
 boolean that enables the check for this image. It is then possible to
 check the version just for a subset of the images to be installed.</p>
 </div>
+<div class="section" id="embedded-script">
+<h2>Embedded Script<a class="headerlink" href="#embedded-script" title="Permalink to this headline">¶</a></h2>
+<p>It is possible to embed a script inside sw-description. This is useful in a lot
+of conditions where some parameters are known just by the target at runtime. The
+script is global to all sections, but it can contain several functions that can be specific
+for each entry in the sw-description file.</p>
+<p>These attributes are used for an embedded-script:</p>
+<div class="highlight-python"><div class="highlight"><pre>embedded-script = &quot;&lt;Lua code&quot;&gt;
+</pre></div>
+</div>
+<p>It must be taken into account that the parser has already run and usage of double quotes can
+interfere with the parser. For this reason, each double quote in the script must be escaped.</p>
+<p>That means a simple Lua code as:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">print</span> <span class="p">(</span><span class="s2">&quot;Test&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>must be changed to:</p>
+<div class="highlight-python"><div class="highlight"><pre>print (\&quot;Test\&quot;)
+</pre></div>
+</div>
+<p>If not, the parser thinks to have the closure of the script and this generates an error.
+See the examples directory for examples how to use it.
+Any entry in files or images can trigger one function in the script. The &#8220;hook&#8221; attribute
+tells the parser to load the script and to search for the function pointed to by the hook
+attribute. For example:</p>
+<div class="highlight-python"><div class="highlight"><pre>files: (
+        {
+                filename = &quot;examples.tar&quot;;
+                type = &quot;archive&quot;;
+                path = &quot;/tmp/test&quot;;
+                hook = &quot;set_version&quot;;
+        }
+);
+</pre></div>
+</div>
+<p>After the entry is parsed, the parser runs the Lua function pointed to by hook. If Lua is not
+activated, the parser raises an error because a sw-description with an embedded script must
+be parsed, but the interpreter is not available.</p>
+<p>Each Lua function receives as parameter a table with the setup for the current entry. A hook
+in Lua is in the format:</p>
+<div class="highlight-python"><div class="highlight"><pre>function lua_hook(image)
+</pre></div>
+</div>
+<p>image is a table where the keys are the list of available attributes. If an attribute contains
+a &#8220;-&#8221;, it is replaced with &#8220;_&#8221;, because &#8220;-&#8221; cannot be used in Lua. This means, for example, that:</p>
+<div class="highlight-python"><div class="highlight"><pre>install-if-different ==&gt; install_if_different
+install-directly     ==&gt; install_directly
+</pre></div>
+</div>
+<p>Attributes can be changed in the Lua script and values are taken over on return.
+The Lua function must return 2 values:</p>
+<blockquote>
+<div><ul class="simple">
+<li>a boolean, to indicate whether the parsing was correct</li>
+<li>the image table</li>
+</ul>
+</div></blockquote>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre>function set_version(image)
+        print (\&quot;RECOVERY_STATUS.RUN: \&quot;.. swupdate.RECOVERY_STATUS.RUN)
+        for k,l in pairs(image) do
+                swupdate.trace(\&quot;image[\&quot; .. tostring(k) .. \&quot;] = \&quot; .. tostring(l))
+        end
+        image.version = \&quot;1.0\&quot;
+        image.install_if_different = true
+        return true, image
+end
+</pre></div>
+</div>
+<p>The example sets a version for the installed image. Generally, this is detected at runtime
+reading from the target.</p>
+</div>
 <div class="section" id="attribute-reference">
 <h2>Attribute reference<a class="headerlink" href="#attribute-reference" title="Permalink to this headline">¶</a></h2>
 <p>There are 4 main sections inside sw-description:</p>
@@ -661,7 +857,8 @@ be run twice (as pre- and post- install scripts).</li>
 <li>bootenv: entries are pair with bootloader environment variable name and its
 value.</li>
 </ul>
-<table border="1" class="docutils">
+<table border="1" class="docutils" id="id1">
+<caption><span class="caption-text">Attributes in sw-description</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="18%" />
 <col width="14%" />
@@ -824,6 +1021,20 @@ scripts</td>
 Used for verification of signed
 images.</td>
 </tr>
+<tr class="row-odd"><td>embedded-
+script</td>
+<td>string</td>
+<td>&nbsp;</td>
+<td>Lua code that is embedded in the
+sw-description file.</td>
+</tr>
+<tr class="row-even"><td>hook</td>
+<td>string</td>
+<td>images
+files</td>
+<td>The name of the function (Lua) to be
+called when the entry is parsed.</td>
+</tr>
 <tr class="row-odd"><td>mtdname</td>
 <td>string</td>
 <td>images</td>
@@ -847,7 +1058,7 @@ specifying the devicenode</td>
         <a href="signed_images.html" class="btn btn-neutral float-right" title="Update images from verified source" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="suricatta.html" class="btn btn-neutral" title="Suricatta daemon mode" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="swupdate.html" class="btn btn-neutral" title="SWUpdate: software update for embedded system" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -878,7 +1089,7 @@ specifying the devicenode</td>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'2017.04',
+            VERSION:'2017.07',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

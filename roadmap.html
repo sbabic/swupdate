@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Project’s road-map &mdash; Embedded Software Update Documentation 2017.04 documentation</title>
+  <title>Project’s road-map &mdash; Embedded Software Update Documentation 2017.07 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="Embedded Software Update Documentation 2017.04 documentation" href="index.html"/>
+    <link rel="top" title="Embedded Software Update Documentation 2017.07 documentation" href="index.html"/>
         <link rel="prev" title="Mailing List" href="help_and_support.html"/> 
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                2017.04
+                2017.07
               </div>
             
           
@@ -87,11 +87,11 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="swupdate.html">SWUpdate: software update for embedded system</a></li>
-<li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sw-description.html">SWUpdate: syntax and tags with the default parser</a></li>
 <li class="toctree-l1"><a class="reference internal" href="signed_images.html">Update images from verified source</a></li>
 <li class="toctree-l1"><a class="reference internal" href="encrypted_images.html">Symmetrically Encrypted Update Images</a></li>
 <li class="toctree-l1"><a class="reference internal" href="handlers.html">Handlers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">SWUpdate: API for external programs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
 </ul>
@@ -104,9 +104,7 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="">Project&#8217;s road-map</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#main-goal">Main goal</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#embedded-scripts-in-sw-description">Embedded scripts in sw-description</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#reuse-process-monitor-mechanism">Reuse process monitor mechanism</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#support-for-other-bootloader-as-u-boot">Support for other bootloader as U-Boot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#swupdate-as-updater-gateway">SWUpdate as Updater Gateway</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#binary-delta-updates">Binary delta updates</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#handlers">Handlers:</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#new-handlers">New Handlers</a></li>
@@ -116,6 +114,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#support-for-evaluation-boards">Support for evaluation boards</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#backend-support-suricatta-mode">Backend support (suricatta mode)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#backend-offline-support">Backend: Offline support</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#backend-support-for-other-servers">Backend: Support for other Servers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#support-for-multiple-servers-simultaneously">Support for multiple Servers simultaneously</a></li>
 </ul>
@@ -184,28 +183,16 @@ SWUpdate suitable for a large number of products.
 This will help to build a community around the project
 itself.</p>
 </div>
-<div class="section" id="embedded-scripts-in-sw-description">
-<h2>Embedded scripts in sw-description<a class="headerlink" href="#embedded-scripts-in-sw-description" title="Permalink to this headline">¶</a></h2>
-<p>If an artifact is select to be installed immediately (&#8220;installed-directly&#8221;
-flag is set), no pre-install scripts are executed. This is because a script
-can be packed in the .swu file later after the artifact to be installed.
-A use case is when partitions must be prepared before installing an
-image. Another use case is to allow to change the sw-description on-the-fly,
-depending on run time conditions that only the target can know.</p>
-<p>If an embedded LUA script is inside sw-description, it is possible to evaluate
-it before any installation.</p>
-</div>
-<div class="section" id="reuse-process-monitor-mechanism">
-<h2>Reuse process monitor mechanism<a class="headerlink" href="#reuse-process-monitor-mechanism" title="Permalink to this headline">¶</a></h2>
-<p>Process monitoring and supoervising works fine for the subprocesses. There
-could be some use cases where a user wants to add own processes to it.
-This is more important on system where systemd is not the init system
-(systemd can do this) or there is no init system at all (rescue systems).</p>
-</div>
-<div class="section" id="support-for-other-bootloader-as-u-boot">
-<h2>Support for other bootloader as U-Boot<a class="headerlink" href="#support-for-other-bootloader-as-u-boot" title="Permalink to this headline">¶</a></h2>
-<p>A new generic interface for the bootloaders was introduced. U-Boot and GRUB are
-supported. It is open to other bootloader.</p>
+<div class="section" id="swupdate-as-updater-gateway">
+<h2>SWUpdate as Updater Gateway<a class="headerlink" href="#swupdate-as-updater-gateway" title="Permalink to this headline">¶</a></h2>
+<p>A lot of embedded devices have small processors and maybe not a full
+blown OS. Ensuring security for all of them can be a risk, and it is
+easier to make sure on a single device. If the device running SWUpdate is
+acting as gateway, it can translate protocols from backend and send
+package updates to the connected small devices.</p>
+<p>One example could be if SWUpdate runs as MQTT-broker and takes updates
+from Hawkbit. SWUpdate should be able to run multiple instances of
+suricatta to do this.</p>
 </div>
 <div class="section" id="binary-delta-updates">
 <h2>Binary delta updates<a class="headerlink" href="#binary-delta-updates" title="Permalink to this headline">¶</a></h2>
@@ -243,8 +230,21 @@ if it is worth to transfer the delta or switch to the whole image.</li>
 new methods can be considered, and new handlers can be added to mainline
 to support special ways. For example, downloading an image to a separate
 microprocessor/micro-controller, downloading a bit-stream to a FPGA,
-and so on.
-There are custom specific solutions - I will be glad if these additional
+and so on.</p>
+<dl class="docutils">
+<dt>Some ideas for new handlers:</dt>
+<dd><ul class="first last simple">
+<li>UART based handler to microcontrollers</li>
+<li>FPGA updater for FPGA with Flash</li>
+<li>Package handler to install packages (ipk, deb)
+Packages can be inserted into the SWU and the atomicity is
+guaranteed by SWUpdate.</li>
+<li>LUA handlers should be added if possible to the project
+to show how to solve custom install.</li>
+</ul>
+</dd>
+</dl>
+<p>There are custom specific solutions - I will be glad if these additional
 handlers will be merged into mainline in the future.</p>
 </div>
 <div class="section" id="flash-handler">
@@ -255,27 +255,34 @@ The handler can be extended to stream images.</p>
 </div>
 <div class="section" id="handlers-installable-as-plugin-at-runtime">
 <h3>Handlers installable as plugin at runtime<a class="headerlink" href="#handlers-installable-as-plugin-at-runtime" title="Permalink to this headline">¶</a></h3>
-<p>The project supports LUA as script language for pre- and postinstall
+<p>The project supports Lua as script language for pre- and postinstall
 script. It will be easy to add a way for installing a handler at runtime
-written in LUA, allowing to expand SWUpdate to the cases not covered
+written in Lua, allowing to expand SWUpdate to the cases not covered
 in the design phase of a product.</p>
 <p>Of course, this issue is related to the security features: it must be
 ensured that only verified handlers can be added to the system to avoid
 that malware can get the control of the target.</p>
 <p>Current release supports verified images. That means that a handler
-written in LUA could be now be part of the compound image, because
+written in Lua could be now be part of the compound image, because
 a unauthenticated handler cannot run.</p>
 </div>
 </div>
 <div class="section" id="support-for-evaluation-boards">
 <h2>Support for evaluation boards<a class="headerlink" href="#support-for-evaluation-boards" title="Permalink to this headline">¶</a></h2>
-<p>There is already an example in meta-swupdate regarding
-the beaglebone black. Some more examples and use cases
-can better explain the different usage of the project. A new meta-layer
-(meta-swupdate-boards) can be written to contain such as examples.</p>
+<p>New is meta-swupdate-boards - examples regarding evaluation boards are
+put there. Currently, there are examples for Beaglebone Black and
+Raspberri PI 3. Maybe some more boards ?</p>
 </div>
 <div class="section" id="backend-support-suricatta-mode">
 <h2>Backend support (suricatta mode)<a class="headerlink" href="#backend-support-suricatta-mode" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="backend-offline-support">
+<h3>Backend: Offline support<a class="headerlink" href="#backend-offline-support" title="Permalink to this headline">¶</a></h3>
+<p>There are several discussions on Hawkbit&#8217;s ML about how to synchronize
+an offline update (done locally or via the internal Webserver) with
+the Hawkbit&#8217;s server. Currently, Hawkbit thinks to be the only one
+deploying software. Hawkbit DDI API should be extended, and afterwards
+changes must be implemented in SWUpdate.</p>
+</div>
 <div class="section" id="backend-support-for-other-servers">
 <h3>Backend: Support for other Servers<a class="headerlink" href="#backend-support-for-other-servers" title="Permalink to this headline">¶</a></h3>
 <p>SWUpdate supports Hawkbit, but SWUpdate is unaware about which
@@ -355,7 +362,7 @@ how to set it up with different configurations.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'2017.04',
+            VERSION:'2017.07',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
