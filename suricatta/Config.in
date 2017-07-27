@@ -79,11 +79,6 @@ config SURICATTA_HAWKBIT
 comment "hawkBit support needs libcurl, json-c"
 	depends on !HAVE_LIBCURL || !HAVE_JSON_C
 
-config SURICATTA_SERVER_NONE
-	bool "None"
-	help
-	  Do not start suricatta mode
-
 endchoice
 
 endmenu
