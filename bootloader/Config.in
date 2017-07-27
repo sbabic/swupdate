@@ -13,7 +13,7 @@ config UBOOT
 	  https://www.denx.de/wiki/U-Boot
 
 comment "U-Boot support needs libubootenv, libz"
-	depends on !HAVE_ZLIB
+	depends on !HAVE_LIBUBOOTENV || !HAVE_ZLIB
 
 config BOOTLOADER_NONE
 	bool "None"
