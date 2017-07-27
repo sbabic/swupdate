@@ -281,15 +281,15 @@ choice
 	  (following PKCS#1.5) or if it uses Cryptographic Message Syntax (CMS).
 
 	config SIGALG_RAWRSA
-			bool "RSA PKCS#1.5"
+		bool "RSA PKCS#1.5"
 
 	config SIGALG_CMS
-			bool "Cryptographic Message Syntax (CMS)"
+		bool "Cryptographic Message Syntax (CMS)"
 
 endchoice
 
 menu "CMS signature verification options"
-depends on SIGALG_CMS
+	depends on SIGALG_CMS
 
 config CMS_IGNORE_EXPIRED_CERTIFICATE
 	bool "Ignore expired certificates"
