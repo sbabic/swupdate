@@ -262,6 +262,9 @@ config HASH_VERIFY
 	  Allow to add a sha256 hash to an artifact.
 	  This is automatically set in case of Signed Image
 
+comment "Hash verification needs libssl"
+	depends on !HAVE_LIBSSL
+
 config SIGNED_IMAGES
 	bool "Enable verification of signed images"
 	depends on HAVE_LIBSSL
