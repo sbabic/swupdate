@@ -308,10 +308,6 @@ config ENCRYPTED_IMAGES
 comment "Image verification (signed images) needs libssl"
 	depends on !HAVE_LIBSSL
 
-config SURICATTA
-	bool
-	default n
-
 source suricatta/Config.in
 
 config WEBSERVER
