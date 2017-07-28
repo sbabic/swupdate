@@ -373,9 +373,9 @@ off_t extract_sw_description(int fd, const char *descfile, off_t start)
 
 	close(fdout);
 
-	TRACE("Found file:\n\tfilename %s\n\tsize %u\n\tchecksum 0x%lx %s\n",
+	TRACE("Found file:\n\tfilename %s\n\tsize %lu\n\tchecksum 0x%lx %s\n",
 		fdh.filename,
-		(unsigned int)fdh.size,
+		(unsigned long)fdh.size,
 		(unsigned long)checksum,
 		(checksum == fdh.chksum) ? "VERIFIED" : "WRONG");
 
@@ -467,9 +467,9 @@ int cpio_scan(int fd, struct swupdate_cfg *cfg, off_t start)
 		SEARCH_FILE(struct img_type, cfg->scripts,
 			file_listed, start);
 
-		TRACE("Found file:\n\tfilename %s\n\tsize %d\n\t%s\n",
+		TRACE("Found file:\n\tfilename %s\n\tsize %lu\n\t%s\n",
 			fdh.filename,
-			(unsigned int)fdh.size,
+			fdh.size,
 			file_listed ? "REQUIRED" : "not required");
 
 		/*
@@ -480,6 +480,7 @@ int cpio_scan(int fd, struct swupdate_cfg *cfg, off_t start)
 			ERROR("invalid archive\n");
 			return -1;
 		}
+
 		if ((uint32_t)(fdh.chksum) != checksum) {
 			ERROR("Checksum verification failed for %s: %x != %x\n",
 			fdh.filename, (uint32_t)fdh.chksum, checksum);
