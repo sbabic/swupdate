@@ -459,7 +459,7 @@ int cpio_scan(int fd, struct swupdate_cfg *cfg, off_t start)
 			return -1;
 		}
 		if (strcmp("TRAILER!!!", fdh.filename) == 0) {
-			return offset;
+			return 0;
 		}
 
 		SEARCH_FILE(struct img_type, cfg->images,
