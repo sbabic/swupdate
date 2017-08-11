@@ -108,6 +108,11 @@ Current release supports verified images. That means that a handler
 written in Lua could be now be part of the compound image, because
 a unauthenticated handler cannot run.
 
+Encryption of compressed artifacts
+==================================
+
+Currently, encrypted artifact are not compressed. Allow to compress artifacts before encryption.
+
 Support for evaluation boards
 =============================
 
