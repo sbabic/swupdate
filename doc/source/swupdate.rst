@@ -25,8 +25,7 @@ device or directed to a serial line (Linux console).
 
 It is generally used in the single copy approach, running in a initrd
 (recipes are provided to generate with Yocto).  However, it is
-possible to use it in a double-copy approach by use of `Software
-collections`_.
+possible to use it in a double-copy approach by use of :ref:`collections`.
 
 If started for a remote update, SWUpdate starts an embedded
 Web-server and waits for requests. The operator must upload

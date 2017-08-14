@@ -206,6 +206,7 @@ Where:
 
 - `<boardname>` can be used for grouping board specific settings
 
+.. _collections:
 
 Software collections
 --------------------
