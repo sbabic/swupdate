@@ -32,6 +32,7 @@ SWUpdate Documentation
    suricatta.rst
    swupdate-ipc.rst
    progress.rst
+   building-with-yocto.rst
 
 ############################################
 Help and support
