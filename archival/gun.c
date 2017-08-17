@@ -82,7 +82,7 @@ static unsigned in(void *in_desc, unsigned char **buf)
     } while (ret != 0 && len < SIZE);
     percent = (unsigned int)(((double)(me->total - me->nbytes)) * 100 /
 		    (me->total ? me->total : 1));
-    if (percent != me->percent) {
+    if (percent != (unsigned int)me->percent) {
 	me->percent = percent;
 	swupdate_progress_update(percent);
     }
@@ -179,7 +179,7 @@ static int lunpipe(unsigned have, unsigned char *next, struct ind *indp,
                   int outfile, z_stream *strm)
 {
     int last;                   /* last byte read by NEXT(), or -1 if EOF */
-    int chunk;                  /* bytes left in current chunk */
+    unsigned chunk;             /* bytes left in current chunk */
     int left;                   /* bits left in rem */
     unsigned rem;               /* unused bits from input */
     int bits;                   /* current bits per code */
@@ -460,10 +460,10 @@ static int gunpipe(z_stream *strm, int infile, unsigned long *offs, int nbytes, 
 
         /* check trailer */
         ret = Z_BUF_ERROR;
-        if (NEXT() != (outd.crc & 0xff) ||
-            NEXT() != ((outd.crc >> 8) & 0xff) ||
-            NEXT() != ((outd.crc >> 16) & 0xff) ||
-            NEXT() != ((outd.crc >> 24) & 0xff)) {
+        if (NEXT() != (int)(outd.crc & 0xff) ||
+            NEXT() != (int)((outd.crc >> 8) & 0xff) ||
+            NEXT() != (int)((outd.crc >> 16) & 0xff) ||
+            NEXT() != (int)((outd.crc >> 24) & 0xff)) {
             /* crc error */
             if (last != -1) {
                 strm->msg = (char *)"incorrect data check";
@@ -471,10 +471,10 @@ static int gunpipe(z_stream *strm, int infile, unsigned long *offs, int nbytes, 
             }
             break;
         }
-        if (NEXT() != (outd.total & 0xff) ||
-            NEXT() != ((outd.total >> 8) & 0xff) ||
-            NEXT() != ((outd.total >> 16) & 0xff) ||
-            NEXT() != ((outd.total >> 24) & 0xff)) {
+        if (NEXT() != (int)(outd.total & 0xff) ||
+            NEXT() != (int)((outd.total >> 8) & 0xff) ||
+            NEXT() != (int)((outd.total >> 16) & 0xff) ||
+            NEXT() != (int)((outd.total >> 24) & 0xff)) {
             /* length error */
             if (last != -1) {
                 strm->msg = (char *)"incorrect length check";
