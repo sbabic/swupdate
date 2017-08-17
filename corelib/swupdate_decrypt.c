@@ -28,7 +28,7 @@
 #include "sslapi.h"
 #include "util.h"
 
-struct swupdate_digest *swupdate_DECRYPT_init(unsigned char *key, unsigned char *iv)
+struct swupdate_digest *swupdate_DECRYPT_init(unsigned char *key, unsigned char *iv, unsigned char *salt)
 {
 	struct swupdate_digest *dgst;
 	int ret;
@@ -38,9 +38,25 @@ struct swupdate_digest *swupdate_DECRYPT_init(unsigned char *key, unsigned char 
 		return NULL;
 	}
 
+	const EVP_CIPHER *cipher = EVP_aes_256_cbc();
+
 	dgst = calloc(1, sizeof(*dgst));
 	if (!dgst) {
 		return NULL;
+	}
+
+	if (salt != NULL) {
+		unsigned char dummy_key[EVP_MAX_KEY_LENGTH];
+		unsigned char dummy_iv[EVP_MAX_IV_LENGTH];
+		unsigned char dummy_pwd[5] = "DUMMY";
+		if (!EVP_BytesToKey(cipher, EVP_sha1(), salt,
+							dummy_pwd, sizeof(dummy_pwd),
+							1,
+							(unsigned char *)&dummy_key, (unsigned char *)&dummy_iv)) {
+			ERROR("Cannot set salt.");
+			free(dgst);
+			return NULL;
+		}
 	}
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
@@ -63,7 +79,7 @@ struct swupdate_digest *swupdate_DECRYPT_init(unsigned char *key, unsigned char 
 	/*
 	 * Check openSSL documentation for return errors
 	 */
-	ret = EVP_DecryptInit_ex(SSL_GET_CTXDEC(dgst), EVP_aes_256_cbc(), NULL, key, iv);
+	ret = EVP_DecryptInit_ex(SSL_GET_CTXDEC(dgst), cipher, NULL, key, iv);
 	if (ret != 1) {
 		ERROR("Decrypt Engine not initialized, error 0x%lx\n", ERR_get_error());
 		free(dgst);

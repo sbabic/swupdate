@@ -31,9 +31,15 @@
 #include "util.h"
 #include "generated/autoconf.h"
 
+/*
+ * key  is 256 bit for aes_256
+ * ivt  is 128 bit
+ * salt is  64 bit
+ */
 struct decryption_key {
 	unsigned char key[32];
 	unsigned char ivt[16];
+	unsigned char salt[8];
 };
 
 static struct decryption_key *aes_key = NULL;
@@ -276,6 +282,10 @@ static int ascii_to_bin(unsigned char *hash, const char *s, size_t len)
 	unsigned int i;
 	unsigned int val;
 
+	if (s == NULL) {
+		return 0;
+	}
+
 	if (len % 2)
 		return -EINVAL;
 	if (strlen(s) == len) {
@@ -339,14 +349,29 @@ int count_elem_list(struct imglist *list)
 int load_decryption_key(char *fname)
 {
 	FILE *fp;
-	char *b1, *b2;
+	char *b1 = NULL, *b2 = NULL, *b3 = NULL;
 	int ret;
 
 	fp = fopen(fname, "r");
 	if (!fp)
 		return -EBADF;
 
-	ret = fscanf(fp, "%ms %ms", &b1, &b2);
+	ret = fscanf(fp, "%ms %ms %ms", &b1, &b2, &b3);
+	switch (ret) {
+		case 2:
+			b3 = NULL;
+			DEBUG("Read decryption key and initialization vector from file %s.", fname);
+			break;
+		case 3:
+			DEBUG("Read decryption key, initialization vector, and salt from file %s.", fname);
+			break;
+		default:
+			if (b1 != NULL)
+				free(b1);
+			fprintf(stderr, "File with decryption key is not in the format <key> <ivt> nor <key> <ivt> <salt>\n");
+			fclose(fp);
+			return -EINVAL;
+	}
 	fclose(fp);
 
 	if (aes_key)
@@ -356,16 +381,16 @@ int load_decryption_key(char *fname)
 	if (!aes_key)
 		return -ENOMEM;
 
-	if (ret != 2) {
-		fprintf(stderr, "File with decryption key is in the format <key> <ivt>\n");
-		return -EINVAL;
-	}
+	ret = ascii_to_bin(aes_key->key,  b1, sizeof(aes_key->key)  * 2) |
+	      ascii_to_bin(aes_key->ivt,  b2, sizeof(aes_key->ivt)  * 2) |
+	      ascii_to_bin(aes_key->salt, b3, sizeof(aes_key->salt) * 2);
 
-	/*
-	 * Key is for aes_256, it must be 256 bit
-	 * and IVT is 128 bit
-	 */
-	ret = ascii_to_bin(aes_key->key, b1, 64) | ascii_to_bin(aes_key->ivt, b2, 32); 
+	if (b1 != NULL)
+		free(b1);
+	if (b2 != NULL)
+		free(b2);
+	if (b3 != NULL)
+		free(b3);
 
 	if (ret) {
 		fprintf(stderr, "Keys are invalid\n");
@@ -385,6 +410,12 @@ unsigned char *get_aes_ivt(void) {
 	if (!aes_key)
 		return NULL;
 	return aes_key->ivt;
+}
+
+unsigned char *get_aes_salt(void) {
+	if (!aes_key)
+		return NULL;
+	return aes_key->salt;
 }
 
 char** string_split(char* s, const char d)

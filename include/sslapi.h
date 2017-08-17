@@ -106,7 +106,7 @@ int swupdate_HASH_compare(unsigned char *hash1, unsigned char *hash2);
 #endif
 
 #ifdef CONFIG_ENCRYPTED_IMAGES
-struct swupdate_digest *swupdate_DECRYPT_init(unsigned char *key, unsigned char *iv);
+struct swupdate_digest *swupdate_DECRYPT_init(unsigned char *key, unsigned char *iv, unsigned char *salt);
 int swupdate_DECRYPT_update(struct swupdate_digest *dgst, unsigned char *buf, 
 				int *outlen, unsigned char *cryptbuf, int inlen);
 int swupdate_DECRYPT_final(struct swupdate_digest *dgst, unsigned char *buf,
@@ -117,7 +117,7 @@ void swupdate_DECRYPT_cleanup(struct swupdate_digest *dgst);
  * Note: macro for swupdate_DECRYPT_init is
  * just to avoid compiler warnings
  */
-#define swupdate_DECRYPT_init(key, iv) (((key != NULL) | (ivt != NULL)) ? NULL : NULL)
+#define swupdate_DECRYPT_init(key, iv, salt) (((key != NULL) | (ivt != NULL) | (salt != NULL)) ? NULL : NULL)
 #define swupdate_DECRYPT_update(p, buf, len, cbuf, inlen) (-1)
 #define swupdate_DECRYPT_final(p, buf, len) (-1)
 #define swupdate_DECRYPT_cleanup(p)

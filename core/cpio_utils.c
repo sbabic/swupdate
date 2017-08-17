@@ -130,6 +130,7 @@ int copyfile(int fdin, void *out, unsigned int nbytes, unsigned long *offs, unsi
 	unsigned int md_len = 0;
 	unsigned char *aes_key;
 	unsigned char *ivt;
+	unsigned char *salt;
 
 	if (!callback) {
 		callback = copy_write;
@@ -166,7 +167,8 @@ int copyfile(int fdin, void *out, unsigned int nbytes, unsigned long *offs, unsi
 
 		aes_key = get_aes_key();
 		ivt = get_aes_ivt();
-		dcrypt = swupdate_DECRYPT_init(aes_key, ivt);
+		salt = get_aes_salt();
+		dcrypt = swupdate_DECRYPT_init(aes_key, ivt, salt);
 		if (!dcrypt) {
 			ERROR("decrypt initialization failure, aborting");
 			ret = -EFAULT;
