@@ -1076,7 +1076,7 @@ server_op_res_t server_process_update_artifact(int action_id,
 		if (endfilename <= 0 ||
 		    strncmp(&s[endfilename], ".swu", 4)) {
 			DEBUG("File '%s' is not a SWU image, skipping", s);
-			goto cleanup;
+			continue;
 		}
 
 		DEBUG("Processing '%s' from '%s'\n",
