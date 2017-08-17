@@ -406,7 +406,8 @@ install: all
 PHONY += run-tests
 tests: \
 	acceptance-tests \
-	suricatta-tests
+	suricatta-tests \
+	corelib-tests
 
 PHONY += acceptance-tests
 acceptance-tests: FORCE
@@ -415,6 +416,10 @@ acceptance-tests: FORCE
 PHONY += suricatta-tests
 suricatta-tests: FORCE
 	$(Q)$(MAKE) $(build)=suricatta/test SWOBJS="$(swupdate-objs)" SWLIBS="$(swupdate-libs)" LDLIBS="$(LDLIBS)" tests
+
+PHONY += corelib-tests
+corelib-tests: FORCE
+	$(Q)$(MAKE) $(build)=corelib/test SWOBJS="$(swupdate-objs)" SWLIBS="$(swupdate-libs)" LDLIBS="$(LDLIBS)" tests
 
 # The actual objects are generated when descending,
 # make sure no implicit rule kicks in
