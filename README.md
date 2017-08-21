@@ -49,8 +49,8 @@ http://sbabic.github.io/swupdate
 Submitting patches
 ------------------
 
-You can submit your patches (or post questions regarding
-the project) to the swupdate Mailing List:
+Contributions are welcome !  You can submit your patches (or post questions
+regarding the project) to the swupdate Mailing List:
 
 	swupdate@googlegroups.com
 
@@ -60,3 +60,7 @@ When creating patches, please use something like:
 
 Please use 'git send-email' to send the generated patches to the ML
 to bypass changes from your mailer.
+
+Patches are tracked by patchwork (see http://jk.ozlabs.org/projects/patchwork/).
+You can see the status of your patches at
+http://patchwork.ozlabs.org/project/swupdate/list.
