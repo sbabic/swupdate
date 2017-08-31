@@ -599,6 +599,13 @@ int main(int argc, char **argv)
 	/* Process options with getopt */
 	while ((c = getopt_long(argc, argv, main_options,
 				long_options, NULL)) != EOF) {
+		if (optarg && *optarg == '-' && (c != 'd' && c != 'u' && c != 'w')) {
+			/* An option's value starting with '-' is not allowed except
+			 * for downloader, webserver, and suricatta doing their own
+			 * argv parsing.
+			 */
+			c = '?';
+		}
 		switch (c) {
 		case 'v':
 			loglevel = TRACELEVEL;
@@ -680,6 +687,12 @@ int main(int argc, char **argv)
 		}
 	}
 
+	if (optind < argc) {
+		/* SWUpdate has no non-option arguments, fail on them */
+		usage(argv[0]);
+		exit(1);
+	}
+
 	/*
 	 * Parameters are parsed: now performs plausibility
 	 * tests before starting processes and threads
@@ -697,6 +710,13 @@ int main(int argc, char **argv)
 		usage(argv[0]);
 		exit(1);
 	}
+
+#ifdef CONFIG_SURICATTA
+	if (opt_u && (opt_c || opt_i)) {
+		fprintf(stderr, "invalid mode combination with suricatta.\n");
+		exit(1);
+	}
+#endif
 
 	swupdate_crypto_init();
 
