@@ -6,6 +6,8 @@ language: c
 
 before_install:
     - sudo apt-get -qq update
+    - sudo apt-get install -y build-essential
+    - sudo apt-get install -y automake
     - sudo apt-get install -y libzmq3-dev
     - sudo apt-get install -y libcurl4-openssl-dev
     - sudo apt-get install -y liblua5.2-dev
@@ -13,5 +15,31 @@ before_install:
     - sudo apt-get install -y libarchive-dev
     - sudo apt-get install -y libjson0-dev
     - sudo apt-get install -y zlib1g-dev
+    - sudo apt-get install -y git
+    - sudo apt-get install -y uuid
+    - sudo apt-get install -y uuid-dev
+    - sudo apt-get install -y liblzo2-dev
 
-script: for i in configs/*;do echo $i;make `basename $i` && make;done
+script:
+    - sudo mkdir -p /usr/local/lib
+    - sudo mkdir -p /usr/local/include
+    - sudo mkdir -p /usr/local/include/mtd
+    - git clone git://git.infradead.org/mtd-utils.git
+    - cd mtd-utils
+    - git checkout -b tmp v2.0.0
+    - ./autogen.sh
+    - ./configure
+    - make
+    - sudo install -m 644 include/libubi.h /usr/local/include/mtd
+    - sudo install -m 644 include/libmtd.h /usr/local/include/mtd
+    - sudo install -m 644 include/mtd/ubi-media.h /usr/local/include/mtd
+    - sudo install -m 644 *.a /usr/local/lib
+    - cd ..
+    - git clone git://git.denx.de/u-boot
+    - cd u-boot
+    - git checkout -b tmp v2017.07
+    - make sandbox_defconfig
+    - make env
+    - sudo install -m 644 tools/env/lib.a /usr/local/lib/libubootenv.a
+    - cd ..
+    - for i in configs/*;do echo $i;make `basename $i` && make;done
