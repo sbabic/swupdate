@@ -18,11 +18,11 @@ API Description
 ---------------
 
 An external process registers itself to SWUpdate with a connect()
-request to the domain socket "/tmp/swupdateprog". There is no
-information to send, and SWUpdate simply inserts the new connection
-in the list of processed to be informed. SWUpdate will send a frame
-back after any change in the update process with the following data
-(see include/progress.h):
+request to the domain socket "/tmp/swupdateprog" as per default
+configuration of SWUpdate. There is no information to send, and
+SWUpdate simply inserts the new connection into the list of processes
+to be informed. SWUpdate will send a frame back after any change in
+the update process with the following data (see include/progress_ipc.h):
 
 ::
 

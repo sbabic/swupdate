@@ -22,7 +22,9 @@ API Description
 ===============
 
 The communication runs via UDS (Unix Domain Socket). The socket is created
-at the startup by SWUpdate in /tmp/sockinstdata.
+at startup by SWUpdate in /tmp/sockinstctrl as per default configuration.
+This socket should, however, not be used directly but instead by the Client
+Library explained below.
 
 The exchanged packets are described in network_ipc.h
 
