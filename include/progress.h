@@ -23,27 +23,13 @@
 #define _INSTALL_PROGRESS_H
 
 #include <swupdate_status.h>
-
-#define SOCKET_PROGRESS_PATH "/tmp/swupdateprog"
+#include <progress_ipc.h>
 
 /*
- * Message sent via socket
- * Data are sent in LE when required
+ * Internal SWUpdate functions to drive the progress
+ * interface. Common progress definitions for internal
+ * as well as external use are defined in progress_ipc.h
  */
-struct progress_msg {
-	unsigned int	magic;		/* Magic Number */
-	RECOVERY_STATUS	status;		/* Update Status (Running, Failure) */
-	unsigned int	dwl_percent;	/* % downloaded data */
-	unsigned int	nsteps;		/* No. total of steps */
-	unsigned int	cur_step;	/* Current step index */
-	unsigned int	cur_percent;	/* % in current step */
-	char		cur_image[256];	/* Name of image to be installed */
-	char		hnd_name[64];	/* Name of running hanler */
-	sourcetype	source;		/* Interface that triggered the update */
-	unsigned int 	infolen;    	/* Len of data valid in info */
-	char		info[2048];   	/* additional information about install */
-};
-
 void swupdate_progress_init(unsigned int nsteps);
 void swupdate_progress_update(unsigned int perc);
 void swupdate_progress_inc_step(char *image);
