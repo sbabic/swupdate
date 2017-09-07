@@ -110,6 +110,29 @@ config SW_VERSIONS_FILE
 	  but in some cases it can be required to do it. Having a check,
 	  the risky-component is not always updated.
 
+menu "Socket Paths"
+
+config SOCKET_CTRL_PATH
+	string "SWUpdate control socket path"
+	default "/tmp/sockinstctrl"
+	help
+	  Path to SWUpdate's IPC socket.
+
+config SOCKET_PROGRESS_PATH
+	string "SWUpdate progress socket path"
+	default "/tmp/swupdateprog"
+	help
+	  Path to the socket progress information is sent to.
+
+config SOCKET_REMOTE_HANDLER_DIRECTORY
+	string "SWUpdate remote handler socket directory"
+	default "/tmp/"
+	help
+	  Directory where sockets to remote handler processes
+	  are expected to be found.
+
+endmenu
+
 config MTD
 	bool "MTD support"
 	default y
