@@ -36,7 +36,7 @@
 #include <pthread.h>
 #include <getopt.h>
 
-#include <progress.h>
+#include <progress_ipc.h>
 
 #define PSPLASH_MSG_SIZE	64
 
@@ -76,6 +76,7 @@ static struct option long_options[] = {
 	{"reboot", no_argument, NULL, 'r'},
 	{"wait", no_argument, NULL, 'w'},
 	{"color", no_argument, NULL, 'c'},
+	{"socket", required_argument, NULL, 's'},
 	{NULL, 0, NULL, 0}
 };
 
@@ -89,6 +90,7 @@ static void usage(char *programname)
 		" -r, --reboot            : reboot after a successful update\n"
 		" -w, --wait              : wait for a connection with SWUpdate\n"
 		" -p, --psplash           : send info to the psplash process\n"
+		" -s, --socket <path>     : path to progress IPC socket\n"
 		" -h, --help              : print this help and exit\n"
 		);
 }
@@ -177,45 +179,10 @@ static void psplash_progress(char *pipe, struct progress_msg *pmsg)
 	free(buf);
 }
 
-static int connect_to_swupdate(int reconnect)
-{
-	struct sockaddr_un servaddr;
-	int fd, ret;
-
-	/*
-	 * The thread read from swupdate progress thread
-	 * and forward messages to psplash
-	 */
-	fd = socket(AF_LOCAL, SOCK_STREAM, 0);
-	bzero(&servaddr, sizeof(servaddr));
-	servaddr.sun_family = AF_LOCAL;
-	strcpy(servaddr.sun_path, SOCKET_PROGRESS_PATH);
-
-	fprintf(stdout, "Trying to connect to SWUpdate...\n");
-
-	/* Connection to SWUpdate */
-	do {
-		ret = connect(fd, (struct sockaddr *) &servaddr, sizeof(servaddr));
-		if (ret == 0)
-			break;
-		if (!reconnect) {
-			fprintf(stderr, "no communication with swupdate\n");
-			exit(1);
-		}
-
-		usleep(10000);
-	} while (1);
-
-	fprintf(stdout, "Connected\n");
-
-	return fd;
-}
-
 int main(int argc, char **argv)
 {
 	int connfd;
 	struct progress_msg msg;
-	int ret;
 	const char *tmpdir;
 	char psplash_pipe_path[256];
 	int psplash_ok = 0;
@@ -231,7 +198,7 @@ int main(int argc, char **argv)
 	RECOVERY_STATUS	status = IDLE;		/* Update Status (Running, Failure) */
 
 	/* Process options with getopt */
-	while ((c = getopt_long(argc, argv, "cwprh",
+	while ((c = getopt_long(argc, argv, "cwprhs:",
 				long_options, NULL)) != EOF) {
 		switch (c) {
 		case 'c':
@@ -245,6 +212,9 @@ int main(int argc, char **argv)
 			break;
 		case 'r':
 			opt_r = 1;
+			break;
+		case 's':
+			SOCKET_PROGRESS_PATH = strdup(optarg);
 			break;
 		case 'h':
 			usage(argv[0]);
@@ -266,14 +236,10 @@ int main(int argc, char **argv)
 	connfd = -1;
 	while (1) {
 		if (connfd < 0) {
-			connfd = connect_to_swupdate(opt_w);
+			connfd = progress_ipc_connect(opt_w);
 		}
 
-		ret = read(connfd, &msg, sizeof(msg));
-		if (ret != sizeof(msg)) {
-			fprintf(stdout, "Connection closing..\n");
-			close(connfd);
-			connfd = -1;
+		if (progress_ipc_receive(&connfd, &msg) == -1) {
 			continue;
 		}
 
