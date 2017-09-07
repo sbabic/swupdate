@@ -56,13 +56,21 @@ generating the SWU. The class defines new variables, all of them have the prefix
 
         SWUPDATE_IMAGES_NOAPPEND_MACHINE[my-image] = "1"
 
-- **SWUPDATE_SIGNING** : if set, the SWU is signed.
+- **SWUPDATE_SIGNING** : if set, the SWU is signed. There are 3 allowed values:
+  RSA, CMS, CUSTOM. This value determines used signing mechanism.
 - **SWUPDATE_SIGN_TOOL** : instead of using openssl, use SWUPDATE_SIGN_TOOL to sign
-  the image. A typical use case is together with a hardware key.
+  the image. A typical use case is together with a hardware key. It is
+  available if SWUPDATE_SIGNING is set to CUSTOM
 - **SWUPDATE_PRIVATE_KEY** : this is the file with the private key used to sign the
-  image.
+  image using RSA mechanism. Is available if SWUPDATE_SIGNING is set to RSA.
 - **SWUPDATE_PASSWORD_FILE** : an optional file containing the password for the private
-  key.
+  key. It is available if SWUPDATE_SIGNING is set to RSA.
+- **SWUPDATE_CMS_KEY** : this is the file with the private key used in signing
+  process using CMS mechanism. It is available if SWUPDATE_SIGNING is set to
+  CMS.
+- **SWUPDATE_CMS_CERT** : this is the file with the certificate used in signing
+  process using using CMS method. It is available if SWUPDATE_SIGNING is
+  set to CMS.
 
 Automatic sha256 in sw-description
 ----------------------------------
