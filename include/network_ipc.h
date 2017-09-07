@@ -24,7 +24,6 @@
 #include "swupdate_status.h"
 
 #define IPC_MAGIC		0x14052001
-#define SOCKET_CTRL_PATH	"/tmp/sockinstctrl"
 
 typedef enum {
 	REQ_INSTALL,

@@ -35,6 +35,12 @@
 
 #include "network_ipc.h"
 
+#ifdef CONFIG_SOCKET_CTRL_PATH
+static char* SOCKET_CTRL_PATH = (char*)CONFIG_SOCKET_CTRL_PATH;
+#else
+static char* SOCKET_CTRL_PATH = (char*)"/tmp/sockinstctrl";
+#endif
+
 struct async_lib {
 	int connfd;
 	int status;

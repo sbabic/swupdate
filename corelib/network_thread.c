@@ -42,6 +42,7 @@
 #include "installer.h"
 #include "swupdate.h"
 #include "pctl.h"
+#include "generated/autoconf.h"
 
 #define LISTENQ	1024
 
@@ -193,7 +194,7 @@ void *network_thread (void *data)
 	register_notifier(network_notifier);
 
 	/* Initialize and bind to UDS */
-	ctrllisten = listener_create(SOCKET_CTRL_PATH, SOCK_STREAM);
+	ctrllisten = listener_create((char*)CONFIG_SOCKET_CTRL_PATH, SOCK_STREAM);
 	if (ctrllisten < 0 ) {
 		TRACE("Error creating IPC sockets");
 		exit(2);
