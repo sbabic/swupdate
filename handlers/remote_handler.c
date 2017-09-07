@@ -167,7 +167,7 @@ static int install_remote_image(struct img_type *img,
 	struct RHmsg RHmessage;
 	char bufcmd[80];
 
-	len = strlen(img->type_data) + strlen(TMPDIR) + strlen("ipc://") + 4;
+	len = strlen(img->type_data) + strlen(CONFIG_SOCKET_REMOTE_HANDLER_DIRECTORY) + strlen("ipc://") + 4;
 
 	/*
 	 * Allocate maximum string
@@ -177,7 +177,7 @@ static int install_remote_image(struct img_type *img,
 		ERROR("Not enough memory");
 		return -ENOMEM;
 	}
-	snprintf(connect_string, len, "ipc://%s%s", TMPDIR,
+	snprintf(connect_string, len, "ipc://%s%s", CONFIG_SOCKET_REMOTE_HANDLER_DIRECTORY,
 			img->type_data);
 
 	ret = zmq_connect(request, connect_string);
