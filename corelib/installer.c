@@ -86,6 +86,7 @@ int check_if_required(struct imglist *list, struct filehdr *pfdh,
 	int skip = SKIP_FILE;
 	struct img_type *img;
 	int img_skip = 0;
+	const char* TMPDIR = get_tmpdir();
 
 	/*
 	 * Check that not more as one image wnat to be streamed
@@ -204,7 +205,9 @@ static int update_bootloader_env(void)
 	int ret = 0;
 
 	TRACE("Updating bootloader environment");
-	ret = bootloader_apply_list((char *)BOOT_SCRIPT);
+	char* bootscript = alloca(strlen(get_tmpdir())+strlen(BOOT_SCRIPT_SUFFIX)+1);
+	sprintf(bootscript, "%s%s", get_tmpdir(), BOOT_SCRIPT_SUFFIX);
+	ret = bootloader_apply_list(bootscript);
 	if (ret < 0)
 		ERROR("Error updating bootloader environment");
 
@@ -250,6 +253,7 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 	char filename[64];
 	struct filehdr fdh;
 	struct stat buf;
+	const char* TMPDIR = get_tmpdir();
 
 	/* Extract all scripts, preinstall scripts must be run now */
 	if (fromfile) {
@@ -268,7 +272,9 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 	}
 
 	/* Update u-boot environment */
-	ret = prepare_boot_script(sw, BOOT_SCRIPT);
+	char* bootscript = alloca(strlen(TMPDIR)+strlen(BOOT_SCRIPT_SUFFIX)+1);
+	sprintf(bootscript, "%s%s", TMPDIR, BOOT_SCRIPT_SUFFIX);
+	ret = prepare_boot_script(sw, bootscript);
 	if (ret) {
 		return ret;
 	}
@@ -377,6 +383,7 @@ void cleanup_files(struct swupdate_cfg *software) {
 	struct img_type *img;
 	struct dict_entry *bootvar;
 	struct hw_type *hw;
+	const char* TMPDIR = get_tmpdir();
 
 	LIST_FOREACH(img, &software->images, next) {
 		if (img->fname[0]) {

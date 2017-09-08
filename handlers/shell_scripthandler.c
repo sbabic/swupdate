@@ -40,17 +40,19 @@ static void shell_postinstall_handler(void);
 static int execute_shell_script(struct img_type *img, const char *fnname)
 {
 	int ret;
-	char shellscript[MAX_IMAGE_FNAME +
-		strlen(SCRIPTS_DIR) + strlen("postinst") + 2];
+	const char* TMPDIR = get_tmpdir();
+
+	char shellscript[MAX_IMAGE_FNAME + strlen(TMPDIR) +
+		strlen(SCRIPTS_DIR_SUFFIX) + strlen("postinst") + 2];
 
 	snprintf(shellscript, sizeof(shellscript),
-		"%s%s", TMPDIR, img->fname);
+		"%s%s%s", TMPDIR, SCRIPTS_DIR_SUFFIX, img->fname);
 	if (chmod(shellscript, S_IRUSR | S_IWUSR | S_IXUSR)) {
 		ERROR("Execution bit cannot be set for %s", shellscript);
 		return -1;
 	}
 	snprintf(shellscript, sizeof(shellscript),
-		"%s%s %s", TMPDIR, img->fname, fnname);
+		"%s%s%s %s", TMPDIR, SCRIPTS_DIR_SUFFIX, img->fname, fnname);
 
 	ret = system(shellscript);
 	if (WIFEXITED(ret)) {

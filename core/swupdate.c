@@ -305,7 +305,9 @@ static int install_from_file(char *fname, int check)
 		pos);
 #endif
 
-	ret = parse(&swcfg, TMPDIR SW_DESCRIPTION_FILENAME);
+	char* swdescfilename = alloca(strlen(get_tmpdir())+strlen(SW_DESCRIPTION_FILENAME)+1);
+	sprintf(swdescfilename, "%s%s", get_tmpdir(), SW_DESCRIPTION_FILENAME);
+	ret = parse(&swcfg, swdescfilename);
 	if (ret) {
 		ERROR("failed to parse " SW_DESCRIPTION_FILENAME "!\n");
 		exit(1);
@@ -394,6 +396,12 @@ static int parse_image_selector(const char *selector, struct swupdate_cfg *sw)
 	return 0;
 }
 
+static void create_directory(const char* path) {
+	char* dpath = alloca(strlen(get_tmpdir())+strlen(path)+1);
+	sprintf(dpath, "%s%s", get_tmpdir(), path);
+	mkdir(dpath, 0777);
+}
+
 static void swupdate_init(struct swupdate_cfg *sw)
 {
 	/* Initialize internal tree to store configuration */
@@ -407,9 +415,9 @@ static void swupdate_init(struct swupdate_cfg *sw)
 
 
 	/* Create directories for scripts */
-	mkdir(SCRIPTS_DIR, 0777);
-	mkdir(DATASRC_DIR, 0777);
-	mkdir(DATADST_DIR, 0777);
+	create_directory(SCRIPTS_DIR_SUFFIX);
+	create_directory(DATASRC_DIR_SUFFIX);
+	create_directory(DATADST_DIR_SUFFIX);
 
 #ifdef CONFIG_MTD
 	mtd_init();

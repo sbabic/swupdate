@@ -342,6 +342,7 @@ off_t extract_sw_description(int fd, const char *descfile, off_t start)
 	char output_file[64];
 	uint32_t checksum;
 	int fdout;
+	const char* TMPDIR = get_tmpdir();
 
 	if (extract_cpio_header(fd, &fdh, &offset)) {
 		ERROR("CPIO Header wrong\n");

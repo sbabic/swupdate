@@ -34,7 +34,7 @@
 #include "handler.h"
 #include "util.h"
 
-#define FIFO	TMPDIR "archivfifo"
+#define FIFO_FILE_NAME "archivfifo"
 
 /* Just to turn on during development */
 static int debug = 0;
@@ -103,6 +103,8 @@ extract(void *p)
 	 * Enabling bzip2 is more expensive because the libbz2 library
 	 * isn't very well factored.
 	 */
+	char* FIFO = alloca(strlen(get_tmpdir())+strlen(FIFO_FILE_NAME)+1);
+	sprintf(FIFO, "%s%s", get_tmpdir(), FIFO_FILE_NAME);
 	if ((r = archive_read_open_filename(a, FIFO, 4096))) {
 		ERROR("archive_read_open_filename(): %s %d\n",
 		    archive_error_string(a), r);
@@ -154,6 +156,9 @@ static int install_archive_image(struct img_type *img,
 	void *status;
 	int use_mount = (strlen(img->device) && strlen(img->filesystem)) ? 1 : 0;
 
+	char* DATADST_DIR = alloca(strlen(get_tmpdir())+strlen(DATADST_DIR_SUFFIX)+1);
+	sprintf(DATADST_DIR, "%s%s", get_tmpdir(), DATADST_DIR_SUFFIX);
+
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
@@ -182,6 +187,8 @@ static int install_archive_image(struct img_type *img,
 		}
 	}
 
+	char* FIFO = alloca(strlen(get_tmpdir())+strlen(FIFO_FILE_NAME)+1);
+	sprintf(FIFO, "%s%s", get_tmpdir(), FIFO_FILE_NAME);
 	unlink(FIFO);
 	ret = mkfifo(FIFO, 0666);
 	if (ret) {

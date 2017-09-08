@@ -89,6 +89,7 @@ static int extract_file_to_tmp(int fd, const char *fname, unsigned long *poffs)
 	struct filehdr fdh;
 	int fdout;
 	uint32_t checksum;
+	const char* TMPDIR = get_tmpdir();
 
 	if (extract_cpio_header(fd, &fdh, poffs)) {
 		return -1;
@@ -135,7 +136,7 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 	int fdout;
 	struct img_type *img, *part;
 	char output_file[MAX_IMAGE_FNAME];
-
+	const char* TMPDIR = get_tmpdir();
 
 	/* preset the info about the install parts */
 

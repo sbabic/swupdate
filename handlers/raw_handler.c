@@ -59,6 +59,8 @@ static int install_raw_file(struct img_type *img,
 	int fdout;
 	int ret = 0;
 	int use_mount = (strlen(img->device) && strlen(img->filesystem)) ? 1 : 0;
+	char* DATADST_DIR = alloca(strlen(get_tmpdir())+strlen(DATADST_DIR_SUFFIX)+1);
+	sprintf(DATADST_DIR, "%s%s", get_tmpdir(), DATADST_DIR_SUFFIX);
 
 	if (strlen(img->path) == 0) {
 		ERROR("Missing path attribute");
