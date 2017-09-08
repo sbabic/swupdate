@@ -52,6 +52,29 @@ char *sdup(const char *str) {
 	return p;
 }
 
+static char* TMPDIR = NULL;
+
+const char* get_tmpdir(void)
+{
+	if (TMPDIR != NULL) {
+		return TMPDIR;
+	}
+
+	char *env_tmpdir = getenv("TMPDIR");
+	if (env_tmpdir == NULL) {
+		TMPDIR = (char*)"/tmp/";
+		return TMPDIR;
+	}
+
+	if (env_tmpdir[strlen(env_tmpdir)] == '/') {
+		TMPDIR = env_tmpdir;
+		return TMPDIR;
+	}
+
+	asprintf(&TMPDIR, "%s/", env_tmpdir);
+	return TMPDIR;
+}
+
 static int countargc(char *args, char **argv)
 {
 	int count = 0;

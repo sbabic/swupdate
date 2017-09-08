@@ -112,7 +112,6 @@ typedef void (*notifier) (RECOVERY_STATUS status, int level, const char *msg);
 
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
 
-#define TMPDIR		"/tmp/"
 
 #define LG_16 4
 #define FROM_HEX(f) from_ascii (f, sizeof f, LG_16)
@@ -195,5 +194,6 @@ static inline int decompress_image(int __attribute__ ((__unused__))infile,
 }
 #endif
 
+const char* get_tmpdir(void);
 
 #endif
