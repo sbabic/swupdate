@@ -112,27 +112,6 @@ int openfileoutput(const char *filename)
 	return fdout;
 }
 
-int isDirectoryEmpty(const char *dirname)
-{
-	int n = 0;
-	struct dirent *d;
-	DIR *dir = opendir(dirname);
-
-	if (dir == NULL)
-		return 1;
-
-	while ((d = readdir(dir)) != NULL) {
-		if(++n > 2)
-			break;
-  	}
-	closedir(dir);
-
-	if (n <= 2)
-		return 1;
-
-	return 0;
-}
-
 /*
  * This function is strict bounded with the hardware
  * It reads some GPIOs to get the hardware revision
