@@ -3,6 +3,8 @@
 SWUpdate - Software Update for Embedded Systems
 ===============================================
 
+[![Build Status](https://travis-ci.org/sbabic/swupdate.svg?branch=master)](https://travis-ci.org/sbabic/swupdate)
+
 SWUpdate is a Linux Update agent with the goal to
 provide an efficient and safe way to update
 an embedded system. SWUpdate supports local and remote
