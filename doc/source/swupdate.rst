@@ -172,7 +172,9 @@ the image that must be installed.
 
 The feature can be set on image basis, that means that a user can
 decide which partial images should be streamed. If not streamed (see
-installed-directly flag), files are temporary extracted into /tmp.
+installed-directly flag), files are temporary extracted into the directory
+pointed to by the environment variable ``TMPDIR`` with ``/tmp`` as
+fall-back if ``TMPDIR`` is not set.
 Of course, by streaming it is not possible to make checks on the whole delivered
 software before installing.
 The temporary copy is done only when updated from network. When the image
@@ -181,8 +183,9 @@ is stored on an external storage, there is no need of that copy.
 Images fully streamed
 ---------------------
 
-In case of remote update, SWUpdate extracts relevant images
-from the stream and copy them into /tmp before calling the handlers.
+In case of remote update, SWUpdate extracts relevant images from the stream
+and copies them into the directory pointed to by the environment variable 
+``TMPDIR`` (if unset, to ``/tmp``) before calling the handlers.
 This guarantee that an update is initiated only if all parts are present and
 correct. However, on some systems with less resources, the amount of RAM
 to copy the images could be not enough, for example if the filesystem on
