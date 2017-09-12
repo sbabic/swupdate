@@ -401,6 +401,7 @@ static int l_handler_wrapper(struct img_type *img, void *data) {
 	lua_Number result;
 	int l_func_ref;
 	int fdout;
+	const char* TMPDIR = get_tmpdir();
 
 	if (!gL || !img || !data) {
 		return -1;

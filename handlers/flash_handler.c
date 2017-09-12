@@ -312,6 +312,7 @@ static int install_flash_image(struct img_type *img,
 	char filename[64];
 	int mtdnum;
 	int n;
+	const char* TMPDIR = get_tmpdir();
 
 	n = snprintf(filename, sizeof(filename), "%s%s", TMPDIR, img->fname);
 	if (n < 0 || n >= sizeof(filename)) {

@@ -44,9 +44,11 @@ static int start_lua_script(struct img_type *img, void *data)
 	int ret;
 	const char *fnname;
 	const char *output;
-	char filename[64];
 	script_fn scriptfn;
 	lua_State *L = luaL_newstate(); /* opens Lua */
+	const char* TMPDIR = get_tmpdir();
+	char filename[MAX_IMAGE_FNAME + strlen(TMPDIR) +
+		strlen(SCRIPTS_DIR_SUFFIX) + 2];
 
 	if (!data)
 		return -1;
@@ -65,7 +67,8 @@ static int start_lua_script(struct img_type *img, void *data)
 		return 0;
 	}
 
-	snprintf(filename, sizeof(filename), "%s%s", TMPDIR, img->fname);
+	snprintf(filename, sizeof(filename),
+		"%s%s%s", TMPDIR, SCRIPTS_DIR_SUFFIX, img->fname);
 	TRACE("Calling Lua %s", filename);
 
 	luaL_openlibs(L); /* opens the standard libraries */
