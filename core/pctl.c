@@ -160,8 +160,13 @@ static int spawn_process(struct swupdate_task *task,
 
 	if (start)
 		return (*start)(cfgname, ac, av);
-	else
-		return execvp(cmdline, av);
+	else {
+		if (execvp(cmdline, av) == -1) {
+			INFO("Spawning process %s failed: %s", av[0], strerror(errno));
+			return -1;
+		}
+		return 0;
+	}
 }
 
 static void start_swupdate_subprocess(sourcetype type,
@@ -177,8 +182,8 @@ static void start_swupdate_subprocess(sourcetype type,
 	procs[nprocs].name = name;
 	procs[nprocs].type = type;
 	if (spawn_process(&procs[nprocs], uid, gid, cfgfile, argc, argv, start, cmdline) < 0) {
-		ERROR("SPAWN %s failed, exiting...\n", name);
-		return;
+		ERROR("Spawning %s failed, exiting process...\n", name);
+		exit(1);
 	}
 
 	TRACE("Started %s with pid %d and fd %d", name, procs[nprocs].pid, procs[nprocs].pipe);
