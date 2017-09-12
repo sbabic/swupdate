@@ -71,7 +71,9 @@ const char* get_tmpdir(void)
 		return TMPDIR;
 	}
 
-	asprintf(&TMPDIR, "%s/", env_tmpdir);
+	if (asprintf(&TMPDIR, "%s/", env_tmpdir) == -1) {
+		TMPDIR = (char*)"/tmp/";
+	}
 	return TMPDIR;
 }
 
