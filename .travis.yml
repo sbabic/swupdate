@@ -42,4 +42,4 @@ script:
     - make env
     - sudo install -m 644 tools/env/lib.a /usr/local/lib/libubootenv.a
     - cd ..
-    - for i in configs/*;do echo $i;make `basename $i` && make;done
+    - for i in configs/*;do echo $i;make `basename $i` && make || exit 1;done
