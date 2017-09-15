@@ -171,6 +171,11 @@ static void empty_pipe(int fd)
 	} while (1);
 }
 
+static void unlink_socket(void)
+{
+	unlink((char*)CONFIG_SOCKET_CTRL_PATH);
+}
+
 void *network_thread (void *data)
 {
 	struct installer *instp = (struct installer *)data;
@@ -198,6 +203,11 @@ void *network_thread (void *data)
 	if (ctrllisten < 0 ) {
 		TRACE("Error creating IPC sockets");
 		exit(2);
+	}
+
+	if (atexit(unlink_socket) != 0) {
+		TRACE("Cannot setup socket cleanup on exit, %s won't be unlinked.",
+			  (char*)CONFIG_SOCKET_CTRL_PATH);
 	}
 
 	do {

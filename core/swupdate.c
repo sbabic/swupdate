@@ -483,6 +483,11 @@ static int read_processes_settings(void *settings, void *data)
 	return 0;
 }
 
+static void sigterm_handler(int __attribute__ ((__unused__)) signum)
+{
+	pthread_cancel(network_daemon);
+}
+
 int main(int argc, char **argv)
 {
 	int c;
@@ -858,6 +863,15 @@ int main(int argc, char **argv)
 			ERROR("Post-update command execution failed.");
 		}
 	}
+
+	/*
+	 * Install a handler for SIGTERM that cancels
+	 * the network_daemon thread to allow atexit()
+	 * registered functions to run.
+	 */
+	memset(&sa, 0, sizeof(sa));
+	sa.sa_handler = sigterm_handler;
+	sigaction(SIGTERM, &sa, NULL);
 
 	/*
 	 * Go into supervisor loop

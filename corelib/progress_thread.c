@@ -183,6 +183,11 @@ void swupdate_progress_done(const char *info)
 	pthread_mutex_unlock(&prbar->lock);
 }
 
+static void unlink_socket(void)
+{
+	unlink((char*)CONFIG_SOCKET_PROGRESS_PATH);
+}
+
 void *progress_bar_thread (void __attribute__ ((__unused__)) *data)
 {
 	int listen, connfd;
@@ -199,6 +204,11 @@ void *progress_bar_thread (void __attribute__ ((__unused__)) *data)
 	if (listen < 0 ) {
 		ERROR("Error creating IPC socket %s, exiting.", (char*)CONFIG_SOCKET_PROGRESS_PATH);
 		exit(2);
+	}
+
+	if (atexit(unlink_socket) != 0) {
+		TRACE("Cannot setup socket cleanup on exit, %s won't be unlinked.",
+			  (char*)CONFIG_SOCKET_PROGRESS_PATH);
 	}
 
 	do {
