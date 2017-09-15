@@ -138,6 +138,7 @@ static json_object *find_node_json(json_object *root, const char *node,
 }
 #endif
 
+#if defined(CONFIG_LIBCONFIG) || defined(CONFIG_JSON)
 static void *find_node(parsertype p, void *root, const char *node,
 			struct swupdate_cfg *swcfg)
 {
@@ -587,6 +588,7 @@ static int parser(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 
 	return ret;
 }
+#endif
 
 #ifdef CONFIG_LIBCONFIG
 int parse_cfg (struct swupdate_cfg *swcfg, const char *filename)

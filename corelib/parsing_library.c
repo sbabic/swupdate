@@ -52,6 +52,8 @@ int get_array_length(parsertype p, void *root)
 		return config_setting_length(root);
 	case JSON_PARSER:
 		return json_object_array_length(root);
+	default:
+		(void)root;
 	}
 
 	return 0;
@@ -64,6 +66,9 @@ void *get_elem_from_idx(parsertype p, void *node, int idx)
 		return config_setting_get_elem(node, idx);
 	case JSON_PARSER:
 		return json_object_array_get_idx(node, idx);
+	default:
+		(void)node;
+		(void)idx;
 	}
 
 	return NULL;
@@ -76,6 +81,9 @@ const char *get_field_string(parsertype p, void *e, const char *path)
 		return get_field_string_libconfig(e, path);
 	case JSON_PARSER:
 		return get_field_string_json(e, path);
+	default:
+		(void)e;
+		(void)path;
 	}
 
 	return NULL;
@@ -98,6 +106,10 @@ void get_field(parsertype p, void *e, const char *path, void *dest)
 		return get_field_cfg((config_setting_t *)e, path, dest);
 	case JSON_PARSER:
 		return get_field_json((json_object *)e, path, dest);
+	default:
+		(void)e;
+		(void)path;
+		(void)dest;
 	}
 }
 
@@ -110,6 +122,10 @@ int exist_field_string(parsertype p, void *e, const char *path)
 							path, &str);
 	case JSON_PARSER:
 		return json_object_object_get_ex((json_object *)e,  path, NULL);
+	default:
+		(void)str;
+		(void)e;
+		(void)path;
 	}
 
 	return 0;
