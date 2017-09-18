@@ -759,18 +759,24 @@ static int server_check_during_dwl(void)
 	 */
 	server_op_res_t result =
 	    server_get_deployment_info(channel, &channel_data, &action_id);
-	if (channel_data.json_reply != NULL &&
-	    json_object_put(channel_data.json_reply) != JSON_OBJECT_FREED) {
-		ERROR("JSON object should be freed but was not.\n");
-	}
 	if (result == SERVER_UPDATE_CANCELED) {
 		/* Mark that an update was cancelled by the server */
 		server_hawkbit.cancelDuringUpdate = true;
 		ret = -1;
 	}
 	update_action = json_get_deployment_update_action(channel_data.json_reply);
+
+	/* if the deployment is skipped then stop downloading */
+	if (update_action == deployment_update_action.skip)
+		ret = -1;
+
 	check_action_changed(action_id, update_action);
 
+	/* Cleanup and free resources */
+	if (channel_data.json_reply != NULL &&
+	    json_object_put(channel_data.json_reply) != JSON_OBJECT_FREED) {
+		ERROR("JSON object should be freed but was not.\n");
+	}
 	channel->close(channel);
 	free(channel);
 
