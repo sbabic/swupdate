@@ -394,5 +394,5 @@ int start_download(const char *fname, int argc, char *argv[])
 		sleep(60);
 	}
 
-	exit(result);
+	exit(result == SUCCESS ? EXIT_SUCCESS : result);
 }
