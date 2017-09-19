@@ -380,8 +380,15 @@ int start_download(const char *fname, int argc, char *argv[])
 	for (attempt = 0;; attempt++) {
 		result = download_from_url(options.url, options.retries,
 						options.timeout);
-		if (result != FAILURE)
+		if (result != FAILURE) {
+			ipc_message msg;
+			if (ipc_postupdate(&msg) != 0) {
+				result = FAILURE;
+			} else {
+				result = msg.type == ACK ? result : FAILURE;
+			}
 			break;
+		}
 
 		if (options.retries > 0 && attempt >= options.retries)
 			break;
