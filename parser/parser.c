@@ -623,7 +623,7 @@ int parse_cfg (struct swupdate_cfg *swcfg, const char *filename)
 		return -1;
 	} else {
 		strncpy(swcfg->version, str, sizeof(swcfg->version));
-		fprintf(stdout, "Version %s\n", swcfg->version);
+		TRACE("Version %s", swcfg->version);
 	}
 	snprintf(node, sizeof(node), "%s.embedded-script",
 			NODEROOT);
