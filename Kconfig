@@ -254,10 +254,10 @@ config NOCLEANUP
 	bool "Do not remove temporary files after execution"
 	default n
 	help
-	  After each run, temporary files are removed from
-	  /tmp to restart in a clean state. For debugging purpose,
-	  it helps to check the consistency of the file extracted
-	  by swupdate.
+	  After each run, temporary files are removed from the directory
+	  pointed to by the environment variable TMPDIR (/tmp as fallback
+	  if unset) to restart in a clean state. For debugging purposes, it
+	  helps to check the consistency of the files extracted by SWUpdate.
 	  For production, answer N.
 
 endmenu
