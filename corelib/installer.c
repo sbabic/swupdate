@@ -326,7 +326,23 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 				continue;
 		}
 
-		ret = install_single_image(img);
+		if (strncmp(img->path, img->extract_file, sizeof(img->path)) == 0) {
+			struct img_type *tmpimg;
+			WARN("Temporary and final location for %s is identical, skip "
+			     "processing.", img->path);
+			LIST_REMOVE(img, next);
+			LIST_FOREACH(tmpimg, &sw->images, next) {
+				if (strncmp(tmpimg->fname, img->fname, sizeof(img->fname)) == 0) {
+					WARN("%s will be removed, it's referenced more "
+					     "than once.", img->path);
+					break;
+				}
+			}
+			free(img);
+			ret = 0;
+		} else {
+			ret = install_single_image(img);
+		}
 
 		if (!fromfile)
 			close(img->fdin);
