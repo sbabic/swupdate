@@ -19,6 +19,8 @@ before_install:
     - sudo apt-get install -y uuid
     - sudo apt-get install -y uuid-dev
     - sudo apt-get install -y liblzo2-dev
+    - sudo apt-get install -y libsystemd-daemon-dev
+    - sudo apt-get install -y libsystemd-daemon0
 
 script:
     - sudo mkdir -p /usr/local/lib
@@ -42,4 +44,6 @@ script:
     - make env
     - sudo install -m 644 tools/env/lib.a /usr/local/lib/libubootenv.a
     - cd ..
+    # Accommodate to trusty's rusty systemd version
+    - sudo ln -sf /lib/x86_64-linux-gnu/libsystemd-daemon.so.0 /lib/x86_64-linux-gnu/libsystemd.so
     - for i in configs/*;do echo $i;make `basename $i` && make || exit 1;done
