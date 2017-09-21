@@ -101,7 +101,7 @@ void notify(RECOVERY_STATUS status, int error, const char *msg)
 	struct notify_elem *elem;
 	struct notify_ipc_msg notifymsg;
 
-	if ((pid == getpid())) {
+	if (pid == getpid()) {
 		if (notifyfd > 0) {
 			notifymsg.status = status;
 			notifymsg.error = error;
