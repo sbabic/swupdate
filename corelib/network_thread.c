@@ -44,6 +44,10 @@
 #include "pctl.h"
 #include "generated/autoconf.h"
 
+#ifdef CONFIG_SYSTEMD
+#include <systemd/sd-daemon.h>
+#endif
+
 #define LISTENQ	1024
 
 #define NUM_CACHED_MESSAGES 100
@@ -109,20 +113,39 @@ static void network_notifier(RECOVERY_STATUS status, int error, const char *msg)
 int listener_create(const char *path, int type)
 {
 	struct sockaddr_un servaddr;
-	int listenfd;
+	int listenfd = -1;
 
-	listenfd = socket(AF_LOCAL, type, 0);
-	unlink(path);
-	bzero(&servaddr, sizeof(servaddr));
-	servaddr.sun_family = AF_LOCAL;
-	strcpy(servaddr.sun_path, path);
-
-	if (bind(listenfd,  (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0) {
-		close(listenfd);
-		return -1;
+#ifdef CONFIG_SYSTEMD
+	if (sd_booted()) {
+		for (int fd = SD_LISTEN_FDS_START; fd < SD_LISTEN_FDS_START + sd_listen_fds(0); fd++) {
+			if (sd_is_socket_unix(fd, SOCK_STREAM, 1, path, 0)) {
+				listenfd = fd;
+				break;
+			}
+		}
+		if (listenfd == -1) {
+			TRACE("got no socket at %s from systemd", path);
+		} else {
+			TRACE("got socket fd=%d at %s from systemd", listenfd, path);
+		}
 	}
+#endif
 
-	chmod(path,  S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+	if (listenfd == -1) {
+		TRACE("creating socket at %s", path);
+		listenfd = socket(AF_LOCAL, type, 0);
+		unlink(path);
+		bzero(&servaddr, sizeof(servaddr));
+		servaddr.sun_family = AF_LOCAL;
+		strcpy(servaddr.sun_path, path);
+
+		if (bind(listenfd,  (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0) {
+			close(listenfd);
+			return -1;
+		}
+
+		chmod(path,  S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+	}
 
 	if (type == SOCK_STREAM)
 		if (listen(listenfd, LISTENQ) < 0) {
@@ -173,6 +196,15 @@ static void empty_pipe(int fd)
 
 static void unlink_socket(void)
 {
+#ifdef CONFIG_SYSTEMD
+	if (sd_booted() && sd_listen_fds(0) > 0) {
+		/*
+		 * There were socket fds handed-over by systemd,
+		 * so don't delete the socket file.
+		 */
+		return;
+	}
+#endif
 	unlink((char*)CONFIG_SOCKET_CTRL_PATH);
 }
 

@@ -165,6 +165,10 @@ ifeq ($(CONFIG_UBOOT),y)
 LDLIBS += z ubootenv
 endif
 
+ifeq ($(CONFIG_SYSTEMD),y)
+LDLIBS += systemd
+endif
+
 # suricatta
 ifneq ($(CONFIG_SURICATTA),)
 ifneq ($(CONFIG_SURICATTA_SSL),)

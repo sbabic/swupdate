@@ -59,6 +59,10 @@
 #include "pctl.h"
 #include "bootloader.h"
 
+#ifdef CONFIG_SYSTEMD
+#include <systemd/sd-daemon.h>
+#endif
+
 #define MODULE_NAME	"swupdate"
 
 static pthread_t network_daemon;
@@ -863,6 +867,12 @@ int main(int argc, char **argv)
 			ERROR("Post-update command execution failed.");
 		}
 	}
+
+#ifdef CONFIG_SYSTEMD
+	if (sd_booted()) {
+		sd_notify(0, "READY=1");
+	}
+#endif
 
 	/*
 	 * Install a handler for SIGTERM that cancels

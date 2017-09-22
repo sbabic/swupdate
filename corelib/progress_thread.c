@@ -43,6 +43,10 @@
 #include <progress.h>
 #include "generated/autoconf.h"
 
+#ifdef CONFIG_SYSTEMD
+#include <systemd/sd-daemon.h>
+#endif
+
 struct progress_conn {
 	SIMPLEQ_ENTRY(progress_conn) next;
 	int sockfd;
@@ -185,6 +189,15 @@ void swupdate_progress_done(const char *info)
 
 static void unlink_socket(void)
 {
+#ifdef CONFIG_SYSTEMD
+	if (sd_booted() && sd_listen_fds(0) > 0) {
+		/*
+		 * There were socket fds handed-over by systemd,
+		 * so don't delete the socket file.
+		 */
+		return;
+	}
+#endif
 	unlink((char*)CONFIG_SOCKET_PROGRESS_PATH);
 }
 

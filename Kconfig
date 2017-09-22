@@ -61,6 +61,13 @@ menu "Swupdate Settings"
 
 menu "General Configuration"
 
+config SYSTEMD
+	bool "enable systemd support"
+	default n
+	help
+	  Enable support for systemd's start-up completion
+	  notification and socket-based activation features.
+
 config SCRIPTS
 	bool "enable pre and postinstall scripts"
 	default y
