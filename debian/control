@@ -1,0 +1,17 @@
+Source: swupdate
+Section: universe/embedded
+Priority: optional
+Maintainer: Stefano Babic <sbabic@denx.de>
+Build-Depends: debhelper (>=9), libconfig9
+Standards-Version: 3.9.6
+Homepage: http://sbabic.github.io/swupdate
+#Vcs-Git: git://anonscm.debian.org/collab-maint/swupdate.git
+#Vcs-Browser: https://anonscm.debian.org/cgit/collab-maint/swupdate.git
+
+Package: swupdate
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: SWUpdate provides a reliable way to update an embedded system
+ This project is thought to help to update an embedded system from a storage media or from network.
+ However, it should be mainly considered as a framework, where further protocols or installers
+ (in SWUpdate they are called handlers) can be easily added to the application.

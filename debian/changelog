@@ -1,0 +1,1092 @@
+swupdate (2017.07) stable; urgency=medium
+
+  [ Christian Storm ]
+  * crypto: don't segfault on crypted images w/o key-aes file
+  * Fix some gcc compiler warnings
+
+  [ Stefano Babic ]
+  * Updated gitignore
+  * hawkbit: exit from configData state when no identity is sent
+
+  [ Christian Storm ]
+  * doc: fix OpenSSL link and spelling
+  * doc: add documentation for encrypted images
+
+  [ Denis Osterland ]
+  * hawkbit: Check config data available to avoid infite loop.
+
+  [ flynn ]
+  * core/swupdate: use GET_FIELD_STRING rather than get_field to retieve postupdatecmd
+
+  [ Stefano Babic ]
+  * Factorize flash_erase function
+  * Add CONFIG_UBIWHITELIST
+  * settings: differentiate parsing error from no data
+  * Staticize functions in process control
+  * util: make splitargs compliant with argv layout
+  * Split spawn function for external processes
+  * Spawn processes from configuration file
+
+  [ Christian Storm ]
+  * Add support for OpenSSL 1.1.x
+
+  [ Stefano Babic ]
+  * Fix build when CONFIG_DOWNLOAD is not set
+  * Added logo to documentation
+  * doc: updated list of useful links
+
+  [ Christian Storm ]
+  * bootloader: generalize some more U-Boot references
+  * progress: augment DONE signal with optional message
+  * logo: remove +x attribute from logo picture file
+
+  [ Stefano Babic ]
+  * hawkbit: check for cancellation before verifying an install
+  * u-boot: environment not saved when updating single variable
+  * u-boot: fix memory leak when getting variables
+  * bootloader: change allocation in bootloader_env_get
+
+  [ Christian Storm ]
+  * bootloader: include missing stdlib.h for free() function
+
+  [ Diego Rondini ]
+  * hawkbit: use constant to select IPC mode
+
+  [ Georges Savoundararadj ]
+  * copyfile: add new property to handle offset for raw handler
+
+  [ Stefano Babic ]
+  * doc: updated README with link to examples layer
+
+  [ Baruch Siach ]
+  * suricata_hwakbit: depends on HAVE_JSON_C
+  * README: fix typos
+
+  [ Stefano Babic ]
+  * gitignore: add some other objects
+  * Fix broken CPIO from last commit
+
+  [ Christian Storm ]
+  * core: mention --file option in help and docs
+
+  [ Stefano Babic ]
+  * Suppress warning for LUA handler in not verbose mode
+  * examples: fix make clean in hawkbit's examles
+
+  [ Christian Storm ]
+  * suricatta: factor out main loop's sleeping logics
+
+  [ Stefano Babic ]
+  * bootloader: u-boot interface is private
+  * bootloader: race condition when updating u-boot variables
+  * Fixed signedness in cpio functions
+  * hawkbit: factorize function to get deployment type
+  * hawkbit: check if update action changed
+  * progress_thread: format info message as JSON
+  * suricatta: ignore SIGPIPE
+
+  [ German Tabacchi ]
+  * suricatta: Fix save_state() function
+
+  [ Stefano Babic ]
+  * doc: added Logo to generated HTML
+  * doc: just reorganize chapters
+
+  [ Christian Storm ]
+  * bootloader: consolidate bootloader places
+  * Fix gcc7 Wformat-truncation warnings
+
+  [ Stefano Babic ]
+  * Updated travis.yml
+  * Output config name in travis
+  * Added configs for automatic build testing
+  * configs: drop UBOOT until a libubootenv is built
+  * configs: drop U-BOOT due to miising libubootenv
+
+  [ Christian Storm ]
+  * Optimized file size of SWUpdate Logo
+
+  [ Stefano Babic ]
+  * handlers: separate handler for Hamming1
+  * lua: factorize LUA interface
+  * LUA: move LUA code from general handler to lua_interface
+  * LUA: sync with RECOVERY_STATUS
+  * get_field_string not working if it must allocate
+  * LUA: added interface to prepare a LUA context from the parser
+  * LUA: export function to run embedded script
+  * parser: add support for embedded script
+  * doc: add description for embedded script in parser
+  * doc: set version to 2017.07
+  * doc: roadmap
+  * Prepare 2017.07-rc1
+  * Fix build when JSON not present
+  * Fix type in README
+
+  [ Christian Storm ]
+  * LUA: don't call luaL_openlibs(L) twice
+  * doc: roadmap typo fixes
+  * doc: embedded script in parser typo fixes
+  * doc: fix spelling of Lua
+
+  [ Stefano Babic ]
+  * Fix build without Lua with gcc > 6.x
+  * Add examples to build systems
+  * examples: fix warnings in client
+  * examples: fix warnings in hawkbitcfg
+  * examples: fix warnings in sendtohawkbit
+  * Drop SKIP_STRIP because both targets are built
+
+  [ Christian Storm ]
+  * examples: optionally build all source files in tools/
+
+  [ Stefano Babic ]
+  * cpio: raise an error for decompress without GUNZIP
+
+  [ Christian Storm ]
+  * bootloader: consolidate menu naming
+  * Fix Wold-style-declaration warning in include/util.h
+  * bootloader/uboot: use ERROR(), not fprintf()
+  * Lua: don't stackdump twice
+  * Lua: rework stackdump()
+  * fix spelling of Lua
+  * Lua: fix luaopen_swupdate()'s docstring
+  * Lua: improve stack cleanliness for lua_parser_{fn,init}()
+  * mongoose: select MONGOOSE when WEBSERSER is selected
+
+  [ Diego Rondini ]
+  * client: split send of file to separate function
+  * client: support multiple files
+
+  [ Stefano Babic ]
+  * Makefile: add install target
+
+  [ Adam Duskett ]
+  * add libressl support
+
+  [ Diego Rondini ]
+  * client: remove useless sleep
+  * client: document multiple files can be specified
+
+  [ Stefano Babic ]
+  * doc: enhance reference links
+  * doc: updated roadmap
+  * Prepare 2017.07
+
+ -- Christian Storm <christian.storm@siemens.com>  Sun, 24 Sep 2017 12:09:00 +0200
+
+swupdate (2017.04) stable; urgency=medium
+
+  [ Stefano Babic ]
+  * json parser: failed to parse compatibility
+
+  [ Renaud Barbier ]
+  * json parser: include software node in parsing
+
+  [ Sami Hartikainen ]
+  * network_initializer: Lock mutex for pthread_cond_wait()
+
+  [ Christian Storm ]
+  * progress: display error on socket creation failure
+
+  [ Stefano Babic ]
+  * hawkbit: wrong length passed to configData message
+  * Add internal pipe for SWUpdate processes
+  * IPC: fix building client example after moving start_thread
+  * examples: fix warning in client.c
+  * IPC: introduce ipc for SWUpdate components
+  * network daemon: implement routing of command
+  * suricatta : add IPC channel
+  * util: add simple function to split string in fields
+  * hawkbit: manage IPC and add feedback from outside
+  * examples: add example to send a command to suricatta
+  * util: add locking mechanismus for U-Boot env
+  * handler: use lock in U-Boot handler
+  * suricatta: use U-Boot function from SWUpdate
+  * util: fix fw_get_one_env() when CONFIG_UBOOT is not set
+  * progress: add -r option to reboot the target
+  * doc: improve documentation
+  * Hawkbit: dynamically allocated channels and cancelUpdate
+  * hawkbit: check that filename is a .swu image
+  * Terminate child processes if parent dies
+  * hawkbit: store state when sent via IPC
+  * core/util: U-Boot lock not released in error case
+  * hawkbit: do not return error in case of 206 response
+
+  [ Denis Osterland ]
+  * mongoose: Add /postUpdateCommand endpoint.
+  * mongoose: Comment on usage of /postUpdateCommand.
+
+  [ Stefano Babic ]
+  * doc: added link to SWUpdate flyer
+  * doc: using read the docs theme
+  * doc: missing picture for U-Boot transitions
+  * doc: updated presentation with ELC 2017
+  * doc: add video from ELCE 2016
+
+  [ Sami Hartikainen ]
+  * webserver: upload_handler: Fix response to be well-formed
+
+  [ Stefano Babic ]
+  * hawkbit: no cancellation acknowledged sent
+  * verify_signature.c: typo and fix ident
+  * Signed images: select verification mode
+  * doc: add documentation for CMS signed images
+  * suricatta: store the state in RAM when U-Boot is not used
+  * doc: rephrase a couple of sentences for signed images
+
+  [ Alexander Kuzmich ]
+  * Restore the documented behavior of device tag
+
+  [ Christian Storm ]
+  * core: explicitly include unistd.h in swupdate_settings.h
+  * hawkbit: don't segfault on uninitialized channel_data->info
+
+  [ Stefano Babic ]
+  * suricatta: automatically set JSON with hawkbit
+
+  [ Hamish Guthrie ]
+  * Skip all instances of filename in images list
+
+  [ Georges Savoundararadj ]
+  * downloader: Fix help and update documentation
+
+  [ Stefano Babic ]
+  * notifier: add a notifier to forward to progress
+  * progress_client example: print info if present
+  * hawkbit: inform that a cancelUpdate was requested
+  * cancelupdate, do not send failed
+  * hawkbit: report error if no artifacts are installed
+  * Kconfig: drop arch and SRCARCH
+  * STATIC is not supported, removed
+  * Allow to use elapsed certificates
+  * Add default defconfigs for automatic tests
+  * add travis configuration for CI test
+
+  [ Christian Storm ]
+  * suricatta: documentation update for latest changes
+
+  [ Stefano Babic ]
+  * archive handler: report error in case chdir
+  * hawkbit: do not stop in case of partial file
+  * hawkbit: send actionID to the installer
+  * Introduce cause field for process notification
+  * suricatta: add macro for state check
+  * IPC: foresees a "cmd" field in message
+  * hawkbit: details in feedback is an array
+  * hawkbit: change ipc to exchange JSON message
+  * examples: adjust sendtohawkbit to new API
+  * progress: do not drop the RECOVERY_STATUS
+  * hawkbit: ACK an IPC if no update is available
+  * hawkbit: report errors to the Hawkbit Server
+  * Prepare 2017.04-rc1
+  * doc: add links about SWUpdate
+
+  [ Christian Storm ]
+  * core: silence clang warnings about unsupported flags
+
+  [ Georges Savoundararadj ]
+  * core/util: add ustrtoull
+
+  [ Stefano Babic ]
+  * hawkbit: (null) is sent when there are no details
+  * hawkbit: add error cases before installer runs
+  * hawkbit: retrieve errors when the installer fails
+
+  [ Christian Storm ]
+  * suricatta: print channel's 404 response body
+  * suricatta: allow get_file() into a file handle
+
+  [ Sami Hartikainen ]
+  * webserver: Fix handle_post_request to not send response too early
+
+  [ Stefano Babic ]
+  * Reduce dependencies in client interface
+  * doc: updated list of external links
+  * Prepare 2017.04-rc2
+  * Introduce generic bootloader support
+  * configs: fix defconfig for generic bootloader
+
+  [ Andreas Fenkart ]
+  * downloader: bug: accept int value as lowspeed_timeout argument
+  * downloader: use unsigned int for retries/timeout options
+  * downloader: off-by-one error in retry calculation
+  * downloader: abort slow retry loop after n retries
+
+  [ Maciej Pijanowski ]
+  * swupdate.rst: correct link to meta-swupdate
+
+  [ Stefano Babic ]
+  * bootloader: add support for GRUB environment
+
+  [ Maciej Pijanowski ]
+  * doc: 80 chars wrap, single typos
+  * doc: bootloader abstraction, GRUB support
+
+  [ Stefano Babic ]
+  * added action id to backchannel
+  * examples: updated sendtohawkbit for new API
+  * network_thread: be sure to not report old messages
+  * IPC: add a timeout field for answer
+  * hawkbit: strict behavior for cancelUpdate
+  * Hawkbit: sends configData message after startup
+  * IPC: drop not required includes
+  * LICENSE: relicensing the client library under LGPL
+  * examples: add documentation for config file
+
+  [ Christian Storm ]
+  * progress: update documentation for commit 2726abf
+  * suricatta: fix broken tests due to several changes
+
+  [ Stefano Babic ]
+  * BackIPC: block if there are no messages
+  * progress: reduce wait during connect retries
+  * hawkbit: poll server even in the WAIT state
+  * hawkbit: introduce a configuration IPC command
+  * examples: communication with suricatta
+  * Updated roadmap
+  * Prepare 2017.04
+
+ -- Stefano Babic <sbabic@denx.de>  Sun, 24 Sep 2017 12:08:08 +0200
+
+swupdate (2017.01) stable; urgency=medium
+
+  [ Piotr Król ]
+  * doc: fix various typos
+
+  [ Stefano Babic ]
+  * doc: Updated list of presentation after ELCE 2016
+
+  [ creisner ]
+  * Update sw-description.rst
+
+  [ Stefano Babic ]
+  * remote handler: get timeout value from partner
+
+  [ Christian Storm ]
+  * suricatta: fix and improve proxy support
+  * suricatta: document initial server connect behavior
+
+  [ Stefano Babic ]
+  * Move code to introduce process control
+  * Use constant for TRACE / ERROR buffer size
+  * Drop double output of ERROR messages
+  * suricatta: wrong integer values from configuration file
+  * settings: add function to extract user/group id
+  * mongoose: changes prototype to be started as process
+  * suricatta: changes prototype to be started as process
+  * swupdate: start mongoose / suricatta as processes
+  * Update configuration example swupdate.cfg
+  * Notifier: get notification between processes
+  * notify: check that pointer is not null
+  * settings: check if configuration file is passed
+  * Move downloader to a separate process
+
+  [ Mans Rullgard ]
+  * copyfile: do not close output file descriptor
+
+  [ Stefano Babic ]
+  * Callers of copyfile() must close the output descriptor
+
+  [ Christian Storm ]
+  * suricatta: fix test breakage due to parselib, pctl, and dict
+  * core: fix compilation if !CONFIG_DOWNLOAD
+
+  [ Mans Rullgard ]
+  * parser: report error if no images etc found
+
+  [ Stefano Babic ]
+  * Set default loglevel to ERRORLEVEL
+  * Prepare 2017.01-rc1
+
+  [ Martijn de Gouw ]
+  * fix typo in Kconfig
+  * parser: add parsing of mtdname property
+  * corelib: add function to get the mtd from the name
+  * flash handler: add support for specifying mtd name instead of device
+  * doc: update for mtdname property of flash handler
+  * doc: add mtdname to Attribute reference
+
+  [ Stefano Babic ]
+  * ipc: extend installation message
+  * Add generic routine to get info
+  * hawkbit: inform the installer about installation parameters
+  * progress: extend to send info message
+  * Drop warning in suricatta code
+  * progress_client: add command line parameter
+  * Reworking progress example
+  * Add some color support to progress client
+  * Constify configuration file name
+  * Factorize starting of processes in swupdate
+  * Introduce mechanism to supervise subprocesses
+
+  [ Christian Storm ]
+  * corelib: fix uid/gid uninitialized w/o configuration file
+
+  [ Stefano Babic ]
+  * suricatta: do not allow empty variable for state
+  * Segfault using a progress client
+
+  [ Jörg Krause ]
+  * core: define WAIT_ANY
+
+  [ Stefano Babic ]
+  * Remove the obsolete -s option
+  * hawkbit: proxy set even if no entry in configuration file
+  * Change SIGCHLD handler to let work with system()
+  * downloader: fix a race at the startup
+  * downloader: report exit status and reuse retries
+  * cpio: set signedness for CPIO fields
+
+  [ Stefan Nickl ]
+  * Signal successful exit explicitly
+  * Avoid unused variable warnings for options that may not be compiled in
+
+  [ Stefano Babic ]
+  * settings: fix build if CONFIG_LIBCONFIG is not set
+  * Split parselib into a libconfig and libjson parts
+  * examples: add sw-description in json
+
+  [ Christian Storm ]
+  * suricatta: fix SIGSEGV test breakage introduced by e92de14
+  * doc: fix some sphinx warnings
+
+  [ Stefano Babic ]
+  * hawkbit: send configData before going to update
+
+  [ Christian Storm ]
+  * suricatta: refactor state checking
+  * core: post-update command execution
+  * core: enable post-update action for -i mode
+  * suricatta: enable post-update action
+  * suricatta: adapt tests to post-update action
+  * tests: conditionalize acceptance tests
+  * tests: silence acceptance tests output
+  * tests: integrate suricatta tests into kbuild
+  * tests: suricatta/hawkbit: fix compiler warnings
+  * tests: suricatta/hawkbit: adapt tests to kbuild integration
+  * tests: establish a 'tests' target
+  * scripts: silence trylink
+
+  [ Stefano Babic ]
+  * hawkbit: internal structure overwritten when reading from configuration
+  * Transaction variable "recovery_status" not set for local update
+
+  [ Christian Storm ]
+  * parser: explain error on no suitable sw-description parser found
+  * progress_client: fix --help option
+
+  [ Magnus Olsson ]
+  * Remove MAX_MTD_DEVICES limitation
+
+  [ Alexander Kuzmich ]
+  * Fix use of symlinks to MTD partitions
+
+  [ Stefano Babic ]
+  * Prepare 2017.01
+
+ -- Stefano Babic <sbabic@denx.de>  Sun, 24 Sep 2017 12:07:33 +0200
+
+swupdate (2016.10) stable; urgency=medium
+
+  [ Mans Rullgard ]
+  * downloader: properly terminate after maximum retries
+
+  [ Stefano Babic ]
+  * downloader: fix bug in set_option_common()
+  * fix u-boot writing with libubootenv
+  * doc: update version number
+  * Missing prototype fw_getenv after updating uboot API
+  * suricatta: updated to new U-Boot Environment API
+  * util: add function to retrieve the number of items in a list
+  * Introducing progress bar interface
+  * Send progress status when image is compressed
+  * flash_handler: update progress bar
+  * Example using the progress interface
+  * Document progress interface
+
+  [ Jörg Krause ]
+  * doc: fix some typos in progress.rst
+
+  [ Denis Osterland ]
+  * main: Add missing break.
+
+  [ Stefano Babic ]
+  * doc: Updated references to slides
+  * Prepare 2016.10-rc1
+
+  [ Denis Osterland ]
+  * core: Add syslog notifier.
+
+  [ Stefano Babic ]
+  * parser: be more verbose to detect errors in sw-description
+
+  [ Denis Osterland ]
+  * core: Fix inconsistency in short options string -L
+
+  [ Stefano Babic ]
+  * doc: update command line parameters
+
+  [ Lars Lockenvitz ]
+  * flash_handler: erase block only if not empty
+
+  [ Christian Storm ]
+  * core: fix some compiler warnings in ipc/network_ipc.c
+  * doc: add missing ':' for 'images' tag in sw-description doc
+
+  [ Stefano Babic ]
+  * Rename swupdate_dgst_cleanup
+  * Added decryption functions
+  * Add encrypted attribute
+  * Synchronize external parser
+  * Replace copyfile function for handlers with easier copyimage
+  * copyfile: add parameter to decrypt image
+  * copyfile: let the function reantrant
+  * copyfile: add a callback to write the image
+  * util.c: add function to load symmetric key
+  * Load symmetric key for decryption
+  * copyfile: add image decryption
+  * Support for encrypted scripts
+  * parser: add custom attribute
+  * copyfile: substitute fdout with arbitrary data
+  * handler: Remote Handler
+  * doc: minor formatting issues
+
+  [ Denis Osterland ]
+  * Allow to run swupdate just to check the image.
+  * doc: Add documentation for --check command-line option.
+  * test: Add acceptance-tests for --check command-line option.
+
+  [ Stefano Babic ]
+  * Do not start network thread in check mode
+
+  [ Christoph Freundl ]
+  * Return result of Lua handler execution
+
+  [ Denis Osterland ]
+  * core: Check if --check option comes with --image option.
+
+  [ Jordan Yelloz ]
+  * Kconfig: removed LUAVERSION, added LUAPKG
+  * Makefile.flags: added $(PKG)_LDLIBS to pkg_check_modules
+  * Makefile.flags: simplified Lua build support.
+
+  [ Denis Osterland ]
+  * Tests of invalid check usage.
+  * core: --check option should have no option, according to -c.
+  * parser: Add missing breaks.
+
+  [ Christian Storm ]
+  * parser: Fail if handler referenced in sw-description is absent
+  * progress: fix some compiler warnings
+
+  [ Stefano Babic ]
+  * Factorize parser functions to be reused in other subsystem
+  * Merge suricatta usage together with main help
+  * Merge mongoose usage together with main help
+  * util: make "sdup" a global function
+  * Introduce a parselib to get values from libconfig file
+  * Add common functions to read a configuration file
+  * Introduce a configuration file
+  * suricatta: drop -h option
+  * suricatta: get parameters from configuration file
+  * Add SSL Certificates and Key for Hawkbit Server
+  * suricatta: drop duplicate parameters for loglevel and verbose
+  * Support sha256 even if SIGNED_IMAGES is not set
+  * suricatta: trace JSON traffic for debug
+  * Reading artifact's version from configuration file
+
+  [ Christian Storm ]
+  * libubootenv: fix defunct CONFIG_UBOOT_FWENV option
+  * suricatta: adapt kconfig to new parselib.h
+  * suricatta: fix unit tests to work with new parselib
+
+  [ Stefano Babic ]
+  * Increase size for notification buffer
+  * suricatta: Post JSON consistent mit Get JSON
+  * Move mongoose.h in mongoose directory
+  * Select JSON if suricatta is enabled
+  * Drop dead code related to gpio
+
+  [ Denis Osterland ]
+  * suricatta: Fix typo 'FORCEd'->'FORCED' in log message.
+
+  [ Christian Storm ]
+  * core: remove unused includes in core/notifier.c
+  * progress: don't die with SIGPIPE on disconnected socket
+  * doc: update suricatta doc to parameter removals
+
+  [ Stefano Babic ]
+  * util: utils require string.h
+  * core: remove unused includes in core/cpio_utils.c
+  * flash handler: remove unused include
+  * raw handler: remove unused include
+  * core: remove unused includes in handler.c
+
+  [ Christian Storm ]
+  * suricatta: reorder channel struct for alignment
+
+  [ Stefano Babic ]
+  * suricatta: do not enable the daemon if no server is selected
+  * Replace uboot_var to extend the usage
+  * Add functions to handle a dictionary
+  * parser: use dictionary functions for U-Boot parsing
+
+  [ Christian Storm ]
+  * core: fix compilation by re-adding some #include statements
+  * suricatta: fix bitmask for mandatory arguments tracking
+
+  [ Stefano Babic ]
+  * Fix and simplify functions for dictionary
+  * flash handler: fix signedness warning
+  * Fixed signedness in get_cpiohdr
+  * parser: wrong check for partition names
+  * suricatta: get data to be used later for configData message
+  * suricatta: replace put with post
+  * hawkbit: implement configData API
+  * suricatta: replace error with status in TRACE
+
+  [ Christian Storm ]
+  * core: introduce a new RECOVERY_STATUS 'DONE'
+
+  [ Stefano Babic ]
+  * suricatta: revert back channel API dropping PUT method
+  * Revert suricatta method from post to put again
+  * doc: add presentations from ELCE 2016
+  * doc: slight changes in the attribute table
+  * examples: add an example for a configuration file
+  * doc: roadmap for future releases
+  * Prepare 2016.10
+
+ -- Stefano Babic <sbabic@denx.de>  Sun, 24 Sep 2017 12:07:03 +0200
+
+swupdate (2016.07) stable; urgency=medium
+
+  [ Jörg Krause ]
+  * Kconfig: Add missing comment for archive support
+  * Kconfig: uboot environment support needs libubootenv
+  * Fix build without MTD support
+
+  [ Stefano Babic ]
+  * Make from_ascii() global
+  * Add function to check if a hash is not zeroed
+  * Add functions for verifying an image
+  * Ensure to link openSSL if signed images are required
+  * Add pointer to crypto structure to swupdate cfg
+  * swupdate: improve command line parameters for signed image
+  * stream_interface: change state machine for signed image
+  * parser: verify signed sw-description
+  * General parser: add attributes for signed images
+  * Synchronize attributes for external parser
+  * Check sha256 hash value for verifying images
+  * doc: document signed images
+
+  [ Bjørn Forsman ]
+  * raw_handler: allow installing files without mounting
+  * archive_handler: allow installing files without mounting
+  * Update attribute documentation (device,filesystem are now optional)
+
+  [ Stefano Babic ]
+  * Drop warning in parser if CONFIG_SIGNED is not set
+  * Documentation: fixing grammar and spelling in signed_images.rst
+  * Fix comments and printf() output in code for signed images
+  * Skip check for hash in case of ubipartition
+
+  [ Sylvain Lesne ]
+  * parser: parse partitions in reverse order
+  * stream_interface: fix partitioning when streaming
+
+  [ Stefano Babic ]
+  * Doc: missing -k parameter
+
+  [ Anatolij Gustschin ]
+  * Kconfig: fix typo
+
+  [ Stefano Babic ]
+  * U-Boot handler cannot be set
+
+  [ George McCollister ]
+  * sw-description.sig must be extracted from cpio
+  * cleanup sw-description.sig
+
+  [ Stefano Babic ]
+  * Drop unused field valid in swupdate_cfg
+
+  [ Christian Storm ]
+  * Remove C99 declaration-after-statement warning
+
+  [ Jan Leupold ]
+  * mtd-interface: prevent attaching mtd type MTD_UBIVOLUME
+
+  [ Charles Chan ]
+  * Improve documentation in README.md
+  * Fix hyperlink formatting.
+
+  [ Stefano Babic ]
+  * Prepare 2016.07-rc1
+  * doc: improve doc for custom handlers
+  * doc: fix warnings when building html
+  * doc: update roadmap
+
+  [ Christian Storm ]
+  * Suricatta framework
+  * Suricatta hawkBit Integration
+  * Suricatta Integration into SWUpdate
+  * Suricatta Unit Testing Framework
+
+  [ Stefano Babic ]
+  * Prepare 2016.07-rc2
+  * Fix licensing issue due to cpio
+  * Fix mispelling in usage help
+  * Allow filename with the same name into sw-description
+  * Enhance output when searching for LUA handlers
+
+  [ Christian Storm ]
+  * Warn if sw-description key length > MAX || 0
+
+  [ Anatolij Gustschin ]
+  * handler: fix build error
+
+  [ Stefano Babic ]
+  * Fix warning introduced  checking U-Boot variable length
+  * core: cpio cannot be dropped
+  * Bug: CPIO header corrupted due to wrong alignment
+  * Prepare 2016.07-rc3
+  * Fix warning if CONFIG_DOWNLOAD is not set
+  * doc: latexpdf not built due to unknown code:: makefile
+  * Prepare 2016.07
+
+ -- Stefano Babic <sbabic@denx.de>  Sun, 24 Sep 2017 12:06:13 +0200
+
+swupdate (2016.04) stable; urgency=medium
+
+  [ Stefano Babic ]
+  * config parser: add a prefix to the root node
+  * Provide easy path for shell pre- and postinstall scripts
+  * Add example for sw-description
+  * Drop webserver sqlite
+  * lua_scripthandler: allow missing function
+
+  [ Jan Remmet ]
+  * shell_scripthandler: clean up error handling
+  * installer: respect script return values
+  * flash_handler: remove unused malloc buffer
+  * doc: Add details about shellscript
+  * Remove unused list files
+  * trace: clean up
+
+  [ Stefano Babic ]
+  * Renamed README to README.md
+  * README: added a short description of the project
+
+  [ Jörg Krause ]
+  * Kbuild: fix build issue with some toolchains
+  * Kbuild: Fix link error for CONFIG_UBOUT and missing libz
+  * Kbuild: add comments about missing dependencies
+
+  [ Marek Vasut ]
+  * Replace mmcbkl with mmcblk
+
+  [ Stefano Babic ]
+  * Revert "Kbuild: fix build issue with some toolchains"
+
+  [ Marek Vasut ]
+  * Implement some aesthetics into the website header
+  * Don't treat return keyword as a function
+  * Fix errno handling
+  * Backport SD/MMC environment support from U-Boot
+
+  [ Bjørn Forsman ]
+  * raw_handler: fix a TRACE message (image != device)
+
+  [ Jörg Krause ]
+  * Kbuild: Link with GCC instead of LD
+
+  [ Stefano Babic ]
+  * parser: extract handler type for files
+  * check_hw_compatibility: drop unneded printf
+  * u-boot: use u-boot library for environment
+  * Makefile: overwrite variables for cross-compiling only if not set
+  * handler: add "archive" handler
+  * Parser: use a single parser for json/libconfig
+  * Revert "u-boot: use u-boot library for environment"
+  * u-boot: optionally link u-boot library if available
+
+  [ Bjørn Forsman ]
+  * Return error codes from U-Boot environment update back to caller
+  * Remove dead targets from "make help"
+
+  [ Stefano Babic ]
+  * Build documentation from main Makefile
+  * examples: do not overwrite CC by compiling client example
+  * Make swupdate working with libconfig 1.5
+
+  [ Bjørn Forsman ]
+  * corelib: improve error handling
+
+  [ S. Lockwood-Childs ]
+  * Parser: allow non-default 'files' section handler
+  * Kbuild: compatibility with make-4.1
+
+  [ Stefano Babic ]
+  * Updated README
+  * README: chage git format-pach example
+  * Added short feature list to README
+  * downloader: do not temporary copy into TMPDIR
+  * Factorize function for asking swupdate result
+  * raw_handler: fix uninitialized variable before use
+  * UBI: check for UBI before attaching
+  * Allow to stream images directly to the target
+  * Flash Handler: set NAND handler as not streamable
+  * download: exits and report swupdate result
+  * doc: add documentation for streaming
+
+  [ S. Lockwood-Childs ]
+  * Kconfig: fix references to "BusyBox" in help
+  * corelib: fix build error for MTD without UBI
+
+  [ Stefano Babic ]
+  * Drop include/mtd copied from mtd-utils
+
+  [ S. Lockwood-Childs ]
+  * Clean up rest of webserver sqlite
+
+  [ Stefano Babic ]
+  * Sort usage help
+  * cpio_utils: close output in case of error
+
+  [ Daniel Schnell ]
+  * Adapt xml parser call to pass along correct hw revision info.
+
+  [ Stefano Babic ]
+  * Simplify call to the parsers
+
+  [ Jeroen Hofstee ]
+  * Increase MAX_MTD_DEVICES to 20
+  * handlers: add a handler to write 1bit hamming OOB
+
+  [ Stefano Babic ]
+  * util: move min()/max() macros to common place
+  * installer: check for install_directly if not installed from file
+  * flash_write_nand_hamming1 not working when installing from file
+
+  [ S. Lockwood-Childs ]
+  * Improve error message on gunzip failures
+
+  [ Stefano Babic ]
+  * Fix build without LUA
+  * Drop obsolete file
+
+  [ Lélio Fox ]
+  * Fixed usage string
+
+  [ Stefano Babic ]
+  * Allow to configure LUA library version
+  * UBI handler: replace printf() with TRACE()
+  * Prepare interface for resuming an interrupted download
+  * Resume a download if it was interrupted
+  * doc: describe command line parameters
+  * doc: run ispell on documents
+  * Fix building library if LUA is set
+  * Conditional update from installed version
+  * Make check for sw-version available for all modules
+  * Check versions also when installed from local file
+  * Drop warnings when CONFIG_DOWNLOAD is not set
+  * doc: explains version checking
+  * Fix missing newline in documentation
+
+  [ Jörg Krause ]
+  * Kconfig: remove unnecessary comment
+  * gitignore: add some Kconfig build files
+  * Makefile: fix expansion of CROSS_COMPILE
+  * doc: fix documentation about install-if-different
+  * examples: extend libconfig example for software version checking
+
+  [ Stefano Babic ]
+  * Add reboot to Webserver interface
+  * Add reboot button to website example
+  * Make index.html more readable
+  * doc: unify the name of the project
+
+  [ Bjørn Forsman ]
+  * Fix whitespace in user facing "(installed from stream)" message
+
+  [ Stefano Babic ]
+  * webserver: fix warning by calling system
+  * Prepare 2016.04-rc1
+  * Drop obsolete U-Boot functions to set environment
+  * Introduce level of logging
+  * Set hardware revision from commad line
+  * Align help in usage function
+  * Add low speed time parameter
+  * doc: add -H and -t description
+
+  [ Jörg Krause ]
+  * Add download progress notification
+
+  [ Bjørn Forsman ]
+  * Fix two small typos in user facing messages
+
+  [ Stefano Babic ]
+  * Prepare 2016.04
+
+ -- Stefano Babic <sbabic@denx.de>  Sun, 24 Sep 2017 12:03:19 +0200
+
+swupdate (2015.07) stable; urgency=medium
+
+  [ Stefano Babic ]
+  * Dropped dead code
+  * Make check for adjusting UBI volumes less strong
+  * Fix wrong comments in ubivol handler
+  * Move in progress flag before installing
+
+  [ Magnus Olsson ]
+  * doc: Translate German documentation left-overs
+  * installer: Run preinst scripts before scanning MTD
+
+  [ Romain Naour ]
+  * lsqlite3: backport support for lua 5.2
+
+  [ Mike Williams ]
+  * shell script handler: remove unused lua headers
+
+  [ Stefano Babic ]
+  * Allow passing MTD blacklist for UBI at command line
+
+  [ Mike Williams ]
+  * Fix exit(0) where return should be used
+  * Add SUCCESS notification at end of update
+  * Add optional basic image downloading support
+  * Add DOWNLOAD notification
+
+  [ Stefano Babic ]
+  * Fix image filename with international characters
+  * Build failure if CONFIG_MONGOOSE is not set
+  * Not working HW_COMPATIBILITY_FILE
+  * Fix warnings when UBI handler is not set
+  * Do not change order in RECOVERY_STATUS enum
+
+  [ Jörg Krause ]
+  * Flush output stream for notifications
+  * Use a global define for uboot-scripts max line length
+  * Fix buffer size for writing lines to uboot-script
+
+  [ Mario Domenech Goulart ]
+  * doc: typo fixes
+
+  [ Stefano Babic ]
+  * Fix working with IE11
+  * Cleanup: drop #if 1 from code
+  * Always link IPC functions
+  * Cleanup: SOCKET_STREAM_PATH is not used
+  * Drop dead code in network_ipc.c
+
+  [ Bernhard Breinbauer ]
+  * Add checksum verification when installing from file
+
+  [ Stefano Babic ]
+  * Fix return value type for cpio_scan
+  * Fix warnings compiling mongoose
+  * Drop reference to file CREDITS from headers
+  * Fix crash when CONFIG_UBIVOL is set but no ubi on system
+  * Drop redunandant error message when UBI is not present
+  * Make cleaner separation between network_thread and Webserver
+  * Add IPC library to use swupdate as installer daemon
+  * Allow starting swupdate in server mode
+  * Add example using the client library
+  * Add documentation for the client library
+  * Move internal data away from network_ipc.h
+  * Fix build when Webserver is not set
+  * Add JSON parser
+
+  [ Romain Naour ]
+  * Add missing header for off_t
+
+  [ Jörg Krause ]
+  * Set correct path for <fcntl.h>
+  * Provide local version of sys/queue.h
+  * Set correct path for <poll.h>
+  * Use bsdqueue.h in JSON parser
+  * Set correct path for <fcntl.h> in JSON parser
+
+  [ Stefano Babic ]
+  * Drop error if UBI is not present
+  * Add client to gitignore
+
+  [ Maciej Borzecki ]
+  * swupdate: add --select option to swupdate
+  * swupdate: align command line option description
+  * parse_config: support for software sets and modes
+  * parse_config: trailing whitespace cleanup
+  * stream_interface: trailing whitespace cleanup
+  * parse_json: support for software sets and running modes
+  * examples: sw-description files
+  * parse_json: json-c 0.12 compatibility fixes
+  * parse_json: remove unused get_board_node()
+  * doc: document board specific settings
+  * doc: document /etc/hwrevision
+  * doc: sw-description typos
+  * doc: document software collections
+  * swupdate: missing break in -b option handling
+  * build: conditional MTD support
+  * build: make UBIVOL handler depend on MTD
+  * build: make CFI handler depend on MTD
+
+  [ Stefano Babic ]
+  * Added links to presentations in doc
+  * examples: add LUA script to generate eMMC partitions
+
+  [ Jörg Krause ]
+  * libcrypto is only needed for CONFIG_MONGOOSESSL
+  * Only link with libz if CONFIG_GUNZIP is set
+  * sqlite support for mongoose depends on Lua
+  * Remove superfluous linking against libcrypt
+  * Only link with libm if CONFIG_MONGOOSESQL is set
+  * Remove redundant LDLIBS parameter ld for CONFIG_MONGOOSELUA
+  * Remove ARCH_* parameters from Makefile.flags
+  * Remove superfluous Busybox' parameters from CPPFLAGS
+
+  [ Stefano Babic ]
+  * libm must be linked if LUA is set
+  * Prepare 2015.07-rc
+
+  [ Jörg Krause ]
+  * Do not gitignore the kbuild files
+  * scripts: replace kbuild/kconfig files
+  * Add include/generated to gitignore
+  * Remove redundant entries from gitignore
+  * Rename top level Kconfig file
+  * Rename subdir Kconfig files
+  * Remove unknown option INSERT from some Kconfig files
+  * Rename Kbuild.src to Makefile in subdirs
+  * Replace templates myapp target with swupdate target
+  * Replace CFLAGS with KBUILD_CFLAGS
+  * Replace CPPFLAGS with KBUILD_CPPFLAGS
+  * Include autoconf.h from subdir generated
+  * Remove AUTOCONF_TIMESTAMP
+  * Cleanup Makefiles in subdirectories
+  * Replace CROSS_COMPILER_PREFIX with CROSS_COMPILE
+  * Use LDFLAGS_swupdate instead of LDFLAGS for passing -Wl,-E to the linker
+  * Remove CONFIG_LFS check from KBUILD_CPPFLAGS
+  * Kconfig: Add HAVE_LUA
+  * Kconfig: Add HAVE_LIBCONFIG
+  * Kconfig: Add HAVE_LIBCURL
+  * Kconfig: Add HAVE_LIBMTD
+  * Kconfig: Add HAVE_LIBUBI
+  * Kconfig: Add HAVE_ZLIB
+  * Kconfig: Add HAVE_LIBSSL
+  * Kconfig: Add HAVE_LIBCRYPTO
+  * Kconfig: Add HAVE_JSON_C
+  * Makefile: Move all dependency flags to Makefile.deps
+
+  [ Stefano Babic ]
+  * Fix build error if MTD is set without UBI
+  * Build error if U-Boot is required without gunzip
+  * Prepare v2015.07
+
+ -- Stefano Babic <sbabic@denx.de>  Sun, 24 Sep 2017 12:00:37 +0200
+
+swupdate (2014.07) unstable; urgency=medium
+
+  * Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>
+
+ -- Stefano Babic <sbabic@denx.de>  Sun, 09 Jul 2017 18:51:46 +0200
