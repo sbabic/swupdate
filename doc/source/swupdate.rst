@@ -223,7 +223,7 @@ and drop what you do not need.
 Building with Yocto
 -------------------
 
-A meta-SWUpdate_ layer is provided. It contains the required changes
+A meta-swupdate_ layer is provided. It contains the required changes
 for mtd-utils and for generating Lua. Using meta-SWUpdate is a
 straightforward process.
 
@@ -331,6 +331,37 @@ image, we can add a *recipes-extended/images/core-image-full-cmdline.bbappend*
 
 swupdate-www is the package with the website, that you can customize with
 your own logo, template ans style.
+
+Building a debian package
+-------------------------
+
+SWUpdate is thought for Embedded Systems and building in an embedded
+distribution is the first use case. But apart the most used buildsystems
+for embedded as Yocto or Buildroot, in some cases a standard Linux distro
+is used. Not only, a distro package allows to run SWUpdate on Linux PC
+for test purposes without having to fight with dependencies. Using the
+debhelper tools, it is possible to generate a debian package.
+
+Steps for building a debian package
+...................................
+
+::
+
+        ./debian/rules clean
+        ./debian/rules build
+        fakeroot debian/rules binary
+
+The result is a "deb" package stored in the parent directory.
+
+Alternative way signing source package
+......................................
+
+You can use dpkg-buildpackage:
+
+::
+
+        dpkg-buildpackage -us -uc
+        debsign -k <keyId>
 
 
 Running SWUpdate
