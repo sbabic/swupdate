@@ -161,6 +161,7 @@ static void psplash_progress(char *pipe, struct progress_msg *pmsg)
 		return;
 		break;
 	case DONE:
+		free(buf);
 		return;
 		break;
 	default:
