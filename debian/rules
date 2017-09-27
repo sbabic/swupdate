@@ -16,7 +16,6 @@ export DH_VERBOSE = 1
 documentation:
 	make man
 	make latexpdf
-	cp doc/build/man/Swupdate.1 debian/swupdate.1
 
 configure:
 	make debian_defconfig
