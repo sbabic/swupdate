@@ -35,6 +35,11 @@
 #include "pctl.h"
 #include "progress.h"
 
+#ifdef CONFIG_SYSTEMD
+#include <sys/stat.h>
+#include <systemd/sd-daemon.h>
+#endif
+
 /*
  * There is a list of notifier. Each registered
  * notifier will receive the notification
@@ -67,6 +72,7 @@ struct notify_ipc_msg {
 static struct sockaddr_un notify_client;
 static struct sockaddr_un notify_server;
 static int notifyfd = -1;
+static bool console_priority_prefix = false;
 
 /*
  * This allows to extend the list of notifier.
@@ -156,19 +162,19 @@ static void console_notifier (RECOVERY_STATUS status, int error, int level, cons
 
 	switch (level) {
 	case ERRORLEVEL:
-		fprintf(stderr, "[ERROR]");
+		fprintf(stderr, "%s[ERROR]", console_priority_prefix ? "<3>" : "");
 		break;
 	case WARNLEVEL:
-		fprintf(stdout, "[WARN ]");
+		fprintf(stdout, "%s[WARN ]", console_priority_prefix ? "<4>" : "");
 		break;
 	case INFOLEVEL:
-		fprintf(stdout, "[INFO ]");
+		fprintf(stdout, "%s[INFO ]", console_priority_prefix ? "<6>" : "");
 		break;
 	case DEBUGLEVEL:
-		fprintf(stdout, "[DEBUG]");
+		fprintf(stdout, "%s[DEBUG]", console_priority_prefix ? "<7>" : "");
 		break;
 	case TRACELEVEL:
-		fprintf(stdout, "[TRACE]");
+		fprintf(stdout, "%s[TRACE]", console_priority_prefix ? "<7>" : "");
 		break;
 	}
 
@@ -257,6 +263,30 @@ static void *notifier_thread (void __attribute__ ((__unused__)) *data)
 void notify_init(void)
 {
 	addr_init(&notify_server, "NotifyServer");
+
+#ifdef CONFIG_SYSTEMD
+	/*
+	 * If the init system is systemd and SWUpdate is run as
+	 * systemd service, then prefix the console log messages
+	 * with priority values enclosed in < >, following the
+	 * scheme used by the kernel's printk().
+	 * These get picked up and are interpreted by journald.
+	 * systemd >= 231 (2016-07-25) is required for proper
+	 * detection of stdout/stderr being attached to journald.
+	 */
+	if (sd_booted() && getenv("JOURNAL_STREAM") != NULL) {
+		dev_t device;
+		ino_t inode;
+		if (sscanf(getenv("JOURNAL_STREAM"), "%lu:%lu", &device, &inode) == 2) {
+			struct stat statbuffer;
+			if (fstat(fileno(stderr), &statbuffer) == 0) {
+				if (inode == statbuffer.st_ino && device == statbuffer.st_dev) {
+					console_priority_prefix = true;
+				}
+			}
+		}
+	}
+#endif
 
 	if (pid == getpid()) {
 		char buf[60];
