@@ -35,6 +35,7 @@
 #include <pthread.h>
 #include <signal.h>
 #include <sys/wait.h>
+#include <ftw.h>
 
 #include "bsdqueue.h"
 #include "cpiohdr.h"
@@ -406,6 +407,30 @@ static void create_directory(const char* path) {
 	mkdir(dpath, 0777);
 }
 
+static int _remove_directory_cb(const char *fpath, const struct stat *sb,
+                                int typeflag, struct FTW *ftwbuf)
+{
+	(void)sb;
+	(void)typeflag;
+	(void)ftwbuf;
+	return remove(fpath);
+}
+
+static int remove_directory(const char* path)
+{
+	char* dpath = alloca(strlen(get_tmpdir())+strlen(path)+1);
+	sprintf(dpath, "%s%s", get_tmpdir(), path);
+	return nftw(dpath, _remove_directory_cb, 64, FTW_DEPTH | FTW_PHYS);
+}
+
+static void swupdate_cleanup(void)
+{
+#ifndef CONFIG_NOCLEANUP
+	remove_directory(SCRIPTS_DIR_SUFFIX);
+	remove_directory(DATADST_DIR_SUFFIX);
+#endif
+}
+
 static void swupdate_init(struct swupdate_cfg *sw)
 {
 	/* Initialize internal tree to store configuration */
@@ -421,6 +446,10 @@ static void swupdate_init(struct swupdate_cfg *sw)
 	/* Create directories for scripts */
 	create_directory(SCRIPTS_DIR_SUFFIX);
 	create_directory(DATADST_DIR_SUFFIX);
+
+	if (atexit(swupdate_cleanup) != 0) {
+		TRACE("Cannot setup SWUpdate cleanup on exit");
+	}
 
 #ifdef CONFIG_MTD
 	mtd_init();
