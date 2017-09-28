@@ -326,7 +326,9 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 				continue;
 		}
 
-		if (strncmp(img->path, img->extract_file, sizeof(img->path)) == 0) {
+		if ((strlen(img->path) > 0) &&
+			(strlen(img->extract_file) > 0) &&
+			(strncmp(img->path, img->extract_file, sizeof(img->path)) == 0)){
 			struct img_type *tmpimg;
 			WARN("Temporary and final location for %s is identical, skip "
 			     "processing.", img->path);
