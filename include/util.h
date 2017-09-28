@@ -70,7 +70,7 @@ struct installer {
 	char	info[2048];   		/* info */
 };
 
-typedef void (*notifier) (RECOVERY_STATUS status, int level, const char *msg);
+typedef void (*notifier) (RECOVERY_STATUS status, int error, int level, const char *msg);
 
 #define swupdate_notify(status, format, level, arg...) do { \
 	if (loglevel >= level) { \
@@ -86,11 +86,11 @@ typedef void (*notifier) (RECOVERY_STATUS status, int level, const char *msg);
 			else \
 				snprintf(tmpbuf, sizeof(tmpbuf), \
 					       	"ERROR : " format, ## arg); \
-			notify(FAILURE, 0, tmpbuf); \
+			notify(FAILURE, 0, level, tmpbuf); \
 		} else {\
 			snprintf(tmpbuf, sizeof(tmpbuf), \
 				       	"[%s] : " format, __func__, ## arg); \
-			notify(RUN, RECOVERY_NO_ERROR, tmpbuf); \
+			notify(RUN, RECOVERY_NO_ERROR, level, tmpbuf); \
 		} \
 	} \
 } while(0)
@@ -155,7 +155,7 @@ off_t extract_next_file(int fd, int fdout, off_t start, int compressed,
 int openfileoutput(const char *filename);
 
 int register_notifier(notifier client);
-void notify(RECOVERY_STATUS status, int level, const char *msg);
+void notify(RECOVERY_STATUS status, int error, int level, const char *msg);
 void notify_init(void);
 int syslog_init(void);
 

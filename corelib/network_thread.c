@@ -56,6 +56,7 @@
 struct msg_elem {
 	RECOVERY_STATUS status;
 	int error;
+	int level;
 	char *msg;
 	SIMPLEQ_ENTRY(msg_elem) next;
 };
@@ -76,7 +77,7 @@ static void clean_msg(char *msg, char drop)
 	}
 }
 
-static void network_notifier(RECOVERY_STATUS status, int error, const char *msg)
+static void network_notifier(RECOVERY_STATUS status, int error, int level, const char *msg)
 {
 	int len = msg ? strlen(msg) : 0;
 	struct msg_elem *newmsg = (struct msg_elem *)calloc(1, sizeof(*newmsg) + len + 1);
@@ -97,6 +98,7 @@ static void network_notifier(RECOVERY_STATUS status, int error, const char *msg)
 
 	newmsg->status = status;
 	newmsg->error = error;
+	newmsg->level = level;
 
 	if (msg) {
 		strncpy(newmsg->msg, msg, len);

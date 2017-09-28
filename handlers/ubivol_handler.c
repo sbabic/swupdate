@@ -100,7 +100,7 @@ static int update_volume(libubi_t libubi, struct img_type *img,
 
 	snprintf(sbuf, sizeof(sbuf), "Installing image %s into volume %s(%s)",
 		img->fname, node, img->volname);
-	notify(RUN, RECOVERY_NO_ERROR, sbuf);
+	notify(RUN, RECOVERY_NO_ERROR, INFOLEVEL, sbuf);
 
 	TRACE("Updating UBI : %s %lld\n",
 			img->fname, img->size);

@@ -309,14 +309,14 @@ void *network_initializer(void *data)
 	/* handle installation requests (from either source) */
 	while (1) {
 
-		printf ("Main loop Daemon\n");
+		TRACE("Main loop Daemon");
 
 		/* wait for someone to issue an install request */
 		pthread_mutex_lock(&stream_mutex);
 		pthread_cond_wait(&stream_wkup, &stream_mutex);
 		inst.status = RUN;
 		pthread_mutex_unlock(&stream_mutex);
-		notify(START, RECOVERY_NO_ERROR, "Software Update started !");
+		notify(START, RECOVERY_NO_ERROR, INFOLEVEL, "Software Update started !");
 
 #ifdef CONFIG_MTD
 		mtd_cleanup();
@@ -340,11 +340,11 @@ void *network_initializer(void *data)
 			 */
 			bootloader_env_set("recovery_status", "in_progress");
 
-			notify(RUN, RECOVERY_NO_ERROR, "Installation in progress");
+			notify(RUN, RECOVERY_NO_ERROR, INFOLEVEL, "Installation in progress");
 			ret = install_images(software, 0, 0);
 			if (ret != 0) {
 				bootloader_env_set("recovery_status", "failed");
-				notify(FAILURE, RECOVERY_ERROR, "Installation failed !");
+				notify(FAILURE, RECOVERY_ERROR, ERRORLEVEL, "Installation failed !");
 				inst.last_install = FAILURE;
 
 			} else {
@@ -353,12 +353,12 @@ void *network_initializer(void *data)
 				 * that it is not required to start recovery again
 				 */
 				bootloader_env_unset("recovery_status");
-				notify(SUCCESS, RECOVERY_NO_ERROR, "SWUPDATE successful !");
+				notify(SUCCESS, RECOVERY_NO_ERROR, INFOLEVEL, "SWUPDATE successful !");
 				inst.last_install = SUCCESS;
 			}
 		} else {
 			inst.last_install = FAILURE;
-			notify(FAILURE, RECOVERY_ERROR, "Image invalid or corrupted. Not installing ...");
+			notify(FAILURE, RECOVERY_ERROR, ERRORLEVEL, "Image invalid or corrupted. Not installing ...");
 		}
 
 		swupdate_progress_end(inst.last_install);
@@ -367,7 +367,7 @@ void *network_initializer(void *data)
 		inst.status = IDLE;
 		pthread_mutex_unlock(&stream_mutex);
 		TRACE("Main thread sleep again !");
-		notify(IDLE, RECOVERY_NO_ERROR, "Waiting for requests...");
+		notify(IDLE, RECOVERY_NO_ERROR, INFOLEVEL, "Waiting for requests...");
 
 		/* release temp files we may have created */
 		cleanup_files(software);

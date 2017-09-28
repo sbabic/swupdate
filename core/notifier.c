@@ -60,6 +60,7 @@ static struct notifylist clients;
 struct notify_ipc_msg {
 	RECOVERY_STATUS status;
 	int error;
+	int level;
 	char buf[NOTIFY_BUF_SIZE];
 };
 
@@ -96,7 +97,7 @@ int register_notifier(notifier client)
  * IPC to the main process that will dispatch it
  * to the notifiers.
  */
-void notify(RECOVERY_STATUS status, int error, const char *msg)
+void notify(RECOVERY_STATUS status, int error, int level, const char *msg)
 {
 	struct notify_elem *elem;
 	struct notify_ipc_msg notifymsg;
@@ -105,6 +106,7 @@ void notify(RECOVERY_STATUS status, int error, const char *msg)
 		if (notifyfd > 0) {
 			notifymsg.status = status;
 			notifymsg.error = error;
+			notifymsg.level = level;
 			if (msg)
 				strcpy(notifymsg.buf, msg);
 			else
@@ -115,14 +117,14 @@ void notify(RECOVERY_STATUS status, int error, const char *msg)
 		}
 	} else { /* Main process */
 		STAILQ_FOREACH(elem, &clients, next)
-			(elem->client)(status, error, msg);
+			(elem->client)(status, error, level, msg);
 	}
 }
 
 /*
  * Default notifier, it prints to stdout
  */
-static void console_notifier (RECOVERY_STATUS status, int error, const char *msg)
+static void console_notifier (RECOVERY_STATUS status, int error, int level, const char *msg)
 {
 	char current[80];
 	switch(status) {
@@ -152,7 +154,26 @@ static void console_notifier (RECOVERY_STATUS status, int error, const char *msg
 		break;
 	}
 
-	fprintf(stdout, "[NOTIFY] : %s %s\n", current, msg ? msg : "");
+	switch (level) {
+	case ERRORLEVEL:
+		fprintf(stderr, "[ERROR]");
+		break;
+	case WARNLEVEL:
+		fprintf(stdout, "[WARN ]");
+		break;
+	case INFOLEVEL:
+		fprintf(stdout, "[INFO ]");
+		break;
+	case DEBUGLEVEL:
+		fprintf(stdout, "[DEBUG]");
+		break;
+	case TRACELEVEL:
+		fprintf(stdout, "[TRACE]");
+		break;
+	}
+
+	fprintf(level == ERRORLEVEL ? stderr : stdout,
+			" : %s %s\n", current, msg ? msg : "");
 	fflush(stdout);
 }
 
@@ -160,8 +181,9 @@ static void console_notifier (RECOVERY_STATUS status, int error, const char *msg
  * Process notifier: this is called when a process has something to say
  * and wants that the information is passed to the progress interface
  */
-static void process_notifier (RECOVERY_STATUS status, int event, const char *msg)
+static void process_notifier (RECOVERY_STATUS status, int event, int level, const char *msg)
 {
+	(void)level;
 
 	/* Check just in case a process want to send an info outside */
 	if (status != SUBPROCESS)
@@ -226,7 +248,7 @@ static void *notifier_thread (void __attribute__ ((__unused__)) *data)
 		len =  recvfrom(serverfd, &msg, sizeof(msg), 0, NULL, NULL);
 
 		if (len > 0) {
-			notify(msg.status, msg.error, msg.buf);
+			notify(msg.status, msg.error, msg.level, msg.buf);
 		}
 
 	} while(1);

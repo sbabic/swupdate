@@ -237,7 +237,7 @@ static RECOVERY_STATUS download_from_url(char *image_url, unsigned int retries,
 	}
 
 	/* We are starting a download */
-	notify(DOWNLOAD, 0, 0);
+	notify(DOWNLOAD, 0, INFOLEVEL, NULL);
 
 	curl_global_init(CURL_GLOBAL_ALL);
 	curl_handle = curl_easy_init();

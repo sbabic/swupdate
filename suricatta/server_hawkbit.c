@@ -301,9 +301,9 @@ static void check_action_changed(int action_id, const char *update_action)
 		if (ENOMEM_ASPRINTF ==
 		    asprintf(&notifybuf, "{ \"id\" : \"%d\", \"update\" : \"%s\"}",
 				action_id, server_hawkbit.update_action)) {
-			notify(SUBPROCESS, CHANGE, "Update type changed by server");
+			notify(SUBPROCESS, CHANGE, DEBUGLEVEL, "Update type changed by server");
 		}  else {
-			notify(SUBPROCESS, CHANGE, notifybuf);
+			notify(SUBPROCESS, CHANGE, DEBUGLEVEL, notifybuf);
 			free(notifybuf);
 		}
 	}
@@ -406,9 +406,9 @@ cleanup:
 	if (ENOMEM_ASPRINTF ==
 	    asprintf(&notifybuf, "{ \"id\" : \"%d\", \"stopId\" : \"%d\"}",
 		     action_id, stop_id)) {
-		notify(SUBPROCESS, CANCELUPDATE, "Update cancelled");
+		notify(SUBPROCESS, CANCELUPDATE, INFOLEVEL, "Update cancelled");
 	}  else {
-		notify(SUBPROCESS, CANCELUPDATE, notifybuf);
+		notify(SUBPROCESS, CANCELUPDATE, INFOLEVEL, notifybuf);
 		free(notifybuf);
 	}
 

@@ -39,7 +39,6 @@ static int install_boot_environment(struct img_type *img,
 {
 	int ret;
 	int fdout;
-	char buf[64];
 
 	char filename[64];
 	struct stat statbuf;
@@ -62,12 +61,13 @@ static int install_boot_environment(struct img_type *img,
 	}
 
 	ret = bootloader_apply_list(filename);
-	if (ret < 0)
-		snprintf(buf, sizeof(buf), "Error setting bootloader environment");
-	else
-		snprintf(buf, sizeof(buf), "Bootloader environment updated");
-
-	notify(RUN, RECOVERY_NO_ERROR, buf);
+	if (ret < 0) {
+		notify(RUN, RECOVERY_NO_ERROR, ERRORLEVEL,
+		       "Error setting bootloader environment");
+	} else {
+		notify(RUN, RECOVERY_NO_ERROR, INFOLEVEL,
+		       "Bootloader environment updated");
+	}
 
 	return ret;
 }

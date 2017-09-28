@@ -304,7 +304,7 @@ static int l_notify (lua_State *L) {
 	const char *msg   =  luaL_checkstring (L, 3);
 
 	if (strlen(msg))
-		notify((RECOVERY_STATUS)status, (int)error, msg);
+		notify((RECOVERY_STATUS)status, (int)error, INFOLEVEL, msg);
 
 	return 0;
 }

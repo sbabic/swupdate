@@ -889,7 +889,7 @@ int main(int argc, char **argv)
 		install_from_file(fname, opt_c);
 		cleanup_files(&swcfg);
 
-		notify(SUCCESS, 0, 0);
+		notify(SUCCESS, 0, INFOLEVEL, NULL);
 		if (postupdate(&swcfg, NULL) != 0) {
 			ERROR("Post-update command execution failed.");
 		}
