@@ -35,7 +35,6 @@
 
 /* These are fixed path to temporary files */
 #define SCRIPTS_DIR_SUFFIX	"scripts/"
-#define DATASRC_DIR_SUFFIX	"datasrc/"
 #define DATADST_DIR_SUFFIX	"datadst/"
 #define BOOT_SCRIPT_SUFFIX	"boot-script"
 

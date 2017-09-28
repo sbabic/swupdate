@@ -420,7 +420,6 @@ static void swupdate_init(struct swupdate_cfg *sw)
 
 	/* Create directories for scripts */
 	create_directory(SCRIPTS_DIR_SUFFIX);
-	create_directory(DATASRC_DIR_SUFFIX);
 	create_directory(DATADST_DIR_SUFFIX);
 
 #ifdef CONFIG_MTD
