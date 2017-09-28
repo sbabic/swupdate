@@ -428,6 +428,8 @@ void cleanup_files(struct swupdate_cfg *software) {
 	LIST_FOREACH(bootvar, &software->bootloader, next) {
 		dict_remove_entry(bootvar);
 	}
+	snprintf(fn, sizeof(fn), "%s%s", TMPDIR, BOOT_SCRIPT_SUFFIX);
+	remove_sw_file(fn);
 
 	LIST_FOREACH(hw, &software->hardware, next) {
 		LIST_REMOVE(hw, next);
