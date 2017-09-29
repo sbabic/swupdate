@@ -44,7 +44,7 @@ static inline lua_State *lua_parser_init(const char __attribute__ ((__unused__))
 static inline int lua_parser_fn(lua_State __attribute__ ((__unused__)) *L,
 			 const char __attribute__ ((__unused__)) *fcn,
 			 struct img_type __attribute__ ((__unused__)) *img) { return -1; }
-#define lua_handlers_init(void)  (0) 
+static inline int lua_handlers_init(void) { return 0; }
 #endif
 
 

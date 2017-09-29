@@ -472,22 +472,24 @@ int lua_handlers_init(void)
 {
 	int ret = -1;
 
-	gL = NULL;
 	gL = luaL_newstate();
 	if (gL) {
-		printf("Searching for custom Lua handlers :");
 		/* load standard libraries */
 		luaL_openlibs(gL);
 		luaL_requiref( gL, "swupdate", luaopen_swupdate, 1 );
 		/* try to load lua handlers for the swupdate system */
-		ret = luaL_dostring(gL,"require (\"swupdate_handlers\")");
-		if(ret != 0)
-		{
-			TRACE("No lua handler found:\n%s", lua_tostring(gL, -1));
-		} else
-			printf(" OK\n");
+		if ((ret = luaL_dostring(gL, "require (\"swupdate_handlers\")")) != 0) {
+			INFO("No Lua handler(s) found.");
+			if (luaL_dostring(gL, "return package.path:gsub(';','\\n'):gsub('?','swupdate_handlers')") == 0) {
+				lua_pop(gL, 1);
+				TRACE("Lua handler search path:\n%s", lua_tostring(gL, -1));
+				lua_pop(gL, 1);
+			}
+		} else {
+			INFO("Lua handler(s) found.");
+		}
 	} else	{
-		printf ("Unable to register Lua context for callbacks\n");
+		WARN("Unable to register Lua context for callbacks\n");
 	}
 
 	return ret;
