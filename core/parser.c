@@ -63,6 +63,48 @@ static int check_missing_hash(struct imglist *list)
 }
 #endif
 
+static int check_handler(struct img_type *item, unsigned int mask, const char *desc)
+{
+	struct installer_handler *hnd;
+
+	hnd = find_handler(item);
+	if (!hnd) {
+		ERROR("feature '%s' required for "
+		      "'%s' in %s is absent!",
+		      item->type, item->fname,
+		      SW_DESCRIPTION_FILENAME);
+		return -EINVAL;
+	}
+
+	if (!(hnd->mask & mask)) {
+		ERROR("feature '%s' is not allowed for "
+		      "'%s' in %s is absent!",
+		      item->type, desc,
+		      SW_DESCRIPTION_FILENAME);
+		return -EINVAL;
+	}
+
+	return 0;
+}
+
+static int check_handler_list(struct imglist *list, unsigned int allowedmask,
+				const char *desc)
+{
+	struct img_type *item;
+	int ret;
+	if (!LIST_EMPTY(list)) {
+		LIST_FOREACH(item, list, next)
+		{
+			ret = check_handler(item, allowedmask, desc);
+
+			if (ret < 0)
+				return ret;
+		}
+	}
+
+	return 0;
+}
+
 int parse(struct swupdate_cfg *sw, const char *descfile)
 {
 	int ret = -1;
@@ -85,39 +127,26 @@ int parse(struct swupdate_cfg *sw, const char *descfile)
 		return ret;
 	}
 
-	struct img_type *item;
-	if (!LIST_EMPTY(&sw->scripts)) {
-		LIST_FOREACH(item, &sw->scripts, next)
-		{
-			if (!find_handler(item)) {
-				ERROR("feature '%s' required for script "
-				      "'%s' in %s is absent!",
-				      item->type, item->fname,
-				      SW_DESCRIPTION_FILENAME);
-				return -1;
-			}
-		}
-	}
-	if (!LIST_EMPTY(&sw->images)) {
-		LIST_FOREACH(item, &sw->images, next)
-		{
-			if (!find_handler(item)) {
-				ERROR("feature '%s' required for image "
-				      "'%s' in %s is absent!",
-				      item->type, item->fname,
-				      SW_DESCRIPTION_FILENAME);
-				return -1;
-			}
-		}
-	}
+	ret = check_handler_list(&sw->scripts, SCRIPT_HANDLER, "scripts");
+	ret |= check_handler_list(&sw->images, IMAGE_HANDLER | FILE_HANDLER,
+					"images / files");
+	ret |= check_handler_list(&sw->partitions, PARTITION_HANDLER,
+					"partitions");
+	if (ret)
+		return -EINVAL;
+
+	/*
+	 *  Bootloader is slightly different, it has no image
+	 *  but a list of variables
+	 */
 	struct img_type item_uboot = {.type = "uboot"};
 	struct img_type item_bootloader = {.type = "bootenv"};
 	if (!LIST_EMPTY(&sw->bootloader) &&
-		       	(!find_handler(&item_uboot) &&
+			(!find_handler(&item_uboot) &&
 			 !find_handler(&item_bootloader))) {
 		ERROR("bootloader support absent but %s has bootloader section!",
 		      SW_DESCRIPTION_FILENAME);
-		return -1;
+		return -EINVAL;
 	}
 
 #ifdef CONFIG_SIGNED_IMAGES

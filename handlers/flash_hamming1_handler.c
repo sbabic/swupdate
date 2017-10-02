@@ -331,5 +331,6 @@ static int install_flash_hamming_image(struct img_type *img,
 __attribute__((constructor))
 void flash_1bit_hamming_handler(void)
 {
-	register_handler("flash-hamming1", install_flash_hamming_image, (void *)1);
+	register_handler("flash-hamming1", install_flash_hamming_image,
+				IMAGE_HANDLER | FILE_HANDLER,  (void *)1);
 }

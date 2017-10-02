@@ -130,17 +130,20 @@ static int start_postinstall_script(struct img_type *img, void *data)
  __attribute__((constructor))
 static void shell_handler(void)
 {
-	register_handler("shellscript", start_shell_script, NULL);
+	register_handler("shellscript", start_shell_script,
+				SCRIPT_HANDLER, NULL);
 }
 
  __attribute__((constructor))
 static void shell_preinstall_handler(void)
 {
-	register_handler("preinstall", start_preinstall_script, NULL);
+	register_handler("preinstall", start_preinstall_script,
+				SCRIPT_HANDLER, NULL);
 }
 
  __attribute__((constructor))
 static void shell_postinstall_handler(void)
 {
-	register_handler("postinstall", start_postinstall_script, NULL);
+	register_handler("postinstall", start_postinstall_script,
+				SCRIPT_HANDLER, NULL);
 }

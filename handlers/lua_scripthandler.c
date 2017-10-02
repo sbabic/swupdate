@@ -123,5 +123,5 @@ static int start_lua_script(struct img_type *img, void *data)
  __attribute__((constructor))
 static void lua_handler(void)
 {
-	register_handler("lua", start_lua_script, NULL);
+	register_handler("lua", start_lua_script, SCRIPT_HANDLER, NULL);
 }

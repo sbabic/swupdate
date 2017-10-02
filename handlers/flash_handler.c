@@ -349,5 +349,6 @@ static int install_flash_image(struct img_type *img,
 __attribute__((constructor))
 void flash_handler(void)
 {
-	register_handler("flash", install_flash_image, NULL);
+	register_handler("flash", install_flash_image,
+				IMAGE_HANDLER | FILE_HANDLER, NULL);
 }

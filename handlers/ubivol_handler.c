@@ -251,6 +251,8 @@ static int adjust_volume(struct img_type *cfg,
 __attribute__((constructor))
 void ubi_handler(void)
 {
-	register_handler("ubivol", install_ubivol_image, NULL);
-	register_handler("ubipartition", adjust_volume, NULL);
+	register_handler("ubivol", install_ubivol_image,
+				IMAGE_HANDLER, NULL);
+	register_handler("ubipartition", adjust_volume,
+				PARTITION_HANDLER, NULL);
 }

@@ -33,7 +33,7 @@ struct installer_handler supported_types[MAX_INSTALLER_HANDLER];
 static unsigned long nr_installers = 0;
 
 int register_handler(const char *desc,
-		handler installer, void *data)
+		handler installer, HANDLER_MASK mask, void *data)
 {
 
 	if (nr_installers > MAX_INSTALLER_HANDLER - 1)
@@ -43,6 +43,7 @@ int register_handler(const char *desc,
 		      sizeof(supported_types[nr_installers].desc));
 	supported_types[nr_installers].installer = installer;
 	supported_types[nr_installers].data = data;
+	supported_types[nr_installers].mask = mask;
 	nr_installers++;
 
 	return 0;

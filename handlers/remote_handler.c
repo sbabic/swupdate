@@ -211,5 +211,6 @@ cleanup:
 __attribute__((constructor))
 void remote_handler(void)
 {
-	register_handler("remote", install_remote_image, NULL);
+	register_handler("remote", install_remote_image,
+				IMAGE_HANDLER, NULL);
 }

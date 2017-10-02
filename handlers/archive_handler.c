@@ -253,12 +253,14 @@ static int install_archive_image(struct img_type *img,
 __attribute__((constructor))
 void archive_handler(void)
 {
-	register_handler("archive", install_archive_image, NULL);
+	register_handler("archive", install_archive_image,
+				IMAGE_HANDLER | FILE_HANDLER, NULL);
 }
 
 /* This is an alias for the parsers */
 __attribute__((constructor))
 void untar_handler(void)
 {
-	register_handler("tar", install_archive_image, NULL);
+	register_handler("tar", install_archive_image,
+				IMAGE_HANDLER | FILE_HANDLER, NULL);
 }

@@ -75,10 +75,12 @@ static int install_boot_environment(struct img_type *img,
 __attribute__((constructor))
 static void uboot_handler(void)
 {
-	register_handler("uboot", install_boot_environment, NULL);
+	register_handler("uboot", install_boot_environment,
+				BOOTLOADER_HANDLER, NULL);
 }
 __attribute__((constructor))
 static void boot_handler(void)
 {
-	register_handler("bootloader", install_boot_environment, NULL);
+	register_handler("bootloader", install_boot_environment,
+				BOOTLOADER_HANDLER, NULL);
 }
