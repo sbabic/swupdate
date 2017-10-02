@@ -407,6 +407,7 @@ static void create_directory(const char* path) {
 	mkdir(dpath, 0777);
 }
 
+#ifndef CONFIG_NOCLEANUP
 static int _remove_directory_cb(const char *fpath, const struct stat *sb,
                                 int typeflag, struct FTW *ftwbuf)
 {
@@ -422,6 +423,7 @@ static int remove_directory(const char* path)
 	sprintf(dpath, "%s%s", get_tmpdir(), path);
 	return nftw(dpath, _remove_directory_cb, 64, FTW_DEPTH | FTW_PHYS);
 }
+#endif
 
 static void swupdate_cleanup(void)
 {
