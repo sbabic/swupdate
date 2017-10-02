@@ -482,6 +482,7 @@ int lua_handlers_init(void)
 		/* load standard libraries */
 		luaL_openlibs(gL);
 		luaL_requiref( gL, "swupdate", luaopen_swupdate, 1 );
+		lua_pop(gL, 1); /* remove unused copy left on stack */
 		/* try to load lua handlers for the swupdate system */
 		if ((ret = luaL_dostring(gL, "require (\"swupdate_handlers\")")) != 0) {
 			INFO("No Lua handler(s) found.");
