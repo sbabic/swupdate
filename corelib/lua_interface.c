@@ -265,6 +265,11 @@ static void image2table(lua_State* L, struct img_type *img) {
 		LUA_PUSH_IMG_NUMBER(img, "size", size);
 		LUA_PUSH_IMG_NUMBER(img, "checksum", checksum);
 
+		char *hashstring = alloca(2 * SHA256_HASH_LENGTH + 1);
+		hash_to_ascii(img->sha256, hashstring);
+		lua_pushstring(L, "sha256");
+		lua_pushstring(L, hashstring);
+		lua_settable(L, -3);
 	}
 }
 
