@@ -188,6 +188,7 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 
 			skip = check_if_required(&software->images, &fdh,
 						&software->installed_sw_list,
+                        get_tmpdir(),
 						&img);
 			if (skip == SKIP_FILE) {
 				/*
@@ -196,6 +197,7 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 				 */
 				skip = check_if_required(&software->scripts, &fdh,
 								NULL,
+                                get_tmpdirscripts(),
 								&img);
 			}
 			TRACE("Found file:\n\tfilename %s\n\tsize %d %s",

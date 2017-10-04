@@ -81,12 +81,12 @@ static int isImageInstalled(struct swver *sw_ver_list,
  */
 int check_if_required(struct imglist *list, struct filehdr *pfdh,
 				struct swver *sw_ver_list,
+                const char *destdir,
 				struct img_type **pimg)
 {
 	int skip = SKIP_FILE;
 	struct img_type *img;
 	int img_skip = 0;
-	const char* TMPDIR = get_tmpdir();
 
 	/*
 	 * Check that not more as one image wnat to be streamed
@@ -116,8 +116,8 @@ int check_if_required(struct imglist *list, struct filehdr *pfdh,
 
 			if (snprintf(img->extract_file,
 				     sizeof(img->extract_file), "%s%s",
-				     TMPDIR, pfdh->filename) >= (int)sizeof(img->extract_file)) {
-				ERROR("Path too long: %s%s", TMPDIR, pfdh->filename);
+				     destdir, pfdh->filename) >= (int)sizeof(img->extract_file)) {
+				ERROR("Path too long: %s%s", destdir, pfdh->filename);
 				return -EBADF;
 			}
 			/*
