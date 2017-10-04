@@ -195,5 +195,6 @@ static inline int decompress_image(int __attribute__ ((__unused__))infile,
 #endif
 
 const char* get_tmpdir(void);
+const char* get_tmpdirscripts(void);
 
 #endif

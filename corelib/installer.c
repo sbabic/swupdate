@@ -257,14 +257,10 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 
 	/* Extract all scripts, preinstall scripts must be run now */
 	if (fromfile) {
-		char* TMPDIR_SCRIPTS = alloca(strlen(TMPDIR)+strlen(SCRIPTS_DIR_SUFFIX)+1);
-		if (sprintf(TMPDIR_SCRIPTS, "%s%s", TMPDIR, SCRIPTS_DIR_SUFFIX) < 0) {
-			ERROR("preparing script extraction path failed!");
-			return -1;
-		}
-		ret = extract_script(fdsw, &sw->scripts, TMPDIR_SCRIPTS);
+		const char* tmpdir_scripts = get_tmpdirscripts();
+		ret = extract_script(fdsw, &sw->scripts, tmpdir_scripts);
 		if (ret) {
-			ERROR("extracting script to %s failed", TMPDIR_SCRIPTS);
+			ERROR("extracting script to %s failed", tmpdir_scripts);
 			return ret;
 		}
 	}
@@ -421,7 +417,7 @@ void cleanup_files(struct swupdate_cfg *software) {
 	}
 	LIST_FOREACH(img, &software->scripts, next) {
 		if (img->fname[0]) {
-			if (snprintf(fn, sizeof(fn), "%s%s%s", TMPDIR, SCRIPTS_DIR_SUFFIX,
+			if (snprintf(fn, sizeof(fn), "%s%s", get_tmpdirscripts(),
 				     img->fname) >= (int)sizeof(fn)) {
 				ERROR("Path too long: %s%s", TMPDIR, img->fname);
 			}

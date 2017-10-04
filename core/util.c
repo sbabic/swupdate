@@ -53,6 +53,7 @@ char *sdup(const char *str) {
 }
 
 static char* TMPDIR = NULL;
+static char* TMPDIRSCRIPT = NULL;
 
 const char* get_tmpdir(void)
 {
@@ -75,6 +76,18 @@ const char* get_tmpdir(void)
 		TMPDIR = (char*)"/tmp/";
 	}
 	return TMPDIR;
+}
+
+const char* get_tmpdirscripts(void)
+{
+	if (TMPDIRSCRIPT != NULL) {
+		return TMPDIRSCRIPT;
+	}
+
+	if (asprintf(&TMPDIRSCRIPT, "%s%s", get_tmpdir(), SCRIPTS_DIR_SUFFIX) == -1) {
+		TMPDIRSCRIPT = (char*)"/tmp/" SCRIPTS_DIR_SUFFIX;
+	}
+	return TMPDIRSCRIPT;
 }
 
 static int countargc(char *args, char **argv)
