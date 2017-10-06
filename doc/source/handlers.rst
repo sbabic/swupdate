@@ -78,7 +78,7 @@ The handler's developer registers his own handler with a call to:
 	__attribute__((constructor))
 	void my_handler_init(void)
 	{
-		register_handler("mytype", my_handler, data);
+		register_handler("mytype", my_handler, my_mask, data);
 	}
 
 SWUpdate uses the gcc constructors, and all supplied handlers are registered
@@ -88,12 +88,14 @@ register_handler has the syntax:
 
 ::
 
-	register_handler(my_image_type, my_handler, data);
+	register_handler(my_image_type, my_handler, my_mask, data);
 
 Where:
 
 - my_image_type : string identifying the own new image type.
 - my_handler : pointer to the installer to be registered.
+- my_mask : ``HANDLER_MASK`` enum value(s) specifying what
+  input type(s) my_handler can process.
 - data : an optional pointer to an own structure, that SWUpdate
   saves in the handlers' list and pass to the handler when it will
   be executed.
