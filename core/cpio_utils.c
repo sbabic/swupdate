@@ -61,7 +61,7 @@ int fill_buffer(int fd, unsigned char *buf, unsigned int nbytes, unsigned long *
 	while (nbytes > 0) {
 		len = read(fd, buf, nbytes);
 		if (len < 0) {
-			ERROR("Failure in stream: I cannot go on\n");
+			ERROR("Failure in stream %d: %s", fd, strerror(errno));
 			return -EFAULT;
 		}
 		if (len == 0) {
