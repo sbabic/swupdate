@@ -47,11 +47,11 @@ static int lock_uboot_env(void)
 	int lockfd = -1;
 	lockfd = open(lockname, O_WRONLY | O_CREAT | O_TRUNC, 0666);
 	if (lockfd < 0) {
-		ERROR("Error opening U-Boot lock file %s\n", lockname);
+		ERROR("Error opening U-Boot lock file %s, %s\n", lockname, strerror(errno));
 		return -1;
 	}
 	if (flock(lockfd, LOCK_EX) < 0) {
-		ERROR("Error locking file %s\n", lockname);
+		ERROR("Error locking file %s, %s\n", lockname, strerror(errno));
 		close(lockfd);
 		return -1;
 	}
@@ -74,7 +74,7 @@ int bootloader_env_set(const char *name, const char *value)
 		return -1;
 
 	if (fw_env_open (fw_env_opts)) {
-		ERROR("Error: environment not initialized\n");
+		ERROR("Error: environment not initialized, %s\n", strerror(errno));
 		unlock_uboot_env(lock);
 		return -1;
 	}
@@ -103,7 +103,7 @@ char *bootloader_env_get(const char *name)
 		return NULL;
 
 	if (fw_env_open (fw_env_opts)) {
-		ERROR("Error: environment not initialized\n");
+		ERROR("Error: environment not initialized, %s\n", strerror(errno));
 		unlock_uboot_env(lock);
 		return NULL;
 	}
@@ -126,7 +126,7 @@ int bootloader_apply_list(const char *filename)
 
 	lockfd = lock_uboot_env();
 	if (lockfd < 0) {
-		ERROR("Error opening U-Boot lock file %s\n", lockname);
+		ERROR("Error opening U-Boot lock file %s, %s\n", lockname, strerror(errno));
 		return -ENODEV;
 	}
 
