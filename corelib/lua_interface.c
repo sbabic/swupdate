@@ -65,6 +65,10 @@ void LUAstackDump(lua_State *L)
 				TRACE("(%d) [bool  ] %s", i, (lua_toboolean(L, i) ? "true" : "false"));
 				break;
 			}
+			case LUA_TFUNCTION: {
+				TRACE("(%d) [func  ] %s()", i, lua_tostring(L, i));
+				break;
+			}
 			case LUA_TNUMBER: {
 				TRACE("(%d) [number] %g", i, lua_tonumber(L, i));
 				break;
@@ -83,6 +87,14 @@ void LUAstackDump(lua_State *L)
 							TRACE("(%d) [table ] %s = %s", i,
 								lua_tostring(L, -1),
 								lua_tostring(L, -2));
+							break;
+						case LUA_TFUNCTION:
+							TRACE("(%d) [table ] %s()", i,
+								lua_tostring(L, -1));
+							break;
+						case LUA_TTABLE:
+							TRACE("(%d) [table ] %s <table>", i,
+								lua_tostring(L, -1));
 							break;
 						case LUA_TBOOLEAN:
 							TRACE("(%d) [table ] %s = %s", i,
