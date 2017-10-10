@@ -473,7 +473,8 @@ static int l_register_handler( lua_State *L ) {
 	int *l_func_ref = malloc(sizeof(int));
 	if(!l_func_ref) {
 		ERROR("lua handler: unable to allocate memory\n");
-		return -1;
+		lua_pop(L, 2);
+		return 0;
 	} else {
 		const char *handler_desc = luaL_checkstring(L, 1);
 		/* store the callback function in registry */
