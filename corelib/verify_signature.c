@@ -212,7 +212,7 @@ static int cms_verify_callback(int ok, X509_STORE_CTX *ctx) {
 
 	if (!ok) {
 		switch (cert_error) {
-#if defined(CONFIG_CMS_IGNORE_CERTIFICATE_PURPOSE)
+#if defined(CONFIG_CMS_IGNORE_EXPIRED_CERTIFICATE)
 		case X509_V_ERR_CERT_HAS_EXPIRED:
 		case X509_V_ERR_CERT_NOT_YET_VALID:
 			ok = 1;
