@@ -7,7 +7,7 @@ lib-y				+= installer.o \
 				   swupdate_dict.o
 lib-$(CONFIG_DOWNLOAD)		+= downloader.o
 lib-$(CONFIG_MTD)		+= mtd-interface.o
-lib-$(CONFIG_LUA)		+= lua_interface.o
+lib-$(CONFIG_LUA)		+= lua_interface.o lua_compat.o
 lib-$(CONFIG_HASH_VERIFY)	+= verify_signature.o
 lib-$(CONFIG_ENCRYPTED_IMAGES)	+= swupdate_decrypt.o
 lib-$(CONFIG_LIBCONFIG)		+= swupdate_settings.o \

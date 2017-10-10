@@ -36,6 +36,13 @@ int lua_parser_fn(lua_State *L, const char *fcn, struct img_type *img);
 int lua_handlers_init(void);
 #define lua_parser_exit(L) lua_close((lua_State *)L)
 
+#if !defined(LUA_VERSION_NUM) || LUA_VERSION_NUM == 501
+#define LUA_OK 0
+#define luaL_newlib(L, l) (lua_newtable((L)),luaL_setfuncs((L), (l), 0))
+void luaL_setfuncs(lua_State *L, const luaL_Reg *l, int nup);
+void luaL_requiref(lua_State *L, char const* modname, lua_CFunction openf, int glb);
+#endif
+
 #else
 
 #define lua_State void
