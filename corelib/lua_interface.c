@@ -478,8 +478,8 @@ static int l_register_handler( lua_State *L ) {
 		const char *handler_desc = luaL_checkstring(L, 1);
 		/* store the callback function in registry */
 		*l_func_ref = luaL_ref (L, LUA_REGISTRYINDEX);
-		/* pop the arguments from the stack */
-		lua_pop (L, 2);
+		/* cleanup stack */
+		lua_pop (L, 1);
 		register_handler(handler_desc, l_handler_wrapper,
 				 ANY_HANDLER, l_func_ref);
 		return 0;
