@@ -323,30 +323,37 @@ static int l_notify (lua_State *L) {
 	if (strlen(msg))
 		notify((RECOVERY_STATUS)status, (int)error, INFOLEVEL, msg);
 
+	lua_pop(L, 3);
 	return 0;
 }
 
 static int l_trace(lua_State *L) {
+	const char *msg = luaL_checkstring (L, 1);
 
-	const char *msg   =  luaL_checkstring (L, 1);
 	if (strlen(msg))
 		TRACE("%s", msg);
+
+	lua_pop(L, 1);
 	return 0;
 }
 
 static int l_error(lua_State *L) {
+	const char *msg = luaL_checkstring (L, 1);
 
-	const char *msg   =  luaL_checkstring (L, 1);
 	if (strlen(msg))
 		ERROR("%s", msg);
+
+	lua_pop(L, 1);
 	return 0;
 }
 
 static int l_info(lua_State *L) {
+	const char *msg = luaL_checkstring (L, 1);
 
-	const char *msg   =  luaL_checkstring (L, 1);
 	if (strlen(msg))
 		INFO("%s", msg);
+
+	lua_pop(L, 1);
 	return 0;
 }
 
