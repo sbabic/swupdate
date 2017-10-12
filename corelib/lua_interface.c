@@ -474,7 +474,7 @@ static int l_handler_wrapper(struct img_type *img, void *data) {
  * from any lua script in the same context (Stack)
  *
  * @param [in] the lua Stack
- * @return This function returns 0 if successfull and -1 if unsuccessfull.
+ * @return This function returns 0 values back to Lua.
  */
 static int l_register_handler( lua_State *L ) {
 	int *l_func_ref = malloc(sizeof(int));
