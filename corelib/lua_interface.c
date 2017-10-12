@@ -550,7 +550,7 @@ int lua_parser_fn(lua_State *L, const char *fcn, struct img_type *img)
 
 	lua_getglobal(L, fcn);
 	if(!lua_isfunction(L, lua_gettop(L))) {
-		lua_close(L);
+		lua_pop(L, 1);
 		TRACE("Script : no %s in script, exiting", fcn);
 		return -1;
 	}
