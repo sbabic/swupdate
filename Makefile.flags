@@ -101,6 +101,16 @@ KBUILD_LIBS += $(LUABUILD_LIBS)
 LDLIBS += $(LUABUILD_LDLIBS)
 endif
 
+ifeq ($(CONFIG_LUA),y)
+ifeq ($(CONFIG_HANDLER_IN_LUA),y)
+ifeq ($(CONFIG_EMBEDDED_LUA_HANDLER),y)
+ifneq ($(CONFIG_EMBEDDED_LUA_HANDLER_SOURCE),)	
+LDFLAGS_swupdate += -Wl,--format=binary -Wl,$(CONFIG_EMBEDDED_LUA_HANDLER_SOURCE) -Wl,--format=default
+KBUILD_CPPFLAGS += -DEMBEDDED_LUA_SRC="_binary_$(subst ",,$(subst .,_,$(subst /,_,$(CONFIG_EMBEDDED_LUA_HANDLER_SOURCE))))_start"
+endif
+endif
+endif
+endif
 
 # Image downloading support
 ifneq ($(CONFIG_DOWNLOAD),)

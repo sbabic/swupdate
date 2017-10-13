@@ -111,6 +111,30 @@ config HANDLER_IN_LUA
 	  Allow to write own handlers in Lua.
 	  They are loaded at the start-up.
 
+config EMBEDDED_LUA_HANDLER
+	bool "Embed Lua handler in SWUpdate binary"
+	depends on HANDLER_IN_LUA
+	default n
+	help
+	  Embed the Lua handler source code file into the
+	  SWUpdate binary.
+
+	  If enabled, a swupdate_handlers.lua will *not*
+	  be loaded from disk at SWUpdate startup.
+
+	  Note: Exactly one Lua source code file is embedded
+	  into the binary, i.e., possible dependencies either
+	  have to be deployed on the target system or put into
+	  the one embedded Lua source code file.
+
+config EMBEDDED_LUA_HANDLER_SOURCE
+	string "Lua handler file"
+	depends on EMBEDDED_LUA_HANDLER
+	default "swupdate_handlers.lua"
+	help
+	  Path to the Lua handler source code file to be
+	  embedded into the SWUpdate binary.
+
 config ARCHIVE
 	bool "archive"
 	depends on HAVE_LIBARCHIVE

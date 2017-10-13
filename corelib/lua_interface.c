@@ -29,6 +29,10 @@
 #include "util.h"
 #include "handler.h"
 
+#if defined(CONFIG_EMBEDDED_LUA_HANDLER)
+extern const char EMBEDDED_LUA_SRC[];
+#endif
+
 #define LUA_PUSH_IMG_STRING(img, attr, field)  do { \
 	lua_pushstring(L, attr);		\
 	lua_pushstring(L, img->field);		\
@@ -524,6 +528,15 @@ int lua_handlers_init(void)
 		luaL_requiref( gL, "swupdate", luaopen_swupdate, 1 );
 		lua_pop(gL, 1); /* remove unused copy left on stack */
 		/* try to load lua handlers for the swupdate system */
+#if defined(CONFIG_EMBEDDED_LUA_HANDLER)
+		if ((ret = luaL_dostring(gL, EMBEDDED_LUA_SRC)) != 0) {
+			INFO("No compiled-in Lua handler(s) found.");
+			TRACE("Lua exception:\n%s", lua_tostring(gL, -1));
+			lua_pop(gL, 1);
+		} else {
+			INFO("Compiled-in Lua handler(s) found.");
+		}
+#else
 		if ((ret = luaL_dostring(gL, "require (\"swupdate_handlers\")")) != 0) {
 			INFO("No Lua handler(s) found.");
 			if (luaL_dostring(gL, "return package.path:gsub(';','\\n'):gsub('?','swupdate_handlers')") == 0) {
@@ -534,6 +547,7 @@ int lua_handlers_init(void)
 		} else {
 			INFO("Lua handler(s) found.");
 		}
+#endif
 	} else	{
 		WARN("Unable to register Lua context for callbacks\n");
 	}
