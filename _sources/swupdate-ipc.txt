@@ -63,13 +63,13 @@ The library consists of one function and several call-backs.
 
 ::
 
-        int SWUpdate_async_start(writedata wr_func, getstatus status_func,
+        int swupdate_async_start(writedata wr_func, getstatus status_func,
                 terminated end_func)
         typedef int (*writedata)(char **buf, int *size);
         typedef int (*getstatus)(ipc_message *msg);
         typedef int (*terminated)(RECOVERY_STATUS status);
 
-SWUpdate_async_start creates a new thread and start the communication with SWUpdate,
+swupdate_async_start creates a new thread and start the communication with SWUpdate,
 triggering for a new update. The wr_func is called to get the image to be installed.
 It is responsibility of the callback to provide the buffer and the size of
 the chunk of data.
