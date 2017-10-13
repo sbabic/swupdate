@@ -400,6 +400,19 @@ static int luaopen_swupdate(lua_State *L) {
 	lua_push_enum(L, "SUBPROCESS", SUBPROCESS);
 	lua_settable(L, -3);
 
+#ifdef CONFIG_HANDLER_IN_LUA
+	/* export the handler mask enum */
+	lua_pushstring(L, "HANDLER_MASK");
+	lua_newtable (L);
+	lua_push_enum(L, "IMAGE_HANDLER", IMAGE_HANDLER);
+	lua_push_enum(L, "FILE_HANDLER", FILE_HANDLER);
+	lua_push_enum(L, "SCRIPT_HANDLER", SCRIPT_HANDLER);
+	lua_push_enum(L, "BOOTLOADER_HANDLER", BOOTLOADER_HANDLER);
+	lua_push_enum(L, "PARTITION_HANDLER", PARTITION_HANDLER);
+	lua_push_enum(L, "ANY_HANDLER", ANY_HANDLER);
+	lua_settable(L, -3);
+#endif
+
 	return 1;
 }
 
@@ -483,13 +496,19 @@ static int l_register_handler( lua_State *L ) {
 		lua_pop(L, 2);
 		return 0;
 	} else {
+		unsigned int mask = ANY_HANDLER;
+		if (lua_isnumber(L, 3)) {
+			mask = luaL_checknumber(L, 3);
+			lua_pop(L, 1);
+		}
 		const char *handler_desc = luaL_checkstring(L, 1);
 		/* store the callback function in registry */
 		*l_func_ref = luaL_ref (L, LUA_REGISTRYINDEX);
 		/* cleanup stack */
 		lua_pop (L, 1);
+
 		register_handler(handler_desc, l_handler_wrapper,
-				 ANY_HANDLER, l_func_ref);
+				 mask, l_func_ref);
 		return 0;
 	}
 }
