@@ -81,7 +81,7 @@ static int isImageInstalled(struct swver *sw_ver_list,
  */
 int check_if_required(struct imglist *list, struct filehdr *pfdh,
 				struct swver *sw_ver_list,
-                const char *destdir,
+				const char *destdir,
 				struct img_type **pimg)
 {
 	int skip = SKIP_FILE;
