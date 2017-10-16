@@ -28,7 +28,6 @@
 #include <errno.h>
 #include <string.h>
 
-#include <string.h>
 #include "swupdate.h"
 #include "handler.h"
 #include "util.h"
