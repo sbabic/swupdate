@@ -898,6 +898,8 @@ There are 4 main sections inside sw-description:
    | embedded-   | string   |            | Lua code that is embedded in the      |
    | script      |          |            | sw-description file.                  |
    +-------------+----------+------------+---------------------------------------+
+   | offset      | string   | images     | Optional destination offset           |
+   +-------------+----------+------------+---------------------------------------+
    | hook        | string   | images     | The name of the function (Lua) to be  |
    |             |          | files      | called when the entry is parsed.      |
    +-------------+----------+------------+---------------------------------------+
