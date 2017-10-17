@@ -100,7 +100,7 @@ Signing the image is very simple:
 
         openssl dgst -sha256 -sign priv.pem sw-description > sw-description.sig
 
-Usage with certificates ans CMS
+Usage with certificates and CMS
 -------------------------------
 
 Generating certificates
@@ -199,7 +199,7 @@ The example applies to a Beaglebone, installing Yocto images:
 Running SWUpdate with signed images
 -----------------------------------
 
-Verification is activated by setting CONFIG_SIGNED_IMAGE in SWUpdate's configuration.
+Verification is activated by setting CONFIG_SIGNED_IMAGES in SWUpdate's configuration.
 If activated, SWUpdate will always check the compound image. For security reasons,
 it is not possible to disable the check at runtime. The -k parameter (public key file)
 is mandatory and the program stops if the public key is not passed.
