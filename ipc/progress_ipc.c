@@ -60,8 +60,8 @@ int progress_ipc_connect(bool reconnect)
 }
 
 int progress_ipc_receive(int *connfd, struct progress_msg *msg) {
-	int ret = read(*connfd, msg, sizeof(msg));
-	if (ret != sizeof(msg)) {
+	int ret = read(*connfd, msg, sizeof(*msg));
+	if (ret != sizeof(*msg)) {
 		fprintf(stdout, "Connection closing..\n");
 		close(*connfd);
 		*connfd = -1;
@@ -69,4 +69,3 @@ int progress_ipc_receive(int *connfd, struct progress_msg *msg) {
 	}
 	return ret;
 }
-
