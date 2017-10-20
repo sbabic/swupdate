@@ -200,7 +200,7 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 							get_tmpdirscripts(),
 							&img);
 			}
-			TRACE("Found file:\n\tfilename %s\n\tsize %d %s",
+			TRACE("Found file:\n\tfilename %s\n\tsize %u %s",
 				fdh.filename,
 				(unsigned int)fdh.size,
 				(skip == SKIP_FILE ? "Not required: skipping" : "required"));
