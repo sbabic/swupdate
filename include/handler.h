@@ -30,7 +30,7 @@ typedef enum {
 } script_fn ;
 
 /*
- * Use enum for mask to easy transfer to LUA
+ * Use enum for mask to easy transfer to Lua
  * scripts
  */
 typedef enum {

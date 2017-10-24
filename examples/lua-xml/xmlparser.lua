@@ -1,5 +1,5 @@
 ----------------------------------------------
--- Test XML parsing with lua
+-- Test XML parsing with Lua
 ----------------------------------------------
 
 lxp = require "lxp"

@@ -150,7 +150,7 @@ int parse_external(struct swupdate_cfg *software, const char *filename)
 
 	if (lua_pcall(L, 3, 4, 0)) {
 		LUAstackDump(L);
-		ERROR("ERROR Calling XML Parser in LUA");
+		ERROR("ERROR Calling XML Parser in Lua");
 		lua_close(L);
 		return 1;
 	}

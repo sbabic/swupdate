@@ -168,9 +168,9 @@ int run_lua_script(char *script, char *function, char *parms)
 }
 
 /**
- * @brief convert a image description struct to a lua table
+ * @brief convert a image description struct to a Lua table
  *
- * @param L [inout] the lua stack
+ * @param L [inout] the Lua stack
  * @param software [in] the software struct
  */
 
@@ -311,12 +311,12 @@ static void table2image(lua_State* L, struct img_type *img) {
 }
 
 /**
- * @brief function to send notifications to the recovery from lua
+ * @brief function to send notifications to the recovery from Lua
  *
- * This function is exported to the lua stack and can be called
- * from any lua script in the same context (Stack)
+ * This function is exported to the Lua stack and can be called
+ * from any Lua script in the same context (Stack)
  *
- * @param [in] the lua Stack
+ * @param [in] the Lua Stack
  * @return This function returns 0 if successfull and -1 if unsuccessfull.
  */
 static int l_notify (lua_State *L) {
@@ -362,7 +362,7 @@ static int l_info(lua_State *L) {
 }
 
 /**
- * @brief array with the function which are exported to lua
+ * @brief array with the function which are exported to Lua
  */
 static const luaL_Reg l_swupdate[] = {
 #ifdef CONFIG_HANDLER_IN_LUA
@@ -383,9 +383,9 @@ static void lua_push_enum(lua_State *L, const char *name, int value)
 }
 
 /**
- * @brief function to register the swupdate package in the lua Stack
+ * @brief function to register the swupdate package in the Lua Stack
  *
- * @param [in] the lua Stack
+ * @param [in] the Lua Stack
  * @return 1 (nr. of results on stack, the 'swupdate' module table)
  */
 static int luaopen_swupdate(lua_State *L) {
@@ -424,17 +424,17 @@ static int luaopen_swupdate(lua_State *L) {
 static lua_State *gL = NULL;
 
 /**
- * @brief wrapper to call the lua function
+ * @brief wrapper to call the Lua function
  *
- * The reference to the lua function is stored in the registry table.
+ * The reference to the Lua function is stored in the registry table.
  * To access the reference the index into this table is required. The
  * index is stored in the void* data pointer. This is due to the fact
- * that c can not store a direct reference to a lua object.
+ * that c can not store a direct reference to a Lua object.
  *
  * @param sw [in] software struct which contains all installable images
  * @param index [in] defines which image have to be installed
  * @param unused [in] unused in this context
- * @param data [in] pointer to the index in the lua registry for the function
+ * @param data [in] pointer to the index in the Lua registry for the function
  * @return This function returns 0 if successfull and -1 if unsuccessfull.
  */
 static int l_handler_wrapper(struct img_type *img, void *data) {
@@ -467,7 +467,7 @@ static int l_handler_wrapper(struct img_type *img, void *data) {
 	image2table(gL, img);
 
 	if (LUA_OK != (res = lua_pcall(gL, 1, 1, 0))) {
-		ERROR("error while executing the lua callback: %d\n",res);
+		ERROR("error while executing the Lua callback: %d\n",res);
 		puts(lua_tostring(gL, -1));
 		return -1;
 	}
@@ -479,24 +479,24 @@ static int l_handler_wrapper(struct img_type *img, void *data) {
 	}
 
 	result = lua_tonumber(gL, -1);
-	TRACE("[lua handler] returned: %d\n",(int)result);
+	TRACE("[Lua handler] returned: %d\n",(int)result);
 
 	return (int) result;
 }
 
 /**
- * @brief function to register a callback from lua
+ * @brief function to register a callback from Lua
  *
- * This function is exported to the lua stack and can be called
- * from any lua script in the same context (Stack)
+ * This function is exported to the Lua stack and can be called
+ * from any Lua script in the same context (Stack)
  *
- * @param [in] the lua Stack
+ * @param [in] the Lua Stack
  * @return This function returns 0 values back to Lua.
  */
 static int l_register_handler( lua_State *L ) {
 	int *l_func_ref = malloc(sizeof(int));
 	if(!l_func_ref) {
-		ERROR("lua handler: unable to allocate memory\n");
+		ERROR("Lua handler: unable to allocate memory\n");
 		lua_pop(L, 2);
 		return 0;
 	} else {
@@ -527,7 +527,7 @@ int lua_handlers_init(void)
 		luaL_openlibs(gL);
 		luaL_requiref( gL, "swupdate", luaopen_swupdate, 1 );
 		lua_pop(gL, 1); /* remove unused copy left on stack */
-		/* try to load lua handlers for the swupdate system */
+		/* try to load Lua handlers for the swupdate system */
 #if defined(CONFIG_EMBEDDED_LUA_HANDLER)
 		if ((ret = luaL_dostring(gL, EMBEDDED_LUA_SRC)) != 0) {
 			INFO("No compiled-in Lua handler(s) found.");

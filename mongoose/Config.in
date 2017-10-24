@@ -18,7 +18,7 @@ menu "Mongoose Feature"
 depends on MONGOOSE
 
 config MONGOOSELUA
-	bool "lua interpreter"
+	bool "Lua interpreter"
 	depends on LUA
 	default y
 	help

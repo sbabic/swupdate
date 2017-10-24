@@ -88,7 +88,7 @@ config RAW
 	  into the destination.
 
 config LUASCRIPTHANDLER
-	bool "luascript"
+	bool "Lua Script"
 	depends on LUA
 	default n
 	help
@@ -104,7 +104,7 @@ config SHELLSCRIPTHANDLER
 	  is called.
 
 config HANDLER_IN_LUA
-	bool "Handlers in LUA"
+	bool "Handlers in Lua"
 	depends on LUASCRIPTHANDLER
 	default n
 	help

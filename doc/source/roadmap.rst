@@ -79,7 +79,7 @@ Some ideas for new handlers:
         - Package handler to install packages (ipk, deb)
           Packages can be inserted into the SWU and the atomicity is
           guaranteed by SWUpdate.
-        - LUA handlers should be added if possible to the project
+        - Lua handlers should be added if possible to the project
           to show how to solve custom install.
 
 There are custom specific solutions - I will be glad if these additional

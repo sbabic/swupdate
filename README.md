@@ -20,7 +20,7 @@ such as as NOR / NAND flashes, UBI volumes, SD / eMMC, and can
 be easy extended to introduce project specific update
 procedures.
 
-Pre- and postinstall scripts are supported, and a LUA
+Pre- and postinstall scripts are supported, and a Lua
 interpreter helps to customize the update process.
 
 An update package is described by the sw-description file,
