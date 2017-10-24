@@ -240,12 +240,16 @@ static void lua_bool_to_img(struct img_type *img, const char *key,
 {
 	if (!strcmp(key, "compressed"))
 		img->compressed = (bool)val;
-	if (!strcmp(key, "installed-directly"))
+	if (!strcmp(key, "installed_directly"))
 		img->install_directly = (bool)val;
 	if (!strcmp(key, "install_if_different"))
 		img->id.install_if_different = (bool)val;
 	if (!strcmp(key, "encrypted"))
 		img->is_encrypted = (bool)val;
+	if (!strcmp(key, "partition"))
+		img->is_partitioner = (bool)val;
+	if (!strcmp(key, "script"))
+		img->is_script = (bool)val;
 }
 
 static void lua_number_to_img(struct img_type *img, const char *key,
@@ -253,6 +257,10 @@ static void lua_number_to_img(struct img_type *img, const char *key,
 {
 	if (!strcmp(key, "offset"))
 		img->seek = (unsigned long long)val;
+	if (!strcmp(key, "size"))
+		img->size = (long long)val;
+	if (!strcmp(key, "checksum"))
+		img->checksum = (unsigned int)val;
 
 }
 
