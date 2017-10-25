@@ -841,7 +841,7 @@ int main(int argc, char **argv)
 #endif
 
 	/*
-	 * If a aes key is passed, load it to allow
+	 * If an AES key is passed, load it to allow
 	 * to decrypt images
 	 */
 	if (strlen(swcfg.globals.aeskeyfname)) {

@@ -168,7 +168,7 @@ int run_lua_script(char *script, char *function, char *parms)
 }
 
 /**
- * @brief convert a image description struct to a Lua table
+ * @brief convert an image description struct to a lua table
  *
  * @param L [inout] the Lua stack
  * @param software [in] the software struct
@@ -317,7 +317,7 @@ static void table2image(lua_State* L, struct img_type *img) {
  * from any Lua script in the same context (Stack)
  *
  * @param [in] the Lua Stack
- * @return This function returns 0 if successfull and -1 if unsuccessfull.
+ * @return This function returns 0 if successful and -1 if unsuccessful.
  */
 static int l_notify (lua_State *L) {
 	lua_Number status =  luaL_checknumber (L, 1);
@@ -435,7 +435,7 @@ static lua_State *gL = NULL;
  * @param index [in] defines which image have to be installed
  * @param unused [in] unused in this context
  * @param data [in] pointer to the index in the Lua registry for the function
- * @return This function returns 0 if successfull and -1 if unsuccessfull.
+ * @return This function returns 0 if successful and -1 if unsuccessful.
  */
 static int l_handler_wrapper(struct img_type *img, void *data) {
 	int res = 0;

@@ -4103,7 +4103,7 @@ static int lsp_mod_include(lua_State *L) {
   struct mg_connection *conn = lua_touserdata(L, lua_upvalueindex(1));
   struct file file = STRUCT_FILE_INITIALIZER;
   if (handle_lsp_request(conn, lua_tostring(L, -1), &file, L)) {
-    // handle_lsp_request returned an error code, meaning an error occured in
+    // handle_lsp_request returned an error code, meaning an error occurred in
     // the included page and mg.onerror returned non-zero. Stop processing.
     lsp_abort(L);
   }
@@ -5230,7 +5230,7 @@ static void *master_thread(void *thread_func_param) {
     if (poll(pfd, ctx->num_listening_sockets, 200) > 0) {
       for (i = 0; i < ctx->num_listening_sockets; i++) {
         // NOTE(lsm): on QNX, poll() returns POLLRDNORM after the
-        // successfull poll, and POLLIN is defined as (POLLRDNORM | POLLRDBAND)
+        // successful poll, and POLLIN is defined as (POLLRDNORM | POLLRDBAND)
         // Therefore, we're checking pfd[i].revents & POLLIN, not
         // pfd[i].revents == POLLIN.
         if (ctx->stop_flag == 0 && (pfd[i].revents & POLLIN)) {

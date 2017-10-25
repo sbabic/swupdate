@@ -117,7 +117,7 @@ ifneq ($(CONFIG_DOWNLOAD),)
 LDLIBS += curl
 endif
 
-# libconfig is alwasy compiled
+# libconfig is always compiled
 ifeq ($(CONFIG_LIBCONFIG),y)
 LDLIBS += config
 endif

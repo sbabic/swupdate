@@ -130,8 +130,8 @@ static int grubenv_parse_script(struct grubenv_t *grubenv, const char *script)
 	 * We should consider whether we want to replicate U-Boot behavior
 	 * (unset if no value given). GRUB env tool distinguishes unsetting
 	 * (removing) variable from environment and setting variable to an
-	 * empty string (NULL) as two actions. We should think about if if it
-	 * turns oout to be desired
+	 * empty string (NULL) as two actions. We should think about if it
+	 * turns out to be desired
 	 */
 	while ((getline(&line, &len, fp)) != -1) {
 		key = strtok(line, " \t\n");
@@ -163,7 +163,7 @@ static inline void grubenv_update_size(struct grubenv_t *grubenv)
 	int size = 0;
 	struct dict_entry *grubvar;
 
-	/* lenghts of strings + '=' and '\n' characters */
+	/* lengths of strings + '=' and '\n' characters */
 	LIST_FOREACH(grubvar, &grubenv->vars, next) {
 		size = size + strlen(grubvar->varname) +
 						strlen(grubvar->value) + 2;

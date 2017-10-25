@@ -11,7 +11,7 @@ here.
 SWUpdate Flyer
 ==============
 
-A short description about the project and the features (in english and german)
+A short description about the project and the features (in English and German)
 can be found in the `flyer <http://www.denx.de/en/pub/Software/WebHome/we-update.pdf>`_
 
 

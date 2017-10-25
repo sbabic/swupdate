@@ -480,7 +480,7 @@ sub parse_config_depends
 # The idea is we look at all the configs that select it. If one
 # is already in our list of configs to enable, then there's nothing
 # else to do. If there isn't, we pick the first config that was
-# enabled in the orignal config and use that.
+# enabled in the original config and use that.
 sub parse_config_selects
 {
     my ($config, $p) = @_;

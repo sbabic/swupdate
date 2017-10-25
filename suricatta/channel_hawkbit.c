@@ -854,7 +854,7 @@ channel_op_res_t channel_get(channel_t *this, void *data)
 
 	output_data_t chunk = {.memory = NULL, .size = 0};
 	if ((chunk.memory = malloc(1)) == NULL) {
-		ERROR("Channel buffer reservation failed with with OOM.\n");
+		ERROR("Channel buffer reservation failed with OOM.\n");
 		result = CHANNEL_ENOMEM;
 		goto cleanup_header;
 	}

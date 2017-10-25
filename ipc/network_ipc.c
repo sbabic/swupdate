@@ -313,7 +313,7 @@ static void *swupdate_async_thread(void *data)
 	handle = 0;
 
 	if (sigtimedwait(&sigpipe_mask, 0, &zerotime) == -1) {
-		// curently ignored
+		// currently ignored
 	}
 
 	if (pthread_sigmask(SIG_SETMASK, &saved_mask, 0) == -1) {

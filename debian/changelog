@@ -736,7 +736,7 @@ swupdate (2016.07) stable; urgency=medium
   [ Stefano Babic ]
   * Prepare 2016.07-rc2
   * Fix licensing issue due to cpio
-  * Fix mispelling in usage help
+  * Fix misspelling in usage help
   * Allow filename with the same name into sw-description
   * Enhance output when searching for LUA handlers
 

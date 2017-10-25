@@ -89,7 +89,7 @@ int check_if_required(struct imglist *list, struct filehdr *pfdh,
 	int img_skip = 0;
 
 	/*
-	 * Check that not more as one image wnat to be streamed
+	 * Check that not more than one image want to be streamed
 	 */
 	int install_direct = 0;
 

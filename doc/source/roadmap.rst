@@ -47,7 +47,7 @@ more vulnerable.
 There are two major aspects to be considered for binary deltas
 that must be investigated:
 
-- which is the reference ? A delta means there is a untouched copy
+- which is the reference ? A delta means there is an untouched copy
   of the software that can be used as base. It must be verified
   that this copy is not corrupted or changed after its delivery
   and it is suitable for an update. Nevertheless, it should be

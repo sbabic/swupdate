@@ -16,7 +16,7 @@
 # Foundation, Inc.
 
 #
-# test commands for --check comand-line option
+# test commands for --check command-line option
 #
 SWU_CHECK = ./swupdate -l 5 -c $(if $(strip $(filter-out FORCE,$<)),-i $<) >/dev/null 2>&1
 

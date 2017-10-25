@@ -16,8 +16,8 @@ Examples using this layer with evaluation boards (Beaglebone, RPI3) are provided
 [meta-swupdate-boards](https://layers.openembedded.org/layerindex/branch/master/layer/meta-swupdate-boards/) layer.
 
 It supports the common media on embedded devices 
-such as as NOR / NAND flashes, UBI volumes, SD / eMMC, and can
-be easy extended to introduce project specific update
+such as NOR / NAND flashes, UBI volumes, SD / eMMC, and can
+be easily extended to introduce project specific update
 procedures.
 
 Pre- and postinstall scripts are supported, and a Lua

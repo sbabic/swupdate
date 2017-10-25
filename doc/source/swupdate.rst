@@ -23,7 +23,7 @@ the updating process reports only the status to the operator
 The output can be displayed on a LCD using the frame-buffer
 device or directed to a serial line (Linux console).
 
-It is generally used in the single copy approach, running in a initrd
+It is generally used in the single copy approach, running in an initrd
 (recipes are provided to generate with Yocto).  However, it is
 possible to use it in a double-copy approach by use of :ref:`collections`.
 
@@ -42,7 +42,7 @@ General Overview
 - Install on embedded Media (eMMC, SD, Raw NAND,
   NOR and SPI-NOR flashes)
 
-- check if a image is available. The image is built
+- check if an image is available. The image is built
   in a specified format (cpio) and it must contain
   a file describing the software that must be updated.
 
@@ -238,7 +238,7 @@ Firstly, clone meta-SWUpdate.
 Add meta-SWUpdate as usual to your bblayers.conf. You have also
 to add meta-oe to the list.
 
-In meta-SWUpdate there is a recipe to generate a initrd with a
+In meta-SWUpdate there is a recipe to generate an initrd with a
 rescue system with SWUpdate. Use:
 
 ::
@@ -246,7 +246,7 @@ rescue system with SWUpdate. Use:
 	MACHINE=<your machine> bitbake swupdate-image
 
 You will find the result in your tmp/deploy/<your machine> directory.
-How to install and start a initrd is very target specific - please
+How to install and start an initrd is very target specific - please
 check in the documentation of your bootloader.
 
 What about libubootenv ?
@@ -255,13 +255,13 @@ What about libubootenv ?
 This is a common issue when SWUpdate is built. SWUpdate depends on this library,
 that is generated from the U-Boot's sources. This library allows to safe modify
 the U-Boot environment. It is not required if U-Boot is not used as bootloader.
-If SWUpdate cannot be linked, you are using a old version of U-Boot (you need
+If SWUpdate cannot be linked, you are using an old version of U-Boot (you need
 at least 2016.05). If this is the case, you can add your own recipe for
 the package u-boot-fw-utils, adding the code for the library.
 
 It is important that the package u-boot-fw-utils is built with the same
 sources of the bootloader and for the same machine. In fact, the target
-cna have a default environment linked together with U-Boot's code,
+can have a default environment linked together with U-Boot's code,
 and it is not (yet) stored into a storage. SWUpdate should be aware of
 it, because it cannot read it: the default environment must be linked
 as well to SWUpdate's code. This is done inside the libubootenv.

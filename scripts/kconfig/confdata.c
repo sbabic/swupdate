@@ -1108,7 +1108,7 @@ void set_all_choice_values(struct symbol *csym)
 	prop = sym_get_choice_prop(csym);
 
 	/*
-	 * Set all non-assinged choice values to no
+	 * Set all non-assigned choice values to no
 	 */
 	expr_list_for_each_sym(prop->expr, e, sym) {
 		if (!sym_has_value(sym))

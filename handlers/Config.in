@@ -78,7 +78,7 @@ config CFIHAMMING1
 	  the ECC with 1 bit Hamming Code and saving it into OOB
 	  (assumes sector size of 512 and page size of 2048).
 
-	  You do not need this if you have not a OMAP SOC.
+	  You do not need this if you do not have an OMAP SoC.
 
 config RAW
 	bool "raw"
