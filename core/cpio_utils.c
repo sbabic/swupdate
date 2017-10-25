@@ -414,24 +414,34 @@ int extract_img_from_cpio(int fd, unsigned long offset, struct filehdr *fdh)
 off_t extract_next_file(int fd, int fdout, off_t start, int compressed,
 		int encrypted, unsigned char *hash)
 {
+	int ret;
 	struct filehdr fdh;
 	uint32_t checksum = 0;
 	unsigned long offset = start;
 
-	if (lseek(fd, offset, SEEK_SET) < 0) {
+	ret = lseek(fd, offset, SEEK_SET);
+	if (ret < 0) {
 		ERROR("CPIO file corrupted : %s\n",
 		strerror(errno));
-		return -1;
+		return ret;
 	}
 
-	if (extract_cpio_header(fd, &fdh, &offset)) {
+	ret = extract_cpio_header(fd, &fdh, &offset);
+	if (ret) {
 		ERROR("CPIO Header wrong\n");
+		return ret;
 	}
 
-	if (lseek(fd, offset, SEEK_SET) < 0)
+	ret = lseek(fd, offset, SEEK_SET);
+	if (ret < 0) {
 		ERROR("CPIO file corrupted : %s\n", strerror(errno));
-	if (copyfile(fd, &fdout, fdh.size, &offset, 0, 0, compressed, &checksum, hash, encrypted, NULL) < 0) {
+		return ret;
+	}
+
+	ret = copyfile(fd, &fdout, fdh.size, &offset, 0, 0, compressed, &checksum, hash, encrypted, NULL);
+	if (ret < 0) {
 		ERROR("Error copying extracted file\n");
+		return ret;
 	}
 
 	TRACE("Copied file:\n\tfilename %s\n\tsize %u\n\tchecksum 0x%lx %s\n",
@@ -440,9 +450,11 @@ off_t extract_next_file(int fd, int fdout, off_t start, int compressed,
 		(unsigned long)checksum,
 		(checksum == fdh.chksum) ? "VERIFIED" : "WRONG");
 
-	if (checksum != fdh.chksum)
+	if (checksum != fdh.chksum) {
 		ERROR("Checksum WRONG ! Computed 0x%lx, it should be 0x%lx\n",
 			(unsigned long)checksum, fdh.chksum);
+		return -EINVAL;
+	}
 
 	return offset;
 }
@@ -492,8 +504,10 @@ int cpio_scan(int fd, struct swupdate_cfg *cfg, off_t start)
 
 		/* Next header must be 4-bytes aligned */
 		offset += NPAD_BYTES(offset);
-		if (lseek(fd, offset, SEEK_SET) < 0)
+		if (lseek(fd, offset, SEEK_SET) < 0) {
 			ERROR("CPIO file corrupted : %s\n", strerror(errno));
+			return -1;
+		}
 	}
 
 	return 0;

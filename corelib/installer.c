@@ -154,6 +154,7 @@ static int extract_script(int fd, struct imglist *head, const char *dest)
 {
 	struct img_type *script;
 	int fdout;
+	int ret = 0;
 
 	LIST_FOREACH(script, head, next) {
 		if (script->provided == 0) {
@@ -166,9 +167,15 @@ static int extract_script(int fd, struct imglist *head, const char *dest)
 				dest, script->fname);
 
 		fdout = openfileoutput(script->extract_file);
-		extract_next_file(fd, fdout, script->offset, 0,
-					script->is_encrypted, script->sha256);
+		if (fdout < 0)
+			return fdout;
+
+		ret = extract_next_file(fd, fdout, script->offset, 0,
+								script->is_encrypted, script->sha256);
 		close(fdout);
+
+		if (ret < 0)
+			return ret;
 	}
 	return 0;
 }
