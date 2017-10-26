@@ -253,6 +253,7 @@ static int parse_partitions(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 
 		if (!strlen(partition->volname) || !strlen(partition->device)) {
 			ERROR("Partition incompleted in description file");
+			free(partition);
 			return -1;
 		}
 
@@ -432,6 +433,7 @@ static int parse_images(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua
 			if (seek_str == endp || (image->seek == ULLONG_MAX && \
 					errno == ERANGE)) {
 				ERROR("offset argument: ustrtoull failed");
+				free(image);
 				return -1;
 			}
 		} else
@@ -464,8 +466,11 @@ static int parse_images(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua
 					"Version must be checked" : ""
 			);
 
-		if (run_embscript(p, elem, image, L, swcfg->embscript))
+		if (run_embscript(p, elem, image, L, swcfg->embscript)) {
+			free(image);
 			return -1;
+		}
+
 		LIST_INSERT_HEAD(&swcfg->images, image, next);
 	}
 
@@ -531,8 +536,11 @@ static int parse_files(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua_
 			(strlen(file->id.name) && file->id.install_if_different) ?
 					"Version must be checked" : "");
 
-		if (run_embscript(p, elem, file, L, swcfg->embscript))
+		if (run_embscript(p, elem, file, L, swcfg->embscript)) {
+			free(file);
 			return -1;
+		}
+
 		LIST_INSERT_HEAD(&swcfg->images, file, next);
 	}
 
