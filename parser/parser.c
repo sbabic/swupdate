@@ -253,6 +253,7 @@ static int parse_partitions(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 
 		if (!strlen(partition->volname) || !strlen(partition->device)) {
 			ERROR("Partition incompleted in description file");
+			free(partition);
 			return -1;
 		}
 
@@ -432,6 +433,7 @@ static int parse_images(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua
 			if (seek_str == endp || (image->seek == ULLONG_MAX && \
 					errno == ERANGE)) {
 				ERROR("offset argument: ustrtoull failed");
+				free(image);
 				return -1;
 			}
 		} else
