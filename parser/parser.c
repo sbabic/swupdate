@@ -481,6 +481,16 @@ static int parse_images(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua
 		get_field(p, elem, "install-if-different", &image->id.install_if_different);
 		get_field(p, elem, "encrypted", &image->is_encrypted);
 
+		add_properties(p, elem, image);
+
+		if (run_embscript(p, elem, image, L, swcfg->embscript)) {
+			dict_drop_db(&image->properties);
+			free(image);
+			return -1;
+		}
+
+		LIST_INSERT_HEAD(&swcfg->images, image, next);
+
 		TRACE("Found %sImage %s %s: %s in %s : %s for handler %s%s %s\n",
 			image->compressed ? "compressed " : "",
 			image->id.name,
@@ -494,16 +504,6 @@ static int parse_images(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua
 			(strlen(image->id.name) && image->id.install_if_different) ?
 					"Version must be checked" : ""
 			);
-
-		add_properties(p, elem, image);
-
-		if (run_embscript(p, elem, image, L, swcfg->embscript)) {
-			dict_drop_db(&image->properties);
-			free(image);
-			return -1;
-		}
-
-		LIST_INSERT_HEAD(&swcfg->images, image, next);
 	}
 
 	return 0;
@@ -559,15 +559,6 @@ static int parse_files(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua_
 		get_field(p, elem, "installed-directly", &file->install_directly);
 		get_field(p, elem, "install-if-different", &file->id.install_if_different);
 		get_field(p, elem, "encrypted", &file->is_encrypted);
-		TRACE("Found %sFile %s %s: %s --> %s (%s) %s\n",
-			file->compressed ? "compressed " : "",
-			file->id.name,
-			file->id.version,
-			file->fname,
-			file->path,
-			strlen(file->device) ? file->device : "ROOTFS",
-			(strlen(file->id.name) && file->id.install_if_different) ?
-					"Version must be checked" : "");
 
 		add_properties(p, elem, file);
 
@@ -578,6 +569,16 @@ static int parse_files(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua_
 		}
 
 		LIST_INSERT_HEAD(&swcfg->images, file, next);
+
+		TRACE("Found %sFile %s %s: %s --> %s (%s) %s\n",
+			file->compressed ? "compressed " : "",
+			file->id.name,
+			file->id.version,
+			file->fname,
+			file->path,
+			strlen(file->device) ? file->device : "ROOTFS",
+			(strlen(file->id.name) && file->id.install_if_different) ?
+					"Version must be checked" : "");
 	}
 
 	return 0;
