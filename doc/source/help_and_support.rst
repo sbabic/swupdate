@@ -33,6 +33,13 @@ Talks about SWUpdate
        - System Upgrade with SWUpdate by Gabriel Huau, ELC 2017,
          `Slides <http://events.linuxfoundation.org/sites/events/files/slides/ELC2017_SWUpdate.pdf>`_,
          `Video <https://www.youtube.com/watch?v=ePRTTfGJUI4&t=16s>`_
+       - `BoF: Secure OTA Collaboration, by Ricardo Salveti and Alan Bennett, ELCE 2017 <https://elinux.org/images/0/0c/BoF_secure_ota_linux.pdf>`_
+       - Orchestrated Android-Style System Upgrades for Embedded Linux by Diego Rondini, ELCE 2017,
+         `Slides <http://events.linuxfoundation.org/sites/events/files/slides/UF%20-%20ELCE%202017%20Presentation.pdf>`_,
+         `Video <https://www.youtube.com/watch?v=Za21QFJGvJ0>`_
+       - Updating an Embedded System with SWUpdate Framework by Stefano Babic, ELCE 2017,
+         `Slides <http://events.linuxfoundation.org/sites/events/files/slides/SWUpdateELCE2017.pdf>`_,
+         `Video <https://www.youtube.com/watch?v=6sKLH95g4Do>`_
 
 Useful references
 =================
