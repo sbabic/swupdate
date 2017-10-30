@@ -456,7 +456,7 @@ int postupdate(struct swupdate_cfg *swcfg, const char *info)
 {
 	swupdate_progress_done(info);
 
-	if ((swcfg) && (swcfg->globals.postupdatecmd) &&
+	if ((swcfg) &&
 	    (strnlen(swcfg->globals.postupdatecmd,
 		     SWUPDATE_GENERAL_STRING_SIZE) > 0)) {
 		DEBUG("Executing post-update command '%s'",

@@ -198,7 +198,7 @@ int copyfile(int fdin, void *out, unsigned int nbytes, unsigned long *offs, unsi
 	while (nbytes > 0) {
 		size = (nbytes < BUFF_SIZE ? nbytes : BUFF_SIZE);
 
-		if ((ret = fill_buffer(fdin, in, size, offs, checksum, dgst) < 0)) {
+		if ((ret = fill_buffer(fdin, in, size, offs, checksum, dgst)) < 0) {
 			goto copyfile_exit;
 		}
 
