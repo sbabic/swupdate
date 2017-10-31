@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>SWUpdate: software update for embedded system &mdash; Embedded Software Update Documentation 2017.07 documentation</title>
+  <title>SWUpdate: software update for embedded system &mdash; Embedded Software Update Documentation 2017.10 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="Embedded Software Update Documentation 2017.07 documentation" href="index.html"/>
+    <link rel="top" title="Embedded Software Update Documentation 2017.10 documentation" href="index.html"/>
         <link rel="next" title="SWUpdate: syntax and tags with the default parser" href="sw-description.html"/>
         <link rel="prev" title="Software Management on embedded systems" href="overview.html"/> 
 
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                2017.07
+                2017.10
               </div>
             
           
@@ -102,11 +102,17 @@
 <li class="toctree-l3"><a class="reference internal" href="#what-about-libubootenv">What about libubootenv ?</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#configuring-swupdate">Configuring SWUpdate</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#building">Building</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#building-a-debian-package">Building a debian package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#steps-for-building-a-debian-package">Steps for building a debian package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#alternative-way-signing-source-package">Alternative way signing source package</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#running-swupdate">Running SWUpdate</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#what-is-expected-from-a-swupdate-run">What is expected from a SWUpdate run</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#command-line-parameters">Command line parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#systemd-integration">systemd Integration</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#changes-in-boot-loader-code">Changes in boot-loader code</a></li>
@@ -123,6 +129,7 @@
 <li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">SWUpdate: API for external programs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building-with-yocto.html">meta-swupdate: building with Yocto</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="help_and_support.html">Mailing List</a></li>
@@ -195,10 +202,9 @@ the updating process reports only the status to the operator
 (successful or failed).</p>
 <p>The output can be displayed on a LCD using the frame-buffer
 device or directed to a serial line (Linux console).</p>
-<p>It is generally used in the single copy approach, running in a initrd
+<p>It is generally used in the single copy approach, running in an initrd
 (recipes are provided to generate with Yocto).  However, it is
-possible to use it in a double-copy approach by use of <a href="#id1"><span class="problematic" id="id2">`Software
-collections`_</span></a>.</p>
+possible to use it in a double-copy approach by use of <a class="reference internal" href="sw-description.html#collections"><span>Software collections</span></a>.</p>
 <p>If started for a remote update, SWUpdate starts an embedded
 Web-server and waits for requests. The operator must upload
 a suitable image, that SWUpdate checks and then install.
@@ -212,7 +218,7 @@ notifications.</p>
 <ul class="simple">
 <li>Install on embedded Media (eMMC, SD, Raw NAND,
 NOR and SPI-NOR flashes)</li>
-<li>check if a image is available. The image is built
+<li>check if an image is available. The image is built
 in a specified format (cpio) and it must contain
 a file describing the software that must be updated.</li>
 <li>SWUpdate is thought to update UBI volumes (mainly for NAND, but not only)
@@ -336,7 +342,9 @@ the target, without any temporary copy. In fact, the single installer
 the image that must be installed.</p>
 <p>The feature can be set on image basis, that means that a user can
 decide which partial images should be streamed. If not streamed (see
-installed-directly flag), files are temporary extracted into /tmp.
+installed-directly flag), files are temporary extracted into the directory
+pointed to by the environment variable <code class="docutils literal"><span class="pre">TMPDIR</span></code> with <code class="docutils literal"><span class="pre">/tmp</span></code> as
+fall-back if <code class="docutils literal"><span class="pre">TMPDIR</span></code> is not set.
 Of course, by streaming it is not possible to make checks on the whole delivered
 software before installing.
 The temporary copy is done only when updated from network. When the image
@@ -344,8 +352,9 @@ is stored on an external storage, there is no need of that copy.</p>
 </div>
 <div class="section" id="images-fully-streamed">
 <h3>Images fully streamed<a class="headerlink" href="#images-fully-streamed" title="Permalink to this headline">¶</a></h3>
-<p>In case of remote update, SWUpdate extracts relevant images
-from the stream and copy them into /tmp before calling the handlers.
+<p>In case of remote update, SWUpdate extracts relevant images from the stream
+and copies them into the directory pointed to by the environment variable
+<code class="docutils literal"><span class="pre">TMPDIR</span></code> (if unset, to <code class="docutils literal"><span class="pre">/tmp</span></code>) before calling the handlers.
 This guarantee that an update is initiated only if all parts are present and
 correct. However, on some systems with less resources, the amount of RAM
 to copy the images could be not enough, for example if the filesystem on
@@ -381,7 +390,7 @@ and drop what you do not need.</p>
 </div>
 <div class="section" id="building-with-yocto">
 <h3>Building with Yocto<a class="headerlink" href="#building-with-yocto" title="Permalink to this headline">¶</a></h3>
-<p>A <a class="reference external" href="https://github.com/sbabic/meta-swupdate.git">meta-SWUpdate</a> layer is provided. It contains the required changes
+<p>A <a class="reference external" href="https://github.com/sbabic/meta-swupdate.git">meta-swupdate</a> layer is provided. It contains the required changes
 for mtd-utils and for generating Lua. Using meta-SWUpdate is a
 straightforward process.</p>
 <p>Firstly, clone meta-SWUpdate.</p>
@@ -390,13 +399,13 @@ straightforward process.</p>
 </div>
 <p>Add meta-SWUpdate as usual to your bblayers.conf. You have also
 to add meta-oe to the list.</p>
-<p>In meta-SWUpdate there is a recipe to generate a initrd with a
+<p>In meta-SWUpdate there is a recipe to generate an initrd with a
 rescue system with SWUpdate. Use:</p>
 <div class="highlight-python"><div class="highlight"><pre>MACHINE=&lt;your machine&gt; bitbake swupdate-image
 </pre></div>
 </div>
 <p>You will find the result in your tmp/deploy/&lt;your machine&gt; directory.
-How to install and start a initrd is very target specific - please
+How to install and start an initrd is very target specific - please
 check in the documentation of your bootloader.</p>
 </div>
 <div class="section" id="what-about-libubootenv">
@@ -404,12 +413,12 @@ check in the documentation of your bootloader.</p>
 <p>This is a common issue when SWUpdate is built. SWUpdate depends on this library,
 that is generated from the U-Boot&#8217;s sources. This library allows to safe modify
 the U-Boot environment. It is not required if U-Boot is not used as bootloader.
-If SWUpdate cannot be linked, you are using a old version of U-Boot (you need
+If SWUpdate cannot be linked, you are using an old version of U-Boot (you need
 at least 2016.05). If this is the case, you can add your own recipe for
 the package u-boot-fw-utils, adding the code for the library.</p>
 <p>It is important that the package u-boot-fw-utils is built with the same
 sources of the bootloader and for the same machine. In fact, the target
-cna have a default environment linked together with U-Boot&#8217;s code,
+can have a default environment linked together with U-Boot&#8217;s code,
 and it is not (yet) stored into a storage. SWUpdate should be aware of
 it, because it cannot read it: the default environment must be linked
 as well to SWUpdate&#8217;s code. This is done inside the libubootenv.</p>
@@ -466,6 +475,32 @@ image, we can add a <em>recipes-extended/images/core-image-full-cmdline.bbappend
 </div>
 <p>swupdate-www is the package with the website, that you can customize with
 your own logo, template ans style.</p>
+</div>
+<div class="section" id="building-a-debian-package">
+<h3>Building a debian package<a class="headerlink" href="#building-a-debian-package" title="Permalink to this headline">¶</a></h3>
+<p>SWUpdate is thought for Embedded Systems and building in an embedded
+distribution is the first use case. But apart the most used buildsystems
+for embedded as Yocto or Buildroot, in some cases a standard Linux distro
+is used. Not only, a distro package allows to run SWUpdate on Linux PC
+for test purposes without having to fight with dependencies. Using the
+debhelper tools, it is possible to generate a debian package.</p>
+<div class="section" id="steps-for-building-a-debian-package">
+<h4>Steps for building a debian package<a class="headerlink" href="#steps-for-building-a-debian-package" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-python"><div class="highlight"><pre>./debian/rules clean
+./debian/rules build
+fakeroot debian/rules binary
+</pre></div>
+</div>
+<p>The result is a &#8220;deb&#8221; package stored in the parent directory.</p>
+</div>
+<div class="section" id="alternative-way-signing-source-package">
+<h4>Alternative way signing source package<a class="headerlink" href="#alternative-way-signing-source-package" title="Permalink to this headline">¶</a></h4>
+<p>You can use dpkg-buildpackage:</p>
+<div class="highlight-python"><div class="highlight"><pre>dpkg-buildpackage -us -uc
+debsign -k &lt;keyId&gt;
+</pre></div>
+</div>
+</div>
 </div>
 </div>
 <div class="section" id="running-swupdate">
@@ -683,6 +718,55 @@ downloading</td>
 </tbody>
 </table>
 </div>
+<div class="section" id="systemd-integration">
+<h3>systemd Integration<a class="headerlink" href="#systemd-integration" title="Permalink to this headline">¶</a></h3>
+<p>SWUpdate has optional <a class="reference external" href="https://www.freedesktop.org/wiki/Software/systemd/">systemd</a> support via the compile-time
+configuration switch <code class="docutils literal"><span class="pre">CONFIG_SYSTEMD</span></code>. If enabled, SWUpdate
+signals systemd about start-up completion and can make optional
+use of systemd&#8217;s socket-based activation feature.</p>
+<p>A sample systemd service unit file <code class="docutils literal"><span class="pre">/etc/systemd/system/swupdate.service</span></code>
+may look like the following starting SWUpdate in suricatta daemon mode:</p>
+<div class="highlight-python"><div class="highlight"><pre>[Unit]
+Description=SWUpdate daemon
+Documentation=https://github.com/sbabic/swupdate
+Documentation=https://sbabic.github.io/swupdate
+
+[Service]
+Type=notify
+ExecStart=/usr/bin/swupdate -u &#39;-t default -u http://localhost -i 25&#39;
+
+[Install]
+WantedBy=multi-user.target
+</pre></div>
+</div>
+<p>Started via <code class="docutils literal"><span class="pre">systemctl</span> <span class="pre">start</span> <span class="pre">swupdate.service</span></code>, SWUpdate
+(re)creates its sockets on startup. For using socket-based
+activation, an accompanying systemd socket unit file
+<code class="docutils literal"><span class="pre">/etc/systemd/system/swupdate.socket</span></code> is required:</p>
+<div class="highlight-python"><div class="highlight"><pre>[Unit]
+Description=SWUpdate socket listener
+Documentation=https://github.com/sbabic/swupdate
+Documentation=https://sbabic.github.io/swupdate
+
+[Socket]
+ListenStream=/tmp/sockinstctrl
+ListenStream=/tmp/swupdateprog
+
+[Install]
+WantedBy=sockets.target
+</pre></div>
+</div>
+<p>On <code class="docutils literal"><span class="pre">swupdate.socket</span></code> being started, systemd creates the socket
+files and hands them over to SWUpdate when it starts. So, for
+example, when talking to <code class="docutils literal"><span class="pre">/tmp/swupdateprog</span></code>, systemd starts
+<code class="docutils literal"><span class="pre">swupdate.service</span></code> and hands-over the socket files. The socket
+files are also handed over on a &#8220;regular&#8221; start of SWUpdate via
+<code class="docutils literal"><span class="pre">systemctl</span> <span class="pre">start</span> <span class="pre">swupdate.service</span></code>.</p>
+<p>Note that the socket paths in the two <code class="docutils literal"><span class="pre">ListenStream=</span></code> directives
+have to match the socket paths <code class="docutils literal"><span class="pre">CONFIG_SOCKET_CTRL_PATH</span></code> and
+<code class="docutils literal"><span class="pre">CONFIG_SOCKET_PROGRESS_PATH</span></code> in SWUpdate&#8217;s configuration.
+Here, the default socket path configuration is depicted.</p>
+</div>
 </div>
 <div class="section" id="changes-in-boot-loader-code">
 <h2>Changes in boot-loader code<a class="headerlink" href="#changes-in-boot-loader-code" title="Permalink to this headline">¶</a></h2>
@@ -785,7 +869,7 @@ should inherit it, and add your own sw-description file to generate the image.</
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'2017.07',
+            VERSION:'2017.10',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

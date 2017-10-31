@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Handlers &mdash; Embedded Software Update Documentation 2017.07 documentation</title>
+  <title>Handlers &mdash; Embedded Software Update Documentation 2017.10 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="Embedded Software Update Documentation 2017.07 documentation" href="index.html"/>
+    <link rel="top" title="Embedded Software Update Documentation 2017.10 documentation" href="index.html"/>
         <link rel="next" title="Suricatta daemon mode" href="suricatta.html"/>
         <link rel="prev" title="Symmetrically Encrypted Update Images" href="encrypted_images.html"/> 
 
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                2017.07
+                2017.10
               </div>
             
           
@@ -103,6 +103,7 @@
 <li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">SWUpdate: API for external programs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building-with-yocto.html">meta-swupdate: building with Yocto</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="help_and_support.html">Mailing List</a></li>
@@ -222,20 +223,22 @@ supplied handlers code for a better understanding.</p>
 <div class="highlight-python"><div class="highlight"><pre>__attribute__((constructor))
 void my_handler_init(void)
 {
-        register_handler(&quot;mytype&quot;, my_handler, data);
+        register_handler(&quot;mytype&quot;, my_handler, my_mask, data);
 }
 </pre></div>
 </div>
 <p>SWUpdate uses the gcc constructors, and all supplied handlers are registered
 when SWUpdate is initialized.</p>
 <p>register_handler has the syntax:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">register_handler</span><span class="p">(</span><span class="n">my_image_type</span><span class="p">,</span> <span class="n">my_handler</span><span class="p">,</span> <span class="n">data</span><span class="p">);</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">register_handler</span><span class="p">(</span><span class="n">my_image_type</span><span class="p">,</span> <span class="n">my_handler</span><span class="p">,</span> <span class="n">my_mask</span><span class="p">,</span> <span class="n">data</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>Where:</p>
 <ul class="simple">
 <li>my_image_type : string identifying the own new image type.</li>
 <li>my_handler : pointer to the installer to be registered.</li>
+<li>my_mask : <code class="docutils literal"><span class="pre">HANDLER_MASK</span></code> enum value(s) specifying what
+input type(s) my_handler can process.</li>
 <li>data : an optional pointer to an own structure, that SWUpdate
 saves in the handlers&#8217; list and pass to the handler when it will
 be executed.</li>
@@ -364,7 +367,7 @@ is received. For each DATA message, the external process answers with a
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'2017.07',
+            VERSION:'2017.10',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

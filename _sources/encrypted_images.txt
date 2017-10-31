@@ -14,35 +14,43 @@ A complete documentation can be found at the
 
 ::
 
-        openssl enc -aes-256-cbc -k <PASSPHRASE> -nosalt -P -md sha1
+        openssl enc -aes-256-cbc -k <PASSPHRASE> -P -md sha1
 
 The key and initialization vector is generated based on the given ``<PASSPHRASE>``.
 The output of the above command looks like this:
 
 ::
 
-        key=B60D121B438A380C343D5EC3C2037564B82FFEF3542808AB5694FA93C3179140
-        iv =20578C4FEF1AEE907B1DC95C776F8160
-
+        salt=CE7B0488EFBF0D1B
+        key=B78CC67DD3DC13042A1B575184D4E16D6A09412C242CE253ACEE0F06B5AD68FC
+        iv =65D793B87B6724BB27954C7664F15FF3
 
 Then, encrypt an image using this information via
 
 ::
 
-        openssl enc -aes-256-cbc -in <INFILE> -out <OUTFILE> -K <KEY> -iv <IV>
+        openssl enc -aes-256-cbc -in <INFILE> -out <OUTFILE> -K <KEY> -iv <IV> -S <SALT>
 
 where ``<INFILE>`` is the unencrypted source image file and ``<OUTFILE>`` is the
 encrypted output image file to be referenced in ``sw-description``.
-``<KEY>`` is the hex value part of the first line of output from the key generation
-command above and ``<IV>`` is the hex value part of the second line. 
+``<KEY>`` is the hex value part of the 2nd line of output from the key generation
+command above, ``<IV>`` is the hex value part of the 3rd line, and ``<SALT>`` is
+the hex value part of the 1st line.
 
 Then, create a key file to be supplied to SWUpdate via the `-K` switch by 
-putting the key and initialization vector hex values on one line separated by
-whitespace, e.g., for above example values
+putting the key, initialization vector, and salt hex values on one line
+separated by whitespace, e.g., for above example values
 
 ::
 
-        B60D121B438A380C343D5EC3C2037564B82FFEF3542808AB5694FA93C3179140 20578C4FEF1AEE907B1DC95C776F8160
+        B78CC67DD3DC13042A1B575184D4E16D6A09412C242CE253ACEE0F06B5AD68FC 65D793B87B6724BB27954C7664F15FF3 CE7B0488EFBF0D1B
+
+
+Note that, while not recommended and for backwards compatibility, OpenSSL may be
+used without salt. For disabling salt, add the ``-nosalt`` parameter to the key
+generation command above. Accordingly, drop the ``-S <SALT>`` parameter in the
+encryption command and omit the 3rd field of the key file to be supplied to
+SWUpdate being the salt.
 
 
 Example sw-description with Encrypted Image

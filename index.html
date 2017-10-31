@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Updating an embedded system &mdash; Embedded Software Update Documentation 2017.07 documentation</title>
+  <title>Updating an embedded system &mdash; Embedded Software Update Documentation 2017.10 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="Embedded Software Update Documentation 2017.07 documentation" href="#"/>
+    <link rel="top" title="Embedded Software Update Documentation 2017.10 documentation" href="#"/>
         <link rel="next" title="Software Management on embedded systems" href="overview.html"/> 
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                2017.07
+                2017.10
               </div>
             
           
@@ -94,6 +94,7 @@
 <li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">SWUpdate: API for external programs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building-with-yocto.html">meta-swupdate: building with Yocto</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="help_and_support.html">Mailing List</a></li>
@@ -199,10 +200,10 @@ Sources are hosted at <a class="reference external" href="https://github.com/sba
 <li class="toctree-l2"><a class="reference internal" href="signed_images.html#signing-the-compound-image">Signing the compound image</a></li>
 <li class="toctree-l2"><a class="reference internal" href="signed_images.html#signing-the-sub-images">Signing the sub-images</a></li>
 <li class="toctree-l2"><a class="reference internal" href="signed_images.html#combining-signing-sw-description-with-hash-verification">Combining signing sw-description with hash verification</a></li>
-<li class="toctree-l2"><a class="reference internal" href="signed_images.html#choose-of-algorithm">Choose of algorithm</a></li>
+<li class="toctree-l2"><a class="reference internal" href="signed_images.html#choice-of-algorithm">Choice of algorithm</a></li>
 <li class="toctree-l2"><a class="reference internal" href="signed_images.html#tool-to-generate-keys-certificates">Tool to generate keys / certificates</a></li>
 <li class="toctree-l2"><a class="reference internal" href="signed_images.html#usage-with-rsa-pkcs-1-5">Usage with RSA PKCS#1.5</a></li>
-<li class="toctree-l2"><a class="reference internal" href="signed_images.html#usage-with-certificates-ans-cms">Usage with certificates ans CMS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="signed_images.html#usage-with-certificates-and-cms">Usage with certificates and CMS</a></li>
 <li class="toctree-l2"><a class="reference internal" href="signed_images.html#building-a-signed-swu-image">Building a signed SWU image</a></li>
 <li class="toctree-l2"><a class="reference internal" href="signed_images.html#example-for-sw-description-with-signed-image">Example for sw-description with signed image</a></li>
 <li class="toctree-l2"><a class="reference internal" href="signed_images.html#running-swupdate-with-signed-images">Running SWUpdate with signed images</a></li>
@@ -239,6 +240,11 @@ Sources are hosted at <a class="reference external" href="https://github.com/sba
 <li class="toctree-l2"><a class="reference internal" href="progress.html#api-description">API Description</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="building-with-yocto.html">meta-swupdate: building with Yocto</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="building-with-yocto.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="building-with-yocto.html#the-swupdate-class">The swupdate class</a></li>
+</ul>
+</li>
 </ul>
 </div>
 </div>
@@ -262,6 +268,7 @@ Sources are hosted at <a class="reference external" href="https://github.com/sba
 <li class="toctree-l2"><a class="reference internal" href="roadmap.html#swupdate-as-updater-gateway">SWUpdate as Updater Gateway</a></li>
 <li class="toctree-l2"><a class="reference internal" href="roadmap.html#binary-delta-updates">Binary delta updates</a></li>
 <li class="toctree-l2"><a class="reference internal" href="roadmap.html#handlers">Handlers:</a></li>
+<li class="toctree-l2"><a class="reference internal" href="roadmap.html#encryption-of-compressed-artifacts">Encryption of compressed artifacts</a></li>
 <li class="toctree-l2"><a class="reference internal" href="roadmap.html#support-for-evaluation-boards">Support for evaluation boards</a></li>
 <li class="toctree-l2"><a class="reference internal" href="roadmap.html#backend-support-suricatta-mode">Backend support (suricatta mode)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="roadmap.html#webserver-interface">Webserver / Interface</a></li>
@@ -319,7 +326,7 @@ Sources are hosted at <a class="reference external" href="https://github.com/sba
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'2017.07',
+            VERSION:'2017.10',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

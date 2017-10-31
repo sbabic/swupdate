@@ -6,7 +6,7 @@ Embedded Systems become more and more complex,
 and their software reflects the augmented complexity.
 New features and fixes let much more as desirable that
 the software on an embedded system can be updated
-in a absolutely reliable way.
+in an absolutely reliable way.
 
 On a Linux-based system, we can find in most cases
 the following elements:

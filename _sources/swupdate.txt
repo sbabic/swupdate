@@ -23,10 +23,9 @@ the updating process reports only the status to the operator
 The output can be displayed on a LCD using the frame-buffer
 device or directed to a serial line (Linux console).
 
-It is generally used in the single copy approach, running in a initrd
+It is generally used in the single copy approach, running in an initrd
 (recipes are provided to generate with Yocto).  However, it is
-possible to use it in a double-copy approach by use of `Software
-collections`_.
+possible to use it in a double-copy approach by use of :ref:`collections`.
 
 If started for a remote update, SWUpdate starts an embedded
 Web-server and waits for requests. The operator must upload
@@ -43,7 +42,7 @@ General Overview
 - Install on embedded Media (eMMC, SD, Raw NAND,
   NOR and SPI-NOR flashes)
 
-- check if a image is available. The image is built
+- check if an image is available. The image is built
   in a specified format (cpio) and it must contain
   a file describing the software that must be updated.
 
@@ -173,7 +172,9 @@ the image that must be installed.
 
 The feature can be set on image basis, that means that a user can
 decide which partial images should be streamed. If not streamed (see
-installed-directly flag), files are temporary extracted into /tmp.
+installed-directly flag), files are temporary extracted into the directory
+pointed to by the environment variable ``TMPDIR`` with ``/tmp`` as
+fall-back if ``TMPDIR`` is not set.
 Of course, by streaming it is not possible to make checks on the whole delivered
 software before installing.
 The temporary copy is done only when updated from network. When the image
@@ -182,8 +183,9 @@ is stored on an external storage, there is no need of that copy.
 Images fully streamed
 ---------------------
 
-In case of remote update, SWUpdate extracts relevant images
-from the stream and copy them into /tmp before calling the handlers.
+In case of remote update, SWUpdate extracts relevant images from the stream
+and copies them into the directory pointed to by the environment variable 
+``TMPDIR`` (if unset, to ``/tmp``) before calling the handlers.
 This guarantee that an update is initiated only if all parts are present and
 correct. However, on some systems with less resources, the amount of RAM
 to copy the images could be not enough, for example if the filesystem on
@@ -221,7 +223,7 @@ and drop what you do not need.
 Building with Yocto
 -------------------
 
-A meta-SWUpdate_ layer is provided. It contains the required changes
+A meta-swupdate_ layer is provided. It contains the required changes
 for mtd-utils and for generating Lua. Using meta-SWUpdate is a
 straightforward process.
 
@@ -236,7 +238,7 @@ Firstly, clone meta-SWUpdate.
 Add meta-SWUpdate as usual to your bblayers.conf. You have also
 to add meta-oe to the list.
 
-In meta-SWUpdate there is a recipe to generate a initrd with a
+In meta-SWUpdate there is a recipe to generate an initrd with a
 rescue system with SWUpdate. Use:
 
 ::
@@ -244,7 +246,7 @@ rescue system with SWUpdate. Use:
 	MACHINE=<your machine> bitbake swupdate-image
 
 You will find the result in your tmp/deploy/<your machine> directory.
-How to install and start a initrd is very target specific - please
+How to install and start an initrd is very target specific - please
 check in the documentation of your bootloader.
 
 What about libubootenv ?
@@ -253,13 +255,13 @@ What about libubootenv ?
 This is a common issue when SWUpdate is built. SWUpdate depends on this library,
 that is generated from the U-Boot's sources. This library allows to safe modify
 the U-Boot environment. It is not required if U-Boot is not used as bootloader.
-If SWUpdate cannot be linked, you are using a old version of U-Boot (you need
+If SWUpdate cannot be linked, you are using an old version of U-Boot (you need
 at least 2016.05). If this is the case, you can add your own recipe for
 the package u-boot-fw-utils, adding the code for the library.
 
 It is important that the package u-boot-fw-utils is built with the same
 sources of the bootloader and for the same machine. In fact, the target
-cna have a default environment linked together with U-Boot's code,
+can have a default environment linked together with U-Boot's code,
 and it is not (yet) stored into a storage. SWUpdate should be aware of
 it, because it cannot read it: the default environment must be linked
 as well to SWUpdate's code. This is done inside the libubootenv.
@@ -329,6 +331,37 @@ image, we can add a *recipes-extended/images/core-image-full-cmdline.bbappend*
 
 swupdate-www is the package with the website, that you can customize with
 your own logo, template ans style.
+
+Building a debian package
+-------------------------
+
+SWUpdate is thought for Embedded Systems and building in an embedded
+distribution is the first use case. But apart the most used buildsystems
+for embedded as Yocto or Buildroot, in some cases a standard Linux distro
+is used. Not only, a distro package allows to run SWUpdate on Linux PC
+for test purposes without having to fight with dependencies. Using the
+debhelper tools, it is possible to generate a debian package.
+
+Steps for building a debian package
+...................................
+
+::
+
+        ./debian/rules clean
+        ./debian/rules build
+        fakeroot debian/rules binary
+
+The result is a "deb" package stored in the parent directory.
+
+Alternative way signing source package
+......................................
+
+You can use dpkg-buildpackage:
+
+::
+
+        dpkg-buildpackage -us -uc
+        debsign -k <keyId>
 
 
 Running SWUpdate
@@ -501,6 +534,66 @@ Command line parameters
 | -t <timeout>| integer  | Timeout for connection lost when           |
 |             |          | downloading                                |
 +-------------+----------+--------------------------------------------+
+
+
+systemd Integration
+-------------------
+
+SWUpdate has optional systemd_ support via the compile-time
+configuration switch ``CONFIG_SYSTEMD``. If enabled, SWUpdate
+signals systemd about start-up completion and can make optional
+use of systemd's socket-based activation feature.
+
+A sample systemd service unit file ``/etc/systemd/system/swupdate.service``
+may look like the following starting SWUpdate in suricatta daemon mode:
+
+::
+
+	[Unit]
+	Description=SWUpdate daemon
+	Documentation=https://github.com/sbabic/swupdate
+	Documentation=https://sbabic.github.io/swupdate
+
+	[Service]
+	Type=notify
+	ExecStart=/usr/bin/swupdate -u '-t default -u http://localhost -i 25'
+
+	[Install]
+	WantedBy=multi-user.target
+
+Started via ``systemctl start swupdate.service``, SWUpdate
+(re)creates its sockets on startup. For using socket-based
+activation, an accompanying systemd socket unit file
+``/etc/systemd/system/swupdate.socket`` is required:
+
+::
+
+	[Unit]
+	Description=SWUpdate socket listener
+	Documentation=https://github.com/sbabic/swupdate
+	Documentation=https://sbabic.github.io/swupdate
+
+	[Socket]
+	ListenStream=/tmp/sockinstctrl
+	ListenStream=/tmp/swupdateprog
+
+	[Install]
+	WantedBy=sockets.target
+
+On ``swupdate.socket`` being started, systemd creates the socket
+files and hands them over to SWUpdate when it starts. So, for
+example, when talking to ``/tmp/swupdateprog``, systemd starts
+``swupdate.service`` and hands-over the socket files. The socket
+files are also handed over on a "regular" start of SWUpdate via
+``systemctl start swupdate.service``.
+
+Note that the socket paths in the two ``ListenStream=`` directives
+have to match the socket paths ``CONFIG_SOCKET_CTRL_PATH`` and 
+``CONFIG_SOCKET_PROGRESS_PATH`` in SWUpdate's configuration.
+Here, the default socket path configuration is depicted.
+
+.. _systemd: https://www.freedesktop.org/wiki/Software/systemd/
+
 
 Changes in boot-loader code
 ===========================

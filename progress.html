@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Getting information on running update &mdash; Embedded Software Update Documentation 2017.07 documentation</title>
+  <title>Getting information on running update &mdash; Embedded Software Update Documentation 2017.10 documentation</title>
   
 
   
@@ -32,8 +32,8 @@
   
 
   
-    <link rel="top" title="Embedded Software Update Documentation 2017.07 documentation" href="index.html"/>
-        <link rel="next" title="Mailing List" href="help_and_support.html"/>
+    <link rel="top" title="Embedded Software Update Documentation 2017.10 documentation" href="index.html"/>
+        <link rel="next" title="meta-swupdate: building with Yocto" href="building-with-yocto.html"/>
         <link rel="prev" title="SWUpdate: API for external programs" href="swupdate-ipc.html"/> 
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                2017.07
+                2017.10
               </div>
             
           
@@ -98,6 +98,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#api-description">API Description</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="building-with-yocto.html">meta-swupdate: building with Yocto</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="help_and_support.html">Mailing List</a></li>
@@ -167,11 +168,11 @@ if the update is still running.</p>
 <div class="section" id="api-description">
 <h2>API Description<a class="headerlink" href="#api-description" title="Permalink to this headline">¶</a></h2>
 <p>An external process registers itself to SWUpdate with a connect()
-request to the domain socket &#8220;/tmp/swupdateprog&#8221;. There is no
-information to send, and SWUpdate simply inserts the new connection
-in the list of processed to be informed. SWUpdate will send a frame
-back after any change in the update process with the following data
-(see include/progress.h):</p>
+request to the domain socket &#8220;/tmp/swupdateprog&#8221; as per default
+configuration of SWUpdate. There is no information to send, and
+SWUpdate simply inserts the new connection into the list of processes
+to be informed. SWUpdate will send a frame back after any change in
+the update process with the following data (see include/progress_ipc.h):</p>
 <div class="highlight-python"><div class="highlight"><pre>struct progress_msg {
         unsigned int    magic;          /* Magic Number */
         unsigned int    status;         /* Update Status (Running, Failure) */
@@ -217,7 +218,7 @@ of image already copied into the destination.</li>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="help_and_support.html" class="btn btn-neutral float-right" title="Mailing List" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="building-with-yocto.html" class="btn btn-neutral float-right" title="meta-swupdate: building with Yocto" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="swupdate-ipc.html" class="btn btn-neutral" title="SWUpdate: API for external programs" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
@@ -251,7 +252,7 @@ of image already copied into the destination.</li>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'2017.07',
+            VERSION:'2017.10',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

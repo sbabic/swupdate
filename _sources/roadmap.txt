@@ -47,7 +47,7 @@ more vulnerable.
 There are two major aspects to be considered for binary deltas
 that must be investigated:
 
-- which is the reference ? A delta means there is a untouched copy
+- which is the reference ? A delta means there is an untouched copy
   of the software that can be used as base. It must be verified
   that this copy is not corrupted or changed after its delivery
   and it is suitable for an update. Nevertheless, it should be
@@ -79,7 +79,7 @@ Some ideas for new handlers:
         - Package handler to install packages (ipk, deb)
           Packages can be inserted into the SWU and the atomicity is
           guaranteed by SWUpdate.
-        - LUA handlers should be added if possible to the project
+        - Lua handlers should be added if possible to the project
           to show how to solve custom install.
 
 There are custom specific solutions - I will be glad if these additional
@@ -107,6 +107,11 @@ that malware can get the control of the target.
 Current release supports verified images. That means that a handler
 written in Lua could be now be part of the compound image, because
 a unauthenticated handler cannot run.
+
+Encryption of compressed artifacts
+==================================
+
+Currently, encrypted artifact are not compressed. Allow to compress artifacts before encryption.
 
 Support for evaluation boards
 =============================

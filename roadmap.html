@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Project’s road-map &mdash; Embedded Software Update Documentation 2017.07 documentation</title>
+  <title>Project’s road-map &mdash; Embedded Software Update Documentation 2017.10 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="Embedded Software Update Documentation 2017.07 documentation" href="index.html"/>
+    <link rel="top" title="Embedded Software Update Documentation 2017.10 documentation" href="index.html"/>
         <link rel="prev" title="Mailing List" href="help_and_support.html"/> 
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                2017.07
+                2017.10
               </div>
             
           
@@ -94,6 +94,7 @@
 <li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">SWUpdate: API for external programs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building-with-yocto.html">meta-swupdate: building with Yocto</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="help_and_support.html">Mailing List</a></li>
@@ -112,6 +113,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#handlers-installable-as-plugin-at-runtime">Handlers installable as plugin at runtime</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#encryption-of-compressed-artifacts">Encryption of compressed artifacts</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#support-for-evaluation-boards">Support for evaluation boards</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#backend-support-suricatta-mode">Backend support (suricatta mode)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#backend-offline-support">Backend: Offline support</a></li>
@@ -207,7 +209,7 @@ more vulnerable.</p>
 <p>There are two major aspects to be considered for binary deltas
 that must be investigated:</p>
 <ul class="simple">
-<li>which is the reference ? A delta means there is a untouched copy
+<li>which is the reference ? A delta means there is an untouched copy
 of the software that can be used as base. It must be verified
 that this copy is not corrupted or changed after its delivery
 and it is suitable for an update. Nevertheless, it should be
@@ -239,7 +241,7 @@ and so on.</p>
 <li>Package handler to install packages (ipk, deb)
 Packages can be inserted into the SWU and the atomicity is
 guaranteed by SWUpdate.</li>
-<li>LUA handlers should be added if possible to the project
+<li>Lua handlers should be added if possible to the project
 to show how to solve custom install.</li>
 </ul>
 </dd>
@@ -266,6 +268,10 @@ that malware can get the control of the target.</p>
 written in Lua could be now be part of the compound image, because
 a unauthenticated handler cannot run.</p>
 </div>
+</div>
+<div class="section" id="encryption-of-compressed-artifacts">
+<h2>Encryption of compressed artifacts<a class="headerlink" href="#encryption-of-compressed-artifacts" title="Permalink to this headline">¶</a></h2>
+<p>Currently, encrypted artifact are not compressed. Allow to compress artifacts before encryption.</p>
 </div>
 <div class="section" id="support-for-evaluation-boards">
 <h2>Support for evaluation boards<a class="headerlink" href="#support-for-evaluation-boards" title="Permalink to this headline">¶</a></h2>
@@ -362,7 +368,7 @@ how to set it up with different configurations.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'2017.07',
+            VERSION:'2017.10',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

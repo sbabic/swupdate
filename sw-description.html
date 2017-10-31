@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>SWUpdate: syntax and tags with the default parser &mdash; Embedded Software Update Documentation 2017.07 documentation</title>
+  <title>SWUpdate: syntax and tags with the default parser &mdash; Embedded Software Update Documentation 2017.10 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="Embedded Software Update Documentation 2017.07 documentation" href="index.html"/>
+    <link rel="top" title="Embedded Software Update Documentation 2017.10 documentation" href="index.html"/>
         <link rel="next" title="Update images from verified source" href="signed_images.html"/>
         <link rel="prev" title="SWUpdate: software update for embedded system" href="swupdate.html"/> 
 
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                2017.07
+                2017.10
               </div>
             
           
@@ -117,6 +117,7 @@
 <li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">SWUpdate: API for external programs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building-with-yocto.html">meta-swupdate: building with Yocto</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="help_and_support.html">Mailing List</a></li>
@@ -362,7 +363,7 @@ list</li>
 </ul>
 </div>
 <div class="section" id="software-collections">
-<h2>Software collections<a class="headerlink" href="#software-collections" title="Permalink to this headline">¶</a></h2>
+<span id="collections"></span><h2>Software collections<a class="headerlink" href="#software-collections" title="Permalink to this headline">¶</a></h2>
 <p>Software collections and operation modes can be used to implement a
 dual copy strategy. The simplest case is to define two installation
 locations for the firmware image and call <cite>SWUpdate</cite> selecting the
@@ -1028,14 +1029,19 @@ script</td>
 <td>Lua code that is embedded in the
 sw-description file.</td>
 </tr>
-<tr class="row-even"><td>hook</td>
+<tr class="row-even"><td>offset</td>
+<td>string</td>
+<td>images</td>
+<td>Optional destination offset</td>
+</tr>
+<tr class="row-odd"><td>hook</td>
 <td>string</td>
 <td>images
 files</td>
 <td>The name of the function (Lua) to be
 called when the entry is parsed.</td>
 </tr>
-<tr class="row-odd"><td>mtdname</td>
+<tr class="row-even"><td>mtdname</td>
 <td>string</td>
 <td>images</td>
 <td>name of the MTD to update. Used only
@@ -1089,7 +1095,7 @@ specifying the devicenode</td>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'2017.07',
+            VERSION:'2017.10',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>SWUpdate: API for external programs &mdash; Embedded Software Update Documentation 2017.07 documentation</title>
+  <title>SWUpdate: API for external programs &mdash; Embedded Software Update Documentation 2017.10 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="Embedded Software Update Documentation 2017.07 documentation" href="index.html"/>
+    <link rel="top" title="Embedded Software Update Documentation 2017.10 documentation" href="index.html"/>
         <link rel="next" title="Getting information on running update" href="progress.html"/>
         <link rel="prev" title="Suricatta daemon mode" href="suricatta.html"/> 
 
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                2017.07
+                2017.10
               </div>
             
           
@@ -100,6 +100,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building-with-yocto.html">meta-swupdate: building with Yocto</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="help_and_support.html">Mailing List</a></li>
@@ -172,7 +173,9 @@ easy be extended in the future if new use cases will arise.</p>
 <div class="section" id="api-description">
 <h2>API Description<a class="headerlink" href="#api-description" title="Permalink to this headline">¶</a></h2>
 <p>The communication runs via UDS (Unix Domain Socket). The socket is created
-at the startup by SWUpdate in /tmp/sockinstdata.</p>
+at startup by SWUpdate in /tmp/sockinstctrl as per default configuration.
+This socket should, however, not be used directly but instead by the Client
+Library explained below.</p>
 <p>The exchanged packets are described in network_ipc.h</p>
 <div class="highlight-python"><div class="highlight"><pre>typedef struct {
         int magic;
@@ -202,14 +205,14 @@ will be ignored until a new REQ_INSTALL will be received.</p>
 <p>A library simplifies the usage of the IPC making available a way to
 start asynchronously an update.</p>
 <p>The library consists of one function and several call-backs.</p>
-<div class="highlight-python"><div class="highlight"><pre>int SWUpdate_async_start(writedata wr_func, getstatus status_func,
+<div class="highlight-python"><div class="highlight"><pre>int swupdate_async_start(writedata wr_func, getstatus status_func,
         terminated end_func)
 typedef int (*writedata)(char **buf, int *size);
 typedef int (*getstatus)(ipc_message *msg);
 typedef int (*terminated)(RECOVERY_STATUS status);
 </pre></div>
 </div>
-<p>SWUpdate_async_start creates a new thread and start the communication with SWUpdate,
+<p>swupdate_async_start creates a new thread and start the communication with SWUpdate,
 triggering for a new update. The wr_func is called to get the image to be installed.
 It is responsibility of the callback to provide the buffer and the size of
 the chunk of data.</p>
@@ -262,7 +265,7 @@ of the upgrade.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'2017.07',
+            VERSION:'2017.10',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
