@@ -303,6 +303,17 @@ static void update_table(lua_State* L, struct img_type *img)
 	}
 }
 
+#ifdef CONFIG_HANDLER_IN_LUA
+#if LUA_VERSION_NUM > 501
+static int l_istream_fclose(lua_State *L)
+{
+	/* closing istream is not allowed, ignore it. */
+	lua_pushboolean(L, true);
+	return 1;
+}
+#endif
+#endif
+
 static void image2table(lua_State* L, struct img_type *img)
 {
 	if (L && img) {
@@ -328,6 +339,23 @@ static void image2table(lua_State* L, struct img_type *img)
 		lua_setmetatable(L, -2);
 
 		update_table(L, img);
+
+#ifdef CONFIG_HANDLER_IN_LUA
+		lua_getfield(L, -1, "_private");
+		lua_pushstring(L, "istream");
+		luaL_Stream *lstream = (luaL_Stream *)lua_newuserdata(L, sizeof(luaL_Stream));
+		luaL_getmetatable(L, LUA_FILEHANDLE);
+		lua_setmetatable(L, -2);
+#if LUA_VERSION_NUM > 501
+		lstream->closef = l_istream_fclose;
+#endif
+		lstream->f = fdopen(img->fdin, "r");
+		if (lstream->f == NULL) {
+			WARN("Cannot fdopen file descriptor %d: %s", img->fdin, strerror(errno));
+		}
+		lua_settable(L, -3);
+		lua_pop(L, 1);
+#endif
 	}
 }
 
@@ -353,6 +381,16 @@ static void table2image(lua_State* L, struct img_type *img) {
 		lua_getfield(L, -1, "_private");
 		lua_getfield(L, -1, "offset");
 		img->offset = (off_t)luaL_checknumber(L, -1);
+#ifdef CONFIG_HANDLER_IN_LUA
+		lua_pop(L, 1);
+		lua_getfield(L, -1, "istream");
+		luaL_Stream *lstream = ((luaL_Stream *)luaL_checkudata(L, -1, LUA_FILEHANDLE));
+		if (lstream->f == NULL) {
+			img->fdin = -1;
+		} else {
+			img->fdin = fileno(lstream->f);
+		}
+#endif
 		lua_pop(L,2);
 	}
 }

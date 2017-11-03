@@ -41,6 +41,15 @@ int lua_handlers_init(void);
 #define luaL_newlib(L, l) (lua_newtable((L)),luaL_setfuncs((L), (l), 0))
 void luaL_setfuncs(lua_State *L, const luaL_Reg *l, int nup);
 void luaL_requiref(lua_State *L, char const* modname, lua_CFunction openf, int glb);
+
+/*
+ * See https://github.com/keplerproject/lua-compat-5.3/wiki/luaL_Stream
+ * on the reason for the absence of luaL_Stream's closef member and
+ * compatibility with LuaJIT / Lua 5.1.
+ */
+typedef struct luaL_Stream {
+  FILE *f;
+} luaL_Stream;
 #endif
 
 #else
