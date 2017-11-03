@@ -54,6 +54,11 @@ void get_value_libconfig(const config_setting_t *e, void *dest)
 	}
 }
 
+void *get_child_libconfig(void *e, const char *name)
+{
+	return config_setting_get_member(e, name);
+}
+
 void get_field_cfg(config_setting_t *e, const char *path, void *dest)
 {
 	config_setting_t *elem;

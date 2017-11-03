@@ -37,6 +37,7 @@ typedef enum {
 
 void get_value_libconfig(const config_setting_t *e, void *dest);
 void get_field_cfg(config_setting_t *e, const char *path, void *dest);
+void *get_child_libconfig(void *e, const char *name);
 const char *get_field_string_libconfig(config_setting_t *e, const char *path);
 
 #else
@@ -45,6 +46,7 @@ const char *get_field_string_libconfig(config_setting_t *e, const char *path);
 #define config_setting_lookup_string(a, b, str) (0)
 #define find_node_libconfig(cfg, field, swcfg) (NULL)
 #define get_field_string_libconfig(e, path)	(NULL)
+#define get_child_libconfig(e, name)		(NULL)
 #define get_field_cfg(e, path, dest)
 #endif
 
@@ -54,11 +56,13 @@ const char *get_field_string_libconfig(config_setting_t *e, const char *path);
 const char *get_field_string_json(json_object *e, const char *path);
 void get_value_json(json_object *e, void *dest);
 void get_field_json(json_object *e, const char *path, void *dest);
+void *get_child_json(json_object *e, const char *name);
 json_object *find_json_recursive_node(json_object *root, const char **names);
 
 #else
 #define find_node_json(a, b, c)		(NULL)
 #define get_field_string_json(e, path)  (NULL)
+#define get_child_json(e, name)		(NULL)
 #define get_field_json(e, path, dest)
 #define json_object_object_get_ex(a,b,c) (0)
 #define json_object_array_get_idx(a, b)	(0)
@@ -72,6 +76,7 @@ void get_field_string_with_size(parsertype p, void *e, const char *path,
 				char *d, size_t n);
 int get_array_length(parsertype p, void *root);
 void *get_elem_from_idx(parsertype p, void *node, int idx);
+void *get_child(parsertype p, void *node, const char *name);
 void get_field(parsertype p, void *e, const char *path, void *dest);
 int exist_field_string(parsertype p, void *e, const char *path);
 void get_hash_value(parsertype p, void *elem, unsigned char *hash);

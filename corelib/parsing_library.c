@@ -59,6 +59,21 @@ int get_array_length(parsertype p, void *root)
 	return 0;
 }
 
+void *get_child(parsertype p, void *e, const char *name)
+{
+	switch (p) {
+	case LIBCFG_PARSER:
+		return get_child_libconfig(e, name);
+	case JSON_PARSER:
+		return get_child_json((json_object *)e, name);
+	default:
+		(void)e;
+		(void)name;
+	}
+
+	return NULL;
+}
+
 void *get_elem_from_idx(parsertype p, void *node, int idx)
 {
 	switch (p) {

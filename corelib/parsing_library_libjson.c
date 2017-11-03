@@ -49,6 +49,18 @@ json_object *find_json_recursive_node(json_object *root, const char **names)
 	return node;
 }
 
+void *get_child_json(json_object *e, const char *path)
+{
+	json_object *node = NULL;
+
+	if (path) {
+		if (!json_object_object_get_ex(e, path, &node))
+			return NULL;
+	}
+
+	return node;
+}
+
 const char *get_field_string_json(json_object *e, const char *path)
 {
 	const char *str;
