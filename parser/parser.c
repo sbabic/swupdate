@@ -389,7 +389,7 @@ static int parse_images(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua
 
 	count = get_array_length(p, setting);
 
-	for(i = 0; i < count; ++i) {
+	for(i = (count - 1); i >= 0; --i) {
 		elem = get_elem_from_idx(p, setting, i);
 
 		if (!elem)
@@ -489,7 +489,8 @@ static int parse_files(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua_
 		return 0;
 
 	count = get_array_length(p, setting);
-	for(i = 0; i < count; ++i) {
+
+	for(i = (count - 1); i >= 0; --i) {
 		elem = get_elem_from_idx(p, setting, i);
 
 		if (!elem)
@@ -572,10 +573,10 @@ static int parser(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 
 	/* Now parse the single elements */
 	ret = parse_hw_compatibility(p, cfg, swcfg) ||
+		parse_files(p, cfg, swcfg, L) ||
 		parse_images(p, cfg, swcfg, L) ||
 		parse_scripts(p, cfg, swcfg) ||
-		parse_bootloader(p, cfg, swcfg) ||
-		parse_files(p, cfg, swcfg, L);
+		parse_bootloader(p, cfg, swcfg);
 
 	/*
 	 * Move the partitions at the beginning to be processed
