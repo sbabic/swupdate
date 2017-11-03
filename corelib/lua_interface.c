@@ -535,24 +535,9 @@ static int l_handler_wrapper(struct img_type *img, void *data) {
 	int res = 0;
 	lua_Number result;
 	int l_func_ref;
-	int fdout;
-	const char* TMPDIR = get_tmpdir();
 
 	if (!gL || !img || !data) {
 		return -1;
-	}
-
-	/*
-	 * if the image was not extracted, it loads
-	 * images from a storage. Extract the file
-	 * and copy it into TMPDIR
-	 */
-	if (!strlen(img->extract_file)) {
-		snprintf(img->extract_file, sizeof(img->extract_file), "%s%s",
-			TMPDIR, img->fname);
-		fdout = openfileoutput(img->extract_file);
-		res = extract_next_file(img->fdin, fdout, img->offset, 0,
-					 img->is_encrypted, img->sha256);
 	}
 
 	l_func_ref = *((int*)data);
