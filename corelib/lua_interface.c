@@ -20,6 +20,7 @@
  */
 
 #include <stdlib.h>
+#include <unistd.h>
 #include <stdbool.h>
 #include <errno.h>
 #include "lua.h"
@@ -55,6 +56,9 @@ extern const char EMBEDDED_LUA_SRC[];
 static int l_register_handler( lua_State *L );
 static int l_call_handler(lua_State *L);
 #endif
+static void image2table(lua_State* L, struct img_type *img);
+static void table2image(lua_State* L, struct img_type *img);
+static void update_table(lua_State* L, struct img_type *img);
 
 void LUAstackDump(lua_State *L)
 {
@@ -265,6 +269,60 @@ static void lua_number_to_img(struct img_type *img, const char *key,
 
 }
 
+#ifdef CONFIG_HANDLER_IN_LUA
+static int l_copy2file(lua_State *L)
+{
+	luaL_checktype(L, 1, LUA_TTABLE);
+	luaL_checktype(L, 2, LUA_TSTRING);
+
+	int fdout = openfileoutput(lua_tostring(L, 2));
+	lua_pop(L, 1);
+	if (fdout < 0) {
+		lua_pop(L, 1);
+		lua_pushinteger(L, -1);
+		lua_pushstring(L, strerror(errno));
+		return 2;
+	}
+
+	struct img_type img = {};
+	uint32_t checksum = 0;
+
+	table2image(L, &img);
+	int ret = copyfile(img.fdin,
+				 &fdout,
+				 img.size,
+				 (unsigned long *)&img.offset,
+				 img.seek,
+				 0, /* no skip */
+				 img.compressed,
+				 &checksum,
+				 img.sha256,
+				 img.is_encrypted,
+				 NULL);
+	update_table(L, &img);
+	lua_pop(L, 1);
+
+	if (ret < 0) {
+		lua_pushinteger(L, -1);
+		lua_pushstring(L, strerror(errno));
+		goto copyfile_exit;
+	}
+	if ((img.checksum != 0) && (checksum != img.checksum)) {
+		lua_pushinteger(L, -1);
+		lua_pushfstring(L, "Checksums WRONG! Computed 0x%d, should be 0x%d\n",
+						checksum, img.checksum);
+		goto copyfile_exit;
+	}
+
+	lua_pushinteger(L, 0);
+	lua_pushnil(L);
+
+copyfile_exit:
+	close(fdout);
+	return 2;
+}
+#endif
+
 static void update_table(lua_State* L, struct img_type *img)
 {
 	if (L && img) {
@@ -291,6 +349,12 @@ static void update_table(lua_State* L, struct img_type *img)
 		LUA_PUSH_IMG_NUMBER(img, "offset", seek);
 		LUA_PUSH_IMG_NUMBER(img, "size", size);
 		LUA_PUSH_IMG_NUMBER(img, "checksum", checksum);
+
+#ifdef CONFIG_HANDLER_IN_LUA
+		lua_pushstring(L, "copy2file");
+		lua_pushcfunction(L, &l_copy2file);
+		lua_settable(L, -3);
+#endif
 
 		lua_getfield(L, -1, "_private");
 		LUA_PUSH_IMG_NUMBER(img, "offset", offset);
