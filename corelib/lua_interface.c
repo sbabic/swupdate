@@ -369,12 +369,21 @@ static int l_info(lua_State *L) {
 	return 0;
 }
 
+#ifdef CONFIG_HANDLER_IN_LUA
+static int l_get_tmpdir(lua_State *L)
+{
+	lua_pushstring(L, get_tmpdir());
+	return 1;
+}
+#endif
+
 /**
  * @brief array with the function which are exported to Lua
  */
 static const luaL_Reg l_swupdate[] = {
 #ifdef CONFIG_HANDLER_IN_LUA
         { "register_handler", l_register_handler },
+        { "tmpdir", l_get_tmpdir },
 #endif
         { "notify", l_notify },
         { "error", l_error },
