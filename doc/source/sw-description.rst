@@ -789,6 +789,8 @@ Example:
 The example sets a version for the installed image. Generally, this is detected at runtime
 reading from the target.
 
+.. _sw-description-attribute-reference:
+
 Attribute reference
 -------------------
 

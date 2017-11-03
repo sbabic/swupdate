@@ -123,16 +123,140 @@ and create the volumes. This can be easy done with a
 preinstall script. Building with meta-SWUpdate, the original
 mtd-utils are available and can be called by a Lua script.
 
-Extend SWUpdate with handlers in Lua
-------------------------------------
+Lua Handlers
+------------
 
-In an experimental phase, it is possible to add handlers
-that are not linked to SWUpdate but that are loaded by
-the Lua interpreter. The handlers must be copied into the
-root filesystem and are loaded only at the startup.
-These handlers cannot be integrated into the image to be installed.
-Even if this can be theoretical possible, arise a lot of
-security questions, because it changes SWUpdate's behavior.
+In addition to the handlers written in C, it is possible to extend
+SWUpdate with handlers written in Lua that get loaded at SWUpdate
+startup. The Lua handler source code file may either be embedded
+into the SWUpdate binary via the ``CONFIG_EMBEDDED_LUA_HANDLER``
+config option or has to be installed on the target system in Lua's
+search path as ``swupdate_handlers.lua`` so that it can be loaded
+by the embedded Lua interpreter at run-time.
+
+In analogy to C handlers, the prototype for a Lua handler is
+
+::
+
+        function lua_handler(image)
+            ...
+        end
+
+where ``image`` is a Lua table (with attributes according to
+:ref:`sw-description's attribute reference <sw-description-attribute-reference>`)
+that describes a single artifact to be processed by the handler. 
+
+Note that dashes in the attributes' names are replaced with
+underscores for the Lua domain to make them idiomatic, e.g.,
+``installed-directly`` becomes ``installed_directly`` in the
+Lua domain.
+
+To register a Lua handler, the ``swupdate`` module provides the
+``swupdate.register_handler()`` method that takes the handler's
+name, the Lua handler function to be registered under that name,
+and, optionally, the types of artifacts for which the handler may
+be called. If the latter is not given, the Lua handler is registered
+for all types of artifacts. The following call registers the
+above function ``lua_handler`` as *my_handler* which may be
+called for images:
+
+::
+
+        swupdate.register_handler("my_handler", lua_handler, swupdate.HANDLER_MASK.IMAGE_HANDLER)
+
+
+A Lua handler may call C handlers ("chaining") via the
+``swupdate.call_handler()`` method. The callable and registered
+C handlers are available (as keys) in the table
+``swupdate.handler``. The following Lua code is an example of
+a simple handler chain-calling the ``rawfile`` C handler:
+
+::
+
+        function lua_handler(image)
+            if not swupdate.handler["rawfile"] then
+                swupdate.error("rawfile handler not available")
+                return 1
+            end
+            image.path = "/tmp/destination.path"
+            local err, msg = swupdate.call_handler("rawfile", image)
+            if err ~= 0 then
+                swupdate.error(string.format("Error chaining handlers: %s", msg))
+                return 1
+            end
+            return 0
+        end
+
+Note that when chaining handlers and calling a C handler for
+a different type of artifact than the Lua handler is registered
+for, the ``image`` table's values must satisfy the called
+C handler's expectations: Consider the above Lua handler being
+registered for "images" (``swupdate.HANDLER_MASK.IMAGE_HANDLER``)
+via the ``swupdate.register_handler()`` call shown above. As per the 
+:ref:`sw-description's attribute reference <sw-description-attribute-reference>`,
+the "images" artifact type doesn't have the ``path`` attribute
+but the "file" artifact type does. So, for calling the ``rawfile``
+handler, ``image.path`` has to be set prior to chain-calling the
+``rawfile`` handler, as done in the example above. Usually, however,
+no such adaptation is necessary if the Lua handler is registered for
+handling the type of artifact that ``image`` represents.
+
+In addition to calling C handlers, the ``image`` table passed as
+parameter to a Lua handler has a ``image:copy2file()`` method that
+implements the common use case of writing the input stream's data
+to a file, which is passed as this method's argument. On success,
+``image:copy2file()`` returns ``0`` or ``-1`` plus an error
+message on failure. The following Lua code is an example of
+a simple handler calling ``image:copy2file()``:
+
+::
+
+        function lua_handler(image)
+            local err, msg = image:copy2file("/tmp/destination.path")
+            if err ~= 0 then
+                swupdate.error(string.format("Error calling copy2file: %s", msg))
+                return 1
+            end
+            return 0
+        end
+
+Beyond using ``image:copy2file()`` or chain-calling C handlers,
+the ``image`` table passed as parameter to a Lua handler has
+a ``image:read(<callback()>)`` method that reads from the input
+stream and calls the Lua callback function ``<callback()>`` for
+every chunk read, passing this chunk as parameter. On success,
+``0`` is returned by ``image:read()``. On error, ``-1`` plus an
+error message is returned. The following Lua code is an example
+of a simple handler printing the artifact's content:
+
+::
+
+        function lua_handler(image)
+            err, msg = image:read(function(data) print(data) end)
+            if err ~= 0 then
+                swupdate.error(string.format("Error reading image: %s", msg))
+                return 1
+            end
+            return 0
+        end
+
+Using the ``image:read()`` method, an artifact's contents may be
+(post-)processed in and leveraging the power of Lua without relying
+on preexisting C handlers for the purpose intended.
+
+
+Just as C handlers, a Lua handler must consume the artifact 
+described in its ``image`` parameter so that SWUpdate can 
+continue with the next artifact in the stream after the Lua handler
+returns. Chaining handlers, calling ``image:copy2file()``, or using 
+``image:read()`` satisfies this requirement.
+
+
+Note that although the dynamic nature of Lua handlers would
+technically allow to embed them into a to be processed ``.swu``
+image, this is not implemented as it carries some security
+implications since the behavior of SWUpdate is changed
+dynamically.
 
 Remote handlers
 ---------------
