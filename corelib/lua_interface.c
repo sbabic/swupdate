@@ -264,28 +264,10 @@ static void lua_number_to_img(struct img_type *img, const char *key,
 
 }
 
-static void image2table(lua_State* L, struct img_type *img) {
+static void update_table(lua_State* L, struct img_type *img)
+{
 	if (L && img) {
-		lua_newtable (L);
-
-		/*
-		 * Create a metatable to "hide" SWUpdate-internal attributes.
-		 * These are not "visible", e.g., by pairs() enumeration but
-		 * may be accessed directly, knowing the attribute paths.
-		 * An example is img_type's offset designating the offset
-		 * in the cpio file which is used by, e.g., copyfile().
-		 * While not visible in pairs() enumeration, it is directly
-		 * accessible by image["_private"]["offset"].
-		 * This access pattern strongly hints not to mess with the
-		 * image["_private"] table values from within the Lua realm.
-		 */
-		lua_newtable(L);
-		lua_pushvalue(L, -1);
-		lua_pushstring(L, "_private");
-		lua_newtable(L);
-		lua_settable(L, -3);
-		lua_setfield(L, -2, "__index");
-		lua_setmetatable(L, -2);
+		luaL_checktype(L, -1, LUA_TTABLE);
 
 		LUA_PUSH_IMG_STRING(img, "name", id.name);
 		LUA_PUSH_IMG_STRING(img, "version", id.version);
@@ -318,6 +300,34 @@ static void image2table(lua_State* L, struct img_type *img) {
 		lua_pushstring(L, "sha256");
 		lua_pushstring(L, hashstring);
 		lua_settable(L, -3);
+	}
+}
+
+static void image2table(lua_State* L, struct img_type *img)
+{
+	if (L && img) {
+		lua_newtable (L);
+
+		/*
+		 * Create a metatable to "hide" SWUpdate-internal attributes.
+		 * These are not "visible", e.g., by pairs() enumeration but
+		 * may be accessed directly, knowing the attribute paths.
+		 * An example is img_type's offset designating the offset
+		 * in the cpio file which is used by, e.g., copyfile().
+		 * While not visible in pairs() enumeration, it is directly
+		 * accessible by image["_private"]["offset"].
+		 * This access pattern strongly hints not to mess with the
+		 * image["_private"] table values from within the Lua realm.
+		 */
+		lua_newtable(L);
+		lua_pushvalue(L, -1);
+		lua_pushstring(L, "_private");
+		lua_newtable(L);
+		lua_settable(L, -3);
+		lua_setfield(L, -2, "__index");
+		lua_setmetatable(L, -2);
+
+		update_table(L, img);
 	}
 }
 
