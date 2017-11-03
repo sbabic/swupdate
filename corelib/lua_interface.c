@@ -321,6 +321,75 @@ copyfile_exit:
 	close(fdout);
 	return 2;
 }
+
+static int istream_read_callback(void *out, const void *buf, unsigned int len)
+{
+	lua_State* L = (lua_State*)out;
+	if (len > LUAL_BUFFERSIZE) {
+		ERROR("I/O buffer size is larger than Lua's buffer size %d", LUAL_BUFFERSIZE);
+		return -1;
+	}
+
+	luaL_checktype(L, 2, LUA_TFUNCTION);
+	lua_pushvalue(L, 2);
+
+	luaL_Buffer lbuffer;
+	luaL_buffinit(L, &lbuffer);
+	char *buffer = luaL_prepbuffsize(&lbuffer, len);
+	memcpy(buffer, buf, len);
+	luaL_addsize(&lbuffer, len);
+	luaL_pushresult(&lbuffer);
+	if (lua_pcall(L, 1, 0, 0) != LUA_OK) {
+		ERROR("Lua error in callback: %s", lua_tostring(L, -1));
+		lua_pop(L, 1);
+		return -1;
+	}
+	return 0;
+}
+
+static int l_istream_read(lua_State* L)
+{
+	luaL_checktype(L, 1, LUA_TTABLE);
+	luaL_checktype(L, 2, LUA_TFUNCTION);
+
+	struct img_type img = {};
+	uint32_t checksum = 0;
+
+	lua_pushvalue(L, 1);
+	table2image(L, &img);
+	lua_pop(L, 1);
+
+	int ret = copyfile(img.fdin,
+				 L,
+				 img.size,
+				 (unsigned long *)&img.offset,
+				 img.seek,
+				 0, /* no skip */
+				 img.compressed,
+				 &checksum,
+				 img.sha256,
+				 img.is_encrypted,
+				 istream_read_callback);
+
+	lua_pop(L, 1);
+	update_table(L, &img);
+	lua_pop(L, 1);
+
+	if (ret < 0) {
+		lua_pushinteger(L, -1);
+		lua_pushstring(L, strerror(errno));
+		return 2;
+	}
+	if ((img.checksum != 0) && (checksum != img.checksum)) {
+		lua_pushinteger(L, -1);
+		lua_pushfstring(L, "Checksums WRONG! Computed 0x%d, should be 0x%d\n",
+						checksum, img.checksum);
+		return 2;
+	}
+	lua_pushinteger(L, 0);
+	lua_pushnil(L);
+	return 2;
+}
 #endif
 
 static void update_table(lua_State* L, struct img_type *img)
@@ -353,6 +422,10 @@ static void update_table(lua_State* L, struct img_type *img)
 #ifdef CONFIG_HANDLER_IN_LUA
 		lua_pushstring(L, "copy2file");
 		lua_pushcfunction(L, &l_copy2file);
+		lua_settable(L, -3);
+
+		lua_pushstring(L, "read");
+		lua_pushcfunction(L, &l_istream_read);
 		lua_settable(L, -3);
 #endif
 

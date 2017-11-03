@@ -25,6 +25,45 @@
  * https://github.com/keplerproject/lua-compat-5.2
  */
 #if !defined(LUA_VERSION_NUM) || LUA_VERSION_NUM == 501
+char *luaL_prepbuffsize(luaL_Buffer_52 *B, size_t s)
+{
+	if (B->capacity - B->nelems < s) { /* needs to grow */
+		char* newptr = NULL;
+		size_t newcap = B->capacity * 2;
+		if (newcap - B->nelems < s)
+			newcap = B->nelems + s;
+		if (newcap < B->capacity) /* overflow */
+			luaL_error(B->L2, "buffer too large");
+		newptr = lua_newuserdata(B->L2, newcap);
+		memcpy(newptr, B->ptr, B->nelems);
+		if (B->ptr != B->b.buffer)
+			lua_replace(B->L2, -2); /* remove old buffer */
+		B->ptr = newptr;
+		B->capacity = newcap;
+	}
+	return B->ptr+B->nelems;
+}
+
+void luaL_buffinit(lua_State *L, luaL_Buffer_52 *B)
+{
+	/* make it crash if used via pointer to a 5.1-style luaL_Buffer */
+	B->b.p = NULL;
+	B->b.L = NULL;
+	B->b.lvl = 0;
+	/* reuse the buffer from the 5.1-style luaL_Buffer though! */
+	B->ptr = B->b.buffer;
+	B->capacity = LUAL_BUFFERSIZE;
+	B->nelems = 0;
+	B->L2 = L;
+}
+
+void luaL_pushresult(luaL_Buffer_52 *B)
+{
+	lua_pushlstring(B->L2, B->ptr, B->nelems);
+	if (B->ptr != B->b.buffer)
+		lua_replace(B->L2, -2); /* remove userdata buffer */
+}
+
 void luaL_setfuncs(lua_State *L, const luaL_Reg *l, int nup)
 {
 	luaL_checkstack(L, nup+1, "too many upvalues");
