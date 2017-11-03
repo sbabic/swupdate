@@ -57,4 +57,5 @@ int register_handler(const char *desc,
 
 struct installer_handler *find_handler(struct img_type *img);
 void print_registered_handlers(void);
+struct installer_handler *get_next_handler(void);
 #endif

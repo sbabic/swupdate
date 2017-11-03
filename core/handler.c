@@ -23,6 +23,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
+#include <limits.h>
 
 #include "swupdate.h"
 #include "handler.h"
@@ -31,6 +32,7 @@
 #define MAX_INSTALLER_HANDLER	64
 struct installer_handler supported_types[MAX_INSTALLER_HANDLER];
 static unsigned long nr_installers = 0;
+static unsigned long handler_index = ULONG_MAX;
 
 int register_handler(const char *desc,
 		handler installer, HANDLER_MASK mask, void *data)
@@ -76,3 +78,16 @@ struct installer_handler *find_handler(struct img_type *img)
 		return NULL;
 	return &supported_types[i];
 }
+
+struct installer_handler *get_next_handler(void)
+{
+	if (handler_index == ULONG_MAX) {
+		handler_index = 0;
+	}
+	if (handler_index >= nr_installers) {
+		handler_index = ULONG_MAX;
+		return NULL;
+	}
+	return &supported_types[handler_index++];
+}
+

@@ -53,6 +53,7 @@ extern const char EMBEDDED_LUA_SRC[];
 
 #ifdef CONFIG_HANDLER_IN_LUA
 static int l_register_handler( lua_State *L );
+static int l_call_handler(lua_State *L);
 #endif
 
 void LUAstackDump(lua_State *L)
@@ -460,6 +461,7 @@ static int l_get_tmpdir(lua_State *L)
 static const luaL_Reg l_swupdate[] = {
 #ifdef CONFIG_HANDLER_IN_LUA
         { "register_handler", l_register_handler },
+        { "call_handler", l_call_handler },
         { "tmpdir", l_get_tmpdir },
 #endif
         { "notify", l_notify },
@@ -508,6 +510,15 @@ static int luaopen_swupdate(lua_State *L) {
 	lua_push_enum(L, "BOOTLOADER_HANDLER", BOOTLOADER_HANDLER);
 	lua_push_enum(L, "PARTITION_HANDLER", PARTITION_HANDLER);
 	lua_push_enum(L, "ANY_HANDLER", ANY_HANDLER);
+	lua_settable(L, -3);
+
+	lua_pushstring(L, "handler");
+	lua_newtable (L);
+	struct installer_handler *hnd;
+	while ((hnd = get_next_handler()) != NULL) {
+		lua_pushinteger(L, 1);
+		lua_setfield(L, -2, hnd->desc);
+	}
 	lua_settable(L, -3);
 #endif
 
@@ -594,6 +605,55 @@ static int l_register_handler( lua_State *L ) {
 				 mask, l_func_ref);
 		return 0;
 	}
+}
+
+static int l_call_handler(lua_State *L)
+{
+	struct installer_handler *hnd;
+	struct img_type img = {};
+	char *orighndtype = NULL;
+	char *msg = NULL;
+	int ret = 0;
+
+	luaL_checktype(L, 1, LUA_TSTRING);
+	luaL_checktype(L, 2, LUA_TTABLE);
+
+	table2image(L, &img);
+	if ((orighndtype = strndupa(img.type, sizeof(img.type))) == NULL) {
+		lua_pop(L, 2);
+		lua_pushnumber(L, 1);
+		lua_pushstring(L, "Error allocating memory");
+		return 2;
+	}
+	strncpy(img.type, lua_tostring(L, 1), sizeof(img.type));
+
+	if ((hnd = find_handler(&img)) == NULL) {
+		if (asprintf(&msg, "Image type %s not supported!", img.type) == -1) {
+			msg = NULL;
+		}
+		ret = 1;
+		goto call_handler_exit;
+	}
+	if ((hnd->installer(&img, hnd->data)) != 0) {
+		if (asprintf(&msg, "Executing handler %s failed!", hnd->desc) == -1) {
+			msg = NULL;
+		}
+		ret = 1;
+		goto call_handler_exit;
+	}
+
+call_handler_exit:
+	strncpy(img.type, orighndtype, sizeof(img.type));
+	update_table(L, &img);
+	lua_pop(L, 2);
+	lua_pushnumber(L, ret);
+	if (msg != NULL) {
+		lua_pushstring(L, msg);
+		free(msg);
+	} else {
+		lua_pushnil(L);
+	}
+	return 2;
 }
 
 int lua_handlers_init(void)
