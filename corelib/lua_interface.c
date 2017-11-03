@@ -267,6 +267,26 @@ static void lua_number_to_img(struct img_type *img, const char *key,
 static void image2table(lua_State* L, struct img_type *img) {
 	if (L && img) {
 		lua_newtable (L);
+
+		/*
+		 * Create a metatable to "hide" SWUpdate-internal attributes.
+		 * These are not "visible", e.g., by pairs() enumeration but
+		 * may be accessed directly, knowing the attribute paths.
+		 * An example is img_type's offset designating the offset
+		 * in the cpio file which is used by, e.g., copyfile().
+		 * While not visible in pairs() enumeration, it is directly
+		 * accessible by image["_private"]["offset"].
+		 * This access pattern strongly hints not to mess with the
+		 * image["_private"] table values from within the Lua realm.
+		 */
+		lua_newtable(L);
+		lua_pushvalue(L, -1);
+		lua_pushstring(L, "_private");
+		lua_newtable(L);
+		lua_settable(L, -3);
+		lua_setfield(L, -2, "__index");
+		lua_setmetatable(L, -2);
+
 		LUA_PUSH_IMG_STRING(img, "name", id.name);
 		LUA_PUSH_IMG_STRING(img, "version", id.version);
 		LUA_PUSH_IMG_STRING(img, "filename", fname);
@@ -288,6 +308,10 @@ static void image2table(lua_State* L, struct img_type *img) {
 		LUA_PUSH_IMG_NUMBER(img, "offset", seek);
 		LUA_PUSH_IMG_NUMBER(img, "size", size);
 		LUA_PUSH_IMG_NUMBER(img, "checksum", checksum);
+
+		lua_getfield(L, -1, "_private");
+		LUA_PUSH_IMG_NUMBER(img, "offset", offset);
+		lua_pop(L, 1);
 
 		char *hashstring = alloca(2 * SHA256_HASH_LENGTH + 1);
 		hash_to_ascii(img->sha256, hashstring);
@@ -315,6 +339,11 @@ static void table2image(lua_State* L, struct img_type *img) {
 			}
 			lua_pop(L, 1);
 		}
+
+		lua_getfield(L, -1, "_private");
+		lua_getfield(L, -1, "offset");
+		img->offset = (off_t)luaL_checknumber(L, -1);
+		lua_pop(L,2);
 	}
 }
 
