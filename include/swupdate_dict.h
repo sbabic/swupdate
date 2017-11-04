@@ -33,6 +33,7 @@ LIST_HEAD(dictlist, dict_entry);
 
 char *dict_get_value(struct dictlist *dictionary, char *key);
 int dict_set_value(struct dictlist *dictionary, char *key, char *value);
+int dict_insert_entry(struct dictlist *dictionary, char *key, char *value);
 void dict_remove(struct dictlist *dictionary, char *key);
 void dict_remove_entry(struct dict_entry *entry);
 

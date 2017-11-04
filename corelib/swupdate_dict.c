@@ -43,6 +43,22 @@ static struct dict_entry *get_entry(struct dictlist *dictionary, char *key)
 	return NULL;
 }
 
+int dict_insert_entry(struct dictlist *dictionary, char *key, char *value)
+{
+	struct dict_entry *entry = (struct dict_entry *)malloc(sizeof(*entry));
+
+	if (!entry)
+		return -ENOMEM;
+
+	memset(entry, 0, sizeof(*entry));
+	entry->varname = strdup(key);
+	entry->value = strdup(value);
+
+	LIST_INSERT_HEAD(dictionary, entry, next);
+
+	return 0;
+}
+
 char *dict_get_value(struct dictlist *dictionary, char *key)
 {
 	struct dict_entry *entry = get_entry(dictionary, key);
@@ -66,18 +82,7 @@ int dict_set_value(struct dictlist *dictionary, char *key, char *value)
 		free(entry);
 	}
 
-	entry = (struct dict_entry *)malloc(sizeof(*entry));
-
-	if (!entry)
-		return -ENOMEM;
-
-	memset(entry, 0, sizeof(*entry));
-	entry->varname = strdup(key);
-	entry->value = strdup(value);
-
-	LIST_INSERT_HEAD(dictionary, entry, next);
-
-	return 0;
+	return dict_insert_entry(dictionary, key, value);
 }
 
 void dict_remove_entry(struct dict_entry *entry)
