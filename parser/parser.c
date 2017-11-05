@@ -152,6 +152,35 @@ static void *find_node(parsertype p, void *root, const char *node,
 	return NULL;
 }
 
+static void add_properties(parsertype p, void *node, struct img_type *image)
+{
+
+	void *properties, *prop;
+	int count, i;
+
+	properties = get_child(p, node, "properties");
+	if (properties) {
+		count = get_array_length(p, properties);
+
+		TRACE("Found %d properties for %s:", count, image->fname);
+
+		for (i = 0; i < count; i++) {
+			char key[255];
+			char value[255];
+			prop = get_elem_from_idx(p, properties, i);
+			GET_FIELD_STRING(p, prop, "name", key);
+			GET_FIELD_STRING(p, prop, "value", value);
+			TRACE("\t\tProperty %d: name=%s val=%s ", i,
+				key,
+				value
+			);
+			if (dict_insert_entry(&image->properties, key, value))
+				ERROR("Property not stored, skipping...");
+
+		}
+	}
+}
+
 #ifdef CONFIG_HW_COMPATIBILITY
 /*
  * Check if the software can run on the hardware
@@ -466,7 +495,10 @@ static int parse_images(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua
 					"Version must be checked" : ""
 			);
 
+		add_properties(p, elem, image);
+
 		if (run_embscript(p, elem, image, L, swcfg->embscript)) {
+			dict_drop_db(&image->properties);
 			free(image);
 			return -1;
 		}
@@ -537,7 +569,10 @@ static int parse_files(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua_
 			(strlen(file->id.name) && file->id.install_if_different) ?
 					"Version must be checked" : "");
 
+		add_properties(p, elem, file);
+
 		if (run_embscript(p, elem, file, L, swcfg->embscript)) {
+			dict_drop_db(&file->properties);
 			free(file);
 			return -1;
 		}
