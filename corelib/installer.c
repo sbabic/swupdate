@@ -424,6 +424,7 @@ void cleanup_files(struct swupdate_cfg *software) {
 			}
 			remove_sw_file(fn);
 		}
+		dict_drop_db(&img->properties);
 		LIST_REMOVE(img, next);
 		free(img);
 	}
