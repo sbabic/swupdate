@@ -103,3 +103,12 @@ void dict_remove(struct dictlist *dictionary, char *key)
 
 	dict_remove_entry(entry);
 }
+
+void dict_drop_db(struct dictlist *dictionary)
+{
+	struct dict_entry *var;
+
+	LIST_FOREACH(var, dictionary, next) {
+		dict_remove_entry(var);
+	}
+}

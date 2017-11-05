@@ -36,5 +36,6 @@ int dict_set_value(struct dictlist *dictionary, char *key, char *value);
 int dict_insert_entry(struct dictlist *dictionary, char *key, char *value);
 void dict_remove(struct dictlist *dictionary, char *key);
 void dict_remove_entry(struct dict_entry *entry);
+void dict_drop_db(struct dictlist *dictionary);
 
 #endif

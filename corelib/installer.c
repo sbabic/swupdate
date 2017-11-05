@@ -402,7 +402,6 @@ static void remove_sw_file(char __attribute__ ((__unused__)) *fname)
 void cleanup_files(struct swupdate_cfg *software) {
 	char fn[64];
 	struct img_type *img;
-	struct dict_entry *bootvar;
 	struct hw_type *hw;
 	const char* TMPDIR = get_tmpdir();
 
@@ -428,9 +427,9 @@ void cleanup_files(struct swupdate_cfg *software) {
 		LIST_REMOVE(img, next);
 		free(img);
 	}
-	LIST_FOREACH(bootvar, &software->bootloader, next) {
-		dict_remove_entry(bootvar);
-	}
+
+	dict_drop_db(&software->bootloader);
+
 	snprintf(fn, sizeof(fn), "%s%s", TMPDIR, BOOT_SCRIPT_SUFFIX);
 	remove_sw_file(fn);
 
