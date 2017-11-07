@@ -161,6 +161,21 @@ config REMOTE_HANDLER
 comment "remote handler needs zeromq"
 	depends on !HAVE_LIBZEROMQ
 
+config SWUFORWARDER_HANDLER
+	bool "SWU forwarder"
+	depends on HAVE_LIBCURL
+	select CURL
+	select JSON
+	default n
+	help
+	  This allows to build a chain of updater. A
+	  SWU can contains other SWUs for other systems.
+	  The handler takes a list of URLs and forward the
+	  embedded SWU to the other devices using the
+	  Webserver REST API.
+
+comment "SWU forwarder requires libcurl"
+	depends on !HAVE_LIBCURL
 
 config BOOTLOADERHANDLER
 	bool "bootloader"
