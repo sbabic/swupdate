@@ -362,7 +362,16 @@ channel_op_res_t channel_set_options(channel_t *this,
 	    (curl_easy_setopt(channel_curl->handle, CURLOPT_FOLLOWLOCATION, 1) !=
 	     CURLE_OK) ||
 	    (curl_easy_setopt(channel_curl->handle, CURLOPT_REDIR_PROTOCOLS,
-			      CURLPROTO_HTTP | CURLPROTO_HTTPS) != CURLE_OK)) {
+			      CURLPROTO_HTTP | CURLPROTO_HTTPS) != CURLE_OK) ||
+	    (curl_easy_setopt(channel_curl->handle,
+			      CURLOPT_CAINFO,
+			      channel_data->cafile) != CURLE_OK) ||
+	    (curl_easy_setopt(channel_curl->handle,
+			      CURLOPT_SSLKEY,
+			      channel_data->sslkey) != CURLE_OK) ||
+	    (curl_easy_setopt(channel_curl->handle,
+			      CURLOPT_SSLCERT,
+			      channel_data->sslcert) != CURLE_OK)) {
 		result = CHANNEL_EINIT;
 		goto cleanup;
 	}
@@ -372,17 +381,19 @@ channel_op_res_t channel_set_options(channel_t *this,
 				      CURLOPT_SSL_VERIFYHOST,
 				      2L) != CURLE_OK) ||
 		    (curl_easy_setopt(channel_curl->handle,
-				      CURLOPT_CAINFO,
-				      channel_data->cafile) != CURLE_OK) ||
-		    (curl_easy_setopt(channel_curl->handle,
-				      CURLOPT_SSLKEY,
-				      channel_data->sslkey) != CURLE_OK) ||
-		    (curl_easy_setopt(channel_curl->handle,
-				      CURLOPT_SSLCERT,
-				      channel_data->sslcert) != CURLE_OK) ||
-		    (curl_easy_setopt(channel_curl->handle,
 				      CURLOPT_SSL_VERIFYPEER,
 				      1L) != CURLE_OK)) {
+			result = CHANNEL_EINIT;
+			goto cleanup;
+		}
+	}
+	else {
+		if ((curl_easy_setopt(channel_curl->handle,
+				      CURLOPT_SSL_VERIFYHOST,
+				      0L) != CURLE_OK) ||
+		    (curl_easy_setopt(channel_curl->handle,
+				      CURLOPT_SSL_VERIFYPEER,
+				      0L) != CURLE_OK)) {
 			result = CHANNEL_EINIT;
 			goto cleanup;
 		}
