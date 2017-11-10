@@ -13,3 +13,4 @@ lib-$(CONFIG_ENCRYPTED_IMAGES)	+= swupdate_decrypt.o
 lib-$(CONFIG_LIBCONFIG)		+= swupdate_settings.o \
 				   parsing_library_libconfig.o
 lib-$(CONFIG_JSON)		+= parsing_library_libjson.o
+lib-$(CONFIG_CURL)		+= channel_curl.o

@@ -33,7 +33,7 @@
 #include <openssl/sha.h>
 #endif
 #include "suricatta/channel.h"
-#include "channel_hawkbit.h"
+#include "channel_curl.h"
 #include "suricatta/suricatta.h"
 
 #define SPEED_LOW_BYTES_SEC 8
