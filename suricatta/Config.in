@@ -72,6 +72,7 @@ config SURICATTA_HAWKBIT
 	depends on HAVE_LIBCURL
 	depends on HAVE_JSON_C
 	select JSON
+	select CURL
 	help
 	  Support for hawkBit server.
 	  https://projects.eclipse.org/projects/iot.hawkbit

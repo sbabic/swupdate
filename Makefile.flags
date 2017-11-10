@@ -113,7 +113,7 @@ endif
 endif
 
 # Image downloading support
-ifneq ($(CONFIG_DOWNLOAD),)
+ifneq ($(CONFIG_CURL),)
 LDLIBS += curl
 endif
 
