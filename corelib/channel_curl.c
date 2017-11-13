@@ -76,7 +76,7 @@ channel_op_res_t channel_set_options(channel_t *this, channel_data_t *channel_da
 static void channel_log_effective_url(channel_t *this);
 
 /* Prototypes for "public" functions */
-channel_op_res_t channel_hawkbit_init(void);
+channel_op_res_t channel_curl_init(void);
 channel_op_res_t channel_close(channel_t *this);
 channel_op_res_t channel_open(channel_t *this, void *cfg);
 channel_op_res_t channel_get(channel_t *this, void *data);
@@ -85,7 +85,7 @@ channel_op_res_t channel_put(channel_t *this, void *data);
 channel_t *channel_new(void);
 
 
-channel_op_res_t channel_hawkbit_init(void)
+channel_op_res_t channel_curl_init(void)
 {
 #ifdef CONFIG_SURICATTA_SSL
 #define CURL_FLAGS CURL_GLOBAL_SSL

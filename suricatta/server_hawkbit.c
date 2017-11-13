@@ -106,7 +106,7 @@ static hawkbit_enums_t hawkbit_enums[] = {
 #define ALL_MANDATORY_SET	(TENANT_BIT | ID_BIT | URL_BIT)
 
 
-extern channel_op_res_t channel_hawkbit_init(void);
+extern channel_op_res_t channel_curl_init(void);
 /* Prototypes for "internal" functions */
 /* Note that they're not `static` so that they're callable from unit tests. */
 json_object *json_get_key(json_object *json_root, const char *key);
@@ -1718,7 +1718,7 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 		return SERVER_EINIT;
 	}
 
-	if (channel_hawkbit_init() != CHANNEL_OK)
+	if (channel_curl_init() != CHANNEL_OK)
 		return SERVER_EINIT;
 
 	/*
