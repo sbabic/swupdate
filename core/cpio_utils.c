@@ -137,7 +137,7 @@ int copyfile(int fdin, void *out, unsigned int nbytes, unsigned long *offs, unsi
 	}
 
 	if (IsValidHash(hash)) {
-		dgst = swupdate_HASH_init();
+		dgst = swupdate_HASH_init(SHA_DEFAULT);
 		if (!dgst)
 			return -EFAULT;
 	}

@@ -20,12 +20,14 @@
 #ifndef _SWUPDATE_SSL_H
 #define _SWUPDATE_SSL_H
 
+#define SHA_DEFAULT	"sha256"
+
 /*
  * openSSL is not mandatory
  * Let compile when openSSL is not activated
  */
-#if defined(CONFIG_HASH_VERIFY) || defined(CONFIG_ENCRYPTED_IMAGES)
-
+#if defined(CONFIG_HASH_VERIFY) || defined(CONFIG_ENCRYPTED_IMAGES) || \
+	defined(CONFIG_SURICATTA_SSL)
 #include <openssl/bio.h>
 #include <openssl/objects.h>
 #include <openssl/err.h>
@@ -35,6 +37,7 @@
 #include <openssl/evp.h>
 #include <openssl/hmac.h>
 #include <openssl/aes.h>
+
 #ifdef CONFIG_SIGALG_CMS
 #if defined(LIBRESSL_VERSION_NUMBER)
 #error "LibreSSL does not support CMS, please select RSA PKCS"
@@ -42,6 +45,7 @@
 #include <openssl/cms.h>
 #endif
 #endif
+
 #include <openssl/opensslv.h>
 
 struct swupdate_digest {
@@ -84,7 +88,7 @@ struct swupdate_digest {
 
 #if defined(CONFIG_HASH_VERIFY)
 int swupdate_dgst_init(struct swupdate_cfg *sw, const char *keyfile);
-struct swupdate_digest *swupdate_HASH_init(void);
+struct swupdate_digest *swupdate_HASH_init(const char *SHALength);
 int swupdate_HASH_update(struct swupdate_digest *dgst, unsigned char *buf,
 				size_t len);
 int swupdate_HASH_final(struct swupdate_digest *dgst, unsigned char *md_value,
@@ -99,8 +103,8 @@ int swupdate_HASH_compare(unsigned char *hash1, unsigned char *hash2);
 #define swupdate_dgst_init(sw, keyfile) ( 0 )
 #define swupdate_HASH_init(p) ( NULL )
 #define swupdate_verify_file(dgst, sigfile, file) ( 0 )
-#define swupdate_HASH_update(p, buf, len)
-#define swupdate_HASH_final(p, result, len)
+#define swupdate_HASH_update(p, buf, len)	(-1)
+#define swupdate_HASH_final(p, result, len)	(-1)
 #define swupdate_HASH_cleanup(sw)
 #define swupdate_HASH_compare(hash1,hash2)	(0)
 #endif
@@ -121,6 +125,13 @@ void swupdate_DECRYPT_cleanup(struct swupdate_digest *dgst);
 #define swupdate_DECRYPT_update(p, buf, len, cbuf, inlen) (-1)
 #define swupdate_DECRYPT_final(p, buf, len) (-1)
 #define swupdate_DECRYPT_cleanup(p)
+#endif
+
+/*
+ * if openSSL is not selected
+ */
+#ifndef SHA_DIGEST_LENGTH
+#define SHA_DIGEST_LENGTH 20
 #endif
 
 #endif

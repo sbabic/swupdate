@@ -29,12 +29,12 @@
 
 #define BUFSIZE	(1024 * 8)
 
-static int dgst_init(struct swupdate_digest *dgst)
+static int dgst_init(struct swupdate_digest *dgst, const EVP_MD *md)
 {
 	int rc;
 
 	ERR_clear_error();
-	rc = EVP_DigestInit_ex(dgst->ctx, EVP_sha256(), NULL);
+	rc = EVP_DigestInit_ex(dgst->ctx, md, NULL);
 	if (rc != 1) {
 		ERROR("EVP_DigestInit_ex failed: %s\n", ERR_error_string(ERR_get_error(), NULL));
 		return -EINVAL; /* failed */
@@ -158,7 +158,7 @@ int swupdate_verify_file(struct swupdate_digest *dgst, const char *sigfile,
 		goto out;
 	}
 
-	if ((dgst_init(dgst) < 0) || (dgst_verify_init(dgst) < 0)) {
+	if ((dgst_init(dgst, EVP_sha256()) < 0) || (dgst_verify_init(dgst) < 0)) {
 		status = -ENOKEY;
 		goto out;
 	}
@@ -331,15 +331,21 @@ out:
 	return status;
 }
 #endif
-struct swupdate_digest *swupdate_HASH_init(void)
+struct swupdate_digest *swupdate_HASH_init(const char *SHAlength)
 {
 	struct swupdate_digest *dgst;
+	const EVP_MD *md;
 	int ret;
 
 	dgst = calloc(1, sizeof(*dgst));
 	if (!dgst) {
 		return NULL;
 	}
+
+	if ((!SHAlength) || strcmp(SHAlength, "sha1"))
+		md = EVP_sha256();
+	else
+		md = EVP_sha1();
 
  	dgst->ctx = EVP_MD_CTX_create();
 	if(dgst->ctx == NULL) {
@@ -348,7 +354,7 @@ struct swupdate_digest *swupdate_HASH_init(void)
 		return NULL;
 	}
 
-	ret = dgst_init(dgst);
+	ret = dgst_init(dgst, md);
 	if (ret) {
 		free(dgst);
 		return NULL;
@@ -363,7 +369,8 @@ int swupdate_HASH_update(struct swupdate_digest *dgst, unsigned char *buf,
 	if (!dgst)
 		return -EFAULT;
 
-	EVP_DigestUpdate (dgst->ctx, buf, len);
+	if (EVP_DigestUpdate (dgst->ctx, buf, len) != 1)
+		return -EIO;
 
 	return 0;
 }
