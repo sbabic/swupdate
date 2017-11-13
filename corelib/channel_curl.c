@@ -30,7 +30,7 @@
 #include <network_ipc.h>
 #include <util.h>
 #include "sslapi.h"
-#include "suricatta/channel.h"
+#include "channel.h"
 #include "channel_curl.h"
 
 #define SPEED_LOW_BYTES_SEC 8

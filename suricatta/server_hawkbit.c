@@ -32,7 +32,7 @@
 #include <sys/time.h>
 #include <swupdate_status.h>
 #include "suricatta/suricatta.h"
-#include "suricatta/channel.h"
+#include "channel.h"
 #include "channel_curl.h"
 #include "suricatta/state.h"
 #include "server_hawkbit.h"

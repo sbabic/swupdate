@@ -19,7 +19,6 @@
 
 #pragma once
 #include <stdbool.h>
-#include <suricatta/channel.h>
 #include <suricatta/state.h>
 #include <swupdate_dict.h>
 
