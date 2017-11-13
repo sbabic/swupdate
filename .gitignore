@@ -33,9 +33,12 @@ scripts/kconfig/zconf.tab.c
 # 
 swupdate
 swupdate_unstripped*
-examples/client/client
-examples/sendtohawkbit/sendtohawkbit
-examples/sendtohawkbit/hawkbitcfg
+tools/*_unstripped
+tools/client
+tools/sendtohawkbit
+tools/hawkbitcfg
+tools/*.map
+tools/*.out
 
 #
 # Generated files
