@@ -149,6 +149,9 @@ static channel_data_t channel_data_defaults = {.debug = false,
 					       .retries = DEFAULT_RESUME_TRIES,
 					       .retry_sleep =
 						   DEFAULT_RESUME_DELAY,
+#ifdef CONFIG_SURICATTA_SSL
+					       .usessl = true,
+#endif
 					       .strictssl = true};
 
 static struct timeval server_time;

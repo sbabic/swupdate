@@ -20,9 +20,7 @@
 #pragma once
 #include <json-c/json.h>
 #include <stdio.h>
-#ifdef CONFIG_SURICATTA_SSL
-#include <openssl/sha.h>
-#endif
+#include "sslapi.h"
 
 /* hawkBit Channel Implementation Private Header File.
  *
@@ -55,9 +53,9 @@ typedef struct {
 	unsigned int method;
 	unsigned int retries;
 	bool debug;
+	bool usessl;
 	bool strictssl;
 	int (*checkdwl)(void);
-#ifdef CONFIG_SURICATTA_SSL
+	struct swupdate_digest *dgst;
 	char sha1hash[SHA_DIGEST_LENGTH * 2 + 1];
-#endif
 } channel_data_t;

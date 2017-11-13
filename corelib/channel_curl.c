@@ -29,12 +29,9 @@
 #include <unistd.h>
 #include <network_ipc.h>
 #include <util.h>
-#ifdef CONFIG_SURICATTA_SSL
-#include <openssl/sha.h>
-#endif
+#include "sslapi.h"
 #include "suricatta/channel.h"
 #include "channel_curl.h"
-#include "suricatta/suricatta.h"
 
 #define SPEED_LOW_BYTES_SEC 8
 #define SPEED_LOW_TIME_SEC 300
@@ -59,9 +56,6 @@ typedef struct {
 	output_data_t *outdata;
 } write_callback_t;
 
-#ifdef CONFIG_SURICATTA_SSL
-static SHA_CTX checksum_ctx;
-#endif
 
 /* Prototypes for "internal" functions */
 /* Note that they're not `static` so that they're callable from unit tests. */
@@ -171,13 +165,17 @@ size_t channel_callback_write_file(void *streamdata, size_t size, size_t nmemb,
 	if (!data)
 		return 0;
 	result_channel_callback_write_file = CHANNEL_OK;
-#ifdef CONFIG_SURICATTA_SSL
-	if (SHA1_Update(&checksum_ctx, streamdata, size * nmemb) != 1) {
-		ERROR("Updating checksum of chunk failed.\n");
-		result_channel_callback_write_file = CHANNEL_EIO;
-		return 0;
+
+	if (data->channel_data->usessl) {
+		if (swupdate_HASH_update(data->channel_data->dgst,
+					 streamdata,
+					 size * nmemb) < 0) {
+			ERROR("Updating checksum of chunk failed.\n");
+			result_channel_callback_write_file = CHANNEL_EIO;
+			return 0;
+		}
 	}
-#endif
+
 	if (ipc_send_data(data->output, streamdata, (int)(size * nmemb)) <
 	    0) {
 		ERROR("Writing into SWUpdate IPC stream failed.\n");
@@ -646,14 +644,15 @@ channel_op_res_t channel_get_file(channel_t *this, void *data, int file_handle)
 	channel_op_res_t result = CHANNEL_OK;
 	channel_data_t *channel_data = (channel_data_t *)data;
 
-#ifdef CONFIG_SURICATTA_SSL
-	memset(channel_data->sha1hash, 0x0, SHA_DIGEST_LENGTH * 2 + 1);
-	if (SHA1_Init(&checksum_ctx) != 1) {
-		result = CHANNEL_EINIT;
-		ERROR("Cannot initialize sha1 checksum context.\n");
-		goto cleanup;
+	if (channel_data->usessl) {
+		memset(channel_data->sha1hash, 0x0, SHA_DIGEST_LENGTH * 2 + 1);
+		channel_data->dgst = swupdate_HASH_init("sha1");
+		if (!channel_data->dgst) {
+			result = CHANNEL_EINIT;
+			ERROR("Cannot initialize sha1 checksum context.\n");
+			return result;
+		}
 	}
-#endif
 
 	if (channel_data->debug) {
 		curl_easy_setopt(channel_curl->handle, CURLOPT_VERBOSE, 1L);
@@ -799,18 +798,20 @@ channel_op_res_t channel_get_file(channel_t *this, void *data, int file_handle)
 		goto cleanup_file;
 	}
 
-#ifdef CONFIG_SURICATTA_SSL
-	unsigned char sha1hash[SHA_DIGEST_LENGTH];
-	if (SHA1_Final(sha1hash, &checksum_ctx) != 1) {
-		ERROR("Cannot compute checksum.\n");
-		goto cleanup_file;
+	if (channel_data->usessl) {
+		unsigned char sha1hash[SHA_DIGEST_LENGTH];
+		unsigned int md_len;
+		if (swupdate_HASH_final(channel_data->dgst, sha1hash, &md_len) != 1) {
+			ERROR("Cannot compute checksum.\n");
+			goto cleanup_file;
+		}
+
+		char sha1hexchar[3];
+		for (int i = 0; i < SHA_DIGEST_LENGTH; i++) {
+			sprintf(sha1hexchar, "%02x", sha1hash[i]);
+			strcat(channel_data->sha1hash, sha1hexchar);
+		}
 	}
-	char sha1hexchar[3];
-	for (int i = 0; i < SHA_DIGEST_LENGTH; i++) {
-		sprintf(sha1hexchar, "%02x", sha1hash[i]);
-		strcat(channel_data->sha1hash, sha1hexchar);
-	}
-#endif
 
 cleanup_file:
 	/* NOTE ipc_end() calls close() but does not return its error code,
@@ -826,9 +827,6 @@ cleanup_header:
 	curl_slist_free_all(channel_curl->header);
 	channel_curl->header = NULL;
 
-#ifdef CONFIG_SURICATTA_SSL
-cleanup:
-#endif
 	return result;
 }
 
