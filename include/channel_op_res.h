@@ -1,4 +1,7 @@
 /*
+ * (C) Copyright 2017
+ * Stefano Babic, DENX Software Engineering, sbabic@denx.de.
+ *
  * Author: Christian Storm
  * Copyright (C) 2016, Siemens AG
  *
@@ -18,22 +21,17 @@
  */
 
 #pragma once
-#include "channel_op_res.h"
 
-/* Suricatta Channel Interface.
- *
- * Each suricatta channel has to implement this interface.
- * Cf. `channel_hawkbit.c` for an example implementation targeted towards the
- * [hawkBit](https://projects.eclipse.org/projects/iot.hawkbit) server.
- */
-typedef struct channel channel_t;
-struct channel {
-	channel_op_res_t (*open)(channel_t *this, void *cfg);
-	channel_op_res_t (*close)(channel_t *this);
-	channel_op_res_t (*get)(channel_t *this, void *data);
-	channel_op_res_t (*get_file)(channel_t *this, void *data, int file_handle);
-	channel_op_res_t (*put)(channel_t *this, void *data);
-	void *priv;
-};
-
-channel_t *channel_new(void);
+typedef enum {
+	CHANNEL_OK,
+	CHANNEL_EINIT,
+	CHANNEL_ENONET,
+	CHANNEL_ENOMEM,
+	CHANNEL_EACCES,
+	CHANNEL_ENOENT,
+	CHANNEL_EIO,
+	CHANNEL_EILSEQ,
+	CHANNEL_EAGAIN,
+	CHANNEL_ELOOP,
+	CHANNEL_EBADMSG
+} channel_op_res_t;

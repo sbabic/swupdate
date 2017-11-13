@@ -19,6 +19,8 @@
 
 #pragma once
 
+#include "channel_op_res.h"
+
 /* Suricatta Main Interface.
  *
  * `start_suricatta()` is the main interface to suricatta's functionality.
@@ -27,20 +29,6 @@
  * implementations, the valid result codes to be returned by the different
  * implementations are defined here.
  */
-
-typedef enum {
-	CHANNEL_OK,
-	CHANNEL_EINIT,
-	CHANNEL_ENONET,
-	CHANNEL_ENOMEM,
-	CHANNEL_EACCES,
-	CHANNEL_ENOENT,
-	CHANNEL_EIO,
-	CHANNEL_EILSEQ,
-	CHANNEL_EAGAIN,
-	CHANNEL_ELOOP,
-	CHANNEL_EBADMSG
-} channel_op_res_t;
 
 typedef enum {
 	SERVER_OK,
