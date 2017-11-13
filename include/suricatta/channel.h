@@ -36,9 +36,4 @@ struct channel {
 	void *priv;
 };
 
-extern channel_op_res_t channel_open(channel_t *this, void *cfg);
-extern channel_op_res_t channel_close(channel_t *this);
-extern channel_op_res_t channel_put(channel_t *this, void *data);
-extern channel_op_res_t channel_get(channel_t *this, void *data);
-extern channel_op_res_t channel_get_file(channel_t *this, void *data, int file_handle);
 channel_t *channel_new(void);
