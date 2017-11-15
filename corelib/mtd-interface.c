@@ -47,7 +47,6 @@ int flash_erase(int mtdnum)
 	char mtd_device[80];
 	struct mtd_dev_info *mtd;
 	int noskipbad = 0;
-	int unlock = 0;
 	int ret = 0;
 	unsigned int eb, eb_start, eb_cnt, i;
 	uint8_t *buf;
@@ -96,6 +95,14 @@ int flash_erase(int mtdnum)
 			}
 		}
 
+		/* Unlock memory if required */
+		if (mtd_is_locked(mtd, fd, eb)) {
+			if (mtd_unlock(mtd, fd, eb) != 0) {
+				TRACE("%s: MTD unlock failure", mtd_device);
+				continue;
+			}
+		}
+
 		/*
 		 * In case of NOR flash, check if the flash
 		 * is already empty. This can save
@@ -123,13 +130,6 @@ int flash_erase(int mtdnum)
 		}
 
 		/* The sector contains data and it must be erased */
-		if (unlock) {
-			if (mtd_unlock(mtd, fd, eb) != 0) {
-				TRACE("%s: MTD unlock failure", mtd_device);
-				continue;
-			}
-		}
-
 		if (mtd_erase(flash->libmtd, mtd, fd, eb) != 0) {
 			ERROR("%s: MTD Erase failure", mtd_device);
 			ret  = -EIO;
