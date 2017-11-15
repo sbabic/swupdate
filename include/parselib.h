@@ -58,6 +58,11 @@ void get_value_json(json_object *e, void *dest);
 void get_field_json(json_object *e, const char *path, void *dest);
 void *get_child_json(json_object *e, const char *name);
 json_object *find_json_recursive_node(json_object *root, const char **names);
+json_object *json_get_key(json_object *json_root, const char *key);
+const char *json_get_value(struct json_object *json_root,
+			   const char *key);
+json_object *json_get_path_key(json_object *json_root, const char **json_path);
+char *json_get_data_url(json_object *json_root, const char *key);
 
 #else
 #define find_node_json(a, b, c)		(NULL)

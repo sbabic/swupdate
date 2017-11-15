@@ -32,6 +32,7 @@
 #include <sys/time.h>
 #include <swupdate_status.h>
 #include "suricatta/suricatta.h"
+#include "parselib.h"
 #include "channel.h"
 #include "channel_curl.h"
 #include "suricatta/state.h"
@@ -45,7 +46,6 @@
 #define DEFAULT_RESUME_DELAY 5
 #define INITIAL_STATUS_REPORT_WAIT_DELAY 10
 
-#define MAX_URL_LENGTH 2048
 #define STRINGIFY(...) #__VA_ARGS__
 #define JSON_OBJECT_FREED 1
 #define ENOMEM_ASPRINTF -1
@@ -109,11 +109,6 @@ static hawkbit_enums_t hawkbit_enums[] = {
 extern channel_op_res_t channel_curl_init(void);
 /* Prototypes for "internal" functions */
 /* Note that they're not `static` so that they're callable from unit tests. */
-json_object *json_get_key(json_object *json_root, const char *key);
-const char *json_get_value(struct json_object *json_root,
-			   const char *key);
-json_object *json_get_path_key(json_object *json_root, const char **json_path);
-char *json_get_data_url(json_object *json_root, const char *key);
 server_op_res_t map_channel_retcode(channel_op_res_t response);
 server_op_res_t server_handle_initial_state(update_state_t stateovrrd);
 static int server_update_status_callback(ipc_message *msg);
@@ -206,49 +201,6 @@ static bool hawkbit_enum_check(const char *key, const char *value)
 		table++;
 	}
 	return false;
-}
-
-json_object *json_get_key(json_object *json_root, const char *key)
-{
-	json_object *json_child;
-	if (json_object_object_get_ex(json_root, key, &json_child)) {
-		return json_child;
-	}
-	return NULL;
-}
-
-const char *json_get_value(struct json_object *json_root,
-			   const char *key)
-{
-	json_object *json_data = json_get_key(json_root, key);
-
-	if (json_data == NULL)
-		return "";
-
-	return json_object_get_string(json_data);
-}
-
-json_object *json_get_path_key(json_object *json_root, const char **json_path)
-{
-	json_object *json_data = json_root;
-	while (*json_path) {
-		const char *key = *json_path;
-		json_data = json_get_key(json_data, key);
-		if (json_data == NULL) {
-			return NULL;
-		}
-		json_path++;
-	}
-	return json_data;
-}
-
-char *json_get_data_url(json_object *json_root, const char *key)
-{
-	json_object *json_data = json_get_path_key(
-	    json_root, (const char *[]){"_links", key, "href", NULL});
-	return json_data == NULL
-		   ? NULL
-		   : strndup(json_object_get_string(json_data), MAX_URL_LENGTH);
 }
 
 static const char *json_get_deployment_update_action(json_object *json_reply)

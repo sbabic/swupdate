@@ -31,6 +31,8 @@
 #include "swupdate.h"
 #include "parselib.h"
 
+#define MAX_URL_LENGTH 2048
+
 json_object *find_json_recursive_node(json_object *root, const char **names)
 {
 	json_object *node = root;
@@ -114,3 +116,48 @@ void get_field_json(json_object *e, const char *path, void *dest)
 		get_value_json(e, dest);
 	}
 }
+
+json_object *json_get_key(json_object *json_root, const char *key)
+{
+	json_object *json_child;
+	if (json_object_object_get_ex(json_root, key, &json_child)) {
+		return json_child;
+	}
+	return NULL;
+}
+
+const char *json_get_value(struct json_object *json_root,
+			   const char *key)
+{
+	json_object *json_data = json_get_key(json_root, key);
+
+	if (json_data == NULL)
+		return "";
+
+	return json_object_get_string(json_data);
+}
+
+json_object *json_get_path_key(json_object *json_root, const char **json_path)
+{
+	json_object *json_data = json_root;
+	while (*json_path) {
+		const char *key = *json_path;
+		json_data = json_get_key(json_data, key);
+		if (json_data == NULL) {
+			return NULL;
+		}
+		json_path++;
+	}
+	return json_data;
+}
+
+char *json_get_data_url(json_object *json_root, const char *key)
+{
+	json_object *json_data = json_get_path_key(
+	    json_root, (const char *[]){"_links", key, "href", NULL});
+	return json_data == NULL
+		   ? NULL
+		   : strndup(json_object_get_string(json_data), MAX_URL_LENGTH);
+}
+
+
