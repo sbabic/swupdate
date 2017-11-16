@@ -367,15 +367,14 @@ static int install_from_file(char *fname, int check)
 
 	if (ret) {
 		fprintf(stdout, "Software updated failed\n");
-		bootloader_env_set("recovery_status", "failed");
-		exit(1);
+		return EXIT_FAILURE;
 	}
 
 	bootloader_env_unset("recovery_status");
 	fprintf(stdout, "Software updated successfully\n");
 	fprintf(stdout, "Please reboot the device to start the new software\n");
 
-	return 0;
+	return EXIT_SUCCESS;
 }
 
 static int parse_image_selector(const char *selector, struct swupdate_cfg *sw)
@@ -535,6 +534,7 @@ int main(int argc, char **argv)
 	char main_options[256];
 	unsigned int public_key_mandatory = 0;
 	struct sigaction sa;
+	int result = EXIT_SUCCESS;
 #ifdef CONFIG_SURICATTA
 	int opt_u = 0;
 	char suricattaoptions[1024];
@@ -888,13 +888,19 @@ int main(int argc, char **argv)
 
 	if (opt_i) {
 
-		install_from_file(fname, opt_c);
-		cleanup_files(&swcfg);
-
-		notify(SUCCESS, 0, INFOLEVEL, NULL);
-		if (postupdate(&swcfg, NULL) != 0) {
-			ERROR("Post-update command execution failed.");
+		result = install_from_file(fname, opt_c);
+		switch (result) {
+		case EXIT_FAILURE:
+			bootloader_env_set("recovery_status", "failed");
+			break;
+		case EXIT_SUCCESS:
+			notify(SUCCESS, 0, INFOLEVEL, NULL);
+			if (postupdate(&swcfg, NULL) != 0) {
+				ERROR("Post-update command execution failed.");
+			}
+			break;
 		}
+		cleanup_files(&swcfg);
 	}
 
 #ifdef CONFIG_SYSTEMD
@@ -918,5 +924,5 @@ int main(int argc, char **argv)
 	if (!opt_c && !opt_i)
 		pthread_join(network_daemon, NULL);
 
-	return EXIT_SUCCESS;
+	return result;
 }
