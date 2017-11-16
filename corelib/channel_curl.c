@@ -538,8 +538,10 @@ static channel_op_res_t channel_post_method(channel_t *this, void *data)
 		      http_response_code);
 		goto cleanup_header;
 	}
-	TRACE("Channel put operation returned HTTP status code %ld.\n",
-	      http_response_code);
+	if (channel_data->debug) {
+		TRACE("Channel put operation returned HTTP status code %ld.\n",
+			http_response_code);
+	}
 
 cleanup_header:
 	curl_easy_reset(channel_curl->handle);
@@ -790,8 +792,10 @@ channel_op_res_t channel_get_file(channel_t *this, void *data, int file_handle)
 		      http_response_code);
 		goto cleanup_file;
 	}
-	TRACE("Channel operation returned HTTP status code %ld.\n",
-	      http_response_code);
+	if (channel_data->debug) {
+		TRACE("Channel operation returned HTTP status code %ld.\n",
+			http_response_code);
+	}
 
 	if (result_channel_callback_write_file != CHANNEL_OK) {
 		result = CHANNEL_EIO;
@@ -822,6 +826,10 @@ cleanup_file:
 		ERROR("Channel error while closing download target handle: '%s'\n",
 		      strerror(errno));
 	}
+	if (channel_data->dgst) {
+		swupdate_HASH_cleanup(channel_data->dgst);
+	}
+
 cleanup_header:
 	curl_easy_reset(channel_curl->handle);
 	curl_slist_free_all(channel_curl->header);
@@ -881,7 +889,9 @@ channel_op_res_t channel_get(channel_t *this, void *data)
 		goto cleanup_chunk;
 	}
 
-	DEBUG("Trying to GET %s", channel_data->url);
+	if (channel_data->debug) {
+		DEBUG("Trying to GET %s", channel_data->url);
+	}
 	CURLcode curlrc = curl_easy_perform(channel_curl->handle);
 	if (curlrc != CURLE_OK) {
 		ERROR("Channel get operation failed (%d): '%s'\n", curlrc,
@@ -890,7 +900,9 @@ channel_op_res_t channel_get(channel_t *this, void *data)
 		goto cleanup_chunk;
 	}
 
-	channel_log_effective_url(this);
+	if (channel_data->debug) {
+		channel_log_effective_url(this);
+	}
 
 	long http_response_code;
 	if ((result = channel_map_http_code(this, &http_response_code)) !=
@@ -905,8 +917,10 @@ channel_op_res_t channel_get(channel_t *this, void *data)
 		}
 		goto cleanup_chunk;
 	}
-	TRACE("Channel operation returned HTTP status code %ld.\n",
-	      http_response_code);
+	if (channel_data->debug) {
+		TRACE("Channel operation returned HTTP status code %ld.\n",
+			http_response_code);
+	}
 
 	assert(channel_data->json_reply == NULL);
 	enum json_tokener_error json_res;
