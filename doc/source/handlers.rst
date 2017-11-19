@@ -258,8 +258,8 @@ image, this is not implemented as it carries some security
 implications since the behavior of SWUpdate is changed
 dynamically.
 
-Remote handlers
----------------
+Remote handler
+--------------
 
 Remote handlers are thought for binding legacy installers
 without having the necessity to rewrite them in Lua. The remote
@@ -311,3 +311,38 @@ It is duty of the external process to take care of the amount of
 data transferred and to release resources when the last chunk
 is received. For each DATA message, the external process answers with a
 *ACK* or *NACK* message.
+
+SWU forwarder
+---------------
+
+The SWU forwarder handler can be used to update other systems where SWUpdate
+is running. It can be used in case of master / slaves systems, where the master
+is connected to the network and the "slaves" are hidden to the external world.
+The master is then the only interface to the world. A geenral SWU can contain
+embedded SWU images as single artifacts, and the SWU handler will forward it
+to the devices listed in the descritpion of the artifact.
+The handler can have a list of "url" properties. Each url is the address of a
+secondary board where SWUpdate is running with webserver activated.
+The SWU handler expects to talk with SWUpdate's embedded webserver. This helps
+to update systems where an old version of SWUpdate is running, because the
+embedded webserver is a common feature present in all versions.
+The handler will send the embedded SWU to all URLs at the same time, and setting
+``installed-directly`` is supported by this handler.
+
+The following example shows how to set a SWU as artifact and enables
+the SWU forwarder:
+
+
+::
+
+	images: (
+		{
+			filename = "image.swu";
+			type = "swuforward";
+
+			properties: (
+			{
+				name = "url";
+				value = "http://192.168.178.41:8080";
+			});
+		});
