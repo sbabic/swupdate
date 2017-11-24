@@ -1,3 +1,232 @@
+swupdate (2017.11) UNRELEASED; urgency=medium
+
+  [ Jörg Krause ]
+  * Kconfig: make Suricatta config option available with menuconfig
+  * Kconfig: add missing comment for suricatta hawkbit support
+  * Kconfig: remove unneeded BOOTLOADER config option
+  * Kconfig: fix comment dependency for UBOOT
+  * Kconfig: add missing comment for hash verification
+  * Kconfig: fix indentation for sigalg choices
+  * Kconfig: fix comment for encrypted images
+
+  [ Stefano Babic ]
+  * Kconfig: drop SERVER_NONE from suricatta options
+  * Fix some signedness
+  * core: fix output of TRACE with large size
+  * cpio_scan: function must return status
+  * doc: updated roadmap
+  * doc: fix broken link to collections
+  * hawkbit: artifact not installed if SWU is not the first
+  * doc: howto using meta-swupdate
+
+  [ Christian Storm ]
+  * archival/gun: Fix Wsign-compare compiler warnings
+  * IPC: don't zero ipc_postupdate()'s msg parameter
+
+  [ Stefano Babic ]
+  * README: add info about patchwork
+
+  [ Christian Storm ]
+  * crypt: add support for using salt
+  * crypt: add unit tests for crypt functions
+  * core: make cmdline parsing more robust
+
+  [ Stefano Babic ]
+  * Fix build on travis-ci
+
+  [ Christian Storm ]
+  * socket split: make socket paths configurable
+  * socket split: adapt network_ipc
+  * socket split: adapt remote handler
+  * socket split: adapt progress interface
+  * socket split: adapt documentation
+  * socket split: adapt progress client example
+  * travis-ci: include build badge in README
+  * util: remove unused method isDirectoryEmpty()
+  * tmpdir: introduce get_tmpdir() respecting TMPDIR
+  * tmpdir: make use of get_tmpdir()
+  * tmpdir: adapt documentation
+  * core: properly handle failed spawn
+
+  [ Maciej Pijanowski ]
+  * building-with-yocto.rst: update signed images section
+
+  [ Christian Storm ]
+  * tmpdir: fix asprintf return value check
+
+  [ Stefano Babic ]
+  * Fix usage of TMPDIR
+
+  [ Christian Storm ]
+  * travis: make travis fail on failed build
+  * parser: fix warnings for !JSON && !LIBCONFIG
+  * core: unlink socket files on normal termination
+
+  [ Stefano Babic ]
+  * hawkbit: wrong action when checking during download
+
+  [ Christian Storm ]
+  * downloader: exit with EXIT_SUCCESS on success
+  * parser: don't use printf() for logging
+  * tmpdir: update help text of CONFIG_NOCLEANUP
+  * notifier: remove double parenthesis
+
+  [ Stefano Babic ]
+  * downloader: call postupdate after success
+
+  [ Christian Storm ]
+  * systemd support
+  * systemd support: travis integration
+  * core: don't unlink if final equals temp location
+  * progress client: fix memory leak
+
+  [ Stefano Babic ]
+  * Added configuration to create debian package
+  * doc: building a Debian package
+  * doc: uniform doc names
+
+  [ Christian Storm ]
+  * core: remove unused $TMPDIR/datasrc
+  * core: do install artifact if final or temp locations are empty
+  * Lua: make handler not found message more pleasant
+  * installer: cleanup $TMPDIR/boot-script
+  * installer: extract/remove scripts respecting SCRIPTS_DIR_SUFFIX
+  * core: unlink temp directories on normal termination
+  * logging: pass through and make use of loglevel
+  * logging: forward loglevel to systemd's journald
+  * core: define remove_directory() only if !CONFIG_NOCLEANUP
+  * Lua: transport sha256 field to Lua
+  * Lua: improve stack cleanliness for lua_handlers_init()
+
+  [ Stefano Babic ]
+  * handlers: associate each handler with a mask
+  * Add accessor to get script directory
+  * Fix broken path for scripts
+
+  [ Christian Storm ]
+  * cpio: hint error reason on buffer fill failure
+
+  [ Romain Bazile ]
+  * uboot: output error string on failure
+
+  [ Christian Storm ]
+  * handlers: document handler masks
+  * Lua: improve stackdump() for tables and functions
+  * Lua: introduce LuaJIT/Lua 5.1 compatibility
+  * Lua: don't overfree stack in l_register_handler()
+  * Lua: Lua'ify l_register_handler() error path
+
+  [ Stefano Babic ]
+  * Fix usage of CONFIG_CMS_IGNORE_EXPIRED_CERTIFICATE
+  * Drop double <string.h> header
+
+  [ Christian Storm ]
+  * Lua: cleanup stack after notify functions
+  * Lua: don't double-close Lua state on missing hook
+  * Lua: update l_register_handler() function documentation
+  * Lua: make handler mask enum available to Lua
+  * Lua: option to embed Lua handler into SWUpdate binary
+
+  [ Martin Kaistra ]
+  * doc: fix typos
+
+  [ Christian Storm ]
+  * doc: add offset to sw-description attribute reference
+
+  [ Stefan Herbrechtsmeier ]
+  * progress_ipc: Use correct read size inside receive function
+  * stream_interface: Correct get_tmpdir* indentation
+  * check_if_required: Correct destdir indentation
+
+  [ Jörg Krause ]
+  * Update swupdate-ipc.txt
+
+  [ Roman Kalashnikov ]
+  * Fix incorrect print type for size
+
+  [ Christian Storm ]
+  * parser: fail early if sha256 given and !CONFIG_HASH_VERIFY
+  * Lua: fix spelling of Lua #2
+
+  [ Abdur Rehman ]
+  * fix a lot of minor typos
+
+  [ Maksim Salau ]
+  * Fix SHA256 hash verification
+
+  [ Stefan Herbrechtsmeier ]
+  * parser: Free unrefenced memory
+
+  [ Stefano Babic ]
+  * doc: update references to talks after last ELCE
+  * doc: Update Version to 2017.10
+
+  [ Christian Storm ]
+  * Lua: make table2image() and image2table() symmetric
+
+  [ Abdur Rehman ]
+  * Kconfig: fix comment for image downloader
+
+  [ Christian Storm ]
+  * Lua: expose get_tmpdir() to Lua
+  * Lua: hide but transport SWUpdate-internal attributes
+  * Lua: split image2table() functionality
+  * Lua: expose img_type's fdin file handle to Lua
+  * Lua: don't extract image prior to handler call
+  * Lua: introduce method to chain-call C handlers
+  * Lua: introduce image:copy2file() method
+  * Lua: introduce image:read() method
+  * Lua: distinguish handler and embedded script Lua VMs
+  * Lua: update example Lua handler
+  * Lua: document Lua handlers
+
+  [ Ayoub Zaki ]
+  * Enable hawkbit Channel using non-strict ssl settings
+
+  [ Stefano Babic ]
+  * Add a first-in, first-install order
+  * gitignore: drop tools results from git
+
+  [ Xavier Brun ]
+  * Unlock flash memory before checking if it is empty.
+
+  [ Stefan Herbrechtsmeier ]
+  * check_if_required: Don't skip a file if not all related images are skipped
+
+  [ Stefano Babic ]
+  * parser: added function to get net child in tree
+  * dictionary: allow duplication of keys
+  * dictionary: add utility to drop the database
+  * Add set of properties for each image
+  * drop db properties in cleanup
+  * Kconfig: adding a CURL switch
+  * channel_hawkbit: move to corelib for reusing
+  * channel_curl: drop reference to hawkbit
+  * verify: let choose the SHA length
+  * channel_curl: use runtime detection for SSL
+  * Debug output in curl just if debug is set
+  * Drop prototypes from suricatta API
+  * Remove dependencies from suricatta for channel API
+  * Move channel.h away from suricatta
+  * Factorize some json function for reuse
+  * handler: swupdate forwarder
+  * doc: add doc for SWU forwarder handler
+  * core: simplify flow when installing from file
+
+  [ Stefan Herbrechtsmeier ]
+  * parser: Move trace below embedded script run
+
+  [ Stefano Babic ]
+  * configs: added a test config for SWU forwarder
+
+  [ Torben Hohn ]
+  * flash_handler: skip writing to 0xff filled pages on nand
+
+  [ Stefano Babic ]
+  * Prepare 2017.11
+
+ -- Jörg Krause <joerg.krause@embedded.rocks>  Fri, 24 Nov 2017 22:48:33 +0100
+
 swupdate (2017.07) stable; urgency=medium
 
   [ Christian Storm ]
