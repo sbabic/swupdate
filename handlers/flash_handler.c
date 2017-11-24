@@ -49,6 +49,32 @@
 
 void flash_handler(void);
 
+/* Check whether buffer is filled with character 'pattern' */
+static inline int buffer_check_pattern(unsigned char *buffer, size_t size,
+                                       unsigned char pattern)
+{
+        /* Invalid input */
+        if (!buffer || (size == 0))
+                return 0;
+
+        /* No match on first byte */
+        if (*buffer != pattern)
+                return 0;
+
+        /* First byte matched and buffer is 1 byte long, OK. */
+        if (size == 1)
+                return 1;
+
+        /*
+         * Check buffer longer than 1 byte. We already know that buffer[0]
+         * matches the pattern, so the test below only checks whether the
+         * buffer[0...size-2] == buffer[1...size-1] , which is a test for
+         * whether the buffer is filled with constant value.
+         */
+        return !memcmp(buffer, buffer + 1, size - 1);
+}
+
+
 /*
  * Writing to the NAND must take into account ECC errors
  * and BAD sectors.
@@ -204,14 +230,17 @@ static int flash_write_nand(int mtdnum, struct img_type *img)
 
 		}
 
-		/* Write out data */
-		ret = mtd_write(flash->libmtd, mtd, fd, mtdoffset / mtd->eb_size,
-				mtdoffset % mtd->eb_size,
-				writebuf,
-				mtd->min_io_size,
-				NULL,
-				0,
-				MTD_OPS_PLACE_OOB);
+		ret =0;
+		if (!buffer_check_pattern(writebuf, mtd->min_io_size, 0xff)) {
+			/* Write out data */
+			ret = mtd_write(flash->libmtd, mtd, fd, mtdoffset / mtd->eb_size,
+					mtdoffset % mtd->eb_size,
+					writebuf,
+					mtd->min_io_size,
+					NULL,
+					0,
+					MTD_OPS_PLACE_OOB);
+		}
 		if (ret) {
 			long long i;
 			if (errno != EIO) {
