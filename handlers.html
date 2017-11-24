@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Handlers &mdash; Embedded Software Update Documentation 2017.10 documentation</title>
+  <title>Handlers &mdash; Embedded Software Update Documentation 2017.11 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="Embedded Software Update Documentation 2017.10 documentation" href="index.html"/>
+    <link rel="top" title="Embedded Software Update Documentation 2017.11 documentation" href="index.html"/>
         <link rel="next" title="Suricatta daemon mode" href="suricatta.html"/>
         <link rel="prev" title="Symmetrically Encrypted Update Images" href="encrypted_images.html"/> 
 
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                2017.10
+                2017.11
               </div>
             
           
@@ -96,8 +96,9 @@
 <li class="toctree-l2"><a class="reference internal" href="#supplied-handlers">Supplied handlers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#creating-own-handlers">Creating own handlers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#handler-for-ubi-volumes">Handler for UBI Volumes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#extend-swupdate-with-handlers-in-lua">Extend SWUpdate with handlers in Lua</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#remote-handlers">Remote handlers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#lua-handlers">Lua Handlers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#remote-handler">Remote handler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#swu-forwarder">SWU forwarder</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
@@ -265,18 +266,123 @@ and create the volumes. This can be easy done with a
 preinstall script. Building with meta-SWUpdate, the original
 mtd-utils are available and can be called by a Lua script.</p>
 </div>
-<div class="section" id="extend-swupdate-with-handlers-in-lua">
-<h2>Extend SWUpdate with handlers in Lua<a class="headerlink" href="#extend-swupdate-with-handlers-in-lua" title="Permalink to this headline">¶</a></h2>
-<p>In an experimental phase, it is possible to add handlers
-that are not linked to SWUpdate but that are loaded by
-the Lua interpreter. The handlers must be copied into the
-root filesystem and are loaded only at the startup.
-These handlers cannot be integrated into the image to be installed.
-Even if this can be theoretical possible, arise a lot of
-security questions, because it changes SWUpdate&#8217;s behavior.</p>
+<div class="section" id="lua-handlers">
+<h2>Lua Handlers<a class="headerlink" href="#lua-handlers" title="Permalink to this headline">¶</a></h2>
+<p>In addition to the handlers written in C, it is possible to extend
+SWUpdate with handlers written in Lua that get loaded at SWUpdate
+startup. The Lua handler source code file may either be embedded
+into the SWUpdate binary via the <code class="docutils literal"><span class="pre">CONFIG_EMBEDDED_LUA_HANDLER</span></code>
+config option or has to be installed on the target system in Lua&#8217;s
+search path as <code class="docutils literal"><span class="pre">swupdate_handlers.lua</span></code> so that it can be loaded
+by the embedded Lua interpreter at run-time.</p>
+<p>In analogy to C handlers, the prototype for a Lua handler is</p>
+<div class="highlight-python"><div class="highlight"><pre>function lua_handler(image)
+    ...
+end
+</pre></div>
 </div>
-<div class="section" id="remote-handlers">
-<h2>Remote handlers<a class="headerlink" href="#remote-handlers" title="Permalink to this headline">¶</a></h2>
+<p>where <code class="docutils literal"><span class="pre">image</span></code> is a Lua table (with attributes according to
+<a class="reference internal" href="sw-description.html#sw-description-attribute-reference"><span>sw-description&#8217;s attribute reference</span></a>)
+that describes a single artifact to be processed by the handler.</p>
+<p>Note that dashes in the attributes&#8217; names are replaced with
+underscores for the Lua domain to make them idiomatic, e.g.,
+<code class="docutils literal"><span class="pre">installed-directly</span></code> becomes <code class="docutils literal"><span class="pre">installed_directly</span></code> in the
+Lua domain.</p>
+<p>To register a Lua handler, the <code class="docutils literal"><span class="pre">swupdate</span></code> module provides the
+<code class="docutils literal"><span class="pre">swupdate.register_handler()</span></code> method that takes the handler&#8217;s
+name, the Lua handler function to be registered under that name,
+and, optionally, the types of artifacts for which the handler may
+be called. If the latter is not given, the Lua handler is registered
+for all types of artifacts. The following call registers the
+above function <code class="docutils literal"><span class="pre">lua_handler</span></code> as <em>my_handler</em> which may be
+called for images:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">swupdate</span><span class="o">.</span><span class="n">register_handler</span><span class="p">(</span><span class="s2">&quot;my_handler&quot;</span><span class="p">,</span> <span class="n">lua_handler</span><span class="p">,</span> <span class="n">swupdate</span><span class="o">.</span><span class="n">HANDLER_MASK</span><span class="o">.</span><span class="n">IMAGE_HANDLER</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>A Lua handler may call C handlers (&#8220;chaining&#8221;) via the
+<code class="docutils literal"><span class="pre">swupdate.call_handler()</span></code> method. The callable and registered
+C handlers are available (as keys) in the table
+<code class="docutils literal"><span class="pre">swupdate.handler</span></code>. The following Lua code is an example of
+a simple handler chain-calling the <code class="docutils literal"><span class="pre">rawfile</span></code> C handler:</p>
+<div class="highlight-python"><div class="highlight"><pre>function lua_handler(image)
+    if not swupdate.handler[&quot;rawfile&quot;] then
+        swupdate.error(&quot;rawfile handler not available&quot;)
+        return 1
+    end
+    image.path = &quot;/tmp/destination.path&quot;
+    local err, msg = swupdate.call_handler(&quot;rawfile&quot;, image)
+    if err ~= 0 then
+        swupdate.error(string.format(&quot;Error chaining handlers: %s&quot;, msg))
+        return 1
+    end
+    return 0
+end
+</pre></div>
+</div>
+<p>Note that when chaining handlers and calling a C handler for
+a different type of artifact than the Lua handler is registered
+for, the <code class="docutils literal"><span class="pre">image</span></code> table&#8217;s values must satisfy the called
+C handler&#8217;s expectations: Consider the above Lua handler being
+registered for &#8220;images&#8221; (<code class="docutils literal"><span class="pre">swupdate.HANDLER_MASK.IMAGE_HANDLER</span></code>)
+via the <code class="docutils literal"><span class="pre">swupdate.register_handler()</span></code> call shown above. As per the
+<a class="reference internal" href="sw-description.html#sw-description-attribute-reference"><span>sw-description&#8217;s attribute reference</span></a>,
+the &#8220;images&#8221; artifact type doesn&#8217;t have the <code class="docutils literal"><span class="pre">path</span></code> attribute
+but the &#8220;file&#8221; artifact type does. So, for calling the <code class="docutils literal"><span class="pre">rawfile</span></code>
+handler, <code class="docutils literal"><span class="pre">image.path</span></code> has to be set prior to chain-calling the
+<code class="docutils literal"><span class="pre">rawfile</span></code> handler, as done in the example above. Usually, however,
+no such adaptation is necessary if the Lua handler is registered for
+handling the type of artifact that <code class="docutils literal"><span class="pre">image</span></code> represents.</p>
+<p>In addition to calling C handlers, the <code class="docutils literal"><span class="pre">image</span></code> table passed as
+parameter to a Lua handler has a <code class="docutils literal"><span class="pre">image:copy2file()</span></code> method that
+implements the common use case of writing the input stream&#8217;s data
+to a file, which is passed as this method&#8217;s argument. On success,
+<code class="docutils literal"><span class="pre">image:copy2file()</span></code> returns <code class="docutils literal"><span class="pre">0</span></code> or <code class="docutils literal"><span class="pre">-1</span></code> plus an error
+message on failure. The following Lua code is an example of
+a simple handler calling <code class="docutils literal"><span class="pre">image:copy2file()</span></code>:</p>
+<div class="highlight-python"><div class="highlight"><pre>function lua_handler(image)
+    local err, msg = image:copy2file(&quot;/tmp/destination.path&quot;)
+    if err ~= 0 then
+        swupdate.error(string.format(&quot;Error calling copy2file: %s&quot;, msg))
+        return 1
+    end
+    return 0
+end
+</pre></div>
+</div>
+<p>Beyond using <code class="docutils literal"><span class="pre">image:copy2file()</span></code> or chain-calling C handlers,
+the <code class="docutils literal"><span class="pre">image</span></code> table passed as parameter to a Lua handler has
+a <code class="docutils literal"><span class="pre">image:read(&lt;callback()&gt;)</span></code> method that reads from the input
+stream and calls the Lua callback function <code class="docutils literal"><span class="pre">&lt;callback()&gt;</span></code> for
+every chunk read, passing this chunk as parameter. On success,
+<code class="docutils literal"><span class="pre">0</span></code> is returned by <code class="docutils literal"><span class="pre">image:read()</span></code>. On error, <code class="docutils literal"><span class="pre">-1</span></code> plus an
+error message is returned. The following Lua code is an example
+of a simple handler printing the artifact&#8217;s content:</p>
+<div class="highlight-python"><div class="highlight"><pre>function lua_handler(image)
+    err, msg = image:read(function(data) print(data) end)
+    if err ~= 0 then
+        swupdate.error(string.format(&quot;Error reading image: %s&quot;, msg))
+        return 1
+    end
+    return 0
+end
+</pre></div>
+</div>
+<p>Using the <code class="docutils literal"><span class="pre">image:read()</span></code> method, an artifact&#8217;s contents may be
+(post-)processed in and leveraging the power of Lua without relying
+on preexisting C handlers for the purpose intended.</p>
+<p>Just as C handlers, a Lua handler must consume the artifact
+described in its <code class="docutils literal"><span class="pre">image</span></code> parameter so that SWUpdate can
+continue with the next artifact in the stream after the Lua handler
+returns. Chaining handlers, calling <code class="docutils literal"><span class="pre">image:copy2file()</span></code>, or using
+<code class="docutils literal"><span class="pre">image:read()</span></code> satisfies this requirement.</p>
+<p>Note that although the dynamic nature of Lua handlers would
+technically allow to embed them into a to be processed <code class="docutils literal"><span class="pre">.swu</span></code>
+image, this is not implemented as it carries some security
+implications since the behavior of SWUpdate is changed
+dynamically.</p>
+</div>
+<div class="section" id="remote-handler">
+<h2>Remote handler<a class="headerlink" href="#remote-handler" title="Permalink to this headline">¶</a></h2>
 <p>Remote handlers are thought for binding legacy installers
 without having the necessity to rewrite them in Lua. The remote
 handler forward the image to be installed to another process,
@@ -324,6 +430,37 @@ data transferred and to release resources when the last chunk
 is received. For each DATA message, the external process answers with a
 <em>ACK</em> or <em>NACK</em> message.</p>
 </div>
+<div class="section" id="swu-forwarder">
+<h2>SWU forwarder<a class="headerlink" href="#swu-forwarder" title="Permalink to this headline">¶</a></h2>
+<p>The SWU forwarder handler can be used to update other systems where SWUpdate
+is running. It can be used in case of master / slaves systems, where the master
+is connected to the network and the &#8220;slaves&#8221; are hidden to the external world.
+The master is then the only interface to the world. A geenral SWU can contain
+embedded SWU images as single artifacts, and the SWU handler will forward it
+to the devices listed in the descritpion of the artifact.
+The handler can have a list of &#8220;url&#8221; properties. Each url is the address of a
+secondary board where SWUpdate is running with webserver activated.
+The SWU handler expects to talk with SWUpdate&#8217;s embedded webserver. This helps
+to update systems where an old version of SWUpdate is running, because the
+embedded webserver is a common feature present in all versions.
+The handler will send the embedded SWU to all URLs at the same time, and setting
+<code class="docutils literal"><span class="pre">installed-directly</span></code> is supported by this handler.</p>
+<p>The following example shows how to set a SWU as artifact and enables
+the SWU forwarder:</p>
+<div class="highlight-python"><div class="highlight"><pre>images: (
+        {
+                filename = &quot;image.swu&quot;;
+                type = &quot;swuforward&quot;;
+
+                properties: (
+                {
+                        name = &quot;url&quot;;
+                        value = &quot;http://192.168.178.41:8080&quot;;
+                });
+        });
+</pre></div>
+</div>
+</div>
 </div>
 
 
@@ -367,7 +504,7 @@ is received. For each DATA message, the external process answers with a
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'2017.10',
+            VERSION:'2017.11',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

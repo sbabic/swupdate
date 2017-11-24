@@ -1,0 +1,338 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>meta-swupdate: building with Yocto &mdash; Embedded Software Update Documentation 2017.11 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="Embedded Software Update Documentation 2017.11 documentation" href="index.html"/>
+        <link rel="next" title="Mailing List" href="help_and_support.html"/>
+        <link rel="prev" title="Getting information on running update" href="progress.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Embedded Software Update Documentation
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2017.11
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Software Management on embedded systems</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="swupdate.html">SWUpdate: software update for embedded system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sw-description.html">SWUpdate: syntax and tags with the default parser</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed_images.html">Update images from verified source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="encrypted_images.html">Symmetrically Encrypted Update Images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="handlers.html">Handlers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">SWUpdate: API for external programs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">meta-swupdate: building with Yocto</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-swupdate-class">The swupdate class</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#automatic-sha256-in-sw-description">Automatic sha256 in sw-description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#template-for-recipe-using-the-class">Template for recipe using the class</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="help_and_support.html">Mailing List</a></li>
+<li class="toctree-l1"><a class="reference internal" href="help_and_support.html#swupdate-flyer">SWUpdate Flyer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="help_and_support.html#talks-about-swupdate">Talks about SWUpdate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="help_and_support.html#useful-references">Useful references</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project&#8217;s road-map</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">Embedded Software Update Documentation</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>meta-swupdate: building with Yocto</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/building-with-yocto.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="meta-swupdate-building-with-yocto">
+<h1>meta-swupdate: building with Yocto<a class="headerlink" href="#meta-swupdate-building-with-yocto" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference external" href="http://www.yoctoproject.org">Yocto-Project</a> is a community project under the umbrella of the Linux
+Foundation that provides tools and template to create the own custom Linux-based
+software for embedded systems.</p>
+<p>Add-on features can be added using <em>layers</em>. <a class="reference external" href="https://github.com/sbabic/meta-swupdate.git">meta-swupdate</a> is the layer to
+cross-compile the SWUpdate application and to generate the compound SWU images
+containing the release of the product. As described in Yocto&#8217;s documentation
+about layers, you should include it in your <em>bblayers.conf</em> file to use it.</p>
+</div>
+<div class="section" id="the-swupdate-class">
+<h2>The swupdate class<a class="headerlink" href="#the-swupdate-class" title="Permalink to this headline">¶</a></h2>
+<p>meta-swupdate contains a class specific for SWUpdate. It helps to generate the
+SWU image starting from images built inside the Yocto. It requires that all
+components, that means the artifacts that are part of the SWU image, are present
+in the Yocto&#8217;s deploy directory.  This class should be inherited by recipes
+generating the SWU. The class defines new variables, all of them have the prefix
+<em>SWUPDATE_</em> in the name.</p>
+<ul class="simple">
+<li><strong>SWUPDATE_IMAGES</strong> : this is a list of the artifacts to be packaged together.
+The list contains the name of images without any extension for MACHINE or
+filetype, that are added automatically.
+Example :</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">SWUPDATE_IMAGES</span> <span class="o">=</span> <span class="s2">&quot;core-image-full-cmdline uImage&quot;</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><strong>SWUPDATE_IMAGES_FSTYPES</strong> : extension of the artifact. Each artifact can
+have multiple extension according to the IMAGE_FSTYPES variable.
+For example, an image can be generated as tarball and as UBIFS for target.
+Setting the variable for each artifact telles the class which file must
+be packed into the SWU image.</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">SWUPDATE_IMAGES_FSTYPES</span><span class="p">[</span><span class="n">core</span><span class="o">-</span><span class="n">image</span><span class="o">-</span><span class="n">full</span><span class="o">-</span><span class="n">cmdline</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;.ubifs&quot;</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><strong>SWUPDATE_IMAGES_NOAPPEND_MACHINE</strong> : flag to use drop the machine name from the
+artifact file. Most images in <em>deploy</em> have the name of the Yocto&#8217;s machine in the
+filename. The class adds automatically the name of the MACHINE to the file, but some
+artifacts can be deploes without it.</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">SWUPDATE_IMAGES_NOAPPEND_MACHINE</span><span class="p">[</span><span class="n">my</span><span class="o">-</span><span class="n">image</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><strong>SWUPDATE_SIGNING</strong> : if set, the SWU is signed. There are 3 allowed values:
+RSA, CMS, CUSTOM. This value determines used signing mechanism.</li>
+<li><strong>SWUPDATE_SIGN_TOOL</strong> : instead of using openssl, use SWUPDATE_SIGN_TOOL to sign
+the image. A typical use case is together with a hardware key. It is
+available if SWUPDATE_SIGNING is set to CUSTOM</li>
+<li><strong>SWUPDATE_PRIVATE_KEY</strong> : this is the file with the private key used to sign the
+image using RSA mechanism. Is available if SWUPDATE_SIGNING is set to RSA.</li>
+<li><strong>SWUPDATE_PASSWORD_FILE</strong> : an optional file containing the password for the private
+key. It is available if SWUPDATE_SIGNING is set to RSA.</li>
+<li><strong>SWUPDATE_CMS_KEY</strong> : this is the file with the private key used in signing
+process using CMS mechanism. It is available if SWUPDATE_SIGNING is set to
+CMS.</li>
+<li><strong>SWUPDATE_CMS_CERT</strong> : this is the file with the certificate used in signing
+process using using CMS method. It is available if SWUPDATE_SIGNING is
+set to CMS.</li>
+</ul>
+<div class="section" id="automatic-sha256-in-sw-description">
+<h3>Automatic sha256 in sw-description<a class="headerlink" href="#automatic-sha256-in-sw-description" title="Permalink to this headline">¶</a></h3>
+<p>The swupdate class takes care of computing and inserting sha256 hashes in the
+sw-description file. The attribute <em>sha256</em> <strong>must</strong> be set in case the image
+is signed. Each artifact must have the attribute:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">sha256</span> <span class="o">=</span> <span class="s2">&quot;@artifact-file-name@&quot;</span>
+</pre></div>
+</div>
+<p>For example, to add sha256 to the standard Yocto core-image-full-cmdline:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">sha256</span> <span class="o">=</span> <span class="s2">&quot;@core-image-full-cmdline-machine.ubifs&quot;</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>The name of the file must be the same as in deploy directory.</p>
+</div>
+<div class="section" id="template-for-recipe-using-the-class">
+<h3>Template for recipe using the class<a class="headerlink" href="#template-for-recipe-using-the-class" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><div class="highlight"><pre>DESCRIPTION = &quot;Example recipe generating SWU image&quot;
+SECTION = &quot;&quot;
+
+LICENSE = &quot;&quot;
+
+# Add all local files to be added to the SWU
+# sw-description must always be in the list.
+# You can extend with scripts or wahtever you need
+SRC_URI = &quot; \
+    file://sw-description \
+    &quot;
+
+# images to build before building swupdate image
+IMAGE_DEPENDS = &quot;core-image-full-cmdline virtual/kernel&quot;
+
+# images and files that will be included in the .swu image
+SWUPDATE_IMAGES = &quot;core-image-full-cmdline uImage&quot;
+
+# a deployable image can have multiple format, choose one
+SWUPDATE_IMAGES_FSTYPES[core-image-full-cmdline] = &quot;.ubifs&quot;
+SWUPDATE_IMAGES_FSTYPES[uImage] = &quot;.bin&quot;
+
+inherit swupdate
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="help_and_support.html" class="btn btn-neutral float-right" title="Mailing List" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="progress.html" class="btn btn-neutral" title="Getting information on running update" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013-2017, Stefano Babic.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'2017.11',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
