@@ -20,10 +20,11 @@
 #pragma once
 #include "channel_op_res.h"
 
-/* Suricatta Channel Interface.
+/* SWUpdate Channel Interface.
  *
- * Each suricatta channel has to implement this interface.
- * Cf. `channel_hawkbit.c` for an example implementation targeted towards the
+ * Each channel has to implement this interface.
+ * Cf. channel_curl.c for an example implementation basing on curl that
+ * is used by server_hawkbit.c implementing support for the
  * [hawkBit](https://projects.eclipse.org/projects/iot.hawkbit) server.
  */
 typedef struct channel channel_t;

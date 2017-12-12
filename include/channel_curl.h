@@ -22,11 +22,11 @@
 #include <stdio.h>
 #include "sslapi.h"
 
-/* hawkBit Channel Implementation Private Header File.
+/* Curl Channel Implementation Private Header File.
  *
  * This is a "private" header for testability, i.e., the declarations and
- * definitions herein should be used by `server_hawkbit.c`, `channel_hawkbit.c`,
- * and unit tests only.
+ * definitions herein should be used by code employing the curl channel
+ * (e.g. server_hawkbit.c) and unit tests only.
  */
 
 typedef enum {
