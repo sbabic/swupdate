@@ -62,6 +62,7 @@ struct dwl_options {
 	char *url;
 	unsigned int retries;
 	unsigned int timeout;
+	char *auth;
 };
 
 /* notify download progress each second */
@@ -76,6 +77,7 @@ static struct option long_options[] = {
     {"url", required_argument, NULL, 'u'},
     {"retries", required_argument, NULL, 'r'},
     {"timeout", required_argument, NULL, 't'},
+    {"authentification", required_argument, NULL, 'a'},
     {NULL, 0, NULL, 0}};
 
 
@@ -200,7 +202,7 @@ static void set_option_common(CURL *curl_handle,
  * for that, the -i option is used.
  */
 static RECOVERY_STATUS download_from_url(char *image_url, unsigned int retries,
-					unsigned long lowspeed_time)
+					unsigned long lowspeed_time, char *auth)
 {
 	CURL *curl_handle;
 	CURLcode res = CURLE_GOT_NOTHING;
@@ -249,6 +251,12 @@ static RECOVERY_STATUS download_from_url(char *image_url, unsigned int retries,
 
 	/* Set URL */
 	if (curl_easy_setopt(curl_handle, CURLOPT_URL, image_url) != CURLE_OK) {
+		TRACE("Runs out of memory: serious internal error");
+		return FAILURE;
+	}
+
+	/* Set Authentification */
+	if (auth && curl_easy_setopt(curl_handle, CURLOPT_USERPWD, auth) != CURLE_OK) {
 		TRACE("Runs out of memory: serious internal error");
 		return FAILURE;
 	}
@@ -327,10 +335,11 @@ void download_print_help(void)
 	fprintf(
 	    stdout,
 	    "\tdownload arguments (mandatory arguments are marked with '*'):\n"
-	    "\t  -u, --url <url>   * <url> is a link to the .swu update image\n"
-	    "\t  -r, --retries       number of retries (resumed download) if connection\n"
-	    "\t                      is broken (0 means indefinitely retries) (default: %d)\n"
-	    "\t  -t, --timeout       timeout to check if a connection is lost (default: %d)\n",
+	    "\t  -u, --url <url>      * <url> is a link to the .swu update image\n"
+	    "\t  -r, --retries          number of retries (resumed download) if connection\n"
+	    "\t                         is broken (0 means indefinitely retries) (default: %d)\n"
+	    "\t  -t, --timeout          timeout to check if a connection is lost (default: %d)\n"
+	    "\t  -a, --authentication   authentification information as username:password\n",
 	    DL_DEFAULT_RETRIES, DL_LOWSPEED_TIME);
 }
 
@@ -345,6 +354,7 @@ int start_download(const char *fname, int argc, char *argv[])
 
 	options.retries = DL_DEFAULT_RETRIES;
 	options.timeout = DL_LOWSPEED_TIME;
+	options.auth = NULL;
 
 	if (fname) {
 		read_module_settings(fname, "download", download_settings,
@@ -353,7 +363,7 @@ int start_download(const char *fname, int argc, char *argv[])
 
 	/* reset to optind=1 to parse download's argument vector */
 	optind = 1;
-	while ((choice = getopt_long(argc, argv, "t:u:r:",
+	while ((choice = getopt_long(argc, argv, "t:u:r:a:",
 				     long_options, NULL)) != -1) {
 		switch (choice) {
 		case 't':
@@ -361,6 +371,9 @@ int start_download(const char *fname, int argc, char *argv[])
 			break;
 		case 'u':
 			SETSTRING(options.url, optarg);
+			break;
+		case 'a':
+			SETSTRING(options.auth, optarg);
 			break;
 		case 'r':
 			options.retries = strtoul(optarg, NULL, 10);
@@ -379,7 +392,7 @@ int start_download(const char *fname, int argc, char *argv[])
 	 */
 	for (attempt = 0;; attempt++) {
 		result = download_from_url(options.url, options.retries,
-						options.timeout);
+						options.timeout, options.auth);
 		if (result != FAILURE) {
 			ipc_message msg;
 			if (ipc_postupdate(&msg) != 0) {
