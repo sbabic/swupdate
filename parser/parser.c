@@ -556,6 +556,7 @@ static int parse_files(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua_
 			strcpy(file->type, "rawfile");
 		}
 		get_field(p, elem, "compressed", &file->compressed);
+		get_field(p, elem, "preserve-attributes", &file->preserve_attributes);
 		get_field(p, elem, "installed-directly", &file->install_directly);
 		get_field(p, elem, "install-if-different", &file->id.install_if_different);
 		get_field(p, elem, "encrypted", &file->is_encrypted);

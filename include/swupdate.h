@@ -73,6 +73,7 @@ struct img_type {
 	int required;
 	int provided;
 	int compressed;
+	int preserve_attributes; /* whether to preserve attributes in archives */
 	int is_encrypted;
 	int install_directly;
 	int is_script;

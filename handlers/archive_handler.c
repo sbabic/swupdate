@@ -207,10 +207,17 @@ static int install_archive_image(struct img_type *img,
 		return -EFAULT;
 	}
 
-	TRACE("Installing file %s on %s\n",
-		img->fname, path);
+	TRACE("Installing file %s on %s, %s attributes\n",
+		img->fname, path,
+		img->preserve_attributes ? "preserving" : "ignoring");
 
 	tf.flags = 0;
+
+	if (img->preserve_attributes) {
+		tf.flags |= ARCHIVE_EXTRACT_OWNER | ARCHIVE_EXTRACT_PERM |
+				ARCHIVE_EXTRACT_TIME | ARCHIVE_EXTRACT_ACL |
+				ARCHIVE_EXTRACT_FFLAGS | ARCHIVE_EXTRACT_XATTR;
+	}
 
 	ret = pthread_create(&extract_thread, &attr, extract, &tf);
 	if (ret) {
