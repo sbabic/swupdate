@@ -743,6 +743,7 @@ attribute. For example:
 				type = "archive";
 				path = "/tmp/test";
 				hook = "set_version";
+				preserve-attributes = true;
 			}
 		);
 
@@ -849,6 +850,14 @@ There are 4 main sections inside sw-description:
    |             |          |            | file after mounting "device" with     |
    |             |          |            | "filesystem" type. (path is always    |
    |             |          |            | relative to the mount point.)         |
+   +-------------+----------+------------+---------------------------------------+
+   | preserve-   | bool     | files      | flag to control whether the following |
+   | attributes  |          |            | attributes will be preserved when     |
+   |             |          |            | files are unpacked from an archive    |
+   |             |          |            | (assuming destination filesystem      |
+   |             |          |            | supports them, of course):            |
+   |             |          |            | timestamp, uid/gid (numeric), perms,  |
+   |             |          |            | file attributes, extended attributes  |
    +-------------+----------+------------+---------------------------------------+
    | type        | string   | images     | string identifier for the handler,    |
    |             |          | files      | as it is set by the handler when it   |

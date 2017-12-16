@@ -49,3 +49,4 @@ Useful references
         - `Easy OS upgrades with SWUpdate <http://warpx.io/blog/tutorial/easy-os-upgrades-swupdate>`_
         - `SWUpdate for feature-rich IoT applications <http://blog.3mdeb.com/2017/05/21/swupdate-for-feature-rich-iot-applications>`_
         - `Implement swupdate - replacing opkg based updating, VictronEnergy <https://github.com/victronenergy/venus/issues/27>`_
+        - `Variscite, SWUpdate <http://www.variwiki.com/index.php?title=SWUpdate_Guide>`_

@@ -212,22 +212,26 @@ SWUpdate has happened in order to not install the same update again.</p>
 <div class="section" id="supporting-different-servers">
 <h2>Supporting different Servers<a class="headerlink" href="#supporting-different-servers" title="Permalink to this headline">¶</a></h2>
 <p>Support for servers other than hawkBit can be realized by implementing
-the &#8220;interfaces&#8221; described in <code class="docutils literal"><span class="pre">include/suricatta/channel.h</span></code> and
+the &#8220;interfaces&#8221; described in <code class="docutils literal"><span class="pre">include/channel.h</span></code> and
 <code class="docutils literal"><span class="pre">include/suricatta/server.h</span></code>. The former abstracts a particular
 connection to the server, e.g., HTTP-based in case of hawkBit, while
 the latter implements the logics to poll and install updates.
-See <code class="docutils literal"><span class="pre">suricatta/channel_hawkbit.{c,h}</span></code> and
+See <code class="docutils literal"><span class="pre">corelib/channel_curl.c</span></code>/<code class="docutils literal"><span class="pre">include/channel_curl.h</span></code> and
 <code class="docutils literal"><span class="pre">suricatta/server_hawkbit.{c,h}</span></code> for an example implementation
 targeted towards hawkBit.</p>
-<p><code class="docutils literal"><span class="pre">include/suricatta/channel.h</span></code> describes the functionality a channel
+<p><code class="docutils literal"><span class="pre">include/channel.h</span></code> describes the functionality a channel
 has to implement:</p>
-<div class="code c highlight-python"><div class="highlight"><pre>channel_op_res_t channel_open(channel_t *this, void *cfg);
-channel_op_res_t channel_close(channel_t *this);
-channel_op_res_t channel_put(channel_t *this, void* data);
-channel_op_res_t channel_get(channel_t *this, void* data);
-channel_op_res_t channel_get_file(channel_t *this, void* data, int file_handle);
+<div class="code c highlight-python"><div class="highlight"><pre>typedef struct channel channel_t;
+struct channel {
+    ...
+};
+
+channel_t *channel_new(void);
 </pre></div>
 </div>
+<p>which sets up and returns a <code class="docutils literal"><span class="pre">channel_t</span></code> struct with pointers to
+functions for opening, closing, fetching, and sending data over
+the channel.</p>
 <p><code class="docutils literal"><span class="pre">include/suricatta/server.h</span></code> describes the functionality a server has
 to implement:</p>
 <div class="code c highlight-python"><div class="highlight"><pre>server_op_res_t server_has_pending_action(int *action_id);
@@ -239,10 +243,8 @@ server_op_res_t server_stop(void);
 server_op_res_t server_ipc(int fd);
 </pre></div>
 </div>
-<p>The types <code class="docutils literal"><span class="pre">channel_op_res_t</span></code> and <code class="docutils literal"><span class="pre">server_op_res_t</span></code> are defined in
-<code class="docutils literal"><span class="pre">include/suricatta/suricatta.h</span></code> and represent the valid function
-return codes for a channel&#8217;s and a server&#8217;s implementation,
-respectively.</p>
+<p>The type <code class="docutils literal"><span class="pre">server_op_res_t</span></code> is defined in <code class="docutils literal"><span class="pre">include/suricatta/suricatta.h</span></code>.
+It represents the valid function return codes for a server&#8217;s implementation.</p>
 <p>In addition to implementing the particular channel and server, the
 <code class="docutils literal"><span class="pre">suricatta/Config.in</span></code> file has to be adapted to include a new option
 so that the new implementation becomes selectable in SWUpdate&#8217;s
@@ -252,27 +254,20 @@ one for hawkBit into the <code class="docutils literal"><span class="pre">menu</
     bool &quot;hawkBit support&quot;
     depends on HAVE_LIBCURL
     depends on HAVE_JSON_C
-    select SURICATTA
+    select JSON
+    select CURL
     help
       Support for hawkBit server.
       https://projects.eclipse.org/projects/iot.hawkbit
 </pre></div>
 </div>
-<p>Note that the various server options and hence implementations should be
-selectable in a mutually exclusive manner, i.e., at most one should be
-active. Hence, include according <code class="docutils literal"><span class="pre">depends</span> <span class="pre">on</span> <span class="pre">!&lt;SERVER_OPTION&gt;</span></code> lines
-into the configuration to specify this mutual exclusion of server
-implementations. Support for multiple channels and servers
-simultaneously is left for future work as outlined in suricatta&#8217;s
-road-map.</p>
 <p>Having included the new server implementation into the configuration,
 edit <code class="docutils literal"><span class="pre">suricatta/Makefile</span></code> to specify the implementation&#8217;s linkage into
 the SWUpdate binary, e.g., for the hawkBit example implementation, the
-following lines add <code class="docutils literal"><span class="pre">channel_hawkbit.o</span></code> and <code class="docutils literal"><span class="pre">server_hawkbit.o</span></code> to
-the resulting SWUpdate binary if <code class="docutils literal"><span class="pre">SURICATTA_HAWKBIT</span></code> was selected
-while configuring SWUpdate.</p>
+following lines add <code class="docutils literal"><span class="pre">server_hawkbit.o</span></code> to the resulting SWUpdate binary
+if <code class="docutils literal"><span class="pre">SURICATTA_HAWKBIT</span></code> was selected while configuring SWUpdate.</p>
 <div class="highlight-python"><div class="highlight"><pre>ifneq ($(CONFIG_SURICATTA_HAWKBIT),)
-lib-$(CONFIG_SURICATTA) += channel_hawkbit.o server_hawkbit.o
+lib-$(CONFIG_SURICATTA) += server_hawkbit.o
 endif
 </pre></div>
 </div>

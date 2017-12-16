@@ -803,6 +803,7 @@ attribute. For example:</p>
                 type = &quot;archive&quot;;
                 path = &quot;/tmp/test&quot;;
                 hook = &quot;set_version&quot;;
+                preserve-attributes = true;
         }
 );
 </pre></div>
@@ -929,7 +930,19 @@ file after mounting &#8220;device&#8221; with
 &#8220;filesystem&#8221; type. (path is always
 relative to the mount point.)</td>
 </tr>
-<tr class="row-even"><td>type</td>
+<tr class="row-even"><td>preserve-
+attributes</td>
+<td>bool</td>
+<td>files</td>
+<td>flag to control whether the following
+attributes will be preserved when
+files are unpacked from an archive
+(assuming destination filesystem
+supports them, of course):
+timestamp, uid/gid (numeric), perms,
+file attributes, extended attributes</td>
+</tr>
+<tr class="row-odd"><td>type</td>
 <td>string</td>
 <td>images
 files
@@ -939,7 +952,7 @@ as it is set by the handler when it
 regitsters itself.
 Example: &#8220;ubivol&#8221;, &#8220;raw&#8221;, &#8220;rawfile&#8221;,</td>
 </tr>
-<tr class="row-odd"><td>compressed</td>
+<tr class="row-even"><td>compressed</td>
 <td>bool</td>
 <td>images
 files</td>
@@ -947,7 +960,7 @@ files</td>
 zlib-compressed and must be
 decompressed before being installed</td>
 </tr>
-<tr class="row-even"><td>installed-
+<tr class="row-odd"><td>installed-
 directly</td>
 <td>bool</td>
 <td>images</td>
@@ -956,19 +969,19 @@ streamed into the target without any
 temporary copy. Not all handlers
 support streaming.</td>
 </tr>
-<tr class="row-odd"><td>name</td>
+<tr class="row-even"><td>name</td>
 <td>string</td>
 <td>bootenv</td>
 <td>name of the bootloader variable to be
 set.</td>
 </tr>
-<tr class="row-even"><td>value</td>
+<tr class="row-odd"><td>value</td>
 <td>string</td>
 <td>bootenv</td>
 <td>value to be assigned to the
 bootloader variable</td>
 </tr>
-<tr class="row-odd"><td>name</td>
+<tr class="row-even"><td>name</td>
 <td>string</td>
 <td>images
 files</td>
@@ -977,7 +990,7 @@ it can be any string and it is
 compared with the entries in
 sw-versions</td>
 </tr>
-<tr class="row-even"><td>version</td>
+<tr class="row-odd"><td>version</td>
 <td>string</td>
 <td>images
 files</td>
@@ -986,7 +999,7 @@ it can be any string and it is
 compared with the entries in
 sw-versions</td>
 </tr>
-<tr class="row-odd"><td>install-if
+<tr class="row-even"><td>install-if
 different</td>
 <td>bool</td>
 <td>images
@@ -995,7 +1008,7 @@ files</td>
 if set, name and version are
 compared with the entries in</td>
 </tr>
-<tr class="row-even"><td>encrypted</td>
+<tr class="row-odd"><td>encrypted</td>
 <td>bool</td>
 <td>images
 files
@@ -1005,7 +1018,7 @@ if set, file is encrypted
 and must be decrypted before
 installing.</td>
 </tr>
-<tr class="row-odd"><td>data</td>
+<tr class="row-even"><td>data</td>
 <td>string</td>
 <td>images
 files
@@ -1013,7 +1026,7 @@ scripts</td>
 <td>This is used to pass arbitrary data
 to a handler.</td>
 </tr>
-<tr class="row-even"><td>sha256</td>
+<tr class="row-odd"><td>sha256</td>
 <td>string</td>
 <td>images
 files
@@ -1022,26 +1035,26 @@ scripts</td>
 Used for verification of signed
 images.</td>
 </tr>
-<tr class="row-odd"><td>embedded-
+<tr class="row-even"><td>embedded-
 script</td>
 <td>string</td>
 <td>&nbsp;</td>
 <td>Lua code that is embedded in the
 sw-description file.</td>
 </tr>
-<tr class="row-even"><td>offset</td>
+<tr class="row-odd"><td>offset</td>
 <td>string</td>
 <td>images</td>
 <td>Optional destination offset</td>
 </tr>
-<tr class="row-odd"><td>hook</td>
+<tr class="row-even"><td>hook</td>
 <td>string</td>
 <td>images
 files</td>
 <td>The name of the function (Lua) to be
 called when the entry is parsed.</td>
 </tr>
-<tr class="row-even"><td>mtdname</td>
+<tr class="row-odd"><td>mtdname</td>
 <td>string</td>
 <td>images</td>
 <td>name of the MTD to update. Used only

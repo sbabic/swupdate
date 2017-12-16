@@ -77,24 +77,29 @@ Supporting different Servers
 ----------------------------
 
 Support for servers other than hawkBit can be realized by implementing
-the "interfaces" described in ``include/suricatta/channel.h`` and
+the "interfaces" described in ``include/channel.h`` and
 ``include/suricatta/server.h``. The former abstracts a particular
 connection to the server, e.g., HTTP-based in case of hawkBit, while
 the latter implements the logics to poll and install updates.
-See ``suricatta/channel_hawkbit.{c,h}`` and
+See ``corelib/channel_curl.c``/``include/channel_curl.h`` and
 ``suricatta/server_hawkbit.{c,h}`` for an example implementation
 targeted towards hawkBit.
 
-``include/suricatta/channel.h`` describes the functionality a channel
+``include/channel.h`` describes the functionality a channel
 has to implement:
 
 .. code:: c
 
-    channel_op_res_t channel_open(channel_t *this, void *cfg);
-    channel_op_res_t channel_close(channel_t *this);
-    channel_op_res_t channel_put(channel_t *this, void* data);
-    channel_op_res_t channel_get(channel_t *this, void* data);
-    channel_op_res_t channel_get_file(channel_t *this, void* data, int file_handle);
+    typedef struct channel channel_t;
+    struct channel {
+        ...
+    };
+
+    channel_t *channel_new(void);
+
+which sets up and returns a ``channel_t`` struct with pointers to
+functions for opening, closing, fetching, and sending data over
+the channel.
 
 ``include/suricatta/server.h`` describes the functionality a server has
 to implement:
@@ -109,10 +114,8 @@ to implement:
     server_op_res_t server_stop(void);
     server_op_res_t server_ipc(int fd);
 
-The types ``channel_op_res_t`` and ``server_op_res_t`` are defined in
-``include/suricatta/suricatta.h`` and represent the valid function
-return codes for a channel's and a server's implementation,
-respectively.
+The type ``server_op_res_t`` is defined in ``include/suricatta/suricatta.h``.
+It represents the valid function return codes for a server's implementation.
 
 In addition to implementing the particular channel and server, the
 ``suricatta/Config.in`` file has to be adapted to include a new option
@@ -126,28 +129,20 @@ one for hawkBit into the ``menu "Server"`` section is sufficient.
         bool "hawkBit support"
         depends on HAVE_LIBCURL
         depends on HAVE_JSON_C
-        select SURICATTA
+        select JSON
+        select CURL
         help
           Support for hawkBit server.
           https://projects.eclipse.org/projects/iot.hawkbit
 
-Note that the various server options and hence implementations should be
-selectable in a mutually exclusive manner, i.e., at most one should be
-active. Hence, include according ``depends on !<SERVER_OPTION>`` lines
-into the configuration to specify this mutual exclusion of server
-implementations. Support for multiple channels and servers
-simultaneously is left for future work as outlined in suricatta's
-road-map.
-
 Having included the new server implementation into the configuration,
 edit ``suricatta/Makefile`` to specify the implementation's linkage into
 the SWUpdate binary, e.g., for the hawkBit example implementation, the
-following lines add ``channel_hawkbit.o`` and ``server_hawkbit.o`` to
-the resulting SWUpdate binary if ``SURICATTA_HAWKBIT`` was selected
-while configuring SWUpdate.
+following lines add ``server_hawkbit.o`` to the resulting SWUpdate binary
+if ``SURICATTA_HAWKBIT`` was selected while configuring SWUpdate.
 
 ::
 
     ifneq ($(CONFIG_SURICATTA_HAWKBIT),)
-    lib-$(CONFIG_SURICATTA) += channel_hawkbit.o server_hawkbit.o
+    lib-$(CONFIG_SURICATTA) += server_hawkbit.o
     endif
