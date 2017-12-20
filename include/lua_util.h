@@ -30,7 +30,7 @@
 #include "util.h"
 
 void LUAstackDump (lua_State *L);
-int run_lua_script(char *script, char *function, char *parms);
+int run_lua_script(const char *script, const char *function, char *parms);
 lua_State *lua_parser_init(const char *buf);
 int lua_parser_fn(lua_State *L, const char *fcn, struct img_type *img);
 int lua_handlers_init(void);

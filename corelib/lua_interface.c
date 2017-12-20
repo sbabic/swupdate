@@ -62,6 +62,7 @@ static int l_call_handler(lua_State *L);
 static void image2table(lua_State* L, struct img_type *img);
 static void table2image(lua_State* L, struct img_type *img);
 static void update_table(lua_State* L, struct img_type *img);
+static int luaopen_swupdate(lua_State *L);
 
 #ifdef CONFIG_HANDLER_IN_LUA
 static bool is_type(lua_State *L, uintptr_t type)
@@ -143,46 +144,58 @@ void LUAstackDump(lua_State *L)
 	}
 }
 
-int run_lua_script(char *script, char *function, char *parms)
+int run_lua_script(const char *script, const char *function, char *parms)
 {
 	int ret;
+	const char *output;
 
 	lua_State *L = luaL_newstate(); /* opens Lua */
 	luaL_openlibs(L); /* opens the standard libraries */
+	luaL_requiref(L, "swupdate", luaopen_swupdate, 1 );
 
 	if (luaL_loadfile(L, script)) {
 		ERROR("ERROR loading %s", script);
-		return 1;
+		lua_close(L);
+		return -1;
 	}
 
 	ret = lua_pcall(L, 0, 0, 0);
 	if (ret) {
 		LUAstackDump(L);
-		ERROR("ERROR preparing %s script %d", script, ret);
-		return 1;
+		ERROR("ERROR preparing Lua script %s %d",
+			script, ret);
+		lua_close(L);
+		return -1;
 	}
 
 	lua_getglobal(L, function);
+	if(!lua_isfunction(L,lua_gettop(L))) {
+		lua_close(L);
+		TRACE("Script : no %s in %s script, exiting", function, script);
+		return 0;
+	}
+
 	/* passing arguments */
 	lua_pushstring(L, parms);
 
-	if (lua_pcall(L, 1, 1, 0)) {
+	if (lua_pcall(L, 1, 2, 0)) {
 		LUAstackDump(L);
-		ERROR("ERROR running script");
-		return 1;
-	}
-
-	if (lua_type(L, 1) != LUA_TNUMBER) {
-		ERROR("Lua script returns wrong type");
+		ERROR("ERROR Calling Lua script %s", script);
 		lua_close(L);
-		return 1;
+		return -1;
 	}
 
-	ret = lua_tonumber(L, 1);
+	if (lua_type(L, 1) == LUA_TBOOLEAN)
+		ret = lua_toboolean(L, 1) ? 0 : 1;
+
+	if (lua_type(L, 2) == LUA_TSTRING) {
+		output = lua_tostring(L, 2);
+		TRACE("Script output: %s script end", output);
+	}
+
 	lua_close(L);
 
 	return ret;
-
 }
 
 /**

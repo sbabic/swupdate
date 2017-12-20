@@ -42,9 +42,8 @@ static int start_lua_script(struct img_type *img, void *data)
 {
 	int ret;
 	const char *fnname;
-	const char *output;
 	script_fn scriptfn;
-	lua_State *L = luaL_newstate(); /* opens Lua */
+
 	const char* tmp = get_tmpdirscripts();
 	char filename[MAX_IMAGE_FNAME + strlen(tmp) + 2];
 
@@ -69,50 +68,7 @@ static int start_lua_script(struct img_type *img, void *data)
 		"%s%s", tmp, img->fname);
 	TRACE("Calling Lua %s", filename);
 
-	luaL_openlibs(L); /* opens the standard libraries */
-
-	if (luaL_loadfile(L, filename)) {
-		ERROR("ERROR loading %s", filename);
-		lua_close(L);
-		return -1;
-	}
-
-	ret = lua_pcall(L, 0, 0, 0);
-	if (ret) {
-		LUAstackDump(L);
-		ERROR("ERROR preparing Lua script %s %d",
-			filename, ret);
-		lua_close(L);
-		return -1;
-	}
-
-	lua_getglobal(L, fnname);
-
-	if(!lua_isfunction(L,lua_gettop(L))) {
-		lua_close(L);
-		TRACE("Script : no %s in %s script, exiting", fnname, filename);
-		return 0;
-	}
-
-	/* passing arguments */
-	lua_pushstring(L, filename);
-
-	if (lua_pcall(L, 1, 2, 0)) {
-		LUAstackDump(L);
-		ERROR("ERROR Calling Lua script %s", filename);
-		lua_close(L);
-		return -1;
-	}
-
-	if (lua_type(L, 1) == LUA_TBOOLEAN)
-		ret = lua_toboolean(L, 1) ? 0 : 1;
-
-	if (lua_type(L, 2) == LUA_TSTRING) {
-		output = lua_tostring(L, 2);
-		TRACE("Script output: %s script end", output);
-	}
-
-	lua_close(L);
+	ret = run_lua_script(filename, fnname, filename);
 
 	return ret;
 
