@@ -27,6 +27,7 @@
 #include "swupdate_status.h"
 
 #define NOTIFY_BUF_SIZE 	2048
+#define ENOMEM_ASPRINTF		-1
 
 extern int loglevel;
 

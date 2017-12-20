@@ -48,7 +48,6 @@
 
 #define STRINGIFY(...) #__VA_ARGS__
 #define JSON_OBJECT_FREED 1
-#define ENOMEM_ASPRINTF -1
 
 #ifdef CONFIG_SURICATTA_STATE_CHOICE_BOOTLOADER
 #define EXPANDTOKL2(token) token
