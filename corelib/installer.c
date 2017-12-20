@@ -252,7 +252,7 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 {
 	int ret;
 	struct img_type *img;
-	char filename[64];
+	char *filename;
 	struct filehdr fdh;
 	struct stat buf;
 	const char* TMPDIR = get_tmpdir();
@@ -295,8 +295,8 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 			continue;
 
 		if (!fromfile) {
-			if (snprintf(filename, sizeof(filename), "%s%s",
-				     TMPDIR, img->fname) >= (int)sizeof(filename)) {
+		    if (asprintf(&filename, "%s%s", TMPDIR, img->fname) ==
+				ENOMEM_ASPRINTF) {
 				ERROR("Path too long: %s%s", TMPDIR, img->fname);
 				return -1;
 			}
@@ -304,11 +304,13 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 			ret = stat(filename, &buf);
 			if (ret) {
 				TRACE("%s not found or wrong", filename);
+				free(filename);
 				return -1;
 			}
 			img->size = buf.st_size;
 
 			img->fdin = open(filename, O_RDONLY);
+			free(filename);
 			if (img->fdin < 0) {
 				ERROR("Image %s cannot be opened",
 				img->fname);
