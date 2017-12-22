@@ -534,6 +534,8 @@ Command line parameters
 | -t <timeout>| integer  | Timeout for connection lost when           |
 |             |          | downloading                                |
 +-------------+----------+--------------------------------------------+
+| -a <usr:pwd>| string   | Send user and password for Basic Auth      |
++-------------+----------+--------------------------------------------+
 
 
 systemd Integration
