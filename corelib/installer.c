@@ -145,11 +145,12 @@ int check_if_required(struct imglist *list, struct filehdr *pfdh,
  * Extract all scripts from a list from the image
  * and save them on the filesystem to be executed later
  */
-static int extract_scripts(int fd, struct imglist *head, const char *dest)
+static int extract_scripts(int fd, struct imglist *head, int fromfile)
 {
 	struct img_type *script;
 	int fdout;
 	int ret = 0;
+	const char* tmpdir_scripts = get_tmpdirscripts();
 
 	LIST_FOREACH(script, head, next) {
 		if (script->provided == 0) {
@@ -159,14 +160,44 @@ static int extract_scripts(int fd, struct imglist *head, const char *dest)
 		}
 
 		snprintf(script->extract_file, sizeof(script->extract_file), "%s%s",
-				dest, script->fname);
+			 tmpdir_scripts , script->fname);
 
 		fdout = openfileoutput(script->extract_file);
 		if (fdout < 0)
 			return fdout;
 
-		ret = extract_next_file(fd, fdout, script->offset, 0,
-					script->is_encrypted, script->sha256);
+		if (fromfile)
+			ret = extract_next_file(fd, fdout, script->offset, 0,
+						script->is_encrypted, script->sha256);
+		else {
+			int fdin;
+			char *tmpfile;
+			unsigned long offset = 0;
+			uint32_t checksum;
+
+			if (asprintf(&tmpfile, "%s%s", get_tmpdir(), script->fname) ==
+				ENOMEM_ASPRINTF) {
+				ERROR("Path too long: %s%s", get_tmpdir(), script->fname);
+				close(fdout);
+				return -ENOMEM;
+			}
+
+			fdin = open(tmpfile, O_RDONLY);
+			free(tmpfile);
+			if (fdin < 0) {
+				ERROR("Extracted script not found in %s: %s %d\n",
+					get_tmpdir(), script->extract_file, errno);
+				return -ENOENT;
+			}
+
+			ret = copyfile(fdin, &fdout, script->size, &offset, 0, 0,
+					script->compressed,
+					&checksum,
+					script->sha256,
+					script->is_encrypted,
+					NULL);
+			close(fdin);
+		}
 		close(fdout);
 
 		if (ret < 0)
@@ -258,13 +289,11 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 	const char* TMPDIR = get_tmpdir();
 
 	/* Extract all scripts, preinstall scripts must be run now */
-	if (fromfile) {
-		const char* tmpdir_scripts = get_tmpdirscripts();
-		ret = extract_scripts(fdsw, &sw->scripts, tmpdir_scripts);
-		if (ret) {
-			ERROR("extracting script to %s failed", tmpdir_scripts);
-			return ret;
-		}
+	const char* tmpdir_scripts = get_tmpdirscripts();
+	ret = extract_scripts(fdsw, &sw->scripts, fromfile);
+	if (ret) {
+		ERROR("extracting script to %s failed", tmpdir_scripts);
+		return ret;
 	}
 
 	/* Scripts must be run before installing images */
@@ -421,6 +450,11 @@ void cleanup_files(struct swupdate_cfg *software) {
 	LIST_FOREACH(img, &software->scripts, next) {
 		if (img->fname[0]) {
 			if (snprintf(fn, sizeof(fn), "%s%s", get_tmpdirscripts(),
+				     img->fname) >= (int)sizeof(fn)) {
+				ERROR("Path too long: %s%s", get_tmpdirscripts(), img->fname);
+			}
+			remove_sw_file(fn);
+			if (snprintf(fn, sizeof(fn), "%s%s", get_tmpdir(),
 				     img->fname) >= (int)sizeof(fn)) {
 				ERROR("Path too long: %s%s", TMPDIR, img->fname);
 			}
