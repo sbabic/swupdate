@@ -145,7 +145,7 @@ int check_if_required(struct imglist *list, struct filehdr *pfdh,
  * Extract all scripts from a list from the image
  * and save them on the filesystem to be executed later
  */
-static int extract_script(int fd, struct imglist *head, const char *dest)
+static int extract_scripts(int fd, struct imglist *head, const char *dest)
 {
 	struct img_type *script;
 	int fdout;
@@ -166,7 +166,7 @@ static int extract_script(int fd, struct imglist *head, const char *dest)
 			return fdout;
 
 		ret = extract_next_file(fd, fdout, script->offset, 0,
-								script->is_encrypted, script->sha256);
+					script->is_encrypted, script->sha256);
 		close(fdout);
 
 		if (ret < 0)
@@ -260,7 +260,7 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 	/* Extract all scripts, preinstall scripts must be run now */
 	if (fromfile) {
 		const char* tmpdir_scripts = get_tmpdirscripts();
-		ret = extract_script(fdsw, &sw->scripts, tmpdir_scripts);
+		ret = extract_scripts(fdsw, &sw->scripts, tmpdir_scripts);
 		if (ret) {
 			ERROR("extracting script to %s failed", tmpdir_scripts);
 			return ret;
