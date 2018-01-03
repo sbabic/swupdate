@@ -28,7 +28,8 @@
 #include <swupdate_status.h>
 #include "suricatta/suricatta.h"
 #include "server_hawkbit.h"
-#include "channel_hawkbit.h"
+#include "channel.h"
+#include "channel_curl.h"
 #include "suricatta/state.h"
 
 #define JSON_OBJECT_FREED 1
