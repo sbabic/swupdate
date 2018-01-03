@@ -35,6 +35,14 @@
 #define JSON_OBJECT_FREED 1
 #define JSONQUOTE(...) #__VA_ARGS__
 
+/* Keep in sync with corelib/channel_curl.c's prototypes for public functions. */
+extern channel_op_res_t channel_close(channel_t *this);
+extern channel_op_res_t channel_open(channel_t *this, void *cfg);
+extern channel_op_res_t channel_put(channel_t *this, void *data);
+extern channel_op_res_t channel_get_file(channel_t *this, void *data, int file_handle);
+extern channel_op_res_t channel_get(channel_t *this, void *data);
+extern channel_op_res_t channel_curl_init(void);
+
 extern json_object *json_get_key(json_object *json_root, const char *key);
 
 extern int __real_ipc_wait_for_complete(getstatus callback);
