@@ -21,6 +21,7 @@
 #include <stdbool.h>
 #include <suricatta/state.h>
 #include <swupdate_dict.h>
+#include <channel.h>
 
 /* Have a queue for errors reported by installer */
 #define HAWKBIT_MAX_REPORTED_ERRORS	10
