@@ -42,6 +42,7 @@ Help and support
    :maxdepth: 2
 
    help_and_support.rst
+   contributing.rst
 
 ############################################
 Roadmap
