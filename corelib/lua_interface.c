@@ -185,11 +185,15 @@ int run_lua_script(const char *script, const char *function, char *parms)
 		return -1;
 	}
 
-	if (lua_type(L, 1) == LUA_TBOOLEAN)
-		ret = lua_toboolean(L, 1) ? 0 : 1;
+	ret = -1;
 
-	if (lua_type(L, 2) == LUA_TSTRING) {
-		output = lua_tostring(L, 2);
+	if (lua_type(L, -2) == LUA_TBOOLEAN) {
+		TRACE("LUA Exit: is boolean %d", lua_toboolean(L, -2));
+		ret = lua_toboolean(L, -2) ? 0 : 1;
+	}
+
+	if (lua_type(L, -1) == LUA_TSTRING) {
+		output = lua_tostring(L, -1);
 		TRACE("Script output: %s script end", output);
 	}
 
