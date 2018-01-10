@@ -58,4 +58,5 @@ typedef struct {
 	int (*checkdwl)(void);
 	struct swupdate_digest *dgst;
 	char sha1hash[SHA_DIGEST_LENGTH * 2 + 1];
+	sourcetype source;
 } channel_data_t;

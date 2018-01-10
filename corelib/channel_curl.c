@@ -679,7 +679,7 @@ channel_op_res_t channel_get_file(channel_t *this, void *data, int file_handle)
 
 	if (file_handle == FD_USE_IPC) {
 		for (int retries = 3; retries >= 0; retries--) {
-			file_handle = ipc_inst_start_ext(SOURCE_SURICATTA,
+			file_handle = ipc_inst_start_ext(channel_data->source,
 				channel_data->info == NULL ? 0 : strlen(channel_data->info),
 				channel_data->info);
 			if (file_handle > 0)

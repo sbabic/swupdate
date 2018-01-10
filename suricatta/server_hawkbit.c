@@ -140,6 +140,7 @@ server_hawkbit_t server_hawkbit = {.url = NULL,
 				   .channel = NULL};
 
 static channel_data_t channel_data_defaults = {.debug = false,
+					       .source = SOURCE_SURICATTA,
 					       .retries = DEFAULT_RESUME_TRIES,
 					       .retry_sleep =
 						   DEFAULT_RESUME_DELAY,
