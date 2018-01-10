@@ -256,7 +256,7 @@ static void lua_string_to_img(struct img_type *img, const char *key,
 		strncpy(seek_str, value,
 			sizeof(seek_str));
 		/* convert the offset handling multiplicative suffixes */
-		if (seek_str != NULL && strnlen(seek_str, MAX_SEEK_STRING_SIZE) != 0) {
+		if (strnlen(seek_str, MAX_SEEK_STRING_SIZE) != 0) {
 			errno = 0;
 			img->seek = ustrtoull(seek_str, &endp, 0);
 			if (seek_str == endp || (img->seek == ULLONG_MAX && \

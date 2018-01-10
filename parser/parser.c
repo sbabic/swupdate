@@ -456,7 +456,7 @@ static int parse_images(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua
 		get_hash_value(p, elem, image->sha256);
 
 		/* convert the offset handling multiplicative suffixes */
-		if (seek_str != NULL && strnlen(seek_str, MAX_SEEK_STRING_SIZE) != 0) {
+		if (strnlen(seek_str, MAX_SEEK_STRING_SIZE) != 0) {
 			errno = 0;
 			image->seek = ustrtoull(seek_str, &endp, 0);
 			if (seek_str == endp || (image->seek == ULLONG_MAX && \
