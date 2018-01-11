@@ -233,6 +233,27 @@ static int prepare_boot_script(struct swupdate_cfg *cfg, const char *script)
 	return ret;
 }
 
+static int run_prepost_scripts(struct imglist *list, script_fn type)
+{
+	int ret;
+	struct img_type *img;
+	struct installer_handler *hnd;
+
+	/* Scripts must be run before installing images */
+	LIST_FOREACH(img, list, next) {
+		if (!img->is_script)
+			continue;
+		hnd = find_handler(img);
+		if (hnd) {
+			ret = hnd->installer(img, &type);
+			if (ret)
+				return ret;
+		}
+	}
+
+	return 0;
+}
+
 static int update_bootloader_env(void)
 {
 	int ret = 0;
@@ -291,13 +312,14 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 	/* Extract all scripts, preinstall scripts must be run now */
 	const char* tmpdir_scripts = get_tmpdirscripts();
 	ret = extract_scripts(fdsw, &sw->scripts, fromfile);
+	ret |= extract_scripts(fdsw, &sw->bootscripts, fromfile);
 	if (ret) {
 		ERROR("extracting script to %s failed", tmpdir_scripts);
 		return ret;
 	}
 
 	/* Scripts must be run before installing images */
-	ret = run_prepost_scripts(sw, PREINSTALL);
+	ret = run_prepost_scripts(&sw->scripts, PREINSTALL);
 	if (ret) {
 		ERROR("execute preinstall scripts failed");
 		return ret;
@@ -388,7 +410,7 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 
 	}
 
-	ret = run_prepost_scripts(sw, POSTINSTALL);
+	ret = run_prepost_scripts(&sw->scripts, POSTINSTALL);
 	if (ret) {
 		ERROR("execute postinstall scripts failed");
 		return ret;
@@ -397,30 +419,10 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 	if (!LIST_EMPTY(&sw->bootloader))
 		ret = update_bootloader_env();
 
+	ret |= run_prepost_scripts(&sw->bootscripts, POSTINSTALL);
+
 	return ret;
 }
-
-int run_prepost_scripts(struct swupdate_cfg *sw, script_fn type)
-{
-	int ret;
-	struct img_type *img;
-	struct installer_handler *hnd;
-
-	/* Scripts must be run before installing images */
-	LIST_FOREACH(img, &sw->scripts, next) {
-		if (!img->is_script)
-			continue;
-		hnd = find_handler(img);
-		if (hnd) {
-			ret = hnd->installer(img, &type);
-			if (ret)
-				return ret;
-		}
-	}
-
-	return 0;
-}
-
 
 static void remove_sw_file(char __attribute__ ((__unused__)) *fname)
 {
@@ -430,11 +432,32 @@ static void remove_sw_file(char __attribute__ ((__unused__)) *fname)
 #endif
 }
 
+static void cleaup_img_entry(struct img_type *img)
+{
+	char *fn;
+	int i;
+	const char *tmp[] = { get_tmpdirscripts(), get_tmpdir() };
+
+	if (img->fname[0]) {
+		for (i = 0; i < ARRAY_SIZE(tmp); i++) {
+			if (asprintf(&fn, "%s%s", tmp[i], img->fname) == ENOMEM_ASPRINTF) {
+				ERROR("Path too long: %s%s", tmp[i], img->fname);
+			} else {
+				remove_sw_file(fn);
+				free(fn);
+			}
+		}
+	}
+	dict_drop_db(&img->properties);
+}
+
 void cleanup_files(struct swupdate_cfg *software) {
 	char fn[64];
 	struct img_type *img;
 	struct hw_type *hw;
 	const char* TMPDIR = get_tmpdir();
+	int count;
+	struct imglist *list[] = {&software->scripts, &software->bootscripts};
 
 	LIST_FOREACH(img, &software->images, next) {
 		if (img->fname[0]) {
@@ -447,22 +470,14 @@ void cleanup_files(struct swupdate_cfg *software) {
 		LIST_REMOVE(img, next);
 		free(img);
 	}
-	LIST_FOREACH(img, &software->scripts, next) {
-		if (img->fname[0]) {
-			if (snprintf(fn, sizeof(fn), "%s%s", get_tmpdirscripts(),
-				     img->fname) >= (int)sizeof(fn)) {
-				ERROR("Path too long: %s%s", get_tmpdirscripts(), img->fname);
-			}
-			remove_sw_file(fn);
-			if (snprintf(fn, sizeof(fn), "%s%s", get_tmpdir(),
-				     img->fname) >= (int)sizeof(fn)) {
-				ERROR("Path too long: %s%s", TMPDIR, img->fname);
-			}
-			remove_sw_file(fn);
+
+	for (count = 0; count < ARRAY_SIZE(list); count++) {
+		LIST_FOREACH(img, list[count], next) {
+			cleaup_img_entry(img);
+
+			LIST_REMOVE(img, next);
+			free(img);
 		}
-		dict_drop_db(&img->properties);
-		LIST_REMOVE(img, next);
-		free(img);
 	}
 
 	dict_drop_db(&software->bootloader);

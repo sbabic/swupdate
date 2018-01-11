@@ -134,6 +134,7 @@ struct swupdate_cfg {
 	struct imglist images;
 	struct imglist partitions;
 	struct imglist scripts;
+	struct imglist bootscripts;
 	struct dictlist bootloader;
 	struct proclist extprocs;
 	void *dgst;	/* Structure for signed images */

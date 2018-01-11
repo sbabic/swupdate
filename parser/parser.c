@@ -359,6 +359,7 @@ static int parse_bootloader(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 {
 	void *setting, *elem;
 	int count, i;
+	struct img_type *script;
 	char name[32];
 	char value[255];
 
@@ -380,24 +381,44 @@ static int parse_bootloader(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 		/*
 		 * Check for mandatory field
 		 */
-		if(!(exist_field_string(p, elem, "name"))) {
-			TRACE("bootloader entry without variable name field, skipping..");
+		if(exist_field_string(p, elem, "name")) {
+			/*
+			 * Call directly get_field_string with size 0
+			 * to let allocate the place for the strings
+			 */
+			GET_FIELD_STRING(p, elem, "name", name);
+			GET_FIELD_STRING(p, elem, "value", value);
+			dict_set_value(&swcfg->bootloader, name, value);
+			TRACE("Bootloader var: %s = %s\n",
+				name,
+				dict_get_value(&swcfg->bootloader, name));
 			continue;
 		}
 
-
 		/*
-		 * Call directly get_field_string with size 0
-		 * to let allocate the place for the strings
+		 * Check if it is a bootloader script
 		 */
-		GET_FIELD_STRING(p, elem, "name", name);
-		GET_FIELD_STRING(p, elem, "value", value);
-		dict_set_value(&swcfg->bootloader, name, value);
+		if(!(exist_field_string(p, elem, "filename"))) {
+			TRACE("bootloader entry is neither a script nor name/value.");
+			continue;
+		}
+		script = (struct img_type *)calloc(1, sizeof(struct img_type));
+		if (!script) {
+			ERROR( "No memory: malloc failed\n");
+			return -ENOMEM;
+		}
+		GET_FIELD_STRING(p, elem, "filename", script->fname);
+		GET_FIELD_STRING(p, elem, "type", script->type);
+		GET_FIELD_STRING(p, elem, "data", script->type_data);
+		get_hash_value(p, elem, script->sha256);
+		get_field(p, elem, "encrypted", &script->is_encrypted);
+		get_field(p, elem, "compressed", &script->compressed);
+		script->is_script = 1;
 
-		TRACE("Bootloader var: %s = %s\n",
-			name,
-			dict_get_value(&swcfg->bootloader, name));
+		LIST_INSERT_HEAD(&swcfg->bootscripts, script, next);
 
+		TRACE("Found U-Boot Script: %s\n",
+			script->fname);
 	}
 
 	return 0;

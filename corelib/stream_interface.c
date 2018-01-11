@@ -186,20 +186,23 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 				break;
 			}
 
-			skip = check_if_required(&software->images, &fdh,
-						&software->installed_sw_list,
+			int i;
+
+			struct imglist *list[] = {&software->images,
+						  &software->scripts,
+						  &software->bootscripts};
+
+			for (i = 0; i < ARRAY_SIZE(list); i++) {
+				skip = check_if_required(list[i], &fdh,
+						(list[i] == &software->images) ?
+							&software->installed_sw_list : NULL,
 						get_tmpdir(),
 						&img);
-			if (skip == SKIP_FILE) {
-				/*
-				 *  Check for script, but scripts are not checked
-				 *  for version
-				 */
-				skip = check_if_required(&software->scripts, &fdh,
-							NULL,
-							get_tmpdir(),
-							&img);
+
+				if (skip != SKIP_FILE)
+					break;
 			}
+
 			TRACE("Found file:\n\tfilename %s\n\tsize %u %s",
 				fdh.filename,
 				(unsigned int)fdh.size,
