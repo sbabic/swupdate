@@ -43,30 +43,24 @@ static int install_boot_environment(struct img_type *img,
 	char filename[64];
 	struct stat statbuf;
 
-	const char* TMPDIR = get_tmpdir();
-	if (snprintf(filename, sizeof(filename), "%s%s", TMPDIR,
+	if (snprintf(filename, sizeof(filename), "%s%s", get_tmpdirscripts(),
 		     img->fname) >= (int)sizeof(filename)) {
-		ERROR("Path too long: %s%s", TMPDIR, img->fname);
+		ERROR("Path too long: %s%s", get_tmpdirscripts(),
+			 img->fname);
 		return -1;
 	}
 	ret = stat(filename, &statbuf);
 	if (ret) {
 		fdout = openfileoutput(filename);
-		/*
-		 * Bootloader environment is set inside sw-description
-		 * there is no hash but sw-description was already verified
-		 */
 		ret = copyimage(&fdout, img, NULL);
 		close(fdout);
 	}
 
 	ret = bootloader_apply_list(filename);
-	if (ret < 0) {
-		notify(RUN, RECOVERY_NO_ERROR, ERRORLEVEL,
-		       "Error setting bootloader environment");
+	if (ret != 0) {
+		ERROR("Error setting bootloader environment");
 	} else {
-		notify(RUN, RECOVERY_NO_ERROR, INFOLEVEL,
-		       "Bootloader environment updated");
+		TRACE("Bootloader environment from %s updated", img->fname);
 	}
 
 	return ret;
