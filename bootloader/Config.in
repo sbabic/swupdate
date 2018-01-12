@@ -4,6 +4,17 @@ choice
 	help
 	  Choose the bootloader
 
+config BOOTLOADER_EBG
+	bool "EFI Boot Guard"
+	depends on HAVE_LIBEBGENV
+	depends on HAVE_ZLIB
+	help
+	  Support for EFI Boot Guard
+	  https://github.com/siemens/efibootguard
+
+comment "EFI Boot Guard needs libebgenv and libz"
+	depends on !HAVE_ZLIB || !HAVE_LIBEBGENV
+
 config UBOOT
 	bool "U-Boot"
 	depends on HAVE_LIBUBOOTENV

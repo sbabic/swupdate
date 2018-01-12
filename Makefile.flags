@@ -179,6 +179,10 @@ ifeq ($(CONFIG_SYSTEMD),y)
 LDLIBS += systemd
 endif
 
+ifeq ($(CONFIG_BOOTLOADER_EBG),y)
+LDLIBS += ebgenv z
+endif
+
 # suricatta
 ifneq ($(CONFIG_SURICATTA),)
 ifneq ($(CONFIG_SURICATTA_SSL),)
