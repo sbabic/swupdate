@@ -21,6 +21,7 @@ before_install:
     - sudo apt-get install -y liblzo2-dev
     - sudo apt-get install -y libsystemd-daemon-dev
     - sudo apt-get install -y libsystemd-daemon0
+    - sudo apt-get install -y check
 
 script:
     - sudo mkdir -p /usr/local/lib
@@ -43,6 +44,15 @@ script:
     - make sandbox_defconfig
     - make env
     - sudo install -m 644 tools/env/lib.a /usr/local/lib/libubootenv.a
+    - cd ..
+    - git clone https://github.com/siemens/efibootguard.git
+    - cd efibootguard
+    - autoreconf -fi
+    - ./configure
+    - make libebgenv.a
+    - sudo install -m 644 libebgenv.a /usr/local/lib/libebgenv.a
+    - sudo install -m 755 -d /usr/include/efibootguard
+    - sudo install -m 644 include/ebgenv.h /usr/include/efibootguard/ebgenv.h
     - cd ..
     # Accommodate to trusty's rusty systemd version
     - sudo ln -sf /lib/x86_64-linux-gnu/libsystemd-daemon.so.0 /lib/x86_64-linux-gnu/libsystemd.so
