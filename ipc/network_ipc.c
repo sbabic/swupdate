@@ -27,6 +27,7 @@
 #include <pthread.h>
 
 #include "network_ipc.h"
+#include "compat.h"
 
 #ifdef CONFIG_SOCKET_CTRL_PATH
 static char* SOCKET_CTRL_PATH = (char*)CONFIG_SOCKET_CTRL_PATH;

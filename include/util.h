@@ -12,6 +12,7 @@
 #include <string.h>
 #include "swupdate.h"
 #include "swupdate_status.h"
+#include "compat.h"
 
 #define NOTIFY_BUF_SIZE 	2048
 #define ENOMEM_ASPRINTF		-1
