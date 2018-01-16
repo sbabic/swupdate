@@ -91,8 +91,26 @@ int swupdate_HASH_compare(unsigned char *hash1, unsigned char *hash2);
 #define swupdate_dgst_init(sw, keyfile) ( 0 )
 #define swupdate_HASH_init(p) ( NULL )
 #define swupdate_verify_file(dgst, sigfile, file) ( 0 )
-#define swupdate_HASH_update(p, buf, len)	(-1)
-#define swupdate_HASH_final(p, result, len)	(-1)
+static inline int swupdate_HASH_update(struct swupdate_digest *dgst,
+				       unsigned char *buf, size_t len);
+static inline int swupdate_HASH_update(struct swupdate_digest *dgst,
+				       unsigned char *buf, size_t len)
+{
+	(void)dgst;
+	(void)buf;
+	(void)len;
+	return -1;
+}
+static inline int swupdate_HASH_final(struct swupdate_digest *dgst,
+				      unsigned char *md_value, unsigned int *md_len);
+static inline int swupdate_HASH_final(struct swupdate_digest *dgst,
+				      unsigned char *md_value, unsigned int *md_len)
+{
+	(void)dgst;
+	(void)md_value;
+	(void)md_len;
+	return -1;
+}
 #define swupdate_HASH_cleanup(sw)
 #define swupdate_HASH_compare(hash1,hash2)	(0)
 #endif
