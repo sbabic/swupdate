@@ -61,6 +61,52 @@ static bool is_type(lua_State *L, uintptr_t type)
 }
 #endif
 
+static void lua_dump_table(lua_State *L, char *str)
+{
+	/* Stack: table, ... */
+	lua_pushnil(L);
+	/* Stack: nil, table, ... */
+	while (lua_next(L, -2)) {
+		/* Stack: value, key, table, ... */
+		lua_pushvalue(L, -2);
+		/* Stack: key, value, key, table, ... */
+		switch(lua_type(L, -2)) {
+			case LUA_TSTRING:
+			case LUA_TNUMBER:
+				TRACE("%s %s = %s", str,
+					lua_tostring(L, -1),
+					lua_tostring(L, -2));
+				break;
+			case LUA_TFUNCTION:
+				TRACE("%s %s()", str,
+					lua_tostring(L, -1));
+				break;
+			case LUA_TTABLE: {
+				char *s;
+
+				if (asprintf(&s, "%s %s:", str, lua_tostring(L, -1)) != ENOMEM_ASPRINTF) {
+					lua_pushvalue(L, -2);
+					lua_dump_table(L, s);
+					lua_pop(L, 1);
+					free(s);
+				}
+				break;
+			}
+			case LUA_TBOOLEAN:
+				TRACE("%s %s = %s", str,
+					lua_tostring(L, -1),
+					(lua_toboolean(L, -2) ? "true" : "false"));
+				break;
+			default:
+				TRACE("%s %s = <unparsed type>", str,
+					lua_tostring(L, -1));
+		}
+		lua_pop(L, 2);
+		/* Stack: key, table, ... */
+	}
+	/* Stack: table, ... */
+}
+
 void LUAstackDump(lua_State *L)
 {
 	int top = lua_gettop(L);
@@ -84,43 +130,14 @@ void LUAstackDump(lua_State *L)
 				break;
 			}
 			case LUA_TTABLE: {
-				lua_pushvalue(L, -1);
-				lua_pushnil(L);
-				/* Stack: nil, table */
-				while (lua_next(L, -2)) {
-					/* Stack: value, key, table */
-					lua_pushvalue(L, -2);
-					/* Stack: key, value, key, table */
-					switch(lua_type(L, -2)) {
-						case LUA_TSTRING:
-						case LUA_TNUMBER:
-							TRACE("(%d) [table ] %s = %s", i,
-								lua_tostring(L, -1),
-								lua_tostring(L, -2));
-							break;
-						case LUA_TFUNCTION:
-							TRACE("(%d) [table ] %s()", i,
-								lua_tostring(L, -1));
-							break;
-						case LUA_TTABLE:
-							TRACE("(%d) [table ] %s <table>", i,
-								lua_tostring(L, -1));
-							break;
-						case LUA_TBOOLEAN:
-							TRACE("(%d) [table ] %s = %s", i,
-								lua_tostring(L, -1),
-								(lua_toboolean(L, -2) ? "true" : "false"));
-							break;
-						default:
-							TRACE("(%d) [table ] %s = <unparsed type>", i,
-								lua_tostring(L, -1));
-					}
-					lua_pop(L, 2);
-					/* Stack: key, table */
+				char *s;
+
+				if (asprintf(&s, "(%d) [table ]", i) != ENOMEM_ASPRINTF) {
+					lua_pushvalue(L, -1);
+					lua_dump_table(L, s);
+					lua_pop(L, 1);
+					free(s);
 				}
-				/* Stack: table */
-				lua_pop(L, 1);
-				/* Stack: <empty> */
 				break;
 			}
 			default: {
