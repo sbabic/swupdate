@@ -153,8 +153,10 @@ static inline void grubenv_update_size(struct grubenv_t *grubenv)
 
 	/* lengths of strings + '=' and '\n' characters */
 	LIST_FOREACH(grubvar, &grubenv->vars, next) {
-		size = size + strlen(grubvar->key) +
-						strlen(grubvar->value) + 2;
+		char *key = dict_entry_get_key(grubvar);
+		char *value = dict_entry_get_value(grubvar);
+
+		size = size + strlen(key) + strlen(value) + 2;
 	}
 	size += strlen(GRUBENV_HEADER);
 	grubenv->size = size;
@@ -194,10 +196,12 @@ static int grubenv_write(struct grubenv_t *grubenv)
 	strncpy(buf, GRUBENV_HEADER, strlen(GRUBENV_HEADER) + 1);
 
 	LIST_FOREACH(grubvar, &grubenv->vars, next) {
-		llen = strlen(grubvar->key) + strlen(grubvar->value) + 2;
+		char *key = dict_entry_get_key(grubvar);
+		char *value = dict_entry_get_value(grubvar);
+
+		llen = strlen(key) + strlen(value) + 2;
 		/* +1 for null termination */
-		snprintf(line, llen + 1, "%s=%s\n", grubvar->key,
-						grubvar->value);
+		snprintf(line, llen + 1, "%s=%s\n", key, value);
 		strncat(buf, line, llen);
 	}
 
@@ -237,11 +241,7 @@ cleanup:
  * allocation */
 static inline void grubenv_close(struct grubenv_t *grubenv)
 {
-	struct dict_entry *grubvar;
-
-	LIST_FOREACH(grubvar, &grubenv->vars, next) {
-		dict_remove(&grubenv->vars, grubvar->key);
-	}
+	dict_drop_db(&grubenv->vars);
 }
 
 /* I feel that '#' and '=' characters should be forbidden. Although it's not

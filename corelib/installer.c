@@ -206,11 +206,12 @@ static int prepare_boot_script(struct swupdate_cfg *cfg, const char *script)
 		return -1;
 
 	LIST_FOREACH(bootvar, &cfg->bootloader, next) {
-		if (!bootvar->key || !bootvar->value)
+		char *key = dict_entry_get_key(bootvar);
+		char *value = dict_entry_get_value(bootvar);
+
+		if (!key || !value)
 			continue;
-		snprintf(buf, sizeof(buf), "%s %s\n",
-			bootvar->key,
-			bootvar->value);
+		snprintf(buf, sizeof(buf), "%s %s\n", key, value);
 		if (write(fd, buf, strlen(buf)) != (ssize_t)strlen(buf)) {
 			  TRACE("Error saving temporary file");
 			  ret = -1;

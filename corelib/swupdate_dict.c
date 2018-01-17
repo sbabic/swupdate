@@ -2,6 +2,9 @@
  * (C) Copyright 2016
  * Stefano Babic, DENX Software Engineering, sbabic@denx.de.
  *
+ * Copyright (C) 2018 Weidmüller Interface GmbH & Co. KG
+ * Stefan Herbrechtsmeier <stefan.herbrechtsmeier@weidmueller.com>
+ *
  * SPDX-License-Identifier:     GPL-2.0-or-later
  */
 
@@ -19,7 +22,52 @@
 #include "util.h"
 #include "swupdate_dict.h"
 
-static struct dict_entry *get_entry(struct dict *dictionary, char *key)
+static int insert_list_elem(struct dict_list *list, const char *value)
+{
+	struct dict_list_elem *elem = (struct dict_list_elem *)malloc(sizeof(*elem));
+
+	if (!elem)
+		return -ENOMEM;
+
+	memset(elem, 0, sizeof(*elem));
+	elem->value = strdup(value);
+
+	LIST_INSERT_HEAD(list, elem, next);
+
+	return 0;
+}
+
+static void remove_list_elem(struct dict_list_elem *elem)
+{
+	LIST_REMOVE(elem, next);
+	free(elem->value);
+	free(elem);
+}
+
+static void remove_list(struct dict_list *list)
+{
+	struct dict_list_elem *elem;
+
+	LIST_FOREACH(elem, list, next) {
+		remove_list_elem(elem);
+	}
+}
+
+static struct dict_entry *insert_entry(struct dict *dictionary, const char *key)
+{
+	struct dict_entry *entry = (struct dict_entry *)malloc(sizeof(*entry));
+	if (!entry)
+		return NULL;
+
+	memset(entry, 0, sizeof(*entry));
+	entry->key = strdup(key);
+
+	LIST_INSERT_HEAD(dictionary, entry, next);
+
+	return entry;
+}
+
+static struct dict_entry *get_entry(struct dict *dictionary, const char *key)
 {
 	struct dict_entry *entry;
 
@@ -31,72 +79,92 @@ static struct dict_entry *get_entry(struct dict *dictionary, char *key)
 	return NULL;
 }
 
-int dict_insert_entry(struct dict *dictionary, char *key, char *value)
+static void remove_entry(struct dict_entry *entry)
 {
-	struct dict_entry *entry = (struct dict_entry *)malloc(sizeof(*entry));
-
-	if (!entry)
-		return -ENOMEM;
-
-	memset(entry, 0, sizeof(*entry));
-	entry->key = strdup(key);
-	entry->value = strdup(value);
-
-	LIST_INSERT_HEAD(dictionary, entry, next);
-
-	return 0;
+	LIST_REMOVE(entry, next);
+	free(entry->key);
+	remove_list(&entry->list);
+	free(entry);
 }
 
-char *dict_get_value(struct dict *dictionary, char *key)
+char *dict_entry_get_key(struct dict_entry *entry)
+{
+	if (!entry)
+		return NULL;
+
+	return entry->key;
+}
+
+char *dict_entry_get_value(struct dict_entry *entry)
+{
+	if (!entry || !LIST_FIRST(&entry->list))
+		return NULL;
+
+	return LIST_FIRST(&entry->list)->value;
+}
+
+struct dict_list *dict_get_list(struct dict *dictionary, const char *key)
 {
 	struct dict_entry *entry = get_entry(dictionary, key);
 
 	if (!entry)
 		return NULL;
 
-	return entry->value;
+	return &entry->list;
 }
 
-int dict_set_value(struct dict *dictionary, char *key, char *value)
+char *dict_get_value(struct dict *dictionary, const char *key)
 {
 	struct dict_entry *entry = get_entry(dictionary, key);
 
-	/*
-	 * Set to new value if key is already in
-	 * dictionary
-	 */
-	if (entry) {
-		LIST_REMOVE(entry, next);
-		free(entry);
+	if (!entry)
+		return NULL;
+
+	return dict_entry_get_value(entry);
+}
+
+int dict_insert_value(struct dict *dictionary, const char *key, const char *value)
+{
+	struct dict_entry *entry = get_entry(dictionary, key);
+
+	if (!entry) {
+		entry = insert_entry(dictionary, key);
+		if (!entry)
+			return -ENOMEM;
 	}
 
-	return dict_insert_entry(dictionary, key, value);
+	return insert_list_elem(&entry->list, value);
 }
 
-void dict_remove_entry(struct dict_entry *entry)
+int dict_set_value(struct dict *dictionary, const char *key, const char *value)
 {
-	LIST_REMOVE(entry, next);
-	free(entry->key);
-	free(entry->value);
-	free(entry);
+	struct dict_entry *entry = get_entry(dictionary, key);
+
+	if (entry)
+		remove_entry(entry);
+
+	entry = insert_entry(dictionary, key);
+	if (!entry)
+		return -ENOMEM;
+
+	return insert_list_elem(&entry->list, value);
 }
 
-void dict_remove(struct dict *dictionary, char *key)
+void dict_remove(struct dict *dictionary, const char *key)
 {
-
 	struct dict_entry *entry = get_entry(dictionary, key);
 
 	if (!entry)
 		return;
 
-	dict_remove_entry(entry);
+	remove_entry(entry);
 }
 
 void dict_drop_db(struct dict *dictionary)
 {
-	struct dict_entry *var;
+	struct dict_entry *entry;
 
-	LIST_FOREACH(var, dictionary, next) {
-		dict_remove_entry(var);
+	LIST_FOREACH(entry, dictionary, next) {
+		remove_entry(entry);
 	}
 }

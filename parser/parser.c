@@ -162,7 +162,7 @@ static void add_properties(parsertype p, void *node, struct img_type *image)
 				key,
 				value
 			);
-			if (dict_insert_entry(&image->properties, key, value))
+			if (dict_insert_value(&image->properties, key, value))
 				ERROR("Property not stored, skipping...");
 
 		}

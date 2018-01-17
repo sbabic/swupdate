@@ -292,7 +292,7 @@ static int install_remote_swu(struct img_type *img,
 	struct hnd_priv priv;
 	struct curlconn *conn;
 	int ret, still_running = 0;
-	struct dict_entry *url;
+	struct dict_list_elem *url;
 	struct curl_slist *headerlist;
 	CURLMsg *msg = NULL;
 
@@ -320,15 +320,8 @@ static int install_remote_swu(struct img_type *img,
 	priv.maxwaitms = MAX_WAIT_MS;
 	priv.size = img->size;
 
-	/*
-	 * Parse handler properties to get URLs for destination
-	 *
-	 */
-	LIST_FOREACH(url, &img->properties, next) {
+	LIST_FOREACH(url, dict_get_list(&img->properties, "url"), next) {
 		char curlheader[SWUPDATE_GENERAL_STRING_SIZE + strlen(CUSTOM_HEADER)];
-
-		if (!url->key || !url->value || strcmp(url->key, "url"))
-			continue;
 
 		conn = (struct curlconn *)calloc(1, sizeof(struct curlconn));
 		if (!conn) {
