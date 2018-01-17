@@ -327,7 +327,7 @@ static int install_remote_swu(struct img_type *img,
 	LIST_FOREACH(url, &img->properties, next) {
 		char curlheader[SWUPDATE_GENERAL_STRING_SIZE + strlen(CUSTOM_HEADER)];
 
-		if (!url->varname || !url->value || strcmp(url->varname, "url"))
+		if (!url->key || !url->value || strcmp(url->key, "url"))
 			continue;
 
 		conn = (struct curlconn *)calloc(1, sizeof(struct curlconn));

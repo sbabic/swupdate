@@ -1336,7 +1336,7 @@ int get_target_data_length(void)
 	struct dict_entry *entry;
 
 	LIST_FOREACH(entry, &server_hawkbit.configdata, next) {
-		len += strlen(entry->varname) + strlen(entry->value) + strlen (" : ") + 6;
+		len += strlen(entry->key) + strlen(entry->value) + strlen (" : ") + 6;
 	}
 
 	return len;
@@ -1370,14 +1370,14 @@ server_op_res_t server_send_target_data(void)
 		if (ENOMEM_ASPRINTF ==
 		    asprintf(&keyvalue, config_data,
 				((first) ? ' ' : ','),
-				entry->varname,
+				entry->key,
 				entry->value)) {
 			ERROR("hawkBit server reply cannot be sent because of OOM.\n");
 			result = SERVER_EINIT;
 			goto cleanup;
 		}
 		first = false;
-		TRACE("KEYVALUE=%s %s %s", keyvalue, entry->varname, entry->value);
+		TRACE("KEYVALUE=%s %s %s", keyvalue, entry->key, entry->value);
 		strcat(configData, keyvalue);
 		free(keyvalue);
 

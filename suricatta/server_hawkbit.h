@@ -28,7 +28,7 @@ typedef struct {
 	unsigned int polling_interval;
 	bool polling_interval_from_server;
 	bool debug;
-	struct dictlist configdata;
+	struct dict configdata;
 	bool has_to_send_configData;
 	char *configData_url;
 	char *cancel_url;

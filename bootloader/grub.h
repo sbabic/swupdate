@@ -29,7 +29,7 @@
 #define GRUBENV_PATH_NEW	GRUBENV_PATH ".new"
 
 struct grubenv_t {
-	struct dictlist vars;
+	struct dict vars;
 	size_t size;
 };
 

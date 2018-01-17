@@ -19,19 +19,19 @@
 #include "util.h"
 #include "swupdate_dict.h"
 
-static struct dict_entry *get_entry(struct dictlist *dictionary, char *key)
+static struct dict_entry *get_entry(struct dict *dictionary, char *key)
 {
 	struct dict_entry *entry;
 
 	LIST_FOREACH(entry, dictionary, next) {
-		if (strcmp(key, entry->varname) == 0)
+		if (strcmp(key, entry->key) == 0)
 			return entry;
 	}
 
 	return NULL;
 }
 
-int dict_insert_entry(struct dictlist *dictionary, char *key, char *value)
+int dict_insert_entry(struct dict *dictionary, char *key, char *value)
 {
 	struct dict_entry *entry = (struct dict_entry *)malloc(sizeof(*entry));
 
@@ -39,7 +39,7 @@ int dict_insert_entry(struct dictlist *dictionary, char *key, char *value)
 		return -ENOMEM;
 
 	memset(entry, 0, sizeof(*entry));
-	entry->varname = strdup(key);
+	entry->key = strdup(key);
 	entry->value = strdup(value);
 
 	LIST_INSERT_HEAD(dictionary, entry, next);
@@ -47,7 +47,7 @@ int dict_insert_entry(struct dictlist *dictionary, char *key, char *value)
 	return 0;
 }
 
-char *dict_get_value(struct dictlist *dictionary, char *key)
+char *dict_get_value(struct dict *dictionary, char *key)
 {
 	struct dict_entry *entry = get_entry(dictionary, key);
 
@@ -57,7 +57,7 @@ char *dict_get_value(struct dictlist *dictionary, char *key)
 	return entry->value;
 }
 
-int dict_set_value(struct dictlist *dictionary, char *key, char *value)
+int dict_set_value(struct dict *dictionary, char *key, char *value)
 {
 	struct dict_entry *entry = get_entry(dictionary, key);
 
@@ -76,12 +76,12 @@ int dict_set_value(struct dictlist *dictionary, char *key, char *value)
 void dict_remove_entry(struct dict_entry *entry)
 {
 	LIST_REMOVE(entry, next);
-	free(entry->varname);
+	free(entry->key);
 	free(entry->value);
 	free(entry);
 }
 
-void dict_remove(struct dictlist *dictionary, char *key)
+void dict_remove(struct dict *dictionary, char *key)
 {
 
 	struct dict_entry *entry = get_entry(dictionary, key);
@@ -92,7 +92,7 @@ void dict_remove(struct dictlist *dictionary, char *key)
 	dict_remove_entry(entry);
 }
 
-void dict_drop_db(struct dictlist *dictionary)
+void dict_drop_db(struct dict *dictionary)
 {
 	struct dict_entry *var;
 

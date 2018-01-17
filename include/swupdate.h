@@ -66,7 +66,7 @@ struct img_type {
 	int install_directly;
 	int is_script;
 	int is_partitioner;
-	struct dictlist properties;
+	struct dict properties;
 	long long partsize;
 	int fdin;	/* Used for streaming file */
 	off_t offset;	/* offset in cpio file */
@@ -123,7 +123,7 @@ struct swupdate_cfg {
 	struct imglist partitions;
 	struct imglist scripts;
 	struct imglist bootscripts;
-	struct dictlist bootloader;
+	struct dict bootloader;
 	struct proclist extprocs;
 	void *dgst;	/* Structure for signed images */
 	struct swupdate_global_cfg globals;

@@ -11,18 +11,18 @@
 #include <bsdqueue.h>
 
 struct dict_entry {
-	char *varname;
+	char *key;
 	char *value;
 	LIST_ENTRY(dict_entry) next;
 };
 
-LIST_HEAD(dictlist, dict_entry);
+LIST_HEAD(dict, dict_entry);
 
-char *dict_get_value(struct dictlist *dictionary, char *key);
-int dict_set_value(struct dictlist *dictionary, char *key, char *value);
-int dict_insert_entry(struct dictlist *dictionary, char *key, char *value);
-void dict_remove(struct dictlist *dictionary, char *key);
+char *dict_get_value(struct dict *dictionary, char *key);
+int dict_set_value(struct dict *dictionary, char *key, char *value);
+int dict_insert_entry(struct dict *dictionary, char *key, char *value);
+void dict_remove(struct dict *dictionary, char *key);
 void dict_remove_entry(struct dict_entry *entry);
-void dict_drop_db(struct dictlist *dictionary);
+void dict_drop_db(struct dict *dictionary);
 
 #endif

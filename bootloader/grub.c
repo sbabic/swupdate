@@ -113,7 +113,7 @@ static int grubenv_parse_script(struct grubenv_t *grubenv, const char *script)
 		goto cleanup;
 	}
 
-	/* load  varname-value pairs from script into grubenv dictlist */
+	/* load  key-value pairs from script into grubenv dictionary */
 	/* Note that variables with no value assigned are skipped now.
 	 * We should consider whether we want to replicate U-Boot behavior
 	 * (unset if no value given). GRUB env tool distinguishes unsetting
@@ -153,7 +153,7 @@ static inline void grubenv_update_size(struct grubenv_t *grubenv)
 
 	/* lengths of strings + '=' and '\n' characters */
 	LIST_FOREACH(grubvar, &grubenv->vars, next) {
-		size = size + strlen(grubvar->varname) +
+		size = size + strlen(grubvar->key) +
 						strlen(grubvar->value) + 2;
 	}
 	size += strlen(GRUBENV_HEADER);
@@ -194,9 +194,9 @@ static int grubenv_write(struct grubenv_t *grubenv)
 	strncpy(buf, GRUBENV_HEADER, strlen(GRUBENV_HEADER) + 1);
 
 	LIST_FOREACH(grubvar, &grubenv->vars, next) {
-		llen = strlen(grubvar->varname) + strlen(grubvar->value) + 2;
+		llen = strlen(grubvar->key) + strlen(grubvar->value) + 2;
 		/* +1 for null termination */
-		snprintf(line, llen + 1, "%s=%s\n", grubvar->varname,
+		snprintf(line, llen + 1, "%s=%s\n", grubvar->key,
 						grubvar->value);
 		strncat(buf, line, llen);
 	}
@@ -240,7 +240,7 @@ static inline void grubenv_close(struct grubenv_t *grubenv)
 	struct dict_entry *grubvar;
 
 	LIST_FOREACH(grubvar, &grubenv->vars, next) {
-		dict_remove(&grubenv->vars, grubvar->varname);
+		dict_remove(&grubenv->vars, grubvar->key);
 	}
 }
 
@@ -320,7 +320,7 @@ int bootloader_apply_list(const char *script)
 	if ((ret = grubenv_open(&grubenv)))
 		goto cleanup;
 
-	/* add variables from sw-description into dict list */
+	/* add variables from sw-description into dictionary list */
 	if ((ret = grubenv_parse_script(&grubenv, script)))
 		goto cleanup;
 
