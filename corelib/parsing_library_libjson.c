@@ -51,6 +51,37 @@ void *get_child_json(json_object *e, const char *path)
 	return node;
 }
 
+void iterate_field_json(json_object *e, iterate_callback cb, void *data)
+{
+	json_object *subnode;
+	const char *str;
+	int i;
+
+	if (!cb || json_object_get_type(e) != json_type_object)
+		return;
+
+	json_object_object_foreach(e, key, node) {
+		switch (json_object_get_type(node)) {
+		case json_type_string:
+			str = json_object_get_string(node);
+			cb(key, str, data);
+			break;
+		case json_type_array:
+			for (i = 0; i < json_object_array_length(node); i++) {
+				subnode = json_object_array_get_idx(node, i);
+				if (json_object_get_type(subnode) != json_type_string)
+					continue;
+
+				str = json_object_get_string(subnode);
+				cb(key, str, data);
+			}
+			break;
+		default:
+			break;
+		}
+	}
+}
+
 const char *get_field_string_json(json_object *e, const char *path)
 {
 	const char *str;

@@ -47,6 +47,30 @@ void *get_child_libconfig(void *e, const char *name)
 	return config_setting_get_member(e, name);
 }
 
+void iterate_field_libconfig(config_setting_t *e, iterate_callback cb, void *data)
+{
+	config_setting_t *entry, *elem;
+	const char *str;
+	int i, j;
+
+	if (!cb)
+		return;
+
+	for (i = 0; i < config_setting_length(e); i++) {
+		entry = config_setting_get_elem(e, i);
+		if (!config_setting_length(entry)) {
+			str = config_setting_get_string(entry);
+			cb(entry->name, str, data);
+		} else {
+			for (j = 0; j < config_setting_length(entry); j++) {
+				elem = config_setting_get_elem(entry, j);
+				str = config_setting_get_string(elem);
+				cb(entry->name, str, data);
+			}
+		}
+	}
+}
+
 void get_field_cfg(config_setting_t *e, const char *path, void *dest)
 {
 	config_setting_t *elem;

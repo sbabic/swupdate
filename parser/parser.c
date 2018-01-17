@@ -140,32 +140,27 @@ static void *find_node(parsertype p, void *root, const char *node,
 	return NULL;
 }
 
+static void add_properties_cb(const char *name, const char *value, void *data)
+{
+	struct img_type *image = (struct img_type *)data;
+
+	if (!name || !value)
+		return;
+
+	TRACE("\t\tProperty %s: %s", name, value);
+	if (dict_insert_value(&image->properties, (char *)name, (char *)value))
+		ERROR("Property not stored, skipping...");
+}
+
 static void add_properties(parsertype p, void *node, struct img_type *image)
 {
-
-	void *properties, *prop;
-	int count, i;
+	void *properties;
 
 	properties = get_child(p, node, "properties");
 	if (properties) {
-		count = get_array_length(p, properties);
+		TRACE("Found properties for %s:", image->fname);
 
-		TRACE("Found %d properties for %s:", count, image->fname);
-
-		for (i = 0; i < count; i++) {
-			char key[255];
-			char value[255];
-			prop = get_elem_from_idx(p, properties, i);
-			GET_FIELD_STRING(p, prop, "name", key);
-			GET_FIELD_STRING(p, prop, "value", value);
-			TRACE("\t\tProperty %d: name=%s val=%s ", i,
-				key,
-				value
-			);
-			if (dict_insert_value(&image->properties, key, value))
-				ERROR("Property not stored, skipping...");
-
-		}
+		iterate_field(p, properties, add_properties_cb, image);
 	}
 }
 

@@ -15,6 +15,9 @@ typedef enum {
 	JSON_PARSER
 } parsertype;
 
+typedef void (*iterate_callback)(const char *name, const char *value,
+				 void *data);
+
 #ifdef CONFIG_LIBCONFIG
 #include <libconfig.h>
 #define LIBCONFIG_VERSION ((LIBCONFIG_VER_MAJOR << 16) | \
@@ -26,6 +29,8 @@ typedef enum {
 void get_value_libconfig(const config_setting_t *e, void *dest);
 void get_field_cfg(config_setting_t *e, const char *path, void *dest);
 void *get_child_libconfig(void *e, const char *name);
+void iterate_field_libconfig(config_setting_t *e, iterate_callback cb,
+			     void *data);
 const char *get_field_string_libconfig(config_setting_t *e, const char *path);
 
 #else
@@ -35,6 +40,7 @@ const char *get_field_string_libconfig(config_setting_t *e, const char *path);
 #define find_node_libconfig(cfg, field, swcfg) (NULL)
 #define get_field_string_libconfig(e, path)	(NULL)
 #define get_child_libconfig(e, name)		(NULL)
+#define iterate_field_libconfig(e, cb, data)	{ }
 #define get_field_cfg(e, path, dest)
 #endif
 
@@ -45,6 +51,7 @@ const char *get_field_string_json(json_object *e, const char *path);
 void get_value_json(json_object *e, void *dest);
 void get_field_json(json_object *e, const char *path, void *dest);
 void *get_child_json(json_object *e, const char *name);
+void iterate_field_json(json_object *e, iterate_callback cb, void *data);
 json_object *find_json_recursive_node(json_object *root, const char **names);
 json_object *json_get_key(json_object *json_root, const char *key);
 const char *json_get_value(struct json_object *json_root,
@@ -56,6 +63,7 @@ char *json_get_data_url(json_object *json_root, const char *key);
 #define find_node_json(a, b, c)		(NULL)
 #define get_field_string_json(e, path)  (NULL)
 #define get_child_json(e, name)		(NULL)
+#define iterate_field_json(e, cb, data)	{ }
 #define get_field_json(e, path, dest)
 #define json_object_object_get_ex(a,b,c) (0)
 #define json_object_array_get_idx(a, b)	(0)
@@ -70,6 +78,7 @@ void get_field_string_with_size(parsertype p, void *e, const char *path,
 int get_array_length(parsertype p, void *root);
 void *get_elem_from_idx(parsertype p, void *node, int idx);
 void *get_child(parsertype p, void *node, const char *name);
+void iterate_field(parsertype p, void *e, iterate_callback cb, void *data);
 void get_field(parsertype p, void *e, const char *path, void *dest);
 int exist_field_string(parsertype p, void *e, const char *path);
 void get_hash_value(parsertype p, void *elem, unsigned char *hash);

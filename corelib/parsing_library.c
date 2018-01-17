@@ -62,6 +62,22 @@ void *get_child(parsertype p, void *e, const char *name)
 	return NULL;
 }
 
+void iterate_field(parsertype p, void *e, iterate_callback cb, void *data)
+{
+	switch (p) {
+	case LIBCFG_PARSER:
+		iterate_field_libconfig(e, cb, data);
+		break;
+	case JSON_PARSER:
+		iterate_field_json(e, cb, data);
+		break;
+	default:
+		(void)e;
+		(void)cb;
+		(void)data;
+	}
+}
+
 void *get_elem_from_idx(parsertype p, void *node, int idx)
 {
 	switch (p) {
