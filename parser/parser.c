@@ -301,9 +301,14 @@ static int parse_partitions(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 			ERROR("No memory: malloc failed\n");
 			return -ENOMEM;
 		}
+		if (parse_common_attributes(p, elem, partition) < 0) {
+			free(partition);
+			return -1;
+		}
 		GET_FIELD_STRING(p, elem, "name", partition->volname);
-		GET_FIELD_STRING(p, elem, "device", partition->device);
-		strncpy(partition->type, "ubipartition", sizeof(partition->type));
+
+		if (!strlen(partition->type))
+			strncpy(partition->type, "ubipartition", sizeof(partition->type));
 		partition->is_partitioner = 1;
 
 		partition->provided = 1;
