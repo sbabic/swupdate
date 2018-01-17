@@ -24,6 +24,25 @@ static parser_fn parsers[] = {
 	parse_external
 };
 
+typedef enum {
+	IS_IMAGE_FILE,
+	IS_SCRIPT,
+	IS_PARTITION,
+	IS_UNKNOWN
+} IMGTYPE;
+
+static inline IMGTYPE get_entry_type(struct img_type *img)
+{
+	if (!img->is_script && !img->is_partitioner)
+		return IS_IMAGE_FILE;
+	if (img->is_script)
+		return IS_SCRIPT;
+	if (img->is_partitioner)
+		return IS_PARTITION;
+	return IS_UNKNOWN;
+}
+
+
 #ifndef CONFIG_HASH_VERIFY
 static int check_hash_absent(struct imglist *list)
 {
@@ -89,7 +108,9 @@ static int check_handler(struct img_type *item, unsigned int mask, const char *d
 	return 0;
 }
 
-static int check_handler_list(struct imglist *list, unsigned int allowedmask,
+static int check_handler_list(struct imglist *list,
+				unsigned int allowedmask,
+				IMGTYPE type,
 				const char *desc)
 {
 	struct img_type *item;
@@ -97,6 +118,8 @@ static int check_handler_list(struct imglist *list, unsigned int allowedmask,
 	if (!LIST_EMPTY(list)) {
 		LIST_FOREACH(item, list, next)
 		{
+			if (get_entry_type(item) != type)
+				continue;
 			ret = check_handler(item, allowedmask, desc);
 
 			if (ret < 0)
@@ -129,10 +152,12 @@ int parse(struct swupdate_cfg *sw, const char *descfile)
 		return ret;
 	}
 
-	ret = check_handler_list(&sw->scripts, SCRIPT_HANDLER, "scripts");
-	ret |= check_handler_list(&sw->images, IMAGE_HANDLER | FILE_HANDLER,
+	ret = check_handler_list(&sw->scripts, SCRIPT_HANDLER, IS_SCRIPT, "scripts");
+	ret |= check_handler_list(&sw->images, IMAGE_HANDLER | FILE_HANDLER, IS_IMAGE_FILE,
 					"images / files");
-	ret |= check_handler_list(&sw->bootscripts, BOOTLOADER_HANDLER,
+	ret |= check_handler_list(&sw->images, PARTITION_HANDLER, IS_PARTITION,
+					"partitions");
+	ret |= check_handler_list(&sw->bootscripts, BOOTLOADER_HANDLER, IS_SCRIPT,
 					"bootloader");
 	if (ret)
 		return -EINVAL;
