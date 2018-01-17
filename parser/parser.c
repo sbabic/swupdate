@@ -229,6 +229,51 @@ static int run_embscript(parsertype p, void *elem, struct img_type *img,
 	return lua_parser_fn(L, embfcn, img);
 }
 
+static int parse_common_attributes(parsertype p, void *elem, struct img_type *image)
+{
+	char seek_str[MAX_SEEK_STRING_SIZE];
+	char *endp = NULL;
+
+	/*
+	 * GET_FIELD_STRING does not touch the passed string if it is not
+	 * found, be sure that it is empty
+	 */
+	seek_str[0] = '\0';
+
+	GET_FIELD_STRING(p, elem, "name", image->id.name);
+	GET_FIELD_STRING(p, elem, "version", image->id.version);
+	GET_FIELD_STRING(p, elem, "filename", image->fname);
+	GET_FIELD_STRING(p, elem, "path", image->path);
+	GET_FIELD_STRING(p, elem, "volume", image->volname);
+	GET_FIELD_STRING(p, elem, "device", image->device);
+	GET_FIELD_STRING(p, elem, "mtdname", image->path);
+	GET_FIELD_STRING(p, elem, "filesystem", image->filesystem);
+	GET_FIELD_STRING(p, elem, "type", image->type);
+	GET_FIELD_STRING(p, elem, "offset", seek_str);
+	GET_FIELD_STRING(p, elem, "data", image->type_data);
+	get_hash_value(p, elem, image->sha256);
+
+	/* convert the offset handling multiplicative suffixes */
+	if (strnlen(seek_str, MAX_SEEK_STRING_SIZE) != 0) {
+		errno = 0;
+		image->seek = ustrtoull(seek_str, &endp, 0);
+		if (seek_str == endp || (image->seek == ULLONG_MAX && \
+			errno == ERANGE)) {
+			ERROR("offset argument: ustrtoull failed");
+			return -1;
+		}
+	} else
+		image->seek = 0;
+
+	get_field(p, elem, "compressed", &image->compressed);
+	get_field(p, elem, "installed-directly", &image->install_directly);
+	get_field(p, elem, "preserve-attributes", &image->preserve_attributes);
+	get_field(p, elem, "install-if-different", &image->id.install_if_different);
+	get_field(p, elem, "encrypted", &image->is_encrypted);
+
+	return 0;
+}
+
 static int parse_partitions(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 {
 	void *setting, *elem;
@@ -317,12 +362,10 @@ static int parse_scripts(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 			return -ENOMEM;
 		}
 
-		GET_FIELD_STRING(p, elem, "filename", script->fname);
-		GET_FIELD_STRING(p, elem, "type", script->type);
-		GET_FIELD_STRING(p, elem, "data", script->type_data);
-		get_hash_value(p, elem, script->sha256);
-
-		get_field(p, elem, "encrypted", &script->is_encrypted);
+		if (parse_common_attributes(p, elem, script) < 0) {
+			free(script);
+			return -1;
+		}
 
 		/* Scripts as default call the Lua interpreter */
 		if (!strlen(script->type)) {
@@ -390,12 +433,12 @@ static int parse_bootloader(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 			ERROR( "No memory: malloc failed\n");
 			return -ENOMEM;
 		}
-		GET_FIELD_STRING(p, elem, "filename", script->fname);
-		GET_FIELD_STRING(p, elem, "type", script->type);
-		GET_FIELD_STRING(p, elem, "data", script->type_data);
-		get_hash_value(p, elem, script->sha256);
-		get_field(p, elem, "encrypted", &script->is_encrypted);
-		get_field(p, elem, "compressed", &script->compressed);
+
+		if (parse_common_attributes(p, elem, script) < 0) {
+			free(script);
+			return -1;
+		}
+
 		script->is_script = 1;
 
 		LIST_INSERT_HEAD(&swcfg->bootscripts, script, next);
@@ -412,8 +455,6 @@ static int parse_images(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua
 	void *setting, *elem;
 	int count, i;
 	struct img_type *image;
-	char seek_str[MAX_SEEK_STRING_SIZE];
-	char *endp = NULL;
 
 	setting = find_node(p, cfg, "images", swcfg);
 
@@ -442,35 +483,10 @@ static int parse_images(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua
 			return -ENOMEM;
 		}
 
-		/*
-		 * GET_FIELD_STRING does not touch the passed string if it is not
-		 * found, be sure that it is empty
-		 */
-		seek_str[0] = '\0';
-
-		GET_FIELD_STRING(p, elem, "name", image->id.name);
-		GET_FIELD_STRING(p, elem, "version", image->id.version);
-		GET_FIELD_STRING(p, elem, "filename", image->fname);
-		GET_FIELD_STRING(p, elem, "volume", image->volname);
-		GET_FIELD_STRING(p, elem, "device", image->device);
-		GET_FIELD_STRING(p, elem, "mtdname", image->path);
-		GET_FIELD_STRING(p, elem, "type", image->type);
-		GET_FIELD_STRING(p, elem, "offset", seek_str);
-		GET_FIELD_STRING(p, elem, "data", image->type_data);
-		get_hash_value(p, elem, image->sha256);
-
-		/* convert the offset handling multiplicative suffixes */
-		if (strnlen(seek_str, MAX_SEEK_STRING_SIZE) != 0) {
-			errno = 0;
-			image->seek = ustrtoull(seek_str, &endp, 0);
-			if (seek_str == endp || (image->seek == ULLONG_MAX && \
-					errno == ERANGE)) {
-				ERROR("offset argument: ustrtoull failed");
-				free(image);
-				return -1;
-			}
-		} else
-			image->seek = 0;
+		if (parse_common_attributes(p, elem, image) < 0) {
+			free(image);
+			return -1;
+		}
 
 		/* if the handler is not explicit set, try to find the right one */
 		if (!strlen(image->type)) {
@@ -479,11 +495,6 @@ static int parse_images(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua
 			else if (strlen(image->device))
 				strcpy(image->type, "raw");
 		}
-
-		get_field(p, elem, "compressed", &image->compressed);
-		get_field(p, elem, "installed-directly", &image->install_directly);
-		get_field(p, elem, "install-if-different", &image->id.install_if_different);
-		get_field(p, elem, "encrypted", &image->is_encrypted);
 
 		add_properties(p, elem, image);
 
@@ -546,24 +557,14 @@ static int parse_files(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua_
 			return -ENOMEM;
 		}
 
-		GET_FIELD_STRING(p, elem, "name", file->id.name);
-		GET_FIELD_STRING(p, elem, "version", file->id.version);
-		GET_FIELD_STRING(p, elem, "filename", file->fname);
-		GET_FIELD_STRING(p, elem, "path", file->path);
-		GET_FIELD_STRING(p, elem, "device", file->device);
-		GET_FIELD_STRING(p, elem, "filesystem", file->filesystem);
-		GET_FIELD_STRING(p, elem, "type", file->type);
-		GET_FIELD_STRING(p, elem, "data", file->type_data);
-		get_hash_value(p, elem, file->sha256);
+		if (parse_common_attributes(p, elem, file) < 0) {
+			free(file);
+			return -1;
+		}
 
 		if (!strlen(file->type)) {
 			strcpy(file->type, "rawfile");
 		}
-		get_field(p, elem, "compressed", &file->compressed);
-		get_field(p, elem, "preserve-attributes", &file->preserve_attributes);
-		get_field(p, elem, "installed-directly", &file->install_directly);
-		get_field(p, elem, "install-if-different", &file->id.install_if_different);
-		get_field(p, elem, "encrypted", &file->is_encrypted);
 
 		add_properties(p, elem, file);
 
