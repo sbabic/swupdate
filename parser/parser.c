@@ -629,7 +629,6 @@ static int parser(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 		lua_parser_exit(L);
 
 	if (LIST_EMPTY(&swcfg->images) &&
-	    LIST_EMPTY(&swcfg->partitions) &&
 	    LIST_EMPTY(&swcfg->scripts) &&
 	    LIST_EMPTY(&swcfg->bootloader)) {
 		ERROR("Found nothing to install\n");

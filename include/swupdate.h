@@ -120,7 +120,6 @@ struct swupdate_cfg {
 	struct hwlist hardware;
 	struct swver installed_sw_list;
 	struct imglist images;
-	struct imglist partitions;
 	struct imglist scripts;
 	struct imglist bootscripts;
 	struct dict bootloader;

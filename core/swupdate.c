@@ -425,7 +425,6 @@ static void swupdate_init(struct swupdate_cfg *sw)
 	/* Initialize internal tree to store configuration */
 	memset(sw, 0, sizeof(*sw));
 	LIST_INIT(&sw->images);
-	LIST_INIT(&sw->partitions);
 	LIST_INIT(&sw->hardware);
 	LIST_INIT(&sw->scripts);
 	LIST_INIT(&sw->bootloader);
