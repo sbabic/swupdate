@@ -429,6 +429,8 @@ static int l_istream_read(lua_State* L)
 static void update_table(lua_State* L, struct img_type *img)
 {
 	if (L && img) {
+		struct dict_entry *property;
+
 		luaL_checktype(L, -1, LUA_TTABLE);
 
 		LUA_PUSH_IMG_STRING(img, "name", id.name);
@@ -452,6 +454,28 @@ static void update_table(lua_State* L, struct img_type *img)
 		LUA_PUSH_IMG_NUMBER(img, "offset", seek);
 		LUA_PUSH_IMG_NUMBER(img, "size", size);
 		LUA_PUSH_IMG_NUMBER(img, "checksum", checksum);
+
+		lua_pushstring(L, "properties");
+		lua_newtable (L);
+		LIST_FOREACH(property, &img->properties, next) {
+			struct dict_list_elem *elem = LIST_FIRST(&property->list);
+
+			lua_pushstring(L, dict_entry_get_key(property));
+			if (LIST_NEXT(elem, next) == LIST_END(&property->list)) {
+				lua_pushstring(L, elem->value);
+			} else {
+				int i = 1;
+
+				lua_newtable (L);
+				LIST_FOREACH(elem, &property->list, next) {
+					lua_pushnumber(L, i++);
+					lua_pushstring(L, elem->value);
+					lua_settable(L, -3);
+				}
+			}
+			lua_settable(L, -3);
+		}
+		lua_settable(L, -3);
 
 #ifdef CONFIG_HANDLER_IN_LUA
 		if (is_type(L, LUA_TYPE_HANDLER)) {
