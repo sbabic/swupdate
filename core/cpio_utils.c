@@ -60,7 +60,8 @@ int fill_buffer(int fd, unsigned char *buf, unsigned int nbytes, unsigned long *
 				*checksum += buf[i];
 
 		if (dgst) {
-			swupdate_HASH_update(dgst, buf, len);
+			if (swupdate_HASH_update(dgst, buf, len) < 0)
+				return -EFAULT;
 		}
 		buf += len;
 		count += len;
@@ -241,7 +242,11 @@ int copyfile(int fdin, void *out, unsigned int nbytes, unsigned long *offs, unsi
 
 
 	if (IsValidHash(hash)) {
-		swupdate_HASH_final(dgst, md_value, &md_len);
+		if (swupdate_HASH_final(dgst, md_value, &md_len) < 0) {
+			ret = -EFAULT;
+			goto copyfile_exit;
+		}
+
 
 		/*
 		 * Now check if the computed hash is equal
