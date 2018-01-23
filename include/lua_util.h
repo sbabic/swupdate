@@ -17,7 +17,7 @@
 
 void LUAstackDump (lua_State *L);
 int run_lua_script(const char *script, const char *function, char *parms);
-lua_State *lua_parser_init(const char *buf);
+lua_State *lua_parser_init(const char *buf, struct dict *bootenv);
 int lua_parser_fn(lua_State *L, const char *fcn, struct img_type *img);
 int lua_handlers_init(void);
 #define lua_parser_exit(L) lua_close((lua_State *)L)
@@ -63,7 +63,8 @@ void luaL_pushresult(luaL_Buffer_52 *B);
 
 #define lua_State void
 #define lua_parser_exit(L)
-static inline lua_State *lua_parser_init(const char __attribute__ ((__unused__)) *buf) { return NULL;}
+static inline lua_State *lua_parser_init(const char __attribute__ ((__unused__)) *buf,
+					 struct dict __attribute__ ((__unused__)) *bootenv) { return NULL;}
 static inline int lua_parser_fn(lua_State __attribute__ ((__unused__)) *L,
 			 const char __attribute__ ((__unused__)) *fcn,
 			 struct img_type __attribute__ ((__unused__)) *img) { return -1; }

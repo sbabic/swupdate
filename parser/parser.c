@@ -610,7 +610,7 @@ static int parser(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 
 	if (swcfg->embscript) {
 		TRACE("Found Lua Software:\n%s\n", swcfg->embscript);
-		L = lua_parser_init(swcfg->embscript);
+		L = lua_parser_init(swcfg->embscript, &swcfg->bootloader);
 		if (!L) {
 			ERROR("Required embedded script that cannot be loaded");
 			return -1;

@@ -16,6 +16,7 @@
 #include "lua_util.h"
 #include "util.h"
 #include "handler.h"
+#include "bootloader.h"
 
 #define LUA_TYPE_PEMBSCR 1
 #define LUA_TYPE_HANDLER 2
@@ -648,6 +649,36 @@ static int l_info(lua_State *L) {
 	return 0;
 }
 
+static int l_get_bootenv(lua_State *L) {
+	const char *name = luaL_checkstring(L, 1);
+	char *value = NULL;
+
+	if (strlen(name))
+		value = bootloader_env_get(name);
+	lua_pop(L, 1);
+
+	lua_pushstring(L, value);
+	free(value);
+
+	return 1;
+}
+
+static int l_set_bootenv(lua_State *L) {
+	struct dict *bootenv = (struct dict *)lua_touserdata(L, lua_upvalueindex(1));
+	const char *name = luaL_checkstring(L, 1);
+	const char *value = luaL_checkstring(L, 2);
+
+	if (strlen(name)) {
+		if (strlen(value))
+			dict_set_value(bootenv, name, value);
+		else
+			dict_remove(bootenv, name);
+	}
+	lua_pop(L, 2);
+
+	return 0;
+}
+
 #ifdef CONFIG_HANDLER_IN_LUA
 static int l_get_tmpdir(lua_State *L)
 {
@@ -664,6 +695,12 @@ static const luaL_Reg l_swupdate[] = {
         { "error", l_error },
         { "trace", l_trace },
         { "info", l_info },
+        { NULL, NULL }
+};
+
+static const luaL_Reg l_swupdate_bootenv[] = {
+        { "get_bootenv", l_get_bootenv },
+        { "set_bootenv", l_set_bootenv },
         { NULL, NULL }
 };
 
@@ -911,17 +948,21 @@ int lua_handlers_init(void)
 int lua_handlers_init(void) {return 0;}
 #endif
 
-lua_State *lua_parser_init(const char *buf)
+lua_State *lua_parser_init(const char *buf, struct dict *bootenv)
 {
 	lua_State *L = luaL_newstate(); /* opens Lua */
 
 	if (!L)
 		return NULL;
+
 	lua_pushlightuserdata(L, (void*)LUA_TYPE_PEMBSCR);
 	lua_setglobal(L, "SWUPDATE_LUA_TYPE"); /* prime L as LUA_TYPE_PEMBSCR */
 	luaL_openlibs(L); /* opens the standard libraries */
 	luaL_requiref(L, "swupdate", luaopen_swupdate, 1 );
+	lua_pushlightuserdata(L, (void *)bootenv);
+	luaL_setfuncs(L, l_swupdate_bootenv, 1);
 	lua_pop(L, 1); /* remove unused copy left on stack */
+
 	if (luaL_loadstring(L, buf) || lua_pcall(L, 0, 0, 0)) {
 		LUAstackDump(L);
 		ERROR("ERROR preparing Lua embedded script in parser");
