@@ -54,7 +54,6 @@ config UBIVIDOFFSET
 	  if your NAND driver incorrectly reports that it can handle
 	  sub-page accesses when it should not.
 
-
 config CFI
 	bool "cfi"
 	depends on MTD
@@ -164,8 +163,8 @@ comment "remote handler needs zeromq"
 config SWUFORWARDER_HANDLER
 	bool "SWU forwarder"
 	depends on HAVE_LIBCURL
-	select CURL
-	select JSON
+	depends on HAVE_JSON_C
+	select CHANNEL_CURL
 	default n
 	help
 	  This allows to build a chain of updater. A
@@ -173,6 +172,9 @@ config SWUFORWARDER_HANDLER
 	  The handler takes a list of URLs and forward the
 	  embedded SWU to the other devices using the
 	  Webserver REST API.
+
+comment "swuforward handler needs json-c and curl"
+	depends on !HAVE_JSON_C || !HAVE_LIBCURL
 
 comment "SWU forwarder requires libcurl"
 	depends on !HAVE_LIBCURL

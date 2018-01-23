@@ -294,6 +294,13 @@ config DOWNLOAD
 comment "Image downloading support needs libcurl"
 	depends on !HAVE_LIBCURL
 
+config CHANNEL_CURL
+	bool
+	depends on HAVE_LIBCURL
+	depends on HAVE_JSON_C
+	select CURL
+	select JSON
+
 config HASH_VERIFY
 	bool "Allow to add sha256 hash to each image"
 	depends on HAVE_LIBSSL
