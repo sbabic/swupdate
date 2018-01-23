@@ -516,10 +516,10 @@ static int parse_images(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua
 
 		LIST_INSERT_HEAD(&swcfg->images, image, next);
 
-		TRACE("Found %sImage %s %s: %s in %s : %s for handler %s%s %s\n",
+		TRACE("Found %sImage%s%s%s%s: %s in %s : %s for handler %s%s%s\n",
 			image->compressed ? "compressed " : "",
-			image->id.name,
-			image->id.version,
+			strlen(image->id.name) ? " " : "", image->id.name,
+			strlen(image->id.version) ? " " : "", image->id.version,
 			image->fname,
 			strlen(image->volname) ? "volume" : "device",
 			strlen(image->volname) ? image->volname :
@@ -585,15 +585,15 @@ static int parse_files(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua_
 
 		LIST_INSERT_HEAD(&swcfg->images, file, next);
 
-		TRACE("Found %sFile %s %s: %s --> %s (%s) %s\n",
+		TRACE("Found %sFile%s%s%s%s: %s --> %s (%s)%s\n",
 			file->compressed ? "compressed " : "",
-			file->id.name,
-			file->id.version,
+			strlen(file->id.name) ? " " : "", file->id.name,
+			strlen(file->id.version) ? " " : "", file->id.version,
 			file->fname,
 			file->path,
 			strlen(file->device) ? file->device : "ROOTFS",
 			(strlen(file->id.name) && file->id.install_if_different) ?
-					"Version must be checked" : "");
+					"; Version must be checked" : "");
 	}
 
 	return 0;
