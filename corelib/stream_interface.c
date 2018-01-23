@@ -179,8 +179,6 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 
 			for (unsigned int i = 0; i < ARRAY_SIZE(list); i++) {
 				skip = check_if_required(list[i], &fdh,
-						(list[i] == &software->images) ?
-							&software->installed_sw_list : NULL,
 						get_tmpdir(),
 						&img);
 

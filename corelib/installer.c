@@ -32,34 +32,6 @@
 #include "bootloader.h"
 #include "progress.h"
 
-static int isImageInstalled(struct swver *sw_ver_list,
-				struct img_type *img)
-{
-	struct sw_version *swver;
-
-	if (!sw_ver_list)
-		return false;
-
-	if (!strlen(img->id.name) || !strlen(img->id.version) ||
-		!img->id.install_if_different)
-		return false;
-
-	LIST_FOREACH(swver, sw_ver_list, next) {
-		/*
-		 * Check if name and version are identical
-		 */
-		if (!strncmp(img->id.name, swver->name, sizeof(img->id.name)) &&
-		    !strncmp(img->id.version, swver->version, sizeof(img->id.version))) {
-			TRACE("%s(%s) already installed, skipping...",
-				img->id.name,
-				img->id.version);
-			return true;
-		}
-	}
-
-	return false;
-}
-
 /*
  * function returns:
  * 0 = do not skip the file, it must be installed
@@ -68,7 +40,6 @@ static int isImageInstalled(struct swver *sw_ver_list,
  * -1= error found
  */
 int check_if_required(struct imglist *list, struct filehdr *pfdh,
-				struct swver *sw_ver_list,
 				const char *destdir,
 				struct img_type **pimg)
 {
@@ -82,20 +53,6 @@ int check_if_required(struct imglist *list, struct filehdr *pfdh,
 
 	LIST_FOREACH(img, list, next) {
 		if (strcmp(pfdh->filename, img->fname) == 0) {
-
-			/*
-			 * Check the version. If this artifact is
-			 * installed in the same version on the system,
-			 * skip it
-			 */
-			if (isImageInstalled(sw_ver_list, img)) {
-				/*
-				 *  drop this from the list of images to be installed
-				 */
-				LIST_REMOVE(img, next);
-				continue;
-			}
-
 			skip = COPY_FILE;
 			img->provided = 1;
 			img->size = (unsigned int)pfdh->size;
@@ -362,13 +319,6 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 			img->size = fdh.size;
 			img->checksum = fdh.chksum;
 			img->fdin = fdsw;
-
-			/*
-			 * Skip if the image in the same version is already
-			 * installed
-			 */
-			if (isImageInstalled(&sw->installed_sw_list, img))
-				continue;
 		}
 
 		if ((strlen(img->path) > 0) &&

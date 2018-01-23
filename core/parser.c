@@ -130,6 +130,51 @@ static int check_handler_list(struct imglist *list,
 	return 0;
 }
 
+static int is_image_installed(struct swver *sw_ver_list,
+				struct img_type *img)
+{
+	struct sw_version *swver;
+
+	if (!sw_ver_list)
+		return false;
+
+	if (!strlen(img->id.name) || !strlen(img->id.version) ||
+		!img->id.install_if_different)
+		return false;
+
+	LIST_FOREACH(swver, sw_ver_list, next) {
+		/*
+		 * Check if name and version are identical
+		 */
+		if (!strncmp(img->id.name, swver->name, sizeof(img->id.name)) &&
+		    !strncmp(img->id.version, swver->version, sizeof(img->id.version))) {
+			TRACE("%s(%s) already installed, skipping...",
+				img->id.name,
+				img->id.version);
+
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/*
+ * Remove the image if the same version is already installed
+ */
+static void remove_installed_image_list(struct imglist *img_list,
+				struct swver *sw_ver_list)
+{
+	struct img_type *img;
+
+	LIST_FOREACH(img, img_list, next) {
+		if (is_image_installed(sw_ver_list, img)) {
+			LIST_REMOVE(img, next);
+			free(img);
+		}
+	}
+}
+
 int parse(struct swupdate_cfg *sw, const char *descfile)
 {
 	int ret = -1;
@@ -203,6 +248,8 @@ int parse(struct swupdate_cfg *sw, const char *descfile)
 		ret = -EINVAL;
 #endif
 #endif
+
+	remove_installed_image_list(&sw->images, &sw->installed_sw_list);
 
 	/*
 	 * Compute the total number of installer
