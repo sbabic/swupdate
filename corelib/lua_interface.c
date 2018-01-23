@@ -990,16 +990,20 @@ int lua_parser_fn(lua_State *L, const char *fcn, struct img_type *img)
 	 */
 	image2table(L, img);
 
-	if (lua_pcall(L, 1, 2, 0)) {
+	ret = lua_pcall(L, 1, 2, 0);
+	if (ret || !lua_isboolean(L, -2)) {
 		LUAstackDump(L);
 		ERROR("ERROR Calling Lua %s", fcn);
 		return -1;
 	}
 
-	if (lua_type(L, -2) == LUA_TBOOLEAN)
-		ret = lua_toboolean(L, -2) ? 0 : 1;
-
 	LUAstackDump(L);
+
+	ret = lua_toboolean(L, -2) ? 0 : -1;
+
+	/* Return 1 to indicate a missing (skipped) image */
+	if (!ret && !lua_toboolean(L, -1))
+		ret = 1;
 
 	table2image(L, img);
 

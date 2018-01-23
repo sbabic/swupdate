@@ -770,7 +770,7 @@ Attributes can be changed in the Lua script and values are taken over on return.
 The Lua function must return 2 values:
 
         - a boolean, to indicate whether the parsing was correct
-        - the image table
+        - the image table or nil to indicate that the image should be skipped
 
 Example:
 

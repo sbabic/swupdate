@@ -333,7 +333,7 @@ static int parse_partitions(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 static int parse_scripts(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua_State *L)
 {
 	void *setting, *elem;
-	int count, i;
+	int count, i, skip;
 	struct img_type *script;
 
 	setting = find_node(p, cfg, "scripts", swcfg);
@@ -379,15 +379,22 @@ static int parse_scripts(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lu
 
 		add_properties(p, elem, script);
 
-		if (run_embscript(p, elem, script, L, swcfg->embscript)) {
+		skip = run_embscript(p, elem, script, L, swcfg->embscript);
+		if (skip < 0) {
 			free_image(script);
 			return -1;
 		}
 
-		LIST_INSERT_HEAD(&swcfg->scripts, script, next);
-
-		TRACE("Found Script: %s\n",
+		TRACE("%s Script: %s\n",
+			skip ? "Skip" : "Found",
 			script->fname);
+
+		if (skip) {
+			free_image(script);
+			continue;
+		}
+
+		LIST_INSERT_HEAD(&swcfg->scripts, script, next);
 	}
 	return 0;
 }
@@ -464,7 +471,7 @@ static int parse_bootloader(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 static int parse_images(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua_State *L)
 {
 	void *setting, *elem;
-	int count, i;
+	int count, i, skip;
 	struct img_type *image;
 
 	setting = find_node(p, cfg, "images", swcfg);
@@ -509,14 +516,14 @@ static int parse_images(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua
 
 		add_properties(p, elem, image);
 
-		if (run_embscript(p, elem, image, L, swcfg->embscript)) {
+		skip = run_embscript(p, elem, image, L, swcfg->embscript);
+		if (skip < 0) {
 			free_image(image);
 			return -1;
 		}
 
-		LIST_INSERT_HEAD(&swcfg->images, image, next);
-
-		TRACE("Found %sImage%s%s%s%s: %s in %s : %s for handler %s%s%s\n",
+		TRACE("%s %sImage%s%s%s%s: %s in %s : %s for handler %s%s%s\n",
+			skip ? "Skip" : "Found",
 			image->compressed ? "compressed " : "",
 			strlen(image->id.name) ? " " : "", image->id.name,
 			strlen(image->id.version) ? " " : "", image->id.version,
@@ -529,6 +536,13 @@ static int parse_images(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua
 			(strlen(image->id.name) && image->id.install_if_different) ?
 					"Version must be checked" : ""
 			);
+
+		if (skip) {
+			free_image(image);
+			continue;
+		}
+
+		LIST_INSERT_HEAD(&swcfg->images, image, next);
 	}
 
 	return 0;
@@ -537,7 +551,7 @@ static int parse_images(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua
 static int parse_files(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua_State *L)
 {
 	void *setting, *elem;
-	int count, i;
+	int count, i, skip;
 	struct img_type *file;
 
 	setting = find_node(p, cfg, "files", swcfg);
@@ -578,14 +592,14 @@ static int parse_files(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua_
 
 		add_properties(p, elem, file);
 
-		if (run_embscript(p, elem, file, L, swcfg->embscript)) {
+		skip = run_embscript(p, elem, file, L, swcfg->embscript);
+		if (skip < 0) {
 			free_image(file);
 			return -1;
 		}
 
-		LIST_INSERT_HEAD(&swcfg->images, file, next);
-
-		TRACE("Found %sFile%s%s%s%s: %s --> %s (%s)%s\n",
+		TRACE("%s %sFile%s%s%s%s: %s --> %s (%s)%s\n",
+			skip ? "Skip" : "Found",
 			file->compressed ? "compressed " : "",
 			strlen(file->id.name) ? " " : "", file->id.name,
 			strlen(file->id.version) ? " " : "", file->id.version,
@@ -594,6 +608,13 @@ static int parse_files(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua_
 			strlen(file->device) ? file->device : "ROOTFS",
 			(strlen(file->id.name) && file->id.install_if_different) ?
 					"; Version must be checked" : "");
+
+		if (skip) {
+			free_image(file);
+			continue;
+		}
+
+		LIST_INSERT_HEAD(&swcfg->images, file, next);
 	}
 
 	return 0;
