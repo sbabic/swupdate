@@ -330,7 +330,7 @@ static int parse_partitions(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 	return 0;
 }
 
-static int parse_scripts(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
+static int parse_scripts(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua_State *L)
 {
 	void *setting, *elem;
 	int count, i;
@@ -376,6 +376,13 @@ static int parse_scripts(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 			strcpy(script->type, "lua");
 		}
 		script->is_script = 1;
+
+		add_properties(p, elem, script);
+
+		if (run_embscript(p, elem, script, L, swcfg->embscript)) {
+			free_image(script);
+			return -1;
+		}
 
 		LIST_INSERT_HEAD(&swcfg->scripts, script, next);
 
@@ -619,7 +626,7 @@ static int parser(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 	ret = parse_hw_compatibility(p, cfg, swcfg) ||
 		parse_files(p, cfg, swcfg, L) ||
 		parse_images(p, cfg, swcfg, L) ||
-		parse_scripts(p, cfg, swcfg) ||
+		parse_scripts(p, cfg, swcfg, L) ||
 		parse_bootloader(p, cfg, swcfg);
 
 	/*
