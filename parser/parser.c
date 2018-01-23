@@ -225,7 +225,6 @@ static int run_embscript(parsertype p, void *elem, struct img_type *img,
 	if (!exist_field_string(p, elem, "hook"))
 		return 0;
 	embfcn = get_field_string(p, elem, "hook");
-
 	return lua_parser_fn(L, embfcn, img);
 }
 
@@ -302,7 +301,7 @@ static int parse_partitions(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 			return -ENOMEM;
 		}
 		if (parse_common_attributes(p, elem, partition) < 0) {
-			free(partition);
+			free_image(partition);
 			return -1;
 		}
 		GET_FIELD_STRING(p, elem, "name", partition->volname);
@@ -315,7 +314,7 @@ static int parse_partitions(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 
 		if (!strlen(partition->volname) || !strlen(partition->device)) {
 			ERROR("Partition incompleted in description file");
-			free(partition);
+			free_image(partition);
 			return -1;
 		}
 
@@ -368,7 +367,7 @@ static int parse_scripts(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 		}
 
 		if (parse_common_attributes(p, elem, script) < 0) {
-			free(script);
+			free_image(script);
 			return -1;
 		}
 
@@ -440,7 +439,7 @@ static int parse_bootloader(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 		}
 
 		if (parse_common_attributes(p, elem, script) < 0) {
-			free(script);
+			free_image(script);
 			return -1;
 		}
 
@@ -489,7 +488,7 @@ static int parse_images(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua
 		}
 
 		if (parse_common_attributes(p, elem, image) < 0) {
-			free(image);
+			free_image(image);
 			return -1;
 		}
 
@@ -504,8 +503,7 @@ static int parse_images(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua
 		add_properties(p, elem, image);
 
 		if (run_embscript(p, elem, image, L, swcfg->embscript)) {
-			dict_drop_db(&image->properties);
-			free(image);
+			free_image(image);
 			return -1;
 		}
 
@@ -563,7 +561,7 @@ static int parse_files(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua_
 		}
 
 		if (parse_common_attributes(p, elem, file) < 0) {
-			free(file);
+			free_image(file);
 			return -1;
 		}
 
@@ -574,8 +572,7 @@ static int parse_files(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua_
 		add_properties(p, elem, file);
 
 		if (run_embscript(p, elem, file, L, swcfg->embscript)) {
-			dict_drop_db(&file->properties);
-			free(file);
+			free_image(file);
 			return -1;
 		}
 

@@ -335,7 +335,7 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 					break;
 				}
 			}
-			free(img);
+			free_image(img);
 			ret = 0;
 		} else {
 			ret = install_single_image(img);
@@ -386,7 +386,11 @@ static void cleaup_img_entry(struct img_type *img)
 			}
 		}
 	}
+}
+
+void free_image(struct img_type *img) {
 	dict_drop_db(&img->properties);
+	free(img);
 }
 
 void cleanup_files(struct swupdate_cfg *software) {
@@ -405,7 +409,7 @@ void cleanup_files(struct swupdate_cfg *software) {
 			remove_sw_file(fn);
 		}
 		LIST_REMOVE(img, next);
-		free(img);
+		free_image(img);
 	}
 
 	for (unsigned int count = 0; count < ARRAY_SIZE(list); count++) {
@@ -413,7 +417,7 @@ void cleanup_files(struct swupdate_cfg *software) {
 			cleaup_img_entry(img);
 
 			LIST_REMOVE(img, next);
-			free(img);
+			free_image(img);
 		}
 	}
 

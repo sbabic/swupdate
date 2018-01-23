@@ -170,7 +170,7 @@ static void remove_installed_image_list(struct imglist *img_list,
 	LIST_FOREACH(img, img_list, next) {
 		if (is_image_installed(sw_ver_list, img)) {
 			LIST_REMOVE(img, next);
-			free(img);
+			free_image(img);
 		}
 	}
 }
