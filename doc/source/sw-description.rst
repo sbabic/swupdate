@@ -344,7 +344,7 @@ To update an image in raw mode, the syntax is:
 			device = "/dev/mmcblk0p1";
 		}
 
-To flash am image at a specific offset, the syntax is:
+To flash an image at a specific offset, the syntax is:
 
 
 ::
