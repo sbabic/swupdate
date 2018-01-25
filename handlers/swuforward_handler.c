@@ -295,6 +295,7 @@ static int install_remote_swu(struct img_type *img,
 	struct dict_list_elem *url;
 	struct curl_slist *headerlist;
 	CURLMsg *msg = NULL;
+	struct dict_list *urls;
 
 	/*
 	 * A single SWU can contains encrypted artifacts,
@@ -304,6 +305,16 @@ static int install_remote_swu(struct img_type *img,
 
 	if (img->is_encrypted) {
 		ERROR("SWU to be forwarded cannot be encrypted");
+		return -EINVAL;
+	}
+
+	/*
+	 * Check if there is a list of URLs where to forward
+	 * the SWU
+	 */
+	urls = dict_get_list(&img->properties, "url");
+	if (!urls) {
+		ERROR("SWU to be forwarded, but not remote URLs found ");
 		return -EINVAL;
 	}
 
@@ -320,7 +331,7 @@ static int install_remote_swu(struct img_type *img,
 	priv.maxwaitms = MAX_WAIT_MS;
 	priv.size = img->size;
 
-	LIST_FOREACH(url, dict_get_list(&img->properties, "url"), next) {
+	LIST_FOREACH(url, urls, next) {
 		char curlheader[SWUPDATE_GENERAL_STRING_SIZE + strlen(CUSTOM_HEADER)];
 
 		conn = (struct curlconn *)calloc(1, sizeof(struct curlconn));
