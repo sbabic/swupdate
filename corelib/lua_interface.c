@@ -10,6 +10,8 @@
 #include <unistd.h>
 #include <stdbool.h>
 #include <errno.h>
+#include <sys/mount.h>
+
 #include "lua.h"
 #include "lauxlib.h"
 #include "lualib.h"
@@ -649,6 +651,72 @@ static int l_info(lua_State *L) {
 	return 0;
 }
 
+static int l_mount(lua_State *L) {
+	const char *device = luaL_checkstring(L, 1);
+	const char *filesystem = luaL_checkstring(L, 2);
+	char *target;
+
+	if (!device || !strlen(device) || !filesystem || !strlen(filesystem))
+		goto l_mount_exit;
+
+	if (asprintf(&target, "%s%sXXXXXX", get_tmpdir(), DATADST_DIR_SUFFIX) == -1) {
+		TRACE("Unable to allocate memory\n");
+		goto l_mount_exit;
+	}
+
+	if (!mkdtemp(target)) {
+		TRACE("Unable to create a unique temporary directory %s: %s\n",
+			target, strerror(errno));
+		goto l_mount_free_exit;
+	}
+
+	if (mount(device, target, filesystem, 0, NULL) == -1) {
+		TRACE("Device %s with filesystem %s cannot be mounted: %s",
+			device, filesystem, strerror(errno));
+		goto l_mount_rmdir_exit;
+	}
+
+	lua_pop(L, 2);
+	lua_pushstring(L, target);
+
+	free(target);
+
+	return 1;
+
+l_mount_rmdir_exit:
+	rmdir(target);
+l_mount_free_exit:
+	free(target);
+l_mount_exit:
+	lua_pop(L, 2);
+	lua_pushnil(L);
+	return 1;
+}
+
+static int l_umount(lua_State *L) {
+	const char *target = luaL_checkstring(L, 1);
+
+	if (umount(target) == -1) {
+		TRACE("Unable to unmount %s: %s\n", target, strerror(errno));
+		goto l_umount_exit;
+	}
+
+	if (rmdir(target) == -1) {
+		TRACE("Unable to remove directory %s: %s\n", target, strerror(errno));
+		goto l_umount_exit;
+	}
+
+	lua_pop(L, 1);
+	lua_pushboolean(L, true);
+
+	return 1;
+
+l_umount_exit:
+	lua_pop(L, 1);
+	lua_pushnil(L);
+	return 1;
+}
+
 static int l_get_bootenv(lua_State *L) {
 	const char *name = luaL_checkstring(L, 1);
 	char *value = NULL;
@@ -691,6 +759,8 @@ static const luaL_Reg l_swupdate[] = {
         { "error", l_error },
         { "trace", l_trace },
         { "info", l_info },
+        { "mount", l_mount },
+        { "umount", l_umount },
         { NULL, NULL }
 };
 
