@@ -115,7 +115,6 @@ static void psplash_write_fifo(char *pipe, char *buf)
 		return;
 	}
 
-	buf[strlen(buf)] = '\0';
 	ret = write(psplash_pipe_fd, buf, strlen(buf) + 1);
 	if (ret < 0) {
 		fprintf(stderr, "PSPLASH not available anymore");
