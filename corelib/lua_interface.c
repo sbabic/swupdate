@@ -612,7 +612,7 @@ static int l_notify (lua_State *L) {
 	lua_Number error  =  luaL_checknumber (L, 2);
 	const char *msg   =  luaL_checkstring (L, 3);
 
-	if (strlen(msg))
+	if (msg && strlen(msg))
 		notify((RECOVERY_STATUS)status, (int)error, INFOLEVEL, msg);
 
 	lua_pop(L, 3);
@@ -622,7 +622,7 @@ static int l_notify (lua_State *L) {
 static int l_trace(lua_State *L) {
 	const char *msg = luaL_checkstring (L, 1);
 
-	if (strlen(msg))
+	if (msg && strlen(msg))
 		TRACE("%s", msg);
 
 	lua_pop(L, 1);
@@ -632,7 +632,7 @@ static int l_trace(lua_State *L) {
 static int l_error(lua_State *L) {
 	const char *msg = luaL_checkstring (L, 1);
 
-	if (strlen(msg))
+	if (msg && strlen(msg))
 		ERROR("%s", msg);
 
 	lua_pop(L, 1);
@@ -642,7 +642,7 @@ static int l_error(lua_State *L) {
 static int l_info(lua_State *L) {
 	const char *msg = luaL_checkstring (L, 1);
 
-	if (strlen(msg))
+	if (msg && strlen(msg))
 		INFO("%s", msg);
 
 	lua_pop(L, 1);
@@ -653,7 +653,7 @@ static int l_get_bootenv(lua_State *L) {
 	const char *name = luaL_checkstring(L, 1);
 	char *value = NULL;
 
-	if (strlen(name))
+	if (name && strlen(name))
 		value = bootloader_env_get(name);
 	lua_pop(L, 1);
 
@@ -668,8 +668,8 @@ static int l_set_bootenv(lua_State *L) {
 	const char *name = luaL_checkstring(L, 1);
 	const char *value = luaL_checkstring(L, 2);
 
-	if (strlen(name))
-		dict_set_value(bootenv, name, value);
+	if (name && strlen(name))
+		dict_set_value(bootenv, name, value ? value : "");
 	lua_pop(L, 2);
 
 	return 0;
