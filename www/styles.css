@@ -111,9 +111,8 @@ pre
 #headcontent
 {
   background:url(/head_bg.gif) no-repeat right center;
-  border-right: 20px solid #003399;
-  height:62px;
-  margin:0;
+  height:100px;
+  margin:20;
   width:100%;
   position: relative;
 }
