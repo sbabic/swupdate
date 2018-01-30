@@ -167,6 +167,17 @@ to me quite old and it could be really improved. Some ideas:
   check what is wrong during an update - but I have not thought to let it on for
   the end products. They should be at least activated in some conditions, not always.
 
+Test and Continuos Integration
+==============================
+
+The number of configurations and features in SWUpdate is steadily increasing and
+it becomes urgent to find a way to test all incoming patch to fix regression issues.
+One step in this direction is the support for Travis build - a set of configuration
+files is stored with the project and should help to find fast breakages in the build.
+More in this direction must be done to perform test on targets. A suitable test framework
+should be found. Scope is to have a "SWUpdate factory" where patches are fast integrated
+and tested on real hardware.
+
 Documentation
 =============
 

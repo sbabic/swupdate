@@ -84,6 +84,7 @@
             
                 <ul>
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Software Management on embedded systems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="licensing.html">License</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="swupdate.html">SWUpdate: software update for embedded system</a></li>
@@ -120,6 +121,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#webserver-interface">Webserver / Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#test-and-continuos-integration">Test and Continuos Integration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#documentation">Documentation</a></li>
 </ul>
 </li>
@@ -319,6 +321,16 @@ same graphic and just replacing the Logo. I think it could be really better as n
 check what is wrong during an update - but I have not thought to let it on for
 the end products. They should be at least activated in some conditions, not always.</li>
 </ul>
+</div>
+<div class="section" id="test-and-continuos-integration">
+<h2>Test and Continuos Integration<a class="headerlink" href="#test-and-continuos-integration" title="Permalink to this headline">¶</a></h2>
+<p>The number of configurations and features in SWUpdate is steadily increasing and
+it becomes urgent to find a way to test all incoming patch to fix regression issues.
+One step in this direction is the support for Travis build - a set of configuration
+files is stored with the project and should help to find fast breakages in the build.
+More in this direction must be done to perform test on targets. A suitable test framework
+should be found. Scope is to have a &#8220;SWUpdate factory&#8221; where patches are fast integrated
+and tested on real hardware.</p>
 </div>
 <div class="section" id="documentation">
 <h2>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h2>

@@ -16,6 +16,7 @@ Sources are hosted at https://github.com/sbabic/swupdate
    :maxdepth: 2
 
    overview.rst
+   licensing.rst
 
 ############################################
 SWUpdate Documentation

@@ -85,6 +85,7 @@
             
                 <ul>
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Software Management on embedded systems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="licensing.html">License</a></li>
 </ul>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="swupdate.html">SWUpdate: software update for embedded system</a></li>
@@ -473,7 +474,7 @@ the raw handler is automatically selected.</p>
 }
 </pre></div>
 </div>
-<p>To flash am image at a specific offset, the syntax is:</p>
+<p>To flash an image at a specific offset, the syntax is:</p>
 <div class="highlight-python"><div class="highlight"><pre>{
         filename = &quot;u-boot.bin&quot;;
         device = &quot;/dev/mmcblk0p1&quot;;
@@ -825,7 +826,7 @@ The Lua function must return 2 values:</p>
 <blockquote>
 <div><ul class="simple">
 <li>a boolean, to indicate whether the parsing was correct</li>
-<li>the image table</li>
+<li>the image table or nil to indicate that the image should be skipped</li>
 </ul>
 </div></blockquote>
 <p>Example:</p>

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>SWUpdate: API for external programs &mdash; Embedded Software Update Documentation 2017.11 documentation</title>
+  <title>License &mdash; Embedded Software Update Documentation 2017.11 documentation</title>
   
 
   
@@ -33,8 +33,8 @@
 
   
     <link rel="top" title="Embedded Software Update Documentation 2017.11 documentation" href="index.html"/>
-        <link rel="next" title="Getting information on running update" href="progress.html"/>
-        <link rel="prev" title="Suricatta daemon mode" href="suricatta.html"/> 
+        <link rel="next" title="SWUpdate: software update for embedded system" href="swupdate.html"/>
+        <link rel="prev" title="Software Management on embedded systems" href="overview.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -83,23 +83,18 @@
           
             
             
-                <ul>
+                <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Software Management on embedded systems</a></li>
-<li class="toctree-l1"><a class="reference internal" href="licensing.html">License</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">License</a></li>
 </ul>
-<ul class="current">
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="swupdate.html">SWUpdate: software update for embedded system</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sw-description.html">SWUpdate: syntax and tags with the default parser</a></li>
 <li class="toctree-l1"><a class="reference internal" href="signed_images.html">Update images from verified source</a></li>
 <li class="toctree-l1"><a class="reference internal" href="encrypted_images.html">Symmetrically Encrypted Update Images</a></li>
 <li class="toctree-l1"><a class="reference internal" href="handlers.html">Handlers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="">SWUpdate: API for external programs</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#api-description">API Description</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#client-library">Client Library</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">SWUpdate: API for external programs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
 <li class="toctree-l1"><a class="reference internal" href="building-with-yocto.html">meta-swupdate: building with Yocto</a></li>
 </ul>
@@ -139,11 +134,11 @@
   <ul class="wy-breadcrumbs">
     <li><a href="index.html">Docs</a> &raquo;</li>
       
-    <li>SWUpdate: API for external programs</li>
+    <li>License</li>
       <li class="wy-breadcrumbs-aside">
         
           
-            <a href="_sources/swupdate-ipc.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/licensing.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -153,74 +148,70 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="swupdate-api-for-external-programs">
-<h1>SWUpdate: API for external programs<a class="headerlink" href="#swupdate-api-for-external-programs" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
-<p>SWUpdate contains an integrated web-server to allow remote updating.
-However, which protocols are involved during an update is project
-specific and differs significantly. Some projects can decide
-to use FTP to load an image from an external server, or using
-even a proprietary protocol.
-The integrated web-server uses this interface.</p>
-<p>SWUpdate has a simple interface to let external programs
-to communicate with the installer. Clients can start an upgrade
-and stream an image to the installer, querying then for the status
-and the final result. The API is at the moment very simple, but it can
-easy be extended in the future if new use cases will arise.</p>
-</div>
-<div class="section" id="api-description">
-<h2>API Description<a class="headerlink" href="#api-description" title="Permalink to this headline">¶</a></h2>
-<p>The communication runs via UDS (Unix Domain Socket). The socket is created
-at startup by SWUpdate in /tmp/sockinstctrl as per default configuration.
-This socket should, however, not be used directly but instead by the Client
-Library explained below.</p>
-<p>The exchanged packets are described in network_ipc.h</p>
-<div class="highlight-python"><div class="highlight"><pre>typedef struct {
-        int magic;
-        int type;
-        msgdata data;
-} ipc_message;
+  <div class="section" id="license">
+<h1>License<a class="headerlink" href="#license" title="Permalink to this headline">¶</a></h1>
+<p>SWUpdate is Free Software.  It is copyrighted by Stefano Babic and
+many others who contributed code (see the actual source code and the
+git commit messages for details).  You can redistribute SWUpdate and/or
+modify it under the terms of version 2 of the GNU General Public
+License as published by the Free Software Foundation.  Most of it can
+also be distributed, at your option, under any later version of the
+GNU General Public License &#8211; see individual files for exceptions.</p>
+<p>To make this easier, license headers in the source files will be
+replaced with a single line reference to Unique License Identifiers
+as defined by the Linux Foundation&#8217;s SPDX project [1].  For example,
+in a source file the full &#8220;GPL v2.0 or later&#8221; header text will be
+replaced by a single line:</p>
+<div class="highlight-python"><div class="highlight"><pre>SPDX-License-Identifier:        GPL-2.0+
 </pre></div>
 </div>
-<p>Where the fields have the meaning:</p>
-<ul class="simple">
-<li>magic : a magic number as simple proof of the packet</li>
-<li>type : one of REQ_INSTALL, ACK, NACK, GET_STATUS, POST_UPDATE</li>
-<li>msgdata : a buffer used by the client to send the image
-or by SWUpdate to report back notifications and status.</li>
-</ul>
-<p>The client sends a REQ_INSTALL packet and waits for an answer.
-SWUpdate sends back ACK or NACK, if for example an update is already in progress.</p>
-<p>After the ACK, the client sends the whole image as a stream. SWUpdate
-expects that all bytes after the ACK are part of the image to be installed.
-SWUpdate recognizes the size of the image from the CPIO header.
-Any error lets SWUpdate to leave the update state, and further packets
-will be ignored until a new REQ_INSTALL will be received.</p>
-<img alt="_images/API.png" src="_images/API.png" />
-</div>
-<div class="section" id="client-library">
-<h2>Client Library<a class="headerlink" href="#client-library" title="Permalink to this headline">¶</a></h2>
-<p>A library simplifies the usage of the IPC making available a way to
-start asynchronously an update.</p>
-<p>The library consists of one function and several call-backs.</p>
-<div class="highlight-python"><div class="highlight"><pre>int swupdate_async_start(writedata wr_func, getstatus status_func,
-        terminated end_func)
-typedef int (*writedata)(char **buf, int *size);
-typedef int (*getstatus)(ipc_message *msg);
-typedef int (*terminated)(RECOVERY_STATUS status);
+<p>Ideally, the license terms of all files in the source tree should be
+defined by such License Identifiers; in no case a file can contain
+more than one such License Identifier list.</p>
+<p>If a &#8220;SPDX-License-Identifier:&#8221; line references more than one Unique
+License Identifier, then this means that the respective file can be
+used under the terms of either of these licenses, i. e. with</p>
+<div class="highlight-python"><div class="highlight"><pre>SPDX-License-Identifier:        GPL-2.0+        BSD-3-Clause
 </pre></div>
 </div>
-<p>swupdate_async_start creates a new thread and start the communication with SWUpdate,
-triggering for a new update. The wr_func is called to get the image to be installed.
-It is responsibility of the callback to provide the buffer and the size of
-the chunk of data.</p>
-<p>The getstatus call-back is called after the stream was downloaded to check
-how upgrade is going on. It can be omitted if only the result is required.</p>
-<p>The terminated call-back is called when SWUpdate has finished with the result
-of the upgrade.</p>
-<p>Example about using this library is in the examples/client directory.</p>
-</div>
+<p>you can choose between GPL-2.0+ and BSD-3-Clause licensing.</p>
+<p>We use the <a class="reference external" href="http://spdx.org/">SPDX</a> Unique License Identifiers (<a class="reference external" href="http://spdx.org/licenses/">SPDX-Identifiers</a>)</p>
+<table border="1" class="docutils" id="id2">
+<caption><span class="caption-text">Licenses</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="60%" />
+<col width="22%" />
+<col width="17%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Full name</th>
+<th class="head">SPDX Identifier</th>
+<th class="head">OSI Approved</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>GNU General Public License <a class="reference external" href="http://www.gnu.org/licenses/gpl-2.0.txt">v2.0</a> only</td>
+<td>GPL-2.0-only</td>
+<td>Y</td>
+</tr>
+<tr class="row-odd"><td>GNU General Public License <a class="reference external" href="http://www.gnu.org/licenses/gpl-2.0.txt">v2.0</a> or later</td>
+<td>GPL-2.0-or-later</td>
+<td>Y</td>
+</tr>
+<tr class="row-even"><td>GNU Lesser General Public License <a class="reference external" href="http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt">v2.1</a> or later</td>
+<td>LGPL-2.1-or-later</td>
+<td>Y</td>
+</tr>
+<tr class="row-odd"><td>BSD <a class="reference external" href="http://spdx.org/licenses/BSD-2-Clause">2-Clause</a> License</td>
+<td>BSD-2-Clause</td>
+<td>Y</td>
+</tr>
+<tr class="row-even"><td>BSD <a class="reference external" href="http://spdx.org/licenses/BSD-3-Clause#licenseText">3-clause</a> &#8220;New&#8221; or &#8220;Revised&#8221; License</td>
+<td>BSD-3-Clause</td>
+<td>Y</td>
+</tr>
+</tbody>
+</table>
 </div>
 
 
@@ -230,10 +221,10 @@ of the upgrade.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="progress.html" class="btn btn-neutral float-right" title="Getting information on running update" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="swupdate.html" class="btn btn-neutral float-right" title="SWUpdate: software update for embedded system" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="suricatta.html" class="btn btn-neutral" title="Suricatta daemon mode" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="overview.html" class="btn btn-neutral" title="Software Management on embedded systems" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

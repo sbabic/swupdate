@@ -57,6 +57,6 @@ The single fields have the following meaning:
         - *info* additional information about installation.
 
 
-*progress_client* is an example of interface, printing the status on the console and driving
-"psplash" to draw a progress bar on a display.
+As an example for a progress client, ``tools/progress.c`` prints the status
+on the console and drives "psplash" to draw a progress bar on a display.
 
