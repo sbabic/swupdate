@@ -5,10 +5,14 @@
  * SPDX-License-Identifier:     GPL-2.0-or-later
  */
 
+#include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <errno.h>
+#ifdef CONFIG_GUNZIP
+#include <zlib.h>
+#endif
 
 #include "generated/autoconf.h"
 #include "cpiohdr.h"
@@ -39,7 +43,7 @@ static int get_cpiohdr(unsigned char *buf, unsigned long *size,
 	return 0;
 }
 
-int fill_buffer(int fd, unsigned char *buf, unsigned int nbytes, unsigned long *offs,
+static int fill_buffer(int fd, unsigned char *buf, unsigned int nbytes, unsigned long *offs,
 	uint32_t *checksum, void *dgst)
 {
 	ssize_t len;
@@ -99,70 +103,231 @@ static int copy_write(void *out, const void *buf, unsigned int len)
 	return 0;
 }
 
+typedef int (*PipelineStep)(void *state, void *buffer, size_t size);
+
+struct InputState
+{
+	int fdin;
+	unsigned int nbytes;
+	unsigned long *offs;
+	void *dgst;	/* use a private context for HASH */
+	uint32_t checksum;
+};
+
+static int input_step(void *state, void *buffer, size_t size)
+{
+	struct InputState *s = (struct InputState *)state;
+	if (size >= s->nbytes) {
+		size = s->nbytes;
+	}
+	int ret = fill_buffer(s->fdin, buffer, size, s->offs, &s->checksum, s->dgst);
+	if (ret < 0) {
+		return ret;
+	}
+	s->nbytes -= size;
+	return ret;
+}
+
+struct DecryptState
+{
+	PipelineStep upstream_step;
+	void *upstream_state;
+
+	void *dcrypt;	/* use a private context for decryption */
+	uint8_t input[BUFF_SIZE];
+	uint8_t output[BUFF_SIZE + AES_BLOCK_SIZE];
+	int outlen;
+	bool eof;
+};
+
+static int decrypt_step(void *state, void *buffer, size_t size)
+{
+	struct DecryptState *s = (struct DecryptState *)state;
+	int ret;
+	int inlen;
+
+	if (s->outlen != 0) {
+		if (size > s->outlen) {
+			size = s->outlen;
+		}
+		memcpy(buffer, s->output, size);
+		s->outlen -= size;
+		memmove(s->output, s->output + size, s->outlen);
+		return size;
+	}
+
+	ret = s->upstream_step(s->upstream_state, s->input, sizeof s->input);
+	if (ret < 0) {
+		return ret;
+	}
+
+	inlen = ret;
+
+	if (!s->eof) {
+		if (inlen != 0) {
+			ret = swupdate_DECRYPT_update(s->dcrypt,
+				s->output, &s->outlen, s->input, inlen);
+		} else {
+			/*
+			 * Finalise the decryption. Further plaintext bytes may be written at
+			 * this stage.
+			 */
+			ret = swupdate_DECRYPT_final(s->dcrypt,
+				s->output, &s->outlen);
+			s->eof = true;
+		}
+		if (ret < 0) {
+			return ret;
+		}
+	}
+
+	if (s->outlen != 0) {
+		if (size > s->outlen) {
+			size = s->outlen;
+		}
+		memcpy(buffer, s->output, size);
+		s->outlen -= size;
+		memmove(s->output, s->output + size, s->outlen);
+		return size;
+	}
+
+	return 0;
+}
+
+#ifdef CONFIG_GUNZIP
+
+struct GunzipState
+{
+	PipelineStep upstream_step;
+	void *upstream_state;
+
+	z_stream strm;
+	bool initialized;
+	uint8_t input[BUFF_SIZE];
+	bool eof;
+};
+
+static int gunzip_step(void *state, void *buffer, size_t size)
+{
+	struct GunzipState *s = (struct GunzipState *)state;
+	int ret;
+	int outlen = 0;
+
+	s->strm.next_out = buffer;
+	s->strm.avail_out = size;
+	while (outlen == 0) {
+		if (s->strm.avail_in == 0) {
+			ret = s->upstream_step(s->upstream_state, s->input, sizeof s->input);
+			if (ret < 0) {
+				return ret;
+			}
+			s->strm.avail_in = ret;
+			s->strm.next_in = s->input;
+		}
+		if (s->eof) {
+			break;
+		}
+
+		ret = inflate(&s->strm, Z_NO_FLUSH);
+		outlen = size - s->strm.avail_out;
+		if (ret == Z_STREAM_END) {
+			s->eof = true;
+			break;
+		}
+		if (ret != Z_OK && ret != Z_BUF_ERROR) {
+			ERROR("inflate failed (returned %d)", ret);
+			return -1;
+		}
+	}
+	return outlen;
+}
+
+#endif
+
 int copyfile(int fdin, void *out, unsigned int nbytes, unsigned long *offs, unsigned long long seek,
 	int skip_file, int __attribute__ ((__unused__)) compressed,
 	uint32_t *checksum, unsigned char *hash, int encrypted, writeimage callback)
 {
-	unsigned long size;
-	unsigned char *in = NULL, *inbuf;
-	unsigned char *decbuf = NULL;
-	unsigned long filesize = nbytes;
 	unsigned int percent, prevpercent = 0;
 	int ret = 0;
-	void *dgst = NULL;	/* use a private context for HASH */
-	void *dcrypt = NULL;	/* use a private context for decryption */
 	int len;
 	unsigned char md_value[64]; /*
 				     *  Maximum hash is 64 bytes for SHA512
 				     *  and we use sha256 in swupdate
 				     */
 	unsigned int md_len = 0;
-	unsigned char *aes_key;
-	unsigned char *ivt;
+	unsigned char *aes_key = NULL;
+	unsigned char *ivt = NULL;
 	unsigned char *salt;
+
+	struct InputState input_state = {
+		.fdin = fdin,
+		.nbytes = nbytes,
+		.offs = offs,
+		.dgst = NULL,
+		.checksum = 0
+	};
+
+	struct DecryptState decrypt_state = {
+		.upstream_step = NULL, .upstream_state = NULL,
+		.dcrypt = NULL,
+		.outlen = 0, .eof = false
+	};
+
+#ifdef CONFIG_GUNZIP
+	struct GunzipState gunzip_state = {
+		.upstream_step = NULL, .upstream_state = NULL,
+		.strm = {
+			.zalloc = Z_NULL, .zfree = Z_NULL, .opaque = Z_NULL,
+			.avail_in = 0, .next_in = Z_NULL,
+			.avail_out = 0, .next_out = Z_NULL
+		},
+		.initialized = false,
+		.eof = false
+	};
+#endif
+
+	PipelineStep step = NULL;
+	void *state = NULL;
+	uint8_t buffer[BUFF_SIZE];
 
 	if (!callback) {
 		callback = copy_write;
 	}
 
-	if (IsValidHash(hash)) {
-		dgst = swupdate_HASH_init(SHA_DEFAULT);
-		if (!dgst)
-			return -EFAULT;
-	}
-
 	if (checksum)
 		*checksum = 0;
 
-	/*
-	 * Simultaneous compression and decryption of images
-	 * is not (yet ?) supported
-	 */
-	if (compressed && encrypted) {
-		ERROR("encrypted zip images are not yet supported -- aborting\n");
-		return -EINVAL;
+	if (IsValidHash(hash)) {
+		input_state.dgst = swupdate_HASH_init(SHA_DEFAULT);
+		if (!input_state.dgst)
+			return -EFAULT;
 	}
-
-	in = (unsigned char *)malloc(BUFF_SIZE);
-	if (!in)
-		return -ENOMEM;
-
+ 
 	if (encrypted) {
-		decbuf = (unsigned char *)calloc(1, BUFF_SIZE + AES_BLOCK_SIZE);
-		if (!decbuf) {
-			ret = -ENOMEM;
-			goto copyfile_exit;
-		}
-
 		aes_key = get_aes_key();
 		ivt = get_aes_ivt();
 		salt = get_aes_salt();
-		dcrypt = swupdate_DECRYPT_init(aes_key, ivt, salt);
-		if (!dcrypt) {
+		decrypt_state.dcrypt = swupdate_DECRYPT_init(aes_key, ivt, salt);
+		if (!decrypt_state.dcrypt) {
 			ERROR("decrypt initialization failure, aborting");
 			ret = -EFAULT;
 			goto copyfile_exit;
 		}
+	}
+
+	if (compressed) {
+#ifdef CONFIG_GUNZIP
+		if (inflateInit2(&gunzip_state.strm, 16 + MAX_WBITS) != Z_OK) {
+			ERROR("inflateInit2 failed");
+			ret = -EFAULT;
+			goto copyfile_exit;
+		}
+		gunzip_state.initialized = true;
+#else
+		TRACE("Request decompressing, but CONFIG_GUNZIP not set !");
+		return -1;
+#endif
 	}
 
 	if (seek) {
@@ -175,74 +340,66 @@ int copyfile(int fdin, void *out, unsigned int nbytes, unsigned long *offs, unsi
 		}
 	}
 
-	int fdout = (out != NULL) ? *(int *)out : -1;
+#ifdef CONFIG_GUNZIP
 	if (compressed) {
-		ret = decompress_image(fdin, offs, nbytes, fdout, checksum, dgst);
-		if (ret < 0) {
-			ERROR("gunzip failure %d (errno %d) -- aborting\n", ret, errno);
-			goto copyfile_exit;
-		}
-	} else {
-
-	while (nbytes > 0) {
-		size = (nbytes < BUFF_SIZE ? nbytes : BUFF_SIZE);
-
-		if ((ret = fill_buffer(fdin, in, size, offs, checksum, dgst) < 0)) {
-			goto copyfile_exit;
-		}
-
-		nbytes -= size;
-		if (skip_file)
-			continue;
-
-		inbuf = in;
-		len = size;
-
 		if (encrypted) {
-			ret = swupdate_DECRYPT_update(dcrypt, decbuf,
-				&len, in, size);
-			if (ret < 0)
-				goto copyfile_exit;
-			inbuf = decbuf;
+			decrypt_state.upstream_step = &input_step;
+			decrypt_state.upstream_state = &input_state;
+			gunzip_state.upstream_step = &decrypt_step;
+			gunzip_state.upstream_state = &decrypt_state;
+		} else {
+			gunzip_state.upstream_step = &input_step;
+			gunzip_state.upstream_state = &input_state;
 		}
+		step = &gunzip_step;
+		state = &gunzip_state;
+	} else {
+#endif
+		if (encrypted) {
+			decrypt_state.upstream_step = &input_step;
+			decrypt_state.upstream_state = &input_state;
+			step = &decrypt_step;
+			state = &decrypt_state;
+		} else {
+			step = &input_step;
+			state = &input_state;
+		}
+#ifdef CONFIG_GUNZIP
+	}
+#endif
 
+	for (;;) {
+		ret = step(state, buffer, sizeof buffer);
+		if (ret < 0) {
+			goto copyfile_exit;
+		}
+		if (ret == 0) {
+			break;
+		}
+		if (skip_file) {
+			continue;
+		}
+		len = ret;
 		/*
 		 * If there is no enough place,
 		 * returns an error and close the output file that
 		 * results corrupted. This lets the cleanup routine
 		 * to remove it
 		 */
-		if (callback(out, inbuf, len) < 0) {
-			ret =-ENOSPC;
+		if (callback(out, buffer, len) < 0) {
+			ret = -ENOSPC;
 			goto copyfile_exit;
 		}
 
-		percent = (unsigned int)(((double)(filesize - nbytes)) * 100 / filesize);
+		percent = (unsigned)(100ULL * (nbytes - input_state.nbytes) / nbytes);
 		if (percent != prevpercent) {
 			prevpercent = percent;
 			swupdate_progress_update(percent);
 		}
 	}
 
-	}
-
-	/*
-	 * Finalise the decryption. Further plaintext bytes may be written at
-	 * this stage.
-	 */
-	if (encrypted) {
-		ret = swupdate_DECRYPT_final(dcrypt, decbuf, &len);
-		if (ret < 0)
-			goto copyfile_exit;
-		if (callback(out, decbuf, len) < 0) {
-			ret =-ENOSPC;
-			goto copyfile_exit;
-		}
-	}
-
-
 	if (IsValidHash(hash)) {
-		if (swupdate_HASH_final(dgst, md_value, &md_len) < 0) {
+		if (swupdate_HASH_final(input_state.dgst, md_value, &md_len) < 0) {
 			ret = -EFAULT;
 			goto copyfile_exit;
 		}
@@ -266,21 +423,26 @@ int copyfile(int fdin, void *out, unsigned int nbytes, unsigned long *offs, unsi
 		}
 	}
 
-	fill_buffer(fdin, in, NPAD_BYTES(*offs), offs, checksum, NULL);
+	fill_buffer(fdin, buffer, NPAD_BYTES(*offs), offs, checksum, NULL);
+
+	if (checksum != NULL) {
+		*checksum = input_state.checksum;
+	}
 
 	ret = 0;
 
 copyfile_exit:
-	if (in)
-		free(in);
-	if (dcrypt) {
-		swupdate_DECRYPT_cleanup(dcrypt);
+	if (decrypt_state.dcrypt) {
+		swupdate_DECRYPT_cleanup(decrypt_state.dcrypt);
 	}
-	if (decbuf)
-		free(decbuf);
-	if (dgst) {
-		swupdate_HASH_cleanup(dgst);
+	if (input_state.dgst) {
+		swupdate_HASH_cleanup(input_state.dgst);
 	}
+#ifdef CONFIG_GUNZIP
+	if (gunzip_state.initialized) {
+		inflateEnd(&gunzip_state.strm);
+	}
+#endif
 
 	return ret;
 }

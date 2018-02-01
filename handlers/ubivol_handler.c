@@ -19,6 +19,7 @@
 #include "handler.h"
 #include "flash.h"
 #include "util.h"
+#include "sslapi.h"
 
 void ubi_handler(void);
 
@@ -43,6 +44,9 @@ static int update_volume(libubi_t libubi, struct img_type *img,
 	char sbuf[128];
 
 	bytes = img->size;
+	if (img->is_encrypted) {
+		bytes -= AES_BLOCK_SIZE;
+	}
 
 	if (!libubi) {
 		ERROR("Request to write into UBI, but no UBI on system");
