@@ -130,8 +130,6 @@ char *sdup(const char *str);
  */
 typedef int (*writeimage) (void *out, const void *buf, unsigned int len);
 
-int fill_buffer(int fd, unsigned char *buf, unsigned int nbytes, unsigned long *offs,
-	uint32_t *checksum, void *dgst);
 int openfile(const char *filename);
 int copyfile(int fdin, void *out, unsigned int nbytes, unsigned long *offs,
 	unsigned long long seek,
@@ -166,22 +164,6 @@ unsigned char *get_aes_salt(void);
 int get_install_info(sourcetype *source, char *buf, size_t len);
 
 unsigned long long ustrtoull(const char *cp, char **endp, unsigned int base);
-
-#ifdef CONFIG_GUNZIP
-int decompress_image(int infile, unsigned long *offs, int nbytes,
-	int outfile, uint32_t *checksum, void *dgst);
-#else
-static inline int decompress_image(int __attribute__ ((__unused__))infile,
-		   unsigned long __attribute__ ((__unused__)) *offs,
-		   int __attribute__ ((__unused__)) nbytes,
-		   int __attribute__ ((__unused__)) outfile,
-		   uint32_t __attribute__ ((__unused__)) *checksum,
-		   void __attribute__ ((__unused__)) *dgst) {
-
-		TRACE("Request decompressing, but CONFIG_GUNZIP not set !");
-	return -1;
-}
-#endif
 
 const char* get_tmpdir(void);
 const char* get_tmpdirscripts(void);
