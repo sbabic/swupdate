@@ -71,8 +71,6 @@ General Overview
   using the libconfig_ library as default parser, that uses a
   JSON-like description.
 
-.. _libconfig:	http://www.hyperrealm.com/libconfig/
-
 - use custom's choice for the description of the image. It is
   possible to write an own parser using the Lua language.
   An example using a XML description in Lua is provided
@@ -80,9 +78,9 @@ General Overview
 
 - Support for setting / erasing U-Boot variables
 
-.. _GRUB: https://www.gnu.org/software/grub/manual/html_node/Environment-block.html
-
 - Support for setting / erasing `GRUB`_ environment block variables
+
+- Support for setting / erasing `EFI Boot Guard`_ variables
 
 - Support for preinstall scripts. They run before updating the images
 
@@ -124,6 +122,10 @@ General Overview
 - Images are authenticated and verified before installing
 
 - Power-Off safe
+
+.. _libconfig: http://www.hyperrealm.com/libconfig/
+.. _GRUB: https://www.gnu.org/software/grub/manual/html_node/Environment-block.html
+.. _EFI Boot Guard: https://github.com/siemens/efibootguard
 
 Single image delivery
 ---------------------
@@ -214,6 +216,7 @@ There are only a few libraries that are required to compile SWUpdate.
 - libarchive (optional) for archive handler
 - libjson (optional) for JSON parser and Hawkbit
 - libubootenv (optional) if support for U-Boot is enabled
+- libebgenv (optional) if support for EFI Boot Guard is enabled
 - libcurl used to communicate with network
 
 New handlers can add some other libraries to the requirement list -
