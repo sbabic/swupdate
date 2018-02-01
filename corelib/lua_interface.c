@@ -621,34 +621,61 @@ static int l_notify (lua_State *L) {
 	return 0;
 }
 
-static int l_trace(lua_State *L) {
-	const char *msg = luaL_checkstring (L, 1);
-
-	if (msg && strlen(msg))
-		TRACE("%s", msg);
-
+static int notify_helper(lua_State *L, LOGLEVEL level)
+{
+	luaL_checktype(L, 1, LUA_TSTRING);
+	lua_getglobal(L, "string");
+	lua_pushliteral(L, "format");
+	lua_gettable(L, -2);
+	lua_insert(L, 1);
+	lua_pop(L, 1);
+	if (lua_pcall(L, lua_gettop(L) - 1, 1, 0) != LUA_OK) {
+		ERROR("error while notify call: %s", lua_tostring(L, -1));
+	} else {
+		switch (level) {
+		case ERRORLEVEL:
+			ERROR("%s", lua_tostring(L, -1));
+			break;
+		case WARNLEVEL:
+			WARN("%s", lua_tostring(L, -1));
+			break;
+		case INFOLEVEL:
+			INFO("%s", lua_tostring(L, -1));
+			break;
+		case DEBUGLEVEL:
+			DEBUG("%s", lua_tostring(L, -1));
+			break;
+		case TRACELEVEL:
+			TRACE("%s", lua_tostring(L, -1));
+			break;
+		case OFF:
+			break;
+		}
+	}
 	lua_pop(L, 1);
 	return 0;
+}
+
+static int l_trace(lua_State *L) {
+	return notify_helper(L, TRACELEVEL);
 }
 
 static int l_error(lua_State *L) {
-	const char *msg = luaL_checkstring (L, 1);
-
-	if (msg && strlen(msg))
-		ERROR("%s", msg);
-
-	lua_pop(L, 1);
-	return 0;
+	return notify_helper(L, ERRORLEVEL);
 }
 
 static int l_info(lua_State *L) {
-	const char *msg = luaL_checkstring (L, 1);
+	return notify_helper(L, INFOLEVEL);
+}
 
-	if (msg && strlen(msg))
-		INFO("%s", msg);
+static int l_warn(lua_State *L)
+{
+	return notify_helper(L, WARNLEVEL);
+}
 
-	lua_pop(L, 1);
-	return 0;
+static int l_debug(lua_State *L)
+{
+	return notify_helper(L, DEBUGLEVEL);
 }
 
 static int l_mount(lua_State *L) {
@@ -759,6 +786,8 @@ static const luaL_Reg l_swupdate[] = {
         { "error", l_error },
         { "trace", l_trace },
         { "info", l_info },
+        { "warn", l_warn },
+        { "debug", l_debug },
         { "mount", l_mount },
         { "umount", l_umount },
         { NULL, NULL }
