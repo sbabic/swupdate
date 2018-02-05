@@ -364,6 +364,10 @@ config WEBSERVER
 
 source mongoose/Config.in
 
-source archival/Config.in
+config GUNZIP
+	bool
+	depends on HAVE_ZLIB
+	default y
+
 source parser/Config.in
 source handlers/Config.in
