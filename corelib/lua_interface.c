@@ -776,6 +776,12 @@ static int l_get_tmpdir(lua_State *L)
 	lua_pushstring(L, get_tmpdir());
 	return 1;
 }
+
+static int l_get_tmpdir_scripts(lua_State *L)
+{
+	lua_pushstring(L, get_tmpdirscripts());
+	return 1;
+}
 #endif
 
 /**
@@ -803,6 +809,7 @@ static const luaL_Reg l_swupdate_bootenv[] = {
 static const luaL_Reg l_swupdate_handler[] = {
         { "register_handler", l_register_handler },
         { "call_handler", l_call_handler },
+        { "tmpdirscripts", l_get_tmpdir_scripts },
         { "tmpdir", l_get_tmpdir },
         { NULL, NULL }
 };
