@@ -18,6 +18,24 @@ config MONGOOSE
 
 endchoice
 
+choice
+	prompt "Web Application Interface"
+	default MONGOOSE_WEB_API_V1
+	help
+	  Choose the bootloader
+
+config MONGOOSE_WEB_API_V1
+	bool "Version 1 (deprecated)"
+	help
+	  Support for version 1
+
+config MONGOOSE_WEB_API_V2
+	bool "Version 2"
+	help
+	  Support for version 2
+
+endchoice
+
 config MONGOOSEIPV6
 	bool "IPv6 support"
 	default y

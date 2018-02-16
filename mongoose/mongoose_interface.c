@@ -23,6 +23,7 @@
 #include <network_ipc.h>
 #include <mongoose_interface.h>
 #include <parselib.h>
+#include <progress_ipc.h>
 #include <swupdate_settings.h>
 
 #include "mongoose.h"
@@ -48,17 +49,83 @@ struct file_upload_state {
 
 static struct mg_serve_http_opts s_http_server_opts;
 
+#if defined(CONFIG_MONGOOSE_WEB_API_V2)
+#define enum_string(x)	[x] = #x
+static const char *get_status_string(unsigned int status)
+{
+	const char * const str[] = {
+		enum_string(IDLE),
+		enum_string(START),
+		enum_string(RUN),
+		enum_string(SUCCESS),
+		enum_string(FAILURE),
+		enum_string(DOWNLOAD),
+		enum_string(DONE),
+		enum_string(SUBPROCESS)
+	};
+
+	if (status >= ARRAY_SIZE(str))
+		return "UNKNOWN";
+
+	return str[status];
+}
+
+#define enum_source_string(x)	[SOURCE_##x] = #x
+static const char *get_source_string(unsigned int source)
+{
+	const char * const str[] = {
+		enum_source_string(UNKNOWN),
+		enum_source_string(WEBSERVER),
+		enum_source_string(SURICATTA),
+		enum_source_string(DOWNLOADER),
+		enum_source_string(LOCAL)
+	};
+
+	if (source >= ARRAY_SIZE(str))
+		return "UNKNOWN";
+
+	return str[source];
+}
+
+/* Write escaped output to sized buffer */
+static size_t snescape(char *dst, size_t n, const char *src)
+{
+	size_t len = 0;
+
+	if (n < 3)
+		return 0;
+
+	memset(dst, 0, n);
+
+	for (int i = 0; src[i] != '\0'; i++) {
+		if (src[i] == '\\' || src[i] == '\"') {
+			if (len < n - 2)
+				dst[len] = '\\';
+			len++;
+		}
+		if (len < n - 1)
+			dst[len] = src[i];
+		len++;
+	}
+
+	return len;
+}
+#endif
+
 static void upload_handler(struct mg_connection *nc, int ev, void *p)
 {
 	struct mg_http_multipart_part *mp;
 	struct file_upload_state *fus;
+#if defined(CONFIG_MONGOOSE_WEB_API_V1)
 	struct mg_str *filename, *data;
 	struct http_message *hm;
 	size_t length;
 	char buf[16];
 	int fd;
+#endif
 
 	switch (ev) {
+#if defined(CONFIG_MONGOOSE_WEB_API_V1)
 	case MG_EV_HTTP_REQUEST:
 		hm = (struct http_message *) p;
 
@@ -94,6 +161,7 @@ static void upload_handler(struct mg_connection *nc, int ev, void *p)
 		nc->flags |= MG_F_SEND_AND_CLOSE;
 
 		break;
+#endif
 	case MG_EV_HTTP_PART_BEGIN:
 		mp = (struct mg_http_multipart_part *) p;
 
@@ -148,6 +216,7 @@ static void upload_handler(struct mg_connection *nc, int ev, void *p)
 	}
 }
 
+#if defined(CONFIG_MONGOOSE_WEB_API_V1)
 static void recovery_status(struct mg_connection *nc, int ev, void *ev_data)
 {
 	ipc_message ipc;
@@ -237,6 +306,163 @@ static void post_update_cmd(struct mg_connection *nc, int ev, void *ev_data)
 
 	nc->flags |= MG_F_SEND_AND_CLOSE;
 }
+#elif defined(CONFIG_MONGOOSE_WEB_API_V2)
+static void restart_handler(struct mg_connection *nc, int ev, void *ev_data)
+{
+	struct http_message *hm = (struct http_message *) ev_data;
+	ipc_message msg = {};
+
+	(void)ev;
+
+	if(mg_vcasecmp(&hm->method, "POST") != 0) {
+		mg_http_send_error(nc, 405, "Method Not Allowed");
+		return;
+	}
+
+	int ret = ipc_postupdate(&msg);
+	if (ret) {
+		mg_http_send_error(nc, 500, "Failed to queue command");
+		return;
+	}
+
+	mg_http_send_error(nc, 201, "Device will reboot now.");
+}
+
+static void broadcast_callback(struct mg_connection *nc, int ev, void *ev_data)
+{
+	char *buf = (char *) ev_data;
+
+	if (ev != MG_EV_POLL)
+		return;
+
+	if (!(nc->flags & MG_F_IS_WEBSOCKET))
+		return;
+
+	mg_send_websocket_frame(nc, WEBSOCKET_OP_TEXT, buf, strlen(buf));
+}
+
+static void broadcast(struct mg_mgr *mgr, char *str)
+{
+	mg_broadcast(mgr, broadcast_callback, str, strlen(str) + 1);
+}
+
+static void *broadcast_message_thread(void *data)
+{
+	for (;;) {
+		ipc_message msg;
+		int ret = ipc_get_status(&msg);
+
+		if (!ret && strlen(msg.data.status.desc) != 0) {
+			struct mg_mgr *mgr = (struct mg_mgr *) data;
+			char text[4096];
+			char str[4160];
+
+			snescape(text, sizeof(text), msg.data.status.desc);
+
+			snprintf(str, sizeof(str),
+				"{\r\n"
+				"\t\"type\": \"message\",\r\n"
+				"\t\"level\": \"%d\",\r\n"
+				"\t\"text\": \"%s\"\r\n"
+				"}\r\n",
+				(msg.data.status.error) ? 3 : 6, /* RFC 5424 */
+				text);
+
+			broadcast(mgr, str);
+			continue;
+		}
+
+		usleep(50 * 1000);
+	}
+
+	return NULL;
+}
+
+static void *broadcast_progress_thread(void *data)
+{
+	int status = -1;
+	int source = -1;
+	int step = 0;
+	int percent = 0;
+	int fd = -1;
+
+	for (;;) {
+		struct mg_mgr *mgr = (struct mg_mgr *) data;
+		struct progress_msg msg;
+		char str[512];
+		int ret;
+
+		if (fd < 0)
+			fd = progress_ipc_connect(true);
+
+		ret = progress_ipc_receive(&fd, &msg);
+		if (ret != sizeof(msg))
+			return NULL;
+
+		if (msg.status != status || msg.status == FAILURE) {
+			status = msg.status;
+
+			snprintf(str, sizeof(str),
+				"{\r\n"
+				"\t\"type\": \"status\",\r\n"
+				"\t\"status\": \"%s\"\r\n"
+				"}\r\n",
+				get_status_string(msg.status));
+			broadcast(mgr, str);
+		}
+
+		if (msg.source != source) {
+			source = msg.source;
+
+			snprintf(str, sizeof(str),
+				"{\r\n"
+				"\t\"type\": \"source\",\r\n"
+				"\t\"source\": \"%s\"\r\n"
+				"}\r\n",
+				get_source_string(msg.source));
+			broadcast(mgr, str);
+		}
+
+		if (msg.status == SUCCESS && msg.source == SOURCE_WEBSERVER) {
+			ipc_message ipc = {};
+
+			ipc_postupdate(&ipc);
+		}
+
+		if (msg.infolen) {
+			snprintf(str, sizeof(str),
+				"{\r\n"
+				"\t\"type\": \"info\",\r\n"
+				"\t\"source\": \"%s\"\r\n"
+				"}\r\n",
+				msg.info);
+			broadcast(mgr, str);
+		}
+
+		if ((msg.cur_step != step || msg.cur_percent != percent) &&
+				msg.cur_step) {
+			step = msg.cur_step;
+			percent = msg.cur_percent;
+
+			snprintf(str, sizeof(str),
+				"{\r\n"
+				"\t\"type\": \"step\",\r\n"
+				"\t\"number\": \"%d\",\r\n"
+				"\t\"step\": \"%d\",\r\n"
+				"\t\"name\": \"%s\",\r\n"
+				"\t\"percent\": \"%d\"\r\n"
+				"}\r\n",
+				msg.nsteps,
+				msg.cur_step,
+				msg.cur_step ? msg.cur_image: "",
+				msg.cur_percent);
+			broadcast(mgr, str);
+		}
+	}
+
+	return NULL;
+}
+#endif
 
 static void ev_handler(struct mg_connection *nc, int ev, void *ev_data)
 {
@@ -384,12 +610,21 @@ int start_mongoose(const char *cfgfname, int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
+#if defined(CONFIG_MONGOOSE_WEB_API_V1)
 	mg_register_http_endpoint(nc, "/handle_post_request", MG_CB(upload_handler, NULL));
 	mg_register_http_endpoint(nc, "/getstatus.json", MG_CB(recovery_status, NULL));
 	mg_register_http_endpoint(nc, "/rebootTarget", MG_CB(reboot_target, NULL));
 	mg_register_http_endpoint(nc, "/postUpdateCommand", MG_CB(post_update_cmd, NULL));
+#elif defined(CONFIG_MONGOOSE_WEB_API_V2)
+	mg_register_http_endpoint(nc, "/restart", restart_handler);
+#endif
 	mg_register_http_endpoint(nc, "/upload", MG_CB(upload_handler, NULL));
 	mg_set_protocol_http_websocket(nc);
+
+#if defined(CONFIG_MONGOOSE_WEB_API_V2)
+	mg_start_thread(broadcast_message_thread, &mgr);
+	mg_start_thread(broadcast_progress_thread, &mgr);
+#endif
 
 	printf("Mongoose web server version %s with pid %d started on port(s) %s with web root [%s]\n",
 		MG_VERSION, getpid(), s_http_port,
