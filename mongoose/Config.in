@@ -1,37 +1,33 @@
-# DO NOT EDIT. This file is generated from Config.src
-#
-# For a description of the syntax of this configuration file,
-# see scripts/kbuild/config-language.txt.
-#
+menuconfig WEBSERVER
+	bool "Web Server"
+	select MONGOOSE
+	help
+	  Enable update from remote using a web server on the target.
 
-menu "Webserver Features"
-depends on WEBSERVER
-
+if WEBSERVER
+choice
+	prompt "Web Server Type"
+	default MONGOOSE
+	help
+	  Choose the web server
 
 config MONGOOSE
 	bool "mongoose"
-	default n
 	help
-	  Enable mongoose webserver.
+	  Mongoose embeddded web server
 
-menu "Mongoose Feature"
-depends on MONGOOSE
-
-config MONGOOSELUA
-	bool "Lua interpreter"
-	depends on LUA
-	default y
-	help
-	  It allows to use Lua scripts as CGI interpreter.
+endchoice
 
 config MONGOOSEIPV6
-	bool "ipv6"
+	bool "IPv6 support"
 	default y
+	depends on MONGOOSE
 	help
 	   It enables ipv6 support into mongoose
 
 config MONGOOSESSL
-	bool "ssl"
+	bool "SSL support"
+	depends on MONGOOSE
 	depends on HAVE_LIBSSL
 	depends on HAVE_LIBCRYPTO
 	help
@@ -40,6 +36,4 @@ config MONGOOSESSL
 comment "SSL support needs libcrypto, libssl"
 	depends on !HAVE_LIBSSL || !HAVE_LIBCRYPTO
 
-endmenu
-
-endmenu
+endif

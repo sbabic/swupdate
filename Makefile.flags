@@ -143,18 +143,11 @@ LDLIBS += crypto ssl
 endif
 
 # mongoose / webserver
-ifneq ($(CONFIG_WEBSERVER),)
-ifneq ($(CONFIG_MONGOOSESSL),)
-KBUILD_CFLAGS += -DNO_SSL_DL
+ifeq ($(CONFIG_WEBSERVER),y)
+ifeq ($(CONFIG_MONGOOSE),y)
+ifeq ($(CONFIG_MONGOOSESSL),y)
 LDLIBS += crypto ssl
-else
-KBUILD_CFLAGS += -DNO_SSL
 endif
-ifneq ($(CONFIG_MONGOOSELUA),)
-KBUILD_CFLAGS += -DUSE_LUA
-endif
-ifneq ($(CONFIG_MONGOOSEIPV6),)
-KBUILD_CFLAGS += -DUSE_IPV6
 endif
 endif
 

@@ -41,7 +41,9 @@ Here a short list of the main features:
 - Power-Off safe
 - Hardware / Software compatibility.
 
-This software is licensed under GPL Version 2.0+
+Different components of this software are under different licenses (a mix
+of MIT, GPLv2 and GPLv2+). License information for any file is either explicitly stated
+or defaults to GPL version 2.0+.
 
 Please check inside doc directory for documentation or
 the online documentation (generated from doc/) at:

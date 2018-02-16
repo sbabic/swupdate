@@ -1,2 +1,14 @@
+ifneq ($(CONFIG_WEBSERVER),)
+ifneq ($(CONFIG_MONGOOSE),)
+KBUILD_CFLAGS += -DMG_ENABLE_HTTP_STREAMING_MULTIPART=1
+ifneq ($(CONFIG_MONGOOSEIPV6),)
+KBUILD_CFLAGS += -DMG_ENABLE_IPV6=1
+endif
+ifneq ($(CONFIG_MONGOOSESSL),)
+KBUILD_CFLAGS += -DMG_ENABLE_SSL=1
+endif
+endif
+endif
+
 lib-$(CONFIG_MONGOOSE)	+= mongoose.o \
 			   mongoose_interface.o
