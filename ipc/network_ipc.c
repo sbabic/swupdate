@@ -143,7 +143,7 @@ int ipc_get_status(ipc_message *msg)
 	return ret;
 }
 
-int ipc_inst_start_ext(sourcetype source, size_t len, char *buf)
+int ipc_inst_start_ext(sourcetype source, size_t len, const char *buf)
 {
 	int connfd;
 	ipc_message msg;

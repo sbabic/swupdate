@@ -60,7 +60,7 @@ typedef struct {
 } ipc_message;
 
 int ipc_inst_start(void);
-int ipc_inst_start_ext(sourcetype source, size_t len, char *info);
+int ipc_inst_start_ext(sourcetype source, size_t len, const char *info);
 int ipc_send_data(int connfd, char *buf, int size);
 void ipc_end(int connfd);
 int ipc_get_status(ipc_message *msg);
