@@ -123,7 +123,7 @@ static int grubenv_parse_script(struct grubenv_t *grubenv, const char *script)
 	 */
 	while ((getline(&line, &len, fp)) != -1) {
 		key = strtok(line, " \t\n");
-		value = strtok(NULL, " \t\n");
+		value = strtok(NULL, "\t\n");
 		if (value != NULL && key != NULL) {
 			ret = dict_set_value(&grubenv->vars, key, value);
 			if (ret) {
