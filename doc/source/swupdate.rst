@@ -277,7 +277,7 @@ Configuring SWUpdate
 --------------------
 
 SWUpdate is configurable via "make menuconfig". The small footprint
-is reached using the internal parser and disabling the web-server.
+is reached using the internal parser and disabling the web server.
 Any option has a small help describing its usage. In the default
 configuration, many options are already activated.
 
@@ -408,21 +408,19 @@ To start SWUpdate expecting the image from a file:
 
 	        swupdate -i <filename>
 
-To start with the embedded web-server:
+To start with the embedded web server:
 
 ::
 
-	         swupdate -w "<web-server options>"
+	         swupdate -w "<web server options>"
 
-The main important parameter for the web-server is "document_root".
+The main important parameters for the web server are "document-root" and "port".
 
 ::
 
-	         SWUpdate -w "-document_root ./www"
+	         swupdate -w "--document-root ./www --port 8080"
 
-The embedded web-server is taken from the Mongoose project (last release
-with Lua license). Additional parameters can be found in mongoose
-documentation.
+The embedded web server is taken from the Mongoose project.
 
 The whole list of options will be retrieved with:
 

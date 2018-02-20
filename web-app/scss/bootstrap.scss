@@ -1,0 +1,18 @@
+/*!
+ * Copyright (C) 2017-2018 Weidmüller Interface GmbH & Co. KG
+ * Stefan Herbrechtsmeier <stefan.herbrechtsmeier@weidmueller.com>
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
+$theme-colors: (
+);
+
+$transparent: rgba(255, 255, 255, .75);
+
+$jumbotron-bg: $transparent;
+$card-bg: $transparent;
+
+$progress-height: 1.5rem !default;
+
+@import 'node_modules/bootstrap/scss/bootstrap';

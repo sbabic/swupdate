@@ -30,6 +30,7 @@ SWUpdate Documentation
    signed_images.rst
    encrypted_images.rst
    handlers.rst
+   mongoose.rst
    suricatta.rst
    swupdate-ipc.rst
    progress.rst
