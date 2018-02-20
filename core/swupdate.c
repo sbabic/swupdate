@@ -70,6 +70,7 @@ struct flash_description *get_flash_info(void) {
 
 static struct option long_options[] = {
 	{"verbose", no_argument, NULL, 'v'},
+	{"version", no_argument, NULL, '0'},
 	{"image", required_argument, NULL, 'i'},
 	{"file", required_argument, NULL, 'f'},
 	{"loglevel", required_argument, NULL, 'l'},
@@ -572,10 +573,6 @@ int main(int argc, char **argv)
 
 	memset(fname, 0, sizeof(fname));
 
-	printf("%s\n", BANNER);
-	printf("Licensed under GPLv2. See source distribution for detailed "
-		"copyright notices.\n\n");
-
 	/* Initialize internal database */
 	swupdate_init(&swcfg);
 
@@ -618,8 +615,15 @@ int main(int argc, char **argv)
 				exit(1);
 			}
 			break;
+		case '0':
+			printf("%s", BANNER);
+			exit(0);
 		}
 	}
+
+	printf("%s\n", BANNER);
+	printf("Licensed under GPLv2. See source distribution for detailed "
+		"copyright notices.\n\n");
 
 	/*
 	 * Command line should be parsed a second time
