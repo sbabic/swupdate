@@ -58,4 +58,5 @@ regarding the project) to the swupdate Mailing List:
 
 	swupdate@googlegroups.com
 
-Please read chapter in the documentation how to contribute to the project.
+Please read the [contributing](http://sbabic.github.io/swupdate/contributing.html)
+chapter in the documentation how to contribute to the project.
