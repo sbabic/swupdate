@@ -1,6 +1,6 @@
 .. _contents: Table of contents
 
-.. image:: ../../SWUpdate.png
+.. image:: images/SWUpdate.png
         :scale: 25 %
         :align: center
 

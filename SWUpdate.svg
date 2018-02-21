@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   viewBox="0 0 229.77 229.77"
+   version="1.1"
+   id="svg10"
+   sodipodi:docname="SWUpdate.svg"
+   inkscape:version="0.92.2 (5c3e80d, 2017-08-06)">
+  <title
+     id="title3707">SWUpdate Logo</title>
+  <metadata
+     id="metadata16">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>SWUpdate Logo</dc:title>
+        <dc:rights>
+          <cc:Agent>
+            <dc:title></dc:title>
+          </cc:Agent>
+        </dc:rights>
+        <cc:license
+           rdf:resource="http://creativecommons.org/licenses/by-nd/4.0/" />
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>Andres Babic &lt;andres.babic@gmail.com&gt;</dc:title>
+          </cc:Agent>
+        </dc:creator>
+      </cc:Work>
+      <cc:License
+         rdf:about="http://creativecommons.org/licenses/by-nd/4.0/">
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Reproduction" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Distribution" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#Notice" />
+        <cc:requires
+           rdf:resource="http://creativecommons.org/ns#Attribution" />
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs14" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1754"
+     inkscape:window-height="863"
+     id="namedview12"
+     showgrid="false"
+     inkscape:zoom="1.0271141"
+     inkscape:cx="114.885"
+     inkscape:cy="114.885"
+     inkscape:window-x="0"
+     inkscape:window-y="27"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg10" />
+  <g
+     id="Layer_2"
+     data-name="Layer 2">
+    <g
+       id="Layer_1-2"
+       data-name="Layer 1">
+      <path
+         d="M114.89,0A114.89,114.89,0,1,0,229.77,114.89,115,115,0,0,0,114.89,0Zm0,226.77A111.89,111.89,0,1,1,226.77,114.89,112,112,0,0,1,114.89,226.77Z"
+         id="path4" />
+      <path
+         d="M184.36,52.55h-55a2.92,2.92,0,0,0-2.92,2.92V92.41a28.54,28.54,0,0,1-6.79,18.47L99.11,135a28.2,28.2,0,0,0-6.71,18.25v37.29a69.36,69.36,0,0,1-46.86-65.63V55.55h72.87V93.91a18.31,18.31,0,0,1-4.83,12.4L96,126.1a2.82,2.82,0,1,0,2.24,2l17.55-19.77a21.3,21.3,0,0,0,5.6-14.41V55.42a2.87,2.87,0,0,0-2.87-2.87H45.46a2.92,2.92,0,0,0-2.92,2.92v69.45a72.36,72.36,0,0,0,49,68.51,2.92,2.92,0,0,0,3.84-2.77v-37.4a25.2,25.2,0,0,1,6-16.31l20.51-24.12a31.55,31.55,0,0,0,7.51-20.42V55.55h54.86v69.37a69.31,69.31,0,0,1-80.87,68.4V153.25a17.2,17.2,0,0,1,4.09-11.13L128,118a39.55,39.55,0,0,0,9.41-25.6v-25a2.82,2.82,0,1,0-3,0v25a36.55,36.55,0,0,1-8.7,23.65l-20.51,24.12a20.2,20.2,0,0,0-4.81,13.07v40.12a2.91,2.91,0,0,0,2.43,2.88,72.32,72.32,0,0,0,84.45-71.34V55.46A2.92,2.92,0,0,0,184.36,52.55Z"
+         id="path6" />
+    </g>
+  </g>
+</svg>
