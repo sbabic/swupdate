@@ -95,3 +95,10 @@ scripts/kconfig/conf
 scripts/kconfig/lex.zconf.c
 scripts/kconfig/lxdialog/lxdialog
 
+#
+# web-app
+#
+web-app/dist/
+web-app/node_modules/
+web-app/package-lock.json
+web-app/swupdate-www.tar.gz
