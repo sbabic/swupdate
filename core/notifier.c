@@ -60,6 +60,7 @@ static struct sockaddr_un notify_client;
 static struct sockaddr_un notify_server;
 static int notifyfd = -1;
 static bool console_priority_prefix = false;
+static bool console_ansi_colors = false;
 
 /*
  * This allows to extend the list of notifier.
@@ -149,24 +150,34 @@ static void console_notifier (RECOVERY_STATUS status, int error, int level, cons
 
 	switch (level) {
 	case ERRORLEVEL:
-		fprintf(stderr, "%s[ERROR]", console_priority_prefix ? "<3>" : "");
+		fprintf(stderr, "%s%s[ERROR]",
+				console_ansi_colors ? "\033[01;31m" : "",
+				console_priority_prefix ? "<3>" : "");
 		break;
 	case WARNLEVEL:
-		fprintf(stdout, "%s[WARN ]", console_priority_prefix ? "<4>" : "");
+		fprintf(stdout, "%s%s[WARN ]",
+				console_ansi_colors ? "\033[01;33m" : "",
+				console_priority_prefix ? "<4>" : "");
 		break;
 	case INFOLEVEL:
-		fprintf(stdout, "%s[INFO ]", console_priority_prefix ? "<6>" : "");
+		fprintf(stdout, "%s%s[INFO ]",
+				console_ansi_colors ? "\033[01;32m" : "",
+				console_priority_prefix ? "<6>" : "");
 		break;
 	case DEBUGLEVEL:
-		fprintf(stdout, "%s[DEBUG]", console_priority_prefix ? "<7>" : "");
+		fprintf(stdout, "%s%s[DEBUG]",
+				console_ansi_colors ? "\033[01;30m" : "",
+				console_priority_prefix ? "<7>" : "");
 		break;
 	case TRACELEVEL:
-		fprintf(stdout, "%s[TRACE]", console_priority_prefix ? "<7>" : "");
+		fprintf(stdout, "%s%s[TRACE]",
+				console_ansi_colors ? "\033[01;30m" : "",
+				console_priority_prefix ? "<7>" : "");
 		break;
 	}
 
 	fprintf(level == ERRORLEVEL ? stderr : stdout,
-			" : %s %s\n", current, msg ? msg : "");
+			" : %s %s%s\n", current, msg ? msg : "", console_ansi_colors ? "\x1b[0m" : "");
 	fflush(stdout);
 }
 
@@ -274,6 +285,9 @@ void notify_init(void)
 		}
 	}
 #endif
+
+	console_ansi_colors = (isatty(fileno(stdout)) && isatty(fileno(stderr)))
+		? true : false;
 
 	if (pid == getpid()) {
 		char buf[60];
