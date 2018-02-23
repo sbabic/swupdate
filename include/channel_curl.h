@@ -41,6 +41,7 @@ typedef struct {
 	char *sslcert;
 	char *proxy;
 	char *info;
+	char *header;
 	unsigned int retry_sleep;
 	unsigned int offs;
 	unsigned int method;

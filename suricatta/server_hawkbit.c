@@ -1521,6 +1521,12 @@ static int suricatta_settings(void *elem, void  __attribute__ ((__unused__)) *da
 	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "proxy", tmp);
 	if (strlen(tmp))
 		SETSTRING(channel_data_defaults.proxy, tmp);
+	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "token", tmp);
+	if (strlen(tmp)) {
+		char *token_header;
+		if (asprintf(&token_header, "Authorization: TargetToken %s", tmp))
+			SETSTRING(channel_data_defaults.header, token_header);
+	}
 
 	return 0;
 
