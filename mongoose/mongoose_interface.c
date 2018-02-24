@@ -477,27 +477,27 @@ static int mongoose_settings(void *elem, void  __attribute__ ((__unused__)) *dat
 	struct mongoose_options *opts = (struct mongoose_options *)data;
 	char tmp[128];
 
-	GET_FIELD_STRING(LIBCFG_PARSER, elem, "document_root", tmp);
+	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "document_root", tmp);
 	if (strlen(tmp)) {
 		opts->root = strdup(tmp);
 	}
 
-	GET_FIELD_STRING(LIBCFG_PARSER, elem, "enable_directory_listing", tmp);
+	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "enable_directory_listing", tmp);
 	if (strlen(tmp)) {
 		opts->listing = strdup(tmp);
 	}
 
-	GET_FIELD_STRING(LIBCFG_PARSER, elem, "listening_ports", tmp);
+	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "listening_ports", tmp);
 	if (strlen(tmp)) {
 		opts->port = strdup(tmp);
 	}
 #if MG_ENABLE_SSL
-	GET_FIELD_STRING(LIBCFG_PARSER, elem, "ssl_certificate", tmp);
+	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "ssl_certificate", tmp);
 	if (strlen(tmp)) {
 		opts->ssl_cert = strdup(tmp);
 	}
 
-	GET_FIELD_STRING(LIBCFG_PARSER, elem, "ssl_certificate_key", tmp);
+	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "ssl_certificate_key", tmp);
 	if (strlen(tmp)) {
 		opts->ssl_key = strdup(tmp);
 	}
