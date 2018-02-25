@@ -305,12 +305,12 @@ static int download_settings(void *elem, void  __attribute__ ((__unused__)) *dat
 	struct dwl_options *opt = (struct dwl_options *)data;
 	char tmp[128];
 
-	GET_FIELD_STRING(LIBCFG_PARSER, elem, "url", tmp);
+	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "url", tmp);
 	if (strlen(tmp)) {
 		SETSTRING(opt->url, tmp);
 	}
 
-	GET_FIELD_STRING(LIBCFG_PARSER, elem, "authentication", tmp);
+	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "authentication", tmp);
 	if (strlen(tmp)) {
 		SETSTRING(opt->auth, tmp);
 	} else {
