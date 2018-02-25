@@ -64,10 +64,6 @@ The following example explains better the implemented tags:
 				volume = "splash";
 			},
 			{
-				filename = "bootloader-env";
-				type = "bootloader";
-			},
-			{
 				filename = "uImage.bin";
 				volume = "kernel";
 			},
@@ -98,6 +94,10 @@ The following example explains better the implemented tags:
 		);
 
 		bootenv: (
+			{
+				filename = "bootloader-env";
+				type = "bootloader";
+			},
 			{
 				name = "vram";
 				value = "4M";
@@ -517,10 +517,12 @@ must be chosen from the bootloader selection menu in `menuconfig`.
 
 ::
 
+	bootenv: (
 		{
 			filename = "bootloader-env";
 			type = "bootloader";
 		},
+	)
 
 The format of the file is described in U-boot documentation. Each line
 is in the format
