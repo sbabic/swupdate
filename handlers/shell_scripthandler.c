@@ -38,7 +38,7 @@ static int execute_shell_script(struct img_type *img, const char *fnname)
 		return -1;
 	}
 	snprintf(shellscript, sizeof(shellscript),
-		"%s%s %s", tmp, img->fname, fnname);
+		 "%s%s %s %s", tmp, img->fname, fnname, img->type_data);
 
 	ret = system(shellscript);
 	if (WIFEXITED(ret)) {
