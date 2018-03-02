@@ -17,6 +17,7 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/socket.h>
 #include <ctype.h>
 #include <fcntl.h>
 #include <dirent.h>
@@ -281,6 +282,32 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 	}
 }
 
+static int save_stream(int fdin, const char *output)
+{
+	char *buf;
+	int fdout, ret, len;
+	const int bufsize = 16 * 1024;
+
+	fdout = openfileoutput(output);
+	if (fdout < 0)
+		return -1;
+
+	buf = (char *)malloc(bufsize);
+	if (!buf)
+		return -ENOMEM;
+
+	for (;;) {
+		len = read(fdin, buf, bufsize);
+		if (len == 0)
+			break;
+		ret = copy_write(&fdout, buf, len);
+		if (ret < 0)
+			return -EIO;
+	}
+
+	return 0;
+}
+
 void *network_initializer(void *data)
 {
 	int ret;
@@ -305,6 +332,26 @@ void *network_initializer(void *data)
 		inst.status = RUN;
 		pthread_mutex_unlock(&stream_mutex);
 		notify(START, RECOVERY_NO_ERROR, INFOLEVEL, "Software Update started !");
+
+		/*
+		 * Check if the stream should be saved
+		 */
+		if (strlen(software->output)) {
+			ret = save_stream(inst.fd, software->output);
+			if (ret < 0) {
+				notify(FAILURE, RECOVERY_ERROR, ERRORLEVEL,
+					"Image invalid or corrupted. Not installing ...");
+				continue;
+			}
+
+			/*
+			 * now replace the file descriptor with
+			 * the saved file
+			 */
+			close(inst.fd);
+			inst.fd = open(software->output, O_RDONLY,  S_IRUSR);
+		}
+
 
 #ifdef CONFIG_MTD
 		mtd_cleanup();

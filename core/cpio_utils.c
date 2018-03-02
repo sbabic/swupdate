@@ -76,7 +76,11 @@ static int fill_buffer(int fd, unsigned char *buf, unsigned int nbytes, unsigned
 	return count;
 }
 
-static int copy_write(void *out, const void *buf, unsigned int len)
+/*
+ * Export this to be used in other modules
+ * It just copy a buffer to a file
+ */
+int copy_write(void *out, const void *buf, unsigned int len)
 {
 	int ret;
 	int fd = (out != NULL) ? *(int *)out : -1;

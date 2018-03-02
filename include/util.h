@@ -131,6 +131,7 @@ char *sdup(const char *str);
 typedef int (*writeimage) (void *out, const void *buf, unsigned int len);
 
 int openfile(const char *filename);
+int copy_write(void *out, const void *buf, unsigned int len);
 int copyfile(int fdin, void *out, unsigned int nbytes, unsigned long *offs,
 	unsigned long long seek,
 	int skip_file, int compressed, uint32_t *checksum,

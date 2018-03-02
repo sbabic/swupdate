@@ -76,6 +76,7 @@ static struct option long_options[] = {
 	{"loglevel", required_argument, NULL, 'l'},
 	{"syslog", no_argument, NULL, 'L' },
 	{"select", required_argument, NULL, 'e'},
+	{"output", required_argument, NULL, 'o'},
 #ifdef CONFIG_SIGNED_IMAGES
 	{"key", required_argument, NULL, 'k'},
 #endif
@@ -548,7 +549,7 @@ int main(int argc, char **argv)
 #endif
 	memset(main_options, 0, sizeof(main_options));
 	memset(image_url, 0, sizeof(image_url));
-	strcpy(main_options, "vhi:e:l:Lcf:p:");
+	strcpy(main_options, "vhi:e:l:Lcf:p:o:");
 #ifdef CONFIG_MTD
 	strcat(main_options, "b:");
 #endif
@@ -658,6 +659,9 @@ int main(int argc, char **argv)
 			strncpy(fname, optarg, sizeof(fname));
 			opt_i = 1;
 			break;
+		case 'o':
+			strncpy(swcfg.output, optarg, sizeof(swcfg.output));
+			break;
 		case 'l':
 			loglevel = strtoul(optarg, NULL, 10);
 			break;
@@ -746,6 +750,13 @@ int main(int argc, char **argv)
 	if (opt_c && !opt_i) {
 		fprintf(stderr,
 			"request check for local image, it requires -i\n");
+		usage(argv[0]);
+		exit(1);
+	}
+
+	if (opt_i && strlen(swcfg.output)) {
+		fprintf(stderr,
+			"Output just from network - do you know cp ?\n");
 		usage(argv[0]);
 		exit(1);
 	}
