@@ -66,7 +66,7 @@ channel_op_res_t channel_curl_init(void);
 channel_op_res_t channel_close(channel_t *this);
 channel_op_res_t channel_open(channel_t *this, void *cfg);
 channel_op_res_t channel_get(channel_t *this, void *data);
-channel_op_res_t channel_get_file(channel_t *this, void *data, int file_handle);
+channel_op_res_t channel_get_file(channel_t *this, void *data);
 channel_op_res_t channel_put(channel_t *this, void *data);
 channel_t *channel_new(void);
 
@@ -697,9 +697,10 @@ channel_op_res_t channel_put(channel_t *this, void *data)
 	}
 }
 
-channel_op_res_t channel_get_file(channel_t *this, void *data, int file_handle)
+channel_op_res_t channel_get_file(channel_t *this, void *data)
 {
 	channel_curl_t *channel_curl = this->priv;
+	int file_handle;
 	assert(data != NULL);
 	assert(channel_curl->handle != NULL);
 
@@ -737,22 +738,18 @@ channel_op_res_t channel_get_file(channel_t *this, void *data, int file_handle)
 		goto cleanup_header;
 	}
 
-	if (file_handle == FD_USE_IPC) {
-		for (int retries = 3; retries >= 0; retries--) {
-			file_handle = ipc_inst_start_ext(channel_data->source,
-				channel_data->info == NULL ? 0 : strlen(channel_data->info),
-				channel_data->info);
-			if (file_handle > 0)
-				break;
-			sleep(1);
-		}
-		if (file_handle < 0) {
-			ERROR("Cannot open SWUpdate IPC stream: %s\n", strerror(errno));
-			result = CHANNEL_EIO;
-			goto cleanup_header;
-		}
-	} else {
-		assert(file_handle > 0);
+	for (int retries = 3; retries >= 0; retries--) {
+		file_handle = ipc_inst_start_ext(channel_data->source,
+			channel_data->info == NULL ? 0 : strlen(channel_data->info),
+			channel_data->info);
+		if (file_handle > 0)
+			break;
+		sleep(1);
+	}
+	if (file_handle < 0) {
+		ERROR("Cannot open SWUpdate IPC stream: %s\n", strerror(errno));
+		result = CHANNEL_EIO;
+		goto cleanup_header;
 	}
 
 	write_callback_t wrdata;

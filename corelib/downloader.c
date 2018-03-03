@@ -56,7 +56,7 @@ static RECOVERY_STATUS download_from_url(channel_data_t* channel_data)
 	notify(DOWNLOAD, 0, INFOLEVEL, NULL);
 
 	RECOVERY_STATUS result = SUCCESS;
-	channel_op_res_t chanresult = channel->get_file(channel, channel_data, FD_USE_IPC);
+	channel_op_res_t chanresult = channel->get_file(channel, channel_data);
 	if (chanresult != CHANNEL_OK) {
 		result = FAILURE;
 	}

@@ -20,7 +20,7 @@ struct channel {
 	channel_op_res_t (*open)(channel_t *this, void *cfg);
 	channel_op_res_t (*close)(channel_t *this);
 	channel_op_res_t (*get)(channel_t *this, void *data);
-	channel_op_res_t (*get_file)(channel_t *this, void *data, int file_handle);
+	channel_op_res_t (*get_file)(channel_t *this, void *data);
 	channel_op_res_t (*put)(channel_t *this, void *data);
 	void *priv;
 };
