@@ -18,6 +18,10 @@ SWUpdate Flyer
 A short description about the project and the features (in English and German)
 can be found in the `flyer <http://www.denx.de/en/pub/Software/WebHome/we-update.pdf>`_
 
+Workshop and SWUpdate integration in project
+============================================
+
+For quick integration of SWUpdate in your project, you could be interested in the `Workshop <http://www.denx.de/wiki/Training2/WebHome#WorkshopSWUpdate>`_
 
 Talks about SWUpdate
 ====================
