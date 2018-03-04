@@ -48,6 +48,7 @@ struct file_upload_state {
 };
 
 static struct mg_serve_http_opts s_http_server_opts;
+static void upload_handler(struct mg_connection *nc, int ev, void *p);
 
 #if defined(CONFIG_MONGOOSE_WEB_API_V2)
 #define enum_string(x)	[x] = #x
@@ -112,20 +113,16 @@ static size_t snescape(char *dst, size_t n, const char *src)
 }
 #endif
 
-static void upload_handler(struct mg_connection *nc, int ev, void *p)
-{
-	struct mg_http_multipart_part *mp;
-	struct file_upload_state *fus;
 #if defined(CONFIG_MONGOOSE_WEB_API_V1)
+static void upload_handler_v1(struct mg_connection *nc, int ev, void *p)
+{
 	struct mg_str *filename, *data;
 	struct http_message *hm;
 	size_t length;
 	char buf[16];
 	int fd;
-#endif
 
 	switch (ev) {
-#if defined(CONFIG_MONGOOSE_WEB_API_V1)
 	case MG_EV_HTTP_REQUEST:
 		hm = (struct http_message *) p;
 
@@ -159,9 +156,20 @@ static void upload_handler(struct mg_connection *nc, int ev, void *p)
 		mg_send(nc, "\r\n", 2);
 		mg_printf(nc, "Ok, %.*s - %d bytes.\r\n", (int) filename->len, filename->p, (int) length);
 		nc->flags |= MG_F_SEND_AND_CLOSE;
-
 		break;
+	default:
+		upload_handler(nc, ev, p);
+		break;
+	}
+}
 #endif
+
+static void upload_handler(struct mg_connection *nc, int ev, void *p)
+{
+	struct mg_http_multipart_part *mp;
+	struct file_upload_state *fus;
+
+	switch (ev) {
 	case MG_EV_HTTP_PART_BEGIN:
 		mp = (struct mg_http_multipart_part *) p;
 
@@ -610,18 +618,16 @@ int start_mongoose(const char *cfgfname, int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
+	mg_set_protocol_http_websocket(nc);
+	mg_register_http_endpoint(nc, "/upload", MG_CB(upload_handler, NULL));
 #if defined(CONFIG_MONGOOSE_WEB_API_V1)
-	mg_register_http_endpoint(nc, "/handle_post_request", MG_CB(upload_handler, NULL));
+	mg_register_http_endpoint(nc, "/handle_post_request", MG_CB(upload_handler_v1, NULL));
 	mg_register_http_endpoint(nc, "/getstatus.json", MG_CB(recovery_status, NULL));
 	mg_register_http_endpoint(nc, "/rebootTarget", MG_CB(reboot_target, NULL));
 	mg_register_http_endpoint(nc, "/postUpdateCommand", MG_CB(post_update_cmd, NULL));
-#elif defined(CONFIG_MONGOOSE_WEB_API_V2)
-	mg_register_http_endpoint(nc, "/restart", restart_handler);
 #endif
-	mg_register_http_endpoint(nc, "/upload", MG_CB(upload_handler, NULL));
-	mg_set_protocol_http_websocket(nc);
-
 #if defined(CONFIG_MONGOOSE_WEB_API_V2)
+	mg_register_http_endpoint(nc, "/restart", restart_handler);
 	mg_start_thread(broadcast_message_thread, &mgr);
 	mg_start_thread(broadcast_progress_thread, &mgr);
 #endif
