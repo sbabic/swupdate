@@ -108,17 +108,12 @@ Current release supports verified images. That means that a handler
 written in Lua could be now be part of the compound image, because
 a unauthenticated handler cannot run.
 
-Encryption of compressed artifacts
-==================================
-
-Currently, encrypted artifact are not compressed. Allow to compress artifacts before encryption.
-
 Support for evaluation boards
 =============================
 
 New is meta-swupdate-boards - examples regarding evaluation boards are
-put there. Currently, there are examples for Beaglebone Black and
-Raspberri PI 3. Maybe some more boards ?
+put there. Currently, there are examples for Beaglebone Black,
+Raspberri PI 3 and Wandboard. Maybe some more boards ?
 
 Backend support (suricatta mode)
 ================================
@@ -150,22 +145,6 @@ Currently, suricatta's server backends are a mutually exclusive
 compile-time choice. A proxy registrar and dispatcher should be plugged
 into the architecture to allow for different channels and server
 backends to be mixed and matched at run-time.
-
-Webserver / Interface
-=====================
-
-On most systems, the interface shown in browser seems enough. However, it looks
-to me quite old and it could be really improved. Some ideas:
-
-- drop the polling mechanism and switch to a websocket implementattion. This has
-  the big advantage that a nice interface with progress bars, status, and so on
-  can be realized.
-- website graphic is old and IMHO quite nasty. Am I the only one to think this (and I
-  am the one who developped it..) ? I see a lot of devices running the website  with the 
-  same graphic and just replacing the Logo. I think it could be really better as now.
-- I have forwarded the traces to the browser just to show how we can debug issues and
-  check what is wrong during an update - but I have not thought to let it on for
-  the end products. They should be at least activated in some conditions, not always.
 
 Test and Continuos Integration
 ==============================

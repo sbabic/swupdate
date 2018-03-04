@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Project’s road-map &mdash; Embedded Software Update Documentation 2017.11 documentation</title>
+  <title>Project’s road-map &mdash; Embedded Software Update Documentation 2018.03 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="Embedded Software Update Documentation 2017.11 documentation" href="index.html"/>
+    <link rel="top" title="Embedded Software Update Documentation 2018.03 documentation" href="index.html"/>
         <link rel="prev" title="Contributing to SWUpdate" href="contributing.html"/> 
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                2017.11
+                2018.03
               </div>
             
           
@@ -112,7 +112,6 @@
 <li class="toctree-l3"><a class="reference internal" href="#handlers-installable-as-plugin-at-runtime">Handlers installable as plugin at runtime</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#encryption-of-compressed-artifacts">Encryption of compressed artifacts</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#support-for-evaluation-boards">Support for evaluation boards</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#backend-support-suricatta-mode">Backend support (suricatta mode)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#backend-offline-support">Backend: Offline support</a></li>
@@ -120,7 +119,6 @@
 <li class="toctree-l3"><a class="reference internal" href="#support-for-multiple-servers-simultaneously">Support for multiple Servers simultaneously</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#webserver-interface">Webserver / Interface</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#test-and-continuos-integration">Test and Continuos Integration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#documentation">Documentation</a></li>
 </ul>
@@ -269,15 +267,11 @@ written in Lua could be now be part of the compound image, because
 a unauthenticated handler cannot run.</p>
 </div>
 </div>
-<div class="section" id="encryption-of-compressed-artifacts">
-<h2>Encryption of compressed artifacts<a class="headerlink" href="#encryption-of-compressed-artifacts" title="Permalink to this headline">¶</a></h2>
-<p>Currently, encrypted artifact are not compressed. Allow to compress artifacts before encryption.</p>
-</div>
 <div class="section" id="support-for-evaluation-boards">
 <h2>Support for evaluation boards<a class="headerlink" href="#support-for-evaluation-boards" title="Permalink to this headline">¶</a></h2>
 <p>New is meta-swupdate-boards - examples regarding evaluation boards are
-put there. Currently, there are examples for Beaglebone Black and
-Raspberri PI 3. Maybe some more boards ?</p>
+put there. Currently, there are examples for Beaglebone Black,
+Raspberri PI 3 and Wandboard. Maybe some more boards ?</p>
 </div>
 <div class="section" id="backend-support-suricatta-mode">
 <h2>Backend support (suricatta mode)<a class="headerlink" href="#backend-support-suricatta-mode" title="Permalink to this headline">¶</a></h2>
@@ -305,22 +299,6 @@ compile-time choice. A proxy registrar and dispatcher should be plugged
 into the architecture to allow for different channels and server
 backends to be mixed and matched at run-time.</p>
 </div>
-</div>
-<div class="section" id="webserver-interface">
-<h2>Webserver / Interface<a class="headerlink" href="#webserver-interface" title="Permalink to this headline">¶</a></h2>
-<p>On most systems, the interface shown in browser seems enough. However, it looks
-to me quite old and it could be really improved. Some ideas:</p>
-<ul class="simple">
-<li>drop the polling mechanism and switch to a websocket implementattion. This has
-the big advantage that a nice interface with progress bars, status, and so on
-can be realized.</li>
-<li>website graphic is old and IMHO quite nasty. Am I the only one to think this (and I
-am the one who developped it..) ? I see a lot of devices running the website  with the
-same graphic and just replacing the Logo. I think it could be really better as now.</li>
-<li>I have forwarded the traces to the browser just to show how we can debug issues and
-check what is wrong during an update - but I have not thought to let it on for
-the end products. They should be at least activated in some conditions, not always.</li>
-</ul>
 </div>
 <div class="section" id="test-and-continuos-integration">
 <h2>Test and Continuos Integration<a class="headerlink" href="#test-and-continuos-integration" title="Permalink to this headline">¶</a></h2>
@@ -378,7 +356,7 @@ how to set it up with different configurations.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'2017.11',
+            VERSION:'2018.03',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

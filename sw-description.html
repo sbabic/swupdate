@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>SWUpdate: syntax and tags with the default parser &mdash; Embedded Software Update Documentation 2017.11 documentation</title>
+  <title>SWUpdate: syntax and tags with the default parser &mdash; Embedded Software Update Documentation 2018.03 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="Embedded Software Update Documentation 2017.11 documentation" href="index.html"/>
+    <link rel="top" title="Embedded Software Update Documentation 2018.03 documentation" href="index.html"/>
         <link rel="next" title="Update images from verified source" href="signed_images.html"/>
         <link rel="prev" title="SWUpdate: software update for embedded system" href="swupdate.html"/> 
 
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                2017.11
+                2018.03
               </div>
             
           
@@ -228,10 +228,6 @@ using of the #include directive is not allowed by SWUpdate.</p>
                         volume = &quot;splash&quot;;
                 },
                 {
-                        filename = &quot;bootloader-env&quot;;
-                        type = &quot;bootloader&quot;;
-                },
-                {
                         filename = &quot;uImage.bin&quot;;
                         volume = &quot;kernel&quot;;
                 },
@@ -262,6 +258,10 @@ using of the #include directive is not allowed by SWUpdate.</p>
         );
 
         bootenv: (
+                {
+                        filename = &quot;bootloader-env&quot;;
+                        type = &quot;bootloader&quot;;
+                },
                 {
                         name = &quot;vram&quot;;
                         value = &quot;4M&quot;;
@@ -603,17 +603,19 @@ SWUpdate scans for all scripts and calls them after installing the images.</p>
 </div>
 <div class="section" id="bootloader">
 <h2>bootloader<a class="headerlink" href="#bootloader" title="Permalink to this headline">¶</a></h2>
-<p>There are two ways to update the bootloader (currently U-Boot, GRUB) environment.
-First way is to add a file with the list of variables to be changed
-and setting &#8220;bootloader&#8221; as type of the image. This informs SWUpdate to
-call the bootloader handler to manage the file (requires enabling bootloader
-handler in configuration). There is one bootloader handler for all supported
-bootloaders. Appropriate bootloader must be chosen from bootloader selection
-menu in menuconfig.</p>
-<div class="highlight-python"><div class="highlight"><pre>{
-        filename = &quot;bootloader-env&quot;;
-        type = &quot;bootloader&quot;;
-},
+<p>There are two ways to update the bootloader (currently U-Boot, GRUB, and
+EFI Boot Guard) environment. First way is to add a file with the list of
+variables to be changed and setting &#8220;bootloader&#8221; as type of the image. This
+informs SWUpdate to call the bootloader handler to manage the file
+(requires enabling bootloader handler in configuration). There is one
+bootloader handler for all supported bootloaders. The appropriate bootloader
+must be chosen from the bootloader selection menu in <cite>menuconfig</cite>.</p>
+<div class="highlight-python"><div class="highlight"><pre>bootenv: (
+        {
+                filename = &quot;bootloader-env&quot;;
+                type = &quot;bootloader&quot;;
+        },
+)
 </pre></div>
 </div>
 <p>The format of the file is described in U-boot documentation. Each line
@@ -622,8 +624,8 @@ is in the format</p>
 </pre></div>
 </div>
 <p>if value is missing, the variable is unset.</p>
-<p>In current implementation we have inherited above file format for GRUB
-environment modification as well.</p>
+<p>In the current implementation, the above file format was inherited for
+GRUB and EFI Boot Guard environment modification as well.</p>
 <p>The second way is to define in a group setting the variables
 that must be changed:</p>
 <div class="highlight-python"><div class="highlight"><pre>bootenv: (
@@ -636,8 +638,9 @@ that must be changed:</p>
 </div>
 <p>SWUpdate will internally generate a script that will be passed to the
 bootloader handler for adjusting the environment.</p>
-<p>For backward compatibility with previously built .swu images, &#8220;uboot &#8220;group name
-is still relevant (as an alias).</p>
+<p>For backward compatibility with previously built <cite>.swu</cite> images, the
+&#8220;uboot&#8221; group name is still supported as an alias. However, its usage
+is deprecated.</p>
 </div>
 <div class="section" id="board-specific-settings">
 <h2>Board specific settings<a class="headerlink" href="#board-specific-settings" title="Permalink to this headline">¶</a></h2>
@@ -1107,7 +1110,7 @@ specifying the devicenode</td>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'2017.11',
+            VERSION:'2018.03',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

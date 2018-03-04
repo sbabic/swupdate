@@ -1,6 +1,6 @@
 .. _contents: Table of contents
 
-.. image:: ../../SWUpdate.png
+.. image:: images/SWUpdate.png
         :scale: 25 %
         :align: center
 
@@ -30,6 +30,7 @@ SWUpdate Documentation
    signed_images.rst
    encrypted_images.rst
    handlers.rst
+   mongoose.rst
    suricatta.rst
    swupdate-ipc.rst
    progress.rst

@@ -233,8 +233,8 @@ is corrupted or cannot run.
 With U-Boot as boot loader, SWUpdate is able to manage U-Boot's environment
 setting variables to indicate the start and the end of a transaction and
 that the storage contains a valid software.
-Similar feature for GRUB environment block modification has been introduced
-into SWUpdate lately.
+A similar feature for GRUB environment block modification as well as for
+EFI Boot Guard has been introduced.
 
 SWUpdate is mainly used in this configuration. The recipes for Yocto
 generate an initrd image containing the SWUpdate application, that is
@@ -248,7 +248,8 @@ Something went wrong ?
 Many things can go wrong, and it must be guaranteed that the system
 is able to run again and maybe able to reload a new software to fix
 a damaged image. SWUpdate works together with the boot loader to identify the
-possible causes of failures. Currently U-Boot and GRUB are supported.
+possible causes of failures. Currently U-Boot, GRUB, and EFI Boot Guard
+are supported.
 
 We can at least group some of the common causes:
 
@@ -297,13 +298,13 @@ Generally, the behavior can be split according to the chosen scenario:
 To be completely safe, SWUpdate and the bootloader need to exchange some
 information. The bootloader must detect if an update was interrupted due
 to a power-off, and restart SWUpdate until an update is successful.
-SWUpdate supports the U-Boot and GRUB bootloaders. U-Boot has a power-safe
-environment, that SWUpdate is able to change to communicate with U-Boot.
-In case of GRUB, fixed 1024-byte environment block file is used.
-Setting / Clearing variables lets SWUpdate and bootloader to communicate.
-SWUpdate sets a variable as flag when it starts to update the system, and
-resets the same variable after completion. Bootloader can detect this flag
-to check if an update was running before a power-off.
+SWUpdate supports the U-Boot, GRUB, and EFI Boot Guard bootloaders.
+U-Boot and EFI Boot Guard have a power-safe environment which SWUpdate is
+able to read and change in order to communicate with them. In case of GRUB,
+a fixed 1024-byte environment block file is used instead. SWUpdate sets
+a variable as flag when it starts to update the system and resets the same
+variable after completion. The bootloader can read this flag to check if an
+update was running before a power-off.
 
 .. image:: images/SoftwareUpdateU-Boot.png
 
@@ -339,7 +340,7 @@ In my experience, most targets do not allow to update the boot loader. It
 is very uncommon that the boot loader must be updated when the product
 is ready for production.
 
-It is different is if the U-Boot environment must be updated, that is a
+It is different if the U-Boot environment must be updated, that is a
 common practice. U-Boot provides a double copy of the whole environment,
 and updating the environment from SWUpdate is power-off safe. Other boot loaders
 can or cannot have this feature.

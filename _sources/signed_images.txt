@@ -100,12 +100,13 @@ Signing the image is very simple:
 
         openssl dgst -sha256 -sign priv.pem sw-description > sw-description.sig
 
+
 Usage with certificates and CMS
 -------------------------------
 
-Generating certificates
-.......................
 
+Generating self-signed certificates
+...................................
 
 ::
 
@@ -117,6 +118,24 @@ Check the documentation for more information about parameters. The "mycert.key.p
 the private key and it is used for signing. It is *not* delivered on the target.
 
 The target must have "mycert.cert.pem" installed - this is used by SWUpdate for verification.
+
+
+Using PKI issued certificates
+.............................
+
+It is also possible to use PKI issued code signing certificates. However,
+SWUpdate uses OpenSSL library for handling CMS signatures and the library
+requires the following attributes to be set on the signing certificate:
+
+::
+
+        keyUsage=digitalSignature
+        extendedKeyUsage=emailProtection
+
+It is also possible to completelly disable signing certificate key usage
+checking if this requirement cannot be satisfied. This is controlled by
+`CONFIG_CMS_IGNORE_CERTIFICATE_PURPOSE` configuration option.
+
 
 How to sign with CMS
 .....................

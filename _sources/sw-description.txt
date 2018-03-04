@@ -64,10 +64,6 @@ The following example explains better the implemented tags:
 				volume = "splash";
 			},
 			{
-				filename = "bootloader-env";
-				type = "bootloader";
-			},
-			{
 				filename = "uImage.bin";
 				volume = "kernel";
 			},
@@ -98,6 +94,10 @@ The following example explains better the implemented tags:
 		);
 
 		bootenv: (
+			{
+				filename = "bootloader-env";
+				type = "bootloader";
+			},
 			{
 				name = "vram";
 				value = "4M";
@@ -507,20 +507,22 @@ SWUpdate scans for all scripts and calls them after installing the images.
 bootloader
 ----------
 
-There are two ways to update the bootloader (currently U-Boot, GRUB) environment.
-First way is to add a file with the list of variables to be changed
-and setting "bootloader" as type of the image. This informs SWUpdate to
-call the bootloader handler to manage the file (requires enabling bootloader
-handler in configuration). There is one bootloader handler for all supported
-bootloaders. Appropriate bootloader must be chosen from bootloader selection
-menu in menuconfig.
+There are two ways to update the bootloader (currently U-Boot, GRUB, and
+EFI Boot Guard) environment. First way is to add a file with the list of
+variables to be changed and setting "bootloader" as type of the image. This
+informs SWUpdate to call the bootloader handler to manage the file
+(requires enabling bootloader handler in configuration). There is one
+bootloader handler for all supported bootloaders. The appropriate bootloader
+must be chosen from the bootloader selection menu in `menuconfig`.
 
 ::
 
+	bootenv: (
 		{
 			filename = "bootloader-env";
 			type = "bootloader";
 		},
+	)
 
 The format of the file is described in U-boot documentation. Each line
 is in the format
@@ -531,8 +533,8 @@ is in the format
 
 if value is missing, the variable is unset.
 
-In current implementation we have inherited above file format for GRUB
-environment modification as well.
+In the current implementation, the above file format was inherited for
+GRUB and EFI Boot Guard environment modification as well.
 
 The second way is to define in a group setting the variables
 that must be changed:
@@ -549,8 +551,10 @@ that must be changed:
 SWUpdate will internally generate a script that will be passed to the
 bootloader handler for adjusting the environment.
 
-For backward compatibility with previously built .swu images, "uboot "group name
-is still relevant (as an alias).
+For backward compatibility with previously built `.swu` images, the
+"uboot" group name is still supported as an alias. However, its usage
+is deprecated.
+
 
 Board specific settings
 -----------------------

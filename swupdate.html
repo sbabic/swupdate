@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>SWUpdate: software update for embedded system &mdash; Embedded Software Update Documentation 2017.11 documentation</title>
+  <title>SWUpdate: software update for embedded system &mdash; Embedded Software Update Documentation 2018.03 documentation</title>
   
 
   
@@ -32,7 +32,7 @@
   
 
   
-    <link rel="top" title="Embedded Software Update Documentation 2017.11 documentation" href="index.html"/>
+    <link rel="top" title="Embedded Software Update Documentation 2018.03 documentation" href="index.html"/>
         <link rel="next" title="SWUpdate: syntax and tags with the default parser" href="sw-description.html"/>
         <link rel="prev" title="License" href="licensing.html"/> 
 
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                2017.11
+                2018.03
               </div>
             
           
@@ -214,40 +214,49 @@ notifications.</p>
 <h2>Features<a class="headerlink" href="#features" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="general-overview">
 <h3>General Overview<a class="headerlink" href="#general-overview" title="Permalink to this headline">¶</a></h3>
-<ul class="simple">
-<li>Install on embedded Media (eMMC, SD, Raw NAND,
-NOR and SPI-NOR flashes)</li>
-<li>check if an image is available. The image is built
+<ul>
+<li><p class="first">Install on embedded Media (eMMC, SD, Raw NAND,
+NOR and SPI-NOR flashes)</p>
+</li>
+<li><p class="first">check if an image is available. The image is built
 in a specified format (cpio) and it must contain
-a file describing the software that must be updated.</li>
-<li>SWUpdate is thought to update UBI volumes (mainly for NAND, but not only)
+a file describing the software that must be updated.</p>
+</li>
+<li><p class="first">SWUpdate is thought to update UBI volumes (mainly for NAND, but not only)
 and images on devices. Passing a whole image can still be updated
-as a partition on the SD card, or a MTD partition.</li>
-<li>new partition schema. This is bound with UBI volume.
+as a partition on the SD card, or a MTD partition.</p>
+</li>
+<li><p class="first">new partition schema. This is bound with UBI volume.
 SWUpdate can recreate UBI volumes, resizing them and
 copying the new software. A special UBI volume with the name &#8220;data&#8221;
 is saved and restored after repartitioning with all data
-it contains,  to maintain user&#8217;s data.</li>
-<li>support for compressed images, using the zlib library.
-tarball (tgz file) are supported.</li>
-<li>support for partitioned USB-pen or unpartitioned (mainly
-used by Windows).</li>
-<li>support for updating a single file inside a filesystem.
-The filesystem where to put the file must be described.</li>
-<li>checksum for the single components of an image</li>
-<li>use a structured language to describe the image. This is done
+it contains,  to maintain user&#8217;s data.</p>
+</li>
+<li><p class="first">support for compressed images, using the zlib library.
+tarball (tgz file) are supported.</p>
+</li>
+<li><p class="first">support for partitioned USB-pen or unpartitioned (mainly
+used by Windows).</p>
+</li>
+<li><p class="first">support for updating a single file inside a filesystem.
+The filesystem where to put the file must be described.</p>
+</li>
+<li><p class="first">checksum for the single components of an image</p>
+</li>
+<li><p class="first">use a structured language to describe the image. This is done
 using the <a class="reference external" href="http://www.hyperrealm.com/libconfig/">libconfig</a> library as default parser, that uses a
-JSON-like description.</li>
-</ul>
-<ul class="simple">
-<li>use custom&#8217;s choice for the description of the image. It is
+JSON-like description.</p>
+</li>
+<li><p class="first">use custom&#8217;s choice for the description of the image. It is
 possible to write an own parser using the Lua language.
 An example using a XML description in Lua is provided
-in the examples directory.</li>
-<li>Support for setting / erasing U-Boot variables</li>
-</ul>
-<ul>
+in the examples directory.</p>
+</li>
+<li><p class="first">Support for setting / erasing U-Boot variables</p>
+</li>
 <li><p class="first">Support for setting / erasing <a class="reference external" href="https://www.gnu.org/software/grub/manual/html_node/Environment-block.html">GRUB</a> environment block variables</p>
+</li>
+<li><p class="first">Support for setting / erasing <a class="reference external" href="https://github.com/siemens/efibootguard">EFI Boot Guard</a> variables</p>
 </li>
 <li><p class="first">Support for preinstall scripts. They run before updating the images</p>
 </li>
@@ -381,6 +390,7 @@ MTD and UBI volumes.</li>
 <li>libarchive (optional) for archive handler</li>
 <li>libjson (optional) for JSON parser and Hawkbit</li>
 <li>libubootenv (optional) if support for U-Boot is enabled</li>
+<li>libebgenv (optional) if support for EFI Boot Guard is enabled</li>
 <li>libcurl used to communicate with network</li>
 </ul>
 <p>New handlers can add some other libraries to the requirement list -
@@ -428,7 +438,7 @@ a wrong default environment is taken, and your board won&#8217;t boot again.</p>
 <div class="section" id="configuring-swupdate">
 <h3>Configuring SWUpdate<a class="headerlink" href="#configuring-swupdate" title="Permalink to this headline">¶</a></h3>
 <p>SWUpdate is configurable via &#8220;make menuconfig&#8221;. The small footprint
-is reached using the internal parser and disabling the web-server.
+is reached using the internal parser and disabling the web server.
 Any option has a small help describing its usage. In the default
 configuration, many options are already activated.</p>
 <p>To configure the options:</p>
@@ -538,17 +548,15 @@ an error is reported.</p>
 <div class="highlight-python"><div class="highlight"><pre>swupdate -i &lt;filename&gt;
 </pre></div>
 </div>
-<p>To start with the embedded web-server:</p>
-<div class="highlight-python"><div class="highlight"><pre>swupdate -w &quot;&lt;web-server options&gt;&quot;
+<p>To start with the embedded web server:</p>
+<div class="highlight-python"><div class="highlight"><pre>swupdate -w &quot;&lt;web server options&gt;&quot;
 </pre></div>
 </div>
-<p>The main important parameter for the web-server is &#8220;document_root&#8221;.</p>
-<div class="highlight-python"><div class="highlight"><pre>SWUpdate -w &quot;-document_root ./www&quot;
+<p>The main important parameters for the web server are &#8220;document-root&#8221; and &#8220;port&#8221;.</p>
+<div class="highlight-python"><div class="highlight"><pre>swupdate -w &quot;--document-root ./www --port 8080&quot;
 </pre></div>
 </div>
-<p>The embedded web-server is taken from the Mongoose project (last release
-with Lua license). Additional parameters can be found in mongoose
-documentation.</p>
+<p>The embedded web server is taken from the Mongoose project.</p>
 <p>The whole list of options will be retrieved with:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">swupdate</span> <span class="o">-</span><span class="n">h</span>
 </pre></div>
@@ -872,7 +880,7 @@ should inherit it, and add your own sw-description file to generate the image.</
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'2017.11',
+            VERSION:'2018.03',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

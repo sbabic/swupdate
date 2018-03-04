@@ -54,8 +54,11 @@ We use the SPDX_ Unique License Identifiers (SPDX-Identifiers_)
    +-------------------------------------------------+------------------+--------------+
    | BSD 3-clause_ "New" or "Revised" License        | BSD-3-Clause     |    Y         |
    +-------------------------------------------------+------------------+--------------+
+   | MIT_ License                                    | MIT              |    Y         |
+   +-------------------------------------------------+------------------+--------------+
 
 .. _v2.0: http://www.gnu.org/licenses/gpl-2.0.txt
 .. _v2.1: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt
 .. _2-Clause: http://spdx.org/licenses/BSD-2-Clause
 .. _3-Clause: http://spdx.org/licenses/BSD-3-Clause#licenseText
+.. _MIT: https://spdx.org/licenses/MIT.html
