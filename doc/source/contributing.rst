@@ -21,17 +21,17 @@ FOSS projects.
     - to certify the "Developer's Certificate of Origin", see below
     - check with your employer when not working on your own!
 
-- add version number for your patches if follow-up versions are requested
-  [*recomended*]
+- add version number for your patches if follow-up versions are requested [*recomended*]
     - Add a "Change from Vx" description under the commit message to take track
       of the history of the patch.
     - It is suggested to use excellent "patman" tool to manage patches series.
       This is part of U-Boot's project (tools/patman), but it can be used in other projects, too.
 
 - check that your patches do not break build [**required**]
-  - There is a set of configuration files in the `configs/` directory. Please
-    run a build for all files in the directory to ensure that SWUpdate is
-    still buildable from configurations different as yours
+
+  - There is a set of configuration files in the `configs/` directory.
+    Please run a build for all files in the directory to ensure that SWUpdate is
+    still buildable from configurations different as yours.
 
 - post patches to mailing list [**required**]
     - use `git format-patch` to generate your patches.
