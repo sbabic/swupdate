@@ -69,6 +69,10 @@ config CURL
 	bool
 	default n
 
+config CURL_SSL
+	bool
+	default n
+
 config SYSTEMD
 	bool "enable systemd support"
 	default n
@@ -294,10 +298,28 @@ config DOWNLOAD
 comment "Image downloading support needs libcurl"
 	depends on !HAVE_LIBCURL
 
+config DOWNLOAD_SSL
+	bool "Enable SSL support for image downloading"
+	default n
+	depends on DOWNLOAD
+	depends on HAVE_LIBSSL
+	depends on HAVE_LIBCRYPTO
+	select CHANNEL_CURL_SSL
+	help
+	  Enable SSL and checksum verification support in channels
+	  using libcurl.
+
 config CHANNEL_CURL
 	bool
 	depends on HAVE_LIBCURL
 	select CURL
+
+config CHANNEL_CURL_SSL
+	bool
+	depends on CHANNEL_CURL
+	depends on HAVE_LIBSSL
+	depends on HAVE_LIBCRYPTO
+	select CURL_SSL
 
 config HASH_VERIFY
 	bool "Allow to add sha256 hash to each image"

@@ -177,6 +177,13 @@ ifeq ($(CONFIG_BOOTLOADER_EBG),y)
 LDLIBS += ebgenv z
 endif
 
+# channel_curl
+ifneq ($(CONFIG_CHANNEL_CURL_SSL),)
+ifeq ($(strip $(findstring crypto,$(LDLIBS))),)
+LDLIBS += crypto ssl
+endif
+endif
+
 # suricatta
 ifneq ($(CONFIG_SURICATTA),)
 ifneq ($(CONFIG_SURICATTA_SSL),)
