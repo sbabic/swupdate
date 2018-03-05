@@ -24,7 +24,8 @@
 #define LUA_TYPE_HANDLER 2
 
 #if defined(CONFIG_EMBEDDED_LUA_HANDLER)
-extern const char EMBEDDED_LUA_SRC[];
+extern const char EMBEDDED_LUA_SRC_START[];
+extern const char EMBEDDED_LUA_SRC_END[];
 #endif
 
 #define LUA_PUSH_IMG_STRING(img, attr, field)  do { \
@@ -1021,12 +1022,13 @@ int lua_handlers_init(void)
 		lua_pop(gL, 1); /* remove unused copy left on stack */
 		/* try to load Lua handlers for the swupdate system */
 #if defined(CONFIG_EMBEDDED_LUA_HANDLER)
-		if ((ret = luaL_dostring(gL, EMBEDDED_LUA_SRC)) != 0) {
+		if ((ret = (luaL_loadbuffer(gL, EMBEDDED_LUA_SRC_START, EMBEDDED_LUA_SRC_END-EMBEDDED_LUA_SRC_START, "LuaHandler") ||
+					lua_pcall(gL, 0, LUA_MULTRET, 0))) != 0) {
 			INFO("No compiled-in Lua handler(s) found.");
 			TRACE("Lua exception:\n%s", lua_tostring(gL, -1));
 			lua_pop(gL, 1);
 		} else {
-			INFO("Compiled-in Lua handler(s) found.");
+			INFO("Compiled-in Lua handler(s) found and loaded.");
 		}
 #else
 		if ((ret = luaL_dostring(gL, "require (\"swupdate_handlers\")")) != 0) {
