@@ -129,18 +129,20 @@ struct swupdate_cfg {
 	const char *embscript;
 };
 
-#define SEARCH_FILE(type, list, found, offs) do { \
+#define SEARCH_FILE(img, list, found, offs) do { \
 	if (!found) { \
-		type *p; \
-		for (p = list.lh_first; p != NULL; \
-			p = p->next.le_next) { \
-			if (strcmp(p->fname, fdh.filename) == 0) { \
+		for (img = list.lh_first; img != NULL; \
+			img = img->next.le_next) { \
+			if (strcmp(img->fname, fdh.filename) == 0) { \
 				found = 1; \
-				p->offset = offs; \
-				p->provided = 1; \
-				p->size = fdh.size; \
+				img->offset = offs; \
+				img->provided = 1; \
+				img->size = fdh.size; \
+				break; \
 			} \
 		} \
+		if (!found) \
+			img = NULL; \
 	} \
 } while(0)
 

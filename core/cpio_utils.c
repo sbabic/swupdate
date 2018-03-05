@@ -647,12 +647,10 @@ int cpio_scan(int fd, struct swupdate_cfg *cfg, off_t start)
 			return 0;
 		}
 
-		SEARCH_FILE(struct img_type, cfg->images,
-			file_listed, start);
-		SEARCH_FILE(struct img_type, cfg->scripts,
-			file_listed, start);
-		SEARCH_FILE(struct img_type, cfg->bootscripts,
-			file_listed, start);
+		struct img_type *img = NULL;
+		SEARCH_FILE(img, cfg->images, file_listed, start);
+		SEARCH_FILE(img, cfg->scripts, file_listed, start);
+		SEARCH_FILE(img, cfg->bootscripts, file_listed, start);
 
 		TRACE("Found file:\n\tfilename %s\n\tsize %lu\n\t%s\n",
 			fdh.filename,
@@ -660,10 +658,11 @@ int cpio_scan(int fd, struct swupdate_cfg *cfg, off_t start)
 			file_listed ? "REQUIRED" : "not required");
 
 		/*
-		 * use copyfile for checksum verification, as we skip file
+		 * use copyfile for checksum and hash verification, as we skip file
 		 * we do not have to provide fdout
 		 */
-		if (copyfile(fd, NULL, fdh.size, &offset, 0, 1, 0, &checksum, NULL, 0, NULL) != 0) {
+		if (copyfile(fd, NULL, fdh.size, &offset, 0, 1, 0, &checksum, img ? img->sha256 : NULL,
+				0, NULL) != 0) {
 			ERROR("invalid archive\n");
 			return -1;
 		}
