@@ -30,6 +30,7 @@ typedef enum {
 
 typedef struct {
 	char *url;
+	char *auth;
 	char *json_string;
 	json_object *json_reply;
 	char *cafile;

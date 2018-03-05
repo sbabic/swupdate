@@ -454,6 +454,15 @@ channel_op_res_t channel_set_options(channel_t *this,
 		}
 	}
 
+	if (channel_data->auth) {
+		if (curl_easy_setopt(channel_curl->handle, CURLOPT_USERPWD,
+				     channel_data->auth) != CURLE_OK) {
+			ERROR("Basic Auth credentials could not be set.");
+			result = CHANNEL_EINIT;
+			goto cleanup;
+		}
+	}
+
 cleanup:
 	return result;
 }
