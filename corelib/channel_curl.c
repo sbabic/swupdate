@@ -331,6 +331,12 @@ channel_op_res_t channel_set_options(channel_t *this,
 					channel_data_t *channel_data,
 					channel_method_t method)
 {
+	if (channel_data->low_speed_timeout == 0) {
+		channel_data->low_speed_timeout = SPEED_LOW_TIME_SEC;
+		DEBUG("cURL's low download speed timeout is disabled, "
+			  "this is most probably not what you want. "
+			  "Adapted it to %us instead.\n", SPEED_LOW_TIME_SEC);
+	}
 	channel_curl_t *channel_curl = this->priv;
 	channel_op_res_t result = CHANNEL_OK;
 	if ((curl_easy_setopt(channel_curl->handle, CURLOPT_URL,
@@ -340,7 +346,7 @@ channel_op_res_t channel_set_options(channel_t *this,
 	    (curl_easy_setopt(channel_curl->handle, CURLOPT_LOW_SPEED_LIMIT,
 			      SPEED_LOW_BYTES_SEC) != CURLE_OK) ||
 	    (curl_easy_setopt(channel_curl->handle, CURLOPT_LOW_SPEED_TIME,
-			      SPEED_LOW_TIME_SEC) != CURLE_OK) ||
+			      channel_data->low_speed_timeout) != CURLE_OK) ||
 	    (curl_easy_setopt(channel_curl->handle, CURLOPT_HTTPHEADER,
 			      channel_curl->header) != CURLE_OK) ||
 	    (curl_easy_setopt(channel_curl->handle, CURLOPT_MAXREDIRS, -1) !=

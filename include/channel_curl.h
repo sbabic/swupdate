@@ -43,6 +43,7 @@ typedef struct {
 	unsigned int offs;
 	unsigned int method;
 	unsigned int retries;
+	unsigned int low_speed_timeout;
 	bool debug;
 	bool usessl;
 	bool strictssl;
