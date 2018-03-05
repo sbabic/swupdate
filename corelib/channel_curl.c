@@ -11,6 +11,7 @@
 #include <assert.h>
 #include <stdarg.h>
 #include <unistd.h>
+#include <math.h>
 #include <curl/curl.h>
 #include <json-c/json.h>
 #include <generated/autoconf.h>
@@ -327,6 +328,37 @@ channel_op_res_t channel_map_curl_error(CURLcode res)
 	}
 }
 
+static int channel_callback_xferinfo(void *p, curl_off_t dltotal, curl_off_t dlnow,
+				     curl_off_t __attribute__((__unused__)) ultotal,
+				     curl_off_t __attribute__((__unused__)) ulnow)
+{
+	if ((dltotal <= 0) || (dlnow > dltotal)) {
+		return 0;
+	}
+	double percent = 100.0 * (dlnow/1024.0) / (dltotal/1024.0);
+	double *last_percent = (double*)p;
+	if ((int)*last_percent == (int)percent) {
+		return 0;
+	}
+	*last_percent = percent;
+	char *info;
+	if (asprintf(&info,
+					"{\"percent\": %d, \"msg\":\"Received %" CURL_FORMAT_CURL_OFF_T "B "
+					"of %" CURL_FORMAT_CURL_OFF_T "B\"}",
+					(int)percent, dlnow, dltotal) != ENOMEM_ASPRINTF) {
+		notify(SUBPROCESS, RECOVERY_NO_ERROR, TRACELEVEL, info);
+		free(info);
+	}
+	return 0;
+}
+
+static int channel_callback_xferinfo_legacy(void *p, double dltotal, double dlnow,
+					    double ultotal, double ulnow)
+{
+	return channel_callback_xferinfo(p, (curl_off_t)dltotal, (curl_off_t)dlnow,
+					 (curl_off_t)ultotal, (curl_off_t)ulnow);
+}
+
 channel_op_res_t channel_set_options(channel_t *this,
 					channel_data_t *channel_data,
 					channel_method_t method)
@@ -364,6 +396,28 @@ channel_op_res_t channel_set_options(channel_t *this,
 	    (curl_easy_setopt(channel_curl->handle,
 			      CURLOPT_SSLCERT,
 			      channel_data->sslcert) != CURLE_OK)) {
+		result = CHANNEL_EINIT;
+		goto cleanup;
+	}
+
+	double percent = -INFINITY;
+	if ((curl_easy_setopt(channel_curl->handle, CURLOPT_PROGRESSFUNCTION,
+			      channel_callback_xferinfo_legacy) != CURLE_OK) ||
+	    (curl_easy_setopt(channel_curl->handle, CURLOPT_PROGRESSDATA,
+				  &percent) != CURLE_OK)) {
+		result = CHANNEL_EINIT;
+		goto cleanup;
+	}
+#if LIBCURL_VERSION_NUM >= 0x072000
+	if ((curl_easy_setopt(channel_curl->handle, CURLOPT_XFERINFOFUNCTION,
+			      channel_callback_xferinfo) != CURLE_OK) ||
+	    (curl_easy_setopt(channel_curl->handle, CURLOPT_XFERINFODATA,
+				  &percent) != CURLE_OK)) {
+		result = CHANNEL_EINIT;
+		goto cleanup;
+	}
+#endif
+	if (curl_easy_setopt(channel_curl->handle, CURLOPT_NOPROGRESS, 0L) != CURLE_OK) {
 		result = CHANNEL_EINIT;
 		goto cleanup;
 	}
