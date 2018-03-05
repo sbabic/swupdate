@@ -6,6 +6,7 @@
  */
 
 #include <stdbool.h>
+#include <stdlib.h>
 #include <string.h>
 #include <errno.h>
 #include <assert.h>
@@ -13,7 +14,6 @@
 #include <unistd.h>
 #include <math.h>
 #include <curl/curl.h>
-#include <json-c/json.h>
 #include <generated/autoconf.h>
 #include <unistd.h>
 #include <network_ipc.h>
@@ -21,6 +21,9 @@
 #include "sslapi.h"
 #include "channel.h"
 #include "channel_curl.h"
+#ifdef CONFIG_JSON
+#include <json-c/json.h>
+#endif
 
 #define SPEED_LOW_BYTES_SEC 8
 #define SPEED_LOW_TIME_SEC 300
@@ -979,6 +982,7 @@ channel_op_res_t channel_get(channel_t *this, void *data)
 			http_response_code);
 	}
 
+#ifdef CONFIG_JSON
 	assert(channel_data->json_reply == NULL);
 	enum json_tokener_error json_res;
 	struct json_tokener *json_tokenizer = json_tokener_new();
@@ -999,6 +1003,7 @@ channel_op_res_t channel_get(channel_t *this, void *data)
 
 cleanup_json_tokenizer:
 	json_tokener_free(json_tokenizer);
+#endif
 cleanup_chunk:
 	chunk.memory != NULL ? free(chunk.memory) : (void)0;
 cleanup_header:

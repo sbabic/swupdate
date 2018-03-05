@@ -165,6 +165,7 @@ config SWUFORWARDER_HANDLER
 	depends on HAVE_LIBCURL
 	depends on HAVE_JSON_C
 	select CHANNEL_CURL
+	select JSON
 	default n
 	help
 	  This allows to build a chain of updater. A

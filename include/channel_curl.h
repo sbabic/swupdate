@@ -6,7 +6,9 @@
  */
 
 #pragma once
+#ifdef CONFIG_JSON
 #include <json-c/json.h>
+#endif
 #include <stdio.h>
 #include <stdbool.h>
 #include "sslapi.h"
@@ -33,7 +35,9 @@ typedef struct {
 	char *url;
 	char *auth;
 	char *json_string;
+#ifdef CONFIG_JSON
 	json_object *json_reply;
+#endif
 	char *cafile;
 	char *sslkey;
 	char *sslcert;
