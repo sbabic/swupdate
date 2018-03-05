@@ -469,12 +469,12 @@ channel_op_res_t channel_set_options(channel_t *this,
 		if ((curl_easy_setopt(channel_curl->handle, CURLOPT_POST, 1L) !=
 		     CURLE_OK) ||
 		    (curl_easy_setopt(channel_curl->handle, CURLOPT_POSTFIELDS,
-				      channel_data->json_string) != CURLE_OK)) {
+				      channel_data->request_body) != CURLE_OK)) {
 			result = CHANNEL_EINIT;
 			goto cleanup;
 		}
 		if (channel_data->debug) {
-			TRACE("Post JSON: %s\n", channel_data->json_string);
+			TRACE("Posted: %s\n", channel_data->request_body);
 		}
 		break;
 	}
@@ -537,14 +537,14 @@ static size_t put_read_callback(void *ptr, size_t size, size_t nmemb, void *data
 	size_t n;
 
 	/* Check data to be sent */
-	bytes = strlen(channel_data->json_string) - channel_data->offs;
+	bytes = strlen(channel_data->request_body) - channel_data->offs;
 
 	if (!bytes)
 		return 0;
 
 	n = min(bytes, size * nmemb);
 
-	memcpy(ptr, &channel_data->json_string[channel_data->offs], n);
+	memcpy(ptr, &channel_data->request_body[channel_data->offs], n);
 	channel_data->offs += n;
 
 	return n;
@@ -646,7 +646,7 @@ static channel_op_res_t channel_put_method(channel_t *this, void *data)
 	if ((curl_easy_setopt(channel_curl->handle, CURLOPT_READFUNCTION, put_read_callback) !=
 		CURLE_OK) ||
 	   (curl_easy_setopt(channel_curl->handle, CURLOPT_INFILESIZE_LARGE,
-			     (curl_off_t)strlen(channel_data->json_string)) != CURLE_OK) ||
+			     (curl_off_t)strlen(channel_data->request_body)) != CURLE_OK) ||
 	   (curl_easy_setopt(channel_curl->handle, CURLOPT_READDATA, channel_data) !=
 			CURLE_OK)) {
 		ERROR("Set channel option failed.\n");

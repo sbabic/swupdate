@@ -34,7 +34,7 @@ typedef enum {
 typedef struct {
 	char *url;
 	char *auth;
-	char *json_string;
+	char *request_body;
 #ifdef CONFIG_JSON
 	json_object *json_reply;
 #endif
