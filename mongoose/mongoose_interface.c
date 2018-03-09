@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdbool.h>
 
 #include <getopt.h>
 
@@ -28,7 +29,6 @@
 
 #include "mongoose.h"
 
-#define MG_LISTING "no"
 #define MG_PORT "8080"
 #define MG_ROOT "."
 
@@ -39,7 +39,7 @@ enum MONGOOSE_API_VERSION {
 
 struct mongoose_options {
 	char *root;
-	char *listing;
+	bool listing;
 	char *port;
 	char *global_auth_file;
 	char *auth_domain;
@@ -453,10 +453,8 @@ static int mongoose_settings(void *elem, void  __attribute__ ((__unused__)) *dat
 		opts->root = strdup(tmp);
 	}
 
-	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "enable_directory_listing", tmp);
-	if (strlen(tmp)) {
-		opts->listing = strdup(tmp);
-	}
+	get_field(LIBCFG_PARSER, elem, "enable_directory_listing",
+		  &opts->listing);
 
 	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "listening_ports", tmp);
 	if (strlen(tmp)) {
@@ -511,7 +509,7 @@ void mongoose_print_help(void)
 	fprintf(
 		stdout,
 		"\tmongoose arguments:\n"
-		"\t  -l, --listing <port>           : enable directory listing  (default: %s)\n"
+		"\t  -l, --listing                  : enable directory listing\n"
 		"\t  -p, --port <port>              : server port number  (default: %s)\n"
 #if MG_ENABLE_SSL
 		"\t  -s, --ssl                      : enable ssl support\n"
@@ -522,7 +520,7 @@ void mongoose_print_help(void)
 		"\t  -a, --api-version [1|2]        : set Web protocol API to v1 (legacy) or v2 (default v2)\n"
 		"\t  --auth-domain                  : set authentication domain if any (default: none)\n"
 		"\t  --global-auth-file             : set authentication file if any (default: none)\n",
-		MG_LISTING, MG_PORT, MG_ROOT);
+		MG_PORT, MG_ROOT);
 }
 
 int start_mongoose(const char *cfgfname, int argc, char *argv[])
@@ -541,6 +539,10 @@ int start_mongoose(const char *cfgfname, int argc, char *argv[])
 	memset(&opts, 0, sizeof(opts));
 	/* Set default API version */
 	opts.api_version = MONGOOSE_API_V2;
+
+	/* No listing directory as default */
+	opts.listing = false;
+
 	if (cfgfname) {
 		read_module_settings(cfgfname, "webserver", mongoose_settings, &opts);
 	}
@@ -558,8 +560,7 @@ int start_mongoose(const char *cfgfname, int argc, char *argv[])
 			opts.global_auth_file = strdup(optarg);
 			break;
 		case 'l':
-			free(opts.listing);
-			opts.listing = strdup(optarg);
+			opts.listing = true;
 			break;
 		case 'p':
 			free(opts.port);
@@ -596,7 +597,7 @@ int start_mongoose(const char *cfgfname, int argc, char *argv[])
 	s_http_server_opts.document_root =
 		opts.root ? opts.root : MG_ROOT;
 	s_http_server_opts.enable_directory_listing =
-		opts.listing ? opts.listing : MG_LISTING;
+		opts.listing ? "yes" : "no";
 	s_http_port = opts.port ? opts.port : MG_PORT;
 	s_http_server_opts.global_auth_file = opts.global_auth_file;
 	s_http_server_opts.auth_domain = opts.auth_domain;
