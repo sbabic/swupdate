@@ -41,6 +41,8 @@ struct mongoose_options {
 	char *root;
 	char *listing;
 	char *port;
+	char *global_auth_file;
+	char *auth_domain;
 #if MG_ENABLE_SSL
 	char *ssl_cert;
 	char *ssl_key;
@@ -477,6 +479,14 @@ static int mongoose_settings(void *elem, void  __attribute__ ((__unused__)) *dat
 					MONGOOSE_API_V1 :
 					MONGOOSE_API_V2;
 	}
+	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "global-auth-file", tmp);
+	if (strlen(tmp)) {
+		opts->global_auth_file = strdup(tmp);
+	}
+	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "auth-domain", tmp);
+	if (strlen(tmp)) {
+		opts->auth_domain = strdup(tmp);
+	}
 	return 0;
 }
 
@@ -491,6 +501,8 @@ static struct option long_options[] = {
 #endif
 	{"document-root", required_argument, NULL, 'r'},
 	{"api-version", required_argument, NULL, 'a'},
+	{"auth-domain", required_argument, NULL, '0'},
+	{"global-auth-file", required_argument, NULL, '1'},
 	{NULL, 0, NULL, 0}
 };
 
@@ -507,7 +519,9 @@ void mongoose_print_help(void)
 		"\t  -K, --ssl-key <key>            : key corresponding to the ssl certificate\n"
 #endif
 		"\t  -r, --document-root <path>     : path to document root directory (default: %s)\n"
-		"\t  -a, --api-version [1|2]        : set Web protocol API to v1 (legacy) or v2 (default v2)\n",
+		"\t  -a, --api-version [1|2]        : set Web protocol API to v1 (legacy) or v2 (default v2)\n"
+		"\t  --auth-domain                  : set authentication domain if any (default: none)\n"
+		"\t  --global-auth-file             : set authentication file if any (default: none)\n",
 		MG_LISTING, MG_PORT, MG_ROOT);
 }
 
@@ -535,6 +549,14 @@ int start_mongoose(const char *cfgfname, int argc, char *argv[])
 	while ((choice = getopt_long(argc, argv, "lp:sC:K:r:a:",
 				     long_options, NULL)) != -1) {
 		switch (choice) {
+		case '0':
+			free(opts.auth_domain);
+			opts.auth_domain = strdup(optarg);
+			break;
+		case '1':
+			free(opts.global_auth_file);
+			opts.global_auth_file = strdup(optarg);
+			break;
 		case 'l':
 			free(opts.listing);
 			opts.listing = strdup(optarg);
@@ -576,6 +598,8 @@ int start_mongoose(const char *cfgfname, int argc, char *argv[])
 	s_http_server_opts.enable_directory_listing =
 		opts.listing ? opts.listing : MG_LISTING;
 	s_http_port = opts.port ? opts.port : MG_PORT;
+	s_http_server_opts.global_auth_file = opts.global_auth_file;
+	s_http_server_opts.auth_domain = opts.auth_domain;
 
 	memset(&bind_opts, 0, sizeof(bind_opts));
 	bind_opts.error_string = &err_str;
