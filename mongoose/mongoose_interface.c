@@ -33,7 +33,7 @@
 #define MG_ROOT "."
 
 enum MONGOOSE_API_VERSION {
-	MONGOOSE_API_V1,
+	MONGOOSE_API_V1 = 1,
 	MONGOOSE_API_V2
 };
 
@@ -471,12 +471,18 @@ static int mongoose_settings(void *elem, void  __attribute__ ((__unused__)) *dat
 		opts->ssl_key = strdup(tmp);
 	}
 #endif
-	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "api", tmp);
-	if (strlen(tmp)) {
-		opts->api_version = (!strcmp(tmp, "1")) ?
-					MONGOOSE_API_V1 :
-					MONGOOSE_API_V2;
+	/*
+	 * Get API Version
+	 */
+	get_field(LIBCFG_PARSER, elem, "api", &opts->api_version);
+	switch(opts->api_version) {
+	case MONGOOSE_API_V1:
+	case MONGOOSE_API_V2:
+		break;
+	default:
+		opts->api_version = MONGOOSE_API_V2;
 	}
+
 	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "global-auth-file", tmp);
 	if (strlen(tmp)) {
 		opts->global_auth_file = strdup(tmp);
