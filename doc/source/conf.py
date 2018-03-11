@@ -46,7 +46,7 @@ master_doc = u'index'
 # General information about the project.
 project = u'Embedded Software Update Documentation'
 
-copyright = u'2013-2017, Stefano Babic'
+copyright = u'2013-2018, Stefano Babic'
 
 
 # The version info for the project you're documenting, acts as replacement for
