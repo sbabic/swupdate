@@ -229,7 +229,7 @@ static void *notifier_thread (void __attribute__ ((__unused__)) *data)
 	/* Initialize and bind to UDS */
 	serverfd = socket(AF_UNIX, SOCK_DGRAM, 0);
 	if (serverfd < 0) {
-		TRACE("Error creating notifier daemon");
+		fprintf(stderr, "Error creating notifier daemon, exiting.");
 		exit(2);
 	}
 	memset(&notify_server, 0, sizeof(notify_server));
@@ -243,8 +243,8 @@ static void *notifier_thread (void __attribute__ ((__unused__)) *data)
 
 	if (bind(serverfd, (const struct sockaddr *) &notify_server,
 			sizeof(struct sockaddr_un)) < 0) {
+		fprintf(stderr, "Error binding notifier socket: %s, exiting.\n", strerror(errno));
 		close(serverfd);
-		TRACE("Error bind notifier socket");
 		exit(2);
 	}
 
