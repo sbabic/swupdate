@@ -91,12 +91,12 @@ int copy_write(void *out, const void *buf, unsigned int len)
 		if (ret < 0) {
 			if (errno == EINTR)
 				continue;
-			ERROR("cannot write %d bytes", len);
+			ERROR("cannot write %d bytes: %s", len, strerror(errno));
 			return -1;
 		}
 
 		if (ret == 0) {
-			ERROR("cannot write %d bytes", len);
+			ERROR("cannot write %d bytes: %s", len, strerror(errno));
 			return -1;
 		}
 
