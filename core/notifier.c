@@ -210,8 +210,11 @@ static void addr_init(struct sockaddr_un *addr, const char *path)
 {
 	memset(addr, 0, sizeof(struct sockaddr_un));
 	addr->sun_family = AF_UNIX;
+	/*
+	 * Use Linux-specific abstract sockets for this internal interface
+	 */
 	strcpy(&addr->sun_path[1], path);
-	addr->sun_path[0] = 0;
+	addr->sun_path[0] = '\0';
 }
 
 /*
@@ -232,14 +235,6 @@ static void *notifier_thread (void __attribute__ ((__unused__)) *data)
 		fprintf(stderr, "Error creating notifier daemon, exiting.");
 		exit(2);
 	}
-	memset(&notify_server, 0, sizeof(notify_server));
-	notify_server.sun_family = AF_UNIX;
-	strcpy(notify_server.sun_path, "#NotifyServer");
-
-	/*
-	 *  Use Abstract Socket Address because this is an internal interface
-	 */
-	notify_server.sun_path[0] = 0;
 
 	if (bind(serverfd, (const struct sockaddr *) &notify_server,
 			sizeof(struct sockaddr_un)) < 0) {
