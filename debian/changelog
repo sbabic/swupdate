@@ -1,3 +1,216 @@
+swupdate (2018.03) UNRELEASED; urgency=medium
+
+  [ Christian Storm ]
+  * doc: fix SWU forwarder handler doc typos
+  * suricatta: update documentation for channel refactoring
+
+  [ S. Lockwood-Childs ]
+  * archive handler: add preserve-attributes option option
+
+  [ Stefano Babic ]
+  * doc: Update reference links
+  * Do not skip sectors to erase if unlock is not supported
+  * LUA: export SWUpdate function to LUA scripts
+  * Move the define ENOMEM_ASPRINTF global
+  * Drop filename length limit in CPIO extraction
+
+  [ Charles-Antoine Couret ]
+  * downloader: add option to send Basic Auth info
+
+  [ Christian Storm ]
+  * suricatta: fix broken tests due to channel refactoring
+  * hawkbit: add missing channel.h include
+  * suricatta: add channel_curl prototypes to hawkbit test
+
+  [ Stefano Babic ]
+  * Simply rename extract_script to extract_scripts
+  * Encrypted scripts cannot be executed
+  * doc: fix leveling of support chapter
+  * doc: guideline for contributing and Developer’s Certificate of Origin
+  * lua: return value from scripts not evaluated
+
+  [ Christian Storm ]
+  * option handling: remove unneeded seek_str != NULL check
+  * channel_curl: make sourcetype configurable
+  * bootloader: EFI Boot Guard support
+  * doc: update reference to progress client example
+  * travis: EFI Boot Guard support
+  * config: EFI Boot Guard sample configuration
+
+  [ Stefano Babic ]
+  * Allow again bootloader scripts
+  * bootloader handler: fix paths and use TRACE / ERROR macros
+  * License: move to SPDX header
+  * Add License files
+  * doc: add License chapter
+
+  [ Christian Storm ]
+  * compat.h: introduce compatibility header
+  * Fix some compiler warnings if !CONFIG_HASH_VERIFY
+  * Fix Wsign-compare for int with ARRAY_SIZE() comparison
+
+  [ Stefan Herbrechtsmeier ]
+  * dict: Rename dictionary struct and its key to distinguish it from simple lists
+  * corelib: Rework dictionary to support multiple values per key
+  * parser: Replace properties array with a group of properties
+  * Lua: Dump tables in Lua stack recursive
+  * Lua: Forward image properties via table to scripts
+
+  [ Stefano Babic ]
+  * Drop unused partitions list from main structure
+  * parser: factorize parsing of common attributes
+  * Fix check if a handler is provided
+  * parser: do not hard-code type for partition
+
+  [ Stefan Herbrechtsmeier ]
+  * Lua: Export SWUpdate bootenv get and set functions to Lua scripts
+
+  [ Anatolij Gustschin ]
+  * doc: fix typo in image offset description
+
+  [ Stefano Babic ]
+  * Fix build if DOWNLOAD is set, but no JSON
+  * swuforward: fix segmentation fault after changing dictionary
+  * Revert "Fix some compiler warnings if !CONFIG_HASH_VERIFY"
+  * Fix compiler warnings if !CONFIG_HASH_VERIFY
+  * configs: setup without SSL
+
+  [ Stefan Herbrechtsmeier ]
+  * parser: Check image version after parsing to remove skipped images
+  * installer: Add free_image function to always drop dictionary and free image together
+  * parser: Add support for Lua hook script to script artifacts
+  * parser: Remove double spaces from trace output
+  * parser: Allow embedded script to skip images
+  * Lua: bootenv: Remove empty bootenv values from the bootloader environment and not from the dictionary
+  * tools: Remove useless null termination of a null terminated string
+  * Lua: Null check return value of luaL_checkstring functions
+  * Lua: Add function to mount and unmount devices
+
+  [ Stefano Babic ]
+  * doc: updated list of references
+  * doc: add CI in roadmap
+  * www: replace SWUpdate logo in website
+
+  [ Christian Storm ]
+  * Lua: make logging macro wrappers more printf()-like
+  * doc: add documentation for EFI Boot Guard
+
+  [ Achille Fouilleul ]
+  * handlers: fix size of encrypted UBI image
+  * cpio_utils: support compression of encrypted artifacts
+
+  [ Christian Storm ]
+  * Lua: expose get_tmpdirscripts() to Lua
+
+  [ Dmitri Toubelis ]
+  * Add PKI certificate usage info to the docs
+
+  [ Christian Storm ]
+  * channel_curl: add missing include for sourcetype
+
+  [ Stefan Herbrechtsmeier ]
+  * ipc: Make char buf pointer parameter of ipc_inst_start_ext function const
+
+  [ Stefano Babic ]
+  * bootloader: fix setting GRUB variable
+
+  [ Stefan Herbrechtsmeier ]
+  * mongoose: Update mongoose web server to version 6.11
+  * mongoose: Add WebSocket support
+  * www: Add reworked web page with bootstrap, dropzone and websocket support
+
+  [ Stefano Babic ]
+  * Add a link in README to the contributing page
+  * Add parameter to ask SWUpdate version
+  * Add vector graphic for logo
+  * www: store the web-app example
+  * gitignore: add derivates from web-app
+  * Prepare 2018.03-rc1
+
+  [ Sami Hartikainen ]
+  * Fix bootloader script handling
+  * www: web-app: Formulate URIs to be reverse proxy -friendly
+
+  [ Stefano Babic ]
+  * mongoose: fix parsing of configuration file
+  * downloader: fix parsing of configuration file
+
+  [ Sami Hartikainen ]
+  * doc: Update bootloader env script file documentation
+
+  [ Christian Storm ]
+  * logging: colorize terminal output log messages
+
+  [ Stefano Babic ]
+  * doc: removed reached goals from roadmap
+
+  [ Stefan Herbrechtsmeier ]
+  * doc: Add missing mongoose documentation
+  * web-app: Emphasize the SW of SWUpdate in the title to improve readability
+
+  [ Christian Storm ]
+  * Lua: use explicit size for embedded Lua handler script
+
+  [ Stefano Babic ]
+  * doc: fix some warnings in contributing page
+  * doc: extend support page
+  * Sync defconfig examples
+
+  [ Christian Storm ]
+  * channel_curl: add support for Basic Auth credentials
+  * channel_curl: add missing stdbool include
+  * channel_curl: make low_speed_timeout configurable
+  * channel_curl: emit download progress
+  * downloader: make use of channel_curl
+  * channel_curl: remove hard dependency on JSON
+  * channel_curl: rename json_string -> request_body
+  * channel_curl: enable SSL support
+
+  [ Stefano Babic ]
+  * mongoose: split upload_handler
+  * mongoose: set V1 or V2 at runtime
+
+  [ Christian Storm ]
+  * IPC: Add missing socket.h include
+
+  [ Stefano Babic ]
+  * doc: update conf for release
+  * doc: replace website pictures
+
+  [ Christian Storm ]
+  * installer: Add missing wait.h include
+  * util: Add missing stat.h include
+
+  [ Stefano Babic ]
+  * mongoose: reintroduce global-auth-file and auth-domain
+
+  [ Lars Lockenvitz ]
+  * mongoose: SEGV if -l is passed
+
+  [ Stefano Babic ]
+  * webserver: set type for "api" to int
+  * example: extend webserver section in configuration
+
+  [ Sami Hartikainen ]
+  * shellscript handler: Pass data attribute value as argument
+
+  [ Stefano Babic ]
+  * Add command line for output image
+  * Drop file output from channel_curl
+
+  [ Christian Storm ]
+  * notifier: use fprintf() on initialization errors
+  * cpio: hint error reason on copy_write() write failure
+  * notifier: don't initialize socket strucures twice
+
+  [ Martin Geier ]
+  * cpio_utils: verify also image hash while scanning cpio
+
+  [ Stefano Babic ]
+  * Prepare 2018.03
+
+ -- Stefano Babic <sbabic@denx.de>  Thu, 22 Mar 2018 12:08:08 +0200
+
 swupdate (2017.11) UNRELEASED; urgency=medium
 
   [ Jörg Krause ]
@@ -225,7 +438,7 @@ swupdate (2017.11) UNRELEASED; urgency=medium
   [ Stefano Babic ]
   * Prepare 2017.11
 
- -- Jörg Krause <joerg.krause@embedded.rocks>  Fri, 24 Nov 2017 22:48:33 +0100
+ -- Stefano Babic <sbabic@denx.de>  Thu, 22 November 2017 12:08:08 +0200
 
 swupdate (2017.07) stable; urgency=medium
 
@@ -401,7 +614,7 @@ swupdate (2017.07) stable; urgency=medium
   * doc: updated roadmap
   * Prepare 2017.07
 
- -- Christian Storm <christian.storm@siemens.com>  Sun, 24 Sep 2017 12:09:00 +0200
+ -- Stefano Babic <sbabic@denx.de> Sun, 24 Sep 2017 12:09:00 +0200
 
 swupdate (2017.04) stable; urgency=medium
 
