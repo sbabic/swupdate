@@ -472,6 +472,8 @@ Shell scripts are called via system command.
 SWUpdate scans for all scripts and calls them before and after installing
 the images. SWUpdate passes 'preinst' or 'postinst' as first argument to
 the script.
+If the data attribute is defined, its value is passed as the last argument(s)
+to the script.
 
 preinstall
 ..........
@@ -487,6 +489,8 @@ preinstall
 
 preinstall are shell scripts and called via system command.
 SWUpdate scans for all scripts and calls them before installing the images.
+If the data attribute is defined, its value is passed as the last argument(s)
+to the script.
 
 postinstall
 ...........
@@ -502,7 +506,8 @@ postinstall
 
 postinstall are shell scripts and called via system command.
 SWUpdate scans for all scripts and calls them after installing the images.
-
+If the data attribute is defined, its value is passed as the last argument(s)
+to the script.
 
 bootloader
 ----------

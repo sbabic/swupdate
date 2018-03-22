@@ -573,7 +573,9 @@ called after installing the images.</p>
 <p>Shell scripts are called via system command.
 SWUpdate scans for all scripts and calls them before and after installing
 the images. SWUpdate passes &#8216;preinst&#8217; or &#8216;postinst&#8217; as first argument to
-the script.</p>
+the script.
+If the data attribute is defined, its value is passed as the last argument(s)
+to the script.</p>
 </div>
 <div class="section" id="preinstall">
 <h3>preinstall<a class="headerlink" href="#preinstall" title="Permalink to this headline">¶</a></h3>
@@ -586,7 +588,9 @@ the script.</p>
 </pre></div>
 </div>
 <p>preinstall are shell scripts and called via system command.
-SWUpdate scans for all scripts and calls them before installing the images.</p>
+SWUpdate scans for all scripts and calls them before installing the images.
+If the data attribute is defined, its value is passed as the last argument(s)
+to the script.</p>
 </div>
 <div class="section" id="postinstall">
 <h3>postinstall<a class="headerlink" href="#postinstall" title="Permalink to this headline">¶</a></h3>
@@ -599,7 +603,9 @@ SWUpdate scans for all scripts and calls them before installing the images.</p>
 </pre></div>
 </div>
 <p>postinstall are shell scripts and called via system command.
-SWUpdate scans for all scripts and calls them after installing the images.</p>
+SWUpdate scans for all scripts and calls them after installing the images.
+If the data attribute is defined, its value is passed as the last argument(s)
+to the script.</p>
 </div>
 </div>
 <div class="section" id="bootloader">
