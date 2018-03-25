@@ -63,6 +63,7 @@ struct swupdate_digest {
 	do { \
 		CRYPTO_malloc_init(); \
 		OpenSSL_add_all_algorithms(); \
+		ERR_load_crypto_strings(); \
 	} while (0); \
 }
 #else
