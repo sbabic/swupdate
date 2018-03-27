@@ -113,6 +113,7 @@ struct swupdate_global_cfg {
 
 struct swupdate_cfg {
 	char name[SWUPDATE_GENERAL_STRING_SIZE];
+	char description[SWUPDATE_UPDATE_DESCRIPTION_STRING_SIZE];
 	char version[SWUPDATE_GENERAL_STRING_SIZE];
 	char software_set[SWUPDATE_GENERAL_STRING_SIZE];
 	char running_mode[SWUPDATE_GENERAL_STRING_SIZE];

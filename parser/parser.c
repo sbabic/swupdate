@@ -678,6 +678,7 @@ int parse_cfg (struct swupdate_cfg *swcfg, const char *filename)
 	char node[128];
 	parsertype p = LIBCFG_PARSER;
 	int ret;
+	config_setting_t *setting;
 
 	memset(&cfg, 0, sizeof(cfg));
 	config_init(&cfg);
@@ -695,16 +696,19 @@ int parse_cfg (struct swupdate_cfg *swcfg, const char *filename)
 		return -1;
 	}
 
-	snprintf(node, sizeof(node), "%s.version",
-			NODEROOT);
-
-	if (!config_lookup_string(&cfg, node, &str)) {
+	if((setting = find_node(p, &cfg, "version", swcfg)) == NULL) {
 		ERROR("Missing version in configuration file\n");
 		return -1;
 	} else {
-		strncpy(swcfg->version, str, sizeof(swcfg->version));
+		GET_FIELD_STRING(p, setting, NULL, swcfg->version);
 		TRACE("Version %s", swcfg->version);
 	}
+
+	if((setting = find_node(p, &cfg, "description", swcfg)) != NULL) {
+		GET_FIELD_STRING(p, setting, NULL, swcfg->description);
+		TRACE("Description %s", swcfg->description);
+	}
+
 	snprintf(node, sizeof(node), "%s.embedded-script",
 			NODEROOT);
 	if (config_lookup_string(&cfg, node, &str)) {
@@ -732,7 +736,7 @@ int parse_json(struct swupdate_cfg *swcfg, const char *filename)
 	struct stat stbuf;
 	unsigned int size;
 	char *string;
-	json_object *cfg;
+	json_object *cfg, *setting;
 	parsertype p = JSON_PARSER;
 
 	/* Read the file. If there is an error, report it and exit. */
@@ -760,6 +764,20 @@ int parse_json(struct swupdate_cfg *swcfg, const char *filename)
 		ERROR("JSON File corrupted\n");
 		free(string);
 		return -1;
+	}
+
+	if((setting = find_node(p, cfg, "version", swcfg)) == NULL) {
+		ERROR("Missing version in configuration file\n");
+		free(string);
+		return -1;
+	} else {
+		GET_FIELD_STRING(p, setting, NULL, swcfg->version);
+		TRACE("Version %s", swcfg->version);
+	}
+
+	if((setting = find_node(p, cfg, "description", swcfg)) != NULL) {
+		GET_FIELD_STRING(p, setting, NULL, swcfg->description);
+		TRACE("Description %s", swcfg->description);
 	}
 
 	ret = parser(p, cfg, swcfg);
