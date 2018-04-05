@@ -35,6 +35,7 @@ swupdate
 swupdate_unstripped*
 tools/*_unstripped
 tools/client
+tools/progress
 tools/sendtohawkbit
 tools/hawkbitcfg
 tools/*.map
