@@ -215,7 +215,10 @@ static int adjust_volume(struct img_type *cfg,
 	 * Volumes are empty, and they are filled later by the update procedure
 	 */
 	memset(&req, 0, sizeof(req));
-	req.vol_type = UBI_DYNAMIC_VOLUME;
+	if (!strcmp(cfg->type_data, "static"))
+		req.vol_type = UBI_STATIC_VOLUME;
+	else
+		req.vol_type = UBI_DYNAMIC_VOLUME;
 	req.vol_id = UBI_VOL_NUM_AUTO;
 	req.alignment = 1;
 	req.bytes = cfg->partsize;

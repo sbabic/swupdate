@@ -118,6 +118,9 @@ preserved and not lost after an update. The way for updating
 is identical to the "ubiupdatevol" from the mtd-utils. In fact,
 the same library from mtd-utils (libubi) is reused by SWUpdate.
 
+SWUpdate normally creates dynamic volumes. If a static volume is
+desired, set the handler's data field to "static".
+
 If the storage is empty, it is required to setup the layout
 and create the volumes. This can be easy done with a
 preinstall script. Building with meta-SWUpdate, the original
