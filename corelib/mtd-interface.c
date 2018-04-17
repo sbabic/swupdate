@@ -259,7 +259,7 @@ static void scan_ubi_volumes(struct mtd_ubi_info *info)
 		err = ubi_get_vol_info1(libubi, info->dev_info.dev_num,
 					i, &ubi_part->vol_info);
 		if (err == -1) {
-			if (errno == ENOENT)
+			if (errno == ENOENT || errno == ENODEV)
 				continue;
 
 			ERROR("libubi failed to probe volume %d on ubi%d",
