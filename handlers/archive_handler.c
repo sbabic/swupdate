@@ -17,7 +17,6 @@
 #include <string.h>
 #include <pthread.h>
 
-#include <mtd/mtd-user.h>
 #include <archive.h>
 #include <archive_entry.h>
 

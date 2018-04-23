@@ -11,7 +11,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include <mtd/mtd-user.h>
 #include "generated/autoconf.h"
 #include "swupdate.h"
 #include "handler.h"
