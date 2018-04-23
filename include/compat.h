@@ -22,3 +22,13 @@
 		(char *)memcpy(__out, __in, __len - 1); \
 	}))
 #endif
+
+#if defined(__FreeBSD__)
+/*
+ * Define ENODATA (61 - No data available) to
+ * ENOATTR (87 - Attribute not found) on FreeBSD
+ * since that's closest to Linux's ENODATA, and
+ * 61 on FreeBSD is ECONNREFUSED.
+ */
+#define ENODATA ENOATTR
+#endif

@@ -25,6 +25,7 @@
 #include "swupdate.h"
 #include "parselib.h"
 #include "swupdate_settings.h"
+#include "compat.h"
 
 struct run_as {
 	uid_t userid;
