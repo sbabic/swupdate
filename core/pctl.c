@@ -10,7 +10,9 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#if defined(__linux__)
 #include <sys/prctl.h>
+#endif
 #include <errno.h>
 #include <pthread.h>
 #include <network_ipc.h>
@@ -135,6 +137,7 @@ static int spawn_process(struct swupdate_task *task,
 
 	notify_init();
 
+#if defined(__linux__)
 	if (signal(SIGUSR1, parent_dead_handler) == SIG_ERR) {
 		/*
 		 * this is not a reason to break, just a warning
@@ -143,7 +146,10 @@ static int spawn_process(struct swupdate_task *task,
 	}
 
 	if (prctl(PR_SET_PDEATHSIG, SIGUSR1) < 0)
-		ERROR("Fail to call prctl, maybe not Linux ?");
+		ERROR("Error calling prctl");
+#else
+	WARN("Cannot track if parent dies on non-Linux OSes, sorry...");
+#endif
 
 	if (start)
 		return (*start)(cfgname, ac, av);
