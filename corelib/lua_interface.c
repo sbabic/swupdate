@@ -10,7 +10,6 @@
 #include <unistd.h>
 #include <stdbool.h>
 #include <errno.h>
-#include <sys/mount.h>
 
 #include "lua.h"
 #include "lauxlib.h"
@@ -698,7 +697,7 @@ static int l_mount(lua_State *L) {
 		goto l_mount_free_exit;
 	}
 
-	if (mount(device, target, filesystem, 0, NULL) == -1) {
+	if (swupdate_mount(device, target, filesystem) == -1) {
 		TRACE("Device %s with filesystem %s cannot be mounted: %s",
 			device, filesystem, strerror(errno));
 		goto l_mount_rmdir_exit;
@@ -724,7 +723,7 @@ l_mount_exit:
 static int l_umount(lua_State *L) {
 	const char *target = luaL_checkstring(L, 1);
 
-	if (umount(target) == -1) {
+	if (swupdate_umount(target) == -1) {
 		TRACE("Unable to unmount %s: %s\n", target, strerror(errno));
 		goto l_umount_exit;
 	}

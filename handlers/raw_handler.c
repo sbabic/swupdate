@@ -7,7 +7,6 @@
  */
 
 #include <stdio.h>
-#include <sys/mount.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdlib.h>
@@ -55,7 +54,7 @@ static int install_raw_file(struct img_type *img,
 	}
 
 	if (use_mount) {
-		ret = mount(img->device, DATADST_DIR, img->filesystem, 0, NULL);
+		ret = swupdate_mount(img->device, DATADST_DIR, img->filesystem);
 		if (ret) {
 			ERROR("Device %s with filesystem %s cannot be mounted",
 				img->device, img->filesystem);
@@ -84,7 +83,7 @@ static int install_raw_file(struct img_type *img,
 	close(fdout);
 
 	if (use_mount) {
-		umount(DATADST_DIR);
+		swupdate_umount(DATADST_DIR);
 	}
 
 	return ret;

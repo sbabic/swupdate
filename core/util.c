@@ -14,6 +14,9 @@
 #include <fcntl.h>
 #include <sys/file.h>
 #include <sys/stat.h>
+#include <sys/param.h>
+#include <sys/mount.h>
+#include <sys/uio.h>
 #include <dirent.h>
 #include "swupdate.h"
 #include "util.h"
@@ -492,3 +495,55 @@ unsigned long long ustrtoull(const char *cp, char **endp, unsigned int base)
 	}
 	return result;
 }
+
+int swupdate_mount(const char *device, const char *dir, const char *fstype)
+{
+#if defined(__linux__)
+	return mount(device, dir, fstype, 0, NULL);
+#elif defined(__FreeBSD__)
+	int iovlen = 8;
+	struct iovec iov[iovlen];
+	int mntflags = 0;
+	char errmsg[255];
+	memset(errmsg, 0, sizeof(errmsg));
+	iov[0].iov_base = (void*)"fstype";
+	iov[0].iov_len = strlen("fstype") + 1;
+	iov[1].iov_base = (void*)fstype;
+	iov[1].iov_len = strlen(fstype) + 1;
+	iov[2].iov_base = (void*)"fspath";
+	iov[2].iov_len = strlen("fspath") + 1;
+	iov[3].iov_base = (void*)dir;
+	iov[3].iov_len = strlen(dir) + 1;
+	iov[4].iov_base = (void*)"from";
+	iov[4].iov_len = strlen("from") + 1;
+	iov[5].iov_base = (void*)device;
+	iov[5].iov_len = strlen(device) + 1;
+	/* The underlying fs driver may require a
+	   buffer for an error message, even if we
+	   do not use it here. */
+	iov[6].iov_base = (void*)"errmsg";
+	iov[6].iov_len = strlen("errmsg") + 1;
+	iov[7].iov_base = errmsg;
+	iov[7].iov_len = strlen(errmsg) + 1;
+	return nmount(iov, iovlen, mntflags);
+#else
+	/* Not implemented for this OS, no specific errno. */
+	errno = 0;
+	return -1;
+#endif
+}
+
+int swupdate_umount(const char *dir)
+{
+#if defined(__linux__)
+	return umount(dir);
+#elif defined(__FreeBSD__)
+	int mntflags = 0;
+	return unmount(dir, mntflags);
+#else
+	/* Not implemented for this OS, no specific errno. */
+	errno = 0;
+	return -1;
+#endif
+}
+

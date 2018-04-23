@@ -169,4 +169,7 @@ unsigned long long ustrtoull(const char *cp, char **endp, unsigned int base);
 const char* get_tmpdir(void);
 const char* get_tmpdirscripts(void);
 
+int swupdate_mount(const char *device, const char *dir, const char *fstype);
+int swupdate_umount(const char *dir);
+
 #endif
