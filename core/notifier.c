@@ -203,6 +203,26 @@ static void process_notifier (RECOVERY_STATUS status, int event, int level, cons
 
 }
 
+#if defined(__FreeBSD__)
+static char* socket_path = NULL;
+static void unlink_socket(void)
+{
+	if (socket_path) {
+		unlink(socket_path);
+		free(socket_path);
+	}
+}
+
+static void setup_socket_cleanup(struct sockaddr_un *addr)
+{
+	socket_path = strndupa(addr->sun_path, sizeof(addr->sun_path));
+	if (atexit(unlink_socket) != 0) {
+		TRACE("Cannot setup socket cleanup on exit, %s won't be unlinked.", socket_path);
+	}
+	unlink(socket_path);
+}
+#endif
+
 /*
  * Utility function to setup the internal IPC
  */
@@ -210,11 +230,23 @@ static void addr_init(struct sockaddr_un *addr, const char *path)
 {
 	memset(addr, 0, sizeof(struct sockaddr_un));
 	addr->sun_family = AF_UNIX;
+#if defined(__linux__)
 	/*
 	 * Use Linux-specific abstract sockets for this internal interface
 	 */
 	strcpy(&addr->sun_path[1], path);
 	addr->sun_path[0] = '\0';
+#elif defined(__FreeBSD__)
+	/*
+	 * Use filesystem-backed sockets on FreeBSD although this interface
+	 * is internal as there are no Linux-like abstract sockets.
+	 */
+	strncpy(addr->sun_path, CONFIG_SOCKET_NOTIFIER_DIRECTORY, sizeof(addr->sun_path));
+	strncat(addr->sun_path, path,
+			sizeof(addr->sun_path)-strlen(CONFIG_SOCKET_NOTIFIER_DIRECTORY));
+#else
+	ERROR("Undetected OS, probably sockets won't function as expected.");
+#endif
 }
 
 /*
@@ -235,6 +267,10 @@ static void *notifier_thread (void __attribute__ ((__unused__)) *data)
 		fprintf(stderr, "Error creating notifier daemon, exiting.");
 		exit(2);
 	}
+
+#if defined(__FreeBSD__)
+	setup_socket_cleanup(&notify_server);
+#endif
 
 	if (bind(serverfd, (const struct sockaddr *) &notify_server,
 			sizeof(struct sockaddr_un)) < 0) {
@@ -288,6 +324,9 @@ void notify_init(void)
 		char buf[60];
 		snprintf(buf, sizeof(buf), "Notify%d", pid);
 		addr_init(&notify_client, buf);
+#if defined(__FreeBSD__)
+		setup_socket_cleanup(&notify_client);
+#endif
 		notifyfd = socket(AF_UNIX, SOCK_DGRAM, 0);
 		if (notifyfd < 0) {
 			printf("Error creating notifier socket for pid %d", pid);
