@@ -16,6 +16,17 @@ NAME =
 # o  print "Entering directory ...";
 MAKEFLAGS += -r --no-print-directory
 
+OSNAME := $(shell uname -s)
+ifeq ($(OSNAME),Linux)
+export HAVE_LINUX = y
+else
+export HAVE_LINUX = n
+endif
+ifeq ($(OSNAME),FreeBSD)
+export HAVE_FREEBSD = y
+else
+export HAVE_FREEBSD = n
+endif
 
 # To put more focus on warnings, be less verbose as default
 # Use 'make V=1' to see the full commands

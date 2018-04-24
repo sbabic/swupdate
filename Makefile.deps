@@ -15,7 +15,11 @@ export HAVE_LIBCURL = y
 endif
 
 ifeq ($(HAVE_LIBMTD),)
+ifeq ($(HAVE_LINUX),y)
 export HAVE_LIBMTD = y
+else
+export HAVE_LIBMTD = n
+endif
 endif
 
 ifeq ($(HAVE_LIBUBI),)

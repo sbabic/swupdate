@@ -5,6 +5,14 @@
 
 mainmenu "Swupdate Configuration"
 
+config HAVE_LINUX
+	bool
+	option env="HAVE_LINUX"
+
+config HAVE_FREEBSD
+	bool
+	option env="HAVE_FREEBSD"
+
 config HAVE_DOT_CONFIG
 	bool
 	default y
@@ -75,6 +83,7 @@ config CURL_SSL
 
 config SYSTEMD
 	bool "enable systemd support"
+	depends on HAVE_LINUX
 	default n
 	help
 	  Enable support for systemd's start-up completion
@@ -160,7 +169,7 @@ config MTD
 	  Enable MTD support.
 
 comment "MTD support needs libmtd"
-	depends on !HAVE_LIBMTD
+	depends on !HAVE_LIBMTD && HAVE_LINUX
 
 config LUA
 	bool "lua"
