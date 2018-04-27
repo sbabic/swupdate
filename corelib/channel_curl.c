@@ -373,6 +373,7 @@ channel_op_res_t channel_set_options(channel_t *this,
 			  "Adapted it to %us instead.\n", SPEED_LOW_TIME_SEC);
 	}
 	channel_curl_t *channel_curl = this->priv;
+	char *token = NULL;
 	channel_op_res_t result = CHANNEL_OK;
 	if ((curl_easy_setopt(channel_curl->handle, CURLOPT_URL,
 			      channel_data->url) != CURLE_OK) ||
@@ -445,6 +446,17 @@ channel_op_res_t channel_set_options(channel_t *this,
 				      0L) != CURLE_OK)) {
 			result = CHANNEL_EINIT;
 			goto cleanup;
+		}
+	}
+
+	if (channel_data->token != NULL) {
+		if (asprintf(&token, "Authorization: Bearer %s",
+				channel_data->token)) {
+			if (((channel_curl->header = curl_slist_append(
+					channel_curl->header, token)) == NULL)) {
+				result = CHANNEL_EINIT;
+				goto cleanup;
+			}
 		}
 	}
 

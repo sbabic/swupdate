@@ -39,6 +39,7 @@ typedef struct {
 	char *cafile;
 	char *sslkey;
 	char *sslcert;
+	char *token;
 	char *proxy;
 	char *info;
 	unsigned int retry_sleep;

@@ -1459,6 +1459,7 @@ void suricatta_print_help(void)
 	fprintf(
 	    stderr,
 	    "\tsuricatta arguments (mandatory arguments are marked with '*'):\n"
+	    "\t  -a, --auth        * Set Authorization Token for this device.\n"
 	    "\t  -t, --tenant      * Set hawkBit tenant ID for this device.\n"
 	    "\t  -u, --url         * Host and port of the hawkBit instance, "
 	    "e.g., localhost:8080\n"
@@ -1521,6 +1522,9 @@ static int suricatta_settings(void *elem, void  __attribute__ ((__unused__)) *da
 	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "proxy", tmp);
 	if (strlen(tmp))
 		SETSTRING(channel_data_defaults.proxy, tmp);
+	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "token", tmp);
+	if (strlen(tmp))
+		SETSTRING(channel_data_defaults.token, tmp);
 
 	return 0;
 
@@ -1580,9 +1584,12 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 
 	/* reset to optind=1 to parse suricatta's argument vector */
 	optind = 1;
-	while ((choice = getopt_long(argc, argv, "t:i:c:u:p:xr:y::w:",
+	while ((choice = getopt_long(argc, argv, "a:t:i:c:u:p:xr:y::w:",
 				     long_options, NULL)) != -1) {
 		switch (choice) {
+		case 'a':
+			SETSTRING(channel_data_defaults.token, optarg);
+			break;
 		case 't':
 			SETSTRING(server_hawkbit.tenant, optarg);
 			mandatory_argument_count |= TENANT_BIT;
