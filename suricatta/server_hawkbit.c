@@ -1521,6 +1521,9 @@ static int suricatta_settings(void *elem, void  __attribute__ ((__unused__)) *da
 	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "proxy", tmp);
 	if (strlen(tmp))
 		SETSTRING(channel_data_defaults.proxy, tmp);
+	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "token", tmp);
+	if (strlen(tmp))
+		SETSTRING(channel_data_defaults.token, tmp);
 
 	return 0;
 
