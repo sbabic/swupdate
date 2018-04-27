@@ -450,7 +450,7 @@ channel_op_res_t channel_set_options(channel_t *this,
 	}
 
 	if (channel_data->token != NULL) {
-		if (asprintf(&token, "Authorization: Token %s",
+		if (asprintf(&token, "Authorization: Bearer %s",
 				channel_data->token)) {
 			if (((channel_curl->header = curl_slist_append(
 					channel_curl->header, token)) == NULL)) {
