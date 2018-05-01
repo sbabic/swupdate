@@ -192,6 +192,7 @@ using of the #include directive is not allowed by SWUpdate.</p>
 <div class="highlight-python"><div class="highlight"><pre>software =
 {
         version = &quot;0.1.0&quot;;
+        description = &quot;Firmware update for XXXXX Project&quot;;
 
         hardware-compatibility: [ &quot;1.0&quot;, &quot;1.2&quot;, &quot;1.3&quot;];
 
@@ -1008,7 +1009,13 @@ it can be any string and it is
 compared with the entries in
 sw-versions</td>
 </tr>
-<tr class="row-even"><td>install-if
+<tr class="row-even"><td>description</td>
+<td>string</td>
+<td>&nbsp;</td>
+<td>user-friendly description of the
+swupdate archive (any string)</td>
+</tr>
+<tr class="row-odd"><td>install-if
 different</td>
 <td>bool</td>
 <td>images
@@ -1017,7 +1024,7 @@ files</td>
 if set, name and version are
 compared with the entries in</td>
 </tr>
-<tr class="row-odd"><td>encrypted</td>
+<tr class="row-even"><td>encrypted</td>
 <td>bool</td>
 <td>images
 files
@@ -1027,7 +1034,7 @@ if set, file is encrypted
 and must be decrypted before
 installing.</td>
 </tr>
-<tr class="row-even"><td>data</td>
+<tr class="row-odd"><td>data</td>
 <td>string</td>
 <td>images
 files
@@ -1035,7 +1042,7 @@ scripts</td>
 <td>This is used to pass arbitrary data
 to a handler.</td>
 </tr>
-<tr class="row-odd"><td>sha256</td>
+<tr class="row-even"><td>sha256</td>
 <td>string</td>
 <td>images
 files
@@ -1044,26 +1051,26 @@ scripts</td>
 Used for verification of signed
 images.</td>
 </tr>
-<tr class="row-even"><td>embedded-
+<tr class="row-odd"><td>embedded-
 script</td>
 <td>string</td>
 <td>&nbsp;</td>
 <td>Lua code that is embedded in the
 sw-description file.</td>
 </tr>
-<tr class="row-odd"><td>offset</td>
+<tr class="row-even"><td>offset</td>
 <td>string</td>
 <td>images</td>
 <td>Optional destination offset</td>
 </tr>
-<tr class="row-even"><td>hook</td>
+<tr class="row-odd"><td>hook</td>
 <td>string</td>
 <td>images
 files</td>
 <td>The name of the function (Lua) to be
 called when the entry is parsed.</td>
 </tr>
-<tr class="row-odd"><td>mtdname</td>
+<tr class="row-even"><td>mtdname</td>
 <td>string</td>
 <td>images</td>
 <td>name of the MTD to update. Used only

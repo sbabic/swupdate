@@ -27,6 +27,7 @@ The following example explains better the implemented tags:
 	software =
 	{
 		version = "0.1.0";
+		description = "Firmware update for XXXXX Project";
 
 		hardware-compatibility: [ "1.0", "1.2", "1.3"];
 
@@ -897,6 +898,9 @@ There are 4 main sections inside sw-description:
    |             |          | files      | it can be any string and it is        |
    |             |          |            | compared with the entries in          |
    |             |          |            | sw-versions                           |
+   +-------------+----------+------------+---------------------------------------+
+   | description | string   |            | user-friendly description of the      |
+   |             |          |            | swupdate archive (any string)         |
    +-------------+----------+------------+---------------------------------------+
    | install-if  | bool     | images     | flag                                  |
    | different   |          | files      | if set, name and version are          |

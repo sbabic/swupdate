@@ -261,6 +261,8 @@ Updating volumes, it is guaranteed that the erase counters are
 preserved and not lost after an update. The way for updating
 is identical to the &#8220;ubiupdatevol&#8221; from the mtd-utils. In fact,
 the same library from mtd-utils (libubi) is reused by SWUpdate.</p>
+<p>SWUpdate normally creates dynamic volumes. If a static volume is
+desired, set the handler&#8217;s data field to &#8220;static&#8221;.</p>
 <p>If the storage is empty, it is required to setup the layout
 and create the volumes. This can be easy done with a
 preinstall script. Building with meta-SWUpdate, the original
@@ -445,6 +447,7 @@ to update systems where an old version of SWUpdate is running, because the
 embedded webserver is a common feature present in all versions.
 The handler will send the embedded SWU to all URLs at the same time, and setting
 <code class="docutils literal"><span class="pre">installed-directly</span></code> is supported by this handler.</p>
+<img alt="_images/SWUGateway.png" src="_images/SWUGateway.png" />
 <p>The following example shows how to set a SWU as artifact and enables
 the SWU forwarder:</p>
 <div class="highlight-python"><div class="highlight"><pre>images: (

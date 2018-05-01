@@ -81,7 +81,7 @@ is signed. Each artifact must have the attribute:
 
 ::
 
-        sha256 = "@artifact-file-name@"
+        sha256 = "@artifact-file-name"
 
 For example, to add sha256 to the standard Yocto core-image-full-cmdline:
 
