@@ -332,6 +332,8 @@ embedded webserver is a common feature present in all versions.
 The handler will send the embedded SWU to all URLs at the same time, and setting
 ``installed-directly`` is supported by this handler.
 
+.. image:: images/SWUGateway.png
+
 The following example shows how to set a SWU as artifact and enables
 the SWU forwarder:
 
