@@ -498,6 +498,8 @@ Command line parameters
 +-------------+----------+--------------------------------------------+
 | -i <file>   | string   | run SWUpdate with a local .swu file        |
 +-------------+----------+--------------------------------------------+
+| -o <file>   | string   | saves the stream (SWU) on a file           |
++-------------+----------+--------------------------------------------+
 | -v          |    -     | activate verbose output                    |
 +-------------+----------+--------------------------------------------+
 | -w <parms>  | string   | start internal webserver and pass to it    |
