@@ -77,6 +77,7 @@ static struct option long_options[] = {
 	{"syslog", no_argument, NULL, 'L' },
 	{"select", required_argument, NULL, 'e'},
 	{"output", required_argument, NULL, 'o'},
+	{"dry-run", no_argument, NULL, 'n'},
 #ifdef CONFIG_SIGNED_IMAGES
 	{"key", required_argument, NULL, 'k'},
 #endif
@@ -129,6 +130,7 @@ static void usage(char *programname)
 		" -K, --key-aes <key file>       : the file contains the symmetric key to be used\n"
 		"                                  to decrypt images\n"
 #endif
+		" -n, --dry-to-run               : run SWUpdate without installing the software\n"
 		" -o, --output <output file>     : saves the incoming stream\n"
 		" -v, --verbose                  : be verbose, set maximum loglevel\n"
 #ifdef CONFIG_HW_COMPATIBILITY
@@ -550,7 +552,7 @@ int main(int argc, char **argv)
 #endif
 	memset(main_options, 0, sizeof(main_options));
 	memset(image_url, 0, sizeof(image_url));
-	strcpy(main_options, "vhi:e:l:Lcf:p:o:");
+	strcpy(main_options, "vhni:e:l:Lcf:p:o:");
 #ifdef CONFIG_MTD
 	strcat(main_options, "b:");
 #endif
@@ -665,6 +667,9 @@ int main(int argc, char **argv)
 			break;
 		case 'l':
 			loglevel = strtoul(optarg, NULL, 10);
+			break;
+		case 'n':
+			swcfg.globals.dry_run = 1;
 			break;
 		case 'L':
 			swcfg.globals.syslog_enabled = 1;

@@ -106,6 +106,7 @@ struct swupdate_global_cfg {
 	char mtdblacklist[SWUPDATE_GENERAL_STRING_SIZE];
 	int loglevel;
 	int syslog_enabled;
+	int dry_run;
 	char publickeyfname[SWUPDATE_GENERAL_STRING_SIZE];
 	char aeskeyfname[SWUPDATE_GENERAL_STRING_SIZE];
 	char postupdatecmd[SWUPDATE_GENERAL_STRING_SIZE];

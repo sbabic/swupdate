@@ -238,7 +238,7 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 						&& (!strcmp(part->type, "ubipartition")) ) {
 						TRACE("Need to adjust partition %s before streaming %s",
 							part->volname, img->fname);
-						if (install_single_image(part)) {
+						if (install_single_image(part, software->globals.dry_run)) {
 							ERROR("Error adjusting partition %s", part->volname);
 							return -1;
 						}
@@ -247,7 +247,7 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 					}
 				}
 				img->fdin = fd;
-				if (install_single_image(img)) {
+				if (install_single_image(img, software->globals.dry_run)) {
 					ERROR("Error streaming %s", img->fname);
 					return -1;
 				}

@@ -215,10 +215,17 @@ static int update_bootloader_env(void)
 	return ret;
 }
 
-int install_single_image(struct img_type *img)
+int install_single_image(struct img_type *img, int dry_run)
 {
 	struct installer_handler *hnd;
 	int ret;
+
+	/*
+	 * in case of dry run, replace the handler
+	 * with a dummy doing nothing
+	 */
+	if (dry_run)
+		strcpy(img->type, "dummy");
 
 	hnd = find_handler(img);
 	if (!hnd) {
@@ -255,6 +262,7 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 	struct filehdr fdh;
 	struct stat buf;
 	const char* TMPDIR = get_tmpdir();
+	int dry_run = sw->globals.dry_run;
 
 	/* Extract all scripts, preinstall scripts must be run now */
 	const char* tmpdir_scripts = get_tmpdirscripts();
@@ -266,10 +274,12 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 	}
 
 	/* Scripts must be run before installing images */
-	ret = run_prepost_scripts(&sw->scripts, PREINSTALL);
-	if (ret) {
-		ERROR("execute preinstall scripts failed");
-		return ret;
+	if (dry_run) {
+		ret = run_prepost_scripts(&sw->scripts, PREINSTALL);
+		if (ret) {
+			ERROR("execute preinstall scripts failed");
+			return ret;
+		}
 	}
 
 	/* Update u-boot environment */
@@ -339,7 +349,7 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 			free_image(img);
 			ret = 0;
 		} else {
-			ret = install_single_image(img);
+			ret = install_single_image(img, dry_run);
 		}
 
 		if (!fromfile)
@@ -348,6 +358,13 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 		if (ret)
 			return ret;
 
+	}
+
+	/*
+	 * Skip scripts in dry-run mode
+	 */
+	if (dry_run) {
+		return ret;
 	}
 
 	ret = run_prepost_scripts(&sw->scripts, POSTINSTALL);
