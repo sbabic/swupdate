@@ -64,7 +64,7 @@ static bool is_type(lua_State *L, uintptr_t type)
 }
 #endif
 
-static void lua_dump_table(lua_State *L, char *str)
+static void lua_dump_table(lua_State *L, char *str, struct img_type *img, const char *key)
 {
 	/* Stack: table, ... */
 	lua_pushnil(L);
@@ -79,6 +79,14 @@ static void lua_dump_table(lua_State *L, char *str)
 				TRACE("%s %s = %s", str,
 					lua_tostring(L, -1),
 					lua_tostring(L, -2));
+				if (img) {
+					TRACE("Inserting property %s[%s] = %s\n",
+							key,
+							lua_tostring(L, -1),
+							lua_tostring(L, -2));
+					dict_insert_value(&img->properties, key,
+							lua_tostring(L, -2));
+				}
 				break;
 			case LUA_TFUNCTION:
 				TRACE("%s %s()", str,
@@ -86,19 +94,29 @@ static void lua_dump_table(lua_State *L, char *str)
 				break;
 			case LUA_TTABLE: {
 				char *s;
+				char *propkey;
 
-				if (asprintf(&s, "%s %s:", str, lua_tostring(L, -1)) != ENOMEM_ASPRINTF) {
+				if (asprintf(&propkey, "%s", lua_tostring(L, -1)) == ENOMEM_ASPRINTF) {
+					TRACE("Out of memory, dump stopped");
+					break;
+				}
+
+				if (asprintf(&s, "%s %s:", str, propkey) != ENOMEM_ASPRINTF) {
 					lua_pushvalue(L, -2);
-					lua_dump_table(L, s);
+					lua_dump_table(L, s, img, propkey);
 					lua_pop(L, 1);
 					free(s);
 				}
+				free(propkey);
 				break;
 			}
 			case LUA_TBOOLEAN:
 				TRACE("%s %s = %s", str,
 					lua_tostring(L, -1),
 					(lua_toboolean(L, -2) ? "true" : "false"));
+				if (img)
+					dict_insert_value(&img->properties, str,
+						(lua_toboolean(L, -2) ? "true" : "false"));
 				break;
 			default:
 				TRACE("%s %s = <unparsed type>", str,
@@ -137,7 +155,7 @@ void LUAstackDump(lua_State *L)
 
 				if (asprintf(&s, "(%d) [table ]", i) != ENOMEM_ASPRINTF) {
 					lua_pushvalue(L, -1);
-					lua_dump_table(L, s);
+					lua_dump_table(L, s, NULL, NULL);
 					lua_pop(L, 1);
 					free(s);
 				}
@@ -576,6 +594,14 @@ static void table2image(lua_State* L, struct img_type *img) {
 					break;
 				case LUA_TNUMBER: /* numbers */
 					lua_number_to_img(img, lua_tostring(L, -2), lua_tonumber(L, -1));
+					break;
+				case LUA_TTABLE:
+					if (!strcmp (lua_tostring(L, -2), "properties")) {
+						dict_drop_db(&img->properties);
+						lua_pushvalue(L, -1);
+						lua_dump_table(L, (char*)"properties", img, NULL);
+						lua_pop(L, 1);
+					}
 					break;
 			}
 			lua_pop(L, 1);
