@@ -7,6 +7,7 @@
 # not drop the handler if it is not called.
 # Handler can be called dynamically based
 # on the received image type.
+obj-y	+= dummy_handler.o
 obj-$(CONFIG_ARCHIVE) += archive_handler.o
 obj-$(CONFIG_CFI)	+= flash_handler.o
 obj-$(CONFIG_CFIHAMMING1)+= flash_hamming1_handler.o
