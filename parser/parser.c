@@ -534,7 +534,7 @@ static int parse_images(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua
 			strlen(image->type) ? image->type : "NOT FOUND",
 			image->install_directly ? " (installed from stream)" : "",
 			(strlen(image->id.name) && image->id.install_if_different) ?
-					"Version must be checked" : ""
+					" Version must be checked" : ""
 			);
 
 		if (skip) {
