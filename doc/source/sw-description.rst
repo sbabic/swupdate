@@ -861,7 +861,7 @@ There are 4 main sections inside sw-description:
    |             |          |            | "filesystem" type. (path is always    |
    |             |          |            | relative to the mount point.)         |
    +-------------+----------+------------+---------------------------------------+
-   | preserve-   | bool     | files      | flag to control whether the following |
+   | preserve-\  | bool     | files      | flag to control whether the following |
    | attributes  |          |            | attributes will be preserved when     |
    |             |          |            | files are unpacked from an archive    |
    |             |          |            | (assuming destination filesystem      |
@@ -878,7 +878,7 @@ There are 4 main sections inside sw-description:
    |             |          | files      | zlib-compressed and must be           |
    |             |          |            | decompressed before being installed   |
    +-------------+----------+------------+---------------------------------------+
-   | installed-  | bool     | images     | flag to indicate that image is        |
+   | installed-\ | bool     | images     | flag to indicate that image is        |
    | directly    |          |            | streamed into the target without any  |
    |             |          |            | temporary copy. Not all handlers      |
    |             |          |            | support streaming.                    |
@@ -902,8 +902,8 @@ There are 4 main sections inside sw-description:
    | description | string   |            | user-friendly description of the      |
    |             |          |            | swupdate archive (any string)         |
    +-------------+----------+------------+---------------------------------------+
-   | install-if  | bool     | images     | flag                                  |
-   | different   |          | files      | if set, name and version are          |
+   | install-if\ | bool     | images     | flag                                  |
+   | -different  |          | files      | if set, name and version are          |
    |             |          |            | compared with the entries in          |
    +-------------+----------+------------+---------------------------------------+
    | encrypted   | bool     | images     | flag                                  |
@@ -919,7 +919,7 @@ There are 4 main sections inside sw-description:
    |             |          | files      | Used for verification of signed       |
    |             |          | scripts    | images.                               |
    +-------------+----------+------------+---------------------------------------+
-   | embedded-   | string   |            | Lua code that is embedded in the      |
+   | embedded-\  | string   |            | Lua code that is embedded in the      |
    | script      |          |            | sw-description file.                  |
    +-------------+----------+------------+---------------------------------------+
    | offset      | string   | images     | Optional destination offset           |
