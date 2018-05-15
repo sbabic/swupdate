@@ -32,6 +32,9 @@ One example could be if SWUpdate runs as MQTT-broker and takes updates
 from Hawkbit. SWUpdate should be able to run multiple instances of
 suricatta to do this.
 
+One other examples is using LWM2M. The gateway should be generic enough
+to allow to add further protocols in future.
+
 Binary delta updates
 ====================
 
