@@ -274,7 +274,7 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 	}
 
 	/* Scripts must be run before installing images */
-	if (dry_run) {
+	if (!dry_run) {
 		ret = run_prepost_scripts(&sw->scripts, PREINSTALL);
 		if (ret) {
 			ERROR("execute preinstall scripts failed");
