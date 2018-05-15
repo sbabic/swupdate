@@ -201,7 +201,7 @@ static int get_answer(struct curlconn *conn, RECOVERY_STATUS *result, bool ignor
 		return -EIO;
 	}
 
-	if (asprintf(&channel_cfg.url, "%s/%s",
+	if (asprintf(&channel_cfg.url, "%s%s",
 			 conn->url, STATUS_URL) < 0) {
 		ERROR("Out of memory.\n");
 		return -ENOMEM; 
