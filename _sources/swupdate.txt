@@ -498,6 +498,10 @@ Command line parameters
 +-------------+----------+--------------------------------------------+
 | -i <file>   | string   | run SWUpdate with a local .swu file        |
 +-------------+----------+--------------------------------------------+
+| -n          |    -     | run SWUpdate in dry-run mode.              |
++-------------+----------+--------------------------------------------+
+| -o <file>   | string   | saves the stream (SWU) on a file           |
++-------------+----------+--------------------------------------------+
 | -v          |    -     | activate verbose output                    |
 +-------------+----------+--------------------------------------------+
 | -w <parms>  | string   | start internal webserver and pass to it    |
