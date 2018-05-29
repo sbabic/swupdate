@@ -141,7 +141,6 @@ struct swupdate_cfg {
 				img->offset = offs; \
 				img->provided = 1; \
 				img->size = fdh.size; \
-				break; \
 			} \
 		} \
 		if (!found) \
