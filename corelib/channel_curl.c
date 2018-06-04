@@ -448,6 +448,18 @@ channel_op_res_t channel_set_options(channel_t *this,
 		}
 	}
 
+	/*
+	 * Check if there is a restricted list of ciphers to be used
+	 */
+	if (channel_data->ciphers) {
+		if (curl_easy_setopt(channel_curl->handle,
+				      CURLOPT_SSL_CIPHER_LIST,
+				      channel_data->ciphers) != CURLE_OK) {
+			result = CHANNEL_EINIT;
+			goto cleanup;
+		}
+	}
+
 	if (channel_data->header != NULL) {
 		if (((channel_curl->header = curl_slist_append(
 				channel_curl->header, channel_data->header)) == NULL)) {

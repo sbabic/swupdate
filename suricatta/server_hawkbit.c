@@ -1515,6 +1515,9 @@ static int suricatta_settings(void *elem, void  __attribute__ ((__unused__)) *da
 	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "sslkey", tmp);
 	if (strlen(tmp))
 		SETSTRING(channel_data_defaults.sslkey, tmp);
+	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "ciphers", tmp);
+	if (strlen(tmp))
+		SETSTRING(channel_data_defaults.ciphers, tmp);
 	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "sslcert", tmp);
 	if (strlen(tmp))
 		SETSTRING(channel_data_defaults.sslcert, tmp);

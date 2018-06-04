@@ -39,6 +39,7 @@ typedef struct {
 	char *cafile;
 	char *sslkey;
 	char *sslcert;
+	char *ciphers;
 	char *proxy;
 	char *info;
 	char *header;
