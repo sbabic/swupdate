@@ -426,15 +426,18 @@ unsigned char *get_aes_salt(void) {
 	return aes_key->salt;
 }
 
-char** string_split(char* s, const char d)
+char** string_split(const char* in, const char d)
 {
 	char** result    = 0;
 	size_t count     = 0;
-	char* tmp        = s;
 	char* last_delim = 0;
 	char delim[2];
 	delim[0] = d;
 	delim[1] = 0;
+	char *s = strdup(in);
+	char* tmp        = s;
+	if (!s)
+		return NULL;
 
 	/* Count how many elements will be extracted. */
 	while (*tmp)
@@ -468,6 +471,8 @@ char** string_split(char* s, const char d)
 	    }
 	    *(result + idx) = 0;
 	}
+
+	free(s);
 
 	return result;
 }

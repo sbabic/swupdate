@@ -10,6 +10,7 @@
 
 #include <stdint.h>
 #include <string.h>
+#include <linux/types.h>
 #include "swupdate.h"
 #include "swupdate_status.h"
 #include "compat.h"
@@ -148,10 +149,11 @@ void notify_init(void);
 int syslog_init(void);
 
 char **splitargs(char *args, int *argc);
-char** string_split(char* a_str, const char a_delim);
+char** string_split(const char* a_str, const char a_delim);
 void freeargs (char **argv);
 int get_hw_revision(struct hw_type *hw);
 void get_sw_versions(char *cfgfname, struct swupdate_cfg *sw);
+__u64 version_to_number(const char *version_string);
 int check_hw_compatibility(struct swupdate_cfg *cfg);
 int count_elem_list(struct imglist *list);
 
