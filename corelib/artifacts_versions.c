@@ -13,6 +13,8 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <sys/stat.h>
+#include <linux/types.h>
+#include <limits.h>
 #include <assert.h>
 #include "generated/autoconf.h"
 #include "bsdqueue.h"
@@ -145,3 +147,39 @@ void get_sw_versions(char __attribute__ ((__unused__)) *cfgname,
 	read_sw_version_file(sw);
 }
 #endif
+
+/*
+ * convert a version string into a number
+ * version string is in the format:
+ *
+ * 	major.minor.revision.buildinfo
+ *
+ * but they do not need to have all fields.
+ * Also major.minor or major.minor.revision are allowed
+ * The conversion genearets a 64 bit value that can be compared
+ */
+__u64 version_to_number(const char *version_string)
+{
+	char **versions = NULL;
+	char **ver;
+	unsigned int count = 0;
+	__u64 version = 0;
+
+	versions = string_split(version_string, '.');
+	for (ver = versions; *ver != NULL; ver++, count ++) {
+		if (count < 4) {
+			unsigned long int fld = strtoul(*ver, NULL, 10);
+			/* check for return of strtoul, mandatory */
+			if (fld != ULONG_MAX) {
+				fld &= 0xffff;
+				version = (version << 16) | fld;
+			}
+		}
+		free(*ver);
+	}
+	if (count < 4)
+		version <<= 16 * (4 - count);
+	free(versions);
+
+	return version;
+}

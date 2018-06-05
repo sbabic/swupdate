@@ -107,9 +107,11 @@ struct swupdate_global_cfg {
 	int loglevel;
 	int syslog_enabled;
 	int dry_run;
+	int no_downgrading;
 	char publickeyfname[SWUPDATE_GENERAL_STRING_SIZE];
 	char aeskeyfname[SWUPDATE_GENERAL_STRING_SIZE];
 	char postupdatecmd[SWUPDATE_GENERAL_STRING_SIZE];
+	char current_version[SWUPDATE_GENERAL_STRING_SIZE];
 };
 
 struct swupdate_cfg {

@@ -78,6 +78,7 @@ static struct option long_options[] = {
 	{"select", required_argument, NULL, 'e'},
 	{"output", required_argument, NULL, 'o'},
 	{"dry-run", no_argument, NULL, 'n'},
+	{"no-downgrading", required_argument, NULL, 'N'},
 #ifdef CONFIG_SIGNED_IMAGES
 	{"key", required_argument, NULL, 'k'},
 #endif
@@ -131,6 +132,7 @@ static void usage(char *programname)
 		"                                  to decrypt images\n"
 #endif
 		" -n, --dry-to-run               : run SWUpdate without installing the software\n"
+		" -N, --no-downgrading <version> : do not allow to install a release older as <version>\n"
 		" -o, --output <output file>     : saves the incoming stream\n"
 		" -v, --verbose                  : be verbose, set maximum loglevel\n"
 #ifdef CONFIG_HW_COMPATIBILITY
@@ -466,6 +468,10 @@ static int read_globals_settings(void *elem, void *data)
 	get_field(LIBCFG_PARSER, elem, "verbose", &sw->globals.verbose);
 	get_field(LIBCFG_PARSER, elem, "loglevel", &sw->globals.loglevel);
 	get_field(LIBCFG_PARSER, elem, "syslog", &sw->globals.syslog_enabled);
+	GET_FIELD_STRING(LIBCFG_PARSER, elem,
+				"no-downgrading", sw->globals.current_version);
+	if (strlen(sw->globals.current_version))
+		sw->globals.no_downgrading = 1;
 
 	return 0;
 }
@@ -552,7 +558,7 @@ int main(int argc, char **argv)
 #endif
 	memset(main_options, 0, sizeof(main_options));
 	memset(image_url, 0, sizeof(image_url));
-	strcpy(main_options, "vhni:e:l:Lcf:p:o:");
+	strcpy(main_options, "vhni:e:l:Lcf:p:o:N:");
 #ifdef CONFIG_MTD
 	strcat(main_options, "b:");
 #endif
@@ -686,6 +692,11 @@ int main(int argc, char **argv)
 			       	sizeof(swcfg.globals.aeskeyfname));
 			break;
 #endif
+		case 'N':
+			swcfg.globals.no_downgrading = 1;
+			strncpy(swcfg.globals.current_version, optarg,
+				sizeof(swcfg.globals.current_version));
+			break;
 		case 'e':
 			software_select = optarg;
 			opt_e = 1;

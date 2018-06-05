@@ -182,7 +182,6 @@ int parse(struct swupdate_cfg *sw, const char *descfile)
 #ifdef CONFIG_SIGNED_IMAGES
 	char *sigfile;
 #endif
-
 	for (unsigned int i = 0; i < ARRAY_SIZE(parsers); i++) {
 		current = parsers[i];
 
@@ -248,6 +247,22 @@ int parse(struct swupdate_cfg *sw, const char *descfile)
 		ret = -EINVAL;
 #endif
 #endif
+
+	/*
+	 * If downgrading is not allowed, convert
+	 * versions in numbers to be compared and check to get a
+	 * newer version
+	 */
+	if (sw->globals.no_downgrading) {
+		__u64 currentversion = version_to_number(sw->globals.current_version);
+		__u64 newversion = version_to_number(sw->version);
+
+		if (newversion < currentversion) {
+			ERROR("No downgrading allowed: new version %s < installed %s",
+				sw->version, sw->globals.current_version);
+			return -EPERM;
+		}
+	}
 
 	remove_installed_image_list(&sw->images, &sw->installed_sw_list);
 
