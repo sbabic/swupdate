@@ -144,7 +144,7 @@ int ipc_get_status(ipc_message *msg)
 	return ret;
 }
 
-int ipc_inst_start_ext(sourcetype source, size_t len, const char *buf)
+int ipc_inst_start_ext(sourcetype source, size_t len, const char *buf, bool dryrun)
 {
 	int connfd;
 	ipc_message msg;
@@ -160,7 +160,7 @@ int ipc_inst_start_ext(sourcetype source, size_t len, const char *buf)
 	 * Command is request to install
 	 */
 	msg.magic = IPC_MAGIC;
-	msg.type = REQ_INSTALL;
+	msg.type = (!dryrun) ? REQ_INSTALL : REQ_INSTALL_DRYRUN;
 
 	/*
 	 * Pass data from interface originating
@@ -202,7 +202,7 @@ int ipc_inst_start_ext(sourcetype source, size_t len, const char *buf)
  */
 int ipc_inst_start(void)
 {
-	return ipc_inst_start_ext(SOURCE_UNKNOWN, 0, NULL);
+	return ipc_inst_start_ext(SOURCE_UNKNOWN, 0, NULL, false);
 }
 
 /*
@@ -347,7 +347,7 @@ static pthread_t start_ipc_thread(void *(* start_routine) (void *), void *arg)
  * Only one running request is accepted
  */
 int swupdate_async_start(writedata wr_func, getstatus status_func,
-				terminated end_func)
+				terminated end_func, bool dryrun)
 {
 	struct async_lib *rq;
 	int connfd;
@@ -361,7 +361,7 @@ int swupdate_async_start(writedata wr_func, getstatus status_func,
 	rq->get = status_func;
 	rq->end = end_func;
 
-	connfd = ipc_inst_start();
+	connfd = ipc_inst_start_ext(SOURCE_UNKNOWN, 0, NULL, dryrun);
 
 	if (connfd < 0)
 		return connfd;

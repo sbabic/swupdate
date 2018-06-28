@@ -313,7 +313,7 @@ static void upload_handler_v1(struct mg_connection *nc, int ev, void *p)
 			return;
 		}
 
-		fd = ipc_inst_start_ext(SOURCE_WEBSERVER, filename->len, filename->p);
+		fd = ipc_inst_start_ext(SOURCE_WEBSERVER, filename->len, filename->p, false);
 		ipc_send_data(fd, (char *) hm->body.p, hm->body.len);
 		ipc_end(fd);
 
@@ -385,7 +385,7 @@ static void upload_handler(struct mg_connection *nc, int ev, void *p)
 			break;
 		}
 
-		fus->fd = ipc_inst_start_ext(SOURCE_WEBSERVER, strlen(mp->file_name), mp->file_name);
+		fus->fd = ipc_inst_start_ext(SOURCE_WEBSERVER, strlen(mp->file_name), mp->file_name, false);
 		if (fus->fd < 0) {
 			mg_http_send_error(nc, 500, "Failed to queue command");
 			free(fus);

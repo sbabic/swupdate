@@ -56,6 +56,7 @@ struct installer {
 	int	last_error;		/* error code if installation failed */
 	char	errormsg[64];		/* error message if installation failed */
 	sourcetype source; 		/* Who triggered the update */
+	int	dry_run;		/* set it if no changes in hardware must be done */
 	unsigned int len;    		/* Len of data valid in info */
 	char	info[2048];   		/* info */
 };

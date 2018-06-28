@@ -15,6 +15,7 @@
  * headers are not exported.
  */
 
+#include <stdbool.h>
 #include "swupdate_status.h"
 
 #define IPC_MAGIC		0x14052001
@@ -26,6 +27,7 @@ typedef enum {
 	GET_STATUS,
 	POST_UPDATE,
 	SWUPDATE_SUBPROCESS,
+	REQ_INSTALL_DRYRUN,
 } msgtype;
 
 enum {
@@ -60,7 +62,7 @@ typedef struct {
 } ipc_message;
 
 int ipc_inst_start(void);
-int ipc_inst_start_ext(sourcetype source, size_t len, const char *info);
+int ipc_inst_start_ext(sourcetype source, size_t len, const char *info, bool dryrun);
 int ipc_send_data(int connfd, char *buf, int size);
 void ipc_end(int connfd);
 int ipc_get_status(ipc_message *msg);
@@ -73,6 +75,6 @@ typedef int (*terminated)(RECOVERY_STATUS status);
 int ipc_wait_for_complete(getstatus callback);
 int swupdate_image_write(char *buf, int size);
 int swupdate_async_start(writedata wr_func, getstatus status_func,
-				terminated end_func);
+				terminated end_func, bool dryrun);
 
 #endif

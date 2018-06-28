@@ -30,6 +30,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <pthread.h>
+#include <stdbool.h>
 #include "network_ipc.h"
 
 static void usage(void) {
@@ -102,7 +103,7 @@ static int send_file(const char* filename) {
 	/* synchronize with a mutex */
 	pthread_mutex_lock(&mymutex);
 	rc = swupdate_async_start(readimage, printstatus,
-				end);
+				end, false);
 	if (rc)
 		printf("swupdate_async_start returns %d\n", rc);
 

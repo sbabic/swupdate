@@ -339,11 +339,21 @@ void *network_thread (void *data)
 
 				break;
 			case REQ_INSTALL:
+			case REQ_INSTALL_DRYRUN:
 				TRACE("Incoming network request: processing...");
 				if (instp->status == IDLE) {
 					instp->fd = ctrlconnfd;
 					instp->source = msg.data.instmsg.source;
 					instp->len = min(msg.data.instmsg.len, sizeof(instp->info));
+
+					/*
+					 * Communicate if a dryrun is asked and set it
+					 */
+					if (msg.type == REQ_INSTALL_DRYRUN)
+						instp->dry_run = 1;
+					else
+						instp->dry_run = 0;
+
 					memcpy(instp->info, msg.data.instmsg.buf,
 						instp->len);
 
