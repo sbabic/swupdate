@@ -18,7 +18,7 @@
 #
 # test commands for --check command-line option
 #
-SWU_CHECK = ./swupdate -l 5 -c $(if $(strip $(filter-out FORCE,$<)),-i $<) >/dev/null 2>&1
+SWU_CHECK = ./swupdate $(if $(CONFIG_HW_COMPATIBILITY),-H test:1) -l 5 -c $(if $(strip $(filter-out FORCE,$<)),-i $<) $(if $(strip $(KBUILD_VERBOSE:0=)),,>/dev/null 2>&1)
 
 quiet_cmd_swu_check_assert_false = RUN     $@
       cmd_swu_check_assert_false = $(SWU_CLEAN); if $(SWU_CHECK); then false; fi
@@ -83,7 +83,9 @@ software =\n\
 \n\
 	version = \"0.1.1\";\n\
 \n\
-		hardware-compatibility: [ "1" ];\n\
+	test = {\n\
+		hardware-compatibility: [ \"1\" ];\n\
+	};\n\
 \n\
 	files:(\n\
 \n\
@@ -115,7 +117,9 @@ software =\n\
 \n\
 	version = \"0.2.2\";\n\
 \n\
-		hardware-compatibility: [ "1" ];\n\
+	test = {\n\
+		hardware-compatibility: [ \"1\" ];\n\
+	};\n\
 \n\
 	files:(\n\
 \n\
