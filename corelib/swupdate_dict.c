@@ -47,8 +47,9 @@ static void remove_list_elem(struct dict_list_elem *elem)
 static void remove_list(struct dict_list *list)
 {
 	struct dict_list_elem *elem;
+	struct dict_list_elem *tmp;
 
-	LIST_FOREACH(elem, list, next) {
+	LIST_FOREACH_SAFE(elem, list, next, tmp) {
 		remove_list_elem(elem);
 	}
 }
@@ -163,8 +164,9 @@ void dict_remove(struct dict *dictionary, const char *key)
 void dict_drop_db(struct dict *dictionary)
 {
 	struct dict_entry *entry;
+	struct dict_entry *tmp;
 
-	LIST_FOREACH(entry, dictionary, next) {
+	LIST_FOREACH_SAFE(entry, dictionary, next, tmp) {
 		remove_entry(entry);
 	}
 }

@@ -414,11 +414,13 @@ void free_image(struct img_type *img) {
 void cleanup_files(struct swupdate_cfg *software) {
 	char fn[64];
 	struct img_type *img;
+	struct img_type *img_tmp;
 	struct hw_type *hw;
+	struct hw_type *hw_tmp;
 	const char* TMPDIR = get_tmpdir();
 	struct imglist *list[] = {&software->scripts, &software->bootscripts};
 
-	LIST_FOREACH(img, &software->images, next) {
+	LIST_FOREACH_SAFE(img, &software->images, next, img_tmp) {
 		if (img->fname[0]) {
 			if (snprintf(fn, sizeof(fn), "%s%s", TMPDIR,
 				     img->fname) >= (int)sizeof(fn)) {
@@ -431,7 +433,7 @@ void cleanup_files(struct swupdate_cfg *software) {
 	}
 
 	for (unsigned int count = 0; count < ARRAY_SIZE(list); count++) {
-		LIST_FOREACH(img, list[count], next) {
+		LIST_FOREACH_SAFE(img, list[count], next, img_tmp) {
 			cleaup_img_entry(img);
 
 			LIST_REMOVE(img, next);
@@ -444,7 +446,7 @@ void cleanup_files(struct swupdate_cfg *software) {
 	snprintf(fn, sizeof(fn), "%s%s", TMPDIR, BOOT_SCRIPT_SUFFIX);
 	remove_sw_file(fn);
 
-	LIST_FOREACH(hw, &software->hardware, next) {
+	LIST_FOREACH_SAFE(hw, &software->hardware, next, hw_tmp) {
 		LIST_REMOVE(hw, next);
 		free(hw);
 	}
