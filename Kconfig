@@ -33,6 +33,10 @@ config HAVE_LIBCURL
 	bool
 	option env="HAVE_LIBCURL"
 
+config HAVE_LIBGPIOD
+	bool
+	option env="HAVE_LIBGPIOD"
+
 config HAVE_LIBMTD
 	bool
 	option env="HAVE_LIBMTD"

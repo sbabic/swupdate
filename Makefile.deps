@@ -14,6 +14,10 @@ ifeq ($(HAVE_LIBCURL),)
 export HAVE_LIBCURL = y
 endif
 
+ifeq ($(HAVE_LIBGPIOD),)
+export HAVE_LIBGPIOD = y
+endif
+
 ifeq ($(HAVE_LIBMTD),)
 ifeq ($(HAVE_LINUX),y)
 export HAVE_LIBMTD = y

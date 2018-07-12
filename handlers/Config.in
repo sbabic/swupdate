@@ -187,4 +187,15 @@ config BOOTLOADERHANDLER
 	  Enable it to change bootloader environment
 	  during the installation process.
 
+config UCFWHANDLER
+	bool "microcontroller firmware update"
+	depends on HAVE_LIBGPIOD
+	default n
+	help
+	  Simple protocol to upgrade a microcontroller
+	  via UART.
+
+comment "Microcontroller handler depends on libgpiod"
+	depends on !HAVE_LIBGPIOD
+
 endmenu

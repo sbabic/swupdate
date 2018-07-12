@@ -165,6 +165,10 @@ ifeq ($(CONFIG_REMOTE_HANDLER),y)
 LDLIBS += zmq
 endif
 
+ifeq ($(CONFIG_UCFWHANDLER),y)
+LDLIBS += gpiod
+endif
+
 ifeq ($(CONFIG_UBOOT),y)
 LDLIBS += z ubootenv
 endif
