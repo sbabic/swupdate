@@ -355,6 +355,7 @@ include $(srctree)/Makefile.flags
 
 objs-y		:= core handlers
 libs-y		:= corelib ipc mongoose parser suricatta bootloader
+shareds-y	:= bindings
 tools-y		:= tools
 
 swupdate-dirs	:= $(objs-y) $(libs-y)
@@ -368,7 +369,11 @@ tools-bins	:= $(patsubst $(tools-y)/%.c,$(tools-y)/%,$(wildcard $(tools-y)/*.c))
 tools-bins-unstr:= $(patsubst %,%_unstripped,$(tools-bins))
 tools-all	:= $(tools-objs)
 
-all: swupdate ${tools-bins}
+shared-dirs	:= $(shareds-y)
+shared-libs	:= $(patsubst %,%/built-in.o, $(shareds-y))
+shared-all	:= $(shared-libs)
+
+all: swupdate ${tools-bins} lua_swupdate.so
 
 # Do modpost on a prelinked vmlinux. The finally linked vmlinux has
 # relevant sections renamed as per the linker script.
@@ -394,6 +399,19 @@ quiet_cmd_addon = LD      $@
       "$(2)" \
       "$(swupdate-libs)" \
       "$(LDLIBS)"
+
+quiet_cmd_shared = LD      $@
+      cmd_shared = $(srctree)/scripts/trylink \
+      "$@" \
+      "$(CC)" \
+      "-shared " \
+      "$(KBUILD_CFLAGS) $(CFLAGS_swupdate)" \
+      "$(LDFLAGS) $(EXTRA_LDFLAGS) $(LDFLAGS_swupdate)" \
+      "$(shared-libs) ipc/lib.a" \
+      "$(LDLIBS)"
+
+lua_swupdate.so: $(shared-libs) ${swupdate-libs} FORCE
+	$(call if_changed,shared)
 
 quiet_cmd_strip = STRIP   $@
 cmd_strip = $(STRIP) -s --remove-section=.note --remove-section=.comment \
@@ -436,6 +454,7 @@ corelib-tests: FORCE
 # make sure no implicit rule kicks in
 $(sort $(swupdate-all)): $(swupdate-dirs) ;
 $(sort $(tools-all)): $(tools-dirs) ;
+$(sort $(shared-all)): $(shared-dirs) ;
 
 # Handle descending into subdirectories listed in $(vmlinux-dirs)
 # Preset locale variables to speed up the build process. Limit locale
@@ -443,10 +462,12 @@ $(sort $(tools-all)): $(tools-dirs) ;
 # make menuconfig etc.
 # Error messages still appears in the original language
 
-PHONY += $(swupdate-dirs) $(tools-dirs)
+PHONY += $(swupdate-dirs) $(tools-dirs) $(shared-dirs)
 $(swupdate-dirs): scripts
 	$(Q)$(MAKE) $(build)=$@
 $(tools-dirs): scripts
+	$(Q)$(MAKE) $(build)=$@
+$(shared-dirs): scripts
 	$(Q)$(MAKE) $(build)=$@
 
 ###
@@ -458,7 +479,7 @@ $(tools-dirs): scripts
 
 # Directories & files removed with 'make clean'
 CLEAN_DIRS  +=
-CLEAN_FILES += swupdate swupdate_unstripped* ${tools-bins} \
+CLEAN_FILES += swupdate swupdate_unstripped* lua_swupdate* ${tools-bins} \
 	$(patsubst %,%_unstripped,$(tools-bins)) \
 	$(patsubst %,%.out,$(tools-bins)) \
 	$(patsubst %,%.map,$(tools-bins)) \
@@ -471,7 +492,7 @@ MRPROPER_FILES += .config .config.old tags TAGS cscope* GPATH GTAGS GRTAGS GSYMS
 #
 clean: rm-dirs  := $(CLEAN_DIRS)
 clean: rm-files := $(CLEAN_FILES)
-clean-dirs      := $(addprefix _clean_, $(swupdate-dirs) $(tools-dirs))
+clean-dirs      := $(addprefix _clean_, $(swupdate-dirs) $(tools-dirs) $(shared-dirs))
 
 PHONY += $(clean-dirs) clean archclean
 $(clean-dirs):
