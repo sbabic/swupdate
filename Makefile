@@ -413,9 +413,14 @@ quiet_cmd_shared = LD      $@
 lua_swupdate.so: $(shared-libs) ${swupdate-libs} FORCE
 	$(call if_changed,shared)
 
+ifeq ($(SKIP_STRIP),y)
+quiet_cmd_strip = echo $@
+cmd_strip = cp $@_unstripped $@
+else
 quiet_cmd_strip = STRIP   $@
 cmd_strip = $(STRIP) -s --remove-section=.note --remove-section=.comment \
                $@_unstripped -o $@; chmod a+x $@
+endif
 
 swupdate: swupdate_unstripped
 	$(call cmd,strip)
