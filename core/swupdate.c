@@ -299,11 +299,19 @@ static int install_from_file(char *fname, int check)
 		}
 	}
 
-	pos = extract_sw_description(fdsw, SW_DESCRIPTION_FILENAME, 0);
+	pos = 0;
+	ret = extract_sw_description(fdsw, SW_DESCRIPTION_FILENAME, &pos);
 #ifdef CONFIG_SIGNED_IMAGES
-	pos = extract_sw_description(fdsw, SW_DESCRIPTION_FILENAME ".sig",
-		pos);
+	ret |= extract_sw_description(fdsw, SW_DESCRIPTION_FILENAME ".sig",
+		&pos);
 #endif
+	/*
+	 * Check if files could be extracted
+	 */
+	if (ret) {
+		ERROR("Failed to extract meta information");
+		exit(1);
+	}
 
 	char* swdescfilename = alloca(strlen(get_tmpdir())+strlen(SW_DESCRIPTION_FILENAME)+1);
 	sprintf(swdescfilename, "%s%s", get_tmpdir(), SW_DESCRIPTION_FILENAME);

@@ -509,10 +509,10 @@ int extract_cpio_header(int fd, struct filehdr *fhdr, unsigned long *offset)
 	return 0;
 }
 
-off_t extract_sw_description(int fd, const char *descfile, off_t start)
+int extract_sw_description(int fd, const char *descfile, off_t *offs)
 {
 	struct filehdr fdh;
-	unsigned long offset = start;
+	unsigned long offset = *offs;
 	char output_file[64];
 	uint32_t checksum;
 	int fdout;
@@ -562,7 +562,9 @@ off_t extract_sw_description(int fd, const char *descfile, off_t start)
 		return -1;
 	}
 
-	return offset;
+	*offs = offset;
+
+	return 0;
 }
 
 int extract_img_from_cpio(int fd, unsigned long offset, struct filehdr *fdh)
