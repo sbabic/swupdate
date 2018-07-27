@@ -287,7 +287,7 @@ static int install_from_file(char *fname, int check)
 
 	if (!strlen(fname)) {
 		ERROR("Image not found...please reboot");
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
 	fdsw = open(fname, O_RDONLY);
@@ -295,7 +295,7 @@ static int install_from_file(char *fname, int check)
 		fdsw = searching_for_image(fname);
 		if (fdsw < 0) {
 			ERROR("Image Software cannot be read...exiting !");
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 	}
 
@@ -310,7 +310,7 @@ static int install_from_file(char *fname, int check)
 	 */
 	if (ret) {
 		ERROR("Failed to extract meta information");
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
 	char* swdescfilename = alloca(strlen(get_tmpdir())+strlen(SW_DESCRIPTION_FILENAME)+1);
@@ -318,19 +318,19 @@ static int install_from_file(char *fname, int check)
 	ret = parse(&swcfg, swdescfilename);
 	if (ret) {
 		ERROR("failed to parse " SW_DESCRIPTION_FILENAME "!");
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
 
 	if (check_hw_compatibility(&swcfg)) {
 		ERROR("SW not compatible with hardware");
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
 	if (cpio_scan(fdsw, &swcfg, pos) < 0) {
 		ERROR("failed to scan for pos '%ld'!", pos);
 		close(fdsw);
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
 	/*
@@ -340,17 +340,17 @@ static int install_from_file(char *fname, int check)
 	ret = check_provided(&swcfg.images);
 	if (ret) {
 		ERROR("failed to check images!");
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 	ret = check_provided(&swcfg.scripts);
 	if (ret) {
 		ERROR("failed to check scripts!");
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
 	if (check) {
 		fprintf(stdout, "successfully checked '%s'\n", fname);
-		exit(0);
+		exit(EXIT_SUCCESS);
 	}
 
 #ifdef CONFIG_MTD
@@ -615,7 +615,7 @@ int main(int argc, char **argv)
 				read_globals_settings, &swcfg)) {
 				fprintf(stderr,
 					 "Error parsing configuration file, exiting..\n");
-				exit(1);
+				exit(EXIT_FAILURE);
 			}
 
 			loglevel = swcfg.globals.loglevel;
@@ -631,12 +631,12 @@ int main(int argc, char **argv)
 			if (ret == -EINVAL) {
 				fprintf(stderr,
 					 "Error parsing configuration file, exiting..\n");
-				exit(1);
+				exit(EXIT_FAILURE);
 			}
 			break;
 		case '0':
 			printf("%s", BANNER);
-			exit(0);
+			exit(EXIT_SUCCESS);
 		}
 	}
 
@@ -714,7 +714,7 @@ int main(int argc, char **argv)
 			break;
 		case 'h':
 			usage(argv[0]);
-			exit(0);
+			exit(EXIT_SUCCESS);
 			break;
 #ifdef CONFIG_DOWNLOAD
 		case 'd':
@@ -725,7 +725,7 @@ int main(int argc, char **argv)
 #endif
 		case 'H':
 			if (opt_to_hwrev(optarg, &swcfg.hw) < 0)
-				exit(1);
+				exit(EXIT_FAILURE);
 			break;
 #ifdef CONFIG_SURICATTA
 		case 'u':
@@ -750,7 +750,7 @@ int main(int argc, char **argv)
 			break;
 		default:
 			usage(argv[0]);
-			exit(1);
+			exit(EXIT_FAILURE);
 			break;
 		}
 	}
@@ -758,7 +758,7 @@ int main(int argc, char **argv)
 	if (optind < argc) {
 		/* SWUpdate has no non-option arguments, fail on them */
 		usage(argv[0]);
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
 	/*
@@ -769,27 +769,27 @@ int main(int argc, char **argv)
 		fprintf(stderr,
 			 "swupdate built for signed image, provide a public key file\n");
 		usage(argv[0]);
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
 	if (opt_c && !opt_i) {
 		fprintf(stderr,
 			"request check for local image, it requires -i\n");
 		usage(argv[0]);
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
 	if (opt_i && strlen(swcfg.output)) {
 		fprintf(stderr,
 			"Output just from network - do you know cp ?\n");
 		usage(argv[0]);
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 
 #ifdef CONFIG_SURICATTA
 	if (opt_u && (opt_c || opt_i)) {
 		fprintf(stderr, "invalid mode combination with suricatta.\n");
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 #endif
 
@@ -799,7 +799,7 @@ int main(int argc, char **argv)
 		if (swupdate_dgst_init(&swcfg, swcfg.globals.publickeyfname)) {
 			fprintf(stderr,
 				 "Crypto cannot be initialized\n");
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 	}
 
@@ -876,7 +876,7 @@ int main(int argc, char **argv)
 		if (load_decryption_key(swcfg.globals.aeskeyfname)) {
 			fprintf(stderr,
 				"Key file does not contain a valid AES key\n");
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 	}
 
@@ -895,7 +895,7 @@ int main(int argc, char **argv)
 	if (opt_e) {
 		if (parse_image_selector(software_select, &swcfg)) {
 			fprintf(stderr, "Incorrect select option format\n");
-			exit(1);
+			exit(EXIT_FAILURE);
 		}
 		fprintf(stderr, "software set: %s mode: %s\n",
 			swcfg.software_set, swcfg.running_mode);
