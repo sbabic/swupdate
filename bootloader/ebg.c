@@ -15,7 +15,7 @@
 #include <util.h>
 #include <efibootguard/ebgenv.h>
 #include <generated/autoconf.h>
-#include <suricatta/state.h>
+#include <state.h>
 #include "bootloader.h"
 
 #ifdef CONFIG_SURICATTA_STATE_CHOICE_BOOTLOADER

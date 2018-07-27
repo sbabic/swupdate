@@ -20,6 +20,19 @@
 
 extern int loglevel;
 
+typedef enum {
+	SERVER_OK,
+	SERVER_EERR,
+	SERVER_EBADMSG,
+	SERVER_EINIT,
+	SERVER_EACCES,
+	SERVER_EAGAIN,
+	SERVER_UPDATE_AVAILABLE,
+	SERVER_NO_UPDATE_AVAILABLE,
+	SERVER_UPDATE_CANCELED,
+	SERVER_ID_REQUESTED,
+} server_op_res_t;
+
 /*
  * loglevel is used into TRACE / ERROR
  * for values > LASTLOGLEVEL, it is an encoded field 

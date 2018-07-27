@@ -7,7 +7,6 @@
 
 #pragma once
 #include <stdbool.h>
-#include "suricatta.h"
 
 /* (Persistent) Update State Management Functions.
  *

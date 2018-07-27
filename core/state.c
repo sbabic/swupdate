@@ -11,7 +11,7 @@
 #include <errno.h>
 #include <util.h>
 #include <bootloader.h>
-#include "suricatta/state.h"
+#include <state.h>
 
 /*
  * This check is to avoid to corrupt the environment

@@ -7,7 +7,7 @@
 
 #pragma once
 #include <stdbool.h>
-#include <suricatta/state.h>
+#include <state.h>
 #include <swupdate_dict.h>
 #include <channel.h>
 

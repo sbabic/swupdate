@@ -23,7 +23,7 @@
 #include "parselib.h"
 #include "channel.h"
 #include "channel_curl.h"
-#include "suricatta/state.h"
+#include "state.h"
 #include "server_hawkbit.h"
 #include "parselib.h"
 #include "swupdate_settings.h"
