@@ -34,5 +34,6 @@ int dict_set_value(struct dict *dictionary, const char *key, const char *value);
 int dict_insert_value(struct dict *dictionary, const char *key, const char *value);
 void dict_remove(struct dict *dictionary, const char *key);
 void dict_drop_db(struct dict *dictionary);
+int dict_parse_script(struct dict *dictionary, const char *script);
 
 #endif

@@ -170,3 +170,44 @@ void dict_drop_db(struct dict *dictionary)
 		remove_entry(entry);
 	}
 }
+
+int dict_parse_script(struct dict *dictionary, const char *script)
+{
+	FILE *fp = NULL;
+	int ret = 0;
+	char *line = NULL, *key = NULL, *value = NULL;
+	size_t len = 0;
+
+	/* open script generated during sw-description parsing */
+	fp = fopen(script, "rb");
+	if (!fp) {
+		ERROR("Failed to open script file: %s\n", script);
+		ret = -1;
+		goto cleanup;
+	}
+
+	/* load  key-value pairs from script into dictionary */
+
+	while ((getline(&line, &len, fp)) != -1) {
+		key = strtok(line, " \t\n");
+		value = strtok(NULL, "\t\n");
+		if (value != NULL && key != NULL) {
+			ret = dict_set_value(dictionary, key, value);
+			if (ret) {
+				ERROR("Adding pair [%s] = %s into dictionary"
+					"list failed\n", key, value);
+				goto cleanup;
+			}
+		}
+
+		if (value == NULL && key != NULL) {
+			dict_remove(dictionary, key);
+		}
+	}
+
+cleanup:
+	if (fp) fclose(fp);
+	/* free(null) should not harm anything */
+	free(line);
+	return ret;
+}
