@@ -34,36 +34,6 @@ bool is_state_valid(update_state_t state) {
 	return true;
 }
 
-#ifndef CONFIG_SURICATTA_STATE_CHOICE_BOOTLOADER
-/*
- * This is just if the state is not stored persistently, that is
- * it does not survive after a reboot.
- * Save it in a variable and use setter / getter to retrieve it
- */
-static int suricatta_state = STATE_NOT_AVAILABLE;
-server_op_res_t save_state(char *key, update_state_t value)
-{
-	(void)key;
-	suricatta_state = value;
-	return SERVER_OK;
-}
-
-server_op_res_t read_state(char *key, update_state_t *value)
-{
-	(void)key;
-
-	*value =  suricatta_state;
-	return SERVER_OK;
-}
-
-server_op_res_t reset_state(char *key)
-{
-	(void)key;
-	suricatta_state = STATE_NOT_AVAILABLE;
-	return SERVER_OK;
-}
-#else
-
 server_op_res_t save_state(char *key, update_state_t value)
 {
 	int ret;
@@ -104,4 +74,3 @@ server_op_res_t reset_state(char *key)
 	ret = bootloader_env_unset(key);
 	return ret == 0 ? SERVER_OK : SERVER_EERR;
 }
-#endif
