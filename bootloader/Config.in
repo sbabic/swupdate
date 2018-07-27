@@ -27,9 +27,11 @@ comment "U-Boot support needs libubootenv, libz"
 	depends on !HAVE_LIBUBOOTENV || !HAVE_ZLIB
 
 config BOOTLOADER_NONE
-	bool "None"
+	bool "Environment in RAM"
 	help
-	  No interface to a bootloader
+	  This simulates the interface to a bootloader.
+	  Bootloader environment is just maitained in RAM
+	  and lost when SWUpdate exits.
 
 config BOOTLOADER_GRUB
 	bool "GRUB"
