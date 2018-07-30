@@ -5,3 +5,4 @@ lib-$(CONFIG_SURICATTA) += suricatta.o common.o
 ifneq ($(CONFIG_SURICATTA_HAWKBIT),)
 lib-$(CONFIG_SURICATTA) += server_hawkbit.o
 endif
+lib-$(CONFIG_SURICATTA_GENERAL) += server_general.o
