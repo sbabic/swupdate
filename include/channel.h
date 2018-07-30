@@ -15,6 +15,9 @@
  * is used by server_hawkbit.c implementing support for the
  * [hawkBit](https://projects.eclipse.org/projects/iot.hawkbit) server.
  */
+#define CHANNEL_DEFAULT_POLLING_INTERVAL 45
+#define CHANNEL_DEFAULT_RESUME_TRIES 5
+#define CHANNEL_DEFAULT_RESUME_DELAY 5
 typedef struct channel channel_t;
 struct channel {
 	channel_op_res_t (*open)(channel_t *this, void *cfg);

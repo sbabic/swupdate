@@ -29,9 +29,6 @@
 #include "swupdate_settings.h"
 #include "swupdate_dict.h"
 
-#define DEFAULT_POLLING_INTERVAL 45
-#define DEFAULT_RESUME_TRIES 5
-#define DEFAULT_RESUME_DELAY 5
 #define INITIAL_STATUS_REPORT_WAIT_DELAY 10
 
 #define STRINGIFY(...) #__VA_ARGS__
@@ -120,7 +117,7 @@ server_op_res_t server_send_cancel_reply(channel_t *channel, const int action_id
 static int get_target_data_length(void);
 
 server_hawkbit_t server_hawkbit = {.url = NULL,
-				   .polling_interval = DEFAULT_POLLING_INTERVAL,
+				   .polling_interval = CHANNEL_DEFAULT_POLLING_INTERVAL,
 				   .polling_interval_from_server = true,
 				   .debug = false,
 				   .device_id = NULL,
@@ -131,9 +128,9 @@ server_hawkbit_t server_hawkbit = {.url = NULL,
 
 static channel_data_t channel_data_defaults = {.debug = false,
 					       .source = SOURCE_SURICATTA,
-					       .retries = DEFAULT_RESUME_TRIES,
+					       .retries = CHANNEL_DEFAULT_RESUME_TRIES,
 					       .retry_sleep =
-						   DEFAULT_RESUME_DELAY,
+						   CHANNEL_DEFAULT_RESUME_DELAY,
 #ifdef CONFIG_SURICATTA_SSL
 					       .usessl = true,
 #endif
@@ -522,7 +519,7 @@ server_op_res_t server_set_polling_interval(json_object *json_root)
 		polling_interval /= 10;
 
 	server_hawkbit.polling_interval =
-	    polling_interval == 0 ? DEFAULT_POLLING_INTERVAL : polling_interval;
+	    polling_interval == 0 ? CHANNEL_DEFAULT_POLLING_INTERVAL : polling_interval;
 	DEBUG("Set polling interval to %ds as announced by server.",
 	      server_hawkbit.polling_interval);
 	return SERVER_OK;
@@ -1497,8 +1494,8 @@ void server_print_help(void)
 	    "{http,all}_proxy env is tried.\n"
 	    "\t  -k, --targettoken   Set target token.\n"
 	    "\t  -g, --gatewaytoken  Set gateway token.\n",
-	    DEFAULT_POLLING_INTERVAL, DEFAULT_RESUME_TRIES,
-	    DEFAULT_RESUME_DELAY);
+	    CHANNEL_DEFAULT_POLLING_INTERVAL, CHANNEL_DEFAULT_RESUME_TRIES,
+	    CHANNEL_DEFAULT_RESUME_DELAY);
 }
 
 static int server_hawkbit_settings(void *elem, void  __attribute__ ((__unused__)) *data)
