@@ -17,6 +17,11 @@
 #include "suricatta/suricatta.h"
 #include "suricatta/server.h"
 
+void suricatta_print_help(void)
+{
+	server.help();
+}
+
 int suricatta_wait(int seconds)
 {
 	fd_set readfds;

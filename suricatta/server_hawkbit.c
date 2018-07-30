@@ -108,7 +108,7 @@ server_op_res_t server_process_update_artifact(int action_id,
 						const char *part,
 						const char *version,
 						const char *name);
-void suricatta_print_help(void);
+void server_print_help(void);
 server_op_res_t server_set_polling_interval(json_object *json_root);
 server_op_res_t server_set_config_data(json_object *json_root);
 static update_state_t get_state(void);
@@ -1474,7 +1474,7 @@ cleanup:
 	return result;
 }
 
-void suricatta_print_help(void)
+void server_print_help(void)
 {
 	fprintf(
 	    stderr,
