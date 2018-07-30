@@ -1501,7 +1501,7 @@ void suricatta_print_help(void)
 	    DEFAULT_RESUME_DELAY);
 }
 
-static int suricatta_settings(void *elem, void  __attribute__ ((__unused__)) *data)
+static int server_hawkbit_settings(void *elem, void  __attribute__ ((__unused__)) *data)
 {
 	char tmp[128];
 
@@ -1566,7 +1566,16 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 	LIST_INIT(&server_hawkbit.configdata);
 
 	if (fname) {
-		read_module_settings(fname, "suricatta", suricatta_settings,
+		/*
+		 * Search "suricatta" section to be compatible with past
+		 */
+		read_module_settings(fname, "suricatta", server_hawkbit_settings,
+					NULL);
+		/*
+		 * Then try "hawkbit" because each server has its own
+		 * section
+		 */
+		read_module_settings(fname, "hawkbit", server_hawkbit_settings,
 					NULL);
 		read_module_settings(fname, "identify", settings_into_dict,
 					&server_hawkbit.configdata);
