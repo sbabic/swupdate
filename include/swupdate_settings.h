@@ -11,6 +11,7 @@
 #ifdef CONFIG_LIBCONFIG
 int read_module_settings(const char *filename, const char *module, settings_callback fcn, void *data);
 int read_settings_user_id(const char *filename, const char *module, uid_t *userid, gid_t *groupid);
+int settings_into_dict(void *settings, void *data);
 #else
 #include <unistd.h>
 static inline int read_module_settings(const char __attribute__ ((__unused__))*filename,
@@ -33,6 +34,9 @@ static inline int read_settings_user_id(const char __attribute__ ((__unused__))*
 
 	return 0;
 }
+
+static inline int settings_into_dict(void __attribute__ ((__unused__)) *settings,
+					void __attribute__ ((__unused__))*data);
 #endif
 
 #endif

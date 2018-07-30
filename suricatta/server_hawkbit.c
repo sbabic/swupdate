@@ -1556,35 +1556,6 @@ static int suricatta_settings(void *elem, void  __attribute__ ((__unused__)) *da
 
 }
 
-static int suricatta_configdata_settings(void *settings, void  __attribute__ ((__unused__)) *data)
-{
-	void *elem;
-	int count, i;
-	char name[80], value[80];
-
-	count = get_array_length(LIBCFG_PARSER, settings);
-
-	for(i = 0; i < count; ++i) {
-		elem = get_elem_from_idx(LIBCFG_PARSER, settings, i);
-
-		if (!elem)
-			continue;
-
-		if(!(exist_field_string(LIBCFG_PARSER, elem, "name")))
-			continue;
-		if(!(exist_field_string(LIBCFG_PARSER, elem, "value")))
-			continue;
-
-		GET_FIELD_STRING(LIBCFG_PARSER, elem, "name", name);
-		GET_FIELD_STRING(LIBCFG_PARSER, elem, "value", value);
-		dict_set_value(&server_hawkbit.configdata, name, value);
-		TRACE("Identify for configData: %s --> %s",
-				name, value);
-	}
-
-	return 0;
-}
-
 server_op_res_t server_start(char *fname, int argc, char *argv[])
 {
 	update_state_t update_state = STATE_NOT_AVAILABLE;
@@ -1597,8 +1568,8 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 	if (fname) {
 		read_module_settings(fname, "suricatta", suricatta_settings,
 					NULL);
-		read_module_settings(fname, "identify", suricatta_configdata_settings,
-					NULL);
+		read_module_settings(fname, "identify", settings_into_dict,
+					&server_hawkbit.configdata);
 	}
 
 	if (loglevel >= DEBUGLEVEL) {

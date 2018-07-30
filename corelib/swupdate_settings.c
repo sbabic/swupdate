@@ -25,6 +25,7 @@
 #include "swupdate.h"
 #include "parselib.h"
 #include "swupdate_settings.h"
+#include "swupdate_dict.h"
 #include "compat.h"
 
 struct run_as {
@@ -122,6 +123,41 @@ int read_settings_user_id(const char *filename, const char *module, uid_t *useri
 
 	*userid = ids.userid;
 	*groupid = ids.groupid;
+
+	return 0;
+}
+
+
+/*
+ * Callback to be used to put a section of configuration
+ * into a dictionary
+ */
+int settings_into_dict(void *settings, void *data)
+{
+	void *elem;
+	int count, i;
+	char name[80], value[80];
+	struct dict *dictionary = (struct dict *) data;
+
+	count = get_array_length(LIBCFG_PARSER, settings);
+
+	for(i = 0; i < count; ++i) {
+		elem = get_elem_from_idx(LIBCFG_PARSER, settings, i);
+
+		if (!elem)
+			continue;
+
+		if(!(exist_field_string(LIBCFG_PARSER, elem, "name")))
+			continue;
+		if(!(exist_field_string(LIBCFG_PARSER, elem, "value")))
+			continue;
+
+		GET_FIELD_STRING(LIBCFG_PARSER, elem, "name", name);
+		GET_FIELD_STRING(LIBCFG_PARSER, elem, "value", value);
+		dict_set_value(dictionary, name, value);
+		TRACE("Identify for configData: %s --> %s\n",
+				name, value);
+	}
 
 	return 0;
 }
