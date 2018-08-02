@@ -34,14 +34,6 @@
 #define STRINGIFY(...) #__VA_ARGS__
 #define JSON_OBJECT_FREED 1
 
-#ifdef CONFIG_SURICATTA_STATE_CHOICE_BOOTLOADER
-#define EXPANDTOKL2(token) token
-#define EXPANDTOK(token) EXPANDTOKL2(token)
-#define STATE_KEY EXPANDTOK(CONFIG_SURICATTA_STATE_BOOTLOADER)
-#else
-#define STATE_KEY "none"
-#endif
-
 #define SETSTRING(p, v) do { \
 	if (p) \
 		free(p); \
@@ -108,7 +100,6 @@ server_op_res_t server_process_update_artifact(int action_id,
 void server_print_help(void);
 server_op_res_t server_set_polling_interval(json_object *json_root);
 server_op_res_t server_set_config_data(json_object *json_root);
-static update_state_t get_state(void);
 server_op_res_t
 server_send_deployment_reply(const int action_id, const int job_cnt_max,
 			     const int job_cnt_cur, const char *finished,
@@ -799,19 +790,6 @@ server_op_res_t server_has_pending_action(int *action_id)
 	}
 
 	return result;
-}
-
-
-static update_state_t get_state(void) {
-	update_state_t state;
-
-	if (read_state((char *)STATE_KEY, &state) != SERVER_OK) {
-		ERROR("Cannot read stored update state.");
-		return STATE_ERROR;
-	}
-	TRACE("Read state=%c from persistent storage.", state);
-
-	return is_state_valid(state) ? state : STATE_ERROR;
 }
 
 static void add_detail_error(const char *s)

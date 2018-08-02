@@ -74,3 +74,15 @@ server_op_res_t reset_state(char *key)
 	ret = bootloader_env_unset(key);
 	return ret == 0 ? SERVER_OK : SERVER_EERR;
 }
+
+update_state_t get_state(void) {
+	update_state_t state;
+
+	if (read_state((char *)STATE_KEY, &state) != SERVER_OK) {
+		ERROR("Cannot read stored update state.\n");
+		return STATE_ERROR;
+	}
+	TRACE("Read state=%c from persistent storage.\n", state);
+
+	return is_state_valid(state) ? state : STATE_ERROR;
+}

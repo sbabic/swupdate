@@ -8,6 +8,14 @@
 #pragma once
 #include <stdbool.h>
 
+#ifdef CONFIG_SURICATTA_STATE_CHOICE_BOOTLOADER
+#define EXPANDTOKL2(token) token
+#define EXPANDTOK(token) EXPANDTOKL2(token)
+#define STATE_KEY EXPANDTOK(CONFIG_SURICATTA_STATE_BOOTLOADER)
+#else
+#define STATE_KEY "none"
+#endif
+
 /* (Persistent) Update State Management Functions.
  *
  * Suricatta may persistently store the update status to communicate it to the
@@ -34,4 +42,5 @@ static inline bool is_valid_state(update_state_t state) {
 server_op_res_t save_state(char *key, update_state_t value);
 server_op_res_t read_state(char *key, update_state_t *value);
 server_op_res_t reset_state(char *key);
+update_state_t get_state(void);
 bool is_state_valid(update_state_t state);
