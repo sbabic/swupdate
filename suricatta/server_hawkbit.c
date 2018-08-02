@@ -31,14 +31,7 @@
 
 #define INITIAL_STATUS_REPORT_WAIT_DELAY 10
 
-#define STRINGIFY(...) #__VA_ARGS__
 #define JSON_OBJECT_FREED 1
-
-#define SETSTRING(p, v) do { \
-	if (p) \
-		free(p); \
-	p = strdup(v); \
-} while (0)
 
 static struct option long_options[] = {
     {"tenant", required_argument, NULL, 't'},

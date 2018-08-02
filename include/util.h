@@ -116,6 +116,13 @@ typedef void (*notifier) (RECOVERY_STATUS status, int error, int level, const ch
 
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
 
+#define STRINGIFY(...) #__VA_ARGS__
+#define SETSTRING(p, v) do { \
+	if (p) \
+		free(p); \
+	p = strdup(v); \
+} while (0)
+
 
 #define LG_16 4
 #define FROM_HEX(f) from_ascii (f, sizeof f, LG_16)

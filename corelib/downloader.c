@@ -17,12 +17,6 @@
 #include "parselib.h"
 #include "swupdate_settings.h"
 
-#define SETSTRING(p, v) do { \
-	if (p) \
-		free(p); \
-	p = strdup(v); \
-} while (0)
-
 /*
  * Number of seconds while below low speed
  * limit before aborting. It can be overwritten
