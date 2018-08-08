@@ -52,6 +52,32 @@ generation command above. Accordingly, drop the ``-S <SALT>`` parameter in the
 encryption command and omit the 3rd field of the key file to be supplied to
 SWUpdate being the salt.
 
+Encryption of UBI volumes
+-------------------------
+
+Due to a limit in the Linux kernel api for UBI volumes, the size reserved to be
+written on disk should be declared before actually write anything.
+Unfortunately, the size of an encrypted image is not know until the complete
+decryption, thus preventing to correctly declare the size of the file to be
+written on disk.
+
+For this reason UBI images can declare the special property "decrypted-size" like
+this:
+
+::
+
+	images: ( {
+			filename = "rootfs.ubifs.enc";
+			volume = "rootfs";
+			encrypted = true;
+			properties = {decrypted-size = "104857600";}
+		}
+	);
+
+The real size of the decrypted image should be calculated and written to the
+sw-description before assembling the cpio archive.
+In this example, 104857600 is the size of the rootfs after the decryption: the
+encrypted size is by the way larger.
 
 Example sw-description with Encrypted Image
 -------------------------------------------

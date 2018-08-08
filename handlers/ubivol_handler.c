@@ -42,9 +42,19 @@ static int update_volume(libubi_t libubi, struct img_type *img,
 	char node[64];
 	int err;
 	char sbuf[128];
+	char *decrypted_size_str = NULL;
 
 	bytes = img->size;
 	if (img->is_encrypted) {
+
+		decrypted_size_str = dict_get_value(&img->properties, "decrypted-size");
+
+		bytes = ustrtoull(decrypted_size_str, 0);
+		if (errno){
+			ERROR("decrypted-size argument: ustrtoull failed");
+			return -1;
+		}
+
 		if (img->compressed) {
 			ERROR("Decryption of compressed UBI images not supported");
 			return -1;
@@ -53,7 +63,7 @@ static int update_volume(libubi_t libubi, struct img_type *img,
 			ERROR("Encrypted image size (%lld) too small", bytes);
 			return -1;
 		}
-		bytes -= AES_BLOCK_SIZE;
+		TRACE("Image is crypted, decrypted size %lld bytes", bytes);
 	}
 
 	if (!libubi) {
