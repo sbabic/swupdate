@@ -349,3 +349,75 @@ the SWU forwarder:
 				url = ["http://192.168.178.41:8080", "http://192.168.178.42:8080"];
 			};
 		});
+
+ucfw handler
+------------
+
+This handler allows to update the firmware on a microcontroller connected to
+the main controller via UART.
+Parameters for setup are passed via sw-description file.  Its behavior can be
+extended to be more general.
+The protocol is ASCII based. There is a sequence to be done to put the microcontroller
+in programming mode, after that the handler sends the data and waits for an ACK from the
+microcontroller.
+
+The programming of the firmware shall be:
+
+1. Enter firmware update mode (bootloader)
+
+        1. Set "reset line" to logical "low"
+	2. Set "update line" to logical "low"
+	3. Set "reset line" to logical "high"
+
+2. Send programming message
+
+::
+
+        $PROG;<<CS>><CR><LF>
+
+to the microcontroller.  (microcontroller will remain in programming state)
+
+3. microcontroller confirms with
+
+::
+
+        $READY;<<CS>><CR><LF>
+
+        4. Data transmissions package based from mainboard to microcontroller
+package definition:
+
+        - within a package the records are sent one after another without the end of line marker <CR><LF>
+        - the package is completed with <CR><LF>
+
+5. The microcontroller requests the next package with $READY;<<CS>><CR><LF>
+
+6. Repeat step 4 and 5 until the complete firmware is transmitted.
+
+7. The keypad confirms the firmware completion with $COMPLETED;<<CS>><CR><LF>
+
+8. Leave firmware update mode
+        1. Set "Update line" to logical "high"
+        2. Perform a reset over the "reset line"
+
+<<CS>> : checksum. The checksum is calculated as the two's complement of
+the modulo-256 sum over all bytes of the message
+string except for the start marker "$".
+The handler expects to get in the properties the setup for the reset
+and prog gpios. They should be in this format:
+
+::
+
+        properties = {
+	        reset = "<gpiodevice>:<gpionumber>:<activelow>";
+                prog = "<gpiodevice>:<gpionumber>:<activelow>";
+        }
+
+Example:
+
+::
+
+        properties = {
+                reset =  "/dev/gpiochip0:38:false";
+                prog =  "/dev/gpiochip0:39:false";
+        }
+
