@@ -107,7 +107,8 @@ function updateProgressBar (percent, name, value) {
 Dropzone.options.dropzone = {
   timeout: 0,
   clickable: true,
-  acceptedFiles: '.swu'
+  acceptedFiles: '.swu',
+  maxFilesize: 4096
 }
 
 window.onload = function () {
