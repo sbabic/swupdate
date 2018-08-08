@@ -231,7 +231,6 @@ static int run_embscript(parsertype p, void *elem, struct img_type *img,
 static int parse_common_attributes(parsertype p, void *elem, struct img_type *image)
 {
 	char seek_str[MAX_SEEK_STRING_SIZE];
-	char *endp = NULL;
 
 	/*
 	 * GET_FIELD_STRING does not touch the passed string if it is not
@@ -253,16 +252,11 @@ static int parse_common_attributes(parsertype p, void *elem, struct img_type *im
 	get_hash_value(p, elem, image->sha256);
 
 	/* convert the offset handling multiplicative suffixes */
-	if (strnlen(seek_str, MAX_SEEK_STRING_SIZE) != 0) {
-		errno = 0;
-		image->seek = ustrtoull(seek_str, &endp, 0);
-		if (seek_str == endp || (image->seek == ULLONG_MAX && \
-			errno == ERANGE)) {
-			ERROR("offset argument: ustrtoull failed");
-			return -1;
-		}
-	} else
-		image->seek = 0;
+	image->seek = ustrtoull(seek_str, 0);
+	if (errno){
+		ERROR("offset argument: ustrtoull failed");
+		return -1;
+	}
 
 	get_field(p, elem, "compressed", &image->compressed);
 	get_field(p, elem, "installed-directly", &image->install_directly);

@@ -33,7 +33,6 @@ static void sw_append_stream(struct img_type *img, const char *key,
 {
 	const char offset[] = "offset";
 	char seek_str[MAX_SEEK_STRING_SIZE];
-	char *endp = NULL;
 
 	if (!strcmp(key, "type"))
 		strncpy(img->type, value,
@@ -70,16 +69,10 @@ static void sw_append_stream(struct img_type *img, const char *key,
 		strncpy(seek_str, value,
 			sizeof(seek_str));
 		/* convert the offset handling multiplicative suffixes */
-		if (strnlen(seek_str, MAX_SEEK_STRING_SIZE) != 0) {
-			errno = 0;
-			img->seek = ustrtoull(seek_str, &endp, 0);
-			if (seek_str == endp || (img->seek == ULLONG_MAX && \
-					errno == ERANGE)) {
-				ERROR("offset argument: ustrtoull failed");
-				return;
-			}
-		} else
-			img->seek = 0;
+		img->seek = ustrtoull(seek_str, 0);
+		if (errno){
+			ERROR("offset argument: ustrtoull failed");
+		}
 	}
 	if (!strcmp(key, "script"))
 		img->is_script = 1;

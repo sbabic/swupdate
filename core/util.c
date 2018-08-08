@@ -18,6 +18,8 @@
 #include <sys/mount.h>
 #include <sys/uio.h>
 #include <dirent.h>
+#include <limits.h>
+
 #include "swupdate.h"
 #include "util.h"
 #include "generated/autoconf.h"
@@ -477,11 +479,23 @@ char** string_split(const char* in, const char d)
 	return result;
 }
 
-unsigned long long ustrtoull(const char *cp, char **endp, unsigned int base)
+unsigned long long ustrtoull(const char *cp, unsigned int base)
 {
-	unsigned long long result = strtoull(cp, endp, base);
+	errno = 0;
+	char *endp = NULL;
 
-	switch (**endp) {
+	unsigned long long result = strtoull(cp, &endp, base);
+
+	if (strnlen(cp, MAX_SEEK_STRING_SIZE) == 0) {
+		return 0;
+	}
+
+	if (cp == endp || (result == ULLONG_MAX && errno == ERANGE)) {
+		errno = ERANGE;
+		return 0;
+	}
+
+	switch (*endp) {
 	case 'G':
 		result *= 1024;
 		/* fall through */
@@ -491,11 +505,11 @@ unsigned long long ustrtoull(const char *cp, char **endp, unsigned int base)
 	case 'K':
 	case 'k':
 		result *= 1024;
-		if ((*endp)[1] == 'i') {
-			if ((*endp)[2] == 'B')
-				(*endp) += 3;
+		if (endp[1] == 'i') {
+			if (endp[2] == 'B')
+				endp += 3;
 			else
-				(*endp) += 2;
+				endp += 2;
 		}
 	}
 	return result;

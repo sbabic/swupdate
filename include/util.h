@@ -167,7 +167,7 @@ unsigned char *get_aes_salt(void);
 /* Getting global information */
 int get_install_info(sourcetype *source, char *buf, size_t len);
 
-unsigned long long ustrtoull(const char *cp, char **endp, unsigned int base);
+unsigned long long ustrtoull(const char *cp, unsigned int base);
 
 const char* get_tmpdir(void);
 const char* get_tmpdirscripts(void);
