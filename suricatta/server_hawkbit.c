@@ -20,6 +20,7 @@
 #include <sys/time.h>
 #include <swupdate_status.h>
 #include "suricatta/suricatta.h"
+#include "suricatta_private.h"
 #include "parselib.h"
 #include "channel.h"
 #include "channel_curl.h"
@@ -1492,34 +1493,15 @@ static int server_hawkbit_settings(void *elem, void  __attribute__ ((__unused__)
 	get_field(LIBCFG_PARSER, elem, "polldelay",
 		&server_hawkbit.polling_interval);
 
-	get_field(LIBCFG_PARSER, elem, "retry",
-		&channel_data_defaults.retries);
+	suricatta_channel_settings(elem, &channel_data_defaults);
 
-	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "retrywait", tmp);
-	if (strlen(tmp))
-		channel_data_defaults.retry_sleep =
-			(unsigned int)strtoul(tmp, NULL, 10);
-	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "cafile", tmp);
-	if (strlen(tmp))
-		SETSTRING(channel_data_defaults.cafile, tmp);
-	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "sslkey", tmp);
-	if (strlen(tmp))
-		SETSTRING(channel_data_defaults.sslkey, tmp);
-	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "ciphers", tmp);
-	if (strlen(tmp))
-		SETSTRING(channel_data_defaults.ciphers, tmp);
-	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "sslcert", tmp);
-	if (strlen(tmp))
-		SETSTRING(channel_data_defaults.sslcert, tmp);
-	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "proxy", tmp);
-	if (strlen(tmp))
-		SETSTRING(channel_data_defaults.proxy, tmp);
 	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "targettoken", tmp);
 	if (strlen(tmp))
 		SETSTRING(server_hawkbit.targettoken, tmp);
 	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "gatewaytoken", tmp);
 	if (strlen(tmp))
 		SETSTRING(server_hawkbit.gatewaytoken, tmp);
+
 	return 0;
 
 }
