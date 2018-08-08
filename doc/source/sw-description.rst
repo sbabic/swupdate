@@ -403,6 +403,7 @@ debugging or special purposes.
 			path = <path in filesystem>;
 			device[optional] = <device node >;
 			filesystem[optional] = <filesystem for mount>;
+			properties[optional] = {create-destination = "true";}
 		}
 	);
 
@@ -412,6 +413,9 @@ optional; they tell SWUpdate to mount device (of the given filesystem type,
 e.g. "ext4") before copying "filename" to "path". Without "device" and
 "filesystem", the "filename" will be copied to "path" in the current rootfs.
 
+As a general rule, swupdate doesn't copy out a file if the destination path
+doesn't exists. This behavior could be changed using the special property
+"create-destination".
 
 Scripts
 -------

@@ -7,10 +7,14 @@
  */
 
 #include <stdio.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <libgen.h>
 
 #include "swupdate.h"
 #include "handler.h"
@@ -66,6 +70,24 @@ static int install_raw_image(struct img_type *img,
 	return ret;
 }
 
+static int mkpath(char *dir, mode_t mode)
+{
+	if (!dir) {
+		return -EINVAL;
+	}
+
+	if (strlen(dir) == 1 && dir[0] == '/')
+		return 0;
+
+	mkpath(dirname(strdupa(dir)), mode);
+
+	if (mkdir(dir, mode) == -1) {
+		if (errno != EEXIST)
+			return 1;
+	}
+	return 0;
+}
+
 static int install_raw_file(struct img_type *img,
 	void __attribute__ ((__unused__)) *data)
 {
@@ -75,6 +97,7 @@ static int install_raw_file(struct img_type *img,
 	int use_mount = (strlen(img->device) && strlen(img->filesystem)) ? 1 : 0;
 	char* DATADST_DIR = alloca(strlen(get_tmpdir())+strlen(DATADST_DIR_SUFFIX)+1);
 	sprintf(DATADST_DIR, "%s%s", get_tmpdir(), DATADST_DIR_SUFFIX);
+	char* make_path;
 
 	if (strlen(img->path) == 0) {
 		ERROR("Missing path attribute");
@@ -103,6 +126,18 @@ static int install_raw_file(struct img_type *img,
 
 	TRACE("Installing file %s on %s\n",
 		img->fname, path);
+
+	make_path = dict_get_value(&img->properties, "create-destination");
+
+	if (make_path != NULL && strcmp(make_path, "true") == 0) {
+		TRACE("Creating path %s\n", path);
+		fdout = mkpath(dirname(strdupa(path)), 0755);
+		if (fdout < 0) {
+			ERROR("I cannot create path %s: %s\n", path, strerror(errno));
+			return -1;
+		}
+	}
+
 	fdout = openfileoutput(path);
 	ret = copyimage(&fdout, img, NULL);
 	if (ret< 0) {
