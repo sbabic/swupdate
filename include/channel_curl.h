@@ -27,6 +27,11 @@ typedef enum {
 	CHANNEL_PUT,
 } channel_method_t;
 
+typedef enum {
+	CHANNEL_PARSE_JSON,
+	CHANNEL_PARSE_RAW
+} channel_body_t;
+
 #define USE_PROXY_ENV (char *)0x11
 
 typedef struct {
@@ -48,9 +53,11 @@ typedef struct {
 	unsigned int method;
 	unsigned int retries;
 	unsigned int low_speed_timeout;
+	channel_body_t format;
 	bool debug;
 	bool usessl;
 	bool strictssl;
+	bool nocheckanswer;
 	int (*checkdwl)(void);
 	struct swupdate_digest *dgst;
 	char sha1hash[SHA_DIGEST_LENGTH * 2 + 1];

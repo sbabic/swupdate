@@ -982,6 +982,9 @@ channel_op_res_t channel_get(channel_t *this, void *data)
 		channel_log_effective_url(this);
 	}
 
+	if (channel_data->nocheckanswer)
+		goto cleanup_chunk;
+
 	long http_response_code;
 	if ((result = channel_map_http_code(this, &http_response_code)) !=
 	    CHANNEL_OK) {
