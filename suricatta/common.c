@@ -41,3 +41,26 @@ void suricatta_channel_settings(void *elem, channel_data_t *chan)
 	if (strlen(tmp))
 		SETSTRING(chan->proxy, tmp);
 }
+
+server_op_res_t map_channel_retcode(channel_op_res_t response)
+{
+	switch (response) {
+	case CHANNEL_ENONET:
+	case CHANNEL_EAGAIN:
+		return SERVER_EAGAIN;
+	case CHANNEL_EACCES:
+		return SERVER_EACCES;
+	case CHANNEL_ENOENT:
+	case CHANNEL_EIO:
+	case CHANNEL_EILSEQ:
+	case CHANNEL_ENOMEM:
+	case CHANNEL_EINIT:
+	case CHANNEL_ELOOP:
+		return SERVER_EERR;
+	case CHANNEL_EBADMSG:
+		return SERVER_EBADMSG;
+	case CHANNEL_OK:
+		return SERVER_OK;
+	}
+	return SERVER_EERR;
+}

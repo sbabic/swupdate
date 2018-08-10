@@ -81,7 +81,6 @@ static hawkbit_enums_t hawkbit_enums[] = {
 extern channel_op_res_t channel_curl_init(void);
 /* Prototypes for "internal" functions */
 /* Note that they're not `static` so that they're callable from unit tests. */
-server_op_res_t map_channel_retcode(channel_op_res_t response);
 server_op_res_t server_handle_initial_state(update_state_t stateovrrd);
 static int server_update_status_callback(ipc_message *msg);
 int server_update_done_callback(RECOVERY_STATUS status);
@@ -252,29 +251,6 @@ static void check_action_changed(int action_id, const char *update_action)
 			free(notifybuf);
 		}
 	}
-}
-
-server_op_res_t map_channel_retcode(channel_op_res_t response)
-{
-	switch (response) {
-	case CHANNEL_ENONET:
-	case CHANNEL_EAGAIN:
-		return SERVER_EAGAIN;
-	case CHANNEL_EACCES:
-		return SERVER_EACCES;
-	case CHANNEL_ENOENT:
-	case CHANNEL_EIO:
-	case CHANNEL_EILSEQ:
-	case CHANNEL_ENOMEM:
-	case CHANNEL_EINIT:
-	case CHANNEL_ELOOP:
-		return SERVER_EERR;
-	case CHANNEL_EBADMSG:
-		return SERVER_EBADMSG;
-	case CHANNEL_OK:
-		return SERVER_OK;
-	}
-	return SERVER_EERR;
 }
 
 server_op_res_t server_send_cancel_reply(channel_t *channel, const int action_id)
