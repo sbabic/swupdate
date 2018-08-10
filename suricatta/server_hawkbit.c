@@ -118,6 +118,9 @@ static channel_data_t channel_data_defaults = {.debug = false,
 #ifdef CONFIG_SURICATTA_SSL
 					       .usessl = true,
 #endif
+					       .format = CHANNEL_PARSE_JSON,
+					       .nocheckanswer = false,
+					       .nofollow = false,
 					       .strictssl = true};
 
 static struct timeval server_time;
