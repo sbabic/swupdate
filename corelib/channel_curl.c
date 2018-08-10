@@ -38,6 +38,7 @@ typedef struct {
 typedef struct {
 	char *proxy;
 	char *effective_url;
+	char *redirect_url;
 	CURL *handle;
 	struct curl_slist *header;
 } channel_curl_t;
@@ -113,6 +114,8 @@ channel_op_res_t channel_close(channel_t *this)
 	    (channel_curl->proxy != USE_PROXY_ENV)) {
 		free(channel_curl->proxy);
 	}
+	if (channel_curl->redirect_url)
+		free(channel_curl->redirect_url);
 	if (channel_curl->handle == NULL) {
 		return CHANNEL_OK;
 	}
@@ -228,6 +231,7 @@ static void channel_log_effective_url(channel_t *this)
 
 channel_op_res_t channel_map_http_code(channel_t *this, long *http_response_code)
 {
+	char *url = NULL;
 	channel_curl_t *channel_curl = this->priv;
 	CURLcode curlrc =
 	    curl_easy_getinfo(channel_curl->handle, CURLINFO_RESPONSE_CODE,
@@ -257,6 +261,18 @@ channel_op_res_t channel_map_http_code(channel_t *this, long *http_response_code
 		return CHANNEL_EAGAIN;
 	case 200:
 	case 206:
+	case 302:
+		curlrc = curl_easy_getinfo(channel_curl->handle, CURLINFO_REDIRECT_URL,
+					   &url);
+		if (curlrc == CURLE_OK) {
+			if (channel_curl->redirect_url)
+				free(channel_curl->redirect_url);
+			channel_curl->redirect_url = strdup(url);
+		} else if (curlrc == CURLE_UNKNOWN_OPTION) {
+			ERROR("channel_curl_getinfo response unsupported by "
+				"libcURL %s.\n",
+				LIBCURL_VERSION);
+		}
 		return CHANNEL_OK;
 	case 500:
 		return CHANNEL_EBADMSG;
