@@ -60,6 +60,8 @@ channel_op_res_t channel_map_http_code(channel_t *this, long *http_response_code
 channel_op_res_t channel_map_curl_error(CURLcode res);
 channel_op_res_t channel_set_options(channel_t *this, channel_data_t *channel_data,
 				     channel_method_t method);
+char *channel_get_redirect_url(channel_t *this);
+
 static void channel_log_effective_url(channel_t *this);
 
 /* Prototypes for "public" functions */
@@ -101,6 +103,7 @@ channel_t *channel_new(void)
 		newchan->get = &channel_get;
 		newchan->get_file = &channel_get_file;
 		newchan->put = &channel_put;
+		newchan->get_redirect_url = &channel_get_redirect_url;
 	}
 
 	return newchan;
@@ -227,6 +230,13 @@ static void channel_log_effective_url(channel_t *this)
 	}
 	TRACE("Channel's effective URL resolved to %s",
 	      channel_curl->effective_url);
+}
+
+char *channel_get_redirect_url(channel_t *this)
+{
+	channel_curl_t *channel_curl = this->priv;
+	TRACE("Redirect URL %s", channel_curl->redirect_url);
+	return channel_curl->redirect_url;
 }
 
 channel_op_res_t channel_map_http_code(channel_t *this, long *http_response_code)
