@@ -58,6 +58,7 @@ typedef struct {
 	bool usessl;
 	bool strictssl;
 	bool nocheckanswer;
+	bool nofollow;
 	int (*checkdwl)(void);
 	struct swupdate_digest *dgst;
 	char sha1hash[SHA_DIGEST_LENGTH * 2 + 1];

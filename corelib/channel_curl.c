@@ -386,8 +386,6 @@ channel_op_res_t channel_set_options(channel_t *this,
 			      channel_curl->header) != CURLE_OK) ||
 	    (curl_easy_setopt(channel_curl->handle, CURLOPT_MAXREDIRS, -1) !=
 	     CURLE_OK) ||
-	    (curl_easy_setopt(channel_curl->handle, CURLOPT_FOLLOWLOCATION, 1) !=
-	     CURLE_OK) ||
 	    (curl_easy_setopt(channel_curl->handle, CURLOPT_REDIR_PROTOCOLS,
 			      CURLPROTO_HTTP | CURLPROTO_HTTPS) != CURLE_OK) ||
 	    (curl_easy_setopt(channel_curl->handle,
@@ -399,6 +397,13 @@ channel_op_res_t channel_set_options(channel_t *this,
 	    (curl_easy_setopt(channel_curl->handle,
 			      CURLOPT_SSLCERT,
 			      channel_data->sslcert) != CURLE_OK)) {
+		result = CHANNEL_EINIT;
+		goto cleanup;
+	}
+
+	if ((!channel_data->nofollow) &&
+	    (curl_easy_setopt(channel_curl->handle, CURLOPT_FOLLOWLOCATION, 1) !=
+	     CURLE_OK)) {
 		result = CHANNEL_EINIT;
 		goto cleanup;
 	}
