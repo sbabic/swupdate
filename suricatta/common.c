@@ -58,8 +58,10 @@ server_op_res_t map_channel_retcode(channel_op_res_t response)
 	case CHANNEL_ELOOP:
 		return SERVER_EERR;
 	case CHANNEL_EBADMSG:
+	case CHANNEL_ENOTFOUND:
 		return SERVER_EBADMSG;
 	case CHANNEL_OK:
+	case CHANNEL_EREDIRECT:
 		return SERVER_OK;
 	}
 	return SERVER_EERR;

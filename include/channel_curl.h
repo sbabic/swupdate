@@ -58,6 +58,7 @@ typedef struct {
 	bool usessl;
 	bool strictssl;
 	bool nocheckanswer;
+	long http_response_code;
 	bool nofollow;
 	int (*checkdwl)(void);
 	struct swupdate_digest *dgst;

@@ -263,14 +263,16 @@ channel_op_res_t channel_map_http_code(channel_t *this, long *http_response_code
 	case 503: /* Service Unavailable */
 		return CHANNEL_EACCES;
 	case 400: /* Bad Request, e.g., invalid parameters */
-	case 404: /* Wrong URL */
 	case 406: /* Not acceptable. Accept header is not response compliant */
 	case 443: /* Connection refused */
 		return CHANNEL_EBADMSG;
+	case 404: /* Wrong URL */
+		return CHANNEL_ENOTFOUND;
 	case 429: /* Bad Request, i.e., too many requests. Try again later. */
 		return CHANNEL_EAGAIN;
 	case 200:
 	case 206:
+		return CHANNEL_OK;
 	case 302:
 		curlrc = curl_easy_getinfo(channel_curl->handle, CURLINFO_REDIRECT_URL,
 					   &url);
@@ -283,7 +285,7 @@ channel_op_res_t channel_map_http_code(channel_t *this, long *http_response_code
 				"libcURL %s.\n",
 				LIBCURL_VERSION);
 		}
-		return CHANNEL_OK;
+		return CHANNEL_EREDIRECT;
 	case 500:
 		return CHANNEL_EBADMSG;
 	default:
@@ -1013,10 +1015,12 @@ channel_op_res_t channel_get(channel_t *this, void *data)
 		channel_log_effective_url(this);
 	}
 
+	long http_response_code;
+	result = channel_map_http_code(this, &http_response_code);
+
 	if (channel_data->nocheckanswer)
 		goto cleanup_chunk;
 
-	long http_response_code;
 	if ((result = channel_map_http_code(this, &http_response_code)) !=
 	    CHANNEL_OK) {
 		ERROR("Channel operation returned HTTP error code %ld.",
