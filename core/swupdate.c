@@ -135,6 +135,7 @@ static void usage(char *programname)
 		" -N, --no-downgrading <version> : not install a release older as <version>\n"
 		" -o, --output <output file>     : saves the incoming stream\n"
 		" -v, --verbose                  : be verbose, set maximum loglevel\n"
+		"     --version                  : print SWUpdate version and exit\n"
 #ifdef CONFIG_HW_COMPATIBILITY
 		" -H, --hwrevision <board>:<rev> : Set hardware revision\n"
 #endif
