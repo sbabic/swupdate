@@ -64,4 +64,5 @@ typedef struct {
 	struct swupdate_digest *dgst;
 	char sha1hash[SHA_DIGEST_LENGTH * 2 + 1];
 	sourcetype source;
+	struct dict *headers;
 } channel_data_t;
