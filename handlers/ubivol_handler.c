@@ -169,6 +169,10 @@ static int adjust_volume(struct img_type *cfg,
 	 * Other MTD are not touched
 	 */
 	mtdnum = get_mtd_from_device(cfg->device);
+	if (mtdnum < 0) {
+		/* Allow device to be specified by name OR number */
+		mtdnum = get_mtd_from_name(cfg->device);
+	}
 	if (mtdnum < 0 || !mtd_dev_present(flash->libmtd, mtdnum)) {
 		ERROR("%s does not exist: partitioning not possible",
 			cfg->device);

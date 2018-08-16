@@ -294,7 +294,11 @@ in kernel.
 
 All fields are mandatory. SWUpdate searches for a volume of the
 selected name and adjusts the size, or creates a new volume if
-no volume with the given name exists.
+no volume with the given name exists. In the latter case, it is
+created on the UBI device attached to the MTD device given by
+"device". "device" can be given by number (e.g. "mtd4") or by name
+(the name of the MTD device, e.g. "ubi_partition"). The UBI device
+is attached automatically.
 
 images
 ------
