@@ -291,7 +291,6 @@ static void scan_for_ubi_devices(void)
 	 * if not yet an attached device, return and try later
 	 * to attach them
 	 */
-	printf("%s\n", __func__);
 	err = ubi_get_info(libubi, &ubi_info);
 	if (err)
 		return;
