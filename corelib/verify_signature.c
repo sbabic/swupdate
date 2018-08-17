@@ -243,7 +243,11 @@ static X509_STORE *load_cert_chain(const char *file)
 		crt = PEM_read_bio_X509(castore_bio, NULL, 0, NULL);
 		if (crt) {
 			crt_count++;
-			TRACE("Read PEM #%d: %s", crt_count, crt->name);
+			char *subj = X509_NAME_oneline(X509_get_subject_name(crt), NULL, 0);
+			char *issuer = X509_NAME_oneline(X509_get_issuer_name(crt), NULL, 0);
+			TRACE("Read PEM #%d: %s %s", crt_count, issuer, subj);
+			free(subj);
+			free(issuer);
 			if (X509_STORE_add_cert(castore, crt) == 0) {
 				TRACE("Adding certificate to X509_STORE failed");
 				BIO_free(castore_bio);
