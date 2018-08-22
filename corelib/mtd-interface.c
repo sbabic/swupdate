@@ -311,6 +311,7 @@ static void scan_for_ubi_devices(void)
 	}
 }
 
+#if defined(CONFIG_UBIATTACH)
 static void scan_ubi_partitions(int mtd)
 {
 	struct flash_description *flash = get_flash_info();
@@ -370,6 +371,7 @@ static void scan_ubi_partitions(int mtd)
 
 	scan_ubi_volumes(mtd_info);
 }
+#endif
 #endif
 
 int scan_mtd_devices (void)
@@ -465,6 +467,7 @@ int scan_mtd_devices (void)
 	 */
 	scan_for_ubi_devices();
 
+#if defined(CONFIG_UBIATTACH)
 	/*
 	 * Search for volumes in MTD that are not attached, default case
 	 */
@@ -476,6 +479,7 @@ int scan_mtd_devices (void)
 				flash->mtd_info[i].mtd.type != MTD_UBIVOLUME)
 			scan_ubi_partitions(i);
 	}
+#endif
 #endif
 
 	return mtd_info->mtd_dev_cnt;

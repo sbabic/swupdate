@@ -18,9 +18,22 @@ config UBIVOL
 comment "ubivol support needs libubi"
 	depends on !HAVE_LIBUBI
 
+config UBIATTACH
+	bool "Automatically attach UBI devices"
+	default y
+	depends on UBIVOL
+	help
+	  If this option is enabled, swupdate will try to attach
+	  UBI devices to all MTD devices.
+
+	  Make sure UBIBLACKLIST or UBIWHITELIST is set correctly,
+	  since attaching a UBI device will write to it if it is
+	  found to be empty, and that may destroy already existing
+	  content on that device.
+
 config UBIBLACKLIST
 	string "List of MTD devices to be excluded for UBI"
-	depends on UBIVOL
+	depends on UBIATTACH
 	help
 	  Define a list of MTD devices that are excluded
 	  by scan_mtd_device. The devices are still available
@@ -31,7 +44,7 @@ config UBIBLACKLIST
 
 config UBIWHITELIST
 	string "List of MTD devices that must have UBI"
-	depends on UBIVOL
+	depends on UBIATTACH
 	help
 	  Define a list of MTD devices that are planned to have
 	  always UBI. If first attach fails, the device is erased
@@ -43,7 +56,7 @@ config UBIWHITELIST
 
 config UBIVIDOFFSET
 	int "VID Header Offset"
-	depends on UBIVOL
+	depends on UBIATTACH
 	default 0
 	help
 	  Force UBI to set a VID header offset to be 2048 bytes
