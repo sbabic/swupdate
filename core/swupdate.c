@@ -85,7 +85,7 @@ static struct option long_options[] = {
 #ifdef CONFIG_ENCRYPTED_IMAGES
 	{"key-aes", required_argument, NULL, 'K'},
 #endif
-#ifdef CONFIG_MTD
+#ifdef CONFIG_UBIATTACH
 	{"blacklist", required_argument, NULL, 'b'},
 #endif
 	{"help", no_argument, NULL, 'h'},
@@ -115,7 +115,7 @@ static void usage(char *programname)
 			programname);
 	fprintf(stdout,
 		" -f, --file <filename>          : configuration file to use\n"
-#ifdef CONFIG_MTD
+#ifdef CONFIG_UBIATTACH
 		" -b, --blacklist <list of mtd>  : MTDs that must not be scanned for UBI\n"
 #endif
 		" -p, --postupdate               : execute post-update command\n"
@@ -667,7 +667,7 @@ int main(int argc, char **argv)
 		case 'v':
 			loglevel = TRACELEVEL;
 			break;
-#ifdef CONFIG_MTD
+#ifdef CONFIG_UBIATTACH
 		case 'b':
 			mtd_set_ubiblacklist(optarg);
 			break;
@@ -863,7 +863,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-#ifdef CONFIG_MTD
+#ifdef CONFIG_UBIATTACH
 	if (strlen(swcfg.globals.mtdblacklist))
 		mtd_set_ubiblacklist(swcfg.globals.mtdblacklist);
 #endif

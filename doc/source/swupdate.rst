@@ -472,7 +472,7 @@ Command line parameters
 +=============+==========+============================================+
 | -f <file>   | string   | SWUpdate config file to use                |
 +-------------+----------+--------------------------------------------+
-| -b <string> | string   | Active only if CONFIG_MTD is set           |
+| -b <string> | string   | Active only if CONFIG_UBIATTACH is set     |
 |             |          | It allows to blacklist MTDs when SWUpdate  |
 |             |          | searches for UBI volumes.                  |
 |             |          | Example: U-Boot and environment in MTD0-1: |
