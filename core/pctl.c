@@ -221,7 +221,7 @@ void sigchld_handler (int __attribute__ ((__unused__)) signum)
 	for (i = 0; i < nprocs; i++) {
 		childpid = waitpid (procs[i].pid, &status, WNOHANG);
 		if (childpid < 0) {
-			perror ("waitpid, no childs");
+			perror ("waitpid, no child");
 			continue;
 		}
 		if (childpid == 0)

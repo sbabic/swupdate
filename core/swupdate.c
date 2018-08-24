@@ -132,7 +132,7 @@ static void usage(char *programname)
 		"                                  to decrypt images\n"
 #endif
 		" -n, --dry-to-run               : run SWUpdate without installing the software\n"
-		" -N, --no-downgrading <version> : do not allow to install a release older as <version>\n"
+		" -N, --no-downgrading <version> : not install a release older as <version>\n"
 		" -o, --output <output file>     : saves the incoming stream\n"
 		" -v, --verbose                  : be verbose, set maximum loglevel\n"
 #ifdef CONFIG_HW_COMPATIBILITY

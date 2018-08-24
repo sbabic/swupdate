@@ -100,7 +100,7 @@ void download_print_help(void)
 	    "\t  -r, --retries          number of retries (resumed download) if connection\n"
 	    "\t                         is broken (0 means indefinitely retries) (default: %d)\n"
 	    "\t  -t, --timeout          timeout to check if a connection is lost (default: %d)\n"
-	    "\t  -a, --authentication   authentification information as username:password\n",
+	    "\t  -a, --authentication   authentication information as username:password\n",
 	    DL_DEFAULT_RETRIES, DL_LOWSPEED_TIME);
 }
 
