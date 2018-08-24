@@ -5,6 +5,1452 @@ swupdate (2018.03) UNRELEASED; urgency=medium
   * suricatta: update documentation for channel refactoring
 
   [ S. Lockwood-Childs ]
+  * archive handler: add preserve-attributes option
+
+  [ Stefano Babic ]
+  * doc: Update reference links
+  * Do not skip sectors to erase if unlock is not supported
+  * LUA: export SWUpdate function to LUA scripts
+  * Move the define ENOMEM_ASPRINTF global
+  * Drop filename length limit in CPIO extraction
+
+  [ Charles-Antoine Couret ]
+  * downloader: add option to send Basic Auth info
+
+  [ Christian Storm ]
+  * suricatta: fix broken tests due to channel refactoring
+  * hawkbit: add missing channel.h include
+  * suricatta: add channel_curl prototypes to hawkbit test
+
+  [ Stefano Babic ]
+  * Simply rename extract_script to extract_scripts
+  * Encrypted scripts cannot be executed
+  * doc: fix leveling of support chapter
+  * doc: guideline for contributing and Developer’s Certificate of Origin
+  * lua: return value from scripts not evaluated
+
+  [ Christian Storm ]
+  * option handling: remove unneeded seek_str != NULL check
+  * channel_curl: make sourcetype configurable
+  * bootloader: EFI Boot Guard support
+  * doc: update reference to progress client example
+  * travis: EFI Boot Guard support
+  * config: EFI Boot Guard sample configuration
+
+  [ Stefano Babic ]
+  * Allow again bootloader scripts
+  * bootloader handler: fix paths and use TRACE / ERROR macros
+  * License: move to SPDX header
+  * Add License files
+  * doc: add License chapter
+
+  [ Christian Storm ]
+  * compat.h: introduce compatibility header
+  * Fix some compiler warnings if !CONFIG_HASH_VERIFY
+  * Fix Wsign-compare for int with ARRAY_SIZE() comparison
+
+  [ Stefan Herbrechtsmeier ]
+  * dict: Rename dictionary struct and its key to distinguish it
+  * corelib: Rework dictionary to support multiple values per key
+  * parser: Replace properties array with a group of properties
+  * Lua: Dump tables in Lua stack recursive
+  * Lua: Forward image properties via table to scripts
+
+  [ Stefano Babic ]
+  * Drop unused partitions list from main structure
+  * parser: factorize parsing of common attributes
+  * Fix check if a handler is provided
+  * parser: do not hard-code type for partition
+
+  [ Stefan Herbrechtsmeier ]
+  * Lua: Export SWUpdate bootenv get and set functions to Lua scripts
+
+  [ Anatolij Gustschin ]
+  * doc: fix typo in image offset description
+
+  [ Stefano Babic ]
+  * Fix build if DOWNLOAD is set, but no JSON
+  * swuforward: fix segmentation fault after changing dictionary
+  * Revert "Fix some compiler warnings if !CONFIG_HASH_VERIFY"
+  * Fix compiler warnings if !CONFIG_HASH_VERIFY
+  * configs: setup without SSL
+
+  [ Stefan Herbrechtsmeier ]
+  * parser: Check image version after parsing to remove skipped images
+  * installer: Add free_image function to always drop dictionary
+  * parser: Add support for Lua hook script to script artifacts
+  * parser: Remove double spaces from trace output
+  * parser: Allow embedded script to skip images
+  * Lua: bootenv: Remove empty bootenv values from the environment
+  * tools: Remove useless null termination of a null terminated string
+  * Lua: Null check return value of luaL_checkstring functions
+  * Lua: Add function to mount and unmount devices
+
+  [ Stefano Babic ]
+  * doc: updated list of references
+  * doc: add CI in roadmap
+  * www: replace SWUpdate logo in website
+
+  [ Christian Storm ]
+  * Lua: make logging macro wrappers more printf()-like
+  * doc: add documentation for EFI Boot Guard
+
+  [ Achille Fouilleul ]
+  * handlers: fix size of encrypted UBI image
+  * cpio_utils: support compression of encrypted artifacts
+
+  [ Christian Storm ]
+  * Lua: expose get_tmpdirscripts() to Lua
+
+  [ Dmitri Toubelis ]
+  * Add PKI certificate usage info to the docs
+
+  [ Christian Storm ]
+  * channel_curl: add missing include for sourcetype
+
+  [ Stefan Herbrechtsmeier ]
+  * ipc: Make char buf pointer parameter of ipc_inst_start_ext function const
+
+  [ Stefano Babic ]
+  * bootloader: fix setting GRUB variable
+
+  [ Stefan Herbrechtsmeier ]
+  * mongoose: Update mongoose web server to version 6.11
+  * mongoose: Add WebSocket support
+  * www: Add reworked web page with bootstrap, dropzone and websocket support
+
+  [ Stefano Babic ]
+  * Add a link in README to the contributing page
+  * Add parameter to ask SWUpdate version
+  * Add vector graphic for logo
+  * www: store the web-app example
+  * gitignore: add derivates from web-app
+  * Prepare 2018.03-rc1
+
+  [ Sami Hartikainen ]
+  * Fix bootloader script handling
+  * www: web-app: Formulate URIs to be reverse proxy -friendly
+
+  [ Stefano Babic ]
+  * mongoose: fix parsing of configuration file
+  * downloader: fix parsing of configuration file
+
+  [ Sami Hartikainen ]
+  * doc: Update bootloader env script file documentation
+
+  [ Christian Storm ]
+  * logging: colorize terminal output log messages
+
+  [ Stefano Babic ]
+  * doc: removed reached goals from roadmap
+
+  [ Stefan Herbrechtsmeier ]
+  * doc: Add missing mongoose documentation
+  * web-app: Emphasize the SW of SWUpdate in the title to improve readability
+
+  [ Christian Storm ]
+  * Lua: use explicit size for embedded Lua handler script
+
+  [ Stefano Babic ]
+  * doc: fix some warnings in contributing page
+  * doc: extend support page
+  * Sync defconfig examples
+
+  [ Christian Storm ]
+  * channel_curl: add support for Basic Auth credentials
+  * channel_curl: add missing stdbool include
+  * channel_curl: make low_speed_timeout configurable
+  * channel_curl: emit download progress
+  * downloader: make use of channel_curl
+  * channel_curl: remove hard dependency on JSON
+  * channel_curl: rename json_string -> request_body
+  * channel_curl: enable SSL support
+
+  [ Stefano Babic ]
+  * mongoose: split upload_handler
+  * mongoose: set V1 or V2 at runtime
+
+  [ Christian Storm ]
+  * IPC: Add missing socket.h include
+
+  [ Stefano Babic ]
+  * doc: update conf for release
+  * doc: replace website pictures
+
+  [ Christian Storm ]
+  * installer: Add missing wait.h include
+  * util: Add missing stat.h include
+
+  [ Stefano Babic ]
+  * mongoose: reintroduce global-auth-file and auth-domain
+
+  [ Lars Lockenvitz ]
+  * mongoose: SEGV if -l is passed
+
+  [ Stefano Babic ]
+  * webserver: set type for "api" to int
+  * example: extend webserver section in configuration
+
+  [ Sami Hartikainen ]
+  * shellscript handler: Pass data attribute value as argument
+
+  [ Stefano Babic ]
+  * Add command line for output image
+  * Drop file output from channel_curl
+
+  [ Christian Storm ]
+  * notifier: use fprintf() on initialization errors
+  * cpio: hint error reason on copy_write() write failure
+  * notifier: don't initialize socket strucures twice
+
+  [ Martin Geier ]
+  * cpio_utils: verify also image hash while scanning cpio
+
+  [ Stefano Babic ]
+  * Prepare 2018.03
+
+  [ Christian Storm ]
+  * doc: fix SWU forwarder handler doc typos
+  * suricatta: update documentation for channel refactoring
+
+  [ S. Lockwood-Childs ]
+  * archive handler: add preserve-attributes option option
+
+  [ Stefano Babic ]
+  * doc: Update reference links
+  * Do not skip sectors to erase if unlock is not supported
+  * LUA: export SWUpdate function to LUA scripts
+  * Move the define ENOMEM_ASPRINTF global
+  * Drop filename length limit in CPIO extraction
+
+  [ Charles-Antoine Couret ]
+  * downloader: add option to send Basic Auth info
+
+  [ Christian Storm ]
+  * suricatta: fix broken tests due to channel refactoring
+  * hawkbit: add missing channel.h include
+  * suricatta: add channel_curl prototypes to hawkbit test
+
+  [ Stefano Babic ]
+  * Simply rename extract_script to extract_scripts
+  * Encrypted scripts cannot be executed
+  * doc: fix leveling of support chapter
+  * doc: guideline for contributing and Developer’s Certificate of Origin
+  * lua: return value from scripts not evaluated
+
+  [ Christian Storm ]
+  * option handling: remove unneeded seek_str != NULL check
+  * channel_curl: make sourcetype configurable
+  * bootloader: EFI Boot Guard support
+  * doc: update reference to progress client example
+  * travis: EFI Boot Guard support
+  * config: EFI Boot Guard sample configuration
+
+  [ Stefano Babic ]
+  * Allow again bootloader scripts
+  * bootloader handler: fix paths and use TRACE / ERROR macros
+  * License: move to SPDX header
+  * Add License files
+  * doc: add License chapter
+
+  [ Christian Storm ]
+  * compat.h: introduce compatibility header
+  * Fix some compiler warnings if !CONFIG_HASH_VERIFY
+  * Fix Wsign-compare for int with ARRAY_SIZE() comparison
+
+  [ Stefan Herbrechtsmeier ]
+  * dict: Rename dictionary struct and its key to distinguish it
+    from simple lists
+  * corelib: Rework dictionary to support multiple values per key
+  * parser: Replace properties array with a group of properties
+  * Lua: Dump tables in Lua stack recursive
+  * Lua: Forward image properties via table to scripts
+
+  [ Stefano Babic ]
+  * Drop unused partitions list from main structure
+  * parser: factorize parsing of common attributes
+  * Fix check if a handler is provided
+  * parser: do not hard-code type for partition
+
+  [ Stefan Herbrechtsmeier ]
+  * Lua: Export SWUpdate bootenv get and set functions to Lua scripts
+
+  [ Anatolij Gustschin ]
+  * doc: fix typo in image offset description
+
+  [ Stefano Babic ]
+  * Fix build if DOWNLOAD is set, but no JSON
+  * swuforward: fix segmentation fault after changing dictionary
+  * Revert "Fix some compiler warnings if !CONFIG_HASH_VERIFY"
+  * Fix compiler warnings if !CONFIG_HASH_VERIFY
+  * configs: setup without SSL
+
+  [ Stefan Herbrechtsmeier ]
+  * parser: Check image version after parsing to remove skipped images
+  * installer: Add free_image function to always drop dictionary and free image together
+  * parser: Add support for Lua hook script to script artifacts
+  * parser: Remove double spaces from trace output
+  * parser: Allow embedded script to skip images
+  * Lua: bootenv: Remove empty bootenv values from the bootloader environment
+  * tools: Remove useless null termination of a null terminated string
+  * Lua: Null check return value of luaL_checkstring functions
+  * Lua: Add function to mount and unmount devices
+
+  [ Stefano Babic ]
+  * doc: updated list of references
+  * doc: add CI in roadmap
+  * www: replace SWUpdate logo in website
+
+  [ Christian Storm ]
+  * Lua: make logging macro wrappers more printf()-like
+  * doc: add documentation for EFI Boot Guard
+
+  [ Achille Fouilleul ]
+  * handlers: fix size of encrypted UBI image
+  * cpio_utils: support compression of encrypted artifacts
+
+  [ Christian Storm ]
+  * Lua: expose get_tmpdirscripts() to Lua
+
+  [ Dmitri Toubelis ]
+  * Add PKI certificate usage info to the docs
+
+  [ Christian Storm ]
+  * channel_curl: add missing include for sourcetype
+
+  [ Stefan Herbrechtsmeier ]
+  * ipc: Make char buf pointer parameter of ipc_inst_start_ext function const
+
+  [ Stefano Babic ]
+  * bootloader: fix setting GRUB variable
+
+  [ Stefan Herbrechtsmeier ]
+  * mongoose: Update mongoose web server to version 6.11
+  * mongoose: Add WebSocket support
+  * www: Add reworked web page with bootstrap, dropzone and websocket support
+
+  [ Stefano Babic ]
+  * Add a link in README to the contributing page
+  * Add parameter to ask SWUpdate version
+  * Add vector graphic for logo
+  * www: store the web-app example
+  * gitignore: add derivates from web-app
+  * Prepare 2018.03-rc1
+
+  [ Sami Hartikainen ]
+  * Fix bootloader script handling
+  * www: web-app: Formulate URIs to be reverse proxy -friendly
+
+  [ Stefano Babic ]
+  * mongoose: fix parsing of configuration file
+  * downloader: fix parsing of configuration file
+
+  [ Sami Hartikainen ]
+  * doc: Update bootloader env script file documentation
+
+  [ Christian Storm ]
+  * logging: colorize terminal output log messages
+
+  [ Stefano Babic ]
+  * doc: removed reached goals from roadmap
+
+  [ Stefan Herbrechtsmeier ]
+  * doc: Add missing mongoose documentation
+  * web-app: Emphasize the SW of SWUpdate in the title to improve readability
+
+  [ Christian Storm ]
+  * Lua: use explicit size for embedded Lua handler script
+
+  [ Stefano Babic ]
+  * doc: fix some warnings in contributing page
+  * doc: extend support page
+  * Sync defconfig examples
+
+  [ Christian Storm ]
+  * channel_curl: add support for Basic Auth credentials
+  * channel_curl: add missing stdbool include
+  * channel_curl: make low_speed_timeout configurable
+  * channel_curl: emit download progress
+  * downloader: make use of channel_curl
+  * channel_curl: remove hard dependency on JSON
+  * channel_curl: rename json_string -> request_body
+  * channel_curl: enable SSL support
+
+  [ Stefano Babic ]
+  * mongoose: split upload_handler
+  * mongoose: set V1 or V2 at runtime
+
+  [ Christian Storm ]
+  * IPC: Add missing socket.h include
+
+  [ Stefano Babic ]
+  * doc: update conf for release
+  * doc: replace website pictures
+
+  [ Christian Storm ]
+  * installer: Add missing wait.h include
+  * util: Add missing stat.h include
+
+  [ Stefano Babic ]
+  * mongoose: reintroduce global-auth-file and auth-domain
+
+  [ Lars Lockenvitz ]
+  * mongoose: SEGV if -l is passed
+
+  [ Stefano Babic ]
+  * webserver: set type for "api" to int
+  * example: extend webserver section in configuration
+
+  [ Sami Hartikainen ]
+  * shellscript handler: Pass data attribute value as argument
+
+  [ Stefano Babic ]
+  * Add command line for output image
+  * Drop file output from channel_curl
+
+  [ Christian Storm ]
+  * notifier: use fprintf() on initialization errors
+  * cpio: hint error reason on copy_write() write failure
+  * notifier: don't initialize socket strucures twice
+
+  [ Martin Geier ]
+  * cpio_utils: verify also image hash while scanning cpio
+
+  [ Stefano Babic ]
+  * Prepare 2018.03
+
+  [ Martin Geier ]
+  * corelib: print both error code and reason string for decrypt
+
+  [ Stefano Babic ]
+  * gitignore: add tools/progress
+  * www: sync web-app in examples
+
+  [ Faustas Azuolas Bagdonas ]
+  * Added update description field support.
+
+  [ Arnout Vandecappelle (Essensium/Mind) ]
+  * UBI handler: support static volumes
+  * mtd: errno of missing volume has changed
+
+  [ Piotr Piwko ]
+  * building-with-yocto.rst: Fix sha256 attribute syntax
+
+  [ Christian Storm ]
+  * core: warn about non-Linux parent SIGTERM tracking
+  * Makefile: use "cc" instead of "gcc"
+  * compat: ENODATA compatibility for FreeBSD
+  * handlers: remove unused mtd-user.h includes
+  * util: introduce mount/umount helper functions
+  * Kconfig: add HAVE_LINUX and HAVE_FREEBSD properties
+  * handler: add FreeBSD-compatible copy_write() callback
+  * notifier: add FreeBSD-compatible notifier sockets
+
+  [ Stefano Babic ]
+  * doc: add picture for SWU forwardder handler
+  * doc: add doc and help for -o parameter
+
+  [ Justin Standring ]
+  * doc: escape newlines in table cell with backslash
+
+  [ Stefano Babic ]
+  * parser: make TRACE more readable
+  * lua: allow scripts to change image's properties
+  * handlers: add a dummy handler
+  * Add a dry-run option to SWUpdate
+  * Fix logic in dry-run for pre install scripts
+  * handler: swuforwarder: fix getstatus URL
+  *  doc: roadmap
+  * doc: extend reference links
+
+  [ Piotr Piwko ]
+  * Iterate through entire list in order to find duplicated
+
+  [ Shyam Saini ]
+  * doc: source: Fix wrong link
+
+  [ Ayoub Zaki ]
+  * hawkbit: adding authentication using security token
+
+  [ Stefano Babic ]
+  * hawkbit: allow to set a ciphers suite
+  * constify string_split input
+  * no-downgrading feature
+  * ipc: add -fPIC to let build shared lib
+  * Allow to override the dry-run flag by each install
+
+  [ Denis OSTERLAND ]
+  * test: add hardware compatibility support to check image test
+
+  [ Ivan Venturini ]
+  * Replace LIST_FOREACH with SAFE version on memory deallocation
+
+  [ Stefano Babic ]
+  * Fix relicensing client library under LGPL2.1
+  * handlers: drop duplicate entry and sort the list in Makefile
+  * handlers: handler to update microcontroller via UART
+  * Bindings for LUA as shared library
+  * Makefile: install all files
+  * Makefile: reintroduce SKIP_STRIP
+  * Check if sw-description is really extracted when installed from file
+
+  [ Angelo Compagnucci ]
+  * raw_handler: create path for a raw file if path doesn't exists
+
+  [ Stefano Babic ]
+  * doc: document ucfw handler
+  * web-app: remove limit on fileSize for dropzone
+
+  [ Angelo Compagnucci ]
+  * core: refactoring ustrtoull function
+  * Encryption of ubi volume image
+
+  [ Arnout Vandecappelle (Essensium/Mind) ]
+  * scan_for_ubi_devices: remove stray printf
+  * UBI handler: allow mtd device to be specified by name
+
+  [ Stefano Babic ]
+  * Fix build failure by loading CMS certificate
+
+  [ Arnout Vandecappelle (Essensium/Mind) ]
+  * mtd-interface: add UBIATTACH config option
+  * core: blacklisting should depend on CONFIG_UBIATTACH
+
+  [ Stefano Babic ]
+  * debian: fix issues reported by lintian
+
+  [ Christian Storm ]
+  * doc: fix SWU forwarder handler doc typos
+  * suricatta: update documentation for channel refactoring
+
+  [ S. Lockwood-Childs ]
+  * archive handler: add preserve-attributes option option
+
+  [ Stefano Babic ]
+  * doc: Update reference links
+  * Do not skip sectors to erase if unlock is not supported
+  * LUA: export SWUpdate function to LUA scripts
+  * Move the define ENOMEM_ASPRINTF global
+  * Drop filename length limit in CPIO extraction
+
+  [ Charles-Antoine Couret ]
+  * downloader: add option to send Basic Auth info
+
+  [ Christian Storm ]
+  * suricatta: fix broken tests due to channel refactoring
+  * hawkbit: add missing channel.h include
+  * suricatta: add channel_curl prototypes to hawkbit test
+
+  [ Stefano Babic ]
+  * Simply rename extract_script to extract_scripts
+  * Encrypted scripts cannot be executed
+  * doc: fix leveling of support chapter
+  * doc: guideline for contributing and Developer’s Certificate of Origin
+  * lua: return value from scripts not evaluated
+
+  [ Christian Storm ]
+  * option handling: remove unneeded seek_str != NULL check
+  * channel_curl: make sourcetype configurable
+  * bootloader: EFI Boot Guard support
+  * doc: update reference to progress client example
+  * travis: EFI Boot Guard support
+  * config: EFI Boot Guard sample configuration
+
+  [ Stefano Babic ]
+  * Allow again bootloader scripts
+  * bootloader handler: fix paths and use TRACE / ERROR macros
+  * License: move to SPDX header
+  * Add License files
+  * doc: add License chapter
+
+  [ Christian Storm ]
+  * compat.h: introduce compatibility header
+  * Fix some compiler warnings if !CONFIG_HASH_VERIFY
+  * Fix Wsign-compare for int with ARRAY_SIZE() comparison
+
+  [ Stefan Herbrechtsmeier ]
+  * dict: Rename dictionary struct and its key
+  * corelib: Rework dictionary to support multiple values per key
+  * parser: Replace properties array with a group of properties
+  * Lua: Dump tables in Lua stack recursive
+  * Lua: Forward image properties via table to scripts
+
+  [ Stefano Babic ]
+  * Drop unused partitions list from main structure
+  * parser: factorize parsing of common attributes
+  * Fix check if a handler is provided
+  * parser: do not hard-code type for partition
+
+  [ Stefan Herbrechtsmeier ]
+  * Lua: Export SWUpdate bootenv get and set functions to Lua scripts
+
+  [ Anatolij Gustschin ]
+  * doc: fix typo in image offset description
+
+  [ Stefano Babic ]
+  * Fix build if DOWNLOAD is set, but no JSON
+  * swuforward: fix segmentation fault after changing dictionary
+  * Revert "Fix some compiler warnings if !CONFIG_HASH_VERIFY"
+  * Fix compiler warnings if !CONFIG_HASH_VERIFY
+  * configs: setup without SSL
+
+  [ Stefan Herbrechtsmeier ]
+  * parser: Check image version after parsing to remove skipped images
+  * installer: Add free_image function to always drop dictionary
+  * parser: Add support for Lua hook script to script artifacts
+  * parser: Remove double spaces from trace output
+  * parser: Allow embedded script to skip images
+  * Lua: bootenv: Remove empty bootenv values from the environment
+  * tools: Remove useless null termination of a null terminated string
+  * Lua: Null check return value of luaL_checkstring functions
+  * Lua: Add function to mount and unmount devices
+
+  [ Stefano Babic ]
+  * doc: updated list of references
+  * doc: add CI in roadmap
+  * www: replace SWUpdate logo in website
+
+  [ Christian Storm ]
+  * Lua: make logging macro wrappers more printf()-like
+  * doc: add documentation for EFI Boot Guard
+
+  [ Achille Fouilleul ]
+  * handlers: fix size of encrypted UBI image
+  * cpio_utils: support compression of encrypted artifacts
+
+  [ Christian Storm ]
+  * Lua: expose get_tmpdirscripts() to Lua
+
+  [ Dmitri Toubelis ]
+  * Add PKI certificate usage info to the docs
+
+  [ Christian Storm ]
+  * channel_curl: add missing include for sourcetype
+
+  [ Stefan Herbrechtsmeier ]
+  * ipc: Make char buf pointer parameter of ipc_inst_start_ext function const
+
+  [ Stefano Babic ]
+  * bootloader: fix setting GRUB variable
+
+  [ Stefan Herbrechtsmeier ]
+  * mongoose: Update mongoose web server to version 6.11
+  * mongoose: Add WebSocket support
+  * www: Add reworked web page with bootstrap, dropzone and websocket support
+
+  [ Stefano Babic ]
+  * Add a link in README to the contributing page
+  * Add parameter to ask SWUpdate version
+  * Add vector graphic for logo
+  * www: store the web-app example
+  * gitignore: add derivates from web-app
+  * Prepare 2018.03-rc1
+
+  [ Sami Hartikainen ]
+  * Fix bootloader script handling
+  * www: web-app: Formulate URIs to be reverse proxy -friendly
+
+  [ Stefano Babic ]
+  * mongoose: fix parsing of configuration file
+  * downloader: fix parsing of configuration file
+
+  [ Sami Hartikainen ]
+  * doc: Update bootloader env script file documentation
+
+  [ Christian Storm ]
+  * logging: colorize terminal output log messages
+
+  [ Stefano Babic ]
+  * doc: removed reached goals from roadmap
+
+  [ Stefan Herbrechtsmeier ]
+  * doc: Add missing mongoose documentation
+  * web-app: Emphasize the SW of SWUpdate in the title to improve readability
+
+  [ Christian Storm ]
+  * Lua: use explicit size for embedded Lua handler script
+
+  [ Stefano Babic ]
+  * doc: fix some warnings in contributing page
+  * doc: extend support page
+  * Sync defconfig examples
+
+  [ Christian Storm ]
+  * channel_curl: add support for Basic Auth credentials
+  * channel_curl: add missing stdbool include
+  * channel_curl: make low_speed_timeout configurable
+  * channel_curl: emit download progress
+  * downloader: make use of channel_curl
+  * channel_curl: remove hard dependency on JSON
+  * channel_curl: rename json_string -> request_body
+  * channel_curl: enable SSL support
+
+  [ Stefano Babic ]
+  * mongoose: split upload_handler
+  * mongoose: set V1 or V2 at runtime
+
+  [ Christian Storm ]
+  * IPC: Add missing socket.h include
+
+  [ Stefano Babic ]
+  * doc: update conf for release
+  * doc: replace website pictures
+
+  [ Christian Storm ]
+  * installer: Add missing wait.h include
+  * util: Add missing stat.h include
+
+  [ Stefano Babic ]
+  * mongoose: reintroduce global-auth-file and auth-domain
+
+  [ Lars Lockenvitz ]
+  * mongoose: SEGV if -l is passed
+
+  [ Stefano Babic ]
+  * webserver: set type for "api" to int
+  * example: extend webserver section in configuration
+
+  [ Sami Hartikainen ]
+  * shellscript handler: Pass data attribute value as argument
+
+  [ Stefano Babic ]
+  * Add command line for output image
+  * Drop file output from channel_curl
+
+  [ Christian Storm ]
+  * notifier: use fprintf() on initialization errors
+  * cpio: hint error reason on copy_write() write failure
+  * notifier: don't initialize socket strucures twice
+
+  [ Martin Geier ]
+  * cpio_utils: verify also image hash while scanning cpio
+
+  [ Stefano Babic ]
+  * Prepare 2018.03
+
+  [ Martin Geier ]
+  * corelib: print both error code and reason string for decrypt
+
+  [ Stefano Babic ]
+  * gitignore: add tools/progress
+  * www: sync web-app in examples
+
+  [ Faustas Azuolas Bagdonas ]
+  * Added update description field support.
+
+  [ Arnout Vandecappelle (Essensium/Mind) ]
+  * UBI handler: support static volumes
+  * mtd: errno of missing volume has changed
+
+  [ Piotr Piwko ]
+  * building-with-yocto.rst: Fix sha256 attribute syntax
+
+  [ Christian Storm ]
+  * core: warn about non-Linux parent SIGTERM tracking
+  * Makefile: use "cc" instead of "gcc"
+  * compat: ENODATA compatibility for FreeBSD
+  * handlers: remove unused mtd-user.h includes
+  * util: introduce mount/umount helper functions
+  * Kconfig: add HAVE_LINUX and HAVE_FREEBSD properties
+  * handler: add FreeBSD-compatible copy_write() callback
+  * notifier: add FreeBSD-compatible notifier sockets
+
+  [ Stefano Babic ]
+  * doc: add picture for SWU forwardder handler
+  * doc: add doc and help for -o parameter
+
+  [ Justin Standring ]
+  * doc: escape newlines in table cell with backslash
+
+  [ Stefano Babic ]
+  * parser: make TRACE more readable
+  * lua: allow scripts to change image's properties
+  * handlers: add a dummy handler
+  * Add a dry-run option to SWUpdate
+  * Fix logic in dry-run for pre install scripts
+  * handler: swuforwarder: fix getstatus URL
+  *  doc: roadmap
+  * doc: extend reference links
+
+  [ Piotr Piwko ]
+  * Iterate through entire list in order to find duplicated
+
+  [ Shyam Saini ]
+  * doc: source: Fix wrong link
+
+  [ Ayoub Zaki ]
+  * hawkbit: adding authentication using security token
+
+  [ Stefano Babic ]
+  * hawkbit: allow to set a ciphers suite
+  * constify string_split input
+  * no-downgrading feature
+  * ipc: add -fPIC to let build shared lib
+  * Allow to override the dry-run flag by each install
+
+  [ Denis OSTERLAND ]
+  * test: add hardware compatibility support to check image test
+
+  [ Ivan Venturini ]
+  * Replace LIST_FOREACH with SAFE version on memory deallocation
+
+  [ Stefano Babic ]
+  * Fix relicensing client library under LGPL2.1
+  * handlers: drop duplicate entry and sort the list in Makefile
+  * handlers: handler to update microcontroller via UART
+  * Bindings for LUA as shared library
+  * Makefile: install all files
+  * Makefile: reintroduce SKIP_STRIP
+  * Check if sw-description is really extracted when installed from file
+
+  [ Angelo Compagnucci ]
+  * raw_handler: create path for a raw file if path doesn't exists
+
+  [ Stefano Babic ]
+  * doc: document ucfw handler
+  * web-app: remove limit on fileSize for dropzone
+
+  [ Angelo Compagnucci ]
+  * core: refactoring ustrtoull function
+  * Encryption of ubi volume image
+
+  [ Arnout Vandecappelle (Essensium/Mind) ]
+  * scan_for_ubi_devices: remove stray printf
+  * UBI handler: allow mtd device to be specified by name
+
+  [ Stefano Babic ]
+  * Fix build failure by loading CMS certificate
+
+  [ Arnout Vandecappelle (Essensium/Mind) ]
+  * mtd-interface: add UBIATTACH config option
+  * core: blacklisting should depend on CONFIG_UBIATTACH
+
+  [ Stefano Babic ]
+  * debian: fix issues reported by lintian
+
+  [ Christian Storm ]
+  * doc: fix SWU forwarder handler doc typos
+  * suricatta: update documentation for channel refactoring
+
+  [ S. Lockwood-Childs ]
+  * archive handler: add preserve-attributes option option
+
+  [ Stefano Babic ]
+  * doc: Update reference links
+  * Do not skip sectors to erase if unlock is not supported
+  * LUA: export SWUpdate function to LUA scripts
+  * Move the define ENOMEM_ASPRINTF global
+  * Drop filename length limit in CPIO extraction
+
+  [ Charles-Antoine Couret ]
+  * downloader: add option to send Basic Auth info
+
+  [ Christian Storm ]
+  * suricatta: fix broken tests due to channel refactoring
+  * hawkbit: add missing channel.h include
+  * suricatta: add channel_curl prototypes to hawkbit test
+
+  [ Stefano Babic ]
+  * Simply rename extract_script to extract_scripts
+  * Encrypted scripts cannot be executed
+  * doc: fix leveling of support chapter
+  * doc: guideline for contributing and Developer’s Certificate of Origin
+  * lua: return value from scripts not evaluated
+
+  [ Christian Storm ]
+  * option handling: remove unneeded seek_str != NULL check
+  * channel_curl: make sourcetype configurable
+  * bootloader: EFI Boot Guard support
+  * doc: update reference to progress client example
+  * travis: EFI Boot Guard support
+  * config: EFI Boot Guard sample configuration
+
+  [ Stefano Babic ]
+  * Allow again bootloader scripts
+  * bootloader handler: fix paths and use TRACE / ERROR macros
+  * License: move to SPDX header
+  * Add License files
+  * doc: add License chapter
+
+  [ Christian Storm ]
+  * compat.h: introduce compatibility header
+  * Fix some compiler warnings if !CONFIG_HASH_VERIFY
+  * Fix Wsign-compare for int with ARRAY_SIZE() comparison
+
+  [ Stefan Herbrechtsmeier ]
+  * dict: Rename dictionary struct and its key
+  * corelib: Rework dictionary to support multiple values per key
+  * parser: Replace properties array with a group of properties
+  * Lua: Dump tables in Lua stack recursive
+  * Lua: Forward image properties via table to scripts
+
+  [ Stefano Babic ]
+  * Drop unused partitions list from main structure
+  * parser: factorize parsing of common attributes
+  * Fix check if a handler is provided
+  * parser: do not hard-code type for partition
+
+  [ Stefan Herbrechtsmeier ]
+  * Lua: Export SWUpdate bootenv get and set functions to Lua scripts
+
+  [ Anatolij Gustschin ]
+  * doc: fix typo in image offset description
+
+  [ Stefano Babic ]
+  * Fix build if DOWNLOAD is set, but no JSON
+  * swuforward: fix segmentation fault after changing dictionary
+  * Revert "Fix some compiler warnings if !CONFIG_HASH_VERIFY"
+  * Fix compiler warnings if !CONFIG_HASH_VERIFY
+  * configs: setup without SSL
+
+  [ Stefan Herbrechtsmeier ]
+  * parser: Check image version after parsing to remove skipped images
+  * installer: Add free_image function to always drop dictionary and free image together
+  * parser: Add support for Lua hook script to script artifacts
+  * parser: Remove double spaces from trace output
+  * parser: Allow embedded script to skip images
+  * Lua: bootenv: Remove empty bootenv values from the bootloader environment and not from the dictionary
+  * tools: Remove useless null termination of a null terminated string
+  * Lua: Null check return value of luaL_checkstring functions
+  * Lua: Add function to mount and unmount devices
+
+  [ Stefano Babic ]
+  * doc: updated list of references
+  * doc: add CI in roadmap
+  * www: replace SWUpdate logo in website
+
+  [ Christian Storm ]
+  * Lua: make logging macro wrappers more printf()-like
+  * doc: add documentation for EFI Boot Guard
+
+  [ Achille Fouilleul ]
+  * handlers: fix size of encrypted UBI image
+  * cpio_utils: support compression of encrypted artifacts
+
+  [ Christian Storm ]
+  * Lua: expose get_tmpdirscripts() to Lua
+
+  [ Dmitri Toubelis ]
+  * Add PKI certificate usage info to the docs
+
+  [ Christian Storm ]
+  * channel_curl: add missing include for sourcetype
+
+  [ Stefan Herbrechtsmeier ]
+  * ipc: Make char buf pointer parameter of ipc_inst_start_ext function const
+
+  [ Stefano Babic ]
+  * bootloader: fix setting GRUB variable
+
+  [ Stefan Herbrechtsmeier ]
+  * mongoose: Update mongoose web server to version 6.11
+  * mongoose: Add WebSocket support
+  * www: Add reworked web page with bootstrap, dropzone and websocket support
+
+  [ Stefano Babic ]
+  * Add a link in README to the contributing page
+  * Add parameter to ask SWUpdate version
+  * Add vector graphic for logo
+  * www: store the web-app example
+  * gitignore: add derivates from web-app
+  * Prepare 2018.03-rc1
+
+  [ Sami Hartikainen ]
+  * Fix bootloader script handling
+  * www: web-app: Formulate URIs to be reverse proxy -friendly
+
+  [ Stefano Babic ]
+  * mongoose: fix parsing of configuration file
+  * downloader: fix parsing of configuration file
+
+  [ Sami Hartikainen ]
+  * doc: Update bootloader env script file documentation
+
+  [ Christian Storm ]
+  * logging: colorize terminal output log messages
+
+  [ Stefano Babic ]
+  * doc: removed reached goals from roadmap
+
+  [ Stefan Herbrechtsmeier ]
+  * doc: Add missing mongoose documentation
+  * web-app: Emphasize the SW of SWUpdate in the title to improve readability
+
+  [ Christian Storm ]
+  * Lua: use explicit size for embedded Lua handler script
+
+  [ Stefano Babic ]
+  * doc: fix some warnings in contributing page
+  * doc: extend support page
+  * Sync defconfig examples
+
+  [ Christian Storm ]
+  * channel_curl: add support for Basic Auth credentials
+  * channel_curl: add missing stdbool include
+  * channel_curl: make low_speed_timeout configurable
+  * channel_curl: emit download progress
+  * downloader: make use of channel_curl
+  * channel_curl: remove hard dependency on JSON
+  * channel_curl: rename json_string -> request_body
+  * channel_curl: enable SSL support
+
+  [ Stefano Babic ]
+  * mongoose: split upload_handler
+  * mongoose: set V1 or V2 at runtime
+
+  [ Christian Storm ]
+  * IPC: Add missing socket.h include
+
+  [ Stefano Babic ]
+  * doc: update conf for release
+  * doc: replace website pictures
+
+  [ Christian Storm ]
+  * installer: Add missing wait.h include
+  * util: Add missing stat.h include
+
+  [ Stefano Babic ]
+  * mongoose: reintroduce global-auth-file and auth-domain
+
+  [ Lars Lockenvitz ]
+  * mongoose: SEGV if -l is passed
+
+  [ Stefano Babic ]
+  * webserver: set type for "api" to int
+  * example: extend webserver section in configuration
+
+  [ Sami Hartikainen ]
+  * shellscript handler: Pass data attribute value as argument
+
+  [ Stefano Babic ]
+  * Add command line for output image
+  * Drop file output from channel_curl
+
+  [ Christian Storm ]
+  * notifier: use fprintf() on initialization errors
+  * cpio: hint error reason on copy_write() write failure
+  * notifier: don't initialize socket strucures twice
+
+  [ Martin Geier ]
+  * cpio_utils: verify also image hash while scanning cpio
+
+  [ Stefano Babic ]
+  * Prepare 2018.03
+
+  [ Martin Geier ]
+  * corelib: print both error code and reason string for decrypt
+
+  [ Stefano Babic ]
+  * gitignore: add tools/progress
+  * www: sync web-app in examples
+
+  [ Faustas Azuolas Bagdonas ]
+  * Added update description field support.
+
+  [ Arnout Vandecappelle (Essensium/Mind) ]
+  * UBI handler: support static volumes
+  * mtd: errno of missing volume has changed
+
+  [ Piotr Piwko ]
+  * building-with-yocto.rst: Fix sha256 attribute syntax
+
+  [ Christian Storm ]
+  * core: warn about non-Linux parent SIGTERM tracking
+  * Makefile: use "cc" instead of "gcc"
+  * compat: ENODATA compatibility for FreeBSD
+  * handlers: remove unused mtd-user.h includes
+  * util: introduce mount/umount helper functions
+  * Kconfig: add HAVE_LINUX and HAVE_FREEBSD properties
+  * handler: add FreeBSD-compatible copy_write() callback
+  * notifier: add FreeBSD-compatible notifier sockets
+
+  [ Stefano Babic ]
+  * doc: add picture for SWU forwardder handler
+  * doc: add doc and help for -o parameter
+
+  [ Justin Standring ]
+  * doc: escape newlines in table cell with backslash
+
+  [ Stefano Babic ]
+  * parser: make TRACE more readable
+  * lua: allow scripts to change image's properties
+  * handlers: add a dummy handler
+  * Add a dry-run option to SWUpdate
+  * Fix logic in dry-run for pre install scripts
+  * handler: swuforwarder: fix getstatus URL
+  *  doc: roadmap
+  * doc: extend reference links
+
+  [ Piotr Piwko ]
+  * Iterate through entire list in order to find duplicated
+
+  [ Shyam Saini ]
+  * doc: source: Fix wrong link
+
+  [ Ayoub Zaki ]
+  * hawkbit: adding authentication using security token
+
+  [ Stefano Babic ]
+  * hawkbit: allow to set a ciphers suite
+  * constify string_split input
+  * no-downgrading feature
+  * ipc: add -fPIC to let build shared lib
+  * Allow to override the dry-run flag by each install
+
+  [ Denis OSTERLAND ]
+  * test: add hardware compatibility support to check image test
+
+  [ Ivan Venturini ]
+  * Replace LIST_FOREACH with SAFE version on memory deallocation
+
+  [ Stefano Babic ]
+  * Fix relicensing client library under LGPL2.1
+  * handlers: drop duplicate entry and sort the list in Makefile
+  * handlers: handler to update microcontroller via UART
+  * Bindings for LUA as shared library
+  * Makefile: install all files
+  * Makefile: reintroduce SKIP_STRIP
+  * Check if sw-description is really extracted when installed from file
+
+  [ Angelo Compagnucci ]
+  * raw_handler: create path for a raw file if path doesn't exists
+
+  [ Stefano Babic ]
+  * doc: document ucfw handler
+  * web-app: remove limit on fileSize for dropzone
+
+  [ Angelo Compagnucci ]
+  * core: refactoring ustrtoull function
+  * Encryption of ubi volume image
+
+  [ Arnout Vandecappelle (Essensium/Mind) ]
+  * scan_for_ubi_devices: remove stray printf
+  * UBI handler: allow mtd device to be specified by name
+
+  [ Stefano Babic ]
+  * Fix build failure by loading CMS certificate
+
+  [ Arnout Vandecappelle (Essensium/Mind) ]
+  * mtd-interface: add UBIATTACH config option
+  * core: blacklisting should depend on CONFIG_UBIATTACH
+
+  [ Stefano Babic ]
+  * debian: fix issues reported by lintian
+
+  [ Christian Storm ]
+  * doc: fix SWU forwarder handler doc typos
+  * suricatta: update documentation for channel refactoring
+
+  [ S. Lockwood-Childs ]
+  * archive handler: add preserve-attributes option option
+
+  [ Stefano Babic ]
+  * doc: Update reference links
+  * Do not skip sectors to erase if unlock is not supported
+  * LUA: export SWUpdate function to LUA scripts
+  * Move the define ENOMEM_ASPRINTF global
+  * Drop filename length limit in CPIO extraction
+
+  [ Charles-Antoine Couret ]
+  * downloader: add option to send Basic Auth info
+
+  [ Christian Storm ]
+  * suricatta: fix broken tests due to channel refactoring
+  * hawkbit: add missing channel.h include
+  * suricatta: add channel_curl prototypes to hawkbit test
+
+  [ Stefano Babic ]
+  * Simply rename extract_script to extract_scripts
+  * Encrypted scripts cannot be executed
+  * doc: fix leveling of support chapter
+  * doc: guideline for contributing and Developer’s Certificate of Origin
+  * lua: return value from scripts not evaluated
+
+  [ Christian Storm ]
+  * option handling: remove unneeded seek_str != NULL check
+  * channel_curl: make sourcetype configurable
+  * bootloader: EFI Boot Guard support
+  * doc: update reference to progress client example
+  * travis: EFI Boot Guard support
+  * config: EFI Boot Guard sample configuration
+
+  [ Stefano Babic ]
+  * Allow again bootloader scripts
+  * bootloader handler: fix paths and use TRACE / ERROR macros
+  * License: move to SPDX header
+  * Add License files
+  * doc: add License chapter
+
+  [ Christian Storm ]
+  * compat.h: introduce compatibility header
+  * Fix some compiler warnings if !CONFIG_HASH_VERIFY
+  * Fix Wsign-compare for int with ARRAY_SIZE() comparison
+
+  [ Stefan Herbrechtsmeier ]
+  * dict: Rename dictionary struct and its key to distinguish it from simple lists
+  * corelib: Rework dictionary to support multiple values per key
+  * parser: Replace properties array with a group of properties
+  * Lua: Dump tables in Lua stack recursive
+  * Lua: Forward image properties via table to scripts
+
+  [ Stefano Babic ]
+  * Drop unused partitions list from main structure
+  * parser: factorize parsing of common attributes
+  * Fix check if a handler is provided
+  * parser: do not hard-code type for partition
+
+  [ Stefan Herbrechtsmeier ]
+  * Lua: Export SWUpdate bootenv get and set functions to Lua scripts
+
+  [ Anatolij Gustschin ]
+  * doc: fix typo in image offset description
+
+  [ Stefano Babic ]
+  * Fix build if DOWNLOAD is set, but no JSON
+  * swuforward: fix segmentation fault after changing dictionary
+  * Revert "Fix some compiler warnings if !CONFIG_HASH_VERIFY"
+  * Fix compiler warnings if !CONFIG_HASH_VERIFY
+  * configs: setup without SSL
+
+  [ Stefan Herbrechtsmeier ]
+  * parser: Check image version after parsing to remove skipped images
+  * installer: Add free_image function to always drop dictionary and free image together
+  * parser: Add support for Lua hook script to script artifacts
+  * parser: Remove double spaces from trace output
+  * parser: Allow embedded script to skip images
+  * Lua: bootenv: Remove empty bootenv values from the bootloader
+  * tools: Remove useless null termination of a null terminated string
+  * Lua: Null check return value of luaL_checkstring functions
+  * Lua: Add function to mount and unmount devices
+
+  [ Stefano Babic ]
+  * doc: updated list of references
+  * doc: add CI in roadmap
+  * www: replace SWUpdate logo in website
+
+  [ Christian Storm ]
+  * Lua: make logging macro wrappers more printf()-like
+  * doc: add documentation for EFI Boot Guard
+
+  [ Achille Fouilleul ]
+  * handlers: fix size of encrypted UBI image
+  * cpio_utils: support compression of encrypted artifacts
+
+  [ Christian Storm ]
+  * Lua: expose get_tmpdirscripts() to Lua
+
+  [ Dmitri Toubelis ]
+  * Add PKI certificate usage info to the docs
+
+  [ Christian Storm ]
+  * channel_curl: add missing include for sourcetype
+
+  [ Stefan Herbrechtsmeier ]
+  * ipc: Make char buf pointer parameter of ipc_inst_start_ext function const
+
+  [ Stefano Babic ]
+  * bootloader: fix setting GRUB variable
+
+  [ Stefan Herbrechtsmeier ]
+  * mongoose: Update mongoose web server to version 6.11
+  * mongoose: Add WebSocket support
+  * www: Add reworked web page with bootstrap, dropzone and websocket support
+
+  [ Stefano Babic ]
+  * Add a link in README to the contributing page
+  * Add parameter to ask SWUpdate version
+  * Add vector graphic for logo
+  * www: store the web-app example
+  * gitignore: add derivates from web-app
+  * Prepare 2018.03-rc1
+
+  [ Sami Hartikainen ]
+  * Fix bootloader script handling
+  * www: web-app: Formulate URIs to be reverse proxy -friendly
+
+  [ Stefano Babic ]
+  * mongoose: fix parsing of configuration file
+  * downloader: fix parsing of configuration file
+
+  [ Sami Hartikainen ]
+  * doc: Update bootloader env script file documentation
+
+  [ Christian Storm ]
+  * logging: colorize terminal output log messages
+
+  [ Stefano Babic ]
+  * doc: removed reached goals from roadmap
+
+  [ Stefan Herbrechtsmeier ]
+  * doc: Add missing mongoose documentation
+  * web-app: Emphasize the SW of SWUpdate in the title to improve readability
+
+  [ Christian Storm ]
+  * Lua: use explicit size for embedded Lua handler script
+
+  [ Stefano Babic ]
+  * doc: fix some warnings in contributing page
+  * doc: extend support page
+  * Sync defconfig examples
+
+  [ Christian Storm ]
+  * channel_curl: add support for Basic Auth credentials
+  * channel_curl: add missing stdbool include
+  * channel_curl: make low_speed_timeout configurable
+  * channel_curl: emit download progress
+  * downloader: make use of channel_curl
+  * channel_curl: remove hard dependency on JSON
+  * channel_curl: rename json_string -> request_body
+  * channel_curl: enable SSL support
+
+  [ Stefano Babic ]
+  * mongoose: split upload_handler
+  * mongoose: set V1 or V2 at runtime
+
+  [ Christian Storm ]
+  * IPC: Add missing socket.h include
+
+  [ Stefano Babic ]
+  * doc: update conf for release
+  * doc: replace website pictures
+
+  [ Christian Storm ]
+  * installer: Add missing wait.h include
+  * util: Add missing stat.h include
+
+  [ Stefano Babic ]
+  * mongoose: reintroduce global-auth-file and auth-domain
+
+  [ Lars Lockenvitz ]
+  * mongoose: SEGV if -l is passed
+
+  [ Stefano Babic ]
+  * webserver: set type for "api" to int
+  * example: extend webserver section in configuration
+
+  [ Sami Hartikainen ]
+  * shellscript handler: Pass data attribute value as argument
+
+  [ Stefano Babic ]
+  * Add command line for output image
+  * Drop file output from channel_curl
+
+  [ Christian Storm ]
+  * notifier: use fprintf() on initialization errors
+  * cpio: hint error reason on copy_write() write failure
+  * notifier: don't initialize socket strucures twice
+
+  [ Martin Geier ]
+  * cpio_utils: verify also image hash while scanning cpio
+
+  [ Stefano Babic ]
+  * Prepare 2018.03
+
+  [ Martin Geier ]
+  * corelib: print both error code and reason string for decrypt
+
+  [ Stefano Babic ]
+  * gitignore: add tools/progress
+  * www: sync web-app in examples
+
+  [ Faustas Azuolas Bagdonas ]
+  * Added update description field support.
+
+  [ Arnout Vandecappelle (Essensium/Mind) ]
+  * UBI handler: support static volumes
+  * mtd: errno of missing volume has changed
+
+  [ Piotr Piwko ]
+  * building-with-yocto.rst: Fix sha256 attribute syntax
+
+  [ Christian Storm ]
+  * core: warn about non-Linux parent SIGTERM tracking
+  * Makefile: use "cc" instead of "gcc"
+  * compat: ENODATA compatibility for FreeBSD
+  * handlers: remove unused mtd-user.h includes
+  * util: introduce mount/umount helper functions
+  * Kconfig: add HAVE_LINUX and HAVE_FREEBSD properties
+  * handler: add FreeBSD-compatible copy_write() callback
+  * notifier: add FreeBSD-compatible notifier sockets
+
+  [ Stefano Babic ]
+  * doc: add picture for SWU forwardder handler
+  * doc: add doc and help for -o parameter
+
+  [ Justin Standring ]
+  * doc: escape newlines in table cell with backslash
+
+  [ Stefano Babic ]
+  * parser: make TRACE more readable
+  * lua: allow scripts to change image's properties
+  * handlers: add a dummy handler
+  * Add a dry-run option to SWUpdate
+  * Fix logic in dry-run for pre install scripts
+  * handler: swuforwarder: fix getstatus URL
+  *  doc: roadmap
+  * doc: extend reference links
+
+  [ Piotr Piwko ]
+  * Iterate through entire list in order to find duplicated
+
+  [ Shyam Saini ]
+  * doc: source: Fix wrong link
+
+  [ Ayoub Zaki ]
+  * hawkbit: adding authentication using security token
+
+  [ Stefano Babic ]
+  * hawkbit: allow to set a ciphers suite
+  * constify string_split input
+  * no-downgrading feature
+  * ipc: add -fPIC to let build shared lib
+  * Allow to override the dry-run flag by each install
+
+  [ Denis OSTERLAND ]
+  * test: add hardware compatibility support to check image test
+
+  [ Ivan Venturini ]
+  * Replace LIST_FOREACH with SAFE version on memory deallocation
+
+  [ Stefano Babic ]
+  * Fix relicensing client library under LGPL2.1
+  * handlers: drop duplicate entry and sort the list in Makefile
+  * handlers: handler to update microcontroller via UART
+  * Bindings for LUA as shared library
+  * Makefile: install all files
+  * Makefile: reintroduce SKIP_STRIP
+  * Check if sw-description is really extracted when installed from file
+
+  [ Angelo Compagnucci ]
+  * raw_handler: create path for a raw file if path doesn't exists
+
+  [ Stefano Babic ]
+  * doc: document ucfw handler
+  * web-app: remove limit on fileSize for dropzone
+
+  [ Angelo Compagnucci ]
+  * core: refactoring ustrtoull function
+  * Encryption of ubi volume image
+
+  [ Arnout Vandecappelle (Essensium/Mind) ]
+  * scan_for_ubi_devices: remove stray printf
+  * UBI handler: allow mtd device to be specified by name
+
+  [ Stefano Babic ]
+  * Fix build failure by loading CMS certificate
+
+  [ Arnout Vandecappelle (Essensium/Mind) ]
+  * mtd-interface: add UBIATTACH config option
+  * core: blacklisting should depend on CONFIG_UBIATTACH
+
+  [ Stefano Babic ]
+  * debian: fix issues reported by lintian
+
+  [ Christian Storm ]
+  * doc: fix SWU forwarder handler doc typos
+  * suricatta: update documentation for channel refactoring
+
+  [ S. Lockwood-Childs ]
   * archive handler: add preserve-attributes option option
 
   [ Stefano Babic ]
@@ -209,7 +1655,725 @@ swupdate (2018.03) UNRELEASED; urgency=medium
   [ Stefano Babic ]
   * Prepare 2018.03
 
- -- Stefano Babic <sbabic@denx.de>  Thu, 22 Mar 2018 12:08:08 +0200
+  [ Martin Geier ]
+  * corelib: print both error code and reason string for decrypt
+
+  [ Stefano Babic ]
+  * gitignore: add tools/progress
+  * www: sync web-app in examples
+
+  [ Faustas Azuolas Bagdonas ]
+  * Added update description field support.
+
+  [ Arnout Vandecappelle (Essensium/Mind) ]
+  * UBI handler: support static volumes
+  * mtd: errno of missing volume has changed
+
+  [ Piotr Piwko ]
+  * building-with-yocto.rst: Fix sha256 attribute syntax
+
+  [ Christian Storm ]
+  * core: warn about non-Linux parent SIGTERM tracking
+  * Makefile: use "cc" instead of "gcc"
+  * compat: ENODATA compatibility for FreeBSD
+  * handlers: remove unused mtd-user.h includes
+  * util: introduce mount/umount helper functions
+  * Kconfig: add HAVE_LINUX and HAVE_FREEBSD properties
+  * handler: add FreeBSD-compatible copy_write() callback
+  * notifier: add FreeBSD-compatible notifier sockets
+
+  [ Stefano Babic ]
+  * doc: add picture for SWU forwardder handler
+  * doc: add doc and help for -o parameter
+
+  [ Justin Standring ]
+  * doc: escape newlines in table cell with backslash
+
+  [ Stefano Babic ]
+  * parser: make TRACE more readable
+  * lua: allow scripts to change image's properties
+  * handlers: add a dummy handler
+  * Add a dry-run option to SWUpdate
+  * Fix logic in dry-run for pre install scripts
+  * handler: swuforwarder: fix getstatus URL
+  *  doc: roadmap
+  * doc: extend reference links
+
+  [ Piotr Piwko ]
+  * Iterate through entire list in order to find duplicated
+
+  [ Shyam Saini ]
+  * doc: source: Fix wrong link
+
+  [ Ayoub Zaki ]
+  * hawkbit: adding authentication using security token
+
+  [ Stefano Babic ]
+  * hawkbit: allow to set a ciphers suite
+  * constify string_split input
+  * no-downgrading feature
+  * ipc: add -fPIC to let build shared lib
+  * Allow to override the dry-run flag by each install
+
+  [ Denis OSTERLAND ]
+  * test: add hardware compatibility support to check image test
+
+  [ Ivan Venturini ]
+  * Replace LIST_FOREACH with SAFE version on memory deallocation
+
+  [ Stefano Babic ]
+  * Fix relicensing client library under LGPL2.1
+  * handlers: drop duplicate entry and sort the list in Makefile
+  * handlers: handler to update microcontroller via UART
+  * Bindings for LUA as shared library
+  * Makefile: install all files
+  * Makefile: reintroduce SKIP_STRIP
+  * Check if sw-description is really extracted when installed from file
+
+  [ Angelo Compagnucci ]
+  * raw_handler: create path for a raw file if path doesn't exists
+
+  [ Stefano Babic ]
+  * doc: document ucfw handler
+  * web-app: remove limit on fileSize for dropzone
+
+  [ Angelo Compagnucci ]
+  * core: refactoring ustrtoull function
+  * Encryption of ubi volume image
+
+  [ Arnout Vandecappelle (Essensium/Mind) ]
+  * scan_for_ubi_devices: remove stray printf
+  * UBI handler: allow mtd device to be specified by name
+
+  [ Stefano Babic ]
+  * Fix build failure by loading CMS certificate
+
+  [ Arnout Vandecappelle (Essensium/Mind) ]
+  * mtd-interface: add UBIATTACH config option
+  * core: blacklisting should depend on CONFIG_UBIATTACH
+
+  [ Stefano Babic ]
+  * debian: fix issues reported by lintian
+
+  [ Christian Storm ]
+  * doc: fix SWU forwarder handler doc typos
+  * suricatta: update documentation for channel refactoring
+
+  [ S. Lockwood-Childs ]
+  * archive handler: add preserve-attributes option option
+
+  [ Stefano Babic ]
+  * doc: Update reference links
+  * Do not skip sectors to erase if unlock is not supported
+  * LUA: export SWUpdate function to LUA scripts
+  * Move the define ENOMEM_ASPRINTF global
+  * Drop filename length limit in CPIO extraction
+
+  [ Charles-Antoine Couret ]
+  * downloader: add option to send Basic Auth info
+
+  [ Christian Storm ]
+  * suricatta: fix broken tests due to channel refactoring
+  * hawkbit: add missing channel.h include
+  * suricatta: add channel_curl prototypes to hawkbit test
+
+  [ Stefano Babic ]
+  * Simply rename extract_script to extract_scripts
+  * Encrypted scripts cannot be executed
+  * doc: fix leveling of support chapter
+  * doc: guideline for contributing and Developer’s Certificate of Origin
+  * lua: return value from scripts not evaluated
+
+  [ Christian Storm ]
+  * option handling: remove unneeded seek_str != NULL check
+  * channel_curl: make sourcetype configurable
+  * bootloader: EFI Boot Guard support
+  * doc: update reference to progress client example
+  * travis: EFI Boot Guard support
+  * config: EFI Boot Guard sample configuration
+
+  [ Stefano Babic ]
+  * Allow again bootloader scripts
+  * bootloader handler: fix paths and use TRACE / ERROR macros
+  * License: move to SPDX header
+  * Add License files
+  * doc: add License chapter
+
+  [ Christian Storm ]
+  * compat.h: introduce compatibility header
+  * Fix some compiler warnings if !CONFIG_HASH_VERIFY
+  * Fix Wsign-compare for int with ARRAY_SIZE() comparison
+
+  [ Stefan Herbrechtsmeier ]
+  * dict: Rename dictionary struct and its key to distinguish it from simple lists
+  * corelib: Rework dictionary to support multiple values per key
+  * parser: Replace properties array with a group of properties
+  * Lua: Dump tables in Lua stack recursive
+  * Lua: Forward image properties via table to scripts
+
+  [ Stefano Babic ]
+  * Drop unused partitions list from main structure
+  * parser: factorize parsing of common attributes
+  * Fix check if a handler is provided
+  * parser: do not hard-code type for partition
+
+  [ Stefan Herbrechtsmeier ]
+  * Lua: Export SWUpdate bootenv get and set functions to Lua scripts
+
+  [ Anatolij Gustschin ]
+  * doc: fix typo in image offset description
+
+  [ Stefano Babic ]
+  * Fix build if DOWNLOAD is set, but no JSON
+  * swuforward: fix segmentation fault after changing dictionary
+  * Revert "Fix some compiler warnings if !CONFIG_HASH_VERIFY"
+  * Fix compiler warnings if !CONFIG_HASH_VERIFY
+  * configs: setup without SSL
+
+  [ Stefan Herbrechtsmeier ]
+  * parser: Check image version after parsing to remove skipped images
+  * installer: Add free_image function to always drop dictionary and free image together
+  * parser: Add support for Lua hook script to script artifacts
+  * parser: Remove double spaces from trace output
+  * parser: Allow embedded script to skip images
+  * Lua: bootenv: Remove empty bootenv values from the bootloader environment and not from the dictionary
+  * tools: Remove useless null termination of a null terminated string
+  * Lua: Null check return value of luaL_checkstring functions
+  * Lua: Add function to mount and unmount devices
+
+  [ Stefano Babic ]
+  * doc: updated list of references
+  * doc: add CI in roadmap
+  * www: replace SWUpdate logo in website
+
+  [ Christian Storm ]
+  * Lua: make logging macro wrappers more printf()-like
+  * doc: add documentation for EFI Boot Guard
+
+  [ Achille Fouilleul ]
+  * handlers: fix size of encrypted UBI image
+  * cpio_utils: support compression of encrypted artifacts
+
+  [ Christian Storm ]
+  * Lua: expose get_tmpdirscripts() to Lua
+
+  [ Dmitri Toubelis ]
+  * Add PKI certificate usage info to the docs
+
+  [ Christian Storm ]
+  * channel_curl: add missing include for sourcetype
+
+  [ Stefan Herbrechtsmeier ]
+  * ipc: Make char buf pointer parameter of ipc_inst_start_ext function const
+
+  [ Stefano Babic ]
+  * bootloader: fix setting GRUB variable
+
+  [ Stefan Herbrechtsmeier ]
+  * mongoose: Update mongoose web server to version 6.11
+  * mongoose: Add WebSocket support
+  * www: Add reworked web page with bootstrap, dropzone and websocket support
+
+  [ Stefano Babic ]
+  * Add a link in README to the contributing page
+  * Add parameter to ask SWUpdate version
+  * Add vector graphic for logo
+  * www: store the web-app example
+  * gitignore: add derivates from web-app
+  * Prepare 2018.03-rc1
+
+  [ Sami Hartikainen ]
+  * Fix bootloader script handling
+  * www: web-app: Formulate URIs to be reverse proxy -friendly
+
+  [ Stefano Babic ]
+  * mongoose: fix parsing of configuration file
+  * downloader: fix parsing of configuration file
+
+  [ Sami Hartikainen ]
+  * doc: Update bootloader env script file documentation
+
+  [ Christian Storm ]
+  * logging: colorize terminal output log messages
+
+  [ Stefano Babic ]
+  * doc: removed reached goals from roadmap
+
+  [ Stefan Herbrechtsmeier ]
+  * doc: Add missing mongoose documentation
+  * web-app: Emphasize the SW of SWUpdate in the title to improve readability
+
+  [ Christian Storm ]
+  * Lua: use explicit size for embedded Lua handler script
+
+  [ Stefano Babic ]
+  * doc: fix some warnings in contributing page
+  * doc: extend support page
+  * Sync defconfig examples
+
+  [ Christian Storm ]
+  * channel_curl: add support for Basic Auth credentials
+  * channel_curl: add missing stdbool include
+  * channel_curl: make low_speed_timeout configurable
+  * channel_curl: emit download progress
+  * downloader: make use of channel_curl
+  * channel_curl: remove hard dependency on JSON
+  * channel_curl: rename json_string -> request_body
+  * channel_curl: enable SSL support
+
+  [ Stefano Babic ]
+  * mongoose: split upload_handler
+  * mongoose: set V1 or V2 at runtime
+
+  [ Christian Storm ]
+  * IPC: Add missing socket.h include
+
+  [ Stefano Babic ]
+  * doc: update conf for release
+  * doc: replace website pictures
+
+  [ Christian Storm ]
+  * installer: Add missing wait.h include
+  * util: Add missing stat.h include
+
+  [ Stefano Babic ]
+  * mongoose: reintroduce global-auth-file and auth-domain
+
+  [ Lars Lockenvitz ]
+  * mongoose: SEGV if -l is passed
+
+  [ Stefano Babic ]
+  * webserver: set type for "api" to int
+  * example: extend webserver section in configuration
+
+  [ Sami Hartikainen ]
+  * shellscript handler: Pass data attribute value as argument
+
+  [ Stefano Babic ]
+  * Add command line for output image
+  * Drop file output from channel_curl
+
+  [ Christian Storm ]
+  * notifier: use fprintf() on initialization errors
+  * cpio: hint error reason on copy_write() write failure
+  * notifier: don't initialize socket strucures twice
+
+  [ Martin Geier ]
+  * cpio_utils: verify also image hash while scanning cpio
+
+  [ Stefano Babic ]
+  * Prepare 2018.03
+
+  [ Martin Geier ]
+  * corelib: print both error code and reason string for decrypt
+
+  [ Stefano Babic ]
+  * gitignore: add tools/progress
+  * www: sync web-app in examples
+
+  [ Faustas Azuolas Bagdonas ]
+  * Added update description field support.
+
+  [ Arnout Vandecappelle (Essensium/Mind) ]
+  * UBI handler: support static volumes
+  * mtd: errno of missing volume has changed
+
+  [ Piotr Piwko ]
+  * building-with-yocto.rst: Fix sha256 attribute syntax
+
+  [ Christian Storm ]
+  * core: warn about non-Linux parent SIGTERM tracking
+  * Makefile: use "cc" instead of "gcc"
+  * compat: ENODATA compatibility for FreeBSD
+  * handlers: remove unused mtd-user.h includes
+  * util: introduce mount/umount helper functions
+  * Kconfig: add HAVE_LINUX and HAVE_FREEBSD properties
+  * handler: add FreeBSD-compatible copy_write() callback
+  * notifier: add FreeBSD-compatible notifier sockets
+
+  [ Stefano Babic ]
+  * doc: add picture for SWU forwardder handler
+  * doc: add doc and help for -o parameter
+
+  [ Justin Standring ]
+  * doc: escape newlines in table cell with backslash
+
+  [ Stefano Babic ]
+  * parser: make TRACE more readable
+  * lua: allow scripts to change image's properties
+  * handlers: add a dummy handler
+  * Add a dry-run option to SWUpdate
+  * Fix logic in dry-run for pre install scripts
+  * handler: swuforwarder: fix getstatus URL
+  *  doc: roadmap
+  * doc: extend reference links
+
+  [ Piotr Piwko ]
+  * Iterate through entire list in order to find duplicated
+
+  [ Shyam Saini ]
+  * doc: source: Fix wrong link
+
+  [ Ayoub Zaki ]
+  * hawkbit: adding authentication using security token
+
+  [ Stefano Babic ]
+  * hawkbit: allow to set a ciphers suite
+  * constify string_split input
+  * no-downgrading feature
+  * ipc: add -fPIC to let build shared lib
+  * Allow to override the dry-run flag by each install
+
+  [ Denis OSTERLAND ]
+  * test: add hardware compatibility support to check image test
+
+  [ Ivan Venturini ]
+  * Replace LIST_FOREACH with SAFE version on memory deallocation
+
+  [ Stefano Babic ]
+  * Fix relicensing client library under LGPL2.1
+  * handlers: drop duplicate entry and sort the list in Makefile
+  * handlers: handler to update microcontroller via UART
+  * Bindings for LUA as shared library
+  * Makefile: install all files
+  * Makefile: reintroduce SKIP_STRIP
+  * Check if sw-description is really extracted when installed from file
+
+  [ Angelo Compagnucci ]
+  * raw_handler: create path for a raw file if path doesn't exists
+
+  [ Stefano Babic ]
+  * doc: document ucfw handler
+  * web-app: remove limit on fileSize for dropzone
+
+  [ Angelo Compagnucci ]
+  * core: refactoring ustrtoull function
+  * Encryption of ubi volume image
+
+  [ Arnout Vandecappelle (Essensium/Mind) ]
+  * scan_for_ubi_devices: remove stray printf
+  * UBI handler: allow mtd device to be specified by name
+
+  [ Stefano Babic ]
+  * Fix build failure by loading CMS certificate
+
+  [ Arnout Vandecappelle (Essensium/Mind) ]
+  * mtd-interface: add UBIATTACH config option
+  * core: blacklisting should depend on CONFIG_UBIATTACH
+
+  [ Stefano Babic ]
+  * debian: fix issues reported by lintian
+
+  [ Christian Storm ]
+  * doc: fix SWU forwarder handler doc typos
+  * suricatta: update documentation for channel refactoring
+
+  [ S. Lockwood-Childs ]
+  * archive handler: add preserve-attributes option option
+
+  [ Stefano Babic ]
+  * doc: Update reference links
+  * Do not skip sectors to erase if unlock is not supported
+  * LUA: export SWUpdate function to LUA scripts
+  * Move the define ENOMEM_ASPRINTF global
+  * Drop filename length limit in CPIO extraction
+
+  [ Charles-Antoine Couret ]
+  * downloader: add option to send Basic Auth info
+
+  [ Christian Storm ]
+  * suricatta: fix broken tests due to channel refactoring
+  * hawkbit: add missing channel.h include
+  * suricatta: add channel_curl prototypes to hawkbit test
+
+  [ Stefano Babic ]
+  * Simply rename extract_script to extract_scripts
+  * Encrypted scripts cannot be executed
+  * doc: fix leveling of support chapter
+  * doc: guideline for contributing and Developer’s Certificate of Origin
+  * lua: return value from scripts not evaluated
+
+  [ Christian Storm ]
+  * option handling: remove unneeded seek_str != NULL check
+  * channel_curl: make sourcetype configurable
+  * bootloader: EFI Boot Guard support
+  * doc: update reference to progress client example
+  * travis: EFI Boot Guard support
+  * config: EFI Boot Guard sample configuration
+
+  [ Stefano Babic ]
+  * Allow again bootloader scripts
+  * bootloader handler: fix paths and use TRACE / ERROR macros
+  * License: move to SPDX header
+  * Add License files
+  * doc: add License chapter
+
+  [ Christian Storm ]
+  * compat.h: introduce compatibility header
+  * Fix some compiler warnings if !CONFIG_HASH_VERIFY
+  * Fix Wsign-compare for int with ARRAY_SIZE() comparison
+
+  [ Stefan Herbrechtsmeier ]
+  * dict: Rename dictionary struct and its key to distinguish it from simple lists
+  * corelib: Rework dictionary to support multiple values per key
+  * parser: Replace properties array with a group of properties
+  * Lua: Dump tables in Lua stack recursive
+  * Lua: Forward image properties via table to scripts
+
+  [ Stefano Babic ]
+  * Drop unused partitions list from main structure
+  * parser: factorize parsing of common attributes
+  * Fix check if a handler is provided
+  * parser: do not hard-code type for partition
+
+  [ Stefan Herbrechtsmeier ]
+  * Lua: Export SWUpdate bootenv get and set functions to Lua scripts
+
+  [ Anatolij Gustschin ]
+  * doc: fix typo in image offset description
+
+  [ Stefano Babic ]
+  * Fix build if DOWNLOAD is set, but no JSON
+  * swuforward: fix segmentation fault after changing dictionary
+  * Revert "Fix some compiler warnings if !CONFIG_HASH_VERIFY"
+  * Fix compiler warnings if !CONFIG_HASH_VERIFY
+  * configs: setup without SSL
+
+  [ Stefan Herbrechtsmeier ]
+  * parser: Check image version after parsing to remove skipped images
+  * installer: Add free_image function to always drop dictionary and free image together
+  * parser: Add support for Lua hook script to script artifacts
+  * parser: Remove double spaces from trace output
+  * parser: Allow embedded script to skip images
+  * Lua: bootenv: Remove empty bootenv values from the bootloader environment and not from the dictionary
+  * tools: Remove useless null termination of a null terminated string
+  * Lua: Null check return value of luaL_checkstring functions
+  * Lua: Add function to mount and unmount devices
+
+  [ Stefano Babic ]
+  * doc: updated list of references
+  * doc: add CI in roadmap
+  * www: replace SWUpdate logo in website
+
+  [ Christian Storm ]
+  * Lua: make logging macro wrappers more printf()-like
+  * doc: add documentation for EFI Boot Guard
+
+  [ Achille Fouilleul ]
+  * handlers: fix size of encrypted UBI image
+  * cpio_utils: support compression of encrypted artifacts
+
+  [ Christian Storm ]
+  * Lua: expose get_tmpdirscripts() to Lua
+
+  [ Dmitri Toubelis ]
+  * Add PKI certificate usage info to the docs
+
+  [ Christian Storm ]
+  * channel_curl: add missing include for sourcetype
+
+  [ Stefan Herbrechtsmeier ]
+  * ipc: Make char buf pointer parameter of ipc_inst_start_ext function const
+
+  [ Stefano Babic ]
+  * bootloader: fix setting GRUB variable
+
+  [ Stefan Herbrechtsmeier ]
+  * mongoose: Update mongoose web server to version 6.11
+  * mongoose: Add WebSocket support
+  * www: Add reworked web page with bootstrap, dropzone and websocket support
+
+  [ Stefano Babic ]
+  * Add a link in README to the contributing page
+  * Add parameter to ask SWUpdate version
+  * Add vector graphic for logo
+  * www: store the web-app example
+  * gitignore: add derivates from web-app
+  * Prepare 2018.03-rc1
+
+  [ Sami Hartikainen ]
+  * Fix bootloader script handling
+  * www: web-app: Formulate URIs to be reverse proxy -friendly
+
+  [ Stefano Babic ]
+  * mongoose: fix parsing of configuration file
+  * downloader: fix parsing of configuration file
+
+  [ Sami Hartikainen ]
+  * doc: Update bootloader env script file documentation
+
+  [ Christian Storm ]
+  * logging: colorize terminal output log messages
+
+  [ Stefano Babic ]
+  * doc: removed reached goals from roadmap
+
+  [ Stefan Herbrechtsmeier ]
+  * doc: Add missing mongoose documentation
+  * web-app: Emphasize the SW of SWUpdate in the title to improve readability
+
+  [ Christian Storm ]
+  * Lua: use explicit size for embedded Lua handler script
+
+  [ Stefano Babic ]
+  * doc: fix some warnings in contributing page
+  * doc: extend support page
+  * Sync defconfig examples
+
+  [ Christian Storm ]
+  * channel_curl: add support for Basic Auth credentials
+  * channel_curl: add missing stdbool include
+  * channel_curl: make low_speed_timeout configurable
+  * channel_curl: emit download progress
+  * downloader: make use of channel_curl
+  * channel_curl: remove hard dependency on JSON
+  * channel_curl: rename json_string -> request_body
+  * channel_curl: enable SSL support
+
+  [ Stefano Babic ]
+  * mongoose: split upload_handler
+  * mongoose: set V1 or V2 at runtime
+
+  [ Christian Storm ]
+  * IPC: Add missing socket.h include
+
+  [ Stefano Babic ]
+  * doc: update conf for release
+  * doc: replace website pictures
+
+  [ Christian Storm ]
+  * installer: Add missing wait.h include
+  * util: Add missing stat.h include
+
+  [ Stefano Babic ]
+  * mongoose: reintroduce global-auth-file and auth-domain
+
+  [ Lars Lockenvitz ]
+  * mongoose: SEGV if -l is passed
+
+  [ Stefano Babic ]
+  * webserver: set type for "api" to int
+  * example: extend webserver section in configuration
+
+  [ Sami Hartikainen ]
+  * shellscript handler: Pass data attribute value as argument
+
+  [ Stefano Babic ]
+  * Add command line for output image
+  * Drop file output from channel_curl
+
+  [ Christian Storm ]
+  * notifier: use fprintf() on initialization errors
+  * cpio: hint error reason on copy_write() write failure
+  * notifier: don't initialize socket strucures twice
+
+  [ Martin Geier ]
+  * cpio_utils: verify also image hash while scanning cpio
+
+  [ Stefano Babic ]
+  * Prepare 2018.03
+
+  [ Martin Geier ]
+  * corelib: print both error code and reason string for decrypt
+
+  [ Stefano Babic ]
+  * gitignore: add tools/progress
+  * www: sync web-app in examples
+
+  [ Faustas Azuolas Bagdonas ]
+  * Added update description field support.
+
+  [ Arnout Vandecappelle (Essensium/Mind) ]
+  * UBI handler: support static volumes
+  * mtd: errno of missing volume has changed
+
+  [ Piotr Piwko ]
+  * building-with-yocto.rst: Fix sha256 attribute syntax
+
+  [ Christian Storm ]
+  * core: warn about non-Linux parent SIGTERM tracking
+  * Makefile: use "cc" instead of "gcc"
+  * compat: ENODATA compatibility for FreeBSD
+  * handlers: remove unused mtd-user.h includes
+  * util: introduce mount/umount helper functions
+  * Kconfig: add HAVE_LINUX and HAVE_FREEBSD properties
+  * handler: add FreeBSD-compatible copy_write() callback
+  * notifier: add FreeBSD-compatible notifier sockets
+
+  [ Stefano Babic ]
+  * doc: add picture for SWU forwardder handler
+  * doc: add doc and help for -o parameter
+
+  [ Justin Standring ]
+  * doc: escape newlines in table cell with backslash
+
+  [ Stefano Babic ]
+  * parser: make TRACE more readable
+  * lua: allow scripts to change image's properties
+  * handlers: add a dummy handler
+  * Add a dry-run option to SWUpdate
+  * Fix logic in dry-run for pre install scripts
+  * handler: swuforwarder: fix getstatus URL
+  *  doc: roadmap
+  * doc: extend reference links
+
+  [ Piotr Piwko ]
+  * Iterate through entire list in order to find duplicated
+
+  [ Shyam Saini ]
+  * doc: source: Fix wrong link
+
+  [ Ayoub Zaki ]
+  * hawkbit: adding authentication using security token
+
+  [ Stefano Babic ]
+  * hawkbit: allow to set a ciphers suite
+  * constify string_split input
+  * no-downgrading feature
+  * ipc: add -fPIC to let build shared lib
+  * Allow to override the dry-run flag by each install
+
+  [ Denis OSTERLAND ]
+  * test: add hardware compatibility support to check image test
+
+  [ Ivan Venturini ]
+  * Replace LIST_FOREACH with SAFE version on memory deallocation
+
+  [ Stefano Babic ]
+  * Fix relicensing client library under LGPL2.1
+  * handlers: drop duplicate entry and sort the list in Makefile
+  * handlers: handler to update microcontroller via UART
+  * Bindings for LUA as shared library
+  * Makefile: install all files
+  * Makefile: reintroduce SKIP_STRIP
+  * Check if sw-description is really extracted when installed from file
+
+  [ Angelo Compagnucci ]
+  * raw_handler: create path for a raw file if path doesn't exists
+
+  [ Stefano Babic ]
+  * doc: document ucfw handler
+  * web-app: remove limit on fileSize for dropzone
+
+  [ Angelo Compagnucci ]
+  * core: refactoring ustrtoull function
+  * Encryption of ubi volume image
+
+  [ Arnout Vandecappelle (Essensium/Mind) ]
+  * scan_for_ubi_devices: remove stray printf
+  * UBI handler: allow mtd device to be specified by name
+
+  [ Stefano Babic ]
+  * Fix build failure by loading CMS certificate
+
+  [ Arnout Vandecappelle (Essensium/Mind) ]
+  * mtd-interface: add UBIATTACH config option
+  * core: blacklisting should depend on CONFIG_UBIATTACH
+
+  [ Stefano Babic ]
+  * debian: fix issues reported by lintian
+
+ -- Stefano Babic <sbabic@denx.de>  Fri, 24 Aug 2018 14:02:17 +0200
 
 swupdate (2017.11) UNRELEASED; urgency=medium
 
@@ -1529,6 +3693,6 @@ swupdate (2015.07) stable; urgency=medium
 
 swupdate (2014.07) unstable; urgency=medium
 
-  * Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>
+  * Initial release (Closes: #907041)
 
  -- Stefano Babic <sbabic@denx.de>  Sun, 09 Jul 2017 18:51:46 +0200
