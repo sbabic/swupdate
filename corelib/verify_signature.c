@@ -298,7 +298,8 @@ int swupdate_verify_file(struct swupdate_digest *dgst, const char *sigfile,
 	}
 
 	/* Then try to verify signature */
-	if (!CMS_verify(cms, NULL, dgst->certs, content_bio, NULL, 0)) {
+	if (!CMS_verify(cms, NULL, dgst->certs, content_bio,
+			NULL, CMS_BINARY)) {
 		ERR_print_errors_fp(stderr);
 		ERROR("Signature verification failed");
 		status = -EBADMSG;
