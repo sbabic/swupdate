@@ -68,6 +68,7 @@ PHONY += CrapFileTest
 CrapFileTest: $(obj)/CrapFile.swu FORCE $(if $(CONFIG_SIGNED_IMAGES), $(obj)/cacert.pem)
 	$(call cmd,swu_check_assert_false)
 
+clean-files += CrapFile.swu
 $(obj)/CrapFile.swu:
 	$(Q)mkdir -p $(dir $@)
 	$(Q)dd if=/dev/random of=$@ bs=1K count=1
@@ -83,6 +84,7 @@ ImgNameErrorTest: $(obj)/ImgNameError.swu FORCE $(if $(CONFIG_SIGNED_IMAGES), $(
 	$(Q)mkdir -p $(dir $@)
 	$(Q)echo "Hello World" > $@
 
+clean-dirs += ImgNameError
 $(obj)/ImgNameError/sw-description:
 	$(Q)mkdir -p $(dir $@)
 	$(Q)printf "\
@@ -109,6 +111,7 @@ software =\n\
 
 with_sig = $1 $(if $(CONFIG_SIGNED_IMAGES),$(addsuffix .sig, $1))
 
+clean-files +=  ImgNameError.swu
 $(obj)/ImgNameError.swu: $(call with_sig, $(obj)/ImgNameError/sw-description) $(obj)/ImgNameError/hello.txt
 	$(call cmd,mkswu)
 
@@ -119,6 +122,7 @@ PHONY += ValidImageTest
 ValidImageTest: $(obj)/ValidImage.swu FORCE $(if $(CONFIG_SIGNED_IMAGES), $(obj)/cacert.pem)
 	$(call cmd,swu_check_assert_true)
 
+clean-dirs += ValidImage
 $(obj)/ValidImage/sw-description:
 	$(Q)mkdir -p $(dir $@)
 	$(Q)printf "\
@@ -144,6 +148,7 @@ $(if $(CONFIG_HASH_VERIFY),		sha256 = \"d2a84f4b8b650937ec8f73cd8be2c74add5a911b
 	}\n\
 " > $@
 
+clean-files += ValidImage.swu
 $(obj)/ValidImage.swu: $(call with_sig, $(obj)/ValidImage/sw-description) $(obj)/ValidImage/hello.txt
 	$(call cmd,mkswu)
 
@@ -168,6 +173,7 @@ PHONY += InvOptsCheckWithSur
 InvOptsCheckWithSur: FORCE $(if $(CONFIG_SIGNED_IMAGES), $(obj)/cacert.pem)
 	$(call cmd,swu_check_inv_suricatta)
 
+clean-files += signer.pem cacert.pem
 $(obj)/signer.pem $(obj)/cacert.pem:
 	$(call cmd,download)
 

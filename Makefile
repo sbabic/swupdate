@@ -505,7 +505,7 @@ MRPROPER_FILES += .config .config.old tags TAGS cscope* GPATH GTAGS GRTAGS GSYMS
 #
 clean: rm-dirs  := $(CLEAN_DIRS)
 clean: rm-files := $(CLEAN_FILES)
-clean-dirs      := $(addprefix _clean_, $(swupdate-dirs) $(tools-dirs) $(shared-dirs))
+clean-dirs      := $(addprefix _clean_, $(swupdate-dirs) $(tools-dirs) $(shared-dirs) scripts/acceptance-tests)
 
 PHONY += $(clean-dirs) clean archclean
 $(clean-dirs):
