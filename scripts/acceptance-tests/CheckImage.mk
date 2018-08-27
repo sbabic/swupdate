@@ -18,7 +18,8 @@
 #
 # test commands for --check command-line option
 #
-SWU_CHECK = ./swupdate $(if $(CONFIG_HW_COMPATIBILITY),-H test:1) -l 5 -c $(if $(strip $(filter-out FORCE,$<)),-i $<) $(if $(strip $(KBUILD_VERBOSE:0=)),,>/dev/null 2>&1)
+SWU_CHECK_BASE = ./swupdate -l 5 -c $(if $(CONFIG_SIGNED_IMAGES),-k $(obj)/cacert.pem)
+SWU_CHECK = $(SWU_CHECK_BASE) $(if $(CONFIG_HW_COMPATIBILITY),-H test:1) $(if $(strip $(filter-out FORCE,$<)),-i $<) $(if $(strip $(KBUILD_VERBOSE:0=)),,>/dev/null 2>&1)
 
 quiet_cmd_swu_check_assert_false = RUN     $@
       cmd_swu_check_assert_false = $(SWU_CLEAN); if $(SWU_CHECK); then false; fi
@@ -27,13 +28,20 @@ quiet_cmd_swu_check_assert_true = RUN     $@
       cmd_swu_check_assert_true = $(SWU_CLEAN); $(SWU_CHECK)
 
 quiet_cmd_swu_check_inv_websrv = RUN     $@
-      cmd_swu_check_inv_websrv = $(SWU_CLEAN); if ./swupdate -l 5 -c -w "-document_root $(srctree)" >/dev/null 2>&1; then false; fi
+      cmd_swu_check_inv_websrv = $(SWU_CLEAN); if $(SWU_CHECK_BASE) -w "-document_root $(srctree)" >/dev/null 2>&1; then false; fi
 
 quiet_cmd_swu_check_inv_suricatta = RUN     $@
-      cmd_swu_check_inv_suricatta = $(SWU_CLEAN); if ./swupdate -l 5 -c -u "-t default -i 42 -u localhost:8080" >/dev/null 2>&1; then false; fi
+      cmd_swu_check_inv_suricatta = $(SWU_CLEAN); if $(SWU_CHECK_BASE) -u "-t default -i 42 -u localhost:8080" >/dev/null 2>&1; then false; fi
 
 quiet_cmd_mkswu = MKSWU   $@
       cmd_mkswu = mkdir -p $(dir $@); cd $(dir $<); for l in $(patsubst $(dir $<)%,%,$(filter-out FORCE,$^)); do echo "$$l"; done | cpio -ov -H crc > $(objtree)/$@
+
+quiet_cmd_sign_desc = SIGN    $@
+      cmd_sign_desc = openssl cms -sign -in $< -out $@ -signer $(obj)/signer.pem -outform DER -nosmimecap -binary
+
+URL = https://raw.githubusercontent.com/openssl/openssl/master/demos/cms
+quiet_cmd_download = GET     $@
+      cmd_download = rm -f $@.tmp && wget -O $@.tmp $(URL)/$(notdir $@) && mv $@.tmp $@
 
 #
 # tests to run
@@ -50,14 +58,14 @@ tests-$(CONFIG_SURICATTA) += InvOptsCheckWithSur
 # file not found test
 #
 PHONY += FileNotFoundTest FileNotFound.swu
-FileNotFoundTest: FileNotFound.swu FORCE
+FileNotFoundTest: FileNotFound.swu FORCE $(if $(CONFIG_SIGNED_IMAGES), $(obj)/cacert.pem)
 	$(call cmd,swu_check_assert_false)
 
 #
 # corrupt file test
 #
 PHONY += CrapFileTest
-CrapFileTest: $(obj)/CrapFile.swu FORCE
+CrapFileTest: $(obj)/CrapFile.swu FORCE $(if $(CONFIG_SIGNED_IMAGES), $(obj)/cacert.pem)
 	$(call cmd,swu_check_assert_false)
 
 $(obj)/CrapFile.swu:
@@ -68,7 +76,7 @@ $(obj)/CrapFile.swu:
 # test of update file with image name in sw-description missmatch
 #
 PHONY += ImgNameErrorTest
-ImgNameErrorTest: $(obj)/ImgNameError.swu FORCE
+ImgNameErrorTest: $(obj)/ImgNameError.swu FORCE $(if $(CONFIG_SIGNED_IMAGES), $(obj)/cacert.pem)
 	$(call cmd,swu_check_assert_false)
 
 %/hello.txt:
@@ -99,14 +107,16 @@ software =\n\
 	}\n\
 " > $@
 
-$(obj)/ImgNameError.swu: $(obj)/ImgNameError/sw-description $(obj)/ImgNameError/hello.txt
+with_sig = $1 $(if $(CONFIG_SIGNED_IMAGES),$(addsuffix .sig, $1))
+
+$(obj)/ImgNameError.swu: $(call with_sig, $(obj)/ImgNameError/sw-description) $(obj)/ImgNameError/hello.txt
 	$(call cmd,mkswu)
 
 #
 # Test of a valid *.swu file
 #
 PHONY += ValidImageTest
-ValidImageTest: $(obj)/ValidImage.swu FORCE
+ValidImageTest: $(obj)/ValidImage.swu FORCE $(if $(CONFIG_SIGNED_IMAGES), $(obj)/cacert.pem)
 	$(call cmd,swu_check_assert_true)
 
 $(obj)/ValidImage/sw-description:
@@ -126,6 +136,7 @@ software =\n\
 		{\n\
 		filename = \"hello.txt\";\n\
 		path = \"/home/hello.txt\";\n\
+$(if $(CONFIG_HASH_VERIFY),		sha256 = \"d2a84f4b8b650937ec8f73cd8be2c74add5a911ba64df27458ed8229da804a26\")\
 		}\n\
 \n\
 	);\n\
@@ -133,27 +144,33 @@ software =\n\
 	}\n\
 " > $@
 
-$(obj)/ValidImage.swu: $(obj)/ValidImage/sw-description $(obj)/ValidImage/hello.txt
+$(obj)/ValidImage.swu: $(call with_sig, $(obj)/ValidImage/sw-description) $(obj)/ValidImage/hello.txt
 	$(call cmd,mkswu)
 
 #
 # invalid option test, no image given
 #
 PHONY += InvOptsNoImg
-InvOptsNoImg: FORCE
+InvOptsNoImg: FORCE $(if $(CONFIG_SIGNED_IMAGES), $(obj)/cacert.pem)
 	$(call cmd,swu_check_assert_false)
 
 #
 # invalid option test, web server with check
 #
 PHONY += InvOptsCheckWithWeb
-InvOptsCheckWithWeb: FORCE
+InvOptsCheckWithWeb: FORCE $(if $(CONFIG_SIGNED_IMAGES), $(obj)/cacert.pem)
 	$(call cmd,swu_check_inv_websrv)
 
 #
 # invalid option test, suricatta with check
 #
 PHONY += InvOptsCheckWithSur
-InvOptsCheckWithSur: FORCE
+InvOptsCheckWithSur: FORCE $(if $(CONFIG_SIGNED_IMAGES), $(obj)/cacert.pem)
 	$(call cmd,swu_check_inv_suricatta)
+
+$(obj)/signer.pem $(obj)/cacert.pem:
+	$(call cmd,download)
+
+%/sw-description.sig :: %/sw-description $(obj)/signer.pem
+	$(call cmd,sign_desc)
 
