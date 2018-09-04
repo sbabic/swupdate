@@ -484,11 +484,11 @@ unsigned long long ustrtoull(const char *cp, unsigned int base)
 	errno = 0;
 	char *endp = NULL;
 
-	unsigned long long result = strtoull(cp, &endp, base);
-
 	if (strnlen(cp, MAX_SEEK_STRING_SIZE) == 0) {
 		return 0;
 	}
+
+	unsigned long long result = strtoull(cp, &endp, base);
 
 	if (cp == endp || (result == ULLONG_MAX && errno == ERANGE)) {
 		errno = ERANGE;
