@@ -61,6 +61,7 @@ static struct option long_options[] = {
     {"retry", required_argument, NULL, 'r'},
     {"retrywait", required_argument, NULL, 'w'},
     {"proxy", optional_argument, NULL, 'y'},
+    {"targettoken", required_argument, NULL, 'k'},
     {NULL, 0, NULL, 0}};
 
 static unsigned short mandatory_argument_count = 0;
@@ -1474,7 +1475,8 @@ void suricatta_print_help(void)
 	    "\t  -w, --retrywait     Time to wait prior to retry and "
 	    "resume a download (default: %ds).\n"
 	    "\t  -y, --proxy         Use proxy. Either give proxy URL, else "
-	    "{http,all}_proxy env is tried.\n",
+	    "{http,all}_proxy env is tried.\n"
+	    "\t  -k, --targettoken   Set target token.\n",
 	    DEFAULT_POLLING_INTERVAL, DEFAULT_RESUME_TRIES,
 	    DEFAULT_RESUME_DELAY);
 }
@@ -1524,7 +1526,7 @@ static int suricatta_settings(void *elem, void  __attribute__ ((__unused__)) *da
 	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "proxy", tmp);
 	if (strlen(tmp))
 		SETSTRING(channel_data_defaults.proxy, tmp);
-	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "token", tmp);
+	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "targettoken", tmp);
 	if (strlen(tmp)) {
 		char *token_header;
 		if (asprintf(&token_header, "Authorization: TargetToken %s", tmp))
@@ -1589,7 +1591,7 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 
 	/* reset to optind=1 to parse suricatta's argument vector */
 	optind = 1;
-	while ((choice = getopt_long(argc, argv, "t:i:c:u:p:xr:y::w:",
+	while ((choice = getopt_long(argc, argv, "t:i:c:u:p:xr:y::w:k:",
 				     long_options, NULL)) != -1) {
 		switch (choice) {
 		case 't':
@@ -1600,6 +1602,13 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 			SETSTRING(server_hawkbit.device_id, optarg);
 			mandatory_argument_count |= ID_BIT;
 			break;
+		case 'k':
+			{
+				char *token_header;
+				if (asprintf(&token_header, "Authorization: TargetToken %s", optarg))
+					SETSTRING(channel_data_defaults.header, token_header);
+				break;
+			}
 		case 'c':
 			/* When no persistent update state storage is available,
 			 * use command line switch to instruct what to report.
