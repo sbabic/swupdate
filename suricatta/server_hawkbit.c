@@ -1701,9 +1701,9 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 	if (server_hawkbit.targettoken != NULL)
-		asprintf(&tokens_header, "Authorization: TargetToken %s\n", server_hawkbit.targettoken);
+		asprintf(&tokens_header, "Authorization: TargetToken %s", server_hawkbit.targettoken);
 	if (server_hawkbit.gatewaytoken != NULL)
-		asprintf(&tokens_header, "Authorization: GatewayToken %s\n", server_hawkbit.gatewaytoken);
+		asprintf(&tokens_header, "Authorization: GatewayToken %s", server_hawkbit.gatewaytoken);
 	if (tokens_header != NULL && strlen(tokens_header))
 		SETSTRING(channel_data_defaults.header, tokens_header);
 
