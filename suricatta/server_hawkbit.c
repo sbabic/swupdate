@@ -62,6 +62,7 @@ static struct option long_options[] = {
     {"retrywait", required_argument, NULL, 'w'},
     {"proxy", optional_argument, NULL, 'y'},
     {"targettoken", required_argument, NULL, 'k'},
+    {"gatewaytoken", required_argument, NULL, 'g'},
     {NULL, 0, NULL, 0}};
 
 static unsigned short mandatory_argument_count = 0;
@@ -1476,7 +1477,8 @@ void suricatta_print_help(void)
 	    "resume a download (default: %ds).\n"
 	    "\t  -y, --proxy         Use proxy. Either give proxy URL, else "
 	    "{http,all}_proxy env is tried.\n"
-	    "\t  -k, --targettoken   Set target token.\n",
+	    "\t  -k, --targettoken   Set target token.\n"
+	    "\t  -g, --gatewaytoken  Set gateway token.\n",
 	    DEFAULT_POLLING_INTERVAL, DEFAULT_RESUME_TRIES,
 	    DEFAULT_RESUME_DELAY);
 }
@@ -1527,12 +1529,11 @@ static int suricatta_settings(void *elem, void  __attribute__ ((__unused__)) *da
 	if (strlen(tmp))
 		SETSTRING(channel_data_defaults.proxy, tmp);
 	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "targettoken", tmp);
-	if (strlen(tmp)) {
-		char *token_header;
-		if (asprintf(&token_header, "Authorization: TargetToken %s", tmp))
-			SETSTRING(channel_data_defaults.header, token_header);
-	}
-
+	if (strlen(tmp))
+		SETSTRING(server_hawkbit.targettoken, tmp);
+	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "gatewaytoken", tmp);
+	if (strlen(tmp))
+		SETSTRING(server_hawkbit.gatewaytoken, tmp);
 	return 0;
 
 }
@@ -1591,7 +1592,7 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 
 	/* reset to optind=1 to parse suricatta's argument vector */
 	optind = 1;
-	while ((choice = getopt_long(argc, argv, "t:i:c:u:p:xr:y::w:k:",
+	while ((choice = getopt_long(argc, argv, "t:i:c:u:p:xr:y::w:k:g:",
 				     long_options, NULL)) != -1) {
 		switch (choice) {
 		case 't':
@@ -1603,12 +1604,11 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 			mandatory_argument_count |= ID_BIT;
 			break;
 		case 'k':
-			{
-				char *token_header;
-				if (asprintf(&token_header, "Authorization: TargetToken %s", optarg))
-					SETSTRING(channel_data_defaults.header, token_header);
-				break;
-			}
+			SETSTRING(server_hawkbit.targettoken, optarg);
+			break;
+		case 'g':
+			SETSTRING(server_hawkbit.gatewaytoken, optarg);
+			break;
 		case 'c':
 			/* When no persistent update state storage is available,
 			 * use command line switch to instruct what to report.
@@ -1687,6 +1687,25 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 
 	if (channel_curl_init() != CHANNEL_OK)
 		return SERVER_EINIT;
+
+	/*
+	 * Set hawkBit token header if any has been set via command line
+	 * or configuration file. hawkBit considers just first occurrence
+	 * of field name (Authorization) in the header, so swupdate doesn't
+	 * accept target and gateway token at the same time
+	 */
+	char *tokens_header = NULL;
+	if (server_hawkbit.targettoken != NULL && server_hawkbit.gatewaytoken != NULL) {
+		fprintf(stderr, "Error: both target and gateway tokens have been provided, "
+				"but just one at a time is supported.\n");
+		exit(EXIT_FAILURE);
+	}
+	if (server_hawkbit.targettoken != NULL)
+		asprintf(&tokens_header, "Authorization: TargetToken %s\n", server_hawkbit.targettoken);
+	if (server_hawkbit.gatewaytoken != NULL)
+		asprintf(&tokens_header, "Authorization: GatewayToken %s\n", server_hawkbit.gatewaytoken);
+	if (tokens_header != NULL && strlen(tokens_header))
+		SETSTRING(channel_data_defaults.header, tokens_header);
 
 	/*
 	 * Allocate a channel to communicate with the server
