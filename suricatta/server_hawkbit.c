@@ -151,6 +151,24 @@ server_op_res_t server_send_target_data(void);
 unsigned int server_get_polling_interval(void);
 
 /*
+ * Just called once to setup the tokens
+ */
+static inline void server_hakwbit_settoken(const char *type, const char *token)
+{
+	char *tokens_header = NULL;
+	if (!token)
+		return;
+
+	if (ENOMEM_ASPRINTF ==
+		asprintf(&tokens_header, "Authorization: %s %s", type, token)) {
+			ERROR("OOM when setting %s.", type);
+		return;
+	}
+	if (tokens_header != NULL && strlen(tokens_header))
+		SETSTRING(channel_data_defaults.header, tokens_header);
+}
+
+/*
  * This is called when a general error is found before sending the stream
  * to the installer. In this way, errors are collected in the same way as
  * when the installer is called.
@@ -1694,18 +1712,13 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 	 * of field name (Authorization) in the header, so swupdate doesn't
 	 * accept target and gateway token at the same time
 	 */
-	char *tokens_header = NULL;
 	if (server_hawkbit.targettoken != NULL && server_hawkbit.gatewaytoken != NULL) {
 		fprintf(stderr, "Error: both target and gateway tokens have been provided, "
 				"but just one at a time is supported.\n");
 		exit(EXIT_FAILURE);
 	}
-	if (server_hawkbit.targettoken != NULL)
-		asprintf(&tokens_header, "Authorization: TargetToken %s", server_hawkbit.targettoken);
-	if (server_hawkbit.gatewaytoken != NULL)
-		asprintf(&tokens_header, "Authorization: GatewayToken %s", server_hawkbit.gatewaytoken);
-	if (tokens_header != NULL && strlen(tokens_header))
-		SETSTRING(channel_data_defaults.header, tokens_header);
+	server_hakwbit_settoken("TargetToken", server_hawkbit.targettoken);
+	server_hakwbit_settoken("GatewayToken", server_hawkbit.gatewaytoken);
 
 	/*
 	 * Allocate a channel to communicate with the server
