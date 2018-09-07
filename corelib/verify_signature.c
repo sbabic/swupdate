@@ -24,7 +24,7 @@ static int dgst_init(struct swupdate_digest *dgst, const EVP_MD *md)
 	ERR_clear_error();
 	rc = EVP_DigestInit_ex(dgst->ctx, md, NULL);
 	if (rc != 1) {
-		ERROR("EVP_DigestInit_ex failed: %s\n", ERR_error_string(ERR_get_error(), NULL));
+		ERROR("EVP_DigestInit_ex failed: %s", ERR_error_string(ERR_get_error(), NULL));
 		return -EINVAL; /* failed */
 	}
 
@@ -43,7 +43,7 @@ static EVP_PKEY *load_pubkey(const char *file)
 
 	if (file == NULL)
 	{
-		ERROR("no keyfile specified\n");
+		ERROR("no keyfile specified");
 		goto end;
 	}
 
@@ -63,7 +63,7 @@ static EVP_PKEY *load_pubkey(const char *file)
 end:
 	if (key != NULL) BIO_free(key);
 	if (pkey == NULL)
-		ERROR("unable to load key filename %s\n", file);
+		ERROR("unable to load key filename %s", file);
 	return(pkey);
 }
 
@@ -73,7 +73,7 @@ static int dgst_verify_init(struct swupdate_digest *dgst)
 
 	rc = EVP_DigestVerifyInit(dgst->ctx, NULL, EVP_sha256(), NULL, dgst->pkey);
 	if (rc != 1) {
-		ERROR("EVP_DigestVerifyInit failed, error 0x%lx\n", ERR_get_error());
+		ERROR("EVP_DigestVerifyInit failed, error 0x%lx", ERR_get_error());
 		return -EFAULT; /* failed */
 	}
 
@@ -86,7 +86,7 @@ static int verify_update(struct swupdate_digest *dgst, char *msg, unsigned int m
 
 	rc = EVP_DigestVerifyUpdate(dgst->ctx, msg, mlen);
 	if(rc != 1) {
-		ERROR("EVP_DigestVerifyUpdate failed, error 0x%lx\n", ERR_get_error());
+		ERROR("EVP_DigestVerifyUpdate failed, error 0x%lx", ERR_get_error());
 		return -EFAULT;
 	}
 
@@ -101,7 +101,7 @@ static int verify_final(struct swupdate_digest *dgst, unsigned char *sig, unsign
 	ERR_clear_error();
 	rc = EVP_DigestVerifyFinal(dgst->ctx, sig, slen);
 	if(rc != 1) {
-		ERROR("EVP_DigestVerifyFinal failed, error 0x%lx %d\n", ERR_get_error(), rc);
+		ERROR("EVP_DigestVerifyFinal failed, error 0x%lx %d", ERR_get_error(), rc);
 		return -1;
 	}
 
@@ -141,7 +141,7 @@ int swupdate_verify_file(struct swupdate_digest *dgst, const char *sigfile,
 	BIO_free(sigbio);
 
 	if(siglen <= 0) {
-		ERROR("Error reading signature file %s\n", sigfile);
+		ERROR("Error reading signature file %s", sigfile);
 		status = -ENOKEY;
 		goto out;
 	}
@@ -153,7 +153,7 @@ int swupdate_verify_file(struct swupdate_digest *dgst, const char *sigfile,
 
 	fp = fopen(file, "r");
 	if (!fp) {
-		ERROR("%s cannot be opened\n", file);
+		ERROR("%s cannot be opened", file);
 		status = -EBADF;
 		goto out;
 	}
@@ -170,16 +170,16 @@ int swupdate_verify_file(struct swupdate_digest *dgst, const char *sigfile,
 			break;
 	}
 
-	TRACE("Verify signed image: Read %d bytes\n", size);
+	TRACE("Verify signed image: Read %d bytes", size);
 	i = verify_final(dgst, sigbuf, (unsigned int)siglen);
 	if(i > 0) {
-		TRACE("Verified OK\n");
+		TRACE("Verified OK");
 		status = 0;
 	} else if(i == 0) {
-		TRACE("Verification Failure\n");
+		TRACE("Verification Failure");
 		status = -EBADMSG;
 	} else {
-		TRACE("Error Verifying Data\n");
+		TRACE("Error Verifying Data");
 		status = -EFAULT;
 	}
 
@@ -306,7 +306,7 @@ int swupdate_verify_file(struct swupdate_digest *dgst, const char *sigfile,
 		goto out;
 	}
 
-	TRACE("Verified OK\n");
+	TRACE("Verified OK");
 
 	/* Signature is valid */
 	status = 0;
@@ -342,7 +342,7 @@ struct swupdate_digest *swupdate_HASH_init(const char *SHAlength)
 
  	dgst->ctx = EVP_MD_CTX_create();
 	if(dgst->ctx == NULL) {
-		ERROR("EVP_MD_CTX_create failed, error 0x%lx\n", ERR_get_error());
+		ERROR("EVP_MD_CTX_create failed, error 0x%lx", ERR_get_error());
 		free(dgst);
 		return NULL;
 	}
@@ -448,7 +448,7 @@ int swupdate_dgst_init(struct swupdate_cfg *sw, const char *keyfile)
 	 */
 	dgst->ctx = EVP_MD_CTX_create();
 	if(dgst->ctx == NULL) {
-		ERROR("EVP_MD_CTX_create failed, error 0x%lx\n", ERR_get_error());
+		ERROR("EVP_MD_CTX_create failed, error 0x%lx", ERR_get_error());
 		ret = -ENOMEM;
 		goto dgst_init_error;
 	}

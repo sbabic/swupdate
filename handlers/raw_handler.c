@@ -124,16 +124,16 @@ static int install_raw_file(struct img_type *img,
 		}
 	}
 
-	TRACE("Installing file %s on %s\n",
+	TRACE("Installing file %s on %s",
 		img->fname, path);
 
 	make_path = dict_get_value(&img->properties, "create-destination");
 
 	if (make_path != NULL && strcmp(make_path, "true") == 0) {
-		TRACE("Creating path %s\n", path);
+		TRACE("Creating path %s", path);
 		fdout = mkpath(dirname(strdupa(path)), 0755);
 		if (fdout < 0) {
-			ERROR("I cannot create path %s: %s\n", path, strerror(errno));
+			ERROR("I cannot create path %s: %s", path, strerror(errno));
 			return -1;
 		}
 	}
@@ -141,7 +141,7 @@ static int install_raw_file(struct img_type *img,
 	fdout = openfileoutput(path);
 	ret = copyimage(&fdout, img, NULL);
 	if (ret< 0) {
-		ERROR("Error copying extracted file\n");
+		ERROR("Error copying extracted file");
 	}
 	close(fdout);
 

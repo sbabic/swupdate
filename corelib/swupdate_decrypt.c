@@ -71,7 +71,7 @@ struct swupdate_digest *swupdate_DECRYPT_init(unsigned char *key, unsigned char 
 	ret = EVP_DecryptInit_ex(SSL_GET_CTXDEC(dgst), cipher, NULL, key, iv);
 	if (ret != 1) {
 		const char *reason = ERR_reason_error_string(ERR_peek_error());
-		ERROR("Decrypt Engine not initialized, error 0x%lx, reason: %s\n", ERR_get_error(),
+		ERROR("Decrypt Engine not initialized, error 0x%lx, reason: %s", ERR_get_error(),
 			reason != NULL ? reason : "unknown");
 		free(dgst);
 		return NULL;
@@ -85,7 +85,7 @@ int swupdate_DECRYPT_update(struct swupdate_digest *dgst, unsigned char *buf,
 {
 	if (EVP_DecryptUpdate(SSL_GET_CTXDEC(dgst), buf, outlen, cryptbuf, inlen) != 1) {
 		const char *reason = ERR_reason_error_string(ERR_peek_error());
-		ERROR("Update: Decryption error 0x%lx, reason: %s\n", ERR_get_error(),
+		ERROR("Update: Decryption error 0x%lx, reason: %s", ERR_get_error(),
 			reason != NULL ? reason : "unknown");
 		return -EFAULT;
 	}
@@ -101,7 +101,7 @@ int swupdate_DECRYPT_final(struct swupdate_digest *dgst, unsigned char *buf,
 
 	if (EVP_DecryptFinal_ex(SSL_GET_CTXDEC(dgst), buf, outlen) != 1) {
 		const char *reason = ERR_reason_error_string(ERR_peek_error());
-		ERROR("Final: Decryption error 0x%lx, reason: %s\n", ERR_get_error(),
+		ERROR("Final: Decryption error 0x%lx, reason: %s", ERR_get_error(),
 			reason != NULL ? reason : "unknown");
 		return -EFAULT;
 	}

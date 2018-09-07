@@ -57,7 +57,7 @@ copy_data(struct archive *ar, struct archive *aw)
 			return (r);
 		r = archive_write_data_block(aw, buff, size, offset);
 		if (r != ARCHIVE_OK) {
-			TRACE("archive_write_data_block(): %s\n",
+			TRACE("archive_write_data_block(): %s",
 			    archive_error_string(aw));
 			return (r);
 		}
@@ -95,7 +95,7 @@ extract(void *p)
 	char* FIFO = alloca(strlen(get_tmpdir())+strlen(FIFO_FILE_NAME)+1);
 	sprintf(FIFO, "%s%s", get_tmpdir(), FIFO_FILE_NAME);
 	if ((r = archive_read_open_filename(a, FIFO, 4096))) {
-		ERROR("archive_read_open_filename(): %s %d\n",
+		ERROR("archive_read_open_filename(): %s %d",
 		    archive_error_string(a), r);
 		pthread_exit((void *)-1);
 	}
@@ -104,23 +104,23 @@ extract(void *p)
 		if (r == ARCHIVE_EOF)
 			break;
 		if (r != ARCHIVE_OK) {
-			ERROR("archive_read_next_header(): %s %d\n",
+			ERROR("archive_read_next_header(): %s %d",
 			    archive_error_string(a), 1);
 			pthread_exit((void *)-1);
 		}
 
 		if (debug)
-			TRACE("Extracting %s\n", archive_entry_pathname(entry));
+			TRACE("Extracting %s", archive_entry_pathname(entry));
 
 		r = archive_write_header(ext, entry);
 		if (r != ARCHIVE_OK)
-			TRACE("archive_write_header(): %s\n",
+			TRACE("archive_write_header(): %s",
 			    archive_error_string(ext));
 		else {
 			copy_data(a, ext);
 			r = archive_write_finish_entry(ext);
 			if (r != ARCHIVE_OK)  {
-				ERROR("archive_write_finish_entry(): %s\n",
+				ERROR("archive_write_finish_entry(): %s",
 				    archive_error_string(ext));
 				pthread_exit((void *)-1);
 			}
@@ -181,7 +181,7 @@ static int install_archive_image(struct img_type *img,
 	unlink(FIFO);
 	ret = mkfifo(FIFO, 0666);
 	if (ret) {
-		ERROR("FIFO cannot be created in archive handler\n");
+		ERROR("FIFO cannot be created in archive handler");
 		return -1;
 	}
 	if (!getcwd(pwd, sizeof(pwd)))
@@ -192,11 +192,11 @@ static int install_archive_image(struct img_type *img,
 	 */
 	ret = chdir(path);
 	if (ret) {
-		ERROR("Fault: chdir not possible\n");
+		ERROR("Fault: chdir not possible");
 		return -EFAULT;
 	}
 
-	TRACE("Installing file %s on %s, %s attributes\n",
+	TRACE("Installing file %s on %s, %s attributes",
 		img->fname, path,
 		img->preserve_attributes ? "preserving" : "ignoring");
 
@@ -210,7 +210,7 @@ static int install_archive_image(struct img_type *img,
 
 	ret = pthread_create(&extract_thread, &attr, extract, &tf);
 	if (ret) {
-		ERROR("Code from pthread_create() is %d\n",
+		ERROR("Code from pthread_create() is %d",
 			 ret);
 		return -EFAULT;
 	}
@@ -219,7 +219,7 @@ static int install_archive_image(struct img_type *img,
 
 	ret = copyimage(&fdout, img, NULL);
 	if (ret< 0) {
-		ERROR("Error copying extracted file\n");
+		ERROR("Error copying extracted file");
 		return -EFAULT;
 	}
 
@@ -227,7 +227,7 @@ static int install_archive_image(struct img_type *img,
 
 	ret = pthread_join(extract_thread, &status);
 	if (ret) {
-		ERROR("return code from pthread_join() is %d\n", ret);
+		ERROR("return code from pthread_join() is %d", ret);
 		return -EFAULT;
 	}
 
@@ -236,7 +236,7 @@ static int install_archive_image(struct img_type *img,
 	ret = chdir(pwd);
 
 	if (ret) {
-		TRACE("Fault: chdir not possible\n");
+		TRACE("Fault: chdir not possible");
 	}
 
 	if (use_mount) {

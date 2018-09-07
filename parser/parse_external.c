@@ -153,7 +153,7 @@ int parse_external(struct swupdate_cfg *software, const char *filename)
 			lua_pushnil(L);
 			image = (struct img_type *)calloc(1, sizeof(struct img_type));	
 			if (!image) {
-				ERROR( "No memory: malloc failed\n");
+				ERROR( "No memory: malloc failed");
 				return -ENOMEM;
 			}
 			while (lua_next(L, -2) != 0) {

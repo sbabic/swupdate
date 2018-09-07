@@ -327,7 +327,7 @@ server_op_res_t server_send_cancel_reply(channel_t *channel, const int action_id
 	if (ENOMEM_ASPRINTF ==
 	    asprintf(&url, "%s/feedback",
 		     server_hawkbit.cancel_url)) {
-		ERROR("hawkBit server reply cannot be sent because of OOM.\n");
+		ERROR("hawkBit server reply cannot be sent because of OOM.");
 		result = SERVER_EINIT;
 		goto cleanup;
 	}
@@ -340,7 +340,7 @@ server_op_res_t server_send_cancel_reply(channel_t *channel, const int action_id
 		     stop_id, fdate, reply_status_result_finished.success,
 		     reply_status_execution.closed,
 		     "cancellation acknowledged.")) {
-		ERROR("hawkBit server reply cannot be sent because of OOM.\n");
+		ERROR("hawkBit server reply cannot be sent because of OOM.");
 		result = SERVER_EINIT;
 		goto cleanup;
 	}
@@ -359,7 +359,7 @@ cleanup:
 	if (channel_data_reply.json_reply != NULL &&
 	    json_object_put(channel_data_reply.json_reply) !=
 		JSON_OBJECT_FREED) {
-		ERROR("JSON object should be freed but was not.\n");
+		ERROR("JSON object should be freed but was not.");
 	}
 
 	/*
@@ -397,7 +397,7 @@ static char *server_create_details(int numdetails, const char *details[])
 		prev = next;
 	}
 
-	TRACE("Final details: %s\n", next);
+	TRACE("Final details: %s", next);
 
 	return next;
 }
@@ -418,7 +418,7 @@ server_send_deployment_reply(const int action_id, const int job_cnt_max,
 
 	char *detail = server_create_details(numdetails, details);
 
-	TRACE("Reporting Installation progress for ID %d: %s / %s / %s \n",
+	TRACE("Reporting Installation progress for ID %d: %s / %s / %s",
 	      action_id, finished, execution_status, detail);
 	/* clang-format off */
 	static const char* const json_hawkbit_deployment_feedback = STRINGIFY(
@@ -450,7 +450,7 @@ server_send_deployment_reply(const int action_id, const int job_cnt_max,
 	    asprintf(&json_reply_string, json_hawkbit_deployment_feedback,
 		     action_id, fdate, job_cnt_cur, job_cnt_max, finished,
 		     execution_status, detail ? detail : " ")) {
-		ERROR("hawkBit server reply cannot be sent because of OOM.\n");
+		ERROR("hawkBit server reply cannot be sent because of OOM.");
 		result = SERVER_EINIT;
 		goto cleanup;
 	}
@@ -458,13 +458,13 @@ server_send_deployment_reply(const int action_id, const int job_cnt_max,
 	    asprintf(&url, "%s/%s/controller/v1/%s/deploymentBase/%d/feedback",
 		     server_hawkbit.url, server_hawkbit.tenant,
 		     server_hawkbit.device_id, action_id)) {
-		ERROR("hawkBit server reply cannot be sent because of OOM.\n");
+		ERROR("hawkBit server reply cannot be sent because of OOM.");
 		result = SERVER_EINIT;
 		goto cleanup;
 	}
 	channel_data.url = url;
 	channel_data.request_body = json_reply_string;
-	TRACE("PUTing to %s: %s\n", channel_data.url, channel_data.request_body);
+	TRACE("PUTing to %s: %s", channel_data.url, channel_data.request_body);
 	channel_data.method = CHANNEL_POST;
 	result = map_channel_retcode(channel->put(channel, (void *)&channel_data));
 
@@ -479,7 +479,7 @@ cleanup:
 	}
 	if (channel_data.json_reply != NULL &&
 	    json_object_put(channel_data.json_reply) != JSON_OBJECT_FREED) {
-		ERROR("JSON object should be freed but was not.\n");
+		ERROR("JSON object should be freed but was not.");
 	}
 	return result;
 }
@@ -497,16 +497,16 @@ server_op_res_t server_set_polling_interval(json_object *json_root)
 	    json_root, (const char *[]){"config", "polling", "sleep", NULL});
 	if (json_data == NULL) {
 		ERROR("Got malformed JSON: Could not find field "
-		      "config->polling->sleep.\n");
-		DEBUG("Got JSON: %s\n", json_object_to_json_string(json_data));
+		      "config->polling->sleep.");
+		DEBUG("Got JSON: %s", json_object_to_json_string(json_data));
 		return SERVER_EBADMSG;
 	}
 	static struct tm timedate;
 	if (strptime(json_object_get_string(json_data), "%H:%M:%S",
 		     &timedate) == NULL) {
 		ERROR("Got malformed JSON: Could not convert field "
-		      "config->polling->sleep to int.\n");
-		DEBUG("Got JSON: %s\n", json_object_to_json_string(json_data));
+		      "config->polling->sleep to int.");
+		DEBUG("Got JSON: %s", json_object_to_json_string(json_data));
 		return SERVER_EBADMSG;
 	}
 	unsigned int polling_interval =
@@ -523,7 +523,7 @@ server_op_res_t server_set_polling_interval(json_object *json_root)
 
 	server_hawkbit.polling_interval =
 	    polling_interval == 0 ? DEFAULT_POLLING_INTERVAL : polling_interval;
-	DEBUG("Set polling interval to %ds as announced by server.\n",
+	DEBUG("Set polling interval to %ds as announced by server.",
 	      server_hawkbit.polling_interval);
 	return SERVER_OK;
 }
@@ -554,7 +554,7 @@ server_op_res_t server_set_config_data(json_object *json_root)
 			free(server_hawkbit.configData_url);
 		server_hawkbit.configData_url = tmp;
 		server_hawkbit.has_to_send_configData = (get_target_data_length() > 0) ? true : false;
-		TRACE("ConfigData: %s\n", server_hawkbit.configData_url);
+		TRACE("ConfigData: %s", server_hawkbit.configData_url);
 	}
 	return SERVER_OK;
 }
@@ -566,14 +566,14 @@ static server_op_res_t server_get_device_info(channel_t *channel, channel_data_t
 	assert(server_hawkbit.url != NULL);
 	assert(server_hawkbit.tenant != NULL);
 	assert(server_hawkbit.device_id != NULL);
-	DEBUG("Getting information for device '%s'\n",
+	DEBUG("Getting information for device '%s'",
 	      server_hawkbit.device_id);
 	server_op_res_t result = SERVER_OK;
 	if (ENOMEM_ASPRINTF ==
 	    asprintf(&channel_data->url, "%s/%s/controller/v1/%s",
 		     server_hawkbit.url, server_hawkbit.tenant,
 		     server_hawkbit.device_id)) {
-		ERROR("hawkBit server cannot be queried because of OOM.\n");
+		ERROR("hawkBit server cannot be queried because of OOM.");
 		result = SERVER_EINIT;
 		goto cleanup;
 	}
@@ -620,15 +620,15 @@ static server_op_res_t server_get_deployment_info(channel_t *channel, channel_da
 		if (server_hawkbit.cancel_url)
 			free(server_hawkbit.cancel_url);
 		server_hawkbit.cancel_url = strdup(url_cancel);
-		TRACE("Cancel action available at %s\n", url_cancel);
+		TRACE("Cancel action available at %s", url_cancel);
 	} else if ((url_deployment_base =
 			json_get_data_url(channel_data_device_info.json_reply,
 					  "deploymentBase")) != NULL) {
 		update_status = SERVER_UPDATE_AVAILABLE;
 		channel_data->url = url_deployment_base;
-		TRACE("Update action available at %s\n", url_deployment_base);
+		TRACE("Update action available at %s", url_deployment_base);
 	} else {
-		TRACE("No pending action on server.\n");
+		TRACE("No pending action on server.");
 		result = SERVER_NO_UPDATE_AVAILABLE;
 		goto cleanup;
 	}
@@ -639,8 +639,8 @@ static server_op_res_t server_get_deployment_info(channel_t *channel, channel_da
 	json_object *json_data = json_get_path_key(
 	    channel_data->json_reply, (const char *[]){"id", NULL});
 	if (json_data == NULL) {
-		ERROR("Got malformed JSON: Could not find field 'id'.\n");
-		DEBUG("Got JSON: %s\n",
+		ERROR("Got malformed JSON: Could not find field 'id'.");
+		DEBUG("Got JSON: %s",
 		      json_object_to_json_string(channel_data->json_reply));
 		result = SERVER_EBADMSG;
 		goto cleanup;
@@ -655,21 +655,21 @@ static server_op_res_t server_get_deployment_info(channel_t *channel, channel_da
 		json_data = json_get_path_key(
 		    channel_data->json_reply, (const char *[]){"cancelAction", "stopId", NULL});
 		if (json_data == NULL) {
-			ERROR("Got malformed JSON: Could not find field 'stopId', reuse actionId.\n");
-			DEBUG("Got JSON: %s\n",
+			ERROR("Got malformed JSON: Could not find field 'stopId', reuse actionId.");
+			DEBUG("Got JSON: %s",
 			      json_object_to_json_string(channel_data->json_reply));
 		} else {
 			server_hawkbit.stop_id = json_object_get_int(json_data);
 		}
 	}
-	TRACE("Associated Action ID for Update Action is %d\n", *action_id);
+	TRACE("Associated Action ID for Update Action is %d", *action_id);
 	result = update_status == SERVER_OK ? result : update_status;
 
 cleanup:
 	if (channel_data_device_info.json_reply != NULL &&
 	    json_object_put(channel_data_device_info.json_reply) !=
 		JSON_OBJECT_FREED) {
-		ERROR("JSON object should be freed but was not.\n");
+		ERROR("JSON object should be freed but was not.");
 	}
 	if (url_cancel != NULL) {
 		free(url_cancel);
@@ -738,7 +738,7 @@ static int server_check_during_dwl(void)
 	/* Cleanup and free resources */
 	if (channel_data.json_reply != NULL &&
 	    json_object_put(channel_data.json_reply) != JSON_OBJECT_FREED) {
-		ERROR("JSON object should be freed but was not.\n");
+		ERROR("JSON object should be freed but was not.");
 	}
 	channel->close(channel);
 	free(channel);
@@ -766,10 +766,10 @@ server_op_res_t server_has_pending_action(int *action_id)
 	 *      server_install_update() */
 	if (channel_data.json_reply != NULL &&
 	    json_object_put(channel_data.json_reply) != JSON_OBJECT_FREED) {
-		ERROR("JSON object should be freed but was not.\n");
+		ERROR("JSON object should be freed but was not.");
 	}
 	if (result == SERVER_UPDATE_CANCELED) {
-		DEBUG("Acknowledging cancelled update.\n");
+		DEBUG("Acknowledging cancelled update.");
 		(void)server_send_cancel_reply(server_hawkbit.channel, *action_id);
 		/* Inform the installer that a CANCEL was received */
 		return SERVER_OK;
@@ -809,10 +809,10 @@ static update_state_t get_state(void) {
 	update_state_t state;
 
 	if (read_state((char *)STATE_KEY, &state) != SERVER_OK) {
-		ERROR("Cannot read stored update state.\n");
+		ERROR("Cannot read stored update state.");
 		return STATE_ERROR;
 	}
-	TRACE("Read state=%c from persistent storage.\n", state);
+	TRACE("Read state=%c from persistent storage.", state);
 
 	return is_state_valid(state) ? state : STATE_ERROR;
 }
@@ -864,7 +864,7 @@ static server_op_res_t handle_feedback(int action_id, server_op_res_t result,
 	if (server_send_deployment_reply(action_id, 0, 0, reply_result,
 					 reply_execution,
 					 numdetails, details) != SERVER_OK) {
-		ERROR("Error while reporting installation status to server.\n");
+		ERROR("Error while reporting installation status to server.");
 		return SERVER_EAGAIN;
 	}
 
@@ -878,7 +878,7 @@ server_op_res_t server_handle_initial_state(update_state_t stateovrrd)
 	update_state_t state = STATE_OK;
 	if (stateovrrd != STATE_NOT_AVAILABLE) {
 		state = stateovrrd;
-		TRACE("Got state=%c from command line.\n", state);
+		TRACE("Got state=%c from command line.", state);
 		if (!is_state_valid(state)) {
 			return SERVER_EINIT;
 		}
@@ -977,7 +977,7 @@ server_op_res_t server_process_update_artifact(int action_id,
 	     json_data_artifact_count++) {
 		json_data_artifact_item = array_list_get_idx(
 		    json_data_artifact_array, json_data_artifact_count);
-		TRACE("Iterating over JSON, key=%s\n",
+		TRACE("Iterating over JSON, key=%s",
 		      json_object_to_json_string(json_data_artifact_item));
 		json_object *json_data_artifact_filename =
 		    json_get_path_key(json_data_artifact_item,
@@ -1022,7 +1022,7 @@ server_op_res_t server_process_update_artifact(int action_id,
 			server_hawkbit_error(
 			    "Got malformed JSON: Could not find fields "
 			    "'filename', 'hashes->sha1', or 'size' in JSON.\n");
-			DEBUG("Got JSON: %s\n", json_object_to_json_string(
+			DEBUG("Got JSON: %s", json_object_to_json_string(
 						    json_data_artifact_item));
 			result = SERVER_EBADMSG;
 			goto cleanup;
@@ -1048,7 +1048,7 @@ server_op_res_t server_process_update_artifact(int action_id,
 			continue;
 		}
 
-		DEBUG("Processing '%s' from '%s'\n",
+		DEBUG("Processing '%s' from '%s'",
 		      json_object_get_string(json_data_artifact_filename),
 		      json_object_get_string(json_data_artifact_url));
 
@@ -1072,7 +1072,7 @@ server_op_res_t server_process_update_artifact(int action_id,
 			    part,
 			    version,
 			    name, action_id)) {
-			ERROR("hawkBit server reply cannot be sent because of OOM.\n");
+			ERROR("hawkBit server reply cannot be sent because of OOM.");
 			result = SERVER_EBADMSG;
 			goto cleanup_loop;
 		}
@@ -1193,7 +1193,7 @@ server_op_res_t server_install_update(void)
 	if (json_data_chunk == NULL) {
 		server_hawkbit_error("Got malformed JSON: Could not find field "
 		      "deployment->chunks.");
-		DEBUG("Got JSON: %s\n",
+		DEBUG("Got JSON: %s",
 		      json_object_to_json_string(channel_data.json_reply));
 		result = SERVER_EBADMSG;
 		goto cleanup;
@@ -1215,7 +1215,7 @@ server_op_res_t server_install_update(void)
 	     json_data_chunk_count++) {
 		json_data_chunk_item = array_list_get_idx(
 		    json_data_chunk_array, json_data_chunk_count);
-		TRACE("Iterating over JSON, key=%s\n",
+		TRACE("Iterating over JSON, key=%s",
 		      json_object_to_json_string(json_data_chunk_item));
 		json_object *json_data_chunk_part = json_get_path_key(
 		    json_data_chunk_item, (const char *[]){"part", NULL});
@@ -1228,7 +1228,7 @@ server_op_res_t server_install_update(void)
 		    (json_data_chunk_name == NULL)) {
 			server_hawkbit_error("Got malformed JSON: Could not find fields "
 			      "'part', 'version', or 'name'.");
-			DEBUG("Got JSON: %s\n", json_object_to_json_string(
+			DEBUG("Got JSON: %s", json_object_to_json_string(
 						    channel_data.json_reply));
 			result = SERVER_EBADMSG;
 			goto cleanup;
@@ -1239,7 +1239,7 @@ server_op_res_t server_install_update(void)
 		       json_type_string);
 		assert(json_object_get_type(json_data_chunk_version) ==
 		       json_type_string);
-		DEBUG("Processing Update Chunk '%s', version %s, part %s\n",
+		DEBUG("Processing Update Chunk '%s', version %s, part %s",
 		      json_object_get_string(json_data_chunk_name),
 		      json_object_get_string(json_data_chunk_version),
 		      json_object_get_string(json_data_chunk_part));
@@ -1249,7 +1249,7 @@ server_op_res_t server_install_update(void)
 		if (json_data_chunk_artifacts == NULL) {
 			server_hawkbit_error("Got malformed JSON: Could not find field "
 			      "deployment->chunks->artifacts.");
-			DEBUG("Got JSON: %s\n", json_object_to_json_string(
+			DEBUG("Got JSON: %s", json_object_to_json_string(
 						    channel_data.json_reply));
 			result = SERVER_EBADMSG;
 			goto cleanup;
@@ -1279,7 +1279,7 @@ server_op_res_t server_install_update(void)
 
 			/* Check if failed because it was cancelled */
 			if (server_hawkbit.cancelDuringUpdate) {
-				TRACE("Acknowledging cancelled update.\n");
+				TRACE("Acknowledging cancelled update.");
 				(void)server_send_cancel_reply(server_hawkbit.channel, action_id);
 				/* Inform the installer that a CANCEL was received */
 			} else {
@@ -1313,7 +1313,7 @@ server_op_res_t server_install_update(void)
 
 	if ((result = save_state((char *)STATE_KEY, STATE_INSTALLED)) !=
 	    SERVER_OK) {
-		ERROR("Cannot persistently store update state.\n");
+		ERROR("Cannot persistently store update state.");
 		goto cleanup;
 	}
 
@@ -1335,16 +1335,16 @@ cleanup:
 	}
 	if (channel_data.json_reply != NULL &&
 	    json_object_put(channel_data.json_reply) != JSON_OBJECT_FREED) {
-		ERROR("JSON object should be freed but was not.\n");
+		ERROR("JSON object should be freed but was not.");
 	}
 	if (result == SERVER_OK) {
-		INFO("Update successful, executing post-update actions.\n");
+		INFO("Update successful, executing post-update actions.");
 		ipc_message msg;
 		if (ipc_postupdate(&msg) != 0) {
 			result = SERVER_EERR;
 		} else {
 			result = msg.type == ACK ? SERVER_OK : SERVER_EERR;
-			DEBUG("%s\n", msg.data.msg);
+			DEBUG("%s", msg.data.msg);
 		}
 	}
 	return result;
@@ -1398,7 +1398,7 @@ server_op_res_t server_send_target_data(void)
 				((first) ? ' ' : ','),
 				key,
 				value)) {
-			ERROR("hawkBit server reply cannot be sent because of OOM.\n");
+			ERROR("hawkBit server reply cannot be sent because of OOM.");
 			result = SERVER_EINIT;
 			goto cleanup;
 		}
@@ -1440,7 +1440,7 @@ server_op_res_t server_send_target_data(void)
 		     "", fdate, reply_status_result_finished.success,
 		     reply_status_execution.closed,
 		     "", configData)) {
-		ERROR("hawkBit server reply cannot be sent because of OOM.\n");
+		ERROR("hawkBit server reply cannot be sent because of OOM.");
 		result = SERVER_EINIT;
 		goto cleanup;
 	}
@@ -1448,7 +1448,7 @@ server_op_res_t server_send_target_data(void)
 	    asprintf(&url, "%s/%s/controller/v1/%s/configData",
 		     server_hawkbit.url, server_hawkbit.tenant,
 		     server_hawkbit.device_id)) {
-		ERROR("hawkBit server reply cannot be sent because of OOM.\n");
+		ERROR("hawkBit server reply cannot be sent because of OOM.");
 		result = SERVER_EINIT;
 		goto cleanup;
 	}
@@ -1578,7 +1578,7 @@ static int suricatta_configdata_settings(void *settings, void  __attribute__ ((_
 		GET_FIELD_STRING(LIBCFG_PARSER, elem, "name", name);
 		GET_FIELD_STRING(LIBCFG_PARSER, elem, "value", value);
 		dict_set_value(&server_hawkbit.configdata, name, value);
-		TRACE("Identify for configData: %s --> %s\n",
+		TRACE("Identify for configData: %s --> %s",
 				name, value);
 	}
 
@@ -1752,7 +1752,7 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 		while ((state_handled = server_handle_initial_state(update_state)) !=
 		       SERVER_OK) {
 			if (state_handled == SERVER_EAGAIN) {
-				INFO("Sleeping for %ds until retrying...\n",
+				INFO("Sleeping for %ds until retrying...",
 				     INITIAL_STATUS_REPORT_WAIT_DELAY);
 				sleep(INITIAL_STATUS_REPORT_WAIT_DELAY);
 				continue;
@@ -1786,7 +1786,7 @@ static struct json_object *server_tokenize_msg(char *buf, size_t size)
 	} while ((json_res = json_tokener_get_error(json_tokenizer)) ==
 		 json_tokener_continue);
 	if (json_res != json_tokener_success) {
-		ERROR("Error while parsing channel's returned JSON data: %s\n",
+		ERROR("Error while parsing channel's returned JSON data: %s",
 		      json_tokener_error_desc(json_res));
 		json_tokener_free(json_tokenizer);
 		return NULL;
@@ -1812,7 +1812,7 @@ static server_op_res_t server_activation_ipc(ipc_message *msg)
 	    json_root, (const char *[]){"id", NULL});
 	if (json_data == NULL) {
 		ERROR("Got malformed JSON: Could not find action id");
-		DEBUG("Got JSON: %s\n", json_object_to_json_string(json_data));
+		DEBUG("Got JSON: %s", json_object_to_json_string(json_data));
 		return SERVER_EERR;
 	}
 	int action_id = json_object_get_int(json_data);
@@ -1821,7 +1821,7 @@ static server_op_res_t server_activation_ipc(ipc_message *msg)
 	    json_root, (const char *[]){"status", NULL});
 	if (json_data == NULL) {
 		ERROR("Got malformed JSON: Could not find field status");
-		DEBUG("Got JSON: %s\n", json_object_to_json_string(json_data));
+		DEBUG("Got JSON: %s", json_object_to_json_string(json_data));
 		return SERVER_EERR;
 	}
 	update_state = (unsigned int)*json_object_get_string(json_data);
@@ -1859,7 +1859,7 @@ static server_op_res_t server_activation_ipc(ipc_message *msg)
 	server_op_res_t response = SERVER_OK;
 
 	if (result == SERVER_UPDATE_CANCELED) {
-		DEBUG("Acknowledging cancelled update.\n");
+		DEBUG("Acknowledging cancelled update.");
 		(void)server_send_cancel_reply(server_hawkbit.channel, server_action_id);
 	}
 

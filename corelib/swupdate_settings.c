@@ -80,7 +80,7 @@ int read_module_settings(const char *filename, const char *module, settings_call
 	/* Read the file. If there is an error, report it and exit. */
 	if (read_settings_file(&cfg, filename) != CONFIG_TRUE) {
 		config_destroy(&cfg);
-		ERROR("Error reading configuration file, skipping....\n");
+		ERROR("Error reading configuration file, skipping....");
 		return -EINVAL;
 	}
 

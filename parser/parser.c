@@ -177,7 +177,7 @@ static int parse_hw_compatibility(parsertype p, void *cfg, struct swupdate_cfg *
 
 	setting = find_node(p, cfg, "hardware-compatibility", swcfg);
 	if (setting == NULL) {
-		ERROR("HW compatibility not found\n");
+		ERROR("HW compatibility not found");
 		return -1;
 	}
 
@@ -196,7 +196,7 @@ static int parse_hw_compatibility(parsertype p, void *cfg, struct swupdate_cfg *
 
 		hwrev = (struct hw_type *)calloc(1, sizeof(struct hw_type));
 		if (!hwrev) {
-			ERROR("No memory: malloc failed\n");
+			ERROR("No memory: malloc failed");
 			return -1;
 		}
 
@@ -291,7 +291,7 @@ static int parse_partitions(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 
 		partition = (struct img_type *)calloc(1, sizeof(struct img_type));
 		if (!partition) {
-			ERROR("No memory: malloc failed\n");
+			ERROR("No memory: malloc failed");
 			return -ENOMEM;
 		}
 		if (parse_common_attributes(p, elem, partition) < 0) {
@@ -314,7 +314,7 @@ static int parse_partitions(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 
 		get_field(p, elem, "size", &partition->partsize);
 
-		TRACE("Partition: %s new size %lld bytes\n",
+		TRACE("Partition: %s new size %lld bytes",
 			partition->volname,
 			partition->partsize);
 
@@ -356,7 +356,7 @@ static int parse_scripts(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lu
 
 		script = (struct img_type *)calloc(1, sizeof(struct img_type));
 		if (!script) {
-			ERROR( "No memory: malloc failed\n");
+			ERROR( "No memory: malloc failed");
 			return -ENOMEM;
 		}
 
@@ -379,7 +379,7 @@ static int parse_scripts(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lu
 			return -1;
 		}
 
-		TRACE("%s Script: %s\n",
+		TRACE("%s Script: %s",
 			skip ? "Skip" : "Found",
 			script->fname);
 
@@ -427,7 +427,7 @@ static int parse_bootloader(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 			GET_FIELD_STRING(p, elem, "name", name);
 			GET_FIELD_STRING(p, elem, "value", value);
 			dict_set_value(&swcfg->bootloader, name, value);
-			TRACE("Bootloader var: %s = %s\n",
+			TRACE("Bootloader var: %s = %s",
 				name,
 				dict_get_value(&swcfg->bootloader, name));
 			continue;
@@ -442,7 +442,7 @@ static int parse_bootloader(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 		}
 		script = (struct img_type *)calloc(1, sizeof(struct img_type));
 		if (!script) {
-			ERROR( "No memory: malloc failed\n");
+			ERROR( "No memory: malloc failed");
 			return -ENOMEM;
 		}
 
@@ -455,7 +455,7 @@ static int parse_bootloader(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 
 		LIST_INSERT_HEAD(&swcfg->bootscripts, script, next);
 
-		TRACE("Found U-Boot Script: %s\n",
+		TRACE("Found U-Boot Script: %s",
 			script->fname);
 	}
 
@@ -491,7 +491,7 @@ static int parse_images(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua
 
 		image = (struct img_type *)calloc(1, sizeof(struct img_type));
 		if (!image) {
-			ERROR( "No memory: malloc failed\n");
+			ERROR( "No memory: malloc failed");
 			return -ENOMEM;
 		}
 
@@ -516,7 +516,7 @@ static int parse_images(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua
 			return -1;
 		}
 
-		TRACE("%s %sImage%s%s%s%s: %s in %s : %s for handler %s%s%s\n",
+		TRACE("%s %sImage%s%s%s%s: %s in %s : %s for handler %s%s%s",
 			skip ? "Skip" : "Found",
 			image->compressed ? "compressed " : "",
 			strlen(image->id.name) ? " " : "", image->id.name,
@@ -571,7 +571,7 @@ static int parse_files(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua_
 
 		file = (struct img_type *)calloc(1, sizeof(struct img_type));
 		if (!file) {
-			ERROR( "No memory: malloc failed\n");
+			ERROR( "No memory: malloc failed");
 			return -ENOMEM;
 		}
 
@@ -592,7 +592,7 @@ static int parse_files(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua_
 			return -1;
 		}
 
-		TRACE("%s %sFile%s%s%s%s: %s --> %s (%s)%s\n",
+		TRACE("%s %sFile%s%s%s%s: %s --> %s (%s)%s",
 			skip ? "Skip" : "Found",
 			file->compressed ? "compressed " : "",
 			strlen(file->id.name) ? " " : "", file->id.name,
@@ -628,7 +628,7 @@ static int parser(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 	}
 
 	if (swcfg->embscript) {
-		TRACE("Found Lua Software:\n%s\n", swcfg->embscript);
+		TRACE("Found Lua Software:\n%s", swcfg->embscript);
 		L = lua_parser_init(swcfg->embscript, &swcfg->bootloader);
 		if (!L) {
 			ERROR("Required embedded script that cannot be loaded");
@@ -656,7 +656,7 @@ static int parser(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 	if (LIST_EMPTY(&swcfg->images) &&
 	    LIST_EMPTY(&swcfg->scripts) &&
 	    LIST_EMPTY(&swcfg->bootloader)) {
-		ERROR("Found nothing to install\n");
+		ERROR("Found nothing to install");
 		return -1;
 	}
 
@@ -686,12 +686,12 @@ int parse_cfg (struct swupdate_cfg *swcfg, const char *filename)
 		fprintf(stderr, "%s:%d - %s\n", config_error_file(&cfg),
 			config_error_line(&cfg), config_error_text(&cfg));
 		config_destroy(&cfg);
-		ERROR(" ..exiting\n");
+		ERROR(" ..exiting");
 		return -1;
 	}
 
 	if((setting = find_node(p, &cfg, "version", swcfg)) == NULL) {
-		ERROR("Missing version in configuration file\n");
+		ERROR("Missing version in configuration file");
 		return -1;
 	} else {
 		GET_FIELD_STRING(p, setting, NULL, swcfg->version);
@@ -706,7 +706,7 @@ int parse_cfg (struct swupdate_cfg *swcfg, const char *filename)
 	snprintf(node, sizeof(node), "%s.embedded-script",
 			NODEROOT);
 	if (config_lookup_string(&cfg, node, &str)) {
-		TRACE("Found Lua Software:\n%s\n", str);
+		TRACE("Found Lua Software:\n%s", str);
 	}
 
 	ret = parser(p, &cfg, swcfg);
@@ -755,13 +755,13 @@ int parse_json(struct swupdate_cfg *swcfg, const char *filename)
 
 	cfg = json_tokener_parse(string);
 	if (!cfg) {
-		ERROR("JSON File corrupted\n");
+		ERROR("JSON File corrupted");
 		free(string);
 		return -1;
 	}
 
 	if((setting = find_node(p, cfg, "version", swcfg)) == NULL) {
-		ERROR("Missing version in configuration file\n");
+		ERROR("Missing version in configuration file");
 		free(string);
 		return -1;
 	} else {

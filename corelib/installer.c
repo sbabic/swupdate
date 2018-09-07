@@ -70,7 +70,7 @@ int check_if_required(struct imglist *list, struct filehdr *pfdh,
 			 *  sw-description contains an error
 			 */
 			if (install_direct) {
-				ERROR("sw-description: stream to several handlers unsupported\n");
+				ERROR("sw-description: stream to several handlers unsupported");
 				return -EINVAL;
 			}
 
@@ -131,7 +131,7 @@ static int extract_scripts(int fd, struct imglist *head, int fromfile)
 			fdin = open(tmpfile, O_RDONLY);
 			free(tmpfile);
 			if (fdin < 0) {
-				ERROR("Extracted script not found in %s: %s %d\n",
+				ERROR("Extracted script not found in %s: %s %d",
 					get_tmpdir(), script->extract_file, errno);
 				return -ENOENT;
 			}

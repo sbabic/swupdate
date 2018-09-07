@@ -40,7 +40,7 @@ int flash_erase(int mtdnum)
 	struct flash_description *flash = get_flash_info();
 
 	if  (!mtd_dev_present(flash->libmtd, mtdnum)) {
-			ERROR("MTD %d does not exist\n", mtdnum);
+			ERROR("MTD %d does not exist", mtdnum);
 			return -ENODEV;
 	}
 	mtd = &flash->mtd_info[mtdnum].mtd;
@@ -172,7 +172,7 @@ int get_mtd_from_device(char *s) {
 			return -1;
 	}
 
-	TRACE("mtd name [%s] resolved to [%s]\n", s, real_s);
+	TRACE("mtd name [%s] resolved to [%s]", s, real_s);
 	ret = sscanf(real_s, "mtd%d", &mtdnum);
 	if (ret <= 0)
 		ret = sscanf(real_s, "/dev/mtd%d", &mtdnum);
@@ -252,7 +252,7 @@ static void scan_ubi_volumes(struct mtd_ubi_info *info)
 	     i <= info->dev_info.highest_vol_id; i++) {
 		ubi_part = (struct ubi_part *)calloc(1, sizeof(struct ubi_part));
 		if (!ubi_part) {
-			ERROR("No memory: malloc failed\n");
+			ERROR("No memory: malloc failed");
 			return;
 		}
 

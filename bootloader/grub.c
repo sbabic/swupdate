@@ -19,13 +19,13 @@ static int grubenv_open(struct grubenv_t *grubenv)
 
 	fp = fopen(GRUBENV_PATH, "rb");
 	if (!fp) {
-		ERROR("Failed to open grubenv file: %s\n", GRUBENV_PATH);
+		ERROR("Failed to open grubenv file: %s", GRUBENV_PATH);
 		ret = -1;
 		goto cleanup;
 	}
 
 	if (fseek(fp, 0, SEEK_END)) {
-		ERROR("Failed to seek end grubenv file: %s\n", GRUBENV_PATH);
+		ERROR("Failed to seek end grubenv file: %s", GRUBENV_PATH);
 		ret = -1;
 		goto cleanup;
 	}
@@ -33,40 +33,40 @@ static int grubenv_open(struct grubenv_t *grubenv)
 	size = (size_t)ftell(fp);
 
 	if (size != GRUBENV_SIZE) {
-		ERROR("Ivalid grubenv file size: %d\n", (int)size);
+		ERROR("Ivalid grubenv file size: %d", (int)size);
 		ret = -1;
 		goto cleanup;
 	}
 
 	if (fseek(fp, 0, SEEK_SET)) {
-		ERROR("Failed to seek set grubenv file: %s\n", GRUBENV_PATH);
+		ERROR("Failed to seek set grubenv file: %s", GRUBENV_PATH);
 		ret = -1;
 		goto cleanup;
 	}
 
 	buf = malloc(size);
 	if (!buf) {
-		ERROR("Not enough memory for environment\n");
+		ERROR("Not enough memory for environment");
 		fclose(fp);
 		ret = -ENOMEM;
 		goto cleanup;
 	}
 
 	if (fread(buf, 1, size, fp) != size) {
-		ERROR("Failed to read file %s\n", GRUBENV_PATH);
+		ERROR("Failed to read file %s", GRUBENV_PATH);
 		ret = 1;
 		goto cleanup;
 	}
 
 	if (memcmp(buf, GRUBENV_HEADER, strlen(GRUBENV_HEADER) -1)) {
-		ERROR("Invalid grubenv header\n");
+		ERROR("Invalid grubenv header");
 		ret = -1;
 		goto cleanup;
 	}
 
 	/* truncate header, prepare buf for further splitting */
 	if (!(strtok(buf, "\n"))) {
-		ERROR("grubenv header not found\n");
+		ERROR("grubenv header not found");
 		ret = -1;
 		goto cleanup;
 	}
@@ -108,7 +108,7 @@ static int grubenv_parse_script(struct grubenv_t *grubenv, const char *script)
 	/* open script generated during sw-description parsing */
 	fp = fopen(script, "rb");
 	if (!fp) {
-		ERROR("Failed to open grubenv script file: %s\n", script);
+		ERROR("Failed to open grubenv script file: %s", script);
 		ret = -1;
 		goto cleanup;
 	}
@@ -186,7 +186,7 @@ static int grubenv_write(struct grubenv_t *grubenv)
 
 	buf = malloc(GRUBENV_SIZE);
 	if (!buf) {
-		ERROR("Not enough memory for environment\n");
+		ERROR("Not enough memory for environment");
 		ret = -ENOMEM;
 		goto cleanup;
 	}
@@ -214,7 +214,7 @@ static int grubenv_write(struct grubenv_t *grubenv)
 	/* write buffer into grubenv.nev file */
 	ret = fwrite(buf , 1, GRUBENV_SIZE, fp);
 	if (ret != GRUBENV_SIZE) {
-		ERROR("Failed to write file: %s. Bytes written: %d\n",
+		ERROR("Failed to write file: %s. Bytes written: %d",
 			GRUBENV_PATH_NEW, ret);
 		ret = -1;
 		goto cleanup;
@@ -222,7 +222,7 @@ static int grubenv_write(struct grubenv_t *grubenv)
 
 	/* rename grubenv.new into grubenv */
 	if (rename(GRUBENV_PATH_NEW, GRUBENV_PATH)) {
-		ERROR("Failed to move environment: %s into %s\n",
+		ERROR("Failed to move environment: %s into %s",
 			GRUBENV_PATH_NEW, GRUBENV_PATH);
 		ret = -1;
 		goto cleanup;

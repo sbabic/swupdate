@@ -109,13 +109,13 @@ static int flash_write_nand(int mtdnum, struct img_type *img)
 	snprintf(mtd_device, sizeof(mtd_device), "/dev/mtd%d", mtdnum);
 
 	if ((imglen / pagelen) * mtd->min_io_size > mtd->size) {
-		ERROR("Image %s does not fit into mtd%d\n", img->fname, mtdnum);
+		ERROR("Image %s does not fit into mtd%d", img->fname, mtdnum);
 		return -EIO;
 	}
 
 	/* Flashing to NAND is currently not streamable */
 	if (img->install_directly) {
-		ERROR("Raw NAND not streamable\n");
+		ERROR("Raw NAND not streamable");
 		return -EINVAL;
 	}
 
@@ -247,7 +247,7 @@ static int flash_write_nand(int mtdnum, struct img_type *img)
 				}
 			}
 
-			TRACE("Marking block at %08llx bad\n",
+			TRACE("Marking block at %08llx bad",
 					mtdoffset & (~mtd->eb_size + 1));
 			if (mtd_mark_bad(mtd, fd, mtdoffset / mtd->eb_size)) {
 				ERROR("mtd%d: MTD Mark bad block failure", mtdnum);
@@ -274,7 +274,7 @@ closeall:
 	close(fd);
 
 	if (failed) {
-		ERROR("Installing image %s into mtd%d failed\n",
+		ERROR("Installing image %s into mtd%d failed",
 			img->fname,
 			mtdnum);
 		return -1;
@@ -291,7 +291,7 @@ static int flash_write_nor(int mtdnum, struct img_type *img)
 	struct flash_description *flash = get_flash_info();
 
 	if  (!mtd_dev_present(flash->libmtd, mtdnum)) {
-		ERROR("MTD %d does not exist\n", mtdnum);
+		ERROR("MTD %d does not exist", mtdnum);
 		return -ENODEV;
 	}
 

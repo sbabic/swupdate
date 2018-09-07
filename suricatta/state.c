@@ -28,7 +28,7 @@
 
 bool is_state_valid(update_state_t state) {
 	if ((state < STATE_OK) || (state > STATE_ERROR)) {
-		ERROR("Unknown update state=%c\n", state);
+		ERROR("Unknown update state=%c", state);
 		return false;
 	}
 	return true;
@@ -83,7 +83,7 @@ server_op_res_t read_state(char *key, update_state_t *value)
 
 	envval = bootloader_env_get(key);
 	if (envval == NULL) {
-		INFO("Key '%s' not found in Bootloader's environment.\n", key);
+		INFO("Key '%s' not found in Bootloader's environment.", key);
 		*value = STATE_NOT_AVAILABLE;
 		return SERVER_OK;
 	}

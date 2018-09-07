@@ -33,7 +33,7 @@ static int get_cpiohdr(unsigned char *buf, unsigned long *size,
 
 	cpiohdr = (struct new_ascii_header *)buf;
 	if (strncmp(cpiohdr->c_magic, "070702", 6) != 0) {
-		ERROR("CPIO Format not recognized: magic not found\n");
+		ERROR("CPIO Format not recognized: magic not found");
 			return -EINVAL;
 	}
 	*size = FROM_HEX(cpiohdr->c_filesize);
@@ -351,9 +351,9 @@ int copyfile(int fdin, void *out, unsigned int nbytes, unsigned long *offs, unsi
 
 	if (seek) {
 		int fdout = (out != NULL) ? *(int *)out : -1;
-		TRACE("offset has been defined: %llu bytes\n", seek);
+		TRACE("offset has been defined: %llu bytes", seek);
 		if (lseek(fdout, seek, SEEK_SET) < 0) {
-			ERROR("offset argument: seek failed\n");
+			ERROR("offset argument: seek failed");
 			ret = -EFAULT;
 			goto copyfile_exit;
 		}
@@ -519,18 +519,18 @@ int extract_sw_description(int fd, const char *descfile, off_t *offs)
 	const char* TMPDIR = get_tmpdir();
 
 	if (extract_cpio_header(fd, &fdh, &offset)) {
-		ERROR("CPIO Header wrong\n");
+		ERROR("CPIO Header wrong");
 		return -1;
 	}
 
 	if (strcmp(fdh.filename, descfile)) {
-		ERROR("Expected %s but found %s.\n",
+		ERROR("Expected %s but found %s.",
 			descfile,
 			fdh.filename);
 		return -1;
 	}
 	if ((strlen(TMPDIR) + strlen(fdh.filename)) > sizeof(output_file)) {
-		ERROR("File Name too long : %s\n", fdh.filename);
+		ERROR("File Name too long : %s", fdh.filename);
 		return -1;
 	}
 	strncpy(output_file, TMPDIR, sizeof(output_file));
@@ -538,26 +538,26 @@ int extract_sw_description(int fd, const char *descfile, off_t *offs)
 	fdout = openfileoutput(output_file);
 
 	if (lseek(fd, offset, SEEK_SET) < 0) {
-		ERROR("CPIO file corrupted : %s\n", strerror(errno));
+		ERROR("CPIO file corrupted : %s", strerror(errno));
 		close(fdout);
 		return -1;
 	}
 	if (copyfile(fd, &fdout, fdh.size, &offset, 0, 0, 0, &checksum, NULL, 0, NULL) < 0) {
-		ERROR("%s corrupted or not valid\n", descfile);
+		ERROR("%s corrupted or not valid", descfile);
 		close(fdout);
 		return -1;
 	}
 
 	close(fdout);
 
-	TRACE("Found file:\n\tfilename %s\n\tsize %lu\n\tchecksum 0x%lx %s\n",
+	TRACE("Found file:\n\tfilename %s\n\tsize %lu\n\tchecksum 0x%lx %s",
 		fdh.filename,
 		(unsigned long)fdh.size,
 		(unsigned long)checksum,
 		(checksum == fdh.chksum) ? "VERIFIED" : "WRONG");
 
 	if (checksum != fdh.chksum) {
-		ERROR("Checksum WRONG ! Computed 0x%lx, it should be 0x%lx\n",
+		ERROR("Checksum WRONG ! Computed 0x%lx, it should be 0x%lx",
 			(unsigned long)checksum, fdh.chksum);
 		return -1;
 	}
@@ -571,16 +571,16 @@ int extract_img_from_cpio(int fd, unsigned long offset, struct filehdr *fdh)
 {
 
 	if (lseek(fd, offset, SEEK_SET) < 0) {
-		ERROR("CPIO file corrupted : %s\n",
+		ERROR("CPIO file corrupted : %s",
 		strerror(errno));
 		return -EBADF;
 	}
 	if (extract_cpio_header(fd, fdh, &offset)) {
-		ERROR("CPIO Header wrong\n");
+		ERROR("CPIO Header wrong");
 		return -1;
 	}
 	if (lseek(fd, offset, SEEK_SET) < 0) {
-		ERROR("CPIO file corrupted : %s\n", strerror(errno));
+		ERROR("CPIO file corrupted : %s", strerror(errno));
 		return -1;
 	}
 
@@ -597,37 +597,37 @@ off_t extract_next_file(int fd, int fdout, off_t start, int compressed,
 
 	ret = lseek(fd, offset, SEEK_SET);
 	if (ret < 0) {
-		ERROR("CPIO file corrupted : %s\n",
+		ERROR("CPIO file corrupted : %s",
 		strerror(errno));
 		return ret;
 	}
 
 	ret = extract_cpio_header(fd, &fdh, &offset);
 	if (ret) {
-		ERROR("CPIO Header wrong\n");
+		ERROR("CPIO Header wrong");
 		return ret;
 	}
 
 	ret = lseek(fd, offset, SEEK_SET);
 	if (ret < 0) {
-		ERROR("CPIO file corrupted : %s\n", strerror(errno));
+		ERROR("CPIO file corrupted : %s", strerror(errno));
 		return ret;
 	}
 
 	ret = copyfile(fd, &fdout, fdh.size, &offset, 0, 0, compressed, &checksum, hash, encrypted, NULL);
 	if (ret < 0) {
-		ERROR("Error copying extracted file\n");
+		ERROR("Error copying extracted file");
 		return ret;
 	}
 
-	TRACE("Copied file:\n\tfilename %s\n\tsize %u\n\tchecksum 0x%lx %s\n",
+	TRACE("Copied file:\n\tfilename %s\n\tsize %u\n\tchecksum 0x%lx %s",
 		fdh.filename,
 		(unsigned int)fdh.size,
 		(unsigned long)checksum,
 		(checksum == fdh.chksum) ? "VERIFIED" : "WRONG");
 
 	if (checksum != fdh.chksum) {
-		ERROR("Checksum WRONG ! Computed 0x%lx, it should be 0x%lx\n",
+		ERROR("Checksum WRONG ! Computed 0x%lx, it should be 0x%lx",
 			(unsigned long)checksum, fdh.chksum);
 		return -EINVAL;
 	}
@@ -658,7 +658,7 @@ int cpio_scan(int fd, struct swupdate_cfg *cfg, off_t start)
 		SEARCH_FILE(img, cfg->scripts, file_listed, start);
 		SEARCH_FILE(img, cfg->bootscripts, file_listed, start);
 
-		TRACE("Found file:\n\tfilename %s\n\tsize %lu\n\t%s\n",
+		TRACE("Found file:\n\tfilename %s\n\tsize %lu\n\t%s",
 			fdh.filename,
 			fdh.size,
 			file_listed ? "REQUIRED" : "not required");
@@ -669,12 +669,12 @@ int cpio_scan(int fd, struct swupdate_cfg *cfg, off_t start)
 		 */
 		if (copyfile(fd, NULL, fdh.size, &offset, 0, 1, 0, &checksum, img ? img->sha256 : NULL,
 				0, NULL) != 0) {
-			ERROR("invalid archive\n");
+			ERROR("invalid archive");
 			return -1;
 		}
 
 		if ((uint32_t)(fdh.chksum) != checksum) {
-			ERROR("Checksum verification failed for %s: %x != %x\n",
+			ERROR("Checksum verification failed for %s: %x != %x",
 			fdh.filename, (uint32_t)fdh.chksum, checksum);
 			return -1;
 		}
@@ -682,7 +682,7 @@ int cpio_scan(int fd, struct swupdate_cfg *cfg, off_t start)
 		/* Next header must be 4-bytes aligned */
 		offset += NPAD_BYTES(offset);
 		if (lseek(fd, offset, SEEK_SET) < 0) {
-			ERROR("CPIO file corrupted : %s\n", strerror(errno));
+			ERROR("CPIO file corrupted : %s", strerror(errno));
 			return -1;
 		}
 	}

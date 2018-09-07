@@ -192,7 +192,7 @@ int parse(struct swupdate_cfg *sw, const char *descfile)
 	}
 
 	if (ret != 0) {
-		ERROR("no parser available to parse " SW_DESCRIPTION_FILENAME "!\n");
+		ERROR("no parser available to parse " SW_DESCRIPTION_FILENAME "!");
 		return ret;
 	}
 

@@ -91,7 +91,7 @@ static size_t curl_read_data(void *buffer, size_t size, size_t nmemb, void *user
 	if (!nmemb)
 		return 0;
 	if (!userp) {
-		ERROR("Failure IPC stream file descriptor \n");
+		ERROR("Failure IPC stream file descriptor ");
 		return -EFAULT;
 	}
 
@@ -174,7 +174,7 @@ static json_object *parse_reqstatus(json_object *reply, const char **json_path)
 	json_data = json_get_path_key(reply, json_path);
 	if (json_data == NULL) {
 		ERROR("Got malformed JSON: Could not find path");
-		DEBUG("Got JSON: %s\n", json_object_to_json_string(json_data));
+		DEBUG("Got JSON: %s", json_object_to_json_string(json_data));
 	}
 
 	return json_data;
@@ -203,7 +203,7 @@ static int get_answer(struct curlconn *conn, RECOVERY_STATUS *result, bool ignor
 
 	if (asprintf(&channel_cfg.url, "%s%s",
 			 conn->url, STATUS_URL) < 0) {
-		ERROR("Out of memory.\n");
+		ERROR("Out of memory.");
 		return -ENOMEM; 
 	}
 
@@ -409,7 +409,7 @@ static int install_remote_swu(struct img_type *img,
 		CURL *eh = NULL;
 		int http_status_code=0;
 		if (msg->msg != CURLMSG_DONE) {
-			ERROR("curl_multi_info_read(), CURLMsg=%d\n", msg->msg);
+			ERROR("curl_multi_info_read(), CURLMsg=%d", msg->msg);
 			ret = FAILURE;
 			break;
 		}

@@ -27,10 +27,10 @@ int suricatta_wait(int seconds)
 	tv.tv_usec = 0;
 	FD_ZERO(&readfds);
 	FD_SET(sw_sockfd, &readfds);
-	DEBUG("Sleeping for %ld seconds.\n", tv.tv_sec);
+	DEBUG("Sleeping for %ld seconds.", tv.tv_sec);
 	retval = select(sw_sockfd + 1, &readfds, NULL, NULL, &tv);
 	if (retval < 0) {
-		TRACE("Suricatta awakened because of: %s\n", strerror(errno));
+		TRACE("Suricatta awakened because of: %s", strerror(errno));
 		return 0;
 	}
 	if (retval && FD_ISSET(sw_sockfd, &readfds)) {
@@ -57,11 +57,11 @@ int start_suricatta(const char *cfgfname, int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	TRACE("Server initialized, entering suricatta main loop.\n");
+	TRACE("Server initialized, entering suricatta main loop.");
 	while (true) {
 		switch (server.has_pending_action(&action_id)) {
 		case SERVER_UPDATE_AVAILABLE:
-			DEBUG("About to process available update.\n");
+			DEBUG("About to process available update.");
 			server.install_update();
 			break;
 		case SERVER_ID_REQUESTED:
@@ -71,7 +71,7 @@ int start_suricatta(const char *cfgfname, int argc, char *argv[])
 			break;
 		case SERVER_OK:
 		default:
-			DEBUG("No pending action to process.\n");
+			DEBUG("No pending action to process.");
 			break;
 		}
 
@@ -81,6 +81,6 @@ int start_suricatta(const char *cfgfname, int argc, char *argv[])
 			wait_seconds = suricatta_wait(wait_seconds);
 		}
 
-		TRACE("Suricatta awakened.\n");
+		TRACE("Suricatta awakened.");
 	}
 }

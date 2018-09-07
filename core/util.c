@@ -138,7 +138,7 @@ int openfileoutput(const char *filename)
 
 	fdout = open(filename, O_CREAT | O_WRONLY | O_TRUNC,  S_IRUSR | S_IWUSR );
 	if (fdout < 0)
-		ERROR("I cannot open %s %d\n", filename, errno);
+		ERROR("I cannot open %s %d", filename, errno);
 
 	return fdout;
 }
@@ -183,7 +183,7 @@ int get_hw_revision(struct hw_type *hw)
 	fclose(fp);
 
 	if (ret != 2) {
-		TRACE("Cannot find Board Revision\n");
+		TRACE("Cannot find Board Revision");
 		if(ret == 1)
 			free(b1);
 		return -1;
@@ -261,14 +261,14 @@ from_ascii (char const *where, size_t digs, unsigned logbase)
 		char *p = strchr (codetab, toupper (*buf));
 		if (!p)
 		{
-			ERROR("Malformed number %.*s\n", (int)digs, where);
+			ERROR("Malformed number %.*s", (int)digs, where);
 			break;
 		}
 
 		d = p - codetab;
 		if ((d >> logbase) > 1)
 		{
-			ERROR("Malformed number %.*s\n", (int)digs, where);
+			ERROR("Malformed number %.*s", (int)digs, where);
 			break;
 		}
 		value += d;
@@ -278,7 +278,7 @@ from_ascii (char const *where, size_t digs, unsigned logbase)
 		value <<= logbase;
 	}
 	if (overflow)
-		ERROR("Archive value %.*s is out of range\n",
+		ERROR("Archive value %.*s is out of range",
 			(int)digs, where);
 	return value;
 }

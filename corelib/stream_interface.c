@@ -105,7 +105,7 @@ static int extract_file_to_tmp(int fd, const char *fname, unsigned long *poffs)
 	}
 	if (checksum != (uint32_t)fdh.chksum) {
 		close(fdout);
-		ERROR("Checksum WRONG ! Computed 0x%ux, it should be 0x%ux\n",
+		ERROR("Checksum WRONG ! Computed 0x%ux, it should be 0x%ux",
 			(unsigned int)checksum, (unsigned int)fdh.chksum);
 			return -1;
 	}
@@ -158,7 +158,7 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 			}
 
 			if (check_hw_compatibility(software)) {
-				ERROR("SW not compatible with hardware\n");
+				ERROR("SW not compatible with hardware");
 				return -1;
 			}
 			status = STREAM_DATA;
@@ -228,7 +228,7 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 				}
 				break;
 			case INSTALL_FROM_STREAM:
-				TRACE("Installing STREAM %s, %lld bytes\n", img->fname, img->size);
+				TRACE("Installing STREAM %s, %lld bytes", img->fname, img->size);
 				/*
 				 * If we are streaming data to store in a UBI volume, make
 				 * sure that the UBI partitions are adjusted beforehand

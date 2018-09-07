@@ -175,7 +175,7 @@ static void start_swupdate_subprocess(sourcetype type,
 	procs[nprocs].name = name;
 	procs[nprocs].type = type;
 	if (spawn_process(&procs[nprocs], uid, gid, cfgfile, argc, argv, start, cmdline) < 0) {
-		ERROR("Spawning %s failed, exiting process...\n", name);
+		ERROR("Spawning %s failed, exiting process...", name);
 		exit(1);
 	}
 

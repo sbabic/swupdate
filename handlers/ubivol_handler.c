@@ -111,7 +111,7 @@ static int update_volume(libubi_t libubi, struct img_type *img,
 		img->fname, node, img->volname);
 	notify(RUN, RECOVERY_NO_ERROR, INFOLEVEL, sbuf);
 
-	TRACE("Updating UBI : %s %lld\n",
+	TRACE("Updating UBI : %s %lld",
 			img->fname, img->size);
 	if (copyimage(&fdout, img, NULL) < 0) {
 		ERROR("Error copying extracted file");
@@ -215,7 +215,7 @@ static int adjust_volume(struct img_type *cfg,
 			ERROR("Volume %s cannot be dropped", ubivol->vol_info.name);
 			return -1;
 		}
-		TRACE("Removed UBI Volume %s\n", ubivol->vol_info.name);
+		TRACE("Removed UBI Volume %s", ubivol->vol_info.name);
 
 		LIST_REMOVE(ubivol, next);
 		free(ubivol);
@@ -246,7 +246,7 @@ static int adjust_volume(struct img_type *cfg,
 
 	ubivol = (struct ubi_part *)calloc(1, sizeof(struct ubi_part));
 	if (!ubivol) {
-		ERROR("No memory: malloc failed\n");
+		ERROR("No memory: malloc failed");
 		return -ENOMEM;
 	}
 	err = ubi_get_vol_info1(nandubi->libubi,
@@ -258,7 +258,7 @@ static int adjust_volume(struct img_type *cfg,
 		return err;
 	}
 	LIST_INSERT_HEAD(&mtd_info->ubi_partitions, ubivol, next);
-	TRACE("Created UBI Volume %s of %lld bytes (requested %lld)\n",
+	TRACE("Created UBI Volume %s of %lld bytes (requested %lld)",
 		req.name, ubivol->vol_info.data_bytes, req.bytes);
 
 	return 0;

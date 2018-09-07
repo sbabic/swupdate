@@ -80,7 +80,7 @@ static void lua_dump_table(lua_State *L, char *str, struct img_type *img, const 
 					lua_tostring(L, -1),
 					lua_tostring(L, -2));
 				if (img) {
-					TRACE("Inserting property %s[%s] = %s\n",
+					TRACE("Inserting property %s[%s] = %s",
 							key,
 							lua_tostring(L, -1),
 							lua_tostring(L, -2));
@@ -706,12 +706,12 @@ static int l_mount(lua_State *L) {
 		goto l_mount_exit;
 
 	if (asprintf(&target, "%s%sXXXXXX", get_tmpdir(), DATADST_DIR_SUFFIX) == -1) {
-		TRACE("Unable to allocate memory\n");
+		TRACE("Unable to allocate memory");
 		goto l_mount_exit;
 	}
 
 	if (!mkdtemp(target)) {
-		TRACE("Unable to create a unique temporary directory %s: %s\n",
+		TRACE("Unable to create a unique temporary directory %s: %s",
 			target, strerror(errno));
 		goto l_mount_free_exit;
 	}
@@ -743,12 +743,12 @@ static int l_umount(lua_State *L) {
 	const char *target = luaL_checkstring(L, 1);
 
 	if (swupdate_umount(target) == -1) {
-		TRACE("Unable to unmount %s: %s\n", target, strerror(errno));
+		TRACE("Unable to unmount %s: %s", target, strerror(errno));
 		goto l_umount_exit;
 	}
 
 	if (rmdir(target) == -1) {
-		TRACE("Unable to remove directory %s: %s\n", target, strerror(errno));
+		TRACE("Unable to remove directory %s: %s", target, strerror(errno));
 		goto l_umount_exit;
 	}
 
@@ -926,7 +926,7 @@ static int l_handler_wrapper(struct img_type *img, void *data) {
 	image2table(gL, img);
 
 	if (LUA_OK != (res = lua_pcall(gL, 1, 1, 0))) {
-		ERROR("error while executing the Lua callback: %d\n",res);
+		ERROR("error while executing the Lua callback: %d",res);
 		puts(lua_tostring(gL, -1));
 		return -1;
 	}
@@ -938,7 +938,7 @@ static int l_handler_wrapper(struct img_type *img, void *data) {
 	}
 
 	result = lua_tonumber(gL, -1);
-	TRACE("[Lua handler] returned: %d\n",(int)result);
+	TRACE("[Lua handler] returned: %d",(int)result);
 
 	return (int) result;
 }
@@ -955,7 +955,7 @@ static int l_handler_wrapper(struct img_type *img, void *data) {
 static int l_register_handler( lua_State *L ) {
 	int *l_func_ref = malloc(sizeof(int));
 	if(!l_func_ref) {
-		ERROR("Lua handler: unable to allocate memory\n");
+		ERROR("Lua handler: unable to allocate memory");
 		lua_pop(L, 2);
 		return 0;
 	} else {
@@ -1061,7 +1061,7 @@ int lua_handlers_init(void)
 		}
 #endif
 	} else	{
-		WARN("Unable to register Lua context for callbacks\n");
+		WARN("Unable to register Lua context for callbacks");
 	}
 
 	return ret;

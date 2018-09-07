@@ -194,7 +194,7 @@ static int opt_to_hwrev(char *param, struct hw_type *hw)
 	s = strchr(param, ':');
 
 	if (!s) {
-		ERROR("You pass Hardware Revision in wrong format: %s\n",
+		ERROR("You pass Hardware Revision in wrong format: %s",
 				param);
 		return -EINVAL;
 	}
@@ -227,7 +227,7 @@ static int searching_for_image(char *name)
 	fpattern = basename(basec);
 	path = opendir(dir);
 
-	TRACE("Searching image: check %s into %s\n",
+	TRACE("Searching image: check %s into %s",
 			basec, dirc);
 	if (!path) {
 		free(dirc);
@@ -246,7 +246,7 @@ static int searching_for_image(char *name)
 		found = !fnmatch(fpattern, dp->d_name, FNM_CASEFOLD);
 
 		if (found) {
-			TRACE("File found: %s :\n", dp->d_name);
+			TRACE("File found: %s :", dp->d_name);
 			/* Buffer for hexa output */
 			buf = (char *)malloc(3 * strlen(dp->d_name) + 1);
 			if (buf) {
@@ -255,7 +255,7 @@ static int searching_for_image(char *name)
 					memcpy(&buf[3 * i], hex, 3);
 				}
 				buf[3 * strlen(dp->d_name)] = '\0';
-				TRACE("File name (hex): %s\n", buf);
+				TRACE("\nFile name (hex): %s", buf);
 			}
 			/* Take the first one as image */
 			if (fd < 0) {
@@ -265,7 +265,7 @@ static int searching_for_image(char *name)
 				}
 				fd = open(fname, O_RDONLY);
 				if (fd > 0)
-					TRACE("\t\t**Used for upgrade\n");
+					TRACE("\t\t**Used for upgrade");
 			}
 			free(buf);
 		}
@@ -286,7 +286,7 @@ static int install_from_file(char *fname, int check)
 
 
 	if (!strlen(fname)) {
-		ERROR("Image not found...please reboot\n");
+		ERROR("Image not found...please reboot");
 		exit(1);
 	}
 
@@ -294,7 +294,7 @@ static int install_from_file(char *fname, int check)
 	if (fdsw < 0) {
 		fdsw = searching_for_image(fname);
 		if (fdsw < 0) {
-			ERROR("Image Software cannot be read...exiting !\n");
+			ERROR("Image Software cannot be read...exiting !");
 			exit(1);
 		}
 	}
@@ -317,13 +317,13 @@ static int install_from_file(char *fname, int check)
 	sprintf(swdescfilename, "%s%s", get_tmpdir(), SW_DESCRIPTION_FILENAME);
 	ret = parse(&swcfg, swdescfilename);
 	if (ret) {
-		ERROR("failed to parse " SW_DESCRIPTION_FILENAME "!\n");
+		ERROR("failed to parse " SW_DESCRIPTION_FILENAME "!");
 		exit(1);
 	}
 
 
 	if (check_hw_compatibility(&swcfg)) {
-		ERROR("SW not compatible with hardware\n");
+		ERROR("SW not compatible with hardware");
 		exit(1);
 	}
 
@@ -339,12 +339,12 @@ static int install_from_file(char *fname, int check)
 	 */
 	ret = check_provided(&swcfg.images);
 	if (ret) {
-		ERROR("failed to check images!\n");
+		ERROR("failed to check images!");
 		exit(1);
 	}
 	ret = check_provided(&swcfg.scripts);
 	if (ret) {
-		ERROR("failed to check scripts!\n");
+		ERROR("failed to check scripts!");
 		exit(1);
 	}
 
