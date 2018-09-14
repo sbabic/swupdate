@@ -423,6 +423,51 @@ static size_t channel_callback_headers(char *buffer, size_t size, size_t nitems,
 	return nitems * size;
 }
 
+static channel_op_res_t channel_set_content_type(channel_t *this,
+						channel_data_t *channel_data)
+{
+	channel_curl_t *channel_curl = this->priv;
+	const char *content;
+	char *contenttype, *accept;
+	assert(channel_curl->handle != NULL);
+
+	channel_op_res_t result = CHANNEL_OK;
+
+	if (channel_data->content_type && strlen(channel_data->content_type))
+		content = channel_data->content_type;
+	else
+		content = "application/json";
+
+	if (ENOMEM_ASPRINTF ==
+		    asprintf(&contenttype, "Content-Type: %s",
+			    content)) {
+			result = CHANNEL_EINIT;
+			ERROR("OOM when setting Content-type.");
+	}
+
+	if (ENOMEM_ASPRINTF ==
+		    asprintf(&accept, "Accept: %s",
+			    content)) {
+			result = CHANNEL_EINIT;
+			ERROR("OOM when setting Content-type.");
+	}
+
+	if (result == CHANNEL_OK) {
+		if (((channel_curl->header = curl_slist_append(
+			  channel_curl->header, contenttype)) ==
+			     NULL) ||
+			((channel_curl->header = curl_slist_append(
+				  channel_curl->header, accept)) == NULL) ||
+			((channel_curl->header = curl_slist_append(
+				  channel_curl->header, "charsets: utf-8")) == NULL)) {
+			ERROR("Set channel header failed.");
+			result = CHANNEL_EINIT;
+		}
+	}
+
+	return result;
+}
+
 channel_op_res_t channel_set_options(channel_t *this,
 					channel_data_t *channel_data,
 					channel_method_t method)
@@ -667,15 +712,9 @@ static channel_op_res_t channel_post_method(channel_t *this, void *data)
 		curl_easy_setopt(channel_curl->handle, CURLOPT_VERBOSE, 1L);
 	}
 
-	if (((channel_curl->header = curl_slist_append(
-		  channel_curl->header, "Content-Type: application/json")) ==
-	     NULL) ||
-	    ((channel_curl->header = curl_slist_append(
-		  channel_curl->header, "Accept: application/json")) == NULL) ||
-	    ((channel_curl->header = curl_slist_append(
-		  channel_curl->header, "charsets: utf-8")) == NULL)) {
-		ERROR("Set channel header failed.");
-		result = CHANNEL_EINIT;
+	if ((result = channel_set_content_type(this, channel_data)) !=
+	    CHANNEL_OK) {
+		ERROR("Set content-type option failed.");
 		goto cleanup_header;
 	}
 
@@ -729,15 +768,9 @@ static channel_op_res_t channel_put_method(channel_t *this, void *data)
 		curl_easy_setopt(channel_curl->handle, CURLOPT_VERBOSE, 1L);
 	}
 
-	if (((channel_curl->header = curl_slist_append(
-		  channel_curl->header, "Content-Type: application/json")) ==
-	     NULL) ||
-	    ((channel_curl->header = curl_slist_append(
-		  channel_curl->header, "Accept: application/json")) == NULL) ||
-	    ((channel_curl->header = curl_slist_append(
-		  channel_curl->header, "charsets: utf-8")) == NULL)) {
-		ERROR("Set channel header failed.");
-		result = CHANNEL_EINIT;
+	if ((result = channel_set_content_type(this, channel_data)) !=
+	    CHANNEL_OK) {
+		ERROR("Set content-type option failed.");
 		goto cleanup_header;
 	}
 
@@ -1013,15 +1046,9 @@ channel_op_res_t channel_get(channel_t *this, void *data)
 		curl_easy_setopt(channel_curl->handle, CURLOPT_VERBOSE, 1L);
 	}
 
-	if (((channel_curl->header = curl_slist_append(
-		  channel_curl->header, "Content-Type: application/json")) ==
-	     NULL) ||
-	    ((channel_curl->header = curl_slist_append(
-		  channel_curl->header, "Accept: application/json")) == NULL) ||
-	    ((channel_curl->header = curl_slist_append(
-		  channel_curl->header, "charsets: utf-8")) == NULL)) {
-		result = CHANNEL_EINIT;
-		ERROR("Set channel header failed.");
+	if ((result = channel_set_content_type(this, channel_data)) !=
+	    CHANNEL_OK) {
+		ERROR("Set content-type option failed.");
 		goto cleanup_header;
 	}
 

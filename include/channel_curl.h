@@ -48,6 +48,7 @@ typedef struct {
 	char *proxy;
 	char *info;
 	char *header;
+	const char *content_type;
 	unsigned int retry_sleep;
 	unsigned int offs;
 	unsigned int method;
