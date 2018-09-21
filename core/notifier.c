@@ -259,6 +259,7 @@ static void *notifier_thread (void __attribute__ ((__unused__)) *data)
 {
 	int serverfd;
 	int len;
+	int attempt = 0;
 	struct notify_ipc_msg msg;
 
 	/* Initialize and bind to UDS */
@@ -272,12 +273,27 @@ static void *notifier_thread (void __attribute__ ((__unused__)) *data)
 	setup_socket_cleanup(&notify_server);
 #endif
 
-	if (bind(serverfd, (const struct sockaddr *) &notify_server,
+	int len_socket_name = strlen(&notify_server.sun_path[1]);
+
+	do {
+		errno = 0;
+		if (bind(serverfd, (const struct sockaddr *) &notify_server,
 			sizeof(struct sockaddr_un)) < 0) {
-		fprintf(stderr, "Error binding notifier socket: %s, exiting.\n", strerror(errno));
-		close(serverfd);
-		exit(2);
-	}
+			if (errno == EADDRINUSE && attempt < 10) {
+				attempt++;
+				/*
+				 * Start increasing the socket as
+				 * NotifyServer1, NotifyServer2...
+				 */
+				notify_server.sun_path[len_socket_name + 1] = '0' + attempt;
+			} else {
+				fprintf(stderr, "Error binding notifier socket: %s, exiting.\n", strerror(errno));
+				close(serverfd);
+				exit(2);
+			}
+		} else
+			break;
+	} while (1);
 
 	do {
 		len =  recvfrom(serverfd, &msg, sizeof(msg), 0, NULL, NULL);
@@ -291,7 +307,6 @@ static void *notifier_thread (void __attribute__ ((__unused__)) *data)
 
 void notify_init(void)
 {
-	addr_init(&notify_server, "NotifyServer");
 
 #ifdef CONFIG_SYSTEMD
 	/*
@@ -341,6 +356,12 @@ void notify_init(void)
 			return;
 		}
 	} else {
+		/*
+		 * If this is the main process, start setting the name of the
+		 * socket. This can changed if more as one instance of swupdate
+		 * is started (name adjusted to avoid adrress is in use)
+		 */
+		addr_init(&notify_server, "NotifyServer");
 		STAILQ_INIT(&clients);
 		register_notifier(console_notifier);
 		register_notifier(process_notifier);
