@@ -135,7 +135,7 @@ static int input_step(void *state, void *buffer, size_t size)
 		size = s->nbytes;
 	}
 	int ret = fill_buffer(s->fdin, buffer, size, s->offs, &s->checksum, s->dgst);
-	if (ret < 0) {
+	if (ret <= 0) {
 		return ret;
 	}
 	s->nbytes -= size;
@@ -173,6 +173,8 @@ static int decrypt_step(void *state, void *buffer, size_t size)
 	ret = s->upstream_step(s->upstream_state, s->input, sizeof s->input);
 	if (ret < 0) {
 		return ret;
+	} else if (ret == 0) {
+		s->eof = true;
 	}
 
 	inlen = ret;
@@ -234,6 +236,8 @@ static int gunzip_step(void *state, void *buffer, size_t size)
 			ret = s->upstream_step(s->upstream_state, s->input, sizeof s->input);
 			if (ret < 0) {
 				return ret;
+			} else if (ret == 0) {
+				s->eof = true;
 			}
 			s->strm.avail_in = ret;
 			s->strm.next_in = s->input;
@@ -317,7 +321,7 @@ int copyfile(int fdin, void *out, unsigned int nbytes, unsigned long *offs, unsi
 		if (!input_state.dgst)
 			return -EFAULT;
 	}
- 
+
 	if (encrypted) {
 		aes_key = get_aes_key();
 		ivt = get_aes_ivt();
