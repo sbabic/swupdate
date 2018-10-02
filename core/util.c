@@ -16,9 +16,11 @@
 #include <sys/stat.h>
 #include <sys/param.h>
 #include <sys/mount.h>
+#include <sys/time.h>
 #include <sys/uio.h>
 #include <dirent.h>
 #include <limits.h>
+#include <time.h>
 
 #include "swupdate.h"
 #include "util.h"
@@ -566,3 +568,38 @@ int swupdate_umount(const char *dir)
 #endif
 }
 
+/*
+ * Date time in SWUpdate
+ * @return : date in ISO8601 (it must be freed by caller)
+ */
+char *swupdate_time_iso8601(void)
+{
+	#define DATE_SIZE_ISO8601	128
+	struct timeval now;
+	int ms;
+	char msbuf[4];
+	/* date length is fix, reserve enough space */
+	char *buf = (char *)malloc(DATE_SIZE_ISO8601);
+
+	if (!buf)
+		return NULL;
+
+	gettimeofday(&now, NULL);
+	ms = now.tv_usec / 1000;
+
+	(void)strftime(buf, DATE_SIZE_ISO8601, "%Y-%m-%dT%T.***%z", localtime(&now.tv_sec));
+
+	/*
+	 * Replace '*' placeholder with ms value
+	 */
+	snprintf(msbuf, sizeof(msbuf), "%03d", ms);
+	memcpy(strchr(buf, '*'), msbuf, 3);
+
+	/*
+	 * strftime add 4 bytes for timezone, ISO8601 uses
+	 * +hh notation. Drop the last two bytes.
+	 */
+	buf[strlen(buf) - 2] = '\0';
+
+	return buf;
+}
