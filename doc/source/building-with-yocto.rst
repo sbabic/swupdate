@@ -92,6 +92,16 @@ For example, to add sha256 to the standard Yocto core-image-full-cmdline:
 
 The name of the file must be the same as in deploy directory.
 
+BitBake variable expansion in sw-description
+--------------------------------------------
+
+To insert the value of a BitBake variable into the update file, pre- and
+postfix the variable name with "@@".
+For example, to automatically set the version tag:
+
+::
+
+        version = "@@DISTRO_VERSION@@";
 
 Template for recipe using the class
 -----------------------------------
