@@ -152,7 +152,7 @@ static int extract_scripts(int fd, struct imglist *head, int fromfile)
 	return 0;
 }
 
-static int prepare_boot_script(struct swupdate_cfg *cfg, const char *script)
+static int update_bootloader_env(struct swupdate_cfg *cfg, const char *script)
 {
 	int fd;
 	int ret = 0;
@@ -171,12 +171,16 @@ static int prepare_boot_script(struct swupdate_cfg *cfg, const char *script)
 			continue;
 		snprintf(buf, sizeof(buf), "%s %s\n", key, value);
 		if (write(fd, buf, strlen(buf)) != (ssize_t)strlen(buf)) {
-			  TRACE("Error saving temporary file");
-			  ret = -1;
-			  break;
+			  TRACE("Error saving temporary bootloader environment file");
+			  close(fd);
+			  return -1;
 		}
 	}
 	close(fd);
+
+	if ((ret = bootloader_apply_list(script)) < 0) {
+		ERROR("Bootloader-specific error %d updating its environment", ret);
+	}
 	return ret;
 }
 
@@ -199,20 +203,6 @@ static int run_prepost_scripts(struct imglist *list, script_fn type)
 	}
 
 	return 0;
-}
-
-static int update_bootloader_env(void)
-{
-	int ret = 0;
-
-	TRACE("Updating bootloader environment");
-	char* bootscript = alloca(strlen(get_tmpdir())+strlen(BOOT_SCRIPT_SUFFIX)+1);
-	sprintf(bootscript, "%s%s", get_tmpdir(), BOOT_SCRIPT_SUFFIX);
-	ret = bootloader_apply_list(bootscript);
-	if (ret < 0)
-		ERROR("Error updating bootloader environment");
-
-	return ret;
 }
 
 int install_single_image(struct img_type *img, int dry_run)
@@ -280,14 +270,6 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 			ERROR("execute preinstall scripts failed");
 			return ret;
 		}
-	}
-
-	/* Update u-boot environment */
-	char* bootscript = alloca(strlen(TMPDIR)+strlen(BOOT_SCRIPT_SUFFIX)+1);
-	sprintf(bootscript, "%s%s", TMPDIR, BOOT_SCRIPT_SUFFIX);
-	ret = prepare_boot_script(sw, bootscript);
-	if (ret) {
-		return ret;
 	}
 
 	LIST_FOREACH(img, &sw->images, next) {
@@ -373,8 +355,14 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 		return ret;
 	}
 
-	if (!LIST_EMPTY(&sw->bootloader))
-		ret = update_bootloader_env();
+	if (!LIST_EMPTY(&sw->bootloader)) {
+		char* bootscript = alloca(strlen(TMPDIR)+strlen(BOOT_SCRIPT_SUFFIX)+1);
+		sprintf(bootscript, "%s%s", TMPDIR, BOOT_SCRIPT_SUFFIX);
+		ret = update_bootloader_env(sw, bootscript);
+		if (ret) {
+			return ret;
+		}
+	}
 
 	ret |= run_prepost_scripts(&sw->bootscripts, POSTINSTALL);
 
