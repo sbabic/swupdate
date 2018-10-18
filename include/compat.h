@@ -31,4 +31,9 @@
  * 61 on FreeBSD is ECONNREFUSED.
  */
 #define ENODATA ENOATTR
+
+/*
+ * The BSDs don't define this while Linux does.
+ */
+#define __u64 uint64_t
 #endif

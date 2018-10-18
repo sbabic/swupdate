@@ -10,7 +10,9 @@
 
 #include <stdint.h>
 #include <string.h>
+#if defined(__linux__)
 #include <linux/types.h>
+#endif
 #include "swupdate.h"
 #include "swupdate_status.h"
 #include "compat.h"

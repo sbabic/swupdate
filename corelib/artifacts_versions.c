@@ -13,7 +13,10 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <sys/stat.h>
+#if defined(__linux__)
 #include <linux/types.h>
+#endif
+#include <compat.h>
 #include <limits.h>
 #include <assert.h>
 #include "generated/autoconf.h"
