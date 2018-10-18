@@ -519,7 +519,7 @@ clean: $(clean-dirs)
 		-o -name '.*.d' -o -name '.*.tmp' -o -name '*.mod.c' \
 		-o -name modules.builtin -o -name '.tmp_*.o.*' \
 		-o -name '*.gcno' \) -type f -print | xargs rm -f
-	@make -C doc clean
+	@$(MAKE) -C doc clean
 
 # mrproper - Delete all generated files, including .config
 #
@@ -576,7 +576,7 @@ FORCE:
 
 dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub \
 latex latexpdf text man changes linkcheck html doctest:
-	@make -C doc $@
+	@$(MAKE) -C doc $@
 
 # Declare the contents of the .PHONY variable as phony.  We keep that
 # information in a variable so we can use it in if_changed and friends.
