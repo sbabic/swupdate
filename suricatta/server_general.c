@@ -36,6 +36,7 @@
 #include "server_general.h"
 #include <progress_ipc.h>
 #include <pctl.h>
+#include <pthread.h>
 
 /* Prototypes for "public" functions */
 void server_print_help(void);
