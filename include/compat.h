@@ -23,6 +23,10 @@
 	}))
 #endif
 
+#ifndef strdupa
+#define strdupa(s) strndupa(s, strlen(s))
+#endif
+
 #if defined(__FreeBSD__)
 /*
  * Define ENODATA (61 - No data available) to
