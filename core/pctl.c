@@ -49,10 +49,12 @@ int pid = 0;
 
 int sw_sockfd = -1;
 
+#if defined(__linux__)
 static void parent_dead_handler(int __attribute__ ((__unused__)) dummy)
 {
 	exit(1);
 }
+#endif
 
 /*
  * This is used to spawn internal threads
