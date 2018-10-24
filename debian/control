@@ -2,7 +2,7 @@ Source: swupdate
 Section: embedded
 Priority: optional
 Maintainer: Stefano Babic <sbabic@denx.de>
-Build-Depends: debhelper (>=11), libconfig9, latexmk, libconfig-dev, libarchive-dev, libmtdev-dev
+Build-Depends: debhelper (>=11), libconfig9, latexmk, libconfig-dev, libarchive-dev
 Standards-Version: 4.2.1
 Homepage: http://sbabic.github.io/swupdate
 #Vcs-Git: git://anonscm.debian.org/collab-maint/swupdate.git
