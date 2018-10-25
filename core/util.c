@@ -497,6 +497,16 @@ unsigned int count_string_array(const char **nodes)
 	return count;
 }
 
+void free_string_array(char **nodes)
+{
+	char **iter;
+	if (!nodes)
+		return;
+	for (iter = nodes; *iter != NULL; iter++)
+		free(*iter);
+	free(nodes);
+}
+
 unsigned long long ustrtoull(const char *cp, unsigned int base)
 {
 	errno = 0;
