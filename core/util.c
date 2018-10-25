@@ -481,6 +481,22 @@ char** string_split(const char* in, const char d)
 	return result;
 }
 
+/*
+ * Count number of elements in an array of strings
+ * Last item must have a NULL terminator
+ */
+unsigned int count_string_array(const char **nodes)
+{
+	const char **iter = nodes;
+	int count = 0;
+
+	while (*iter != NULL) {
+		iter++;
+		count++;
+	}
+	return count;
+}
+
 unsigned long long ustrtoull(const char *cp, unsigned int base)
 {
 	errno = 0;

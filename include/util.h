@@ -179,6 +179,7 @@ void get_sw_versions(char *cfgfname, struct swupdate_cfg *sw);
 __u64 version_to_number(const char *version_string);
 int check_hw_compatibility(struct swupdate_cfg *cfg);
 int count_elem_list(struct imglist *list);
+unsigned int count_string_array(const char **nodes);
 
 /* Decryption key functions */
 int load_decryption_key(char *fname);
