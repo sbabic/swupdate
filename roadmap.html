@@ -8,12 +8,14 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Project’s road-map &mdash; Embedded Software Update Documentation 2018.03 documentation</title>
+  <title>Project&#39;s road-map &mdash; Embedded Software Update Documentation 2018.11 documentation</title>
   
 
   
   
     <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
+  
+  
   
 
   
@@ -32,7 +34,10 @@
   
 
   
-    <link rel="top" title="Embedded Software Update Documentation 2018.03 documentation" href="index.html"/>
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="Embedded Software Update Documentation 2018.11 documentation" href="index.html"/>
         <link rel="prev" title="Contributing to SWUpdate" href="contributing.html"/> 
 
   
@@ -42,6 +47,7 @@
 
 <body class="wy-body-for-nav" role="document">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -61,7 +67,7 @@
             
             
               <div class="version">
-                2018.03
+                2018.11
               </div>
             
           
@@ -82,7 +88,10 @@
           
             
             
-                <ul>
+              
+            
+            
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Software Management on embedded systems</a></li>
 <li class="toctree-l1"><a class="reference internal" href="licensing.html">License</a></li>
 </ul>
@@ -103,7 +112,7 @@
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to SWUpdate</a></li>
 </ul>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="">Project&#8217;s road-map</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Project's road-map</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#main-goal">Main goal</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#swupdate-as-updater-gateway">SWUpdate as Updater Gateway</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#binary-delta-updates">Binary delta updates</a></li>
@@ -136,8 +145,10 @@
 
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="index.html">Embedded Software Update Documentation</a>
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Embedded Software Update Documentation</a>
+        
       </nav>
 
 
@@ -146,30 +157,47 @@
         <div class="rst-content">
           
 
- 
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="index.html">Docs</a> &raquo;</li>
-      
-    <li>Project&#8217;s road-map</li>
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Project's road-map</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
-            <a href="_sources/roadmap.txt" rel="nofollow"> View page source</a>
+            
+            <a href="_sources/roadmap.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
   <div class="section" id="project-s-road-map">
-<h1>Project&#8217;s road-map<a class="headerlink" href="#project-s-road-map" title="Permalink to this headline">¶</a></h1>
+<h1>Project's road-map<a class="headerlink" href="#project-s-road-map" title="Permalink to this headline">¶</a></h1>
 <p>Please take into account that most of the items here are proposals.
 I get some ideas talking with customers, some ideas are my own thoughts.
 There is no plan when these features will be implemented - this depends
@@ -253,7 +281,7 @@ handlers will be merged into mainline in the future.</p>
 <div class="section" id="flash-handler">
 <h3>Flash handler<a class="headerlink" href="#flash-handler" title="Permalink to this headline">¶</a></h3>
 <p>The flash handler for raw-devices (mainly NOR flashes) does not allow to
-stream the image and an error is reported if &#8220;installed-directly&#8221; is set.
+stream the image and an error is reported if &quot;installed-directly&quot; is set.
 The handler can be extended to stream images.</p>
 </div>
 <div class="section" id="handlers-installable-as-plugin-at-runtime">
@@ -280,9 +308,9 @@ Raspberri PI 3 and Wandboard. Maybe some more boards ?</p>
 <h2>Backend support (suricatta mode)<a class="headerlink" href="#backend-support-suricatta-mode" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="backend-offline-support">
 <h3>Backend: Offline support<a class="headerlink" href="#backend-offline-support" title="Permalink to this headline">¶</a></h3>
-<p>There are several discussions on Hawkbit&#8217;s ML about how to synchronize
+<p>There are several discussions on Hawkbit's ML about how to synchronize
 an offline update (done locally or via the internal Webserver) with
-the Hawkbit&#8217;s server. Currently, Hawkbit thinks to be the only one
+the Hawkbit's server. Currently, Hawkbit thinks to be the only one
 deploying software. Hawkbit DDI API should be extended, and afterwards
 changes must be implemented in SWUpdate.</p>
 </div>
@@ -297,7 +325,7 @@ backend solution.</p>
 </div>
 <div class="section" id="support-for-multiple-servers-simultaneously">
 <h3>Support for multiple Servers simultaneously<a class="headerlink" href="#support-for-multiple-servers-simultaneously" title="Permalink to this headline">¶</a></h3>
-<p>Currently, suricatta&#8217;s server backends are a mutually exclusive
+<p>Currently, suricatta's server backends are a mutually exclusive
 compile-time choice. A proxy registrar and dispatcher should be plugged
 into the architecture to allow for different channels and server
 backends to be mixed and matched at run-time.</p>
@@ -310,7 +338,7 @@ it becomes urgent to find a way to test all incoming patch to fix regression iss
 One step in this direction is the support for Travis build - a set of configuration
 files is stored with the project and should help to find fast breakages in the build.
 More in this direction must be done to perform test on targets. A suitable test framework
-should be found. Scope is to have a &#8220;SWUpdate factory&#8221; where patches are fast integrated
+should be found. Scope is to have a &quot;SWUpdate factory&quot; where patches are fast integrated
 and tested on real hardware.</p>
 </div>
 <div class="section" id="documentation">
@@ -322,13 +350,16 @@ how to set it up with different configurations.</p>
 
 
            </div>
+           <div class="articleComments">
+            
+           </div>
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
       
-        <a href="contributing.html" class="btn btn-neutral" title="Contributing to SWUpdate" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="contributing.html" class="btn btn-neutral" title="Contributing to SWUpdate" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -359,10 +390,11 @@ how to set it up with different configurations.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'2018.03',
+            VERSION:'2018.11',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="_static/jquery.js"></script>

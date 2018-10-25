@@ -8,12 +8,14 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Updating an embedded system &mdash; Embedded Software Update Documentation 2018.03 documentation</title>
+  <title>Updating an embedded system &mdash; Embedded Software Update Documentation 2018.11 documentation</title>
   
 
   
   
     <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
+  
+  
   
 
   
@@ -32,7 +34,10 @@
   
 
   
-    <link rel="top" title="Embedded Software Update Documentation 2018.03 documentation" href="#"/>
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="Embedded Software Update Documentation 2018.11 documentation" href="#"/>
         <link rel="next" title="Software Management on embedded systems" href="overview.html"/> 
 
   
@@ -42,6 +47,7 @@
 
 <body class="wy-body-for-nav" role="document">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -61,7 +67,7 @@
             
             
               <div class="version">
-                2018.03
+                2018.11
               </div>
             
           
@@ -82,7 +88,10 @@
           
             
             
-                <ul>
+              
+            
+            
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Software Management on embedded systems</a></li>
 <li class="toctree-l1"><a class="reference internal" href="licensing.html">License</a></li>
 </ul>
@@ -103,7 +112,7 @@
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to SWUpdate</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project&#8217;s road-map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project's road-map</a></li>
 </ul>
 
             
@@ -116,8 +125,10 @@
 
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="#">Embedded Software Update Documentation</a>
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">Embedded Software Update Documentation</a>
+        
       </nav>
 
 
@@ -126,23 +137,40 @@
         <div class="rst-content">
           
 
- 
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="#">Docs</a> &raquo;</li>
-      
-    <li>Updating an embedded system</li>
+    
+      <li><a href="#">Docs</a> &raquo;</li>
+        
+      <li>Updating an embedded system</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
-            <a href="_sources/index.txt" rel="nofollow"> View page source</a>
+            
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -212,6 +240,7 @@ Sources are hosted at <a class="reference external" href="https://github.com/sba
 </li>
 <li class="toctree-l1"><a class="reference internal" href="encrypted_images.html">Symmetrically Encrypted Update Images</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="encrypted_images.html#building-an-encrypted-swu-image">Building an Encrypted SWU Image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="encrypted_images.html#encryption-of-ubi-volumes">Encryption of UBI volumes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="encrypted_images.html#example-sw-description-with-encrypted-image">Example sw-description with Encrypted Image</a></li>
 <li class="toctree-l2"><a class="reference internal" href="encrypted_images.html#running-swupdate-with-encrypted-images">Running SWUpdate with Encrypted Images</a></li>
 </ul>
@@ -224,6 +253,7 @@ Sources are hosted at <a class="reference external" href="https://github.com/sba
 <li class="toctree-l2"><a class="reference internal" href="handlers.html#lua-handlers">Lua Handlers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="handlers.html#remote-handler">Remote handler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="handlers.html#swu-forwarder">SWU forwarder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="handlers.html#ucfw-handler">ucfw handler</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="mongoose.html">Mongoose daemon mode</a><ul>
@@ -239,6 +269,7 @@ Sources are hosted at <a class="reference external" href="https://github.com/sba
 <li class="toctree-l2"><a class="reference internal" href="suricatta.html#introduction">Introduction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="suricatta.html#running-suricatta">Running suricatta</a></li>
 <li class="toctree-l2"><a class="reference internal" href="suricatta.html#supporting-different-servers">Supporting different Servers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="suricatta.html#support-for-general-purpose-http-server">Support for general purpose HTTP server</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">SWUpdate: API for external programs</a><ul>
@@ -273,7 +304,7 @@ Sources are hosted at <a class="reference external" href="https://github.com/sba
 </li>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to SWUpdate</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="contributing.html#contribution-checklist">Contribution Checklist</a></li>
-<li class="toctree-l2"><a class="reference internal" href="contributing.html#developer-s-certificate-of-origin-1-1">Developer&#8217;s Certificate of Origin 1.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#developer-s-certificate-of-origin-1-1">Developer's Certificate of Origin 1.1</a></li>
 </ul>
 </li>
 </ul>
@@ -283,7 +314,7 @@ Sources are hosted at <a class="reference external" href="https://github.com/sba
 <h1>Roadmap<a class="headerlink" href="#roadmap" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project&#8217;s road-map</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project's road-map</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="roadmap.html#main-goal">Main goal</a></li>
 <li class="toctree-l2"><a class="reference internal" href="roadmap.html#swupdate-as-updater-gateway">SWUpdate as Updater Gateway</a></li>
 <li class="toctree-l2"><a class="reference internal" href="roadmap.html#binary-delta-updates">Binary delta updates</a></li>
@@ -299,21 +330,24 @@ Sources are hosted at <a class="reference external" href="https://github.com/sba
 <div class="section" id="indices-and-tables">
 <h2>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li><a class="reference internal" href="genindex.html"><span>Index</span></a></li>
-<li><a class="reference internal" href="py-modindex.html"><span>Module Index</span></a></li>
-<li><a class="reference internal" href="search.html"><span>Search Page</span></a></li>
+<li><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></li>
+<li><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></li>
+<li><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></li>
 </ul>
 </div>
 </div>
 
 
            </div>
+           <div class="articleComments">
+            
+           </div>
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="overview.html" class="btn btn-neutral float-right" title="Software Management on embedded systems" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="overview.html" class="btn btn-neutral float-right" title="Software Management on embedded systems" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
     </div>
@@ -345,10 +379,11 @@ Sources are hosted at <a class="reference external" href="https://github.com/sba
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'2018.03',
+            VERSION:'2018.11',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="_static/jquery.js"></script>

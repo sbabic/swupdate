@@ -8,12 +8,14 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Mongoose daemon mode &mdash; Embedded Software Update Documentation 2018.03 documentation</title>
+  <title>Mongoose daemon mode &mdash; Embedded Software Update Documentation 2018.11 documentation</title>
   
 
   
   
     <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
+  
+  
   
 
   
@@ -32,7 +34,10 @@
   
 
   
-    <link rel="top" title="Embedded Software Update Documentation 2018.03 documentation" href="index.html"/>
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="Embedded Software Update Documentation 2018.11 documentation" href="index.html"/>
         <link rel="next" title="Suricatta daemon mode" href="suricatta.html"/>
         <link rel="prev" title="Handlers" href="handlers.html"/> 
 
@@ -43,6 +48,7 @@
 
 <body class="wy-body-for-nav" role="document">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -62,7 +68,7 @@
             
             
               <div class="version">
-                2018.03
+                2018.11
               </div>
             
           
@@ -83,7 +89,10 @@
           
             
             
-                <ul>
+              
+            
+            
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Software Management on embedded systems</a></li>
 <li class="toctree-l1"><a class="reference internal" href="licensing.html">License</a></li>
 </ul>
@@ -93,7 +102,7 @@
 <li class="toctree-l1"><a class="reference internal" href="signed_images.html">Update images from verified source</a></li>
 <li class="toctree-l1"><a class="reference internal" href="encrypted_images.html">Symmetrically Encrypted Update Images</a></li>
 <li class="toctree-l1"><a class="reference internal" href="handlers.html">Handlers</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="">Mongoose daemon mode</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Mongoose daemon mode</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#startup">Startup</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#example">Example</a></li>
@@ -112,7 +121,7 @@
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to SWUpdate</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project&#8217;s road-map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project's road-map</a></li>
 </ul>
 
             
@@ -125,8 +134,10 @@
 
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="index.html">Embedded Software Update Documentation</a>
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Embedded Software Update Documentation</a>
+        
       </nav>
 
 
@@ -135,23 +146,40 @@
         <div class="rst-content">
           
 
- 
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="index.html">Docs</a> &raquo;</li>
-      
-    <li>Mongoose daemon mode</li>
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Mongoose daemon mode</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
-            <a href="_sources/mongoose.txt" rel="nofollow"> View page source</a>
+            
+            <a href="_sources/mongoose.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -177,12 +205,12 @@ and <a class="reference external" href="https://gulpjs.com/">gulp</a> as build t
 <h2>Startup<a class="headerlink" href="#startup" title="Permalink to this headline">¶</a></h2>
 <p>After having configured and compiled SWUpdate with enabled mongoose web
 server and web interface version 2 support,</p>
-<div class="code bash highlight-python"><div class="highlight"><pre>./swupdate --help
+<div class="code bash highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">swupdate</span> <span class="o">--</span><span class="n">help</span>
 </pre></div>
 </div>
 <p>lists the mandatory and optional arguments to be provided to mongoose.
 As an example,</p>
-<div class="code bash highlight-python"><div class="highlight"><pre>./swupdate -l 5 -w &#39;-r ./examples/www/v2 -p 8080&#39; -p &#39;reboot&#39;
+<div class="code bash highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">swupdate</span> <span class="o">-</span><span class="n">l</span> <span class="mi">5</span> <span class="o">-</span><span class="n">w</span> <span class="s1">&#39;-r ./examples/www/v2 -p 8080&#39;</span> <span class="o">-</span><span class="n">p</span> <span class="s1">&#39;reboot&#39;</span>
 </pre></div>
 </div>
 <p>runs SWUpdate in mongoose daemon mode with log-level <code class="docutils literal"><span class="pre">TRACE</span></code> and a web
@@ -213,22 +241,22 @@ SWUpdate project with enabled mongoose web server and web application
 interface version 2 support.</p>
 <ol class="arabic">
 <li><p class="first">Enter the web application directory:</p>
-<div class="highlight-python"><div class="highlight"><pre>cd ./web-app
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="o">./</span><span class="n">web</span><span class="o">-</span><span class="n">app</span>
 </pre></div>
 </div>
 </li>
 <li><p class="first">Install the dependencies:</p>
-<div class="highlight-python"><div class="highlight"><pre>npm install
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">npm</span> <span class="n">install</span>
 </pre></div>
 </div>
 </li>
 <li><p class="first">Build the web application:</p>
-<div class="highlight-python"><div class="highlight"><pre>npm run build
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">npm</span> <span class="n">run</span> <span class="n">build</span>
 </pre></div>
 </div>
 </li>
 <li><p class="first">Start the web application:</p>
-<div class="highlight-python"><div class="highlight"><pre>../swupdate -w &#39;-r ./dist -p 8080&#39; -p &#39;echo reboot&#39;
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">../</span><span class="n">swupdate</span> <span class="o">-</span><span class="n">w</span> <span class="s1">&#39;-r ./dist -p 8080&#39;</span> <span class="o">-</span><span class="n">p</span> <span class="s1">&#39;echo reboot&#39;</span>
 </pre></div>
 </div>
 </li>
@@ -238,7 +266,7 @@ interface version 2 support.</p>
 </div></blockquote>
 </li>
 <li><p class="first">Pack the web application (optional):</p>
-<div class="highlight-python"><div class="highlight"><pre>npm run package -- --output swupdate-www.tar.gz
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">npm</span> <span class="n">run</span> <span class="n">package</span> <span class="o">--</span> <span class="o">--</span><span class="n">output</span> <span class="n">swupdate</span><span class="o">-</span><span class="n">www</span><span class="o">.</span><span class="n">tar</span><span class="o">.</span><span class="n">gz</span>
 </pre></div>
 </div>
 </li>
@@ -247,7 +275,7 @@ interface version 2 support.</p>
 <div class="section" id="contribute">
 <h2>Contribute<a class="headerlink" href="#contribute" title="Permalink to this headline">¶</a></h2>
 <p>Please run the linter before any commit</p>
-<div class="code bash highlight-python"><div class="highlight"><pre>npm run lint
+<div class="code bash highlight-default"><div class="highlight"><pre><span></span><span class="n">npm</span> <span class="n">run</span> <span class="n">lint</span>
 </pre></div>
 </div>
 </div>
@@ -255,15 +283,18 @@ interface version 2 support.</p>
 
 
            </div>
+           <div class="articleComments">
+            
+           </div>
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="suricatta.html" class="btn btn-neutral float-right" title="Suricatta daemon mode" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="suricatta.html" class="btn btn-neutral float-right" title="Suricatta daemon mode" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="handlers.html" class="btn btn-neutral" title="Handlers" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="handlers.html" class="btn btn-neutral" title="Handlers" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -294,10 +325,11 @@ interface version 2 support.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'2018.03',
+            VERSION:'2018.11',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="_static/jquery.js"></script>

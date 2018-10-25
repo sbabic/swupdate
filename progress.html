@@ -8,12 +8,14 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Getting information on running update &mdash; Embedded Software Update Documentation 2018.03 documentation</title>
+  <title>Getting information on running update &mdash; Embedded Software Update Documentation 2018.11 documentation</title>
   
 
   
   
     <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
+  
+  
   
 
   
@@ -32,7 +34,10 @@
   
 
   
-    <link rel="top" title="Embedded Software Update Documentation 2018.03 documentation" href="index.html"/>
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="Embedded Software Update Documentation 2018.11 documentation" href="index.html"/>
         <link rel="next" title="meta-swupdate: building with Yocto" href="building-with-yocto.html"/>
         <link rel="prev" title="SWUpdate: API for external programs" href="swupdate-ipc.html"/> 
 
@@ -43,6 +48,7 @@
 
 <body class="wy-body-for-nav" role="document">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -62,7 +68,7 @@
             
             
               <div class="version">
-                2018.03
+                2018.11
               </div>
             
           
@@ -83,7 +89,10 @@
           
             
             
-                <ul>
+              
+            
+            
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Software Management on embedded systems</a></li>
 <li class="toctree-l1"><a class="reference internal" href="licensing.html">License</a></li>
 </ul>
@@ -96,7 +105,7 @@
 <li class="toctree-l1"><a class="reference internal" href="mongoose.html">Mongoose daemon mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">SWUpdate: API for external programs</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="">Getting information on running update</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Getting information on running update</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#api-description">API Description</a></li>
 </ul>
 </li>
@@ -107,7 +116,7 @@
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to SWUpdate</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project&#8217;s road-map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project's road-map</a></li>
 </ul>
 
             
@@ -120,8 +129,10 @@
 
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="index.html">Embedded Software Update Documentation</a>
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Embedded Software Update Documentation</a>
+        
       </nav>
 
 
@@ -130,23 +141,40 @@
         <div class="rst-content">
           
 
- 
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="index.html">Docs</a> &raquo;</li>
-      
-    <li>Getting information on running update</li>
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Getting information on running update</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
-            <a href="_sources/progress.txt" rel="nofollow"> View page source</a>
+            
+            <a href="_sources/progress.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -159,7 +187,7 @@ update and not just to return if the update was successful or not.
 For example, if the target has a display or a remote interface,
 it can be forwarded which is reached percentage of the update
 to let estimate how much the update will still run.
-SWUpdate has an interface for this (&#8220;progress API&#8221;). An external
+SWUpdate has an interface for this (&quot;progress API&quot;). An external
 process can register itself with SWUpdate, and it will receive
 notifications when something in the update was changed. This is
 different from the IPC API, because the last one is mainly used to transfer
@@ -168,24 +196,24 @@ if the update is still running.</p>
 <div class="section" id="api-description">
 <h2>API Description<a class="headerlink" href="#api-description" title="Permalink to this headline">¶</a></h2>
 <p>An external process registers itself to SWUpdate with a connect()
-request to the domain socket &#8220;/tmp/swupdateprog&#8221; as per default
+request to the domain socket &quot;/tmp/swupdateprog&quot; as per default
 configuration of SWUpdate. There is no information to send, and
 SWUpdate simply inserts the new connection into the list of processes
 to be informed. SWUpdate will send a frame back after any change in
 the update process with the following data (see include/progress_ipc.h):</p>
-<div class="highlight-python"><div class="highlight"><pre>struct progress_msg {
-        unsigned int    magic;          /* Magic Number */
-        unsigned int    status;         /* Update Status (Running, Failure) */
-        unsigned int    dwl_percent;    /* % downloaded data */
-        unsigned int    nsteps;         /* No. total of steps */
-        unsigned int    cur_step;       /* Current step index */
-        unsigned int    cur_percent;    /* % in current step */
-        char            cur_image[256]; /* Name of image to be installed */
-        char            hnd_name[64];   /* Name of running handler */
-        sourcetype      source;         /* Interface that triggered the update */
-        unsigned int    infolen;        /* Len of data valid in info */
-        char            info[2048];     /* additional information about install */
-};
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">struct</span> <span class="n">progress_msg</span> <span class="p">{</span>
+        <span class="n">unsigned</span> <span class="nb">int</span>    <span class="n">magic</span><span class="p">;</span>          <span class="o">/*</span> <span class="n">Magic</span> <span class="n">Number</span> <span class="o">*/</span>
+        <span class="n">unsigned</span> <span class="nb">int</span>    <span class="n">status</span><span class="p">;</span>         <span class="o">/*</span> <span class="n">Update</span> <span class="n">Status</span> <span class="p">(</span><span class="n">Running</span><span class="p">,</span> <span class="n">Failure</span><span class="p">)</span> <span class="o">*/</span>
+        <span class="n">unsigned</span> <span class="nb">int</span>    <span class="n">dwl_percent</span><span class="p">;</span>    <span class="o">/*</span> <span class="o">%</span> <span class="n">downloaded</span> <span class="n">data</span> <span class="o">*/</span>
+        <span class="n">unsigned</span> <span class="nb">int</span>    <span class="n">nsteps</span><span class="p">;</span>         <span class="o">/*</span> <span class="n">No</span><span class="o">.</span> <span class="n">total</span> <span class="n">of</span> <span class="n">steps</span> <span class="o">*/</span>
+        <span class="n">unsigned</span> <span class="nb">int</span>    <span class="n">cur_step</span><span class="p">;</span>       <span class="o">/*</span> <span class="n">Current</span> <span class="n">step</span> <span class="n">index</span> <span class="o">*/</span>
+        <span class="n">unsigned</span> <span class="nb">int</span>    <span class="n">cur_percent</span><span class="p">;</span>    <span class="o">/*</span> <span class="o">%</span> <span class="ow">in</span> <span class="n">current</span> <span class="n">step</span> <span class="o">*/</span>
+        <span class="n">char</span>            <span class="n">cur_image</span><span class="p">[</span><span class="mi">256</span><span class="p">];</span> <span class="o">/*</span> <span class="n">Name</span> <span class="n">of</span> <span class="n">image</span> <span class="n">to</span> <span class="n">be</span> <span class="n">installed</span> <span class="o">*/</span>
+        <span class="n">char</span>            <span class="n">hnd_name</span><span class="p">[</span><span class="mi">64</span><span class="p">];</span>   <span class="o">/*</span> <span class="n">Name</span> <span class="n">of</span> <span class="n">running</span> <span class="n">handler</span> <span class="o">*/</span>
+        <span class="n">sourcetype</span>      <span class="n">source</span><span class="p">;</span>         <span class="o">/*</span> <span class="n">Interface</span> <span class="n">that</span> <span class="n">triggered</span> <span class="n">the</span> <span class="n">update</span> <span class="o">*/</span>
+        <span class="n">unsigned</span> <span class="nb">int</span>    <span class="n">infolen</span><span class="p">;</span>        <span class="o">/*</span> <span class="n">Len</span> <span class="n">of</span> <span class="n">data</span> <span class="n">valid</span> <span class="ow">in</span> <span class="n">info</span> <span class="o">*/</span>
+        <span class="n">char</span>            <span class="n">info</span><span class="p">[</span><span class="mi">2048</span><span class="p">];</span>     <span class="o">/*</span> <span class="n">additional</span> <span class="n">information</span> <span class="n">about</span> <span class="n">install</span> <span class="o">*/</span>
+<span class="p">};</span>
 </pre></div>
 </div>
 <p>The single fields have the following meaning:</p>
@@ -207,21 +235,24 @@ of image already copied into the destination.</li>
 </ul>
 </div></blockquote>
 <p>As an example for a progress client, <code class="docutils literal"><span class="pre">tools/progress.c</span></code> prints the status
-on the console and drives &#8220;psplash&#8221; to draw a progress bar on a display.</p>
+on the console and drives &quot;psplash&quot; to draw a progress bar on a display.</p>
 </div>
 </div>
 
 
+           </div>
+           <div class="articleComments">
+            
            </div>
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="building-with-yocto.html" class="btn btn-neutral float-right" title="meta-swupdate: building with Yocto" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="building-with-yocto.html" class="btn btn-neutral float-right" title="meta-swupdate: building with Yocto" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="swupdate-ipc.html" class="btn btn-neutral" title="SWUpdate: API for external programs" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="swupdate-ipc.html" class="btn btn-neutral" title="SWUpdate: API for external programs" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -252,10 +283,11 @@ on the console and drives &#8220;psplash&#8221; to draw a progress bar on a disp
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'2018.03',
+            VERSION:'2018.11',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="_static/jquery.js"></script>

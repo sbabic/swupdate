@@ -8,12 +8,14 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>SWUpdate: syntax and tags with the default parser &mdash; Embedded Software Update Documentation 2018.03 documentation</title>
+  <title>SWUpdate: syntax and tags with the default parser &mdash; Embedded Software Update Documentation 2018.11 documentation</title>
   
 
   
   
     <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
+  
+  
   
 
   
@@ -32,7 +34,10 @@
   
 
   
-    <link rel="top" title="Embedded Software Update Documentation 2018.03 documentation" href="index.html"/>
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="Embedded Software Update Documentation 2018.11 documentation" href="index.html"/>
         <link rel="next" title="Update images from verified source" href="signed_images.html"/>
         <link rel="prev" title="SWUpdate: software update for embedded system" href="swupdate.html"/> 
 
@@ -43,6 +48,7 @@
 
 <body class="wy-body-for-nav" role="document">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -62,7 +68,7 @@
             
             
               <div class="version">
-                2018.03
+                2018.11
               </div>
             
           
@@ -83,13 +89,16 @@
           
             
             
-                <ul>
+              
+            
+            
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Software Management on embedded systems</a></li>
 <li class="toctree-l1"><a class="reference internal" href="licensing.html">License</a></li>
 </ul>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="swupdate.html">SWUpdate: software update for embedded system</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="">SWUpdate: syntax and tags with the default parser</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">SWUpdate: syntax and tags with the default parser</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#handling-configuration-differences">Handling configuration differences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#software-collections">Software collections</a></li>
@@ -126,7 +135,7 @@
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to SWUpdate</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project&#8217;s road-map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project's road-map</a></li>
 </ul>
 
             
@@ -139,8 +148,10 @@
 
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="index.html">Embedded Software Update Documentation</a>
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Embedded Software Update Documentation</a>
+        
       </nav>
 
 
@@ -149,23 +160,40 @@
         <div class="rst-content">
           
 
- 
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="index.html">Docs</a> &raquo;</li>
-      
-    <li>SWUpdate: syntax and tags with the default parser</li>
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>SWUpdate: syntax and tags with the default parser</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
-            <a href="_sources/sw-description.txt" rel="nofollow"> View page source</a>
+            
+            <a href="_sources/sw-description.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -175,7 +203,7 @@
 <h1>SWUpdate: syntax and tags with the default parser<a class="headerlink" href="#swupdate-syntax-and-tags-with-the-default-parser" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
-<p>SWUpdate uses the library &#8220;libconfig&#8221;
+<p>SWUpdate uses the library &quot;libconfig&quot;
 as default parser for the image description.
 However, it is possible to extend SWUpdate and add an own
 parser, based on a different syntax and language as the one
@@ -189,94 +217,94 @@ for an explanation of basic types.
 The whole description must be contained in the sw-description file itself:
 using of the #include directive is not allowed by SWUpdate.</p>
 <p>The following example explains better the implemented tags:</p>
-<div class="highlight-python"><div class="highlight"><pre>software =
-{
-        version = &quot;0.1.0&quot;;
-        description = &quot;Firmware update for XXXXX Project&quot;;
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">software</span> <span class="o">=</span>
+<span class="p">{</span>
+        <span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;0.1.0&quot;</span><span class="p">;</span>
+        <span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;Firmware update for XXXXX Project&quot;</span><span class="p">;</span>
 
-        hardware-compatibility: [ &quot;1.0&quot;, &quot;1.2&quot;, &quot;1.3&quot;];
+        <span class="n">hardware</span><span class="o">-</span><span class="n">compatibility</span><span class="p">:</span> <span class="p">[</span> <span class="s2">&quot;1.0&quot;</span><span class="p">,</span> <span class="s2">&quot;1.2&quot;</span><span class="p">,</span> <span class="s2">&quot;1.3&quot;</span><span class="p">];</span>
 
-        /* partitions tag is used to resize UBI partitions */
-        partitions: ( /* UBI Volumes */
-                {
-                        name = &quot;rootfs&quot;;
-                        device = &quot;mtd4&quot;;
-                        size = 104896512; /* in bytes */
-                },
-                {
-                        name = &quot;data&quot;;
-                        device = &quot;mtd5&quot;;
-                        size = 50448384; /* in bytes */
-                }
-        );
+        <span class="o">/*</span> <span class="n">partitions</span> <span class="n">tag</span> <span class="ow">is</span> <span class="n">used</span> <span class="n">to</span> <span class="n">resize</span> <span class="n">UBI</span> <span class="n">partitions</span> <span class="o">*/</span>
+        <span class="n">partitions</span><span class="p">:</span> <span class="p">(</span> <span class="o">/*</span> <span class="n">UBI</span> <span class="n">Volumes</span> <span class="o">*/</span>
+                <span class="p">{</span>
+                        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;rootfs&quot;</span><span class="p">;</span>
+                        <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;mtd4&quot;</span><span class="p">;</span>
+                        <span class="n">size</span> <span class="o">=</span> <span class="mi">104896512</span><span class="p">;</span> <span class="o">/*</span> <span class="ow">in</span> <span class="nb">bytes</span> <span class="o">*/</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;data&quot;</span><span class="p">;</span>
+                        <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;mtd5&quot;</span><span class="p">;</span>
+                        <span class="n">size</span> <span class="o">=</span> <span class="mi">50448384</span><span class="p">;</span> <span class="o">/*</span> <span class="ow">in</span> <span class="nb">bytes</span> <span class="o">*/</span>
+                <span class="p">}</span>
+        <span class="p">);</span>
 
 
-        images: (
-                {
-                        filename = &quot;rootfs.ubifs&quot;;
-                        volume = &quot;rootfs&quot;;
-                },
-                {
-                        filename = &quot;swupdate.ext3.gz.u-boot&quot;;
-                        volume = &quot;fs_recovery&quot;;
-                },
-                {
-                        filename = &quot;sdcard.ext3.gz&quot;;
-                        device = &quot;/dev/mmcblk0p1&quot;;
-                        compressed = true;
-                },
-                {
-                        filename = &quot;bootlogo.bmp&quot;;
-                        volume = &quot;splash&quot;;
-                },
-                {
-                        filename = &quot;uImage.bin&quot;;
-                        volume = &quot;kernel&quot;;
-                },
-                {
-                        filename = &quot;fpga.txt&quot;;
-                        type = &quot;fpga&quot;;
-                }
-        );
+        <span class="n">images</span><span class="p">:</span> <span class="p">(</span>
+                <span class="p">{</span>
+                        <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;rootfs.ubifs&quot;</span><span class="p">;</span>
+                        <span class="n">volume</span> <span class="o">=</span> <span class="s2">&quot;rootfs&quot;</span><span class="p">;</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                        <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;swupdate.ext3.gz.u-boot&quot;</span><span class="p">;</span>
+                        <span class="n">volume</span> <span class="o">=</span> <span class="s2">&quot;fs_recovery&quot;</span><span class="p">;</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                        <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;sdcard.ext3.gz&quot;</span><span class="p">;</span>
+                        <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;/dev/mmcblk0p1&quot;</span><span class="p">;</span>
+                        <span class="n">compressed</span> <span class="o">=</span> <span class="n">true</span><span class="p">;</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                        <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;bootlogo.bmp&quot;</span><span class="p">;</span>
+                        <span class="n">volume</span> <span class="o">=</span> <span class="s2">&quot;splash&quot;</span><span class="p">;</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                        <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;uImage.bin&quot;</span><span class="p">;</span>
+                        <span class="n">volume</span> <span class="o">=</span> <span class="s2">&quot;kernel&quot;</span><span class="p">;</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                        <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;fpga.txt&quot;</span><span class="p">;</span>
+                        <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;fpga&quot;</span><span class="p">;</span>
+                <span class="p">}</span>
+        <span class="p">);</span>
 
-        files: (
-                {
-                        filename = &quot;README&quot;;
-                        path = &quot;/README&quot;;
-                        device = &quot;/dev/mmcblk0p1&quot;;
-                        filesystem = &quot;vfat&quot;
-                }
-        );
+        <span class="n">files</span><span class="p">:</span> <span class="p">(</span>
+                <span class="p">{</span>
+                        <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;README&quot;</span><span class="p">;</span>
+                        <span class="n">path</span> <span class="o">=</span> <span class="s2">&quot;/README&quot;</span><span class="p">;</span>
+                        <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;/dev/mmcblk0p1&quot;</span><span class="p">;</span>
+                        <span class="n">filesystem</span> <span class="o">=</span> <span class="s2">&quot;vfat&quot;</span>
+                <span class="p">}</span>
+        <span class="p">);</span>
 
-        scripts: (
-                {
-                        filename = &quot;erase_at_end&quot;;
-                        type = &quot;lua&quot;;
-                },
-                {
-                        filename = &quot;display_info&quot;;
-                        type = &quot;lua&quot;;
-                }
-        );
+        <span class="n">scripts</span><span class="p">:</span> <span class="p">(</span>
+                <span class="p">{</span>
+                        <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;erase_at_end&quot;</span><span class="p">;</span>
+                        <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;lua&quot;</span><span class="p">;</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                        <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;display_info&quot;</span><span class="p">;</span>
+                        <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;lua&quot;</span><span class="p">;</span>
+                <span class="p">}</span>
+        <span class="p">);</span>
 
-        bootenv: (
-                {
-                        filename = &quot;bootloader-env&quot;;
-                        type = &quot;bootloader&quot;;
-                },
-                {
-                        name = &quot;vram&quot;;
-                        value = &quot;4M&quot;;
-                },
-                {
-                        name = &quot;addfb&quot;;
-                        value = &quot;setenv bootargs ${bootargs} omapfb.vram=1:2M,2:2M,3:2M omapdss.def_disp=lcd&quot;
-                }
-        );
-}
+        <span class="n">bootenv</span><span class="p">:</span> <span class="p">(</span>
+                <span class="p">{</span>
+                        <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;bootloader-env&quot;</span><span class="p">;</span>
+                        <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;bootloader&quot;</span><span class="p">;</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;vram&quot;</span><span class="p">;</span>
+                        <span class="n">value</span> <span class="o">=</span> <span class="s2">&quot;4M&quot;</span><span class="p">;</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;addfb&quot;</span><span class="p">;</span>
+                        <span class="n">value</span> <span class="o">=</span> <span class="s2">&quot;setenv bootargs $</span><span class="si">{bootargs}</span><span class="s2"> omapfb.vram=1:2M,2:2M,3:2M omapdss.def_disp=lcd&quot;</span>
+                <span class="p">}</span>
+        <span class="p">);</span>
+<span class="p">}</span>
 </pre></div>
 </div>
-<p>The first tag is &#8220;software&#8221;. The whole description is contained in
+<p>The first tag is &quot;software&quot;. The whole description is contained in
 this tag. It is possible to group settings per device by using <a class="reference internal" href="#board-specific-settings">Board
 specific settings</a>.</p>
 </div>
@@ -293,7 +321,7 @@ completely customizable, everybody can set his own rules.
 For this specific example, the sw-description is written in XML format,
 with tags identifying the images for each device. To run it, the liblxp
 library is needed.</p>
-<div class="highlight-python"><div class="highlight"><pre>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+<div class="highlight-default"><div class="highlight"><pre><span></span>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
 &lt;software version=&quot;1.0&quot;&gt;
   &lt;name&gt;Update Image&lt;/name&gt;
   &lt;version&gt;1.0.0&lt;/version&gt;
@@ -326,26 +354,26 @@ By reading the delivered image, SWUpdate will ignore all images that
 are not in the list processed by the parser. In this way, it is possible
 to have a single delivered image for the update of multiple devices.</p>
 <p>Multiple devices are supported by the default parser, too.</p>
-<div class="highlight-python"><div class="highlight"><pre>software =
-{
-    version = &quot;0.1.0&quot;;
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">software</span> <span class="o">=</span>
+<span class="p">{</span>
+    <span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;0.1.0&quot;</span><span class="p">;</span>
 
-    target-1 = {
-            images: (
-                    {
-                            ...
-                    }
-            );
-    };
+    <span class="n">target</span><span class="o">-</span><span class="mi">1</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">images</span><span class="p">:</span> <span class="p">(</span>
+                    <span class="p">{</span>
+                            <span class="o">...</span>
+                    <span class="p">}</span>
+            <span class="p">);</span>
+    <span class="p">};</span>
 
-    target-2 = {
-            images: (
-                    {
-                            ...
-                    }
-            );
-    };
-}
+    <span class="n">target</span><span class="o">-</span><span class="mi">2</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">images</span><span class="p">:</span> <span class="p">(</span>
+                    <span class="p">{</span>
+                            <span class="o">...</span>
+                    <span class="p">}</span>
+            <span class="p">);</span>
+    <span class="p">};</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>In this way, it is possible to have a single image providing software
@@ -353,7 +381,7 @@ for each device you have.</p>
 <p>By default the hardware information is extracted from
 <cite>/etc/hwrevision</cite> file. The file should contain a single line in the
 following format:</p>
-<div class="highlight-python"><div class="highlight"><pre>&lt;boardname&gt; &lt;revision&gt;
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">boardname</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">revision</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 <p>Where:</p>
@@ -369,29 +397,29 @@ list</li>
 dual copy strategy. The simplest case is to define two installation
 locations for the firmware image and call <cite>SWUpdate</cite> selecting the
 appropriate image.</p>
-<div class="highlight-python"><div class="highlight"><pre>software =
-{
-        version = &quot;0.1.0&quot;;
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">software</span> <span class="o">=</span>
+<span class="p">{</span>
+        <span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;0.1.0&quot;</span><span class="p">;</span>
 
-        stable = {
-                copy-1: {
-                        images: (
-                        {
-                                device = &quot;/dev/mtd4&quot;
-                                ...
-                        }
-                        );
-                }
-                copy-2: {
-                        images: (
-                        {
-                                device = &quot;/dev/mtd5&quot;
-                                ...
-                        }
-                        );
-                }
-        };
-}
+        <span class="n">stable</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">copy</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="n">images</span><span class="p">:</span> <span class="p">(</span>
+                        <span class="p">{</span>
+                                <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;/dev/mtd4&quot;</span>
+                                <span class="o">...</span>
+                        <span class="p">}</span>
+                        <span class="p">);</span>
+                <span class="p">}</span>
+                <span class="n">copy</span><span class="o">-</span><span class="mi">2</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="n">images</span><span class="p">:</span> <span class="p">(</span>
+                        <span class="p">{</span>
+                                <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;/dev/mtd5&quot;</span>
+                                <span class="o">...</span>
+                        <span class="p">}</span>
+                        <span class="p">);</span>
+                <span class="p">}</span>
+        <span class="p">};</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>In this way it is possible to specify that <cite>copy-1</cite> gets installed to
@@ -403,11 +431,11 @@ is responsible for calling <cite>SWUpdate</cite> passing proper settings.</p>
 </div>
 <div class="section" id="hardware-compatibility">
 <h2>hardware-compatibility<a class="headerlink" href="#hardware-compatibility" title="Permalink to this headline">¶</a></h2>
-<p>hardware-compatibility: [ &#8220;major.minor&#8221;, &#8220;major.minor&#8221;, ... ]</p>
+<p>hardware-compatibility: [ &quot;major.minor&quot;, &quot;major.minor&quot;, ... ]</p>
 <p>It lists the hardware revisions that are compatible with this software image.</p>
 <p>Example:</p>
 <blockquote>
-<div>hardware-compatibility: [ &#8220;1.0&#8221;, &#8220;1.2&#8221;, &#8220;1.3&#8221;];</div></blockquote>
+<div>hardware-compatibility: [ &quot;1.0&quot;, &quot;1.2&quot;, &quot;1.3&quot;];</div></blockquote>
 <p>This means that the software is compatible with HW-Revisions
 1.0, 1.2 and 1.3, but not for 1.1 or other version not explicitly
 listed here.
@@ -425,87 +453,91 @@ SWUpdate is started.</p>
 Please take care that MTDs are not touched and they are
 configured by the Device Tree or in another way directly
 in kernel.</p>
-<div class="highlight-python"><div class="highlight"><pre>partitions: (
-        {
-                name = &lt;volume name&gt;;
-                size = &lt;size in bytes&gt;;
-                device = &lt;MTD device&gt;;
-        },
-);
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">partitions</span><span class="p">:</span> <span class="p">(</span>
+        <span class="p">{</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">volume</span> <span class="n">name</span><span class="o">&gt;</span><span class="p">;</span>
+                <span class="n">size</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">size</span> <span class="ow">in</span> <span class="nb">bytes</span><span class="o">&gt;</span><span class="p">;</span>
+                <span class="n">device</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">MTD</span> <span class="n">device</span><span class="o">&gt;</span><span class="p">;</span>
+        <span class="p">},</span>
+<span class="p">);</span>
 </pre></div>
 </div>
 <p>All fields are mandatory. SWUpdate searches for a volume of the
 selected name and adjusts the size, or creates a new volume if
-no volume with the given name exists.</p>
+no volume with the given name exists. In the latter case, it is
+created on the UBI device attached to the MTD device given by
+&quot;device&quot;. &quot;device&quot; can be given by number (e.g. &quot;mtd4&quot;) or by name
+(the name of the MTD device, e.g. &quot;ubi_partition&quot;). The UBI device
+is attached automatically.</p>
 </div>
 <div class="section" id="images">
 <h2>images<a class="headerlink" href="#images" title="Permalink to this headline">¶</a></h2>
-<p>The tag &#8220;images&#8221; collects the image that are installed to the system.
+<p>The tag &quot;images&quot; collects the image that are installed to the system.
 The syntax is:</p>
-<div class="highlight-python"><div class="highlight"><pre>images: (
-        {
-                filename[mandatory] = &lt;Name in CPIO Archive&gt;;
-                volume[optional] = &lt;destination volume&gt;;
-                device[optional] = &lt;destination volume&gt;;
-                mtdname[optional] = &lt;destination mtd name&gt;;
-                type[optional] = &lt;handler&gt;;
-                /* optionally, the image can be copied at a specific offset */
-                offset[optional] = &lt;offset&gt;;
-                /* optionally, the image can be compressed if it is in raw mode */
-                compressed;
-        },
-        /* Next Image */
-        .....
-);
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">images</span><span class="p">:</span> <span class="p">(</span>
+        <span class="p">{</span>
+                <span class="n">filename</span><span class="p">[</span><span class="n">mandatory</span><span class="p">]</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">Name</span> <span class="ow">in</span> <span class="n">CPIO</span> <span class="n">Archive</span><span class="o">&gt;</span><span class="p">;</span>
+                <span class="n">volume</span><span class="p">[</span><span class="n">optional</span><span class="p">]</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">destination</span> <span class="n">volume</span><span class="o">&gt;</span><span class="p">;</span>
+                <span class="n">device</span><span class="p">[</span><span class="n">optional</span><span class="p">]</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">destination</span> <span class="n">volume</span><span class="o">&gt;</span><span class="p">;</span>
+                <span class="n">mtdname</span><span class="p">[</span><span class="n">optional</span><span class="p">]</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">destination</span> <span class="n">mtd</span> <span class="n">name</span><span class="o">&gt;</span><span class="p">;</span>
+                <span class="nb">type</span><span class="p">[</span><span class="n">optional</span><span class="p">]</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">handler</span><span class="o">&gt;</span><span class="p">;</span>
+                <span class="o">/*</span> <span class="n">optionally</span><span class="p">,</span> <span class="n">the</span> <span class="n">image</span> <span class="n">can</span> <span class="n">be</span> <span class="n">copied</span> <span class="n">at</span> <span class="n">a</span> <span class="n">specific</span> <span class="n">offset</span> <span class="o">*/</span>
+                <span class="n">offset</span><span class="p">[</span><span class="n">optional</span><span class="p">]</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">offset</span><span class="o">&gt;</span><span class="p">;</span>
+                <span class="o">/*</span> <span class="n">optionally</span><span class="p">,</span> <span class="n">the</span> <span class="n">image</span> <span class="n">can</span> <span class="n">be</span> <span class="n">compressed</span> <span class="k">if</span> <span class="n">it</span> <span class="ow">is</span> <span class="ow">in</span> <span class="n">raw</span> <span class="n">mode</span> <span class="o">*/</span>
+                <span class="n">compressed</span><span class="p">;</span>
+        <span class="p">},</span>
+        <span class="o">/*</span> <span class="n">Next</span> <span class="n">Image</span> <span class="o">*/</span>
+        <span class="o">.....</span>
+<span class="p">);</span>
 </pre></div>
 </div>
 <p><em>volume</em> is only used to install the image in a UBI volume. <em>volume</em> and
 <em>device</em> cannot be used at the same time. If device is set,
 the raw handler is automatically selected.</p>
 <p>The following example is to update a UBI volume:</p>
-<div class="highlight-python"><div class="highlight"><pre>{
-        filename = &quot;core-image-base.ubifs&quot;;
-        volume = &quot;rootfs&quot;;
-}
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;core-image-base.ubifs&quot;</span><span class="p">;</span>
+        <span class="n">volume</span> <span class="o">=</span> <span class="s2">&quot;rootfs&quot;</span><span class="p">;</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>To update an image in raw mode, the syntax is:</p>
-<div class="highlight-python"><div class="highlight"><pre>{
-        filename = &quot;core-image-base.ext3&quot;;
-        device = &quot;/dev/mmcblk0p1&quot;;
-}
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;core-image-base.ext3&quot;</span><span class="p">;</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;/dev/mmcblk0p1&quot;</span><span class="p">;</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>To flash an image at a specific offset, the syntax is:</p>
-<div class="highlight-python"><div class="highlight"><pre>{
-        filename = &quot;u-boot.bin&quot;;
-        device = &quot;/dev/mmcblk0p1&quot;;
-        offset = &quot;16K&quot;;
-}
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;u-boot.bin&quot;</span><span class="p">;</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;/dev/mmcblk0p1&quot;</span><span class="p">;</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="s2">&quot;16K&quot;</span><span class="p">;</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>The offset handles the following multiplicative suffixes: K=1024 and M=1024*1024.</p>
 <p>However, writing to flash in raw mode must be managed in a special
 way. Flashes must be erased before copying, and writing into NAND
 must take care of bad blocks and ECC errors. For this reasons, the
-handler &#8220;flash&#8221; must be selected:</p>
+handler &quot;flash&quot; must be selected:</p>
 <p>For example, to copy the kernel into the MTD7 of a NAND flash:</p>
-<div class="highlight-python"><div class="highlight"><pre>{
-        filename = &quot;uImage&quot;;
-        device = &quot;mtd7&quot;;
-        type = &quot;flash&quot;;
-}
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;uImage&quot;</span><span class="p">;</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;mtd7&quot;</span><span class="p">;</span>
+        <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;flash&quot;</span><span class="p">;</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>The <em>filename</em> is mandatory. It is the Name of the file extracted by the stream.
 <em>volume</em> is only mandatory in case of UBI volumes. It should be not used
 in other cases.</p>
 <p>Alternatively, for the handler “flash”, the <em>mtdname</em> can be specified, instead of the device name:</p>
-<div class="highlight-python"><div class="highlight"><pre>{
-        filename = &quot;uImage&quot;;
-        mtdname = &quot;kernel&quot;;
-        type = &quot;flash&quot;;
-}
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;uImage&quot;</span><span class="p">;</span>
+        <span class="n">mtdname</span> <span class="o">=</span> <span class="s2">&quot;kernel&quot;</span><span class="p">;</span>
+        <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;flash&quot;</span><span class="p">;</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 </div>
@@ -514,21 +546,25 @@ in other cases.</p>
 <p>It is possible to copy single files instead of images.
 This is not the preferred way, but it can be used for
 debugging or special purposes.</p>
-<div class="highlight-python"><div class="highlight"><pre>files: (
-        {
-                filename = &lt;Name in CPIO Archive&gt;;
-                path = &lt;path in filesystem&gt;;
-                device[optional] = &lt;device node &gt;;
-                filesystem[optional] = &lt;filesystem for mount&gt;;
-        }
-);
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">files</span><span class="p">:</span> <span class="p">(</span>
+        <span class="p">{</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">Name</span> <span class="ow">in</span> <span class="n">CPIO</span> <span class="n">Archive</span><span class="o">&gt;</span><span class="p">;</span>
+                <span class="n">path</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">path</span> <span class="ow">in</span> <span class="n">filesystem</span><span class="o">&gt;</span><span class="p">;</span>
+                <span class="n">device</span><span class="p">[</span><span class="n">optional</span><span class="p">]</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">device</span> <span class="n">node</span> <span class="o">&gt;</span><span class="p">;</span>
+                <span class="n">filesystem</span><span class="p">[</span><span class="n">optional</span><span class="p">]</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">filesystem</span> <span class="k">for</span> <span class="n">mount</span><span class="o">&gt;</span><span class="p">;</span>
+                <span class="n">properties</span><span class="p">[</span><span class="n">optional</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">create</span><span class="o">-</span><span class="n">destination</span> <span class="o">=</span> <span class="s2">&quot;true&quot;</span><span class="p">;}</span>
+        <span class="p">}</span>
+<span class="p">);</span>
 </pre></div>
 </div>
-<p>Entries in &#8220;files&#8221; section are managed as single files. The attributes
-&#8220;filename&#8221; and &#8220;path&#8221; are mandatory. Attributes &#8220;device&#8221; and &#8220;filesystem&#8221; are
+<p>Entries in &quot;files&quot; section are managed as single files. The attributes
+&quot;filename&quot; and &quot;path&quot; are mandatory. Attributes &quot;device&quot; and &quot;filesystem&quot; are
 optional; they tell SWUpdate to mount device (of the given filesystem type,
-e.g. &#8220;ext4&#8221;) before copying &#8220;filename&#8221; to &#8220;path&#8221;. Without &#8220;device&#8221; and
-&#8220;filesystem&#8221;, the &#8220;filename&#8221; will be copied to &#8220;path&#8221; in the current rootfs.</p>
+e.g. &quot;ext4&quot;) before copying &quot;filename&quot; to &quot;path&quot;. Without &quot;device&quot; and
+&quot;filesystem&quot;, the &quot;filename&quot; will be copied to &quot;path&quot; in the current rootfs.</p>
+<p>As a general rule, swupdate doesn't copy out a file if the destination path
+doesn't exists. This behavior could be changed using the special property
+&quot;create-destination&quot;.</p>
 </div>
 <div class="section" id="scripts">
 <h2>Scripts<a class="headerlink" href="#scripts" title="Permalink to this headline">¶</a></h2>
@@ -537,25 +573,25 @@ The result of a script is valuated by SWUpdate, that stops the update
 with an error if the result is &lt;&gt; 0.</p>
 <p>They are copied into a temporary directory before execution and their name must
 be unique inside the same cpio archive.</p>
-<p>If no type is given, SWUpdate default to &#8220;lua&#8221;.</p>
+<p>If no type is given, SWUpdate default to &quot;lua&quot;.</p>
 <div class="section" id="lua">
 <h3>Lua<a class="headerlink" href="#lua" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>scripts: (
-        {
-                filename = &lt;Name in CPIO Archive&gt;;
-                type = &quot;lua&quot;;
-        },
-);
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">scripts</span><span class="p">:</span> <span class="p">(</span>
+        <span class="p">{</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">Name</span> <span class="ow">in</span> <span class="n">CPIO</span> <span class="n">Archive</span><span class="o">&gt;</span><span class="p">;</span>
+                <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;lua&quot;</span><span class="p">;</span>
+        <span class="p">},</span>
+<span class="p">);</span>
 </pre></div>
 </div>
 <p>Lua scripts are run using the internal interpreter.</p>
 <p>They must have at least one of the following functions:</p>
-<div class="highlight-python"><div class="highlight"><pre>function preinst()
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">function</span> <span class="n">preinst</span><span class="p">()</span>
 </pre></div>
 </div>
 <p>SWUpdate scans for all scripts and check for a preinst function. It is
 called before installing the images.</p>
-<div class="highlight-python"><div class="highlight"><pre>function postinst()
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">function</span> <span class="n">postinst</span><span class="p">()</span>
 </pre></div>
 </div>
 <p>SWUpdate scans for all scripts and check for a postinst function. It is
@@ -563,29 +599,29 @@ called after installing the images.</p>
 </div>
 <div class="section" id="shellscript">
 <h3>shellscript<a class="headerlink" href="#shellscript" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>scripts: (
-        {
-                filename = &lt;Name in CPIO Archive&gt;;
-                type = &quot;shellscript&quot;;
-        },
-);
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">scripts</span><span class="p">:</span> <span class="p">(</span>
+        <span class="p">{</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">Name</span> <span class="ow">in</span> <span class="n">CPIO</span> <span class="n">Archive</span><span class="o">&gt;</span><span class="p">;</span>
+                <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;shellscript&quot;</span><span class="p">;</span>
+        <span class="p">},</span>
+<span class="p">);</span>
 </pre></div>
 </div>
 <p>Shell scripts are called via system command.
 SWUpdate scans for all scripts and calls them before and after installing
-the images. SWUpdate passes &#8216;preinst&#8217; or &#8216;postinst&#8217; as first argument to
+the images. SWUpdate passes 'preinst' or 'postinst' as first argument to
 the script.
 If the data attribute is defined, its value is passed as the last argument(s)
 to the script.</p>
 </div>
 <div class="section" id="preinstall">
 <h3>preinstall<a class="headerlink" href="#preinstall" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>scripts: (
-        {
-                filename = &lt;Name in CPIO Archive&gt;;
-                type = &quot;preinstall&quot;;
-        },
-);
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">scripts</span><span class="p">:</span> <span class="p">(</span>
+        <span class="p">{</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">Name</span> <span class="ow">in</span> <span class="n">CPIO</span> <span class="n">Archive</span><span class="o">&gt;</span><span class="p">;</span>
+                <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;preinstall&quot;</span><span class="p">;</span>
+        <span class="p">},</span>
+<span class="p">);</span>
 </pre></div>
 </div>
 <p>preinstall are shell scripts and called via system command.
@@ -595,12 +631,12 @@ to the script.</p>
 </div>
 <div class="section" id="postinstall">
 <h3>postinstall<a class="headerlink" href="#postinstall" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>scripts: (
-        {
-                filename = &lt;Name in CPIO Archive&gt;;
-                type = &quot;postinstall&quot;;
-        },
-);
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">scripts</span><span class="p">:</span> <span class="p">(</span>
+        <span class="p">{</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">Name</span> <span class="ow">in</span> <span class="n">CPIO</span> <span class="n">Archive</span><span class="o">&gt;</span><span class="p">;</span>
+                <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;postinstall&quot;</span><span class="p">;</span>
+        <span class="p">},</span>
+<span class="p">);</span>
 </pre></div>
 </div>
 <p>postinstall are shell scripts and called via system command.
@@ -613,22 +649,22 @@ to the script.</p>
 <h2>bootloader<a class="headerlink" href="#bootloader" title="Permalink to this headline">¶</a></h2>
 <p>There are two ways to update the bootloader (currently U-Boot, GRUB, and
 EFI Boot Guard) environment. First way is to add a file with the list of
-variables to be changed and setting &#8220;bootloader&#8221; as type of the image. This
+variables to be changed and setting &quot;bootloader&quot; as type of the image. This
 informs SWUpdate to call the bootloader handler to manage the file
 (requires enabling bootloader handler in configuration). There is one
 bootloader handler for all supported bootloaders. The appropriate bootloader
 must be chosen from the bootloader selection menu in <cite>menuconfig</cite>.</p>
-<div class="highlight-python"><div class="highlight"><pre>bootenv: (
-        {
-                filename = &quot;bootloader-env&quot;;
-                type = &quot;bootloader&quot;;
-        },
-)
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">bootenv</span><span class="p">:</span> <span class="p">(</span>
+        <span class="p">{</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;bootloader-env&quot;</span><span class="p">;</span>
+                <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;bootloader&quot;</span><span class="p">;</span>
+        <span class="p">},</span>
+<span class="p">)</span>
 </pre></div>
 </div>
 <p>The format of the file is described in U-boot documentation. Each line
 is in the format</p>
-<div class="highlight-python"><div class="highlight"><pre>&lt;name of variable&gt;      &lt;value&gt;
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">name</span> <span class="n">of</span> <span class="n">variable</span><span class="o">&gt;</span>      <span class="o">&lt;</span><span class="n">value</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 <p>if value is missing, the variable is unset.</p>
@@ -636,18 +672,18 @@ is in the format</p>
 GRUB and EFI Boot Guard environment modification as well.</p>
 <p>The second way is to define in a group setting the variables
 that must be changed:</p>
-<div class="highlight-python"><div class="highlight"><pre>bootenv: (
-        {
-                name = &lt;Variable name&gt;;
-                value = &lt;Variable value&gt;;
-        },
-)
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">bootenv</span><span class="p">:</span> <span class="p">(</span>
+        <span class="p">{</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">Variable</span> <span class="n">name</span><span class="o">&gt;</span><span class="p">;</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">Variable</span> <span class="n">value</span><span class="o">&gt;</span><span class="p">;</span>
+        <span class="p">},</span>
+<span class="p">)</span>
 </pre></div>
 </div>
 <p>SWUpdate will internally generate a script that will be passed to the
 bootloader handler for adjusting the environment.</p>
 <p>For backward compatibility with previously built <cite>.swu</cite> images, the
-&#8220;uboot&#8221; group name is still supported as an alias. However, its usage
+&quot;uboot&quot; group name is still supported as an alias. However, its usage
 is deprecated.</p>
 </div>
 <div class="section" id="board-specific-settings">
@@ -657,33 +693,33 @@ name. This mechanism can be used to override particular setting in
 board specific fashion.</p>
 <p>Assuming that the hardware information file <cite>/etc/hwrevision</cite> contains
 the following entry:</p>
-<div class="highlight-python"><div class="highlight"><pre>my-board 0.1.0
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">my</span><span class="o">-</span><span class="n">board</span> <span class="mf">0.1</span><span class="o">.</span><span class="mi">0</span>
 </pre></div>
 </div>
 <p>and the following description:</p>
-<div class="highlight-python"><div class="highlight"><pre>software =
-{
-        version = &quot;0.1.0&quot;;
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">software</span> <span class="o">=</span>
+<span class="p">{</span>
+        <span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;0.1.0&quot;</span><span class="p">;</span>
 
-        my-board = {
-                bootenv: (
-                {
-                        name = &quot;bootpart&quot;;
-                        value = &quot;0:2&quot;;
-                }
-                );
-        };
+        <span class="n">my</span><span class="o">-</span><span class="n">board</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">bootenv</span><span class="p">:</span> <span class="p">(</span>
+                <span class="p">{</span>
+                        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;bootpart&quot;</span><span class="p">;</span>
+                        <span class="n">value</span> <span class="o">=</span> <span class="s2">&quot;0:2&quot;</span><span class="p">;</span>
+                <span class="p">}</span>
+                <span class="p">);</span>
+        <span class="p">};</span>
 
-        bootenv: (
-        {
-                name = &quot;bootpart&quot;;
-                value = &quot;0:1&quot;;
-        }
-        );
-}
+        <span class="n">bootenv</span><span class="p">:</span> <span class="p">(</span>
+        <span class="p">{</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;bootpart&quot;</span><span class="p">;</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="s2">&quot;0:1&quot;</span><span class="p">;</span>
+        <span class="p">}</span>
+        <span class="p">);</span>
+<span class="p">}</span>
 </pre></div>
 </div>
-<p>SWUpdate will set <cite>bootpart</cite> to <cite>0:2</cite> in bootloader&#8217;s environment for this
+<p>SWUpdate will set <cite>bootpart</cite> to <cite>0:2</cite> in bootloader's environment for this
 board. For all other boards, <cite>bootpart</cite> will be set to <cite>0:1</cite>. Board
 specific settings take precedence over default scoped settings.</p>
 </div>
@@ -699,50 +735,50 @@ scope. The tag names must not be any of: <cite>version</cite>,
 <cite>hardware-compatibility</cite>, <cite>uboot</cite>, <cite>bootenv</cite>, <cite>files</cite>, <cite>scripts</cite>, <cite>partitions</cite>,
 <cite>images</cite></p>
 <p>An example description file:</p>
-<div class="highlight-python"><div class="highlight"><pre>software =
-{
-        version = &quot;0.1&quot;;
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">software</span> <span class="o">=</span>
+<span class="p">{</span>
+        <span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;0.1&quot;</span><span class="p">;</span>
 
-        hardware-compatibility = [ &quot;revA&quot; ];
+        <span class="n">hardware</span><span class="o">-</span><span class="n">compatibility</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">&quot;revA&quot;</span> <span class="p">];</span>
 
-        /* differentiate running image modes/sets */
-        stable:
-        {
-                main:
-                {
-                        images: (
-                        {
-                                filename = &quot;rootfs.ext3&quot;;
-                                device = &quot;/dev/mmcblk0p2&quot;;
-                        }
-                        );
+        <span class="o">/*</span> <span class="n">differentiate</span> <span class="n">running</span> <span class="n">image</span> <span class="n">modes</span><span class="o">/</span><span class="n">sets</span> <span class="o">*/</span>
+        <span class="n">stable</span><span class="p">:</span>
+        <span class="p">{</span>
+                <span class="n">main</span><span class="p">:</span>
+                <span class="p">{</span>
+                        <span class="n">images</span><span class="p">:</span> <span class="p">(</span>
+                        <span class="p">{</span>
+                                <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;rootfs.ext3&quot;</span><span class="p">;</span>
+                                <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;/dev/mmcblk0p2&quot;</span><span class="p">;</span>
+                        <span class="p">}</span>
+                        <span class="p">);</span>
 
-                        bootenv: (
-                        {
-                                name = &quot;bootpart&quot;;
-                                value = &quot;0:2&quot;;
-                        }
-                        );
-                };
-                alt:
-                {
-                        images: (
-                        {
-                                filename = &quot;rootfs.ext3&quot;;
-                                device = &quot;/dev/mmcblk0p1&quot;;
-                        }
-                        );
+                        <span class="n">bootenv</span><span class="p">:</span> <span class="p">(</span>
+                        <span class="p">{</span>
+                                <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;bootpart&quot;</span><span class="p">;</span>
+                                <span class="n">value</span> <span class="o">=</span> <span class="s2">&quot;0:2&quot;</span><span class="p">;</span>
+                        <span class="p">}</span>
+                        <span class="p">);</span>
+                <span class="p">};</span>
+                <span class="n">alt</span><span class="p">:</span>
+                <span class="p">{</span>
+                        <span class="n">images</span><span class="p">:</span> <span class="p">(</span>
+                        <span class="p">{</span>
+                                <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;rootfs.ext3&quot;</span><span class="p">;</span>
+                                <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;/dev/mmcblk0p1&quot;</span><span class="p">;</span>
+                        <span class="p">}</span>
+                        <span class="p">);</span>
 
-                        bootenv: (
-                        {
-                                name = &quot;bootpart&quot;;
-                                value = &quot;0:1&quot;;
-                        }
-                        );
-                };
+                        <span class="n">bootenv</span><span class="p">:</span> <span class="p">(</span>
+                        <span class="p">{</span>
+                                <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;bootpart&quot;</span><span class="p">;</span>
+                                <span class="n">value</span> <span class="o">=</span> <span class="s2">&quot;0:1&quot;</span><span class="p">;</span>
+                        <span class="p">}</span>
+                        <span class="p">);</span>
+                <span class="p">};</span>
 
-        };
-}
+        <span class="p">};</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>The configuration describes a single software collection named
@@ -768,16 +804,16 @@ device in a single file, but the device should install it just when needed.</p>
 containing all versions of the installed images. This must be generated
 before running SWUpdate.
 The file must contains pairs with the name of image and his version, as:</p>
-<div class="highlight-python"><div class="highlight"><pre>&lt;name of component&gt;     &lt;version&gt;
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">name</span> <span class="n">of</span> <span class="n">component</span><span class="o">&gt;</span>     <span class="o">&lt;</span><span class="n">version</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 <p>Version is a string and can have any value. For example:</p>
-<div class="highlight-python"><div class="highlight"><pre>bootloader              2015.01-rc3-00456-gd4978d
-kernel                  3.17.0-00215-g2e876af
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">bootloader</span>              <span class="mf">2015.01</span><span class="o">-</span><span class="n">rc3</span><span class="o">-</span><span class="mi">00456</span><span class="o">-</span><span class="n">gd4978d</span>
+<span class="n">kernel</span>                  <span class="mf">3.17</span><span class="o">.</span><span class="mi">0</span><span class="o">-</span><span class="mi">00215</span><span class="o">-</span><span class="n">g2e876af</span>
 </pre></div>
 </div>
-<p>In sw-description, the optional attributes &#8220;name&#8221;, &#8220;version&#8221; and
-&#8220;install-if-different&#8221; provide the connection. Name and version are then
+<p>In sw-description, the optional attributes &quot;name&quot;, &quot;version&quot; and
+&quot;install-if-different&quot; provide the connection. Name and version are then
 compared with the data in the versions file. install-if-different is a
 boolean that enables the check for this image. It is then possible to
 check the version just for a subset of the images to be installed.</p>
@@ -789,33 +825,33 @@ of conditions where some parameters are known just by the target at runtime. The
 script is global to all sections, but it can contain several functions that can be specific
 for each entry in the sw-description file.</p>
 <p>These attributes are used for an embedded-script:</p>
-<div class="highlight-python"><div class="highlight"><pre>embedded-script = &quot;&lt;Lua code&quot;&gt;
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">embedded</span><span class="o">-</span><span class="n">script</span> <span class="o">=</span> <span class="s2">&quot;&lt;Lua code&quot;</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 <p>It must be taken into account that the parser has already run and usage of double quotes can
 interfere with the parser. For this reason, each double quote in the script must be escaped.</p>
 <p>That means a simple Lua code as:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="k">print</span> <span class="p">(</span><span class="s2">&quot;Test&quot;</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;Test&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>must be changed to:</p>
-<div class="highlight-python"><div class="highlight"><pre>print (\&quot;Test\&quot;)
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nb">print</span> <span class="p">(</span>\<span class="s2">&quot;Test</span><span class="se">\&quot;</span><span class="s2">)</span>
 </pre></div>
 </div>
 <p>If not, the parser thinks to have the closure of the script and this generates an error.
 See the examples directory for examples how to use it.
-Any entry in files or images can trigger one function in the script. The &#8220;hook&#8221; attribute
+Any entry in files or images can trigger one function in the script. The &quot;hook&quot; attribute
 tells the parser to load the script and to search for the function pointed to by the hook
 attribute. For example:</p>
-<div class="highlight-python"><div class="highlight"><pre>files: (
-        {
-                filename = &quot;examples.tar&quot;;
-                type = &quot;archive&quot;;
-                path = &quot;/tmp/test&quot;;
-                hook = &quot;set_version&quot;;
-                preserve-attributes = true;
-        }
-);
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">files</span><span class="p">:</span> <span class="p">(</span>
+        <span class="p">{</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;examples.tar&quot;</span><span class="p">;</span>
+                <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;archive&quot;</span><span class="p">;</span>
+                <span class="n">path</span> <span class="o">=</span> <span class="s2">&quot;/tmp/test&quot;</span><span class="p">;</span>
+                <span class="n">hook</span> <span class="o">=</span> <span class="s2">&quot;set_version&quot;</span><span class="p">;</span>
+                <span class="n">preserve</span><span class="o">-</span><span class="n">attributes</span> <span class="o">=</span> <span class="n">true</span><span class="p">;</span>
+        <span class="p">}</span>
+<span class="p">);</span>
 </pre></div>
 </div>
 <p>After the entry is parsed, the parser runs the Lua function pointed to by hook. If Lua is not
@@ -823,13 +859,13 @@ activated, the parser raises an error because a sw-description with an embedded 
 be parsed, but the interpreter is not available.</p>
 <p>Each Lua function receives as parameter a table with the setup for the current entry. A hook
 in Lua is in the format:</p>
-<div class="highlight-python"><div class="highlight"><pre>function lua_hook(image)
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">function</span> <span class="n">lua_hook</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>image is a table where the keys are the list of available attributes. If an attribute contains
-a &#8220;-&#8221;, it is replaced with &#8220;_&#8221;, because &#8220;-&#8221; cannot be used in Lua. This means, for example, that:</p>
-<div class="highlight-python"><div class="highlight"><pre>install-if-different ==&gt; install_if_different
-install-directly     ==&gt; install_directly
+a &quot;-&quot;, it is replaced with &quot;_&quot;, because &quot;-&quot; cannot be used in Lua. This means, for example, that:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">install</span><span class="o">-</span><span class="k">if</span><span class="o">-</span><span class="n">different</span> <span class="o">==&gt;</span> <span class="n">install_if_different</span>
+<span class="n">install</span><span class="o">-</span><span class="n">directly</span>     <span class="o">==&gt;</span> <span class="n">install_directly</span>
 </pre></div>
 </div>
 <p>Attributes can be changed in the Lua script and values are taken over on return.
@@ -841,15 +877,15 @@ The Lua function must return 2 values:</p>
 </ul>
 </div></blockquote>
 <p>Example:</p>
-<div class="highlight-python"><div class="highlight"><pre>function set_version(image)
-        print (\&quot;RECOVERY_STATUS.RUN: \&quot;.. swupdate.RECOVERY_STATUS.RUN)
-        for k,l in pairs(image) do
-                swupdate.trace(\&quot;image[\&quot; .. tostring(k) .. \&quot;] = \&quot; .. tostring(l))
-        end
-        image.version = \&quot;1.0\&quot;
-        image.install_if_different = true
-        return true, image
-end
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">function</span> <span class="n">set_version</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+        <span class="nb">print</span> <span class="p">(</span>\<span class="s2">&quot;RECOVERY_STATUS.RUN: </span><span class="se">\&quot;</span><span class="s2">.. swupdate.RECOVERY_STATUS.RUN)</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">l</span> <span class="ow">in</span> <span class="n">pairs</span><span class="p">(</span><span class="n">image</span><span class="p">)</span> <span class="n">do</span>
+                <span class="n">swupdate</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span>\<span class="s2">&quot;image[</span><span class="se">\&quot;</span><span class="s2"> .. tostring(k) .. </span><span class="se">\&quot;</span><span class="s2">] = </span><span class="se">\&quot;</span><span class="s2"> .. tostring(l))</span>
+        <span class="n">end</span>
+        <span class="n">image</span><span class="o">.</span><span class="n">version</span> <span class="o">=</span> \<span class="s2">&quot;1.0</span><span class="se">\&quot;</span>
+        <span class="n">image</span><span class="o">.</span><span class="n">install_if_different</span> <span class="o">=</span> <span class="n">true</span>
+        <span class="k">return</span> <span class="n">true</span><span class="p">,</span> <span class="n">image</span>
+<span class="n">end</span>
 </pre></div>
 </div>
 <p>The example sets a version for the installed image. Generally, this is detected at runtime
@@ -895,13 +931,13 @@ scripts</td>
 <tr class="row-odd"><td>volume</td>
 <td>string</td>
 <td>images</td>
-<td>Just if type = &#8220;ubivol&#8221;. UBI volume
+<td>Just if type = &quot;ubivol&quot;. UBI volume
 where image must be installed.</td>
 </tr>
 <tr class="row-even"><td>ubipartition</td>
 <td>string</td>
 <td>images</td>
-<td>Just if type = &#8220;ubivol&#8221;. Volume to be
+<td>Just if type = &quot;ubivol&quot;. Volume to be
 created or adjusted with a new size</td>
 </tr>
 <tr class="row-odd"><td>device</td>
@@ -912,12 +948,12 @@ files</td>
 symlink to it. Can be specified as
 absolute path or a name in /dev folder
 For example if /dev/mtd-dtb is a link
-to /dev/mtd3 &#8220;mtd3&#8221;, &#8220;mtd-dtb&#8221;,
-&#8220;/dev/mtd3&#8221; and &#8220;/dev/mtd-dtb&#8221; are
+to /dev/mtd3 &quot;mtd3&quot;, &quot;mtd-dtb&quot;,
+&quot;/dev/mtd3&quot; and &quot;/dev/mtd-dtb&quot; are
 valid names.
 Usage depends on handler.
 For files, it indicates on which
-device the &#8220;filesystem&#8221; must be
+device the &quot;filesystem&quot; must be
 mounted. If not specified, the current
 rootfs will be used.</td>
 </tr>
@@ -926,18 +962,18 @@ rootfs will be used.</td>
 <td>files</td>
 <td>indicates the filesystem type where
 the file must be installed. Only
-used if &#8220;device&#8221; attribute is set.</td>
+used if &quot;device&quot; attribute is set.</td>
 </tr>
 <tr class="row-odd"><td>path</td>
 <td>string</td>
 <td>files</td>
 <td>For files: indicates the path
 (absolute) where the file must be
-installed. If &#8220;device&#8221; and
-&#8220;filesystem&#8221; are set,
+installed. If &quot;device&quot; and
+&quot;filesystem&quot; are set,
 SWUpdate will install the
-file after mounting &#8220;device&#8221; with
-&#8220;filesystem&#8221; type. (path is always
+file after mounting &quot;device&quot; with
+&quot;filesystem&quot; type. (path is always
 relative to the mount point.)</td>
 </tr>
 <tr class="row-even"><td>preserve-attributes</td>
@@ -959,13 +995,13 @@ scripts</td>
 <td>string identifier for the handler,
 as it is set by the handler when it
 regitsters itself.
-Example: &#8220;ubivol&#8221;, &#8220;raw&#8221;, &#8220;rawfile&#8221;,</td>
+Example: &quot;ubivol&quot;, &quot;raw&quot;, &quot;rawfile&quot;,</td>
 </tr>
 <tr class="row-even"><td>compressed</td>
 <td>bool</td>
 <td>images
 files</td>
-<td>flag to indicate that &#8220;filename&#8221; is
+<td>flag to indicate that &quot;filename&quot; is
 zlib-compressed and must be
 decompressed before being installed</td>
 </tr>
@@ -1009,7 +1045,7 @@ sw-versions</td>
 </tr>
 <tr class="row-even"><td>description</td>
 <td>string</td>
-<td>&nbsp;</td>
+<td>&#160;</td>
 <td>user-friendly description of the
 swupdate archive (any string)</td>
 </tr>
@@ -1050,7 +1086,7 @@ images.</td>
 </tr>
 <tr class="row-odd"><td>embedded-script</td>
 <td>string</td>
-<td>&nbsp;</td>
+<td>&#160;</td>
 <td>Lua code that is embedded in the
 sw-description file.</td>
 </tr>
@@ -1081,15 +1117,18 @@ specifying the devicenode</td>
 
 
            </div>
+           <div class="articleComments">
+            
+           </div>
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="signed_images.html" class="btn btn-neutral float-right" title="Update images from verified source" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="signed_images.html" class="btn btn-neutral float-right" title="Update images from verified source" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="swupdate.html" class="btn btn-neutral" title="SWUpdate: software update for embedded system" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="swupdate.html" class="btn btn-neutral" title="SWUpdate: software update for embedded system" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -1120,10 +1159,11 @@ specifying the devicenode</td>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'2018.03',
+            VERSION:'2018.11',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="_static/jquery.js"></script>

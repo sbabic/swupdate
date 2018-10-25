@@ -8,12 +8,14 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Update images from verified source &mdash; Embedded Software Update Documentation 2018.03 documentation</title>
+  <title>Update images from verified source &mdash; Embedded Software Update Documentation 2018.11 documentation</title>
   
 
   
   
     <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
+  
+  
   
 
   
@@ -32,7 +34,10 @@
   
 
   
-    <link rel="top" title="Embedded Software Update Documentation 2018.03 documentation" href="index.html"/>
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="Embedded Software Update Documentation 2018.11 documentation" href="index.html"/>
         <link rel="next" title="Symmetrically Encrypted Update Images" href="encrypted_images.html"/>
         <link rel="prev" title="SWUpdate: syntax and tags with the default parser" href="sw-description.html"/> 
 
@@ -43,6 +48,7 @@
 
 <body class="wy-body-for-nav" role="document">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -62,7 +68,7 @@
             
             
               <div class="version">
-                2018.03
+                2018.11
               </div>
             
           
@@ -83,14 +89,17 @@
           
             
             
-                <ul>
+              
+            
+            
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Software Management on embedded systems</a></li>
 <li class="toctree-l1"><a class="reference internal" href="licensing.html">License</a></li>
 </ul>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="swupdate.html">SWUpdate: software update for embedded system</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sw-description.html">SWUpdate: syntax and tags with the default parser</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="">Update images from verified source</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Update images from verified source</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#signing-the-compound-image">Signing the compound image</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#signing-the-sub-images">Signing the sub-images</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#combining-signing-sw-description-with-hash-verification">Combining signing sw-description with hash verification</a></li>
@@ -125,7 +134,7 @@
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to SWUpdate</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project&#8217;s road-map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project's road-map</a></li>
 </ul>
 
             
@@ -138,8 +147,10 @@
 
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="index.html">Embedded Software Update Documentation</a>
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Embedded Software Update Documentation</a>
+        
       </nav>
 
 
@@ -148,23 +159,40 @@
         <div class="rst-content">
           
 
- 
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="index.html">Docs</a> &raquo;</li>
-      
-    <li>Update images from verified source</li>
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Update images from verified source</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
-            <a href="_sources/signed_images.txt" rel="nofollow"> View page source</a>
+            
+            <a href="_sources/signed_images.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -228,26 +256,26 @@ the <a class="reference external" href="https://www.openssl.org/docs/manmaster/m
 <div class="section" id="generating-private-and-public-key">
 <h3>Generating private and public key<a class="headerlink" href="#generating-private-and-public-key" title="Permalink to this headline">¶</a></h3>
 <p>First, the private key must be created:</p>
-<div class="highlight-python"><div class="highlight"><pre>openssl genrsa -aes256 -out priv.pem
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">openssl</span> <span class="n">genrsa</span> <span class="o">-</span><span class="n">aes256</span> <span class="o">-</span><span class="n">out</span> <span class="n">priv</span><span class="o">.</span><span class="n">pem</span>
 </pre></div>
 </div>
 <p>This asks for a passphrase. It is possible to retrieve
 the passhphrase from a file - of course, this must be
 protected against intrusion.</p>
-<div class="highlight-python"><div class="highlight"><pre>openssl genrsa -aes256 -passout file:passout -out priv.pem
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">openssl</span> <span class="n">genrsa</span> <span class="o">-</span><span class="n">aes256</span> <span class="o">-</span><span class="n">passout</span> <span class="n">file</span><span class="p">:</span><span class="n">passout</span> <span class="o">-</span><span class="n">out</span> <span class="n">priv</span><span class="o">.</span><span class="n">pem</span>
 </pre></div>
 </div>
 <p>The private key is used to export the public key with:</p>
-<div class="highlight-python"><div class="highlight"><pre>openssl rsa -in priv.pem -out public.pem -outform PEM -pubout
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">openssl</span> <span class="n">rsa</span> <span class="o">-</span><span class="ow">in</span> <span class="n">priv</span><span class="o">.</span><span class="n">pem</span> <span class="o">-</span><span class="n">out</span> <span class="n">public</span><span class="o">.</span><span class="n">pem</span> <span class="o">-</span><span class="n">outform</span> <span class="n">PEM</span> <span class="o">-</span><span class="n">pubout</span>
 </pre></div>
 </div>
-<p>&#8220;public.pem&#8221; contains the key in a format suitable for swupdate. The file
+<p>&quot;public.pem&quot; contains the key in a format suitable for swupdate. The file
 can be passed to swupdate at the command line with the -k parameter.</p>
 </div>
 <div class="section" id="how-to-sign-with-rsa">
 <h3>How to sign with RSA<a class="headerlink" href="#how-to-sign-with-rsa" title="Permalink to this headline">¶</a></h3>
 <p>Signing the image is very simple:</p>
-<div class="highlight-python"><div class="highlight"><pre>openssl dgst -sha256 -sign priv.pem sw-description &gt; sw-description.sig
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">openssl</span> <span class="n">dgst</span> <span class="o">-</span><span class="n">sha256</span> <span class="o">-</span><span class="n">sign</span> <span class="n">priv</span><span class="o">.</span><span class="n">pem</span> <span class="n">sw</span><span class="o">-</span><span class="n">description</span> <span class="o">&gt;</span> <span class="n">sw</span><span class="o">-</span><span class="n">description</span><span class="o">.</span><span class="n">sig</span>
 </pre></div>
 </div>
 </div>
@@ -256,20 +284,20 @@ can be passed to swupdate at the command line with the -k parameter.</p>
 <h2>Usage with certificates and CMS<a class="headerlink" href="#usage-with-certificates-and-cms" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="generating-self-signed-certificates">
 <h3>Generating self-signed certificates<a class="headerlink" href="#generating-self-signed-certificates" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre>openssl req -x509 -newkey rsa:4096 -nodes -keyout mycert.key.pem \
-    -out mycert.cert.pem -subj &quot;/O=SWUpdate /CN=target&quot;
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">openssl</span> <span class="n">req</span> <span class="o">-</span><span class="n">x509</span> <span class="o">-</span><span class="n">newkey</span> <span class="n">rsa</span><span class="p">:</span><span class="mi">4096</span> <span class="o">-</span><span class="n">nodes</span> <span class="o">-</span><span class="n">keyout</span> <span class="n">mycert</span><span class="o">.</span><span class="n">key</span><span class="o">.</span><span class="n">pem</span> \
+    <span class="o">-</span><span class="n">out</span> <span class="n">mycert</span><span class="o">.</span><span class="n">cert</span><span class="o">.</span><span class="n">pem</span> <span class="o">-</span><span class="n">subj</span> <span class="s2">&quot;/O=SWUpdate /CN=target&quot;</span>
 </pre></div>
 </div>
-<p>Check the documentation for more information about parameters. The &#8220;mycert.key.pem&#8221; contains
+<p>Check the documentation for more information about parameters. The &quot;mycert.key.pem&quot; contains
 the private key and it is used for signing. It is <em>not</em> delivered on the target.</p>
-<p>The target must have &#8220;mycert.cert.pem&#8221; installed - this is used by SWUpdate for verification.</p>
+<p>The target must have &quot;mycert.cert.pem&quot; installed - this is used by SWUpdate for verification.</p>
 </div>
 <div class="section" id="using-pki-issued-certificates">
 <h3>Using PKI issued certificates<a class="headerlink" href="#using-pki-issued-certificates" title="Permalink to this headline">¶</a></h3>
 <p>It is also possible to use PKI issued code signing certificates. However,
 SWUpdate uses OpenSSL library for handling CMS signatures and the library
 requires the following attributes to be set on the signing certificate:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">keyUsage</span><span class="o">=</span><span class="n">digitalSignature</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">keyUsage</span><span class="o">=</span><span class="n">digitalSignature</span>
 <span class="n">extendedKeyUsage</span><span class="o">=</span><span class="n">emailProtection</span>
 </pre></div>
 </div>
@@ -280,8 +308,8 @@ checking if this requirement cannot be satisfied. This is controlled by
 <div class="section" id="how-to-sign-with-cms">
 <h3>How to sign with CMS<a class="headerlink" href="#how-to-sign-with-cms" title="Permalink to this headline">¶</a></h3>
 <p>Signing the image is simple as in the previous case:</p>
-<div class="highlight-python"><div class="highlight"><pre>openssl cms -sign -in  sw-description -out sw-description.sig -signer mycert.cert.pem \
-        -inkey mycert.key.pem -outform DER -nosmimecap -binary
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">openssl</span> <span class="n">cms</span> <span class="o">-</span><span class="n">sign</span> <span class="o">-</span><span class="ow">in</span>  <span class="n">sw</span><span class="o">-</span><span class="n">description</span> <span class="o">-</span><span class="n">out</span> <span class="n">sw</span><span class="o">-</span><span class="n">description</span><span class="o">.</span><span class="n">sig</span> <span class="o">-</span><span class="n">signer</span> <span class="n">mycert</span><span class="o">.</span><span class="n">cert</span><span class="o">.</span><span class="n">pem</span> \
+        <span class="o">-</span><span class="n">inkey</span> <span class="n">mycert</span><span class="o">.</span><span class="n">key</span><span class="o">.</span><span class="n">pem</span> <span class="o">-</span><span class="n">outform</span> <span class="n">DER</span> <span class="o">-</span><span class="n">nosmimecap</span> <span class="o">-</span><span class="n">binary</span>
 </pre></div>
 </div>
 </div>
@@ -290,12 +318,12 @@ checking if this requirement cannot be satisfied. This is controlled by
 <h2>Building a signed SWU image<a class="headerlink" href="#building-a-signed-swu-image" title="Permalink to this headline">¶</a></h2>
 <p>There are two files, sw-description and its signature sw-description.sig.
 The signature file must always directly follow the description file.</p>
-<p>Each image inside sw-description must have the attribute &#8220;sha256&#8221;, with the
+<p>Each image inside sw-description must have the attribute &quot;sha256&quot;, with the
 SHA256 sum of the image. If an image does not have the sha256 attribute,
 the whole compound image results as not verified and SWUpdate stops
 with an error before starting to install.</p>
 <p>A simple script to create a signed image can be:</p>
-<div class="highlight-python"><div class="highlight"><pre>#!/bin/bash
+<div class="highlight-default"><div class="highlight"><pre><span></span>#!/bin/bash
 
 MODE=&quot;RSA&quot;
 PRODUCT_NAME=&quot;myproduct&quot;
@@ -318,34 +346,34 @@ for i in $FILES;do
 <div class="section" id="example-for-sw-description-with-signed-image">
 <h2>Example for sw-description with signed image<a class="headerlink" href="#example-for-sw-description-with-signed-image" title="Permalink to this headline">¶</a></h2>
 <p>The example applies to a Beaglebone, installing Yocto images:</p>
-<div class="highlight-python"><div class="highlight"><pre>software =
-{
-        version = &quot;0.1.0&quot;;
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">software</span> <span class="o">=</span>
+<span class="p">{</span>
+        <span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;0.1.0&quot;</span><span class="p">;</span>
 
-        hardware-compatibility: [ &quot;revC&quot;];
+        <span class="n">hardware</span><span class="o">-</span><span class="n">compatibility</span><span class="p">:</span> <span class="p">[</span> <span class="s2">&quot;revC&quot;</span><span class="p">];</span>
 
-        images: (
-                {
-                    filename = &quot;core-image-full-cmdline-beaglebone.ext3&quot;;
-                    device = &quot;/dev/mmcblk0p2&quot;;
-                    type = &quot;raw&quot;;
-                    sha256 = &quot;43cdedde429d1ee379a7d91e3e7c4b0b9ff952543a91a55bb2221e5c72cb342b&quot;;
-                }
-        );
-        scripts: (
-                {
-                    filename = &quot;test.lua&quot;;
-                    type = &quot;lua&quot;;
-                    sha256 = &quot;f53e0b271af4c2896f56a6adffa79a1ffa3e373c9ac96e00c4cfc577b9bea5f1&quot;;
-                 }
-        );
-}
+        <span class="n">images</span><span class="p">:</span> <span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;core-image-full-cmdline-beaglebone.ext3&quot;</span><span class="p">;</span>
+                    <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;/dev/mmcblk0p2&quot;</span><span class="p">;</span>
+                    <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;raw&quot;</span><span class="p">;</span>
+                    <span class="n">sha256</span> <span class="o">=</span> <span class="s2">&quot;43cdedde429d1ee379a7d91e3e7c4b0b9ff952543a91a55bb2221e5c72cb342b&quot;</span><span class="p">;</span>
+                <span class="p">}</span>
+        <span class="p">);</span>
+        <span class="n">scripts</span><span class="p">:</span> <span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;test.lua&quot;</span><span class="p">;</span>
+                    <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;lua&quot;</span><span class="p">;</span>
+                    <span class="n">sha256</span> <span class="o">=</span> <span class="s2">&quot;f53e0b271af4c2896f56a6adffa79a1ffa3e373c9ac96e00c4cfc577b9bea5f1&quot;</span><span class="p">;</span>
+                 <span class="p">}</span>
+        <span class="p">);</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="running-swupdate-with-signed-images">
 <h2>Running SWUpdate with signed images<a class="headerlink" href="#running-swupdate-with-signed-images" title="Permalink to this headline">¶</a></h2>
-<p>Verification is activated by setting CONFIG_SIGNED_IMAGES in SWUpdate&#8217;s configuration.
+<p>Verification is activated by setting CONFIG_SIGNED_IMAGES in SWUpdate's configuration.
 If activated, SWUpdate will always check the compound image. For security reasons,
 it is not possible to disable the check at runtime. The -k parameter (public key file)
 is mandatory and the program stops if the public key is not passed.</p>
@@ -354,15 +382,18 @@ is mandatory and the program stops if the public key is not passed.</p>
 
 
            </div>
+           <div class="articleComments">
+            
+           </div>
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="encrypted_images.html" class="btn btn-neutral float-right" title="Symmetrically Encrypted Update Images" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="encrypted_images.html" class="btn btn-neutral float-right" title="Symmetrically Encrypted Update Images" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="sw-description.html" class="btn btn-neutral" title="SWUpdate: syntax and tags with the default parser" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="sw-description.html" class="btn btn-neutral" title="SWUpdate: syntax and tags with the default parser" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -393,10 +424,11 @@ is mandatory and the program stops if the public key is not passed.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'2018.03',
+            VERSION:'2018.11',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="_static/jquery.js"></script>
