@@ -55,7 +55,7 @@ void iterate_field_json(json_object *e, iterate_callback cb, void *data)
 {
 	json_object *subnode;
 	const char *str;
-	int i;
+	size_t i;
 
 	if (!cb || json_object_get_type(e) != json_type_object)
 		return;
