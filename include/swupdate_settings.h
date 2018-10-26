@@ -36,7 +36,10 @@ static inline int read_settings_user_id(const char __attribute__ ((__unused__))*
 }
 
 static inline int settings_into_dict(void __attribute__ ((__unused__)) *settings,
-					void __attribute__ ((__unused__))*data);
+					void __attribute__ ((__unused__))*data)
+{
+	return -1;
+}
 #endif
 
 #endif
