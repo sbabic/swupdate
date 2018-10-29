@@ -161,7 +161,7 @@ static int decrypt_step(void *state, void *buffer, size_t size)
 	int inlen;
 
 	if (s->outlen != 0) {
-		if (size > s->outlen) {
+		if ((int)size > s->outlen) {
 			size = s->outlen;
 		}
 		memcpy(buffer, s->output, size);
@@ -198,7 +198,7 @@ static int decrypt_step(void *state, void *buffer, size_t size)
 	}
 
 	if (s->outlen != 0) {
-		if (size > s->outlen) {
+		if ((int)size > s->outlen) {
 			size = s->outlen;
 		}
 		memcpy(buffer, s->output, size);
