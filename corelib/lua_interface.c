@@ -920,6 +920,17 @@ static int l_handler_wrapper(struct img_type *img, void *data) {
 		return -1;
 	}
 
+	if (img->bootloader) {
+		lua_getglobal(gL, "swupdate");
+		if (!lua_istable(gL, -1)) {
+			ERROR("Lua stack corrupted.");
+			return -1;
+		}
+		lua_pushlightuserdata(gL, (void *)img->bootloader);
+		luaL_setfuncs(gL, l_swupdate_bootenv, 1);
+		lua_pop(gL, 1);
+	}
+
 	l_func_ref = *((int*)data);
 	/* get the callback function */
 	lua_rawgeti(gL, LUA_REGISTRYINDEX, l_func_ref );

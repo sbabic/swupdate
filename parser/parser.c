@@ -510,6 +510,8 @@ static int parse_images(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua
 
 		add_properties(p, elem, image);
 
+		image->bootloader = &swcfg->bootloader;
+
 		skip = run_embscript(p, elem, image, L, swcfg->embscript);
 		if (skip < 0) {
 			free_image(image);
@@ -585,6 +587,8 @@ static int parse_files(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua_
 		}
 
 		add_properties(p, elem, file);
+
+		file->bootloader = &swcfg->bootloader;
 
 		skip = run_embscript(p, elem, file, L, swcfg->embscript);
 		if (skip < 0) {

@@ -67,6 +67,7 @@ struct img_type {
 	int is_script;
 	int is_partitioner;
 	struct dict properties;
+	struct dict *bootloader; /* pointer to swupdate_cfg's bootloader dict for handlers to modify */
 	long long partsize;
 	int fdin;	/* Used for streaming file */
 	off_t offset;	/* offset in cpio file */
