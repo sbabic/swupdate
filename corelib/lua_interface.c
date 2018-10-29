@@ -926,8 +926,8 @@ static int l_handler_wrapper(struct img_type *img, void *data) {
 	image2table(gL, img);
 
 	if (LUA_OK != (res = lua_pcall(gL, 1, 1, 0))) {
-		ERROR("error while executing the Lua callback: %d",res);
-		puts(lua_tostring(gL, -1));
+		ERROR("Error %d while executing the Lua callback: %s",
+			  res, lua_tostring(gL, -1));
 		return -1;
 	}
 
