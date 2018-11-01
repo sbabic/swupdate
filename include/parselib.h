@@ -9,6 +9,7 @@
 #define _PARSE_LIBRARY_H
 
 #include <assert.h>
+#include <stdbool.h>
 
 typedef enum {
 	LIBCFG_PARSER,
@@ -17,6 +18,12 @@ typedef enum {
 
 typedef void (*iterate_callback)(const char *name, const char *value,
 				 void *data);
+
+/*
+ * This is to limit the structure (array) used to save the whole
+ * path to the entry to be read.
+ */
+#define MAX_PARSED_NODES	20
 
 #ifdef CONFIG_LIBCONFIG
 #include <libconfig.h>
@@ -83,6 +90,9 @@ void get_field(parsertype p, void *e, const char *path, void *dest);
 int exist_field_string(parsertype p, void *e, const char *path);
 void get_hash_value(parsertype p, void *elem, unsigned char *hash);
 void check_field_string(const char *src, char *dst, const size_t max_len);
+bool find_root(parsertype p, void *root, const char **nodes);
+void *get_node(parsertype p, void *root, const char **nodes);
+bool set_find_path(const char **nodes, const char *newpath, char **tmp);
 
 #define GET_FIELD_STRING(p, e, name, d) \
 	get_field_string_with_size(p, e, name, d, sizeof(d))

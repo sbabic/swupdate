@@ -12,12 +12,15 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <sys/stat.h>
+#include <stdbool.h>
 #include <assert.h>
 #include "generated/autoconf.h"
 #include "bsdqueue.h"
 #include "util.h"
 #include "swupdate.h"
 #include "parselib.h"
+
+#define MAX_LINKS_DEPTH	10
 
 void check_field_string(const char *src, char *dst, const size_t max_len)
 {
@@ -158,4 +161,57 @@ void get_hash_value(parsertype p, void *elem, unsigned char *hash)
 	GET_FIELD_STRING(p, elem, "sha256", hash_ascii);
 
 	ascii_to_hash(hash, hash_ascii);
+}
+
+bool set_find_path(const char **nodes, const char *newpath, char **tmp)
+{
+	unsigned int nleading;
+	char **iter, **paths;
+	unsigned int count = count_string_array(nodes);
+	unsigned int countpaths;
+
+	if (!newpath)
+		return false;
+
+	/*
+	 * Check if we have to traverse back
+	 */
+	for (nleading = 0; newpath[nleading] == '.'; nleading++);
+
+	/*
+	 * delimiter at the beginning indicates a relative path
+	 * exactly as in Unix, that mean .. for the upper directory
+	 * .. = parent 
+	 * .... = parent of parent
+	 * The number of leading "." must be even, else
+	 * it is a malformed path
+	 */
+	if (nleading % 2)
+		return false;
+
+	nleading /= 2;
+	if ((count - nleading) <= 0)
+		return false;
+
+	count -= nleading;
+	if (count > 0) count--;
+
+	paths = string_split(newpath, '.');
+
+	/*
+	 * check if there is enough space in nodes
+	 */
+	countpaths = count_string_array((const char **)paths);
+	if (count + countpaths >= MAX_PARSED_NODES)
+		return false;
+	if (!countpaths)
+		nodes[count++] = newpath;
+	else
+		for (iter = paths; *iter != NULL; iter++, count++)
+			nodes[count] = *iter;
+	nodes[count] = NULL;
+
+	tmp = paths;
+
+	return true;
 }
