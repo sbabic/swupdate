@@ -5,7 +5,8 @@ Project's road-map
 Please take into account that most of the items here are proposals.
 I get some ideas talking with customers, some ideas are my own thoughts.
 There is no plan when these features will be implemented - this depends
-if enough interest is raised and if there will be contribution to the project.
+if enough interest is raised and if there will be contribution to the project
+in terms of patches or financial contribution to develop a feature.
 
 Thanks again to all companies that have supported my work up now and to
 everybody who has contributed to the project, let me bring SWUpdate
@@ -22,7 +23,11 @@ itself.
 SWUpdate as Updater Gateway
 ===========================
 
-A lot of embedded devices have small processors and maybe not a full
+This feature was introduced with the "swuforward" handler. It is already
+possible to update a tree of devices if each of them runs SWUpdate. This
+feature is already implemented in SWUpdate for embedded linux.
+
+Anyway, a lot of embedded devices have small processors and maybe not a full
 blown OS. Ensuring security for all of them can be a risk, and it is
 easier to make sure on a single device. If the device running SWUpdate is
 acting as gateway, it can translate protocols from backend and send
@@ -45,24 +50,16 @@ There was already several discussions on the Mailing List about
 this. If introducing binary delta is high desired, on the other side
 it is strictly required to not reduce the reliability of the update
 and the feature should not introduce leaks and make the system
-more vulnerable.
+more vulnerable. It is accepted that different technologies could be added,
+each of them solves a specific use case for a delta update.
 
-There are two major aspects to be considered for binary deltas
-that must be investigated:
+Integration in Linux distro
+===========================
 
-- which is the reference ? A delta means there is an untouched copy
-  of the software that can be used as base. It must be verified
-  that this copy is not corrupted or changed after its delivery
-  and it is suitable for an update. Nevertheless, it should be
-  avoided to waste resources and space on the target just to store
-  a further copy of the software.
-- resources applying binary deltas. Known mechanism uses a lot of
-  memory because they do in-memory patching. It is required to have
-  memory usage under control.
-- in case of backend, do we need some sort of communication ?
-  SWUpdate could communicate the version running and the backend could
-  be able to compute on-the-fly the delta package, and also check
-  if it is worth to transfer the delta or switch to the whole image.
+To allow an easer leraning with SWUpdate and also for test purposes with the
+SWU forwarder handler, it makes sense to package SWUpdate for PC Linux distro.
+SWUpdate already supports debian package. Some help from community is asked to
+let the package merged into Debian distro.
 
 Handlers:
 =========
@@ -70,14 +67,14 @@ Handlers:
 New Handlers
 ------------
 
-Surely the implemented handlers cover the majority of cases. Anyway,
-new methods can be considered, and new handlers can be added to mainline
-to support special ways. For example, downloading an image to a separate
-microprocessor/micro-controller, downloading a bit-stream to a FPGA,
-and so on.
+Users develop own custom handlers - I just enforce and encourage everyone
+to send them and discuss how to integrate custom handler in mainline.
+
+A handler to update a microntroller connected via UART is introduced.
+It could be enhanced to support other interfaces (SPI for example).
 
 Some ideas for new handlers:
-        - UART based handler to microcontrollers
+        - handlers to update microcontrollers
         - FPGA updater for FPGA with Flash
         - Package handler to install packages (ipk, deb)
           Packages can be inserted into the SWU and the atomicity is
@@ -85,8 +82,6 @@ Some ideas for new handlers:
         - Lua handlers should be added if possible to the project
           to show how to solve custom install.
 
-There are custom specific solutions - I will be glad if these additional
-handlers will be merged into mainline in the future.
 
 Flash handler
 -------------
@@ -116,13 +111,13 @@ Support for evaluation boards
 
 New is meta-swupdate-boards - examples regarding evaluation boards are
 put there. Currently, there are examples for Beaglebone Black,
-Raspberri PI 3 and Wandboard. Maybe some more boards ?
+Raspberri PI 3 and Wandboard. Maybe some more boards ? Patches welcome.
 
 Backend support (suricatta mode)
 ================================
 
-Backend: Offline support
-------------------------
+Backend: Hawkbit Offline support
+--------------------------------
 
 There are several discussions on Hawkbit's ML about how to synchronize
 an offline update (done locally or via the internal Webserver) with
@@ -130,24 +125,37 @@ the Hawkbit's server. Currently, Hawkbit thinks to be the only one
 deploying software. Hawkbit DDI API should be extended, and afterwards
 changes must be implemented in SWUpdate.
 
-Backend: Support for other Servers
-----------------------------------
+Backend: Consolidate "general server"
+-------------------------------------
 
-SWUpdate supports Hawkbit, but SWUpdate is unaware about which
-backend is used. Further connectors can be implemented to connect to
-other type of backend solutions.
+A second OTA server was introduced with 2018.11, but there is not
+an open source solution for a server. Anyway, the very simple interface
+of the "general server" can be used by anyone to introduce an own server
+instead of a more complicate solution with a backend like Hawkbit.
 
-It is surely desired to have SWUpdate compatible with the most
-deployment system, and any user project can decide which is their
-backend solution.
+Backend: support for Mender
+---------------------------
+
+There was several discussion how to make a stronger collaboration between
+different update solution and a proposal discussed prevviously is to use SWUpdate as client
+to upgrade from a Mender server, see `BOF at ELCE 2017 <https://elinux.org/images/0/0c/BoF_secure_ota_linux.pdf>`_
 
 Support for multiple Servers simultaneously
 -------------------------------------------
 
 Currently, suricatta's server backends are a mutually exclusive
-compile-time choice. A proxy registrar and dispatcher should be plugged
-into the architecture to allow for different channels and server
-backends to be mixed and matched at run-time.
+compile-time choice. There is no interest to have multiple OTA at the same time.
+This feature won't be implemented and I will remove this from roadmap if no
+interest will be waked up.
+
+SWUpdate GUI for rescue
+=======================
+
+In case of rescue for HMI devices, it is often required to have a small GUI
+for an operator to set some parameters (network,..) and start an update.
+A first version of SWUpdate-GUI was released with a base set of features. The goal of this simple GUI
+is to have a low footprint compared to GUI developed with state of art frameworks. 
+This lets to still have a rescue that fits in small devices.
 
 Test and Continuos Integration
 ==============================
