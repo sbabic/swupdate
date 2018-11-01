@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -177,6 +178,42 @@ char *json_get_data_url(json_object *json_root, const char *key)
 	return json_data == NULL
 		   ? NULL
 		   : strndup(json_object_get_string(json_data), MAX_URL_LENGTH);
+}
+
+void *find_root_json(json_object *root, const char **nodes, unsigned int depth)
+{
+	json_object *node;
+	enum json_type type;
+	char **tmp = NULL;
+	const char *str;
+
+	/*
+	 * check for deadlock links, block recursion
+	 */
+	if (!(--depth))
+		return false;
+
+	node = find_json_recursive_node(root, nodes);
+
+	if (node) {
+		type = json_object_get_type(node);
+
+		if (type == json_type_object || type == json_type_array) {
+			str = get_field_string_json(node, "ref");
+			if (str) {
+				if (!set_find_path(nodes, str, tmp))
+					return NULL;
+				node = find_root_json(root, nodes, depth);
+				free_string_array(tmp);
+			}
+		}
+	}
+	return node;
+}
+
+void *get_node_json(json_object *root, const char **nodes)
+{
+	return find_json_recursive_node(root, nodes);
 }
 
 

@@ -11,6 +11,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <stdbool.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <sys/stat.h>
@@ -29,115 +30,125 @@
 #define NODEROOT (!strlen(CONFIG_PARSERROOT) ? \
 			"software" : CONFIG_PARSERROOT)
 
-#ifdef CONFIG_LIBCONFIG
-static config_setting_t *find_node_libconfig(config_t *cfg,
-					const char *field, struct swupdate_cfg *swcfg)
-{
-	config_setting_t *setting;
-	struct hw_type *hardware;
+#if defined(CONFIG_LIBCONFIG) || defined(CONFIG_JSON)
 
-	char node[1024];
+static bool path_append(const char **nodes, const char *field)
+{
+	unsigned int count = 0;
+
+	count = count_string_array(nodes);
+
+	if (count >= MAX_PARSED_NODES)
+		return false;
+
+	nodes[count++] = field;
+	nodes[count] = NULL;
+
+	return true;
+}
+
+static void *find_node(parsertype p, void *root, const char *field,
+			struct swupdate_cfg *swcfg)
+{
+
+	struct hw_type *hardware;
+	const char **nodes;
+	int i;
 
 	if (!field)
 		return NULL;
 
 	hardware = &swcfg->hw;
 
-	if (strlen(swcfg->running_mode) && strlen(swcfg->software_set)) {
-		/* Try with both software set and board name */
-		if (strlen(hardware->boardname)) {
-			snprintf(node, sizeof(node), "%s.%s.%s.%s.%s",
-				NODEROOT,
-				hardware->boardname,
-				swcfg->software_set,
-				swcfg->running_mode,
-				field);
-			setting = config_lookup(cfg, node);
-			if (setting)
-				return setting;
+	nodes = (const char **)calloc(MAX_PARSED_NODES, sizeof(*nodes));
+
+	for (i = 0; i < 4; i++) {
+		nodes[0] = NULL;
+		switch(i) {
+		case 0:
+	        	if (strlen(swcfg->running_mode) && strlen(swcfg->software_set) &&
+		        		strlen(hardware->boardname)) {
+				nodes[0] = NODEROOT;
+				nodes[1] = hardware->boardname;
+				nodes[2] = swcfg->software_set;
+				nodes[3] = swcfg->running_mode;
+				nodes[4] = NULL;
+			}
+			break;
+		case 1:
+			/* try with software set and mode */
+			if (strlen(swcfg->running_mode) && strlen(swcfg->software_set)) {
+				nodes[0] = NODEROOT;
+				nodes[1] = swcfg->software_set;
+				nodes[2] = swcfg->running_mode;
+				nodes[3] = NULL;
+			}
+			break;
+		case 2:
+			/* Try with board name */
+			if (strlen(hardware->boardname)) {
+				nodes[0] = NODEROOT;
+				nodes[1] = hardware->boardname;
+				nodes[2] = NULL;
+			}
+			break;
+		case 3:
+			/* Fall back without board entry */
+			nodes[0] = NODEROOT;
+			nodes[1] = NULL;
+			break;
 		}
-		/* still here, try with software set and mode */
-		snprintf(node, sizeof(node), "%s.%s.%s.%s",
-			NODEROOT,
-			swcfg->software_set,
-			swcfg->running_mode,
-			field);
-		setting = config_lookup(cfg, node);
-		if (setting)
-			return setting;
 
-	}
+		/*
+		 * If conditions are not set,
+		 * skip to the next option
+		 */
+		if (!nodes[0])
+			continue;
 
-	/* Try with board name */
-	if (strlen(hardware->boardname)) {
-		snprintf(node, sizeof(node), "%s.%s.%s",
-			NODEROOT,
-			hardware->boardname,
-			field);
-		setting = config_lookup(cfg, node);
-		if (setting)
-			return setting;
-	}
-	/* Fall back without board entry */
-	snprintf(node, sizeof(node), "%s.%s",
-		NODEROOT,
-		field);
-	return config_lookup(cfg, node);
-}
+		/*
+		 * The first find_root() search for
+		 * the root element from board, selection
+		 * The second one starts from root and follow the tree
+		 * to search for element
+		 */
+		if (find_root(p, root, nodes)) {
+			void *node = NULL;
+			if (!path_append(nodes, field))
+				return NULL;
+			node = find_root(p, root, nodes);
 
-#endif
-
-#ifdef CONFIG_JSON
-static json_object *find_node_json(json_object *root, const char *node,
-			struct swupdate_cfg *swcfg)
-{
-	json_object *jnode = NULL;
-	const char *simple_nodes[] = {NODEROOT, node, NULL};
-	struct hw_type *hardware;
-
-	hardware = &swcfg->hw;
-
-	if (strlen(swcfg->running_mode) && strlen(swcfg->software_set)) {
-		if (strlen(hardware->boardname)) {
-			const char *nodes[] = {NODEROOT, hardware->boardname,
-				swcfg->software_set, swcfg->running_mode,
-				node, NULL};
-			jnode = find_json_recursive_node(root, nodes);
-			if (jnode)
-				return jnode;
-		} else {
-			const char *nodes[] = {NODEROOT, swcfg->software_set,
-				swcfg->running_mode, node, NULL};
-			jnode = find_json_recursive_node(root, nodes);
-			if (jnode)
-				return jnode;
+			if (node) {
+				free(nodes);
+				return node;
+			}
 		}
 	}
 
-	if (strlen(hardware->boardname)) {
-		const char *nodes[] = {NODEROOT, hardware->boardname, node,
-					NULL};
-		jnode = find_json_recursive_node(root, nodes);
-		if (jnode)
-			return jnode;
-	}
-
-	return find_json_recursive_node(root, simple_nodes);
-}
-#endif
-
-#if defined(CONFIG_LIBCONFIG) || defined(CONFIG_JSON)
-static void *find_node(parsertype p, void *root, const char *node,
-			struct swupdate_cfg *swcfg)
-{
-	switch (p) {
-	case LIBCFG_PARSER:
-		return find_node_libconfig((config_t *)root, node, swcfg);
-	case JSON_PARSER:
-		return find_node_json((json_object *)root, node, swcfg);
-	}
+	free(nodes);
 
 	return NULL;
+}
+
+static bool get_common_fields(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
+{
+
+	void *setting;
+
+	if((setting = find_node(p, cfg, "version", swcfg)) == NULL) {
+		ERROR("Missing version in configuration file");
+		return false;
+	}
+	
+	GET_FIELD_STRING(p, setting, NULL, swcfg->version);
+	TRACE("Version %s", swcfg->version);
+
+	if((setting = find_node(p, cfg, "description", swcfg)) != NULL) {
+		GET_FIELD_STRING(p, setting, NULL, swcfg->description);
+		TRACE("Description %s", swcfg->description);
+	}
+
+	return true;
 }
 
 static void add_properties_cb(const char *name, const char *value, void *data)
@@ -672,11 +683,8 @@ static int parser(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 int parse_cfg (struct swupdate_cfg *swcfg, const char *filename)
 {
 	config_t cfg;
-	const char *str;
-	char node[128];
 	parsertype p = LIBCFG_PARSER;
 	int ret;
-	config_setting_t *setting;
 
 	memset(&cfg, 0, sizeof(cfg));
 	config_init(&cfg);
@@ -694,24 +702,8 @@ int parse_cfg (struct swupdate_cfg *swcfg, const char *filename)
 		return -1;
 	}
 
-	if((setting = find_node(p, &cfg, "version", swcfg)) == NULL) {
-		ERROR("Missing version in configuration file");
+	if (!get_common_fields(p, &cfg, swcfg))
 		return -1;
-	} else {
-		GET_FIELD_STRING(p, setting, NULL, swcfg->version);
-		TRACE("Version %s", swcfg->version);
-	}
-
-	if((setting = find_node(p, &cfg, "description", swcfg)) != NULL) {
-		GET_FIELD_STRING(p, setting, NULL, swcfg->description);
-		TRACE("Description %s", swcfg->description);
-	}
-
-	snprintf(node, sizeof(node), "%s.embedded-script",
-			NODEROOT);
-	if (config_lookup_string(&cfg, node, &str)) {
-		TRACE("Found Lua Software:\n%s", str);
-	}
 
 	ret = parser(p, &cfg, swcfg);
 
@@ -734,7 +726,7 @@ int parse_json(struct swupdate_cfg *swcfg, const char *filename)
 	struct stat stbuf;
 	unsigned int size;
 	char *string;
-	json_object *cfg, *setting;
+	json_object *cfg;
 	parsertype p = JSON_PARSER;
 
 	/* Read the file. If there is an error, report it and exit. */
@@ -764,18 +756,9 @@ int parse_json(struct swupdate_cfg *swcfg, const char *filename)
 		return -1;
 	}
 
-	if((setting = find_node(p, cfg, "version", swcfg)) == NULL) {
-		ERROR("Missing version in configuration file");
+	if (!get_common_fields(p, cfg, swcfg)) {
 		free(string);
 		return -1;
-	} else {
-		GET_FIELD_STRING(p, setting, NULL, swcfg->version);
-		TRACE("Version %s", swcfg->version);
-	}
-
-	if((setting = find_node(p, cfg, "description", swcfg)) != NULL) {
-		GET_FIELD_STRING(p, setting, NULL, swcfg->description);
-		TRACE("Description %s", swcfg->description);
 	}
 
 	ret = parser(p, cfg, swcfg);

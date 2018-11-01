@@ -153,6 +153,39 @@ int exist_field_string(parsertype p, void *e, const char *path)
 	return 0;
 }
 
+void *find_root(parsertype p, void *root, const char **nodes)
+{
+
+	switch (p) {
+	case LIBCFG_PARSER:
+		return find_root_libconfig((config_t *)root, nodes, MAX_LINKS_DEPTH);
+
+	case JSON_PARSER:
+		return find_root_json((json_object *)root, nodes, MAX_LINKS_DEPTH);
+	default:
+		(void)root;
+		(void)nodes;
+	}
+
+	return NULL;
+}
+
+void *get_node(parsertype p, void *root, const char **nodes)
+{
+
+	switch (p) {
+	case LIBCFG_PARSER:
+		return get_node_libconfig((config_t *)root, nodes);
+	case JSON_PARSER:
+		return get_node_json((json_object *)root, nodes);
+	default:
+		(void)root;
+		(void)nodes;
+	}
+
+	return NULL;
+}
+
 void get_hash_value(parsertype p, void *elem, unsigned char *hash)
 {
 	char hash_ascii[80];
@@ -165,52 +198,86 @@ void get_hash_value(parsertype p, void *elem, unsigned char *hash)
 
 bool set_find_path(const char **nodes, const char *newpath, char **tmp)
 {
-	unsigned int nleading;
-	char **iter, **paths;
-	unsigned int count = count_string_array(nodes);
-	unsigned int countpaths;
-
-	if (!newpath)
-		return false;
-
-	/*
-	 * Check if we have to traverse back
-	 */
-	for (nleading = 0; newpath[nleading] == '.'; nleading++);
+	char **paths;
+	unsigned int count;
+	char *saveptr;
+	char *token, *ref;
+	bool first = true;
+	int allocstr = 0;
 
 	/*
-	 * delimiter at the beginning indicates a relative path
-	 * exactly as in Unix, that mean .. for the upper directory
-	 * .. = parent 
-	 * .... = parent of parent
-	 * The number of leading "." must be even, else
-	 * it is a malformed path
+	 * Include of files is not supported,
+	 * each reference should start with '#'
 	 */
-	if (nleading % 2)
+	if (!newpath || (newpath[0] != '#') || (strlen(newpath) < 3))
 		return false;
 
-	nleading /= 2;
-	if ((count - nleading) <= 0)
+	ref = strdup(newpath);
+	if (!ref) {
+		ERROR("No memory: failed for %lu bytes",
+		       strlen(newpath) + 1);
 		return false;
-
-	count -= nleading;
-	if (count > 0) count--;
-
-	paths = string_split(newpath, '.');
+	}
 
 	/*
-	 * check if there is enough space in nodes
+	 * First find how many strings should be stored
+	 * Each token is stored temporarily on the heap
 	 */
-	countpaths = count_string_array((const char **)paths);
-	if (count + countpaths >= MAX_PARSED_NODES)
-		return false;
-	if (!countpaths)
-		nodes[count++] = newpath;
-	else
-		for (iter = paths; *iter != NULL; iter++, count++)
-			nodes[count] = *iter;
-	nodes[count] = NULL;
+	count = 0;
+	token = strtok_r(&ref[1], "/", &saveptr);
+	while (token) {
+		count++;
+		token = strtok_r(NULL, "/", &saveptr);
+	}
+	free(ref); /* string was changed, clean and copy again */
 
+	if (!count)
+		return false;
+
+	paths = calloc(count + 1, sizeof(char*) * count);
+	if (!paths) {
+		ERROR("No memory: calloc failed for %lu bytes",
+		       sizeof(char*) * count);
+		return false;
+	}
+	count = count_string_array(nodes);
+	ref = strdup(newpath);
+	if (!ref) {
+		ERROR("No memory: failed for %lu bytes",
+		       strlen(newpath) + 1);
+		free(paths);
+		return false;
+	}
+	
+	token = strtok_r(&ref[1], "/", &saveptr);
+	while (token) {
+		if (!strcmp(token, "..")) {
+			if (!count) {
+				free(ref);
+				free_string_array(paths);
+				return false;
+			}
+			count--;
+		} else if (strcmp(token, ".")) {
+			if (first) {
+				count = 0;
+			}
+			paths[allocstr] = strdup(token);
+			nodes[count++] = paths[allocstr++];
+			paths[allocstr] = NULL;
+			nodes[count] = NULL;
+			if (count >= MAX_PARSED_NODES) {
+				ERROR("Big depth in link, giving up..."); 
+				free_string_array(paths);
+				free(ref);
+				return false;
+			}
+		}
+		token = strtok_r(NULL, "/", &saveptr);
+		first = false;
+	}
+
+	free(ref);
 	tmp = paths;
 
 	return true;

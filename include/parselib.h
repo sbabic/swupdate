@@ -39,6 +39,8 @@ void *get_child_libconfig(void *e, const char *name);
 void iterate_field_libconfig(config_setting_t *e, iterate_callback cb,
 			     void *data);
 const char *get_field_string_libconfig(config_setting_t *e, const char *path);
+void *find_root_libconfig(config_t *cfg, const char **nodes, unsigned int depth);
+void *get_node_libconfig(config_t *cfg, const char **nodes);
 
 #else
 #define config_setting_get_elem(a,b)	(NULL)
@@ -49,6 +51,8 @@ const char *get_field_string_libconfig(config_setting_t *e, const char *path);
 #define get_child_libconfig(e, name)		(NULL)
 #define iterate_field_libconfig(e, cb, data)	{ }
 #define get_field_cfg(e, path, dest)
+#define find_root_libconfig(cfg, nodes, depth)		(NULL)
+#define get_node_libconfig(cfg, nodes)		(NULL)
 #endif
 
 #ifdef CONFIG_JSON
@@ -65,6 +69,8 @@ const char *json_get_value(struct json_object *json_root,
 			   const char *key);
 json_object *json_get_path_key(json_object *json_root, const char **json_path);
 char *json_get_data_url(json_object *json_root, const char *key);
+void *find_root_json(json_object *root, const char **nodes, unsigned int depth);
+void *get_node_json(json_object *root, const char **nodes);
 
 #else
 #define find_node_json(a, b, c)		(NULL)
@@ -75,6 +81,8 @@ char *json_get_data_url(json_object *json_root, const char *key);
 #define json_object_object_get_ex(a,b,c) (0)
 #define json_object_array_get_idx(a, b)	(0)
 #define json_object_array_length(a)	(0)
+#define find_root_json(root, nodes, depth)	(NULL)
+#define get_node_json(root, nodes)	(NULL)
 #endif
 
 typedef int (*settings_callback)(void *elem, void *data);
@@ -90,7 +98,7 @@ void get_field(parsertype p, void *e, const char *path, void *dest);
 int exist_field_string(parsertype p, void *e, const char *path);
 void get_hash_value(parsertype p, void *elem, unsigned char *hash);
 void check_field_string(const char *src, char *dst, const size_t max_len);
-bool find_root(parsertype p, void *root, const char **nodes);
+void *find_root(parsertype p, void *root, const char **nodes);
 void *get_node(parsertype p, void *root, const char **nodes);
 bool set_find_path(const char **nodes, const char *newpath, char **tmp);
 
