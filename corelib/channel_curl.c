@@ -1000,6 +1000,7 @@ channel_op_res_t channel_get_file(channel_t *this, void *data)
 	if (channel_data->usessl) {
 		unsigned char sha1hash[SHA_DIGEST_LENGTH];
 		unsigned int md_len;
+		(void)md_len;
 		if (swupdate_HASH_final(channel_data->dgst, sha1hash, &md_len) != 1) {
 			ERROR("Cannot compute checksum.");
 			goto cleanup_file;
