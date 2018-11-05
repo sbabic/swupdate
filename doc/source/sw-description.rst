@@ -251,6 +251,73 @@ other slot.
 The method of image selection is out of the scope of SWUpdate and user
 is responsible for calling `SWUpdate` passing proper settings.
 
+Priority finding the elements in the file
+-----------------------------------------
+
+SWUpdate search for entries in the sdw-description file according to the following priority:
+
+1. Try <boardname>.<selection>.<mode>.<entry>
+2. Try <selection>.<mode>.<entry>
+3. Try <boardname>.<entry>
+4. Try <entry>
+
+Take an example. The following sw-description describes the release for a set of boards.
+
+::
+
+    software =
+    {
+            version = "0.1.0";
+
+            myboard = {
+                stable = {
+                    copy-1: {
+                            images: (
+                            {
+                                    device = "/dev/mtd4"
+                                    ...
+                            }
+                            );
+                    }
+                    copy-2: {
+                            images: (
+                            {
+                                    device = "/dev/mtd5"
+                                    ...
+                            }
+                            );
+                    }
+                }
+            }
+
+            stable = {
+                copy-1: {
+                      images: (
+                          {
+                               device = "/dev/mtd6"
+                                    ...
+                          }
+                       );
+                }
+                copy-2: {
+                       images: (
+                       {
+                               device = "/dev/mtd7"
+                                    ...
+                       }
+                       );
+                }
+            }
+    }
+
+On *myboard*, SWUpdate searches and find myboard.stable.copy1(2). When running on different
+boards, SWUpdate does not find an enty corresponding to the boardname and it fallbacks to the
+version without boardname. This lets relalize the same release for different boards having
+a complete different hardware. `myboard` could have a eMMC and an ext4 filesystem,
+while another device can have raw flash and install an UBI filesystem. Nevertheless, they are
+both just a different format of the same release and they could be described together in sw-description.
+It is important to understand the priorities how SWUpdate scans for entries during the parsing.
+
 hardware-compatibility
 ----------------------
 
