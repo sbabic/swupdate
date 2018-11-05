@@ -325,16 +325,7 @@ static int flash_write_image(int mtdnum, struct img_type *img)
 static int install_flash_image(struct img_type *img,
 	void __attribute__ ((__unused__)) *data)
 {
-	char filename[64];
 	int mtdnum;
-	int n;
-	const char* TMPDIR = get_tmpdir();
-
-	n = snprintf(filename, sizeof(filename), "%s%s", TMPDIR, img->fname);
-	if (n < 0 || n >= sizeof(filename)) {
-		ERROR("Filename too long: %s", img->fname);
-		return -1;
-	}
 
 	if (strlen(img->path))
 		mtdnum = get_mtd_from_name(img->path);
