@@ -400,7 +400,7 @@ void free_image(struct img_type *img) {
 }
 
 void cleanup_files(struct swupdate_cfg *software) {
-	char fn[64];
+	char *fn;
 	struct img_type *img;
 	struct img_type *img_tmp;
 	struct hw_type *hw;
@@ -410,11 +410,12 @@ void cleanup_files(struct swupdate_cfg *software) {
 
 	LIST_FOREACH_SAFE(img, &software->images, next, img_tmp) {
 		if (img->fname[0]) {
-			if (snprintf(fn, sizeof(fn), "%s%s", TMPDIR,
-				     img->fname) >= (int)sizeof(fn)) {
+			if (asprintf(&fn, "%s%s", TMPDIR,
+				     img->fname) == ENOMEM_ASPRINTF) {
 				ERROR("Path too long: %s%s", TMPDIR, img->fname);
 			}
 			remove_sw_file(fn);
+			free(fn);
 		}
 		LIST_REMOVE(img, next);
 		free_image(img);
@@ -431,19 +432,24 @@ void cleanup_files(struct swupdate_cfg *software) {
 
 	dict_drop_db(&software->bootloader);
 
-	snprintf(fn, sizeof(fn), "%s%s", TMPDIR, BOOT_SCRIPT_SUFFIX);
-	remove_sw_file(fn);
+	if (asprintf(&fn, "%s%s", TMPDIR, BOOT_SCRIPT_SUFFIX) != ENOMEM_ASPRINTF) {
+		remove_sw_file(fn);
+		free(fn);
+	}
 
 	LIST_FOREACH_SAFE(hw, &software->hardware, next, hw_tmp) {
 		LIST_REMOVE(hw, next);
 		free(hw);
 	}
-	snprintf(fn, sizeof(fn), "%s%s", TMPDIR, SW_DESCRIPTION_FILENAME);
-	remove_sw_file(fn);
+	if (asprintf(&fn, "%s%s", TMPDIR, SW_DESCRIPTION_FILENAME) != ENOMEM_ASPRINTF) {
+		remove_sw_file(fn);
+		free(fn);
+	}
 #ifdef CONFIG_SIGNED_IMAGES
-	snprintf(fn, sizeof(fn), "%s%s.sig",
-		TMPDIR, SW_DESCRIPTION_FILENAME);
-	remove_sw_file(fn);
+	if (asprintf(&fn, "%s%s.sig", TMPDIR, SW_DESCRIPTION_FILENAME) != ENOMEM_ASPRINTF) {
+		remove_sw_file(fn);
+		free(fn);
+	}
 #endif
 }
 
