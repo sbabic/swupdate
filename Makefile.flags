@@ -21,7 +21,9 @@ KBUILD_CFLAGS += $(call cc-option,-Wunused -Wunused-parameter,)
 KBUILD_CFLAGS += $(call cc-option,-Wunused-function -Wunused-value,)
 KBUILD_CFLAGS += $(call cc-option,-Wmissing-prototypes -Wmissing-declarations,)
 KBUILD_CFLAGS += $(call cc-option,-Wno-format-security,)
+ifneq ($(CC),clang)
 KBUILD_CFLAGS += $(call cc-option,-Wno-format-truncation,)
+endif
 # If you want to add more -Wsomething above, make sure that it is
 # still possible to build bbox without warnings.
 
