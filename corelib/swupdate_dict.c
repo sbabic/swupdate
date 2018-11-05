@@ -177,6 +177,7 @@ int dict_parse_script(struct dict *dictionary, const char *script)
 	int ret = 0;
 	char *line = NULL, *key = NULL, *value = NULL;
 	size_t len = 0;
+	char *saveptr;
 
 	/* open script generated during sw-description parsing */
 	fp = fopen(script, "rb");
@@ -189,8 +190,8 @@ int dict_parse_script(struct dict *dictionary, const char *script)
 	/* load  key-value pairs from script into dictionary */
 
 	while ((getline(&line, &len, fp)) != -1) {
-		key = strtok(line, " \t\n");
-		value = strtok(NULL, "\t\n");
+		key = strtok_r(line, " \t\n", &saveptr);
+		value = strtok_r(NULL, "\t\n", &saveptr);
 		if (value != NULL && key != NULL) {
 			ret = dict_set_value(dictionary, key, value);
 			if (ret) {
