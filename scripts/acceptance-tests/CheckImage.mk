@@ -18,7 +18,7 @@
 #
 # test commands for --check command-line option
 #
-SWU_CHECK_BASE = ./swupdate -l 5 -c $(if $(CONFIG_SIGNED_IMAGES),-k $(obj)/cacert.pem)
+SWU_CHECK_BASE = ./swupdate -l 5 -c $(if $(CONFIG_SIGNED_IMAGES),-k $(obj)/cacert.pem) $(if $(strip $(filter %.cfg, $^)), -f $(filter %.cfg, $^))
 SWU_CHECK = $(SWU_CHECK_BASE) $(if $(CONFIG_HW_COMPATIBILITY),-H test:1) $(if $(strip $(filter-out FORCE,$<)),-i $<) $(if $(strip $(KBUILD_VERBOSE:0=)),,>/dev/null 2>&1)
 
 quiet_cmd_swu_check_assert_false = RUN     $@
@@ -53,6 +53,8 @@ tests-$(CONFIG_LIBCONFIG) += ValidImageTest
 tests-y += InvOptsNoImg
 tests-$(CONFIG_MONGOOSE) += InvOptsCheckWithWeb
 tests-$(CONFIG_SURICATTA) += InvOptsCheckWithSur
+tests-$(CONFIG_SIGNED_IMAGES) += InvSigNameCheck
+tests-$(CONFIG_SIGNED_IMAGES) += ValidSigNameCheck
 
 #
 # file not found test
@@ -179,4 +181,35 @@ $(obj)/signer.pem $(obj)/cacert.pem:
 
 %/sw-description.sig :: %/sw-description $(obj)/signer.pem
 	$(call cmd,sign_desc)
+
+
+#
+# invalid signer name
+#
+PHONY += InvSigNameCheck
+InvSigNameCheck: $(obj)/ValidImage.swu $(obj)/InvSigNameCheck.cfg FORCE $(if $(CONFIG_SIGNED_IMAGES), $(obj)/cacert.pem)
+	$(call cmd,swu_check_assert_false)
+
+clean-files += InvSigNameCheck.cfg
+$(obj)/InvSigNameCheck.cfg:
+	$(Q)printf "\
+globals: {\n\
+	forced-signer-name = \"shall be different\";\n\
+};\n\
+" > $@
+
+#
+# valid signer name
+#
+PHONY += ValidSigNameCheck
+ValidSigNameCheck: $(obj)/ValidImage.swu $(obj)/ValidSigNameCheck.cfg FORCE $(if $(CONFIG_SIGNED_IMAGES), $(obj)/cacert.pem)
+	$(call cmd,swu_check_assert_true)
+
+clean-files += ValidSigNameCheck.cfg
+$(obj)/ValidSigNameCheck.cfg:
+	$(Q)printf "\
+globals: {\n\
+        forced-signer-name = \"OpenSSL test S/MIME signer 1\";\n\
+};\n\
+" > $@
 
