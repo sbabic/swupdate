@@ -227,7 +227,8 @@ int parse(struct swupdate_cfg *sw, const char *descfile)
 	strcpy(sigfile, descfile);
 	strcat(sigfile, ".sig");
 
-	ret = swupdate_verify_file(sw->dgst, sigfile, descfile);
+	ret = swupdate_verify_file(sw->dgst, sigfile, descfile,
+				   sw->globals.forced_signer_name);
 	free(sigfile);
 
 	if (ret)

@@ -82,6 +82,7 @@ static struct option long_options[] = {
 #ifdef CONFIG_SIGNED_IMAGES
 	{"key", required_argument, NULL, 'k'},
 	{"cert-purpose", required_argument, NULL, '1'},
+	{"forced-signer-name", required_argument, NULL, '2'},
 #endif
 #ifdef CONFIG_ENCRYPTED_IMAGES
 	{"key-aes", required_argument, NULL, 'K'},
@@ -129,6 +130,7 @@ static void usage(char *programname)
 		" -k, --key <public key file>    : file with public key to verify images\n"
 		"     --cert-purpose <purpose>   : set expected certificate purpose\n"
 		"                                  [emailProtection|codeSigning] (default: emailProtection)\n"
+		"     --forced-signer-name <cn>  : set expected common name of signer certificate\n"
 #endif
 #ifdef CONFIG_ENCRYPTED_IMAGES
 		" -K, --key-aes <key file>       : the file contains the symmetric key to be used\n"
@@ -505,6 +507,8 @@ static int read_globals_settings(void *elem, void *data)
 				"cert-purpose", tmp);
 	if (tmp[0] != '\0')
 		sw->globals.cert_purpose = parse_cert_purpose(tmp);
+	GET_FIELD_STRING(LIBCFG_PARSER, elem, "forced-signer-name",
+				sw->globals.forced_signer_name);
 
 	return 0;
 }
@@ -720,6 +724,10 @@ int main(int argc, char **argv)
 			break;
 		case '1':
 			swcfg.globals.cert_purpose = parse_cert_purpose(optarg);
+			break;
+		case '2':
+			strncpy(swcfg.globals.forced_signer_name, optarg,
+				sizeof(swcfg.globals.forced_signer_name));
 			break;
 #ifdef CONFIG_ENCRYPTED_IMAGES
 		case 'K':

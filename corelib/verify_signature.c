@@ -109,7 +109,7 @@ static int verify_final(struct swupdate_digest *dgst, unsigned char *sig, unsign
 }
 
 int swupdate_verify_file(struct swupdate_digest *dgst, const char *sigfile,
-		const char *file)
+		const char *file, const char *signer_name)
 {
 	FILE *fp = NULL;
 	BIO *sigbio;
@@ -121,6 +121,7 @@ int swupdate_verify_file(struct swupdate_digest *dgst, const char *sigfile,
 	size_t rbytes;
 	int status = 0;
 
+	(void)signer_name;
 	if (!dgst) {
 		ERROR("Wrong crypto initialization: did you pass the key ?");
 		status = -ENOKEY;
@@ -292,8 +293,74 @@ static X509_STORE *load_cert_chain(const char *file)
 	return castore;
 }
 
+static inline int next_common_name(X509_NAME *subject, int i)
+{
+	return X509_NAME_get_index_by_NID(subject, NID_commonName, i);
+}
+
+static int check_common_name(X509_NAME *subject, const char *name)
+{
+	int i = -1, ret = 1;
+
+	while ((i = next_common_name(subject, i)) > -1) {
+		X509_NAME_ENTRY *e = X509_NAME_get_entry(subject, i);
+		ASN1_STRING *d = X509_NAME_ENTRY_get_data(e);
+		unsigned char *cn;
+		size_t len = strlen(name);
+		bool matches = (ASN1_STRING_to_UTF8(&cn, d) == (int)len)
+				&& (strncmp(name, (const char *)cn, len) == 0);
+
+		OPENSSL_free(cn);
+		if (!matches) {
+			char *subj = X509_NAME_oneline(subject, NULL, 0);
+
+			ERROR("common name of '%s' does not match expected '%s'",
+				subj, name);
+			OPENSSL_free(subj);
+			return 2;
+		} else {
+			ret = 0;
+		}
+	}
+
+	if (ret == 0) {
+		char *subj = X509_NAME_oneline(subject, NULL, 0);
+
+		TRACE("verified signer cert: %s", subj);
+		OPENSSL_free(subj);
+	}
+
+	return ret;
+}
+
+static int check_signer_name(CMS_ContentInfo *cms, const char *name)
+{
+	STACK_OF(CMS_SignerInfo) *infos = CMS_get0_SignerInfos(cms);
+	STACK_OF(X509) *crts = CMS_get1_certs(cms);
+	int i, ret = 1;
+
+	if ((name == NULL) || (name[0] == '\0'))
+		return 0;
+
+	for (i = 0; i < sk_CMS_SignerInfo_num(infos); ++i) {
+		CMS_SignerInfo *si = sk_CMS_SignerInfo_value(infos, i);
+		int j;
+
+		for (j = 0; j < sk_X509_num(crts); ++j) {
+			X509 *crt = sk_X509_value(crts, j);
+
+			if (CMS_SignerInfo_cert_cmp(si, crt) == 0) {
+				ret = check_common_name(
+					X509_get_subject_name(crt), name);
+			}
+		}
+	}
+
+	return ret;
+}
+
 int swupdate_verify_file(struct swupdate_digest *dgst, const char *sigfile,
-		const char *file)
+		const char *file, const char *signer_name)
 {
 	int status = -EFAULT;
 	CMS_ContentInfo *cms = NULL;
@@ -311,6 +378,12 @@ int swupdate_verify_file(struct swupdate_digest *dgst, const char *sigfile,
 	cms = d2i_CMS_bio(sigfile_bio, NULL);
 	if (!cms) {
 		ERROR("%s cannot be parsed as DER-encoded CMS signature blob", sigfile);
+		status = -EFAULT;
+		goto out;
+	}
+
+	if (check_signer_name(cms, signer_name)) {
+		ERROR("failed to verify signer name");
 		status = -EFAULT;
 		goto out;
 	}

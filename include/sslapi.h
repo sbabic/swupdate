@@ -109,7 +109,7 @@ int swupdate_HASH_final(struct swupdate_digest *dgst, unsigned char *md_value,
 	       			unsigned int *md_len);
 void swupdate_HASH_cleanup(struct swupdate_digest *dgst);
 int swupdate_verify_file(struct swupdate_digest *dgst, const char *sigfile,
-	       	const char *file);
+				const char *file, const char *signer_name);
 int swupdate_HASH_compare(unsigned char *hash1, unsigned char *hash2);
 
 

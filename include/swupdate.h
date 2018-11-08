@@ -114,6 +114,7 @@ struct swupdate_global_cfg {
 	char postupdatecmd[SWUPDATE_GENERAL_STRING_SIZE];
 	char current_version[SWUPDATE_GENERAL_STRING_SIZE];
 	int cert_purpose;
+	char forced_signer_name[SWUPDATE_GENERAL_STRING_SIZE];
 };
 
 struct swupdate_cfg {
