@@ -113,6 +113,7 @@ struct swupdate_global_cfg {
 	char aeskeyfname[SWUPDATE_GENERAL_STRING_SIZE];
 	char postupdatecmd[SWUPDATE_GENERAL_STRING_SIZE];
 	char current_version[SWUPDATE_GENERAL_STRING_SIZE];
+	int cert_purpose;
 };
 
 struct swupdate_cfg {

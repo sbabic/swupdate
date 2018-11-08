@@ -81,6 +81,7 @@ static struct option long_options[] = {
 	{"no-downgrading", required_argument, NULL, 'N'},
 #ifdef CONFIG_SIGNED_IMAGES
 	{"key", required_argument, NULL, 'k'},
+	{"cert-purpose", required_argument, NULL, '1'},
 #endif
 #ifdef CONFIG_ENCRYPTED_IMAGES
 	{"key-aes", required_argument, NULL, 'K'},
@@ -126,6 +127,8 @@ static void usage(char *programname)
 		" -L, --syslog                   : enable syslog logger\n"
 #ifdef CONFIG_SIGNED_IMAGES
 		" -k, --key <public key file>    : file with public key to verify images\n"
+		"     --cert-purpose <purpose>   : set expected certificate purpose\n"
+		"                                  [emailProtection|codeSigning] (default: emailProtection)\n"
 #endif
 #ifdef CONFIG_ENCRYPTED_IMAGES
 		" -K, --key-aes <key file>       : the file contains the symmetric key to be used\n"
@@ -446,6 +449,7 @@ static void swupdate_init(struct swupdate_cfg *sw)
 	LIST_INIT(&sw->bootscripts);
 	LIST_INIT(&sw->bootloader);
 	LIST_INIT(&sw->extprocs);
+	sw->globals.cert_purpose = SSL_PURPOSE_DEFAULT;
 
 
 	/* Create directories for scripts */
@@ -462,8 +466,24 @@ static void swupdate_init(struct swupdate_cfg *sw)
 #endif
 }
 
+static int parse_cert_purpose(const char *text)
+{
+	static const char CODE_SIGN[] = "codeSigning";
+	static const char EMAIL_PROT[] = "emailProtection";
+
+	if (strncmp(CODE_SIGN, text, sizeof(CODE_SIGN)) == 0)
+		return SSL_PURPOSE_CODE_SIGN;
+
+	if (strncmp(EMAIL_PROT, text, sizeof(EMAIL_PROT)) == 0)
+		return SSL_PURPOSE_EMAIL_PROT;
+
+	ERROR("unknown certificate purpose '%s'\n", text);
+	exit(EXIT_FAILURE);
+}
+
 static int read_globals_settings(void *elem, void *data)
 {
+	char tmp[SWUPDATE_GENERAL_STRING_SIZE] = "";
 	struct swupdate_cfg *sw = (struct swupdate_cfg *)data;
 
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
@@ -481,6 +501,10 @@ static int read_globals_settings(void *elem, void *data)
 				"no-downgrading", sw->globals.current_version);
 	if (strlen(sw->globals.current_version))
 		sw->globals.no_downgrading = 1;
+	GET_FIELD_STRING(LIBCFG_PARSER, elem,
+				"cert-purpose", tmp);
+	if (tmp[0] != '\0')
+		sw->globals.cert_purpose = parse_cert_purpose(tmp);
 
 	return 0;
 }
@@ -693,6 +717,9 @@ int main(int argc, char **argv)
 			strncpy(swcfg.globals.publickeyfname,
 				optarg,
 			       	sizeof(swcfg.globals.publickeyfname));
+			break;
+		case '1':
+			swcfg.globals.cert_purpose = parse_cert_purpose(optarg);
 			break;
 #ifdef CONFIG_ENCRYPTED_IMAGES
 		case 'K':

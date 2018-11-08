@@ -8,6 +8,8 @@
 #ifndef _SWUPDATE_SSL_H
 #define _SWUPDATE_SSL_H
 
+#include <stdint.h>
+
 #define SHA_DEFAULT	"sha256"
 
 /*
@@ -35,6 +37,11 @@
 #endif
 
 #include <openssl/opensslv.h>
+
+#define X509_PURPOSE_CODE_SIGN (X509_PURPOSE_MAX + 1)
+#define SSL_PURPOSE_EMAIL_PROT X509_PURPOSE_SMIME_SIGN
+#define SSL_PURPOSE_CODE_SIGN  X509_PURPOSE_CODE_SIGN
+#define SSL_PURPOSE_DEFAULT SSL_PURPOSE_EMAIL_PROT
 
 struct swupdate_digest {
 	EVP_PKEY *pkey;		/* this is used for RSA key */
@@ -69,6 +76,24 @@ struct swupdate_digest {
 #else
 #define swupdate_crypto_init()
 #endif
+
+static inline uint32_t SSL_X509_get_extension_flags(X509 *x)
+{
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
+	return x->ex_flags;
+#else
+	return X509_get_extension_flags(x);
+#endif
+}
+
+static inline uint32_t SSL_X509_get_extended_key_usage(X509 *x)
+{
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
+	return x->ex_xkusage;
+#else
+	return X509_get_extended_key_usage(x);
+#endif
+}
 
 #else
 #define swupdate_crypto_init()
@@ -121,6 +146,12 @@ void swupdate_DECRYPT_cleanup(struct swupdate_digest *dgst);
  */
 #ifndef SHA_DIGEST_LENGTH
 #define SHA_DIGEST_LENGTH 20
+#endif
+
+#ifndef SSL_PURPOSE_DEFAULT
+#define SSL_PURPOSE_EMAIL_PROT -1
+#define SSL_PURPOSE_CODE_SIGN  -1
+#define SSL_PURPOSE_DEFAULT -1
 #endif
 
 #endif

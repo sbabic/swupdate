@@ -195,6 +195,32 @@ out:
 }
 
 #elif defined(CONFIG_SIGALG_CMS)
+static int check_code_sign(const X509_PURPOSE *xp, const X509 *crt, int ca)
+{
+	X509 *x = (X509 *)crt;
+	uint32_t ex_flags = SSL_X509_get_extension_flags(x);
+	uint32_t ex_xkusage = SSL_X509_get_extended_key_usage(x);
+
+	(void)xp;
+
+	if (ca) {
+		int idx;
+		const X509_PURPOSE *pt;
+
+		if ((ex_flags & EXFLAG_XKUSAGE) && !(ex_xkusage & XKU_CODE_SIGN))
+			return 0;
+
+		idx = X509_PURPOSE_get_by_id(X509_PURPOSE_OCSP_HELPER);
+		if (idx == -1)
+			return 0;
+
+		pt = X509_PURPOSE_get0(idx);
+		return pt->check_purpose(pt, x, ca);
+	}
+
+	return (ex_flags & EXFLAG_XKUSAGE) && (ex_xkusage & XKU_CODE_SIGN);
+}
+
 static int cms_verify_callback(int ok, X509_STORE_CTX *ctx) {
 	int cert_error = X509_STORE_CTX_get_error(ctx);
 
@@ -436,6 +462,25 @@ int swupdate_dgst_init(struct swupdate_cfg *sw, const char *keyfile)
 	dgst->certs = load_cert_chain(keyfile);
 	if (!dgst->certs) {
 		ERROR("Error loading certificate chain from %s", keyfile);
+		ret = -EINVAL;
+		goto dgst_init_error;
+	}
+
+	{
+		static char code_sign_name[] = "Code signing";
+		static char code_sign_sname[] = "codesign";
+
+		if (!X509_PURPOSE_add(X509_PURPOSE_CODE_SIGN, X509_TRUST_EMAIL,
+				0, check_code_sign, code_sign_name,
+				code_sign_sname, NULL)) {
+			ERROR("failed to add code sign purpose");
+			ret = -EINVAL;
+			goto dgst_init_error;
+		}
+	}
+
+	if (!X509_STORE_set_purpose(dgst->certs, sw->globals.cert_purpose)) {
+		ERROR("failed to set purpose");
 		ret = -EINVAL;
 		goto dgst_init_error;
 	}
