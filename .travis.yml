@@ -24,6 +24,7 @@ before_install:
     - sudo apt-get install -y check
 
 script:
+    - sudo ln -sf /usr/lib/x86_64-linux-gnu/pkgconfig/lua5.2.pc /usr/lib/x86_64-linux-gnu/pkgconfig/lua.pc
     - sudo mkdir -p /usr/local/lib
     - sudo mkdir -p /usr/local/include
     - sudo mkdir -p /usr/local/include/mtd
