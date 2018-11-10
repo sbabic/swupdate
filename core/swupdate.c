@@ -131,7 +131,7 @@ static void usage(char *programname)
 		" -K, --key-aes <key file>       : the file contains the symmetric key to be used\n"
 		"                                  to decrypt images\n"
 #endif
-		" -n, --dry-to-run               : run SWUpdate without installing the software\n"
+		" -n, --dry-run                  : run SWUpdate without installing the software\n"
 		" -N, --no-downgrading <version> : not install a release older as <version>\n"
 		" -o, --output <output file>     : saves the incoming stream\n"
 		" -v, --verbose                  : be verbose, set maximum loglevel\n"
