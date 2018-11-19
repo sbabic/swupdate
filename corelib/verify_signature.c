@@ -336,12 +336,13 @@ static int check_common_name(X509_NAME *subject, const char *name)
 static int check_signer_name(CMS_ContentInfo *cms, const char *name)
 {
 	STACK_OF(CMS_SignerInfo) *infos = CMS_get0_SignerInfos(cms);
-	STACK_OF(X509) *crts = CMS_get1_certs(cms);
+	STACK_OF(X509) *crts;
 	int i, ret = 1;
 
 	if ((name == NULL) || (name[0] == '\0'))
 		return 0;
 
+	crts = CMS_get1_certs(cms);
 	for (i = 0; i < sk_CMS_SignerInfo_num(infos); ++i) {
 		CMS_SignerInfo *si = sk_CMS_SignerInfo_value(infos, i);
 		int j;
@@ -355,6 +356,7 @@ static int check_signer_name(CMS_ContentInfo *cms, const char *name)
 			}
 		}
 	}
+	sk_X509_pop_free(crts, X509_free);
 
 	return ret;
 }
