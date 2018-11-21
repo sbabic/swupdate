@@ -7,12 +7,15 @@
 
 #include <sys/types.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include "generated/autoconf.h"
 #include "swupdate.h"
+#include "swupdate_dict.h"
 #include "handler.h"
 #include "util.h"
 #include "bootloader.h"
@@ -25,7 +28,8 @@ static int install_boot_environment(struct img_type *img,
 {
 	int ret;
 	int fdout;
-
+	FILE *fp;
+	char *buf;
 	char filename[64];
 	struct stat statbuf;
 
@@ -35,6 +39,11 @@ static int install_boot_environment(struct img_type *img,
 			 img->fname);
 		return -1;
 	}
+
+	if (!img->bootloader) {
+		ERROR("Internal fault, please report !");
+		return -EFAULT;
+	}
 	ret = stat(filename, &statbuf);
 	if (ret) {
 		fdout = openfileoutput(filename);
@@ -42,14 +51,40 @@ static int install_boot_environment(struct img_type *img,
 		close(fdout);
 	}
 
-	ret = bootloader_apply_list(filename);
-	if (ret != 0) {
-		ERROR("Error setting bootloader environment");
-	} else {
-		TRACE("Bootloader environment from %s updated", img->fname);
+	/*
+	 * Do not set now the bootloader environment
+	 * because this can cause a corrupted environment
+	 * if a successive handler fails.
+	 * Just put the environment in a the global list
+	 * and let that the core will update it at the end
+	 * of install
+	 */
+	fp = fopen(filename, "r");
+	if (!fp)
+		return -EACCES;
+
+	buf = (char *)malloc(MAX_BOOT_SCRIPT_LINE_LENGTH);
+	if (!buf) {
+		ERROR("Out of memory, exiting !");
+		fclose(fp);
+		return -ENOMEM;
 	}
 
-	return ret;
+	while (fgets(buf, MAX_BOOT_SCRIPT_LINE_LENGTH, fp)) {
+		char **pair = NULL;
+		unsigned int cnt;
+
+		pair = string_split(buf, '=');
+		cnt = count_string_array((const char **)pair);
+
+		if (cnt > 0 && strlen(pair[0]))
+			dict_set_value(img->bootloader, pair[0], pair[1]);
+		free(pair);
+	}
+	fclose(fp);
+	free(buf);
+
+	return 0;
 }
 
 __attribute__((constructor))
