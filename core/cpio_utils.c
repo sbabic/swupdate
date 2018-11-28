@@ -135,10 +135,10 @@ static int input_step(void *state, void *buffer, size_t size)
 		size = s->nbytes;
 	}
 	int ret = fill_buffer(s->fdin, buffer, size, s->offs, &s->checksum, s->dgst);
-	if (ret <= 0) {
+	if (ret < 0) {
 		return ret;
 	}
-	s->nbytes -= size;
+	s->nbytes -= ret;
 	return ret;
 }
 
@@ -173,8 +173,6 @@ static int decrypt_step(void *state, void *buffer, size_t size)
 	ret = s->upstream_step(s->upstream_state, s->input, sizeof s->input);
 	if (ret < 0) {
 		return ret;
-	} else if (ret == 0) {
-		s->eof = true;
 	}
 
 	inlen = ret;
