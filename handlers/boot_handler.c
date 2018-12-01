@@ -73,12 +73,43 @@ static int install_boot_environment(struct img_type *img,
 	while (fgets(buf, MAX_BOOT_SCRIPT_LINE_LENGTH, fp)) {
 		char **pair = NULL;
 		unsigned int cnt;
+		int len = strlen(buf);
+
+		while (len && (buf[len - 1] == '\n' || buf [len - 1] == '\r'))
+			buf[--len] = '\0';
+
+		/* Skip comment or empty lines */
+		if (len == 0 || buf[0] == '#')
+			continue;
 
 		pair = string_split(buf, '=');
 		cnt = count_string_array((const char **)pair);
 
-		if (cnt > 0 && strlen(pair[0]))
+		switch (cnt) {
+		case 2:
+			TRACE("name = %s value = %s", pair[0], pair[1]);
 			dict_set_value(img->bootloader, pair[0], pair[1]);
+			break;
+		case 1:
+			TRACE("name = %s Removed", pair[0]);
+			dict_remove(img->bootloader, pair[0]);
+			break;
+		default:
+			/*
+			 * If value contains "=", splitargs returns
+			 * more substrings. Then pairs[1]..pairs[N]
+			 * should be treated as single string for
+			 * the dictionary
+			 */
+			if (cnt > 2)  {
+				char *tmp = strchr(buf, '=');
+				if (tmp && ((tmp - buf) < (len - 1))) {
+					tmp++;
+					TRACE("name = %s value = %s", pair[0], tmp);
+					dict_set_value(img->bootloader, pair[0], tmp);
+				}
+			}
+		}
 		free(pair);
 	}
 	fclose(fp);
