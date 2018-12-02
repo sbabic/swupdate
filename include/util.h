@@ -172,6 +172,7 @@ void notify_init(void);
 int syslog_init(void);
 
 char **splitargs(char *args, int *argc);
+char *mstrcat(const char **nodes, const char *delim);
 char** string_split(const char* a_str, const char a_delim);
 void freeargs (char **argv);
 int get_hw_revision(struct hw_type *hw);

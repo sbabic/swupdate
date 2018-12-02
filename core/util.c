@@ -134,6 +134,42 @@ void freeargs (char **argv)
 	}
 }
 
+/*
+ * Concatente array of strings in a single string
+ * The allocated string must be freed by the caller
+ * delim can be used to separate substrings
+ */
+char *mstrcat(const char **nodes, const char *delim)
+{
+	const char **node;
+	char *dest = NULL, *buf = NULL;
+
+	if (!delim)
+		delim = "";
+	for (node = nodes; *node != NULL; node++) {
+		/* first run, just copy first entry */
+		if (!dest) {
+			dest = strdup(*node);
+			if (!dest)
+				return NULL;
+		} else {
+			if (asprintf(&buf, "%s%s%s", dest, delim, *node) ==
+				ENOMEM_ASPRINTF) {
+				ERROR("Path too long, OOM");
+				free(dest);
+				return NULL;
+			}
+
+			/*
+			 * Free previous concatenated string
+			 */
+			free(dest);
+			dest = buf;
+		}
+	}
+	return dest;
+}
+
 int openfileoutput(const char *filename)
 {
 	int fdout;
