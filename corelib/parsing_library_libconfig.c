@@ -20,27 +20,6 @@
 #include "swupdate.h"
 #include "parselib.h"
 
-static void path_libconfig(const char **nodes, char *root, unsigned int rootsize)
-{
-    const char **node;
-    int nbytes, left;
-    char *buf;
-    const char *concat;
-    bool first=true;
-
-    root[0] = '\0';
-
-    for (node = nodes, buf = root, left = rootsize; *node != NULL; node++) {
-        concat = first ? "" : ".";
-        nbytes = snprintf(buf, left, "%s%s", concat, *node);
-        buf += nbytes;
-        left -= nbytes;
-        first = false;
-        if (left ==0)
-            break;
-    }
-}
-
 void get_value_libconfig(const config_setting_t *e, void *dest)
 {
 	int type = config_setting_type(e);
@@ -134,10 +113,15 @@ const char *get_field_string_libconfig(config_setting_t *e, const char *path)
 void *get_node_libconfig(config_t *cfg, const char **nodes)
 {
 	config_setting_t *setting;
-	char root[1024];
+	char *root;
 
-	path_libconfig(nodes, root, sizeof(root));
+	root = mstrcat(nodes, ".");
+	if (!root)
+		return NULL;
+
 	setting = config_lookup(cfg, root);
+	free(root);
+
 	if (setting)
 		return setting;
 
@@ -147,7 +131,7 @@ void *get_node_libconfig(config_t *cfg, const char **nodes)
 void *find_root_libconfig(config_t *cfg, const char **nodes, unsigned int depth)
 {
 	config_setting_t *elem;
-	char root[1024];
+	char *root;
 	const char *ref;
 	char **tmp = NULL;
 
@@ -157,7 +141,9 @@ void *find_root_libconfig(config_t *cfg, const char **nodes, unsigned int depth)
 	if (!(--depth))
 		return NULL;
 
-	path_libconfig(nodes, root, sizeof(root));
+	root = mstrcat(nodes, ".");
+	if (!root)
+		return NULL;
 
 	/*
 	 * If this is root node for the device,
@@ -169,12 +155,16 @@ void *find_root_libconfig(config_t *cfg, const char **nodes, unsigned int depth)
 	if (elem && config_setting_is_group(elem) == CONFIG_TRUE) {
 		ref = get_field_string_libconfig(elem, "ref");
 		if (ref) {
-			if (!set_find_path(nodes, ref, tmp))
+			if (!set_find_path(nodes, ref, tmp)) {
+				free(root);
 				return NULL;
+			}
 			elem = find_root_libconfig(cfg, nodes, depth);
 			free_string_array(tmp);
 		}
 	}
+
+	free(root);
 
 	return elem;
 
