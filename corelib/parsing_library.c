@@ -241,6 +241,14 @@ bool set_find_path(const char **nodes, const char *newpath, char **tmp)
 		return false;
 	}
 	count = count_string_array(nodes);
+	/*
+	 * Count is surely > 0, decrementing is safe
+	 * Do not consider the last leaf with "ref"
+	 * This means that "#./link" is searched
+	 * starting from the parent of "ref"
+	 */
+	count--;
+
 	ref = strdup(newpath);
 	if (!ref) {
 		ERROR("No memory: failed for %lu bytes",

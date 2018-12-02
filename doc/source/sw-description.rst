@@ -359,16 +359,16 @@ the section with `-e stable,<rev number>`.
 					...
 				);
 				scripts: (
-					...
+                                   ...
 				);
 			}
 			rev-1.3: {
 				hardware-compatibility: ["1.3"];
 				images: (
-					...
+                                    ...
 				);
 				scripts: (
-					...
+                                    ...
 				);
 			}
 
@@ -399,7 +399,7 @@ the section with `-e stable,<rev number>`.
 If each of them requires an own section, it is the way to do. Anyway, it is more probable
 than revisions can be grouped together, for example board with the same major revision
 number could have the same installation instructions. This leads in the example to 3 groups
-for rev1.X, rev2.X and rev3.X. Links allow to group section together. When a string is found
+for rev1.X, rev2.X and rev3.X. Links allow to group section together. When a "ref" is found
 when SWUpdate searches for a group (images, files, script, bootenv), it replaces the current path
 in the tree with the value of the string. In this way, the example above can be written in this way:
 
@@ -407,66 +407,65 @@ in the tree with the value of the string. In this way, the example above can be 
 
 	software =
 	{
-		version = "0.1.0";
+                version = "0.1.0";
 
-		myboard = {
+                myboard = {
 	            stable = {
 
-			hardware-compatibility: ["1.0", "1.2", "2.0", "1.3, "3.0", "3.1"];
-			rev-1x: {
-				images: (
-					...
-				);
-				scripts: (
-					...
-				);
-			}
+                        hardware-compatibility: ["1.0", "1.2", "2.0", "1.3, "3.0", "3.1"];
+                        rev-1x: {
+                                images: (
+                                   ...
+                                );
+                                scripts: (
+                                    ...
+                                );
+                        }
                         rev1.0 = {
-                                ref = "#../rev-1x";
+                                ref = "#./rev-1x";
                         }
                         rev1.2 = {
-                                ref = "#../rev-1x";
+                                ref = "#./rev-1x";
                         }
                         rev1.3 = {
-                                ref = "#../rev-1x";
+                                ref = "#./rev-1x";
                         }
-			rev-2x: {
-				images: (
-					...
-				);
-				scripts: (
-					...
-				);
-			}
+                        rev-2x: {
+                                images: (
+                                     ...
+                                );
+                                scripts: (
+                                     ...
+                                );
+                        }
                         rev2.0 = {
-                                ref = "#../rev-2x";
+                                ref = "#./rev-2x";
                         }
 
-			rev-3x:
-			{
-				images: (
-					...
-				);
-				scripts: (
-					...
-				);
+                        rev-3x: {
+                                images: (
+                                     ...
+                                );
+                                scripts: (
+                                      ...
+                                );
 	                }
                         rev3.0 = {
-                                ref = "#../rev-3x";
+                                ref = "#./rev-3x";
                         }
                         rev3.1 = {
-                                ref = "#../rev-3x";
+                                ref = "#./rev-3x";
                         }
 		     }
 	        }
-	}
+       }
 
 The link can be absolute or relative. The keyword *"ref"* is used to indicate a link. If this is found, SWUpdate
 will traverse the tree and replaces the current path with the values find in the string pointed by "ref". There are
 simple rules for a link:
 
        - it must start with the character '#' 
-       - "." points to the current level in the tree
+       - "." points to the current level in the tree, that means the parent of "ref"
        - ".." points to the parent level in the tree
        - "/" is used as filed separator in the link
 
@@ -483,7 +482,7 @@ The path `software.myboard.stable.common.images`  is then replaced by
 	software =
 	{
 	  version = {
-		  ref = "#../commonversion";
+		  ref = "#./commonversion";
 	  }
 
 	  hardware-compatibility = ["rev10", "rev11", "rev20"];
@@ -496,7 +495,7 @@ The path `software.myboard.stable.common.images`  is then replaced by
 	    common:{
 		images = 
 		{
-		  ref = "#../../trythis";
+		  ref = "#./../trythis";
 		}
 	      };
 
@@ -525,15 +524,15 @@ The path `software.myboard.stable.common.images`  is then replaced by
 	      };
 	      pdm3rev11 =
 	      {
-		ref = "#../pdm3rev10";
+		ref = "#./pdm3rev10";
 	      }
 	      pdm3rev20 =
 	      {
-		ref = "#../pdm3rev10";
+		ref = "#./pdm3rev10";
 	      }
 	      pdm3rev40 =
 	      {
-		ref = "#../common";
+		ref = "#./common";
 	      }
 	    };
 	  };
