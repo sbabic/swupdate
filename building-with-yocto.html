@@ -122,7 +122,7 @@
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to SWUpdate</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project's road-map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project’s road-map</a></li>
 </ul>
 
             
@@ -195,7 +195,7 @@ Foundation that provides tools and template to create the own custom Linux-based
 software for embedded systems.</p>
 <p>Add-on features can be added using <em>layers</em>. <a class="reference external" href="https://github.com/sbabic/meta-swupdate.git">meta-swupdate</a> is the layer to
 cross-compile the SWUpdate application and to generate the compound SWU images
-containing the release of the product. As described in Yocto's documentation
+containing the release of the product. As described in Yocto’s documentation
 about layers, you should include it in your <em>bblayers.conf</em> file to use it.</p>
 </div>
 <div class="section" id="the-swupdate-class">
@@ -203,7 +203,7 @@ about layers, you should include it in your <em>bblayers.conf</em> file to use i
 <p>meta-swupdate contains a class specific for SWUpdate. It helps to generate the
 SWU image starting from images built inside the Yocto. It requires that all
 components, that means the artifacts that are part of the SWU image, are present
-in the Yocto's deploy directory.  This class should be inherited by recipes
+in the Yocto’s deploy directory.  This class should be inherited by recipes
 generating the SWU. The class defines new variables, all of them have the prefix
 <em>SWUPDATE_</em> in the name.</p>
 <ul class="simple">
@@ -227,7 +227,7 @@ be packed into the SWU image.</li>
 </div>
 <ul class="simple">
 <li><strong>SWUPDATE_IMAGES_NOAPPEND_MACHINE</strong> : flag to use drop the machine name from the
-artifact file. Most images in <em>deploy</em> have the name of the Yocto's machine in the
+artifact file. Most images in <em>deploy</em> have the name of the Yocto’s machine in the
 filename. The class adds automatically the name of the MACHINE to the file, but some
 artifacts can be deploes without it.</li>
 </ul>
@@ -268,7 +268,7 @@ is signed. Each artifact must have the attribute:</p>
 <div class="section" id="bitbake-variable-expansion-in-sw-description">
 <h3>BitBake variable expansion in sw-description<a class="headerlink" href="#bitbake-variable-expansion-in-sw-description" title="Permalink to this headline">¶</a></h3>
 <p>To insert the value of a BitBake variable into the update file, pre- and
-postfix the variable name with &quot;&#64;&#64;&quot;.
+postfix the variable name with “&#64;&#64;”.
 For example, to automatically set the version tag:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;@@DISTRO_VERSION@@&quot;</span><span class="p">;</span>
 </pre></div>

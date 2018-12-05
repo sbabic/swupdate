@@ -96,11 +96,11 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Software Management on embedded systems</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#updating-through-the-boot-loader">Updating through the boot loader</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#boot-loaders-have-limited-access-to-peripherals">Boot loaders have limited access to peripherals</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#boot-loader-s-drivers-are-not-updated">Boot loader's drivers are not updated</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#boot-loader-s-drivers-are-not-updated">Boot loader’s drivers are not updated</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#reduced-file-systems">Reduced file systems</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#network-support-is-limited">Network support is limited</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#interaction-with-the-operator">Interaction with the operator</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#boot-loader-s-update-advantages">Boot loader's update advantages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#boot-loader-s-update-advantages">Boot loader’s update advantages</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#updating-through-a-package-manager">Updating through a package manager</a></li>
@@ -136,7 +136,7 @@
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to SWUpdate</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project's road-map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project’s road-map</a></li>
 </ul>
 
             
@@ -233,7 +233,7 @@ explain why I have implemented this project.</p>
 <h2>Updating through the boot loader<a class="headerlink" href="#updating-through-the-boot-loader" title="Permalink to this headline">¶</a></h2>
 <p>Boot loaders do much more as simply start the kernel.
 They have their own shell and can be managed using
-a processor's peripheral, in most cases a serial line.
+a processor’s peripheral, in most cases a serial line.
 They are often script-able, letting possible to implement
 some kind of software update mechanism.</p>
 <p>However, I found some drawbacks in this approach, that
@@ -248,8 +248,8 @@ by the main application, it does not always make sense to duplicate
 the effort to port the driver to the boot loader.</p>
 </div>
 <div class="section" id="boot-loader-s-drivers-are-not-updated">
-<h3>Boot loader's drivers are not updated<a class="headerlink" href="#boot-loader-s-drivers-are-not-updated" title="Permalink to this headline">¶</a></h3>
-<p>Boot loader's drivers are mostly ported from the Linux kernel,
+<h3>Boot loader’s drivers are not updated<a class="headerlink" href="#boot-loader-s-drivers-are-not-updated" title="Permalink to this headline">¶</a></h3>
+<p>Boot loader’s drivers are mostly ported from the Linux kernel,
 but due to adaptations they are not later fixed or synchronized
 with the kernel, while bug fixes flow regularly in the Linux kernel.
 Some peripherals can then work in a not reliable ways,
@@ -280,7 +280,7 @@ else in the boot loader. Extending the boot loader becomes complicated
 because the whole range of services and libraries are not available.</p>
 </div>
 <div class="section" id="boot-loader-s-update-advantages">
-<h3>Boot loader's update advantages<a class="headerlink" href="#boot-loader-s-update-advantages" title="Permalink to this headline">¶</a></h3>
+<h3>Boot loader’s update advantages<a class="headerlink" href="#boot-loader-s-update-advantages" title="Permalink to this headline">¶</a></h3>
 <p>However, this approach has some advantages, too:</p>
 <ul class="simple">
 <li>software for update is generally simpler.  - smaller footprint: a stand-alone
@@ -310,7 +310,7 @@ generate nightmare and high effort for the testers.</p>
 <p>The ease of replacing single files can speed up the development,
 but it is a software-versions nightmare at the customer site.
 If a customer report a bug, how can it is possible that software
-is &quot;version 2.5&quot; when a patch for some files were sent previously
+is “version 2.5” when a patch for some files were sent previously
 to the customer ?</p>
 <p>An atomic update is generally a must feature for an embedded system.</p>
 </div>
@@ -328,7 +328,7 @@ the software is released by a verified authority. The range
 of features can grow from small system to a complex one,
 including the possibility to have pre- and post- install
 scripts, and so on.</p>
-<p>Different strategies can be used, depending on the system's
+<p>Different strategies can be used, depending on the system’s
 resources. I am listing some of them.</p>
 <div class="section" id="double-copy-with-fall-back">
 <h3>Double copy with fall-back<a class="headerlink" href="#double-copy-with-fall-back" title="Permalink to this headline">¶</a></h3>
@@ -358,7 +358,7 @@ should be installed in the root file system and started
 or triggered as required. There is no
 need of an own kernel, because the two copies guarantees that
 it is always possible to upgrade the not running copy.</p>
-<p>SWUpdate will set bootloader's variable to signal the that a new image is
+<p>SWUpdate will set bootloader’s variable to signal the that a new image is
 successfully installed.</p>
 </div>
 <div class="section" id="single-copy-running-as-standalone-image">
@@ -370,11 +370,11 @@ the system software. Depending on set up, I get sizes from 2.5 until 8 MB
 for the stand-alone root file system. If the size is very important on small
 systems, it becomes negligible on systems with a lot of storage
 or big NANDs.</p>
-<p>The system can be put in &quot;upgrade&quot; mode, simply signaling to the
+<p>The system can be put in “upgrade” mode, simply signaling to the
 boot loader that the upgrading software must be started. The way
 can differ, for example setting a boot loader environment or using
 and external GPIO.</p>
-<p>The boot loader starts &quot;SWUpdate&quot;, booting the
+<p>The boot loader starts “SWUpdate”, booting the
 SWUpdate kernel and the initrd image as root file system. Because it runs in
 RAM, it is possible to upgrade the whole storage. Differently as in the
 double-copy strategy, the systems must reboot to put itself in
@@ -388,11 +388,11 @@ is interrupted for some reason.</p>
 <img alt="_images/single_copy_layout.png" src="_images/single_copy_layout.png" />
 <p>In fact, it is possible to consider
 the upgrade procedure as a transaction, and only after the successful
-upgrade the new software is set as &quot;boot-able&quot;. With these considerations,
+upgrade the new software is set as “boot-able”. With these considerations,
 an upgrade with this strategy is safe: it is always guaranteed that the
 system boots and it is ready to get a new software, if the old one
 is corrupted or cannot run.
-With U-Boot as boot loader, SWUpdate is able to manage U-Boot's environment
+With U-Boot as boot loader, SWUpdate is able to manage U-Boot’s environment
 setting variables to indicate the start and the end of a transaction and
 that the storage contains a valid software.
 A similar feature for GRUB environment block modification as well as for
@@ -415,20 +415,20 @@ are supported.</p>
 <li>damage / corrupted image during installing.
 SWUpdate is able to recognize it and the update process
 is interrupted. The old software is preserved and nothing
-is really copied into the target's storage.</li>
+is really copied into the target’s storage.</li>
 <li>corrupted image in the storage (flash)</li>
 <li>remote update interrupted due to communication problem.</li>
 <li>power-failure</li>
 </ul>
 <p>SWUpdate works as transaction process. The boot loader environment variable
-&quot;recovery_status&quot; is set to signal the update's status to the boot loader. Of
+“recovery_status” is set to signal the update’s status to the boot loader. Of
 course, further variables can be added to fine tuning and report error causes.
-recovery_status can have the values &quot;progress&quot;, &quot;failed&quot;, or it can be unset.</p>
-<p>When SWUpdate starts, it sets recovery_status to &quot;progress&quot;. After an update is
+recovery_status can have the values “progress”, “failed”, or it can be unset.</p>
+<p>When SWUpdate starts, it sets recovery_status to “progress”. After an update is
 finished with success, the variable is erased. If the update ends with an
-error, recovery_status has the value &quot;failed&quot;.</p>
+error, recovery_status has the value “failed”.</p>
 <p>When an update is interrupted, independently from the cause, the boot loader
-recognizes it because the recovery_status variable is in &quot;progress&quot; or &quot;failed&quot;.
+recognizes it because the recovery_status variable is in “progress” or “failed”.
 The boot loader can then start again SWUpdate to load again the software
 (single-copy case) or run the old copy of the application
 (double-copy case).</p>

@@ -123,7 +123,7 @@
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to SWUpdate</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project's road-map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project’s road-map</a></li>
 </ul>
 
             
@@ -197,7 +197,7 @@ developer free to add his own installer (that is, a new <strong>handler</strong>
 that must be responsible to install an image of a certain type.
 An image is marked to be of a defined type to be installed with
 a specific handler.</p>
-<p>The parser make the connection between 'image type' and 'handler'.
+<p>The parser make the connection between ‘image type’ and ‘handler’.
 It fills a table containing the list of images to be installed
 with the required handler to execute the installation. Each image
 can have a different installer.</p>
@@ -216,7 +216,7 @@ can have a different installer.</p>
 </dd>
 </dl>
 <p>For example, if an image is marked to be updated into a UBI volume,
-the parser must fill a supplied table setting &quot;ubi&quot; as required handler,
+the parser must fill a supplied table setting “ubi” as required handler,
 and filling the other fields required for this handler: name of volume, size,
 and so on.</p>
 </div>
@@ -249,7 +249,7 @@ parameter. copyfile() will return an error if checksum or hash do not match. The
 does not need to bother with them.
 How the handler manages the copied data, is specific to the handler itself. See
 supplied handlers code for a better understanding.</p>
-<p>The handler's developer registers his own handler with a call to:</p>
+<p>The handler’s developer registers his own handler with a call to:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">__attribute__</span><span class="p">((</span><span class="n">constructor</span><span class="p">))</span>
 <span class="n">void</span> <span class="n">my_handler_init</span><span class="p">(</span><span class="n">void</span><span class="p">)</span>
 <span class="p">{</span>
@@ -270,7 +270,7 @@ when SWUpdate is initialized.</p>
 <li>my_mask : <code class="docutils literal"><span class="pre">HANDLER_MASK</span></code> enum value(s) specifying what
 input type(s) my_handler can process.</li>
 <li>data : an optional pointer to an own structure, that SWUpdate
-saves in the handlers' list and pass to the handler when it will
+saves in the handlers’ list and pass to the handler when it will
 be executed.</li>
 </ul>
 </div>
@@ -288,10 +288,10 @@ an image to the first volume that matches with the name, and this
 maybe is not the desired behavior.
 Updating volumes, it is guaranteed that the erase counters are
 preserved and not lost after an update. The way for updating
-is identical to the &quot;ubiupdatevol&quot; from the mtd-utils. In fact,
+is identical to the “ubiupdatevol” from the mtd-utils. In fact,
 the same library from mtd-utils (libubi) is reused by SWUpdate.</p>
 <p>SWUpdate normally creates dynamic volumes. If a static volume is
-desired, set the handler's data field to &quot;static&quot;.</p>
+desired, set the handler’s data field to “static”.</p>
 <p>If the storage is empty, it is required to setup the layout
 and create the volumes. This can be easy done with a
 preinstall script. Building with meta-SWUpdate, the original
@@ -303,7 +303,7 @@ mtd-utils are available and can be called by a Lua script.</p>
 SWUpdate with handlers written in Lua that get loaded at SWUpdate
 startup. The Lua handler source code file may either be embedded
 into the SWUpdate binary via the <code class="docutils literal"><span class="pre">CONFIG_EMBEDDED_LUA_HANDLER</span></code>
-config option or has to be installed on the target system in Lua's
+config option or has to be installed on the target system in Lua’s
 search path as <code class="docutils literal"><span class="pre">swupdate_handlers.lua</span></code> so that it can be loaded
 by the embedded Lua interpreter at run-time.</p>
 <p>In analogy to C handlers, the prototype for a Lua handler is</p>
@@ -313,14 +313,14 @@ by the embedded Lua interpreter at run-time.</p>
 </pre></div>
 </div>
 <p>where <code class="docutils literal"><span class="pre">image</span></code> is a Lua table (with attributes according to
-<a class="reference internal" href="sw-description.html#sw-description-attribute-reference"><span class="std std-ref">sw-description's attribute reference</span></a>)
+<a class="reference internal" href="sw-description.html#sw-description-attribute-reference"><span class="std std-ref">sw-description’s attribute reference</span></a>)
 that describes a single artifact to be processed by the handler.</p>
-<p>Note that dashes in the attributes' names are replaced with
+<p>Note that dashes in the attributes’ names are replaced with
 underscores for the Lua domain to make them idiomatic, e.g.,
 <code class="docutils literal"><span class="pre">installed-directly</span></code> becomes <code class="docutils literal"><span class="pre">installed_directly</span></code> in the
 Lua domain.</p>
 <p>To register a Lua handler, the <code class="docutils literal"><span class="pre">swupdate</span></code> module provides the
-<code class="docutils literal"><span class="pre">swupdate.register_handler()</span></code> method that takes the handler's
+<code class="docutils literal"><span class="pre">swupdate.register_handler()</span></code> method that takes the handler’s
 name, the Lua handler function to be registered under that name,
 and, optionally, the types of artifacts for which the handler may
 be called. If the latter is not given, the Lua handler is registered
@@ -330,7 +330,7 @@ called for images:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">swupdate</span><span class="o">.</span><span class="n">register_handler</span><span class="p">(</span><span class="s2">&quot;my_handler&quot;</span><span class="p">,</span> <span class="n">lua_handler</span><span class="p">,</span> <span class="n">swupdate</span><span class="o">.</span><span class="n">HANDLER_MASK</span><span class="o">.</span><span class="n">IMAGE_HANDLER</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>A Lua handler may call C handlers (&quot;chaining&quot;) via the
+<p>A Lua handler may call C handlers (“chaining”) via the
 <code class="docutils literal"><span class="pre">swupdate.call_handler()</span></code> method. The callable and registered
 C handlers are available (as keys) in the table
 <code class="docutils literal"><span class="pre">swupdate.handler</span></code>. The following Lua code is an example of
@@ -352,21 +352,21 @@ a simple handler chain-calling the <code class="docutils literal"><span class="p
 </div>
 <p>Note that when chaining handlers and calling a C handler for
 a different type of artifact than the Lua handler is registered
-for, the <code class="docutils literal"><span class="pre">image</span></code> table's values must satisfy the called
-C handler's expectations: Consider the above Lua handler being
-registered for &quot;images&quot; (<code class="docutils literal"><span class="pre">swupdate.HANDLER_MASK.IMAGE_HANDLER</span></code>)
+for, the <code class="docutils literal"><span class="pre">image</span></code> table’s values must satisfy the called
+C handler’s expectations: Consider the above Lua handler being
+registered for “images” (<code class="docutils literal"><span class="pre">swupdate.HANDLER_MASK.IMAGE_HANDLER</span></code>)
 via the <code class="docutils literal"><span class="pre">swupdate.register_handler()</span></code> call shown above. As per the
-<a class="reference internal" href="sw-description.html#sw-description-attribute-reference"><span class="std std-ref">sw-description's attribute reference</span></a>,
-the &quot;images&quot; artifact type doesn't have the <code class="docutils literal"><span class="pre">path</span></code> attribute
-but the &quot;file&quot; artifact type does. So, for calling the <code class="docutils literal"><span class="pre">rawfile</span></code>
+<a class="reference internal" href="sw-description.html#sw-description-attribute-reference"><span class="std std-ref">sw-description’s attribute reference</span></a>,
+the “images” artifact type doesn’t have the <code class="docutils literal"><span class="pre">path</span></code> attribute
+but the “file” artifact type does. So, for calling the <code class="docutils literal"><span class="pre">rawfile</span></code>
 handler, <code class="docutils literal"><span class="pre">image.path</span></code> has to be set prior to chain-calling the
 <code class="docutils literal"><span class="pre">rawfile</span></code> handler, as done in the example above. Usually, however,
 no such adaptation is necessary if the Lua handler is registered for
 handling the type of artifact that <code class="docutils literal"><span class="pre">image</span></code> represents.</p>
 <p>In addition to calling C handlers, the <code class="docutils literal"><span class="pre">image</span></code> table passed as
 parameter to a Lua handler has a <code class="docutils literal"><span class="pre">image:copy2file()</span></code> method that
-implements the common use case of writing the input stream's data
-to a file, which is passed as this method's argument. On success,
+implements the common use case of writing the input stream’s data
+to a file, which is passed as this method’s argument. On success,
 <code class="docutils literal"><span class="pre">image:copy2file()</span></code> returns <code class="docutils literal"><span class="pre">0</span></code> or <code class="docutils literal"><span class="pre">-1</span></code> plus an error
 message on failure. The following Lua code is an example of
 a simple handler calling <code class="docutils literal"><span class="pre">image:copy2file()</span></code>:</p>
@@ -387,7 +387,7 @@ stream and calls the Lua callback function <code class="docutils literal"><span 
 every chunk read, passing this chunk as parameter. On success,
 <code class="docutils literal"><span class="pre">0</span></code> is returned by <code class="docutils literal"><span class="pre">image:read()</span></code>. On error, <code class="docutils literal"><span class="pre">-1</span></code> plus an
 error message is returned. The following Lua code is an example
-of a simple handler printing the artifact's content:</p>
+of a simple handler printing the artifact’s content:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">function</span> <span class="n">lua_handler</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
     <span class="n">err</span><span class="p">,</span> <span class="n">msg</span> <span class="o">=</span> <span class="n">image</span><span class="p">:</span><span class="n">read</span><span class="p">(</span><span class="n">function</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="nb">print</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="n">end</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">err</span> <span class="o">~=</span> <span class="mi">0</span> <span class="n">then</span>
@@ -398,7 +398,7 @@ of a simple handler printing the artifact's content:</p>
 <span class="n">end</span>
 </pre></div>
 </div>
-<p>Using the <code class="docutils literal"><span class="pre">image:read()</span></code> method, an artifact's contents may be
+<p>Using the <code class="docutils literal"><span class="pre">image:read()</span></code> method, an artifact’s contents may be
 (post-)processed in and leveraging the power of Lua without relying
 on preexisting C handlers for the purpose intended.</p>
 <p>Just as C handlers, a Lua handler must consume the artifact
@@ -422,9 +422,9 @@ correctly.
 The remote handler makes use of the zeromq library - this is
 to simplify the IPC with Unix Domain Socket. The remote handler
 is quite general, describing in sw-description with the
-&quot;data&quot; attribute how to communicate with the external process.
+“data” attribute how to communicate with the external process.
 The remote handler always acts as client, and try a connect()
-using the socket identified by the &quot;data&quot; attribute. For example,
+using the socket identified by the “data” attribute. For example,
 a possible setup using a remote handler could be:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">images</span><span class="p">:</span> <span class="p">(</span>
         <span class="p">{</span>
@@ -435,7 +435,7 @@ a possible setup using a remote handler could be:</p>
 <span class="p">)</span>
 </pre></div>
 </div>
-<p>The connection is instantiated using the socket &quot;/tmp/test_remote&quot;. If
+<p>The connection is instantiated using the socket “/tmp/test_remote”. If
 connect() fails, the remote handler signals that the update is not successful.
 Each Zeromq Message from SWUpdate is a multi-part message split into two frames:</p>
 <blockquote>
@@ -465,13 +465,13 @@ is received. For each DATA message, the external process answers with a
 <h2>SWU forwarder<a class="headerlink" href="#swu-forwarder" title="Permalink to this headline">¶</a></h2>
 <p>The SWU forwarder handler can be used to update other systems where SWUpdate
 is running. It can be used in case of master / slaves systems, where the master
-is connected to the network and the &quot;slaves&quot; are hidden to the external world.
+is connected to the network and the “slaves” are hidden to the external world.
 The master is then the only interface to the world. A general SWU can contain
 embedded SWU images as single artifacts, and the SWU handler will forward it
 to the devices listed in the description of the artifact.
-The handler can have a single &quot;url&quot; properties entry with an array of urls. Each url
+The handler can have a single “url” properties entry with an array of urls. Each url
 is the address of a secondary board where SWUpdate is running with webserver activated.
-The SWU handler expects to talk with SWUpdate's embedded webserver. This helps
+The SWU handler expects to talk with SWUpdate’s embedded webserver. This helps
 to update systems where an old version of SWUpdate is running, because the
 embedded webserver is a common feature present in all versions.
 The handler will send the embedded SWU to all URLs at the same time, and setting
@@ -505,9 +505,9 @@ microcontroller.</p>
 <li><p class="first">Enter firmware update mode (bootloader)</p>
 <blockquote>
 <div><ol class="arabic simple">
-<li>Set &quot;reset line&quot; to logical &quot;low&quot;</li>
-<li>Set &quot;update line&quot; to logical &quot;low&quot;</li>
-<li>Set &quot;reset line&quot; to logical &quot;high&quot;</li>
+<li>Set “reset line” to logical “low”</li>
+<li>Set “update line” to logical “low”</li>
+<li>Set “reset line” to logical “high”</li>
 </ol>
 </div></blockquote>
 </li>
@@ -540,16 +540,16 @@ microcontroller.</p>
 <li><dl class="first docutils">
 <dt>Leave firmware update mode</dt>
 <dd><ol class="first last arabic">
-<li>Set &quot;Update line&quot; to logical &quot;high&quot;</li>
-<li>Perform a reset over the &quot;reset line&quot;</li>
+<li>Set “Update line” to logical “high”</li>
+<li>Perform a reset over the “reset line”</li>
 </ol>
 </dd>
 </dl>
 </li>
 </ol>
-<p>&lt;&lt;CS&gt;&gt; : checksum. The checksum is calculated as the two's complement of
+<p>&lt;&lt;CS&gt;&gt; : checksum. The checksum is calculated as the two’s complement of
 the modulo-256 sum over all bytes of the message
-string except for the start marker &quot;$&quot;.
+string except for the start marker “$”.
 The handler expects to get in the properties the setup for the reset
 and prog gpios. They should be in this format:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">properties</span> <span class="o">=</span> <span class="p">{</span>

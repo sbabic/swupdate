@@ -147,7 +147,7 @@
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to SWUpdate</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project's road-map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project’s road-map</a></li>
 </ul>
 
             
@@ -223,7 +223,7 @@ can be easily added to the application.</p>
 <p>One use case is to update from an external local media, as
 USB-Pen or SD-Card. In this case, the update is done
 without any intervention by an operator: it is thought
-as &quot;one-key-update&quot;, and the software is started at reset
+as “one-key-update”, and the software is started at reset
 simply pressing a key (or in any way that can be recognized
 by the target), making all checks automatically. At the end,
 the updating process reports only the status to the operator
@@ -236,7 +236,7 @@ possible to use it in a double-copy approach by use of <a class="reference inter
 <p>If started for a remote update, SWUpdate starts an embedded
 Web-server and waits for requests. The operator must upload
 a suitable image, that SWUpdate checks and then install.
-All output is notified to the operator's browser via AJAX
+All output is notified to the operator’s browser via AJAX
 notifications.</p>
 </div>
 <div class="section" id="features">
@@ -254,9 +254,9 @@ and images on devices. Passing a whole image can still be updated
 as a partition on the SD card, or a MTD partition.</li>
 <li>new partition schema. This is bound with UBI volume.
 SWUpdate can recreate UBI volumes, resizing them and
-copying the new software. A special UBI volume with the name &quot;data&quot;
+copying the new software. A special UBI volume with the name “data”
 is saved and restored after repartitioning with all data
-it contains,  to maintain user's data.</li>
+it contains,  to maintain user’s data.</li>
 <li>support for compressed images, using the zlib library.
 tarball (tgz file) are supported.</li>
 <li>support for partitioned USB-pen or unpartitioned (mainly
@@ -267,7 +267,7 @@ The filesystem where to put the file must be described.</li>
 <li>use a structured language to describe the image. This is done
 using the <a class="reference external" href="http://www.hyperrealm.com/libconfig/">libconfig</a> library as default parser, that uses a
 JSON-like description.</li>
-<li>use custom's choice for the description of the image. It is
+<li>use custom’s choice for the description of the image. It is
 possible to write an own parser using the Lua language.
 An example using a XML description in Lua is provided
 in the examples directory.</li>
@@ -306,14 +306,14 @@ HW revision the software is allowed to run.
 SWUpdate refuses to install if the compatibility is not verified.</li>
 <li>support for image extraction. A manufacturer can require to have
 a single image that contains the software for more as one device.
-This simplifies the manufacturer's management and reduces
+This simplifies the manufacturer’s management and reduces
 their administrative costs having a single software product.
 SWUpdate receives the software as stream without temporary storing,
 and extracts only the required components for the device
 to be installed.</li>
 <li>allow custom handlers for installing FPGA firmware,
 micro-controller firmware via custom protocols.</li>
-<li>Features are enabled / disabled using &quot;make menuconfig&quot;.
+<li>Features are enabled / disabled using “make menuconfig”.
 (Kbuild is inherited from busybox project)</li>
 <li>Images are authenticated and verified before installing</li>
 <li>Power-Off safe</li>
@@ -334,12 +334,12 @@ an external parser in Lua.</p>
 let to extend to new image types and how they are installed.
 In fact, the scope of the parser is to retrieve which single
 images must be installed and how.
-SWUpdate implements &quot;handlers&quot; to install a single image:
+SWUpdate implements “handlers” to install a single image:
 there are handlers to install images into UBI volumes,
 or to a SD card, a CFI Flash, and so on. It is then easy to
 add an own handler if a very special installer is required.</p>
 <p>For example we can think at a project with a main processor and
-one or several micro-controllers. Let's say for simplicity that
+one or several micro-controllers. Let’s say for simplicity that
 the main processor communicates with the micro-controllers via
 UARTS using a proprietary protocol. The software on the micro-controllers
 can be updated using the proprietary protocol.</p>
@@ -376,7 +376,7 @@ to copy the images could be not enough, for example if the filesystem on
 an attached SD Card must be updated. In this case, it will help if the images
 are installed directly as stream by the corresponding handler, without temporary
 copies. Not all handlers support to stream directly into the target.
-Streaming with zero-copy is enabled by setting the flag &quot;installed-directly&quot;
+Streaming with zero-copy is enabled by setting the flag “installed-directly”
 in the description of the single image.</p>
 </div>
 </div>
@@ -427,24 +427,24 @@ check in the documentation of your bootloader.</p>
 <div class="section" id="what-about-libubootenv">
 <h3>What about libubootenv ?<a class="headerlink" href="#what-about-libubootenv" title="Permalink to this headline">¶</a></h3>
 <p>This is a common issue when SWUpdate is built. SWUpdate depends on this library,
-that is generated from the U-Boot's sources. This library allows to safe modify
+that is generated from the U-Boot’s sources. This library allows to safe modify
 the U-Boot environment. It is not required if U-Boot is not used as bootloader.
 If SWUpdate cannot be linked, you are using an old version of U-Boot (you need
 at least 2016.05). If this is the case, you can add your own recipe for
 the package u-boot-fw-utils, adding the code for the library.</p>
 <p>It is important that the package u-boot-fw-utils is built with the same
 sources of the bootloader and for the same machine. In fact, the target
-can have a default environment linked together with U-Boot's code,
+can have a default environment linked together with U-Boot’s code,
 and it is not (yet) stored into a storage. SWUpdate should be aware of
 it, because it cannot read it: the default environment must be linked
-as well to SWUpdate's code. This is done inside the libubootenv.</p>
+as well to SWUpdate’s code. This is done inside the libubootenv.</p>
 <p>If you build for a different machine, SWUpdate will destroy the
 environment when it tries to change it the first time. In fact,
-a wrong default environment is taken, and your board won't boot again.</p>
+a wrong default environment is taken, and your board won’t boot again.</p>
 </div>
 <div class="section" id="configuring-swupdate">
 <h3>Configuring SWUpdate<a class="headerlink" href="#configuring-swupdate" title="Permalink to this headline">¶</a></h3>
-<p>SWUpdate is configurable via &quot;make menuconfig&quot;. The small footprint
+<p>SWUpdate is configurable via “make menuconfig”. The small footprint
 is reached using the internal parser and disabling the web server.
 Any option has a small help describing its usage. In the default
 configuration, many options are already activated.</p>
@@ -464,7 +464,7 @@ make menuconfig.</li>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span>
 </pre></div>
 </div>
-<p>The result is the binary &quot;swupdate&quot;. A second binary &quot;progress&quot; is built,
+<p>The result is the binary “swupdate”. A second binary “progress” is built,
 but it is not strictly required. It is an example how to build your
 own interface to SWUpdate to show a progress bar or whatever you want on your
 HMI. The example simply prints on the console the current status of the update.</p>
@@ -481,7 +481,7 @@ can be loaded directly by the bootloader.
 To use SWUpdate in the double-copy mode, put the package
 swupdate into your rootfs. Check your image recipe, and
 simply add it to the list of the installed packages.</p>
-<p>For example, if we want to add it to the standard &quot;core-image-full-cmdline&quot;
+<p>For example, if we want to add it to the standard “core-image-full-cmdline”
 image, we can add a <em>recipes-extended/images/core-image-full-cmdline.bbappend</em></p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">IMAGE_INSTALL</span> <span class="o">+=</span> <span class="s2">&quot; </span><span class="se">\</span>
 <span class="s2">                        swupdate </span><span class="se">\</span>
@@ -507,7 +507,7 @@ debhelper tools, it is possible to generate a debian package.</p>
 <span class="n">fakeroot</span> <span class="n">debian</span><span class="o">/</span><span class="n">rules</span> <span class="n">binary</span>
 </pre></div>
 </div>
-<p>The result is a &quot;deb&quot; package stored in the parent directory.</p>
+<p>The result is a “deb” package stored in the parent directory.</p>
 </div>
 <div class="section" id="alternative-way-signing-source-package">
 <h4>Alternative way signing source package<a class="headerlink" href="#alternative-way-signing-source-package" title="Permalink to this headline">¶</a></h4>
@@ -539,7 +539,7 @@ with the table in sw-description.</li>
 really in the cpio archive.</li>
 <li>modify partitions, if required. This consists in a resize
 of UBI volumes, not a resize of MTD partition.
-A volume with the name &quot;data&quot; is saved and restored after
+A volume with the name “data” is saved and restored after
 resizing.</li>
 <li>runs pre-install scripts</li>
 <li>iterates through all images and call the corresponding
@@ -559,7 +559,7 @@ an error is reported.</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">swupdate</span> <span class="o">-</span><span class="n">w</span> <span class="s2">&quot;&lt;web server options&gt;&quot;</span>
 </pre></div>
 </div>
-<p>The main important parameters for the web server are &quot;document-root&quot; and &quot;port&quot;.</p>
+<p>The main important parameters for the web server are “document-root” and “port”.</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">swupdate</span> <span class="o">-</span><span class="n">w</span> <span class="s2">&quot;--document-root ./www --port 8080&quot;</span>
 </pre></div>
 </div>
@@ -590,7 +590,7 @@ on a LCD (if the target has one), or sending back to another device via
 network.
 An example of the notifications sent back to the browser is in the next figure:</p>
 <img alt="_images/webprogress.png" src="_images/webprogress.png" />
-<p>Software collections can be specified by passing <cite>--select</cite> command
+<p>Software collections can be specified by passing <cite>–select</cite> command
 line option. Assuming <cite>sw-description</cite> file contains a collection
 named <cite>stable</cite>, with <cite>alt</cite> installation location, <cite>SWUpdate</cite> can be
 called like this:</p>
@@ -623,7 +623,7 @@ called like this:</p>
 It allows to blacklist MTDs when SWUpdate
 searches for UBI volumes.
 Example: U-Boot and environment in MTD0-1:
-<strong>swupdate -b &quot;0 1&quot;</strong></td>
+<strong>swupdate -b “0 1”</strong></td>
 </tr>
 <tr class="row-even"><td>-e &lt;sel&gt;</td>
 <td>string</td>
@@ -633,8 +633,8 @@ the sw-description file. With it,
 multiple rules are allowed.
 One common usage is in case of the dual
 copy approach. Example:
--e &quot;stable, copy1&quot;  ==&gt; install on copy1
--e &quot;stable, copy2&quot;  ==&gt; install on copy2</td>
+-e “stable, copy1”  ==&gt; install on copy1
+-e “stable, copy2”  ==&gt; install on copy2</td>
 </tr>
 <tr class="row-odd"><td>-h</td>
 <td><ul class="first last simple">
@@ -700,7 +700,7 @@ a command line string.</td>
 <td>string</td>
 <td>start internal suricatta client daemon and
 pass to it a command line string.
-see suricatta's documentation for details.</td>
+see suricatta’s documentation for details.</td>
 </tr>
 <tr class="row-even"><td>-H
 &lt;board:rev&gt;</td>
@@ -741,7 +741,7 @@ pulled. URL is a link to a valid .swu image</td>
 <tr class="row-even"><td>-r &lt;retries&gt;</td>
 <td>integer</td>
 <td>Number of retries before a download is
-considered broken. With &quot;-r 0&quot;, SWUpdate
+considered broken. With “-r 0”, SWUpdate
 will not stop until a valid software is
 loaded.</td>
 </tr>
@@ -762,7 +762,7 @@ downloading</td>
 <p>SWUpdate has optional <a class="reference external" href="https://www.freedesktop.org/wiki/Software/systemd/">systemd</a> support via the compile-time
 configuration switch <code class="docutils literal"><span class="pre">CONFIG_SYSTEMD</span></code>. If enabled, SWUpdate
 signals systemd about start-up completion and can make optional
-use of systemd's socket-based activation feature.</p>
+use of systemd’s socket-based activation feature.</p>
 <p>A sample systemd service unit file <code class="docutils literal"><span class="pre">/etc/systemd/system/swupdate.service</span></code>
 may look like the following starting SWUpdate in suricatta daemon mode:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">Unit</span><span class="p">]</span>
@@ -799,11 +799,11 @@ activation, an accompanying systemd socket unit file
 files and hands them over to SWUpdate when it starts. So, for
 example, when talking to <code class="docutils literal"><span class="pre">/tmp/swupdateprog</span></code>, systemd starts
 <code class="docutils literal"><span class="pre">swupdate.service</span></code> and hands-over the socket files. The socket
-files are also handed over on a &quot;regular&quot; start of SWUpdate via
+files are also handed over on a “regular” start of SWUpdate via
 <code class="docutils literal"><span class="pre">systemctl</span> <span class="pre">start</span> <span class="pre">swupdate.service</span></code>.</p>
 <p>Note that the socket paths in the two <code class="docutils literal"><span class="pre">ListenStream=</span></code> directives
 have to match the socket paths <code class="docutils literal"><span class="pre">CONFIG_SOCKET_CTRL_PATH</span></code> and
-<code class="docutils literal"><span class="pre">CONFIG_SOCKET_PROGRESS_PATH</span></code> in SWUpdate's configuration.
+<code class="docutils literal"><span class="pre">CONFIG_SOCKET_PROGRESS_PATH</span></code> in SWUpdate’s configuration.
 Here, the default socket path configuration is depicted.</p>
 </div>
 </div>
@@ -814,12 +814,12 @@ Here, the default socket path configuration is depicted.</p>
 In case using U-Boot, the following mechanism can be implemented:</p>
 <ul class="simple">
 <li>U-Boot checks if a sw update is required (check gpio, serial console, etc.).</li>
-<li>the script &quot;altbootcmd&quot; sets the rules to start SWUpdate</li>
-<li>in case SWUpdate is required, U-boot run the script &quot;altbootcmd&quot;</li>
+<li>the script “altbootcmd” sets the rules to start SWUpdate</li>
+<li>in case SWUpdate is required, U-boot run the script “altbootcmd”</li>
 </ul>
 <p>Is it safe to change U-Boot environment ? Well, it is, but U-Boot must
 be configured correctly. U-Boot supports two copies of the environment
-to be power-off safe during an environment update. The board's
+to be power-off safe during an environment update. The board’s
 configuration file must have defined CONFIG_ENV_OFFSET_REDUND or
 CONFIG_ENV_ADDR_REDUND. Check in U-Boot documentation for these
 constants and how to use them.</p>
@@ -831,7 +831,7 @@ successfully run the application, and if the boot counter is
 greater as a limit, can start automatically SWUpdate to replace
 a corrupt software.</p>
 <p>GRUB by default does not support double copies of environment as in case of
-U-Boot. This means that there is possibility that environment block get's
+U-Boot. This means that there is possibility that environment block get’s
 corrupted when power-off occurs during environment update. To minimize the
 risk, we are not modifying original environment block. Variables are written
 into temporary file and after successful operation rename instruction is
@@ -841,7 +841,7 @@ called.</p>
 <h2>Building a single image<a class="headerlink" href="#building-a-single-image" title="Permalink to this headline">¶</a></h2>
 <p>cpio is used as container for its simplicity. The resulting image is very
 simple to be built.
-The file describing the images (&quot;sw-description&quot;, but the name can be
+The file describing the images (“sw-description”, but the name can be
 configured) must be the first file in the cpio archive.</p>
 <p>To produce an image, a script like this can be used:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>CONTAINER_VER=&quot;1.0&quot;

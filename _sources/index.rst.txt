@@ -12,6 +12,13 @@ SWUpdate provides a reliable way to update
 the software on an embedded system.
 Sources are hosted at https://github.com/sbabic/swupdate
 
+.. raw:: html
+
+        <center>
+        <a class="github-button" href="https://github.com/sbabic/swupdate" data-icon="octicon-star" data-size="large" aria-label="Star sbabic/swupdate on GitHub">Star SWUpdate</a>
+        <script async defer src="https://buttons.github.io/buttons.js"></script>
+        </center>
+
 .. toctree::
    :maxdepth: 2
 

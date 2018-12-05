@@ -119,7 +119,7 @@
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to SWUpdate</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project's road-map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project’s road-map</a></li>
 </ul>
 
             
@@ -230,7 +230,7 @@ written on disk should be declared before actually write anything.
 Unfortunately, the size of an encrypted image is not know until the complete
 decryption, thus preventing to correctly declare the size of the file to be
 written on disk.</p>
-<p>For this reason UBI images can declare the special property &quot;decrypted-size&quot; like
+<p>For this reason UBI images can declare the special property “decrypted-size” like
 this:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">images</span><span class="p">:</span> <span class="p">(</span> <span class="p">{</span>
                 <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;rootfs.ubifs.enc&quot;</span><span class="p">;</span>
@@ -267,7 +267,7 @@ setting.</p>
 <div class="section" id="running-swupdate-with-encrypted-images">
 <h2>Running SWUpdate with Encrypted Images<a class="headerlink" href="#running-swupdate-with-encrypted-images" title="Permalink to this headline">¶</a></h2>
 <p>Symmetric encryption support is activated by setting the <code class="docutils literal"><span class="pre">ENCRYPTED_IMAGES</span></code>
-option in SWUpdate's configuration. Use the <cite>-K</cite> parameter to provide the
+option in SWUpdate’s configuration. Use the <cite>-K</cite> parameter to provide the
 symmetric key file generated above to SWUpdate.</p>
 </div>
 </div>

@@ -134,7 +134,7 @@
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to SWUpdate</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project's road-map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project’s road-map</a></li>
 </ul>
 
             
@@ -269,7 +269,7 @@ protected against intrusion.</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">openssl</span> <span class="n">rsa</span> <span class="o">-</span><span class="ow">in</span> <span class="n">priv</span><span class="o">.</span><span class="n">pem</span> <span class="o">-</span><span class="n">out</span> <span class="n">public</span><span class="o">.</span><span class="n">pem</span> <span class="o">-</span><span class="n">outform</span> <span class="n">PEM</span> <span class="o">-</span><span class="n">pubout</span>
 </pre></div>
 </div>
-<p>&quot;public.pem&quot; contains the key in a format suitable for swupdate. The file
+<p>“public.pem” contains the key in a format suitable for swupdate. The file
 can be passed to swupdate at the command line with the -k parameter.</p>
 </div>
 <div class="section" id="how-to-sign-with-rsa">
@@ -288,9 +288,9 @@ can be passed to swupdate at the command line with the -k parameter.</p>
     <span class="o">-</span><span class="n">out</span> <span class="n">mycert</span><span class="o">.</span><span class="n">cert</span><span class="o">.</span><span class="n">pem</span> <span class="o">-</span><span class="n">subj</span> <span class="s2">&quot;/O=SWUpdate /CN=target&quot;</span>
 </pre></div>
 </div>
-<p>Check the documentation for more information about parameters. The &quot;mycert.key.pem&quot; contains
+<p>Check the documentation for more information about parameters. The “mycert.key.pem” contains
 the private key and it is used for signing. It is <em>not</em> delivered on the target.</p>
-<p>The target must have &quot;mycert.cert.pem&quot; installed - this is used by SWUpdate for verification.</p>
+<p>The target must have “mycert.cert.pem” installed - this is used by SWUpdate for verification.</p>
 </div>
 <div class="section" id="using-pki-issued-certificates">
 <h3>Using PKI issued certificates<a class="headerlink" href="#using-pki-issued-certificates" title="Permalink to this headline">¶</a></h3>
@@ -318,7 +318,7 @@ checking if this requirement cannot be satisfied. This is controlled by
 <h2>Building a signed SWU image<a class="headerlink" href="#building-a-signed-swu-image" title="Permalink to this headline">¶</a></h2>
 <p>There are two files, sw-description and its signature sw-description.sig.
 The signature file must always directly follow the description file.</p>
-<p>Each image inside sw-description must have the attribute &quot;sha256&quot;, with the
+<p>Each image inside sw-description must have the attribute “sha256”, with the
 SHA256 sum of the image. If an image does not have the sha256 attribute,
 the whole compound image results as not verified and SWUpdate stops
 with an error before starting to install.</p>
@@ -373,7 +373,7 @@ for i in $FILES;do
 </div>
 <div class="section" id="running-swupdate-with-signed-images">
 <h2>Running SWUpdate with signed images<a class="headerlink" href="#running-swupdate-with-signed-images" title="Permalink to this headline">¶</a></h2>
-<p>Verification is activated by setting CONFIG_SIGNED_IMAGES in SWUpdate's configuration.
+<p>Verification is activated by setting CONFIG_SIGNED_IMAGES in SWUpdate’s configuration.
 If activated, SWUpdate will always check the compound image. For security reasons,
 it is not possible to disable the check at runtime. The -k parameter (public key file)
 is mandatory and the program stops if the public key is not passed.</p>

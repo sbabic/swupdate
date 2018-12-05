@@ -102,6 +102,8 @@
 <li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#handling-configuration-differences">Handling configuration differences</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#software-collections">Software collections</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#priority-finding-the-elements-in-the-file">Priority finding the elements in the file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-links">Using links</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#hardware-compatibility">hardware-compatibility</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#partitions-ubi-layout">partitions : UBI layout</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#images">images</a></li>
@@ -135,7 +137,7 @@
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to SWUpdate</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project's road-map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project’s road-map</a></li>
 </ul>
 
             
@@ -203,7 +205,7 @@
 <h1>SWUpdate: syntax and tags with the default parser<a class="headerlink" href="#swupdate-syntax-and-tags-with-the-default-parser" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
-<p>SWUpdate uses the library &quot;libconfig&quot;
+<p>SWUpdate uses the library “libconfig”
 as default parser for the image description.
 However, it is possible to extend SWUpdate and add an own
 parser, based on a different syntax and language as the one
@@ -304,7 +306,7 @@ using of the #include directive is not allowed by SWUpdate.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>The first tag is &quot;software&quot;. The whole description is contained in
+<p>The first tag is “software”. The whole description is contained in
 this tag. It is possible to group settings per device by using <a class="reference internal" href="#board-specific-settings">Board
 specific settings</a>.</p>
 </div>
@@ -429,13 +431,294 @@ other slot.</p>
 <p>The method of image selection is out of the scope of SWUpdate and user
 is responsible for calling <cite>SWUpdate</cite> passing proper settings.</p>
 </div>
+<div class="section" id="priority-finding-the-elements-in-the-file">
+<h2>Priority finding the elements in the file<a class="headerlink" href="#priority-finding-the-elements-in-the-file" title="Permalink to this headline">¶</a></h2>
+<p>SWUpdate search for entries in the sdw-description file according to the following priority:</p>
+<ol class="arabic simple">
+<li>Try &lt;boardname&gt;.&lt;selection&gt;.&lt;mode&gt;.&lt;entry&gt;</li>
+<li>Try &lt;selection&gt;.&lt;mode&gt;.&lt;entry&gt;</li>
+<li>Try &lt;boardname&gt;.&lt;entry&gt;</li>
+<li>Try &lt;entry&gt;</li>
+</ol>
+<p>Take an example. The following sw-description describes the release for a set of boards.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">software</span> <span class="o">=</span>
+<span class="p">{</span>
+        <span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;0.1.0&quot;</span><span class="p">;</span>
+
+        <span class="n">myboard</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">stable</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">copy</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="n">images</span><span class="p">:</span> <span class="p">(</span>
+                        <span class="p">{</span>
+                                <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;/dev/mtd4&quot;</span>
+                                <span class="o">...</span>
+                        <span class="p">}</span>
+                        <span class="p">);</span>
+                <span class="p">}</span>
+                <span class="n">copy</span><span class="o">-</span><span class="mi">2</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="n">images</span><span class="p">:</span> <span class="p">(</span>
+                        <span class="p">{</span>
+                                <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;/dev/mtd5&quot;</span>
+                                <span class="o">...</span>
+                        <span class="p">}</span>
+                        <span class="p">);</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+
+        <span class="n">stable</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">copy</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="p">{</span>
+                  <span class="n">images</span><span class="p">:</span> <span class="p">(</span>
+                      <span class="p">{</span>
+                           <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;/dev/mtd6&quot;</span>
+                                <span class="o">...</span>
+                      <span class="p">}</span>
+                   <span class="p">);</span>
+            <span class="p">}</span>
+            <span class="n">copy</span><span class="o">-</span><span class="mi">2</span><span class="p">:</span> <span class="p">{</span>
+                   <span class="n">images</span><span class="p">:</span> <span class="p">(</span>
+                   <span class="p">{</span>
+                           <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;/dev/mtd7&quot;</span>
+                                <span class="o">...</span>
+                   <span class="p">}</span>
+                   <span class="p">);</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>On <em>myboard</em>, SWUpdate searches and find myboard.stable.copy1(2). When running on different
+boards, SWUpdate does not find an enty corresponding to the boardname and it fallbacks to the
+version without boardname. This lets relalize the same release for different boards having
+a complete different hardware. <cite>myboard</cite> could have a eMMC and an ext4 filesystem,
+while another device can have raw flash and install an UBI filesystem. Nevertheless, they are
+both just a different format of the same release and they could be described together in sw-description.
+It is important to understand the priorities how SWUpdate scans for entries during the parsing.</p>
+</div>
+<div class="section" id="using-links">
+<h2>Using links<a class="headerlink" href="#using-links" title="Permalink to this headline">¶</a></h2>
+<p>sw-description can become very complex. Let’s think to have just one board, but in multiple
+hw revision and they differ in Hardware. Some of them can be grouped together, some of them
+require a dedicated section. A way (but not the only one !) could be to add <em>mode</em> and selects
+the section with <cite>-e stable,&lt;rev number&gt;</cite>.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">software</span> <span class="o">=</span>
+<span class="p">{</span>
+        <span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;0.1.0&quot;</span><span class="p">;</span>
+
+        <span class="n">myboard</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">stable</span> <span class="o">=</span> <span class="p">{</span>
+
+                <span class="n">hardware</span><span class="o">-</span><span class="n">compatibility</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;1.0&quot;</span><span class="p">,</span> <span class="s2">&quot;1.2&quot;</span><span class="p">,</span> <span class="s2">&quot;2.0&quot;</span><span class="p">,</span> <span class="s2">&quot;1.§, &quot;</span><span class="mf">3.0</span><span class="s2">&quot;, &quot;</span><span class="mf">3.1</span><span class="s2">&quot;];</span>
+                <span class="n">rev</span><span class="o">-</span><span class="mf">1.0</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="n">images</span><span class="p">:</span> <span class="p">(</span>
+                                <span class="o">...</span>
+                        <span class="p">);</span>
+                        <span class="n">scripts</span><span class="p">:</span> <span class="p">(</span>
+                                <span class="o">...</span>
+                        <span class="p">);</span>
+                <span class="p">}</span>
+                <span class="n">rev</span><span class="o">-</span><span class="mf">1.2</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="n">hardware</span><span class="o">-</span><span class="n">compatibility</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;1.2&quot;</span><span class="p">];</span>
+                        <span class="n">images</span><span class="p">:</span> <span class="p">(</span>
+                                <span class="o">...</span>
+                        <span class="p">);</span>
+                        <span class="n">scripts</span><span class="p">:</span> <span class="p">(</span>
+                                <span class="o">...</span>
+                        <span class="p">);</span>
+                <span class="p">}</span>
+                <span class="n">rev</span><span class="o">-</span><span class="mf">2.0</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="n">hardware</span><span class="o">-</span><span class="n">compatibility</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;2.0&quot;</span><span class="p">];</span>
+                        <span class="n">images</span><span class="p">:</span> <span class="p">(</span>
+                                <span class="o">...</span>
+                        <span class="p">);</span>
+                        <span class="n">scripts</span><span class="p">:</span> <span class="p">(</span>
+                           <span class="o">...</span>
+                        <span class="p">);</span>
+                <span class="p">}</span>
+                <span class="n">rev</span><span class="o">-</span><span class="mf">1.3</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="n">hardware</span><span class="o">-</span><span class="n">compatibility</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;1.3&quot;</span><span class="p">];</span>
+                        <span class="n">images</span><span class="p">:</span> <span class="p">(</span>
+                            <span class="o">...</span>
+                        <span class="p">);</span>
+                        <span class="n">scripts</span><span class="p">:</span> <span class="p">(</span>
+                            <span class="o">...</span>
+                        <span class="p">);</span>
+                <span class="p">}</span>
+
+                <span class="n">rev</span><span class="o">-</span><span class="mf">3.0</span><span class="p">:</span>
+                <span class="p">{</span>
+                        <span class="n">hardware</span><span class="o">-</span><span class="n">compatibility</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;3.0&quot;</span><span class="p">];</span>
+                        <span class="n">images</span><span class="p">:</span> <span class="p">(</span>
+                                <span class="o">...</span>
+                        <span class="p">);</span>
+                        <span class="n">scripts</span><span class="p">:</span> <span class="p">(</span>
+                                <span class="o">...</span>
+                        <span class="p">);</span>
+                <span class="p">}</span>
+                <span class="n">rev</span><span class="o">-</span><span class="mf">3.1</span><span class="p">:</span>
+                <span class="p">{</span>
+                        <span class="n">hardware</span><span class="o">-</span><span class="n">compatibility</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;3.1&quot;</span><span class="p">];</span>
+                        <span class="n">images</span><span class="p">:</span> <span class="p">(</span>
+                                <span class="o">...</span>
+                        <span class="p">);</span>
+                        <span class="n">scripts</span><span class="p">:</span> <span class="p">(</span>
+                                <span class="o">...</span>
+                        <span class="p">);</span>
+                <span class="p">}</span>
+             <span class="p">}</span>
+        <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>If each of them requires an own section, it is the way to do. Anyway, it is more probable
+than revisions can be grouped together, for example board with the same major revision
+number could have the same installation instructions. This leads in the example to 3 groups
+for rev1.X, rev2.X and rev3.X. Links allow to group section together. When a “ref” is found
+when SWUpdate searches for a group (images, files, script, bootenv), it replaces the current path
+in the tree with the value of the string. In this way, the example above can be written in this way:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span> <span class="n">software</span> <span class="o">=</span>
+ <span class="p">{</span>
+         <span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;0.1.0&quot;</span><span class="p">;</span>
+
+         <span class="n">myboard</span> <span class="o">=</span> <span class="p">{</span>
+             <span class="n">stable</span> <span class="o">=</span> <span class="p">{</span>
+
+                 <span class="n">hardware</span><span class="o">-</span><span class="n">compatibility</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;1.0&quot;</span><span class="p">,</span> <span class="s2">&quot;1.2&quot;</span><span class="p">,</span> <span class="s2">&quot;2.0&quot;</span><span class="p">,</span> <span class="s2">&quot;1.3, &quot;</span><span class="mf">3.0</span><span class="s2">&quot;, &quot;</span><span class="mf">3.1</span><span class="s2">&quot;];</span>
+                 <span class="n">rev</span><span class="o">-</span><span class="mi">1</span><span class="n">x</span><span class="p">:</span> <span class="p">{</span>
+                         <span class="n">images</span><span class="p">:</span> <span class="p">(</span>
+                            <span class="o">...</span>
+                         <span class="p">);</span>
+                         <span class="n">scripts</span><span class="p">:</span> <span class="p">(</span>
+                             <span class="o">...</span>
+                         <span class="p">);</span>
+                 <span class="p">}</span>
+                 <span class="n">rev1</span><span class="o">.</span><span class="mi">0</span> <span class="o">=</span> <span class="p">{</span>
+                         <span class="n">ref</span> <span class="o">=</span> <span class="s2">&quot;#./rev-1x&quot;</span><span class="p">;</span>
+                 <span class="p">}</span>
+                 <span class="n">rev1</span><span class="o">.</span><span class="mi">2</span> <span class="o">=</span> <span class="p">{</span>
+                         <span class="n">ref</span> <span class="o">=</span> <span class="s2">&quot;#./rev-1x&quot;</span><span class="p">;</span>
+                 <span class="p">}</span>
+                 <span class="n">rev1</span><span class="o">.</span><span class="mi">3</span> <span class="o">=</span> <span class="p">{</span>
+                         <span class="n">ref</span> <span class="o">=</span> <span class="s2">&quot;#./rev-1x&quot;</span><span class="p">;</span>
+                 <span class="p">}</span>
+                 <span class="n">rev</span><span class="o">-</span><span class="mi">2</span><span class="n">x</span><span class="p">:</span> <span class="p">{</span>
+                         <span class="n">images</span><span class="p">:</span> <span class="p">(</span>
+                              <span class="o">...</span>
+                         <span class="p">);</span>
+                         <span class="n">scripts</span><span class="p">:</span> <span class="p">(</span>
+                              <span class="o">...</span>
+                         <span class="p">);</span>
+                 <span class="p">}</span>
+                 <span class="n">rev2</span><span class="o">.</span><span class="mi">0</span> <span class="o">=</span> <span class="p">{</span>
+                         <span class="n">ref</span> <span class="o">=</span> <span class="s2">&quot;#./rev-2x&quot;</span><span class="p">;</span>
+                 <span class="p">}</span>
+
+                 <span class="n">rev</span><span class="o">-</span><span class="mi">3</span><span class="n">x</span><span class="p">:</span> <span class="p">{</span>
+                         <span class="n">images</span><span class="p">:</span> <span class="p">(</span>
+                              <span class="o">...</span>
+                         <span class="p">);</span>
+                         <span class="n">scripts</span><span class="p">:</span> <span class="p">(</span>
+                               <span class="o">...</span>
+                         <span class="p">);</span>
+                 <span class="p">}</span>
+                 <span class="n">rev3</span><span class="o">.</span><span class="mi">0</span> <span class="o">=</span> <span class="p">{</span>
+                         <span class="n">ref</span> <span class="o">=</span> <span class="s2">&quot;#./rev-3x&quot;</span><span class="p">;</span>
+                 <span class="p">}</span>
+                 <span class="n">rev3</span><span class="o">.</span><span class="mi">1</span> <span class="o">=</span> <span class="p">{</span>
+                         <span class="n">ref</span> <span class="o">=</span> <span class="s2">&quot;#./rev-3x&quot;</span><span class="p">;</span>
+                 <span class="p">}</span>
+              <span class="p">}</span>
+         <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The link can be absolute or relative. The keyword <em>“ref”</em> is used to indicate a link. If this is found, SWUpdate
+will traverse the tree and replaces the current path with the values find in the string pointed by “ref”. There are
+simple rules for a link:</p>
+<blockquote>
+<div><ul class="simple">
+<li>it must start with the character ‘#’</li>
+<li>“.” points to the current level in the tree, that means the parent of “ref”</li>
+<li>“..” points to the parent level in the tree</li>
+<li>“/” is used as filed separator in the link</li>
+</ul>
+</div></blockquote>
+<p>A relative path has a number of
+leading “../” to move the current cursor to the parent leaf of the tree.
+In the following example, rev40 sets a link to a “common” section, where <cite>images</cite>
+is found. This is sets via a link, too, to a section in the parent node.
+The path <cite>software.myboard.stable.common.images</cite>  is then replaced by
+<cite>software.myboard.stable.trythis</cite></p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">software</span> <span class="o">=</span>
+<span class="p">{</span>
+  <span class="n">version</span> <span class="o">=</span> <span class="p">{</span>
+          <span class="n">ref</span> <span class="o">=</span> <span class="s2">&quot;#./commonversion&quot;</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="n">hardware</span><span class="o">-</span><span class="n">compatibility</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;rev10&quot;</span><span class="p">,</span> <span class="s2">&quot;rev11&quot;</span><span class="p">,</span> <span class="s2">&quot;rev20&quot;</span><span class="p">];</span>
+
+  <span class="n">commonversion</span> <span class="o">=</span> <span class="s2">&quot;0.7-linked&quot;</span><span class="p">;</span>
+
+<span class="n">pc</span><span class="p">:{</span>
+  <span class="n">stable</span><span class="p">:{</span>
+
+    <span class="n">common</span><span class="p">:{</span>
+        <span class="n">images</span> <span class="o">=</span>
+        <span class="p">{</span>
+          <span class="n">ref</span> <span class="o">=</span> <span class="s2">&quot;#./../trythis&quot;</span><span class="p">;</span>
+        <span class="p">}</span>
+      <span class="p">};</span>
+
+    <span class="n">trythis</span><span class="p">:(</span>
+        <span class="p">{</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;rootfs1.ext4&quot;</span><span class="p">;</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;/dev/mmcblk0p8&quot;</span><span class="p">;</span>
+        <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;raw&quot;</span><span class="p">;</span>
+        <span class="p">}</span> <span class="p">,</span>
+        <span class="p">{</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;rootfs5.ext4&quot;</span><span class="p">;</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;/dev/mmcblk0p7&quot;</span><span class="p">;</span>
+        <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;raw&quot;</span><span class="p">;</span>
+        <span class="p">}</span>
+      <span class="p">);</span>
+    <span class="n">pdm3rev10</span><span class="p">:</span>
+      <span class="p">{</span>
+      <span class="n">images</span><span class="p">:(</span>
+          <span class="p">{</span>
+          <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;rootfs.ext3&quot;</span><span class="p">;</span> <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;/dev/mmcblk0p2&quot;</span><span class="p">;}</span>
+        <span class="p">);</span>
+      <span class="n">uboot</span><span class="p">:(</span>
+          <span class="p">{</span> <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;bootpart&quot;</span><span class="p">;</span>
+          <span class="n">value</span> <span class="o">=</span> <span class="s2">&quot;0:2&quot;</span><span class="p">;}</span>
+        <span class="p">);</span>
+      <span class="p">};</span>
+      <span class="n">pdm3rev11</span> <span class="o">=</span>
+      <span class="p">{</span>
+        <span class="n">ref</span> <span class="o">=</span> <span class="s2">&quot;#./pdm3rev10&quot;</span><span class="p">;</span>
+      <span class="p">}</span>
+      <span class="n">pdm3rev20</span> <span class="o">=</span>
+      <span class="p">{</span>
+        <span class="n">ref</span> <span class="o">=</span> <span class="s2">&quot;#./pdm3rev10&quot;</span><span class="p">;</span>
+      <span class="p">}</span>
+      <span class="n">pdm3rev40</span> <span class="o">=</span>
+      <span class="p">{</span>
+        <span class="n">ref</span> <span class="o">=</span> <span class="s2">&quot;#./common&quot;</span><span class="p">;</span>
+      <span class="p">}</span>
+    <span class="p">};</span>
+  <span class="p">};</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Each entry in sw-description can be redirect by a link as in the above example for the
+“version” attribute.</p>
+</div>
 <div class="section" id="hardware-compatibility">
 <h2>hardware-compatibility<a class="headerlink" href="#hardware-compatibility" title="Permalink to this headline">¶</a></h2>
-<p>hardware-compatibility: [ &quot;major.minor&quot;, &quot;major.minor&quot;, ... ]</p>
+<p>hardware-compatibility: [ “major.minor”, “major.minor”, … ]</p>
 <p>It lists the hardware revisions that are compatible with this software image.</p>
 <p>Example:</p>
 <blockquote>
-<div>hardware-compatibility: [ &quot;1.0&quot;, &quot;1.2&quot;, &quot;1.3&quot;];</div></blockquote>
+<div>hardware-compatibility: [ “1.0”, “1.2”, “1.3”];</div></blockquote>
 <p>This means that the software is compatible with HW-Revisions
 1.0, 1.2 and 1.3, but not for 1.1 or other version not explicitly
 listed here.
@@ -466,13 +749,13 @@ in kernel.</p>
 selected name and adjusts the size, or creates a new volume if
 no volume with the given name exists. In the latter case, it is
 created on the UBI device attached to the MTD device given by
-&quot;device&quot;. &quot;device&quot; can be given by number (e.g. &quot;mtd4&quot;) or by name
-(the name of the MTD device, e.g. &quot;ubi_partition&quot;). The UBI device
+“device”. “device” can be given by number (e.g. “mtd4”) or by name
+(the name of the MTD device, e.g. “ubi_partition”). The UBI device
 is attached automatically.</p>
 </div>
 <div class="section" id="images">
 <h2>images<a class="headerlink" href="#images" title="Permalink to this headline">¶</a></h2>
-<p>The tag &quot;images&quot; collects the image that are installed to the system.
+<p>The tag “images” collects the image that are installed to the system.
 The syntax is:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">images</span><span class="p">:</span> <span class="p">(</span>
         <span class="p">{</span>
@@ -520,7 +803,7 @@ the raw handler is automatically selected.</p>
 <p>However, writing to flash in raw mode must be managed in a special
 way. Flashes must be erased before copying, and writing into NAND
 must take care of bad blocks and ECC errors. For this reasons, the
-handler &quot;flash&quot; must be selected:</p>
+handler “flash” must be selected:</p>
 <p>For example, to copy the kernel into the MTD7 of a NAND flash:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
         <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;uImage&quot;</span><span class="p">;</span>
@@ -557,14 +840,14 @@ debugging or special purposes.</p>
 <span class="p">);</span>
 </pre></div>
 </div>
-<p>Entries in &quot;files&quot; section are managed as single files. The attributes
-&quot;filename&quot; and &quot;path&quot; are mandatory. Attributes &quot;device&quot; and &quot;filesystem&quot; are
+<p>Entries in “files” section are managed as single files. The attributes
+“filename” and “path” are mandatory. Attributes “device” and “filesystem” are
 optional; they tell SWUpdate to mount device (of the given filesystem type,
-e.g. &quot;ext4&quot;) before copying &quot;filename&quot; to &quot;path&quot;. Without &quot;device&quot; and
-&quot;filesystem&quot;, the &quot;filename&quot; will be copied to &quot;path&quot; in the current rootfs.</p>
-<p>As a general rule, swupdate doesn't copy out a file if the destination path
-doesn't exists. This behavior could be changed using the special property
-&quot;create-destination&quot;.</p>
+e.g. “ext4”) before copying “filename” to “path”. Without “device” and
+“filesystem”, the “filename” will be copied to “path” in the current rootfs.</p>
+<p>As a general rule, swupdate doesn’t copy out a file if the destination path
+doesn’t exists. This behavior could be changed using the special property
+“create-destination”.</p>
 </div>
 <div class="section" id="scripts">
 <h2>Scripts<a class="headerlink" href="#scripts" title="Permalink to this headline">¶</a></h2>
@@ -573,7 +856,7 @@ The result of a script is valuated by SWUpdate, that stops the update
 with an error if the result is &lt;&gt; 0.</p>
 <p>They are copied into a temporary directory before execution and their name must
 be unique inside the same cpio archive.</p>
-<p>If no type is given, SWUpdate default to &quot;lua&quot;.</p>
+<p>If no type is given, SWUpdate default to “lua”.</p>
 <div class="section" id="lua">
 <h3>Lua<a class="headerlink" href="#lua" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">scripts</span><span class="p">:</span> <span class="p">(</span>
@@ -609,7 +892,7 @@ called after installing the images.</p>
 </div>
 <p>Shell scripts are called via system command.
 SWUpdate scans for all scripts and calls them before and after installing
-the images. SWUpdate passes 'preinst' or 'postinst' as first argument to
+the images. SWUpdate passes ‘preinst’ or ‘postinst’ as first argument to
 the script.
 If the data attribute is defined, its value is passed as the last argument(s)
 to the script.</p>
@@ -649,7 +932,7 @@ to the script.</p>
 <h2>bootloader<a class="headerlink" href="#bootloader" title="Permalink to this headline">¶</a></h2>
 <p>There are two ways to update the bootloader (currently U-Boot, GRUB, and
 EFI Boot Guard) environment. First way is to add a file with the list of
-variables to be changed and setting &quot;bootloader&quot; as type of the image. This
+variables to be changed and setting “bootloader” as type of the image. This
 informs SWUpdate to call the bootloader handler to manage the file
 (requires enabling bootloader handler in configuration). There is one
 bootloader handler for all supported bootloaders. The appropriate bootloader
@@ -683,7 +966,7 @@ that must be changed:</p>
 <p>SWUpdate will internally generate a script that will be passed to the
 bootloader handler for adjusting the environment.</p>
 <p>For backward compatibility with previously built <cite>.swu</cite> images, the
-&quot;uboot&quot; group name is still supported as an alias. However, its usage
+“uboot” group name is still supported as an alias. However, its usage
 is deprecated.</p>
 </div>
 <div class="section" id="board-specific-settings">
@@ -719,7 +1002,7 @@ the following entry:</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>SWUpdate will set <cite>bootpart</cite> to <cite>0:2</cite> in bootloader's environment for this
+<p>SWUpdate will set <cite>bootpart</cite> to <cite>0:2</cite> in bootloader’s environment for this
 board. For all other boards, <cite>bootpart</cite> will be set to <cite>0:1</cite>. Board
 specific settings take precedence over default scoped settings.</p>
 </div>
@@ -812,8 +1095,8 @@ The file must contains pairs with the name of image and his version, as:</p>
 <span class="n">kernel</span>                  <span class="mf">3.17</span><span class="o">.</span><span class="mi">0</span><span class="o">-</span><span class="mi">00215</span><span class="o">-</span><span class="n">g2e876af</span>
 </pre></div>
 </div>
-<p>In sw-description, the optional attributes &quot;name&quot;, &quot;version&quot; and
-&quot;install-if-different&quot; provide the connection. Name and version are then
+<p>In sw-description, the optional attributes “name”, “version” and
+“install-if-different” provide the connection. Name and version are then
 compared with the data in the versions file. install-if-different is a
 boolean that enables the check for this image. It is then possible to
 check the version just for a subset of the images to be installed.</p>
@@ -840,7 +1123,7 @@ interfere with the parser. For this reason, each double quote in the script must
 </div>
 <p>If not, the parser thinks to have the closure of the script and this generates an error.
 See the examples directory for examples how to use it.
-Any entry in files or images can trigger one function in the script. The &quot;hook&quot; attribute
+Any entry in files or images can trigger one function in the script. The “hook” attribute
 tells the parser to load the script and to search for the function pointed to by the hook
 attribute. For example:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">files</span><span class="p">:</span> <span class="p">(</span>
@@ -863,7 +1146,7 @@ in Lua is in the format:</p>
 </pre></div>
 </div>
 <p>image is a table where the keys are the list of available attributes. If an attribute contains
-a &quot;-&quot;, it is replaced with &quot;_&quot;, because &quot;-&quot; cannot be used in Lua. This means, for example, that:</p>
+a “-“, it is replaced with “_”, because “-” cannot be used in Lua. This means, for example, that:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">install</span><span class="o">-</span><span class="k">if</span><span class="o">-</span><span class="n">different</span> <span class="o">==&gt;</span> <span class="n">install_if_different</span>
 <span class="n">install</span><span class="o">-</span><span class="n">directly</span>     <span class="o">==&gt;</span> <span class="n">install_directly</span>
 </pre></div>
@@ -931,13 +1214,13 @@ scripts</td>
 <tr class="row-odd"><td>volume</td>
 <td>string</td>
 <td>images</td>
-<td>Just if type = &quot;ubivol&quot;. UBI volume
+<td>Just if type = “ubivol”. UBI volume
 where image must be installed.</td>
 </tr>
 <tr class="row-even"><td>ubipartition</td>
 <td>string</td>
 <td>images</td>
-<td>Just if type = &quot;ubivol&quot;. Volume to be
+<td>Just if type = “ubivol”. Volume to be
 created or adjusted with a new size</td>
 </tr>
 <tr class="row-odd"><td>device</td>
@@ -948,12 +1231,12 @@ files</td>
 symlink to it. Can be specified as
 absolute path or a name in /dev folder
 For example if /dev/mtd-dtb is a link
-to /dev/mtd3 &quot;mtd3&quot;, &quot;mtd-dtb&quot;,
-&quot;/dev/mtd3&quot; and &quot;/dev/mtd-dtb&quot; are
+to /dev/mtd3 “mtd3”, “mtd-dtb”,
+“/dev/mtd3” and “/dev/mtd-dtb” are
 valid names.
 Usage depends on handler.
 For files, it indicates on which
-device the &quot;filesystem&quot; must be
+device the “filesystem” must be
 mounted. If not specified, the current
 rootfs will be used.</td>
 </tr>
@@ -962,18 +1245,18 @@ rootfs will be used.</td>
 <td>files</td>
 <td>indicates the filesystem type where
 the file must be installed. Only
-used if &quot;device&quot; attribute is set.</td>
+used if “device” attribute is set.</td>
 </tr>
 <tr class="row-odd"><td>path</td>
 <td>string</td>
 <td>files</td>
 <td>For files: indicates the path
 (absolute) where the file must be
-installed. If &quot;device&quot; and
-&quot;filesystem&quot; are set,
+installed. If “device” and
+“filesystem” are set,
 SWUpdate will install the
-file after mounting &quot;device&quot; with
-&quot;filesystem&quot; type. (path is always
+file after mounting “device” with
+“filesystem” type. (path is always
 relative to the mount point.)</td>
 </tr>
 <tr class="row-even"><td>preserve-attributes</td>
@@ -995,13 +1278,13 @@ scripts</td>
 <td>string identifier for the handler,
 as it is set by the handler when it
 regitsters itself.
-Example: &quot;ubivol&quot;, &quot;raw&quot;, &quot;rawfile&quot;,</td>
+Example: “ubivol”, “raw”, “rawfile”,</td>
 </tr>
 <tr class="row-even"><td>compressed</td>
 <td>bool</td>
 <td>images
 files</td>
-<td>flag to indicate that &quot;filename&quot; is
+<td>flag to indicate that “filename” is
 zlib-compressed and must be
 decompressed before being installed</td>
 </tr>

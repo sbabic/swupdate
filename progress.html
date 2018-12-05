@@ -116,7 +116,7 @@
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to SWUpdate</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project's road-map</a></li>
+<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project’s road-map</a></li>
 </ul>
 
             
@@ -187,7 +187,7 @@ update and not just to return if the update was successful or not.
 For example, if the target has a display or a remote interface,
 it can be forwarded which is reached percentage of the update
 to let estimate how much the update will still run.
-SWUpdate has an interface for this (&quot;progress API&quot;). An external
+SWUpdate has an interface for this (“progress API”). An external
 process can register itself with SWUpdate, and it will receive
 notifications when something in the update was changed. This is
 different from the IPC API, because the last one is mainly used to transfer
@@ -196,7 +196,7 @@ if the update is still running.</p>
 <div class="section" id="api-description">
 <h2>API Description<a class="headerlink" href="#api-description" title="Permalink to this headline">¶</a></h2>
 <p>An external process registers itself to SWUpdate with a connect()
-request to the domain socket &quot;/tmp/swupdateprog&quot; as per default
+request to the domain socket “/tmp/swupdateprog” as per default
 configuration of SWUpdate. There is no information to send, and
 SWUpdate simply inserts the new connection into the list of processes
 to be informed. SWUpdate will send a frame back after any change in
@@ -235,7 +235,7 @@ of image already copied into the destination.</li>
 </ul>
 </div></blockquote>
 <p>As an example for a progress client, <code class="docutils literal"><span class="pre">tools/progress.c</span></code> prints the status
-on the console and drives &quot;psplash&quot; to draw a progress bar on a display.</p>
+on the console and drives “psplash” to draw a progress bar on a display.</p>
 </div>
 </div>
 
