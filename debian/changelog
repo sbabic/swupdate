@@ -1,4 +1,255 @@
-swupdate (2018.03) UNRELEASED; urgency=medium
+swupdate (2018.11) unstable; urgency=medium
+
+  [ Martin Geier ]
+  * corelib: print both error code and reason string for decrypt
+
+  [ Stefano Babic ]
+  * gitignore: add tools/progress
+  * www: sync web-app in examples
+
+  [ Faustas Azuolas Bagdonas ]
+  * Added update description field support.
+
+  [ Arnout Vandecappelle (Essensium/Mind) ]
+  * UBI handler: support static volumes
+  * mtd: errno of missing volume has changed
+
+  [ Piotr Piwko ]
+  * building-with-yocto.rst: Fix sha256 attribute syntax
+
+  [ Christian Storm ]
+  * core: warn about non-Linux parent SIGTERM tracking
+  * Makefile: use "cc" instead of "gcc"
+  * compat: ENODATA compatibility for FreeBSD
+  * handlers: remove unused mtd-user.h includes
+  * util: introduce mount/umount helper functions
+  * Kconfig: add HAVE_LINUX and HAVE_FREEBSD properties
+  * handler: add FreeBSD-compatible copy_write() callback
+  * notifier: add FreeBSD-compatible notifier sockets
+
+  [ Stefano Babic ]
+  * doc: add picture for SWU forwardder handler
+  * doc: add doc and help for -o parameter
+
+  [ Justin Standring ]
+  * doc: escape newlines in table cell with backslash
+
+  [ Stefano Babic ]
+  * parser: make TRACE more readable
+  * lua: allow scripts to change image's properties
+  * handlers: add a dummy handler
+  * Add a dry-run option to SWUpdate
+  * Fix logic in dry-run for pre install scripts
+  * handler: swuforwarder: fix getstatus URL
+  *  doc: roadmap
+  * doc: extend reference links
+
+  [ Piotr Piwko ]
+  * Iterate through entire list in order to find duplicated
+
+  [ Shyam Saini ]
+  * doc: source: Fix wrong link
+
+  [ Ayoub Zaki ]
+  * hawkbit: adding authentication using security token
+
+  [ Stefano Babic ]
+  * hawkbit: allow to set a ciphers suite
+  * constify string_split input
+  * no-downgrading feature
+  * ipc: add -fPIC to let build shared lib
+  * Allow to override the dry-run flag by each install
+
+  [ Denis OSTERLAND ]
+  * test: add hardware compatibility support to check image test
+
+  [ Ivan Venturini ]
+  * Replace LIST_FOREACH with SAFE version on memory deallocation
+
+  [ Stefano Babic ]
+  * Fix relicensing client library under LGPL2.1
+  * handlers: drop duplicate entry and sort the list in Makefile
+  * handlers: handler to update microcontroller via UART
+  * Bindings for LUA as shared library
+  * Makefile: install all files
+  * Makefile: reintroduce SKIP_STRIP
+  * Check if sw-description is really extracted when installed from file
+
+  [ Angelo Compagnucci ]
+  * raw_handler: create path for a raw file if path doesn't exists
+
+  [ Stefano Babic ]
+  * doc: document ucfw handler
+  * web-app: remove limit on fileSize for dropzone
+
+  [ Angelo Compagnucci ]
+  * core: refactoring ustrtoull function
+  * Encryption of ubi volume image
+
+  [ Arnout Vandecappelle (Essensium/Mind) ]
+  * scan_for_ubi_devices: remove stray printf
+  * UBI handler: allow mtd device to be specified by name
+
+  [ Stefano Babic ]
+  * Fix build failure by loading CMS certificate
+
+  [ Arnout Vandecappelle (Essensium/Mind) ]
+  * mtd-interface: add UBIATTACH config option
+  * core: blacklisting should depend on CONFIG_UBIATTACH
+
+  [ Denis OSTERLAND ]
+  * signature: fix signature verify failed with openssl-1.1.0
+
+  [ Stefano Babic ]
+  * Licenses: openSSL exceptions to allow link
+  * lua_compat: switch to LGPL license
+  * bindings: missing compatibility file
+
+  [ Reto Schneider ]
+  * core: ustrtoull: convert zero-length strings to 0
+
+  [ Marta Todeschini ]
+  * hawkbit: allow passing target token as command line parameter
+
+  [ Diego Rondini ]
+  * hawkBit: add authentication with gateway token
+
+  [ Stefano Babic ]
+  * hawkbit: error in configData due to last commit
+  * hawkbit: fix warnings when setting tokens
+  * Fix spelling errors
+  * debian: fix issues reported by lintian
+
+  [ Reto Schneider ]
+  * Remove doubled newlines
+
+  [ Stefano Babic ]
+  * Use provided macro for exit()
+  * Factorize function to load a dictionary from a file
+  * bootloader: change "none" in RAM mode
+  * CONFIG_SURICATTA_STATE_CHOICE_BOOTLOADER not checked for state
+  * Factorize handling of state
+  * Factorize reading of identities from config file
+  * examples: add description in swupdate.cfg
+  * hawkbit: rename section in swupdate.cfg
+  * suricatta: add help to exported server functions
+
+  [ Göran Lundberg ]
+  * Update index.html - Fixed typos and improved text.
+
+  [ Stefano Babic ]
+  * examples: website: synchronize with web-app sources
+  * suricatta: factorize channel default values
+  * Factorize get_state() function
+  * Factorize SETSTRING and STRINGIFY macros
+  * suricatta: factorize function for servers
+  * suricatta: factorize map_channel_retcode
+  * Print missing help for --version parameter
+  * Let run multiple instance of SWUpdate for checking
+
+  [ Denis OSTERLAND ]
+  * acceptance-tests: add support for signed images
+
+  [ Ben Guan ]
+  * cpio_utils: fix infinite read when interrupting an update
+
+  [ Reto Schneider ]
+  * building-with-yocto.rst: Document BitBake variable expansion
+
+  [ Denis OSTERLAND ]
+  * acceptance-tests: add support for clean target
+
+  [ Stefano Babic ]
+  * channel_curl: allow answers not in JSON format
+  * channel_curl: make followlink configurable
+  * channel_curl: add redirect as return code and store new URL
+  * hawkbit: set explicitely new Curl options
+  * channel: add further entry points
+  * channel:curl: extend HTTP return codes
+  * channel_curl: allow to collect HTTP headers
+  * channel_curl: allow to set content-type
+  * util: add swupdate_time_iso8601
+  * doc: describe general HTTP connector
+  * suricatta: general service (HTTP connector)
+  * Add defconfig for general server
+  * Fix build race condition in bindings
+
+  [ Christian Storm ]
+  * Lua: remove stack leftover in l_handler_wrapper()
+  * Fix compilation on FreeBSD broken by __u64 usage
+  * Fix compilation on FreeBSD broken by strdupa usage
+  * suricatta: add missing pthread.h include
+  * core: parent_dead_handler is only relevant for Linux
+  * Makefile: use $(MAKE) instead of explicit command make
+  * installer: consolidate bootloader environment update
+
+  [ Stefano Babic ]
+  * debian: fix control and update for inclusion
+  * Prepare 2018.11-rc1
+
+  [ Christian Storm ]
+  * parser: fix compiler signedness warning
+
+  [ Stefano Babic ]
+  * Fix warnings when CONFIG_LIBCONFIG is not set
+  * Ignore format truncation warning
+
+  [ Christian Storm ]
+  * doc: make sphinx > 1.4 use sphinx.ext.imgmath
+  * cpio_utils: fix compiler signedness warning
+  * Lua: replace puts() by ERROR()
+  * Lua: export bootenv functions to Lua handlers
+
+  [ Stefano Babic ]
+  * examples: script to update a device from CLI
+  * doc: add stargazer to the index page
+
+  [ Christian Storm ]
+  * channel_curl: fix warning if !CONFIG_ENCRYPTED_IMAGES
+  * shell_scripthandler: add missing wait.h include
+  * Ignore format truncation warning if !clang
+  * channel_curl: fix compilation for curl version >= 7.62.0
+
+  [ Diego Rondini ]
+  * Fix usage doc of "--dry-run"
+
+  [ Denis OSTERLAND ]
+  * signature: allow codeSigning as key usage
+  * signature: allow to verify signers common name
+  * acceptance-tests: add tests for signer common name check
+
+  [ Christian Storm ]
+  * travis: silence lua.pc not found warnings
+
+  [ Stefano Babic ]
+  * handlers: drop dead code from flash handler
+  * dict: use reentrant version for strtok
+  * installer: allow filenames longer as 64 chars
+  * doc: explain how the parser finds the root node
+
+  [ Denis OSTERLAND ]
+  * signature: fix memory leak
+
+  [ Stefano Babic ]
+  * Factorize function to count elements in array of strings
+  * util: function to free an array of strings
+  * parser: function to get a new path of a node
+  * parser: introduce links in sw-description
+  * doc: explain usage of links in sw-description
+  * handler: bootloader: set mask to IMAGE_HANDLER
+  * handler: bootloader: postpone setting the environment
+  * cpio_utils: fix encryption
+  * webserver: introduce a parameter to run postupdate
+  * handlers: bootloader: let comments and blankline in image
+  * Add generic function to concatenate multiple strings
+  * libconfig: using mstrcat to generate tree path
+  * parser: drop last leaf in links
+  * doc: updated roadmap after 2018.11
+  * Prepare 2018.11
+
+ -- Stefano Babic <sbabic@denx.de>  Wed, 05 Dec 2018 15:41:39 +0100
+
+swupdate (2018.03) unstable; urgency=medium
 
   [ Christian Storm ]
   * doc: fix SWU forwarder handler doc typos
