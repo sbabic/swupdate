@@ -211,4 +211,16 @@ config UCFWHANDLER
 comment "Microcontroller handler depends on libgpiod"
 	depends on !HAVE_LIBGPIOD
 
+config UCFW_OLD_LIBGPIOD
+	bool "Support older libgpiod version"
+	depends on HAVE_LIBGPIOD
+	depends on UCFWHANDLER
+	default n
+	help
+	  The libgpiod library changed the api gpiod_line_request_output.
+	  The old function was replaced by gpiod_line_request_flags_output
+	  while the new one dropped "flags" from the list of parameters.
+	  Rather there is no way to get this changes from the library
+	  at build time.
+
 endmenu
