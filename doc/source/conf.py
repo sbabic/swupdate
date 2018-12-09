@@ -232,7 +232,13 @@ latex_use_parts = False
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [('index', 'swupdate', u'Swupdate Documentation', [u'Stefano Babic'], 1)]
+man_pages = [
+        ('index', 'swupdate', u'Swupdate Documentation', [u'Stefano Babic'], 1),
+        ('sendtohawkbit', 'sendtohawkbit', u'sendtohawkbit tool', '', 1),
+        ('client', 'client', u'SWUpdate client tool', '', 1),
+        ('hawkbitcfg', 'hawkbitcfg', u'SWUpdate Hawkbit Configuration tool', '', 1),
+        ('swupdate_progress', 'progress', u'SWUpdate progress tool', '', 1),
+        ]
 
 
 # -- Additional options --------------------------------------------------------
