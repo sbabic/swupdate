@@ -99,6 +99,13 @@ config RAW
 	  This is a simple handler that simply copies
 	  into the destination.
 
+config RDIFFHANDLER
+	bool "rdiff"
+	default n
+	help
+	  Add support for applying librsync's rdiff patches,
+	  see http://librsync.sourcefrog.net/
+
 config LUASCRIPTHANDLER
 	bool "Lua Script"
 	depends on LUA

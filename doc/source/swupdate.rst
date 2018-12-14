@@ -214,6 +214,7 @@ There are only a few libraries that are required to compile SWUpdate.
 - libz, libcrypto are always linked.
 - libconfig: it is used by the default parser.
 - libarchive (optional) for archive handler
+- librsync (optional) for support to apply rdiff patches
 - libjson (optional) for JSON parser and Hawkbit
 - libubootenv (optional) if support for U-Boot is enabled
 - libebgenv (optional) if support for EFI Boot Guard is enabled

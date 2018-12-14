@@ -165,6 +165,10 @@ ifeq ($(CONFIG_GUNZIP),y)
 LDLIBS += z
 endif
 
+ifeq ($(CONFIG_RDIFFHANDLER),y)
+LDLIBS += rsync
+endif
+
 ifeq ($(CONFIG_REMOTE_HANDLER),y)
 LDLIBS += zmq
 endif
