@@ -39,7 +39,7 @@ generating the SWU. The class defines new variables, all of them have the prefix
 - **SWUPDATE_IMAGES_FSTYPES** : extension of the artifact. Each artifact can
   have multiple extension according to the IMAGE_FSTYPES variable.
   For example, an image can be generated as tarball and as UBIFS for target.
-  Setting the variable for each artifact telles the class which file must
+  Setting the variable for each artifact tells the class which file must
   be packed into the SWU image.
 
 
@@ -50,7 +50,7 @@ generating the SWU. The class defines new variables, all of them have the prefix
 - **SWUPDATE_IMAGES_NOAPPEND_MACHINE** : flag to use drop the machine name from the
   artifact file. Most images in *deploy* have the name of the Yocto's machine in the
   filename. The class adds automatically the name of the MACHINE to the file, but some
-  artifacts can be deploes without it.
+  artifacts can be deployed without it.
 
 ::
 

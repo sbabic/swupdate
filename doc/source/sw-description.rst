@@ -254,7 +254,7 @@ is responsible for calling `SWUpdate` passing proper settings.
 Priority finding the elements in the file
 -----------------------------------------
 
-SWUpdate search for entries in the sdw-description file according to the following priority:
+SWUpdate search for entries in the sw-description file according to the following priority:
 
 1. Try <boardname>.<selection>.<mode>.<entry>
 2. Try <selection>.<mode>.<entry>
@@ -311,8 +311,8 @@ Take an example. The following sw-description describes the release for a set of
     }
 
 On *myboard*, SWUpdate searches and find myboard.stable.copy1(2). When running on different
-boards, SWUpdate does not find an enty corresponding to the boardname and it fallbacks to the
-version without boardname. This lets relalize the same release for different boards having
+boards, SWUpdate does not find an entry corresponding to the boardname and it fallbacks to the
+version without boardname. This lets realize the same release for different boards having
 a complete different hardware. `myboard` could have a eMMC and an ext4 filesystem,
 while another device can have raw flash and install an UBI filesystem. Nevertheless, they are
 both just a different format of the same release and they could be described together in sw-description.

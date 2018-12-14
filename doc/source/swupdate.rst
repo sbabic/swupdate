@@ -505,7 +505,7 @@ Command line parameters
 |             |          | software. This will be checked with the    |
 |             |          | version of new software and forbids        |
 |             |          | downgrading.                               |
-|             |          | Version mconsists of 4 number:             |
+|             |          | Version consists of 4 number:              |
 |             |          | major.minor.rev.build                      |
 |             |          | each field is in the range 0..65535        |
 +-------------+----------+--------------------------------------------+

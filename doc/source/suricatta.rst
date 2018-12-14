@@ -164,7 +164,7 @@ The query string has the format:
         http(s)://<base URL>?param1=val1&param2=value2...
 
 As examples for parameters, the device can send its serial number, MAC address and the running version of the software.
-It is duty of the backend to interprete this - SWUpdate just takes them from the "identity" section of
+It is duty of the backend to interpret this - SWUpdate just takes them from the "identity" section of
 the configuration file and encodes the URL.
 
 The server answers with the following return codes:
