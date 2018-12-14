@@ -22,6 +22,8 @@ before_install:
     - sudo apt-get install -y libsystemd-daemon-dev
     - sudo apt-get install -y libsystemd-daemon0
     - sudo apt-get install -y check
+    - sudo apt-get install -y librsync1
+    - sudo apt-get install -y librsync-dev
 
 script:
     - sudo ln -sf /usr/lib/x86_64-linux-gnu/pkgconfig/lua5.2.pc /usr/lib/x86_64-linux-gnu/pkgconfig/lua.pc
