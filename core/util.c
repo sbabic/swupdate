@@ -21,6 +21,7 @@
 #include <dirent.h>
 #include <limits.h>
 #include <time.h>
+#include <libgen.h>
 
 #include "swupdate.h"
 #include "util.h"
@@ -179,6 +180,24 @@ int openfileoutput(const char *filename)
 		ERROR("I cannot open %s %d", filename, errno);
 
 	return fdout;
+}
+
+int mkpath(char *dir, mode_t mode)
+{
+	if (!dir) {
+		return -EINVAL;
+	}
+
+	if (strlen(dir) == 1 && dir[0] == '/')
+		return 0;
+
+	mkpath(dirname(strdupa(dir)), mode);
+
+	if (mkdir(dir, mode) == -1) {
+		if (errno != EEXIST)
+			return 1;
+	}
+	return 0;
 }
 
 /*

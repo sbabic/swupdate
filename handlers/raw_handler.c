@@ -45,24 +45,6 @@ static int install_raw_image(struct img_type *img,
 	return ret;
 }
 
-static int mkpath(char *dir, mode_t mode)
-{
-	if (!dir) {
-		return -EINVAL;
-	}
-
-	if (strlen(dir) == 1 && dir[0] == '/')
-		return 0;
-
-	mkpath(dirname(strdupa(dir)), mode);
-
-	if (mkdir(dir, mode) == -1) {
-		if (errno != EEXIST)
-			return 1;
-	}
-	return 0;
-}
-
 static int install_raw_file(struct img_type *img,
 	void __attribute__ ((__unused__)) *data)
 {

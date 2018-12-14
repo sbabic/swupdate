@@ -168,6 +168,7 @@ int extract_sw_description(int fd, const char *descfile, off_t *offs);
 off_t extract_next_file(int fd, int fdout, off_t start, int compressed,
 			int encrypted, unsigned char *hash);
 int openfileoutput(const char *filename);
+int mkpath(char *dir, mode_t mode);
 
 int register_notifier(notifier client);
 void notify(RECOVERY_STATUS status, int error, int level, const char *msg);
