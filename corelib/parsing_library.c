@@ -204,6 +204,7 @@ bool set_find_path(const char **nodes, const char *newpath, char **tmp)
 	char *token, *ref;
 	bool first = true;
 	int allocstr = 0;
+	(void)tmp;
 
 	/*
 	 * Include of files is not supported,
