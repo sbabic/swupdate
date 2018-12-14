@@ -70,7 +70,7 @@ static int printstatus(ipc_message *msg)
 	if (verbose)
 		printf("Status: %d message: %s\n",
 			msg->data.status.current,
-			msg->data.status.desc ? msg->data.status.desc : "");
+			strlen(msg->data.status.desc) > 0 ? msg->data.status.desc : "");
 
 	return 0;
 }
