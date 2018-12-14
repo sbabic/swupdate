@@ -23,31 +23,6 @@
 void raw_handler(void);
 void raw_filecopy_handler(void);
 
-#if defined(__FreeBSD__)
-/*
- * FreeBSD likes to have multiples of 512 bytes written
- * to a device node, hence slice the buffer in palatable
- * chunks assuming that only the last written buffer's
- * length is smaller than cpio_utils.c's BUFF_SIZE and
- * doesn't satisfy length % 512 == 0.
- */
-static int copy_write_padded(void *out, const void *buf, unsigned int len)
-{
-	if (len % 512 == 0) {
-		return copy_write(out, buf, len);
-	}
-
-	uint8_t buffer[512] = { 0 };
-	int chunklen = len - (len % 512);
-	int res = copy_write(out, buf, chunklen);
-	if (res != 0) {
-		return res;
-	}
-	memcpy(&buffer, buf+chunklen, len-chunklen);
-	return copy_write(out, buffer, 512);
-}
-#endif
-
 static int install_raw_image(struct img_type *img,
 	void __attribute__ ((__unused__)) *data)
 {

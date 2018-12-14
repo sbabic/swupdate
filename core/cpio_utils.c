@@ -77,8 +77,8 @@ static int fill_buffer(int fd, unsigned char *buf, unsigned int nbytes, unsigned
 }
 
 /*
- * Export this to be used in other modules
- * It just copy a buffer to a file
+ * Export the copy_write{,_*} functions to be used in other modules
+ * for copying a buffer to a file.
  */
 int copy_write(void *out, const void *buf, unsigned int len)
 {
@@ -106,6 +106,31 @@ int copy_write(void *out, const void *buf, unsigned int len)
 
 	return 0;
 }
+
+#if defined(__FreeBSD__)
+/*
+ * FreeBSD likes to have multiples of 512 bytes written
+ * to a device node, hence slice the buffer in palatable
+ * chunks assuming that only the last written buffer's
+ * length is smaller than cpio_utils.c's CPIO_BUFFER_SIZE and
+ * doesn't satisfy length % 512 == 0.
+ */
+int copy_write_padded(void *out, const void *buf, unsigned int len)
+{
+	if (len % 512 == 0) {
+		return copy_write(out, buf, len);
+	}
+
+	uint8_t buffer[512] = { 0 };
+	int chunklen = len - (len % 512);
+	int res = copy_write(out, buf, chunklen);
+	if (res != 0) {
+		return res;
+	}
+	memcpy(&buffer, buf+chunklen, len-chunklen);
+	return copy_write(out, buffer, 512);
+}
+#endif
 
 /*
  * Pipeline description
