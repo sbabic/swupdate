@@ -246,17 +246,17 @@ static void *server_progress_thread (void *data)
 	if (!prog) {
 		ERROR("Fatal Error: thread without data !");
 	}
+	if (!prog->url || !strlen(prog->url)) {
+		INFO("No url for logging...no result sent");
+		pthread_exit((void *)SERVER_EINIT);
+	}
+
 	channel = channel_new();
 	if (!channel) {
 		ERROR("Cannot get channel for communication");
 	}
 	if (channel->open(channel, &channel_data) != CHANNEL_OK) {
 		ERROR("Cannot open channel for progress thread");
-		pthread_exit((void *)SERVER_EINIT);
-	}
-
-	if (!prog->url || !strlen(prog->url)) {
-		INFO("No url for logging...no result sent");
 		pthread_exit((void *)SERVER_EINIT);
 	}
 
@@ -369,6 +369,9 @@ static char *server_prepare_query(char *url, struct dict *dict)
 
 cleanup:
 	curl_easy_cleanup(curl);
+
+	if (!qry)
+		qry = url;
 
 	return qry;
 
@@ -629,7 +632,7 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 	}
 
 	if (mandatory_argument_count != ALL_MANDATORY_SET) {
-		fprintf(stderr, "Mandatory arguments missing!\n");
+		ERROR("Mandatory arguments missing!");
 		suricatta_print_help();
 		return SERVER_EINIT;
 	}
@@ -648,7 +651,7 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 		return SERVER_EINIT;
 	}
 
-	progdata.fname = strdup(fname);
+	progdata.fname = (fname) ? strdup(fname) : NULL;
 	progdata.url = server_general.logurl;
 	progdata.identify = &server_general.configdata;
 
