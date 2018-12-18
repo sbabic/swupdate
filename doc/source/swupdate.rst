@@ -607,6 +607,11 @@ have to match the socket paths ``CONFIG_SOCKET_CTRL_PATH`` and
 ``CONFIG_SOCKET_PROGRESS_PATH`` in SWUpdate's configuration.
 Here, the default socket path configuration is depicted.
 
+Note that ``tmpfiles.d`` must to be configured such that
+``systemd-tmpfiles-clean.service`` does not delete directories
+which SWUpdate creates during its initialization, in particular,
+``/tmp/datadst`` and ``/tmp/scripts``.
+
 .. _systemd: https://www.freedesktop.org/wiki/Software/systemd/
 
 
