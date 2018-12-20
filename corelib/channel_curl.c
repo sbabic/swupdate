@@ -1106,11 +1106,14 @@ channel_op_res_t channel_get(channel_t *this, void *data)
 	    CHANNEL_OK) {
 		ERROR("Channel operation returned HTTP error code %ld.",
 		      http_response_code);
-		if (http_response_code == 500) {
-			DEBUG("The error's message is: '%s'", chunk.memory);
-		}
-		if (http_response_code == 404) {
-			DEBUG("The error's message is: '%s'", chunk.memory);
+		switch (http_response_code) {
+			case 403:
+			case 404:
+			case 500:
+				DEBUG("The error's message is: '%s'\n", chunk.memory);
+				break;
+			default:
+				break;
 		}
 		goto cleanup_chunk;
 	}
