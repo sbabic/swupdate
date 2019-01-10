@@ -13,7 +13,7 @@
  *   independently of the ECC technique implemented on the NAND driver.
  *   This is a workaround required for TI ARM OMAP DM3730 ROM boot to load.
  *
- * SPDX-License-Identifier:     GPL-2.0-or-later
+ * SPDX-License-Identifier:     GPL-2.0-only
  */
 #include <stdio.h>
 #include <unistd.h>
