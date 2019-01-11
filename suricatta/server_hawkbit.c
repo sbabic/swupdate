@@ -1046,7 +1046,7 @@ server_op_res_t server_process_update_artifact(int action_id,
 #ifdef CONFIG_SURICATTA_SSL
 		if (strncmp((char *)&channel_data.sha1hash,
 			    json_object_get_string(json_data_artifact_sha1hash),
-			    SHA_DIGEST_LENGTH) != 0) {
+			    SWUPDATE_SHA_DIGEST_LENGTH) != 0) {
 				ERROR(
 			    "Checksum does not match: Should be '%s', but "
 			    "actually is '%s'.\n",

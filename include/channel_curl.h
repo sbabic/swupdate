@@ -11,7 +11,6 @@
 #endif
 #include <stdio.h>
 #include <stdbool.h>
-#include "sslapi.h"
 #include "swupdate_status.h"
 
 /* Curl Channel Implementation Private Header File.
@@ -63,7 +62,7 @@ typedef struct {
 	bool nofollow;
 	int (*checkdwl)(void);
 	struct swupdate_digest *dgst;
-	char sha1hash[SHA_DIGEST_LENGTH * 2 + 1];
+	char sha1hash[SWUPDATE_SHA_DIGEST_LENGTH * 2 + 1];
 	sourcetype source;
 	struct dict *headers;
 } channel_data_t;

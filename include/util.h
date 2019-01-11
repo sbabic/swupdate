@@ -20,6 +20,9 @@
 #define NOTIFY_BUF_SIZE 	2048
 #define ENOMEM_ASPRINTF		-1
 
+#define SWUPDATE_SHA_DIGEST_LENGTH	20
+#define AES_BLOCK_SIZE	16
+
 extern int loglevel;
 
 typedef enum {

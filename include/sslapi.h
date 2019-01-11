@@ -141,13 +141,6 @@ void swupdate_DECRYPT_cleanup(struct swupdate_digest *dgst);
 #define swupdate_DECRYPT_cleanup(p)
 #endif
 
-/*
- * if openSSL is not selected
- */
-#ifndef SHA_DIGEST_LENGTH
-#define SHA_DIGEST_LENGTH 20
-#endif
-
 #ifndef SSL_PURPOSE_DEFAULT
 #define SSL_PURPOSE_EMAIL_PROT -1
 #define SSL_PURPOSE_CODE_SIGN  -1

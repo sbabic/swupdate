@@ -19,7 +19,6 @@
 #include "handler.h"
 #include "flash.h"
 #include "util.h"
-#include "sslapi.h"
 
 void ubi_handler(void);
 

@@ -847,7 +847,7 @@ channel_op_res_t channel_get_file(channel_t *this, void *data)
 	channel_data_t *channel_data = (channel_data_t *)data;
 
 	if (channel_data->usessl) {
-		memset(channel_data->sha1hash, 0x0, SHA_DIGEST_LENGTH * 2 + 1);
+		memset(channel_data->sha1hash, 0x0, SWUPDATE_SHA_DIGEST_LENGTH * 2 + 1);
 		channel_data->dgst = swupdate_HASH_init("sha1");
 		if (!channel_data->dgst) {
 			result = CHANNEL_EINIT;
@@ -1000,7 +1000,7 @@ channel_op_res_t channel_get_file(channel_t *this, void *data)
 	}
 
 	if (channel_data->usessl) {
-		unsigned char sha1hash[SHA_DIGEST_LENGTH];
+		unsigned char sha1hash[SWUPDATE_SHA_DIGEST_LENGTH];
 		unsigned int md_len;
 		(void)md_len;
 		if (swupdate_HASH_final(channel_data->dgst, sha1hash, &md_len) != 1) {
@@ -1009,7 +1009,7 @@ channel_op_res_t channel_get_file(channel_t *this, void *data)
 		}
 
 		char sha1hexchar[3];
-		for (int i = 0; i < SHA_DIGEST_LENGTH; i++) {
+		for (int i = 0; i < SWUPDATE_SHA_DIGEST_LENGTH; i++) {
 			sprintf(sha1hexchar, "%02x", sha1hash[i]);
 			strcat(channel_data->sha1hash, sha1hexchar);
 		}
