@@ -1,8 +1,0 @@
-Document: swupdate
-Title: SWUpdate Documentation
-Author: Stefano Babic
-Abstract: Full documentation for the SWUpdate tool
-Section: System/Package Management
-
-Format: PDF
-Files: /usr/share/doc/swupdate/SWUpdate.pdf.gz
