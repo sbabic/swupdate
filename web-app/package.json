@@ -1,6 +1,6 @@
 {
   "name": "swupdate",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Software Update for Embedded Systems Web Front End",
   "main": "index.html",
   "scripts": {
@@ -16,28 +16,30 @@
   "devDependencies": {
     "csslint": "^1.0.5",
     "del": "^3.0.0",
-    "gulp": "^3.9.1",
-    "gulp-clean-css": "^3.9.0",
+    "gulp": "^4.0.0",
+    "gulp-clean-css": "^4.0.0",
     "gulp-filter": "^5.1.0",
-    "gulp-gzip": "^1.4.1",
+    "gulp-gzip": "^1.4.2",
     "gulp-html-replace": "^1.6.2",
-    "gulp-htmlmin": "^4.0.0",
-    "gulp-imagemin": "^4.1.0",
-    "gulp-minify": "^2.1.0",
-    "gulp-rename": "^1.2.2",
-    "gulp-replace": "^0.6.1",
-    "gulp-sass": "^3.1.0",
+    "gulp-htmlmin": "^5.0.1",
+    "gulp-imagemin": "^5.0.3",
+    "gulp-minify": "^3.1.0",
+    "gulp-rename": "^1.4.0",
+    "gulp-replace": "^1.0.0",
+    "gulp-sass": "^4.0.2",
     "gulp-tar": "^2.1.0",
-    "gulp-useref": "^3.1.4",
-    "htmlhint": "^0.9.13",
+    "gulp-useref": "^3.1.6",
+    "htmlhint": "^0.10.1",
     "minimist": "^1.2.0",
     "sass-lint": "^1.12.1",
-    "standard": "^10.0.3"
+    "standard": "^12.0.1",
+    "eslint": "^5.11.1"
   },
   "dependencies": {
-    "@fortawesome/fontawesome-free-webfonts": "^1.0.3",
-    "bootstrap": "^4.0.0",
-    "dropzone": "5.2.0",
+    "@fortawesome/fontawesome-free": "^5.6.3",
+    "bootstrap": "^4.2.1",
+    "popper.js": "^1.14.6",
+    "dropzone": "5.5.1",
     "jquery": "^3.3.1"
   },
   "standard": {

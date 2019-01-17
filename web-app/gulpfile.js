@@ -27,7 +27,7 @@ var knownOptions = {
 
 var options = minimist(process.argv.slice(2), knownOptions)
 
-gulp.task('sass', ['clean'], () => {
+gulp.task('sass', async function () {
   return gulp.src('scss/*.scss')
     .pipe(sass().on('error', sass.logError))
     .pipe(cleanCSS({ compatibility: '*' }))
@@ -37,7 +37,7 @@ gulp.task('sass', ['clean'], () => {
     .pipe(gulp.dest('dist/css'))
 })
 
-gulp.task('minify-css', ['clean'], () => {
+gulp.task('minify-css', async function () {
   return gulp.src('css/*.css')
     .pipe(cleanCSS({ compatibility: '*' }))
     .pipe(rename({
@@ -46,7 +46,7 @@ gulp.task('minify-css', ['clean'], () => {
     .pipe(gulp.dest('dist/css'))
 })
 
-gulp.task('minify-js', ['clean'], () => {
+gulp.task('minify-js', async function () {
   return gulp.src('js/*.js')
     .pipe(minify({
       ext: {
@@ -58,7 +58,7 @@ gulp.task('minify-js', ['clean'], () => {
     .pipe(gulp.dest('dist/js'))
 })
 
-gulp.task('minify-html', ['clean'], () => {
+gulp.task('minify-html', async function () {
   return gulp.src('*.html')
     .pipe(replace('node_modules/bootstrap/dist/css', 'css'))
     .pipe(useref({ noconcat: true }))
@@ -71,7 +71,7 @@ gulp.task('minify-html', ['clean'], () => {
     .pipe(gulp.dest('dist'))
 })
 
-gulp.task('copy-css', ['clean'], () => {
+gulp.task('copy-css', async function () {
   return gulp.src('*.html')
     .pipe(useref({ noconcat: true }))
     .pipe(filter('**/*.css'))
@@ -83,7 +83,7 @@ gulp.task('copy-css', ['clean'], () => {
     .pipe(gulp.dest('dist'))
 })
 
-gulp.task('copy-js', ['clean'], () => {
+gulp.task('copy-js', async function () {
   return gulp.src('*.html')
     .pipe(useref({ noconcat: true }))
     .pipe(filter('**/*.js'))
@@ -100,20 +100,20 @@ gulp.task('copy-js', ['clean'], () => {
     .pipe(gulp.dest('dist'))
 })
 
-gulp.task('copy-fonts', ['clean'], () => {
+gulp.task('copy-fonts', async function () {
   return gulp.src([
-    'node_modules/@fortawesome/fontawesome-free-webfonts/webfonts/fa-solid-900.{ttf,woff,woff2}'
+   'node_modules/@fortawesome/fontawesome-free/webfonts/fa-solid-900.{ttf,woff,woff2}' 
   ])
   .pipe(gulp.dest('dist/webfonts'))
 })
 
-gulp.task('resize-images', ['clean'], () => {
+gulp.task('resize-images', async function () {
   return gulp.src('images/*')
     .pipe(imagemin({ verbose: true }))
     .pipe(gulp.dest('dist/images'))
 })
 
-gulp.task('package', () => {
+gulp.task('package', function () {
   var name = options.output.replace('.tar', '').replace('.gz', '')
   return gulp.src('dist/**')
     .pipe(tar(name + '.tar'))
@@ -121,10 +121,10 @@ gulp.task('package', () => {
     .pipe(gulp.dest('.'))
 })
 
-gulp.task('clean', () => {
+gulp.task('clean', function () {
   return del('dist/**', { force: true })
 })
 
-gulp.task('build', ['copy-css', 'copy-js', 'copy-fonts', 'sass', 'minify-css', 'minify-js', 'minify-html', 'resize-images'])
+gulp.task('build', gulp.series('clean', gulp.parallel('copy-css', 'copy-js', 'copy-fonts', 'sass', 'minify-css', 'minify-js', 'minify-html', 'resize-images')))
 
-gulp.task('default', ['build'])
+gulp.task('default', gulp.series('build'))
