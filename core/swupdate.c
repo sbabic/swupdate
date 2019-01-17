@@ -366,7 +366,7 @@ static int install_from_file(char *fname, int check)
 	/*
 	 * Set "recovery_status" as begin of the transaction"
 	 */
-	bootloader_env_set("recovery_status", "in_progress");
+	bootloader_env_set(BOOTVAR_TRANSACTION, "in_progress");
 
 	ret = install_images(&swcfg, fdsw, 1);
 
@@ -379,7 +379,7 @@ static int install_from_file(char *fname, int check)
 		return EXIT_FAILURE;
 	}
 
-	bootloader_env_unset("recovery_status");
+	bootloader_env_unset(BOOTVAR_TRANSACTION);
 	fprintf(stdout, "Software updated successfully\n");
 	fprintf(stdout, "Please reboot the device to start the new software\n");
 
@@ -955,7 +955,7 @@ int main(int argc, char **argv)
 		result = install_from_file(fname, opt_c);
 		switch (result) {
 		case EXIT_FAILURE:
-			bootloader_env_set("recovery_status", "failed");
+			bootloader_env_set(BOOTVAR_TRANSACTION, "failed");
 			break;
 		case EXIT_SUCCESS:
 			notify(SUCCESS, 0, INFOLEVEL, NULL);

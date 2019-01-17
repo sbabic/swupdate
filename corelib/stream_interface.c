@@ -125,6 +125,7 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 	struct img_type *img, *part;
 	char output_file[MAX_IMAGE_FNAME];
 	const char* TMPDIR = get_tmpdir();
+	bool installed_directly = false;
 
 	/* preset the info about the install parts */
 
@@ -229,6 +230,17 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 				break;
 			case INSTALL_FROM_STREAM:
 				TRACE("Installing STREAM %s, %lld bytes", img->fname, img->size);
+
+				/*
+				 * If this is the first image to be directly installed, set transaction flag
+				 * to on to be checked if a power-off happens. Be sure to set the flag
+				 * just once
+				 */
+				if (!installed_directly) {
+					bootloader_env_set(BOOTVAR_TRANSACTION, "in_progress");
+					installed_directly = true;
+				}
+
 				/*
 				 * If we are streaming data to store in a UBI volume, make
 				 * sure that the UBI partitions are adjusted beforehand
@@ -379,12 +391,12 @@ void *network_initializer(void *data)
 			 * must be successful. Set we have
 			 * initiated an update
 			 */
-			bootloader_env_set("recovery_status", "in_progress");
+			bootloader_env_set(BOOTVAR_TRANSACTION, "in_progress");
 
 			notify(RUN, RECOVERY_NO_ERROR, INFOLEVEL, "Installation in progress");
 			ret = install_images(software, 0, 0);
 			if (ret != 0) {
-				bootloader_env_set("recovery_status", "failed");
+				bootloader_env_set(BOOTVAR_TRANSACTION, "failed");
 				notify(FAILURE, RECOVERY_ERROR, ERRORLEVEL, "Installation failed !");
 				inst.last_install = FAILURE;
 
@@ -393,7 +405,7 @@ void *network_initializer(void *data)
 				 * Clear the recovery variable to indicate to bootloader
 				 * that it is not required to start recovery again
 				 */
-				bootloader_env_unset("recovery_status");
+				bootloader_env_unset(BOOTVAR_TRANSACTION);
 				notify(SUCCESS, RECOVERY_NO_ERROR, INFOLEVEL, "SWUPDATE successful !");
 				inst.last_install = SUCCESS;
 			}

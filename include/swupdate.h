@@ -14,6 +14,8 @@
 #include "mongoose_interface.h"
 #include "swupdate_dict.h"
 
+#define BOOTVAR_TRANSACTION "recovery_status"
+
 /*
  * swupdate uses SHA256 hashes
  */
