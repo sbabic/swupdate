@@ -81,6 +81,7 @@ static struct option long_options[] = {
 	{"no-downgrading", required_argument, NULL, 'N'},
 #ifdef CONFIG_SIGNED_IMAGES
 	{"key", required_argument, NULL, 'k'},
+	{"ca-path", required_argument, NULL, 'k'},
 	{"cert-purpose", required_argument, NULL, '1'},
 	{"forced-signer-name", required_argument, NULL, '2'},
 #endif
@@ -131,6 +132,7 @@ static void usage(char *programname)
 		"     --cert-purpose <purpose>   : set expected certificate purpose\n"
 		"                                  [emailProtection|codeSigning] (default: emailProtection)\n"
 		"     --forced-signer-name <cn>  : set expected common name of signer certificate\n"
+		"     --ca-path                  : path to the Certificate Authority (PEM)\n"
 #endif
 #ifdef CONFIG_ENCRYPTED_IMAGES
 		" -K, --key-aes <key file>       : the file contains the symmetric key to be used\n"
@@ -327,7 +329,6 @@ static int install_from_file(char *fname, int check)
 		exit(EXIT_FAILURE);
 	}
 
-
 	if (check_hw_compatibility(&swcfg)) {
 		ERROR("SW not compatible with hardware");
 		exit(EXIT_FAILURE);
@@ -490,6 +491,8 @@ static int read_globals_settings(void *elem, void *data)
 
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
 				"public-key-file", sw->globals.publickeyfname);
+	GET_FIELD_STRING(LIBCFG_PARSER, elem,
+				"ca-path", sw->globals.publickeyfname);
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
 				"aes-key-file", sw->globals.aeskeyfname);
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
