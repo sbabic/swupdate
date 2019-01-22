@@ -181,6 +181,20 @@ int parse(struct swupdate_cfg *sw, const char *descfile)
 	parser_fn current;
 #ifdef CONFIG_SIGNED_IMAGES
 	char *sigfile;
+
+	sigfile = malloc(strlen(descfile) + strlen(".sig") + 1);
+	if (!sigfile)
+		return -ENOMEM;
+	strcpy(sigfile, descfile);
+	strcat(sigfile, ".sig");
+
+	ret = swupdate_verify_file(sw->dgst, sigfile, descfile,
+				   sw->globals.forced_signer_name);
+	free(sigfile);
+
+	if (ret)
+		return ret;
+
 #endif
 	for (unsigned int i = 0; i < ARRAY_SIZE(parsers); i++) {
 		current = parsers[i];
@@ -221,18 +235,6 @@ int parse(struct swupdate_cfg *sw, const char *descfile)
 	}
 
 #ifdef CONFIG_SIGNED_IMAGES
-	sigfile = malloc(strlen(descfile) + strlen(".sig") + 1);
-	if (!sigfile)
-		return -ENOMEM;
-	strcpy(sigfile, descfile);
-	strcat(sigfile, ".sig");
-
-	ret = swupdate_verify_file(sw->dgst, sigfile, descfile,
-				   sw->globals.forced_signer_name);
-	free(sigfile);
-
-	if (ret)
-		return ret;
 
 	/*
 	 * If the software must be verified, all images
