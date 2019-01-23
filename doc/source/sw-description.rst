@@ -71,7 +71,11 @@ The following example explains better the implemented tags:
 			{
 				filename = "fpga.txt";
 				type = "fpga";
-			}
+			},
+			{
+				filename = "bootloader-env";
+				type = "bootloader";
+			},
 		);
 
 		files: (
@@ -95,10 +99,6 @@ The following example explains better the implemented tags:
 		);
 
 		bootenv: (
-			{
-				filename = "bootloader-env";
-				type = "bootloader";
-			},
 			{
 				name = "vram";
 				value = "4M";
@@ -822,7 +822,7 @@ must be chosen from the bootloader selection menu in `menuconfig`.
 
 ::
 
-	bootenv: (
+	images: (
 		{
 			filename = "bootloader-env";
 			type = "bootloader";
@@ -834,12 +834,25 @@ is in the format
 
 ::
 
-	<name of variable>	<value>
+	<name of variable>=<value>
 
 if value is missing, the variable is unset.
 
-In the current implementation, the above file format was inherited for
-GRUB and EFI Boot Guard environment modification as well.
+The format is compatible with U-Boot "env import" command. It is possible
+to produce the file from target as result of "env export".
+
+Comments are allowed in the file to improve readability, see this example:
+
+::
+
+        # Default variables
+        bootslot=0
+        board_name=myboard
+        baudrate=115200
+
+        ## Board Revision dependent
+        board_revision=1.0
+
 
 The second way is to define in a group setting the variables
 that must be changed:
