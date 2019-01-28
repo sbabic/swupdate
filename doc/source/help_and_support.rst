@@ -23,6 +23,11 @@ Workshop and SWUpdate integration in project
 
 For quick integration of SWUpdate in your project, you could be interested in the `Workshop <http://www.denx.de/wiki/Training2/WebHome#WorkshopSWUpdate>`_
 
+Commercial support and board integration
+========================================
+
+You can contact me at sbabic@denx.de if you need professional support or you need help to get SWUpdate on your device.
+
 Talks about SWUpdate
 ====================
 
@@ -36,18 +41,18 @@ Talks about SWUpdate
        - Software update for IoT: the current state of play by Chris Simmonds, ELCE 2016, `Slides <http://de.slideshare.net/chrissimmonds/software-update-for-iot-the-current-state-of-play>`_, 
          `Video <https://youtu.be/GZGnBK2NycI?list=PLbzoR-pLrL6pRFP6SOywVJWdEHlmQE51q>`_
        - OSS Remote Firmware Updates for IoT-like Projects by Silvano Cirujano Cuesta, ELCE 2016,
-         `Slides <http://events.linuxfoundation.org/sites/events/files/slides/OSS_Remote_Firmware_Updates_for_IoT-like_Projects.pdf>`_, 
-         `Video <https://youtu.be/vVS-ZRNE0Lc?list=PLbzoR-pLrL6pRFP6SOywVJWdEHlmQE51q>`_
+         `Slides ELCE 2016 <http://events.linuxfoundation.org/sites/events/files/slides/OSS_Remote_Firmware_Updates_for_IoT-like_Projects.pdf>`_, 
+         `Video ELCE 2016 <https://youtu.be/vVS-ZRNE0Lc?list=PLbzoR-pLrL6pRFP6SOywVJWdEHlmQE51q>`_
        - System Upgrade with SWUpdate by Gabriel Huau, ELC 2017,
-         `Slides <http://events.linuxfoundation.org/sites/events/files/slides/ELC2017_SWUpdate.pdf>`_,
-         `Video <https://www.youtube.com/watch?v=ePRTTfGJUI4&t=16s>`_
+         `Slides ELC 2017 <http://events.linuxfoundation.org/sites/events/files/slides/ELC2017_SWUpdate.pdf>`_,
+         `Video ELC 2017 <https://www.youtube.com/watch?v=ePRTTfGJUI4&t=16s>`_
        - `BoF: Secure OTA Collaboration, by Ricardo Salveti and Alan Bennett, ELCE 2017 <https://elinux.org/images/0/0c/BoF_secure_ota_linux.pdf>`_
        - Orchestrated Android-Style System Upgrades for Embedded Linux by Diego Rondini, ELCE 2017,
-         `Slides <http://events.linuxfoundation.org/sites/events/files/slides/UF%20-%20ELCE%202017%20Presentation.pdf>`_,
-         `Video <https://www.youtube.com/watch?v=Za21QFJGvJ0>`_
+         `Slides Android-Style <http://events.linuxfoundation.org/sites/events/files/slides/UF%20-%20ELCE%202017%20Presentation.pdf>`_,
+         `Video Android-Style <https://www.youtube.com/watch?v=Za21QFJGvJ0>`_
        - Updating an Embedded System with SWUpdate Framework by Stefano Babic, ELCE 2017,
-         `Slides <http://events.linuxfoundation.org/sites/events/files/slides/SWUpdateELCE2017.pdf>`_,
-         `Video <https://www.youtube.com/watch?v=6sKLH95g4Do>`_
+         `Slides ELCE 2017 <http://events.linuxfoundation.org/sites/events/files/slides/SWUpdateELCE2017.pdf>`_,
+         `Video ELCE 2017 <https://www.youtube.com/watch?v=6sKLH95g4Do>`_
 
 Useful references
 =================
@@ -60,3 +65,4 @@ Useful references
         - `Variscite, SWUpdate <http://www.variwiki.com/index.php?title=SWUpdate_Guide>`_
         - `Updating Embedded Linux Devices: SWUpdate <http://mkrak.org/2018/01/26/updating-embedded-linux-devices-part2/>`_
         - `SOTA System <http://pelux.io/software-factory/master/chapters/architecture/SOTA-system.html>`_
+        - `Upgrading buildroot based devices with SWUpdate <https://www.slideshare.net/linuxlab_conf/angelo-compagnucci-upgrading-buildroot-based-devices-with-swupdate>`_
