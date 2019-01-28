@@ -458,8 +458,7 @@ to the microcontroller.  (microcontroller will remain in programming state)
 
         $READY;<<CS>><CR><LF>
 
-        4. Data transmissions package based from mainboard to microcontroller
-package definition:
+4. Data transmissions package based from mainboard to microcontroller package definition:
 
         - within a package the records are sent one after another without the end of line marker <CR><LF>
         - the package is completed with <CR><LF>
