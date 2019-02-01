@@ -37,6 +37,12 @@
 #define ENODATA ENOATTR
 
 /*
+ * Define ENOKEY (required key not available) as
+ * on Linux since FreeBSD has no such definition.
+ */
+#define	ENOKEY 126
+
+/*
  * The BSDs don't define this while Linux does.
  */
 #define __u64 uint64_t
