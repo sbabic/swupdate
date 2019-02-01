@@ -1320,6 +1320,8 @@ server_op_res_t server_send_target_data(void)
 	bool first = true;
 	int len = 0;
 	server_op_res_t result = SERVER_OK;
+	char *json_reply_string = NULL;
+	char *url = NULL;
 
 	assert(channel != NULL);
 	len = get_target_data_length();
@@ -1376,8 +1378,6 @@ server_op_res_t server_send_target_data(void)
 	}
 	);
 
-	char *url = NULL;
-	char *json_reply_string = NULL;
 	channel_data_t channel_data_reply = channel_data_defaults;
 	char fdate[15 + 1];
 	time_t now = time(NULL) == (time_t)-1 ? 0 : time(NULL);
@@ -1789,7 +1789,7 @@ static server_op_res_t server_activation_ipc(ipc_message *msg)
 	if ((response != SERVER_UPDATE_AVAILABLE) && (response != SERVER_OK))
 		result = SERVER_EERR;
 	else {
-		server_hawkbit.update_state = SERVER_OK;
+		server_hawkbit.update_state = STATE_OK;
 
 		/*
 		 * Save the state
