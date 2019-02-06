@@ -260,8 +260,8 @@ int parse(struct swupdate_cfg *sw, const char *descfile)
 		__u64 currentversion = version_to_number(sw->globals.current_version);
 		__u64 newversion = version_to_number(sw->version);
 
-		if (newversion < currentversion) {
-			ERROR("No downgrading allowed: new version %s < installed %s",
+		if (newversion <= currentversion) {
+			ERROR("No downgrading allowed: new version %s <= installed %s",
 				sw->version, sw->globals.current_version);
 			return -EPERM;
 		}
