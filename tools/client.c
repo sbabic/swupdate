@@ -38,7 +38,7 @@ static void usage(void) {
 }
 
 char buf[256];
-int fd;
+int fd = STDIN_FILENO;
 int verbose = 1;
 
 pthread_mutex_t mymutex;
@@ -95,7 +95,7 @@ static int end(RECOVERY_STATUS status)
  */
 static int send_file(const char* filename) {
 	int rc;
-	if ( (fd = open(filename, O_RDONLY)) < 0) {
+	if (filename && (fd = open(filename, O_RDONLY)) < 0) {
 		printf ("I cannot open %s\n", filename);
 		return 1;
 	}
