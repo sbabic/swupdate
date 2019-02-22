@@ -257,11 +257,24 @@ int parse(struct swupdate_cfg *sw, const char *descfile)
 	 * newer version
 	 */
 	if (sw->globals.no_downgrading) {
-		__u64 currentversion = version_to_number(sw->globals.current_version);
+		__u64 minimum_version = version_to_number(sw->globals.minimum_version);
 		__u64 newversion = version_to_number(sw->version);
 
-		if (newversion <= currentversion) {
+		if (newversion < minimum_version) {
 			ERROR("No downgrading allowed: new version %s <= installed %s",
+				sw->version, sw->globals.minimum_version);
+			return -EPERM;
+		}
+	}
+
+	/*
+	 * If reinstalling is not allowed, compare
+	 * version strings
+	 */
+	if (sw->globals.no_reinstalling) {
+
+		if (strcmp(sw->version, sw->globals.current_version) == 0) {
+			ERROR("No reinstalling allowed: new version %s == installed %s",
 				sw->version, sw->globals.current_version);
 			return -EPERM;
 		}

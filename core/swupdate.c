@@ -79,6 +79,7 @@ static struct option long_options[] = {
 	{"output", required_argument, NULL, 'o'},
 	{"dry-run", no_argument, NULL, 'n'},
 	{"no-downgrading", required_argument, NULL, 'N'},
+	{"no-reinstalling", required_argument, NULL, 'R'},
 #ifdef CONFIG_SIGNED_IMAGES
 	{"key", required_argument, NULL, 'k'},
 	{"ca-path", required_argument, NULL, 'k'},
@@ -140,6 +141,7 @@ static void usage(char *programname)
 #endif
 		" -n, --dry-run                  : run SWUpdate without installing the software\n"
 		" -N, --no-downgrading <version> : not install a release older as <version>\n"
+		" -R, --no-reinstalling <version>: not install a release same as <version>\n"
 		" -o, --output <output file>     : saves the incoming stream\n"
 		" -v, --verbose                  : be verbose, set maximum loglevel\n"
 		"     --version                  : print SWUpdate version and exit\n"
@@ -503,9 +505,13 @@ static int read_globals_settings(void *elem, void *data)
 	get_field(LIBCFG_PARSER, elem, "loglevel", &sw->globals.loglevel);
 	get_field(LIBCFG_PARSER, elem, "syslog", &sw->globals.syslog_enabled);
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
-				"no-downgrading", sw->globals.current_version);
-	if (strlen(sw->globals.current_version))
+				"no-downgrading", sw->globals.minimum_version);
+	if (strlen(sw->globals.minimum_version))
 		sw->globals.no_downgrading = 1;
+	GET_FIELD_STRING(LIBCFG_PARSER, elem,
+				"no-reinstalling", sw->globals.current_version);
+	if (strlen(sw->globals.current_version))
+		sw->globals.no_reinstalling = 1;
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
 				"cert-purpose", tmp);
 	if (tmp[0] != '\0')
@@ -598,7 +604,7 @@ int main(int argc, char **argv)
 #endif
 	memset(main_options, 0, sizeof(main_options));
 	memset(image_url, 0, sizeof(image_url));
-	strcpy(main_options, "vhni:e:l:Lcf:p:o:N:");
+	strcpy(main_options, "vhni:e:l:Lcf:p:o:N:R:");
 #ifdef CONFIG_MTD
 	strcat(main_options, "b:");
 #endif
@@ -741,6 +747,11 @@ int main(int argc, char **argv)
 #endif
 		case 'N':
 			swcfg.globals.no_downgrading = 1;
+			strncpy(swcfg.globals.minimum_version, optarg,
+				sizeof(swcfg.globals.minimum_version));
+			break;
+		case 'R':
+			swcfg.globals.no_reinstalling = 1;
 			strncpy(swcfg.globals.current_version, optarg,
 				sizeof(swcfg.globals.current_version));
 			break;

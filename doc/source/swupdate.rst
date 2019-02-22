@@ -501,13 +501,18 @@ Command line parameters
 +-------------+----------+--------------------------------------------+
 | -n          |    -     | run SWUpdate in dry-run mode.              |
 +-------------+----------+--------------------------------------------+
-| -N          | string   | passed the current installed version of    |
+| -N          | string   | passed the minimum required version of     |
 |             |          | software. This will be checked with the    |
 |             |          | version of new software and forbids        |
 |             |          | downgrading.                               |
 |             |          | Version consists of 4 number:              |
 |             |          | major.minor.rev.build                      |
 |             |          | each field is in the range 0..65535        |
++-------------+----------+--------------------------------------------+
+| -R          | string   | passed the current installed version of    |
+|             |          | software. This will be checked with the    |
+|             |          | version of new software and forbids        |
+|             |          | reinstalling.                              |
 +-------------+----------+--------------------------------------------+
 | -o <file>   | string   | saves the stream (SWU) on a file           |
 +-------------+----------+--------------------------------------------+
