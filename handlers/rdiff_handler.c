@@ -92,7 +92,7 @@ static rs_result base_file_read_cb(void *fp, rs_long_t pos, size_t *len, void **
 	return RS_DONE;
 }
 
-static rs_result fill_inbuffer(struct rdiff_t *rdiff_state, const void *buf, unsigned int len)
+static rs_result fill_inbuffer(struct rdiff_t *rdiff_state, const void *buf, unsigned int *len)
 {
 	rs_buffers_t *buffers = &rdiff_state->buffers;
 
@@ -101,22 +101,37 @@ static rs_result fill_inbuffer(struct rdiff_t *rdiff_state, const void *buf, uns
 		return RS_DONE;
 	}
 
+	if (*len == 0) {
+		TRACE("No rdiff chunk input to consume.");
+		return RS_DONE;
+	}
+
 	if (buffers->avail_in == 0) {
 		/* No more buffered input data pending, get some... */
-		TEST_OR_FAIL(len <= RDIFF_BUFFER_SIZE, RS_IO_ERROR);
+		TEST_OR_FAIL(*len <= RDIFF_BUFFER_SIZE, RS_IO_ERROR);
 		buffers->next_in = rdiff_state->inbuf;
-		buffers->avail_in = len;
-		(void)memcpy(rdiff_state->inbuf, buf, len);
+		buffers->avail_in = *len;
+		rdiff_state->cpio_input_len -= *len;
+		TRACE("Appending %d bytes to rdiff input buffer.", *len);
+		(void)memcpy(rdiff_state->inbuf, buf, *len);
+		*len = 0;
 	} else {
-		/* There's more input, append it to input buffer. */
+		/* There's more input, try to append it to input buffer. */
 		char *target = buffers->next_in + buffers->avail_in;
-		buffers->avail_in += len;
-		TEST_OR_FAIL(target - buffers->next_in <= RDIFF_BUFFER_SIZE, RS_IO_ERROR);
-		TEST_OR_FAIL(buffers->next_in >= rdiff_state->inbuf, RS_IO_ERROR);
-		TEST_OR_FAIL(buffers->next_in <= rdiff_state->inbuf + RDIFF_BUFFER_SIZE, RS_IO_ERROR);
-		(void)memcpy(target, buf, len);
+		unsigned int buflen = rdiff_state->inbuf + RDIFF_BUFFER_SIZE - target;
+		buflen = buflen > *len ? *len : buflen;
+		TEST_OR_FAIL(target + buflen <= rdiff_state->inbuf + RDIFF_BUFFER_SIZE, RS_IO_ERROR);
+
+		if (buflen == 0) {
+			TRACE("Not consuming rdiff chunk input, buffer already filled.");
+			return RS_BLOCKED;
+		}
+		TRACE("Appending %d bytes to rdiff input buffer.", buflen);
+		buffers->avail_in += buflen;
+		rdiff_state->cpio_input_len -= buflen;
+		(void)memcpy(target, buf, buflen);
+		*len -= buflen;
 	}
-	rdiff_state->cpio_input_len -= len;
 	buffers->eof_in = rdiff_state->cpio_input_len == 0 ? true : false;
 	return RS_DONE;
 }
@@ -140,22 +155,40 @@ static rs_result drain_outbuffer(struct rdiff_t *rdiff_state)
 	}
 #endif
 	if (len > 0) {
+		TRACE("Draining %d bytes from rdiff output buffer", len);
 		buffers->next_out = rdiff_state->outbuf;
 		buffers->avail_out = RDIFF_BUFFER_SIZE;
 		int dest_file_fd = fileno(rdiff_state->dest_file);
 		if (destfiledrain(&dest_file_fd, buffers->next_out, len) != 0) {
+			ERROR("Cannot drain rdiff output buffer.");
 			return RS_IO_ERROR;
 		}
 	} else {
-		DEBUG("No rdiff chunk data to drain.");
+		TRACE("No output rdiff buffer data to drain.");
 	}
 	return RS_DONE;
+}
+
+static inline void rdiff_stats(const char* msg, struct rdiff_t *rdiff_state, rs_result result) {
+	rs_buffers_t *buffers = &rdiff_state->buffers;
+	char *strresult = (char*)"ERROR";
+	switch (result) {
+		case RS_DONE:    strresult = (char*)"DONE";    break;
+		case RS_BLOCKED: strresult = (char*)"BLOCKED"; break;
+		case RS_RUNNING: strresult = (char*)"RUNNING"; break;
+		default: break;
+	}
+	TRACE("%s avail_in=%ld eof_in=%s avail_out=%ld remaining=%lld result=%s",
+		  msg, buffers->avail_in, buffers->eof_in == true ? "true":"false",
+		  buffers->avail_out, rdiff_state->cpio_input_len, strresult);
 }
 
 static int apply_rdiff_chunk_cb(void *out, const void *buf, unsigned int len)
 {
 	struct rdiff_t *rdiff_state = (struct rdiff_t *)out;
 	rs_buffers_t *buffers = &rdiff_state->buffers;
+	unsigned int inbytesleft = len;
+	rs_result result = RS_RUNNING;
 
 	if (buffers->next_out == NULL) {
 		TEST_OR_FAIL(buffers->avail_out == 0, -1);
@@ -163,12 +196,12 @@ static int apply_rdiff_chunk_cb(void *out, const void *buf, unsigned int len)
 		buffers->avail_out = RDIFF_BUFFER_SIZE;
 	}
 
-	if (fill_inbuffer(rdiff_state, buf, len) != RS_DONE) {
-		return -1;
-	}
-
-	rs_result result = RS_RUNNING;
-	while (true) {
+	while (inbytesleft > 0 || (buffers->eof_in == true && buffers->avail_in > 0)) {
+		rdiff_stats("[pre] ", rdiff_state, result);
+		result = fill_inbuffer(rdiff_state, buf, &inbytesleft);
+		if (result != RS_DONE && result != RS_BLOCKED) {
+			return -1;
+		}
 		result = rs_job_iter(rdiff_state->job, buffers);
 		if (result != RS_DONE && result != RS_BLOCKED) {
 			ERROR("Error processing rdiff chunk: %s", rs_strerror(result));
@@ -177,16 +210,8 @@ static int apply_rdiff_chunk_cb(void *out, const void *buf, unsigned int len)
 		if (drain_outbuffer(rdiff_state) != RS_DONE) {
 			return -1;
 		}
-		if (result == RS_BLOCKED && buffers->eof_in == true) {
-			TRACE("rdiff chunk processing blocked for output buffer draining, "
-				  "flushing output buffer.");
-			continue;
-		}
-		if (result == RS_BLOCKED && buffers->eof_in == false) {
-			TRACE("rdiff chunk processing blocked for input, "
-				  "getting more chunk data.");
-			break;
-		}
+		rdiff_stats("[post]", rdiff_state, result);
+
 		if (result == RS_DONE && buffers->eof_in == true) {
 			TRACE("rdiff processing done.");
 			break;
@@ -196,6 +221,7 @@ static int apply_rdiff_chunk_cb(void *out, const void *buf, unsigned int len)
 			break;
 		}
 	}
+	rdiff_stats("[ret] ", rdiff_state, result);
 	return 0;
 }
 
@@ -332,6 +358,10 @@ static int apply_rdiff_patch(struct img_type *img,
 			img->sha256,
 			img->is_encrypted,
 			apply_rdiff_chunk_cb);
+	if (ret != 0) {
+		ERROR("Error %d running rdiff job, aborting.", ret);
+		goto cleanup;
+	}
 
 	if (rdiff_state.type == FILE_HANDLER) {
 		struct stat stat_dest_file;
