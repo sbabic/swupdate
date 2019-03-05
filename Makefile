@@ -369,11 +369,15 @@ tools-bins	:= $(patsubst $(tools-y)/%.c,$(tools-y)/%,$(wildcard $(tools-y)/*.c))
 tools-bins-unstr:= $(patsubst %,%_unstripped,$(tools-bins))
 tools-all	:= $(tools-objs)
 
+ifeq ($(HAVE_LUA),y)
+lua_swupdate	:= lua_swupdate.so
+endif
+
 shared-dirs	:= $(shareds-y)
 shared-libs	:= $(patsubst %,%/built-in.o, $(shareds-y))
 shared-all	:= $(shared-libs)
 
-all: swupdate ${tools-bins} lua_swupdate.so
+all: swupdate ${tools-bins} ${lua_swupdate}
 
 # Do modpost on a prelinked vmlinux. The finally linked vmlinux has
 # relevant sections renamed as per the linker script.
@@ -434,7 +438,6 @@ install: all
 	install -d ${DESTDIR}/usr/bin
 	install -d ${DESTDIR}/usr/include
 	install -d ${DESTDIR}/usr/lib
-	install -d ${DESTDIR}/usr/lib/lua/$(LUAVER)
 	install -m 755 swupdate ${DESTDIR}/usr/bin
 	for i in ${tools-bins};do \
 		install -m 755 $$i ${DESTDIR}/usr/bin; \
@@ -443,7 +446,10 @@ install: all
 	install -m 0644 include/swupdate_status.h ${DESTDIR}/usr/include
 	install -m 0644 include/progress_ipc.h ${DESTDIR}/usr/include
 	install -m 0755 ipc/lib.a ${DESTDIR}/usr/lib/libswupdate.a
-	install -m 0755 lua_swupdate.so $(DESTDIR)/usr/lib/lua/$(LUAVER)
+	if [ $(HAVE_LUA) = y ]; then \
+		install -d ${DESTDIR}/usr/lib/lua/$(LUAVER); \
+		install -m 0755 ${lua_swupdate} $(DESTDIR)/usr/lib/lua/$(LUAVER); \
+	fi
 
 PHONY += run-tests
 tests: \
