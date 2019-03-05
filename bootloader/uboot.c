@@ -20,6 +20,7 @@
 #include "util.h"
 #include "bootloader.h"
 
+#if !defined(CONFIG_UBOOT_NEWAPI)
 struct env_opts *fw_env_opts = &(struct env_opts) {
 	.config_file = (char *)CONFIG_UBOOT_FWENV
 };
@@ -123,3 +124,83 @@ int bootloader_apply_list(const char *filename)
 	
 	return ret;
 }
+#else
+#include <libuboot.h>
+#ifndef CONFIG_UBOOT_DEFAULTENV
+#define CONFIG_UBOOT_DEFAULTENV	"/etc/u-boot-initial-env"
+#endif
+
+static int bootloader_initialize(struct uboot_ctx *ctx)
+{
+	if (libuboot_initialize(&ctx, NULL) < 0) {
+		ERROR("Error: environment not initialized");
+		return -ENODEV;
+	}
+	if (libuboot_read_config(ctx, CONFIG_UBOOT_FWENV) < 0) {
+		ERROR("Configuration file %s wrong or corrupted", CONFIG_UBOOT_FWENV);
+		return -EINVAL;
+	}
+	if (libuboot_open(ctx) < 0) {
+		ERROR("Cannot read environment, using default\n");
+		libuboot_load_file(ctx, CONFIG_UBOOT_DEFAULTENV);
+	}
+
+	return 0;
+}
+
+int bootloader_env_set(const char *name, const char *value)
+{
+	int ret;
+	struct uboot_ctx *ctx = NULL;
+
+	ret = bootloader_initialize(ctx);
+	if (!ret) {
+		libuboot_set_env(ctx, name, value);
+		ret = libuboot_env_store(ctx);
+	}
+
+	libuboot_close(ctx);
+	libuboot_exit(ctx);
+
+	return ret;
+}
+
+int bootloader_env_unset(const char *name)
+{
+	return bootloader_env_set(name, "");
+}
+
+
+int bootloader_apply_list(const char *filename)
+{
+	int ret;
+	struct uboot_ctx *ctx = NULL;
+
+	ret = bootloader_initialize(ctx);
+	if (!ret) {
+		libuboot_load_file(ctx, filename);
+		ret = libuboot_env_store(ctx);
+	}
+
+	libuboot_close(ctx);
+	libuboot_exit(ctx);
+
+	return ret;
+}
+
+char *bootloader_env_get(const char *name)
+{
+	int ret;
+	struct uboot_ctx *ctx = NULL;
+	char *value = NULL;
+
+	ret = bootloader_initialize(ctx);
+	if (!ret) {
+		value = libuboot_get_env(ctx, name);
+	}
+	libuboot_close(ctx);
+	libuboot_exit(ctx);
+
+	return value;
+}
+#endif
