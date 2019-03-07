@@ -102,7 +102,7 @@ $(eval $(call pkg_check_modules, LUABUILD, ${CONFIG_LUAPKG}))
 KBUILD_CFLAGS += $(LUABUILD_CFLAGS)
 KBUILD_LIBS += $(LUABUILD_LIBS)
 LDLIBS += $(LUABUILD_LDLIBS)
-LUAVER :=  $(shell $(PKG_CONFIG) $(PKG_CONFIG_FLAGS) --modversion lua | cut -d'.' -f1,2)
+LUAVER :=  $(shell $(PKG_CONFIG) $(PKG_CONFIG_FLAGS) --modversion ${CONFIG_LUAPKG} | cut -d'.' -f1,2)
 endif
 
 ifeq ($(CONFIG_LUA),y)
