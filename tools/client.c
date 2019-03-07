@@ -40,6 +40,7 @@ static void usage(void) {
 char buf[256];
 int fd;
 int verbose = 1;
+bool dryrun = false;
 
 pthread_mutex_t mymutex;
 
@@ -103,7 +104,7 @@ static int send_file(const char* filename) {
 	/* synchronize with a mutex */
 	pthread_mutex_lock(&mymutex);
 	rc = swupdate_async_start(readimage, printstatus,
-				end, false);
+				end, dryrun);
 	if (rc)
 		printf("swupdate_async_start returns %d\n", rc);
 
@@ -126,8 +127,11 @@ int main(int argc, char *argv[]) {
 	pthread_mutex_init(&mymutex, NULL);
 
 	/* parse command line options */
-	while ((c = getopt(argc, argv, "hqv")) != EOF) {
+	while ((c = getopt(argc, argv, "dhqv")) != EOF) {
 		switch (c) {
+		case 'd':
+			dryrun = true;
+			break;
 		case 'h':
 			usage();
 			return 0;
