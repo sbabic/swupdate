@@ -350,6 +350,8 @@ void *network_initializer(void *data)
 		 */
 		if (inst.dry_run)
 			software->globals.dry_run = 1;
+		else
+			software->globals.dry_run = 0;
 
 		/*
 		 * Check if the stream should be saved
