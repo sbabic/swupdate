@@ -273,6 +273,7 @@ channel_op_res_t channel_map_http_code(channel_t *this, long *http_response_code
 		return CHANNEL_EAGAIN;
 	case 200:
 	case 206:
+	case 226:
 		return CHANNEL_OK;
 	case 302:
 		curlrc = curl_easy_getinfo(channel_curl->handle, CURLINFO_REDIRECT_URL,
