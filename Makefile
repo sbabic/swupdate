@@ -383,6 +383,10 @@ cfg-sanity-check:
 		echo "ERROR: CONFIG_SETSWDESCRIPTION set but not CONFIG_SWDESCRIPTION"; \
 		exit 1; \
 	fi
+	@if [ "x$(CONFIG_SETEXTPARSERNAME)" = "xy" -a -z "$(patsubst "%",%,$(strip $(CONFIG_EXTPARSERNAME)))" ]; then \
+		echo "ERROR: CONFIG_SETEXTPARSERNAME set but not CONFIG_EXTPARSERNAME"; \
+		exit 1; \
+	fi
 
 all: swupdate ${tools-bins} ${lua_swupdate}
 
