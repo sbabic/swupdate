@@ -377,6 +377,13 @@ shared-dirs	:= $(shareds-y)
 shared-libs	:= $(patsubst %,%/built-in.o, $(shareds-y))
 shared-all	:= $(shared-libs)
 
+PHONY += cfg-sanity-check
+cfg-sanity-check:
+	@if [ "x$(CONFIG_SETSWDESCRIPTION)" = "xy" -a -z "$(patsubst "%",%,$(strip $(CONFIG_SWDESCRIPTION)))" ]; then \
+		echo "ERROR: CONFIG_SETSWDESCRIPTION set but not CONFIG_SWDESCRIPTION"; \
+		exit 1; \
+	fi
+
 all: swupdate ${tools-bins} ${lua_swupdate}
 
 # Do modpost on a prelinked vmlinux. The finally linked vmlinux has
@@ -426,7 +433,7 @@ cmd_strip = $(STRIP) -s --remove-section=.note --remove-section=.comment \
                $@_unstripped -o $@; chmod a+x $@
 endif
 
-swupdate: swupdate_unstripped
+swupdate: cfg-sanity-check swupdate_unstripped
 	$(call cmd,strip)
 
 ${tools-bins}: ${tools-objs} ${swupdate-libs} FORCE
