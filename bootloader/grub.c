@@ -165,7 +165,7 @@ static inline void grubenv_update_size(struct grubenv_t *grubenv)
 static int grubenv_write(struct grubenv_t *grubenv)
 {
 	FILE *fp = NULL;
-	char *buf = NULL, *ptr, line[SWUPDATE_GENERAL_STRING_SIZE];
+	char *buf = NULL, *ptr;
 	struct dict_entry *grubvar;
 	int ret = 0, llen = 0;
 
@@ -198,11 +198,17 @@ static int grubenv_write(struct grubenv_t *grubenv)
 	LIST_FOREACH(grubvar, &grubenv->vars, next) {
 		char *key = dict_entry_get_key(grubvar);
 		char *value = dict_entry_get_value(grubvar);
+		char *tmp;
 
 		llen = strlen(key) + strlen(value) + 2;
 		/* +1 for null termination */
-		snprintf(line, llen + 1, "%s=%s\n", key, value);
-		strncat(buf, line, llen);
+		ret = asprintf(&tmp, "%s=%s\n", key, value);
+		if (ret == ENOMEM_ASPRINTF) {
+			ERROR("OOM when copying Grub Env");
+			goto cleanup;
+		}
+		strncat(buf, tmp, llen);
+		free(tmp);
 	}
 
 	/* # chars starts there */
