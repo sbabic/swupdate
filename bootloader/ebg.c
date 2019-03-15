@@ -162,7 +162,7 @@ int bootloader_apply_list(const char *filename)
 	}
 
 	while ((getline(&line, &len, fp)) != -1) {
-		key = strtok(line, " \t\n");
+		key = strtok(line, "=");
 		value = strtok(NULL, "\t\n");
 		if (value != NULL && key != NULL) {
 			if ((ret = bootloader_env_set(key, value)) != 0) {
