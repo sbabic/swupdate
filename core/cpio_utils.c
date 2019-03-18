@@ -540,7 +540,7 @@ int extract_sw_description(int fd, const char *descfile, off_t *offs)
 {
 	struct filehdr fdh;
 	unsigned long offset = *offs;
-	char output_file[64];
+	char output_file[MAX_IMAGE_FNAME];
 	uint32_t checksum;
 	int fdout;
 	const char* TMPDIR = get_tmpdir();

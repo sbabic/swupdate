@@ -30,7 +30,7 @@ static int install_boot_environment(struct img_type *img,
 	int fdout;
 	FILE *fp;
 	char *buf;
-	char filename[64];
+	char filename[MAX_IMAGE_FNAME];
 	struct stat statbuf;
 
 	if (snprintf(filename, sizeof(filename), "%s%s", get_tmpdirscripts(),
