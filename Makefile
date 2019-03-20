@@ -370,7 +370,7 @@ tools-bins-unstr:= $(patsubst %,%_unstripped,$(tools-bins))
 tools-all	:= $(tools-objs)
 
 ifeq ($(HAVE_LUA),y)
-lua_swupdate	:= lua_swupdate.so
+lua_swupdate	:= lua_swupdate.so.0.1
 endif
 
 shared-dirs	:= $(shareds-y)
@@ -419,13 +419,13 @@ quiet_cmd_shared = LD      $@
       cmd_shared = $(srctree)/scripts/trylink \
       "$@" \
       "$(CC)" \
-      "-shared " \
+      "-shared -Wl,-soname,$@" \
       "$(KBUILD_CFLAGS) $(CFLAGS_swupdate)" \
       "$(LDFLAGS) $(EXTRA_LDFLAGS) $(LDFLAGS_swupdate)" \
       "$(shared-libs) ipc/lib.a" \
       "$(LDLIBS)"
 
-lua_swupdate.so: $(shared-libs) ${swupdate-libs} FORCE
+lua_swupdate.so.0.1: $(shared-libs) ${swupdate-libs} FORCE
 	$(call if_changed,shared)
 
 ifeq ($(SKIP_STRIP),y)
