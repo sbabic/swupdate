@@ -1,5 +1,5 @@
 
-dist: trusty
+dist: xenial
 sudo: required
 
 language: c
@@ -19,11 +19,12 @@ before_install:
     - sudo apt-get install -y uuid
     - sudo apt-get install -y uuid-dev
     - sudo apt-get install -y liblzo2-dev
-    - sudo apt-get install -y libsystemd-daemon-dev
-    - sudo apt-get install -y libsystemd-daemon0
+    - sudo apt-get install -y libsystemd-dev
+    - sudo apt-get install -y libsystemd0
     - sudo apt-get install -y check
     - sudo apt-get install -y librsync1
     - sudo apt-get install -y librsync-dev
+    - sudo apt-get install -y doxygen
 
 script:
     - sudo ln -sf /usr/lib/x86_64-linux-gnu/pkgconfig/lua5.2.pc /usr/lib/x86_64-linux-gnu/pkgconfig/lua.pc
@@ -41,12 +42,11 @@ script:
     - sudo install -m 644 include/mtd/ubi-media.h /usr/local/include/mtd
     - sudo install -m 644 *.a /usr/local/lib
     - cd ..
-    - git clone git://git.denx.de/u-boot
-    - cd u-boot
-    - git checkout -b tmp v2017.07
-    - make sandbox_defconfig
-    - make env
-    - sudo install -m 644 tools/env/lib.a /usr/local/lib/libubootenv.a
+    - git clone https://github.com/sbabic/libubootenv.git
+    - cd libubootenv
+    - cmake .
+    - make
+    - sudo make install
     - cd ..
     - git clone https://github.com/siemens/efibootguard.git
     - cd efibootguard
