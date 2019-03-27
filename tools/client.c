@@ -41,6 +41,7 @@ char buf[256];
 int fd;
 int verbose = 1;
 bool dryrun = false;
+int end_status = EXIT_SUCCESS;
 
 pthread_mutex_t mymutex;
 
@@ -82,6 +83,8 @@ static int printstatus(ipc_message *msg)
  */
 static int end(RECOVERY_STATUS status)
 {
+	end_status = (status == SUCCESS) ? EXIT_SUCCESS : EXIT_FAILURE;
+
 	printf("Swupdate %s\n",
 		status == FAILURE ? "*failed* !" :
 			"was successful !");
@@ -103,6 +106,11 @@ static int send_file(const char* filename) {
 
 	/* synchronize with a mutex */
 	pthread_mutex_lock(&mymutex);
+
+
+	/* May be set non-zero by end() function on failure */
+	end_status = EXIT_SUCCESS;
+
 	rc = swupdate_async_start(readimage, printstatus,
 				end, dryrun);
 	if (rc)
@@ -114,7 +122,7 @@ static int send_file(const char* filename) {
 	/* End called, unlock and exit */
 	pthread_mutex_unlock(&mymutex);
 
-	return 0;
+	return end_status;
 }
 
 
