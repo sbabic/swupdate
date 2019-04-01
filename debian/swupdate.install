@@ -1,0 +1,5 @@
+usr/bin/swupdate usr/bin
+usr/bin/swupdate-client usr/bin
+usr/bin/swupdate-sendtohawkbit usr/bin
+usr/bin/swupdate-progress usr/bin
+usr/bin/swupdate-hawkbitcfg usr/bin

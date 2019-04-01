@@ -1,0 +1,4 @@
+version=4
+dversionmangle=s/\+(debian|dfsg|ds|deb)(\.\d+)?$//,\
+opts=filenamemangle=s/.+\/v?(\d\S+)\.tar\.gz/swupdate-$1\.tar\.gz/ \
+  https://github.com/sbabic/swupdate/releases .*/v?(\d\S+)\.tar\.gz

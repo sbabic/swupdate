@@ -1,0 +1,10 @@
+swupdate (2019.04~rc1+git20190320.bad559b+dfsg-1~exp1) experimental; urgency=medium
+
+  [ Stefano Babic ]
+  * Initial release (Closes: #907041)
+
+  [ SZ Lin (林上智) ]
+  * Fix copyright issues
+  * Tidy Debian packaging files
+
+ -- SZ Lin (林上智) <szlin@debian.org>  Thu, 14 Feb 2019 18:34:58 +0800

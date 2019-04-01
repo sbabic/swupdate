@@ -1,0 +1,86 @@
+Source: swupdate
+Section: embedded
+Priority: optional
+Maintainer: Stefano Babic <sbabic@denx.de>
+Uploaders: SZ Lin (林上智) <szlin@debian.org>
+Build-Depends: debhelper (>= 12),
+               libconfig9,
+               latexmk,
+               libconfig-dev,
+               libcurl4-openssl-dev,
+               libarchive-dev,
+               liblua5.2-dev,
+               libjson-c-dev,
+               libssl-dev,
+               libzmq3-dev,
+               libz-dev,
+               pkg-config,
+               python3-sphinx,
+               texlive-latex-recommended,
+               texlive-fonts-recommended,
+               texlive-formats-extra
+Standards-Version: 4.3.0
+Homepage: http://sbabic.github.io/swupdate
+Vcs-Browser: https://salsa.debian.org/debian/swupdate
+Vcs-Git: https://salsa.debian.org/debian/swupdate.git
+
+Package: swupdate
+Architecture: linux-any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Software update framework for embedded systems
+ swupdate is a Linux update agent with the goal to provide an efficient and
+ safe way to update an embedded system.
+ .
+  - Install on embedded media (eMMC, SD, Raw NAND, NOR and SPI-NOR flashes)
+  - Allow delivery single image for multiple devices
+  - Multiple interfaces for getting software
+    1. local storage
+    2. integrated web server
+    3. integrated REST client connector to hawkBit
+    4. remote server download
+  - Software delivered as images, gzipped tarball, etc
+  - Allow custom handlers for installing FPGA/ microcontroller firmware.
+  - Power-Off safe
+
+Package: swupdate-dev
+Section: libdevel
+Architecture: linux-any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Suggests: swupdate-doc
+Description: Development files for swupdate framework
+ This package contains the development files for swupdate.
+ .
+ swupdate is a Linux update agent with the goal to provide an efficient and
+ safe way to update an embedded system.
+ .
+  - Install on embedded media (eMMC, SD, Raw NAND, NOR and SPI-NOR flashes)
+  - Allow delivery single image for multiple devices
+  - Multiple interfaces for getting software
+    1. local storage
+    2. integrated web server
+    3. integrated REST client connector to hawkBit
+    4. remote server download
+  - Software delivered as images, gzipped tarball, etc
+  - Allow custom handlers for installing FPGA/ microcontroller firmware.
+  - Power-Off safe
+
+Package: swupdate-doc
+Section: doc
+Architecture: all
+Depends: ${misc:Depends}
+Description: Documentation for swupdate framework
+ This package contains the documentation for swupdate.
+ .
+ swupdate is a Linux update agent with the goal to provide an efficient and
+ safe way to update an embedded system.
+ .
+  - Install on embedded media (eMMC, SD, Raw NAND, NOR and SPI-NOR flashes)
+  - Allow delivery single image for multiple devices
+  - Multiple interfaces for getting software
+    1. local storage
+    2. integrated web server
+    3. integrated REST client connector to hawkBit
+    4. remote server download
+  - Software delivered as images, gzipped tarball, etc
+  - Allow custom handlers for installing FPGA/ microcontroller firmware.
+  - Power-Off safe
