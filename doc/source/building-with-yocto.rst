@@ -14,8 +14,62 @@ software for embedded systems.
 
 Add-on features can be added using *layers*. meta-swupdate_ is the layer to
 cross-compile the SWUpdate application and to generate the compound SWU images
-containing the release of the product. As described in Yocto's documentation
+containing the release of the product.  It contains the required changes
+for mtd-utils and for generating Lua. Using meta-SWUpdate is a
+straightforward process. As described in Yocto's documentation
 about layers, you should include it in your *bblayers.conf* file to use it.
+
+Add meta-SWUpdate as usual to your bblayers.conf. You have also
+to add meta-oe to the list.
+
+In meta-SWUpdate there is a recipe to generate an initrd with a
+rescue system with SWUpdate. Use:
+
+::
+
+	MACHINE=<your machine> bitbake swupdate-image
+
+You will find the result in your tmp/deploy/<your machine> directory.
+How to install and start an initrd is very target specific - please
+check in the documentation of your bootloader.
+
+What about libubootenv ?
+========================
+
+This is a common issue when SWUpdate is built. SWUpdate depends on this library,
+that is generated from the U-Boot's sources. This library allows to safe modify
+the U-Boot environment. It is not required if U-Boot is not used as bootloader.
+If SWUpdate cannot be linked, you are using an old version of U-Boot (you need
+at least 2016.05). If this is the case, you can add your own recipe for
+the package u-boot-fw-utils, adding the code for the library.
+
+It is important that the package u-boot-fw-utils is built with the same
+sources of the bootloader and for the same machine. In fact, the target
+can have a default environment linked together with U-Boot's code,
+and it is not (yet) stored into a storage. SWUpdate should be aware of
+it, because it cannot read it: the default environment must be linked
+as well to SWUpdate's code. This is done inside the libubootenv.
+
+If you build for a different machine, SWUpdate will destroy the
+environment when it tries to change it the first time. In fact,
+a wrong default environment is taken, and your board won't boot again.
+
+To avoid possible mismatch, a new library was developped to be hardware independent.
+A strict match with the bootloader is not required anymore. The meta-swupdate layer
+contains recipes to build the new library (`libubootenv`) and adjust SWUpdate to be linked
+against it. To use it as replacement for u-boot-fw-utils:
+
+        - set PREFERRED_PROVIDER_u-boot-fw-utils = "libuboot"
+        - add to SWUpdate config:
+
+::
+
+                CONFIG_UBOOT=y
+                CONFIG_UBOOT_NEWAPI=y
+
+With this library, you can simply pass the default environment as file (u-boot-initial-env).
+It is recommended for new project to switch to the new library to become independent from
+the bootloader.
 
 The swupdate class
 ==================
@@ -131,3 +185,5 @@ Template for recipe using the class
         SWUPDATE_IMAGES_FSTYPES[uImage] = ".bin"
 
         inherit swupdate
+
+
