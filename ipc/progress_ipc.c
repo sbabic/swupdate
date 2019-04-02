@@ -16,10 +16,25 @@
 #include <progress_ipc.h>
 
 #ifdef CONFIG_SOCKET_PROGRESS_PATH
-char* SOCKET_PROGRESS_PATH = (char*)CONFIG_SOCKET_PROGRESS_PATH;
+char *SOCKET_PROGRESS_PATH = (char*)CONFIG_SOCKET_PROGRESS_PATH;
 #else
-char* SOCKET_PROGRESS_PATH = (char*)"/tmp/swupdateprog";
+char *SOCKET_PROGRESS_PATH = NULL;
 #endif
+
+#define SOCKET_PROGRESS_DEFAULT  "swupdateprog"
+
+char *get_prog_socket(void) {
+	if (!SOCKET_PROGRESS_PATH || !strlen(SOCKET_PROGRESS_PATH)) {
+		const char *tmpdir = getenv("TMPDIR");
+		if (!tmpdir)
+			tmpdir = "/tmp";
+
+		if (asprintf(&SOCKET_PROGRESS_PATH, "%s/%s", tmpdir, SOCKET_PROGRESS_DEFAULT) == -1)
+			return (char *)"/tmp/"SOCKET_PROGRESS_DEFAULT;
+	}
+
+	return SOCKET_PROGRESS_PATH;
+}
 
 static int _progress_ipc_connect(const char *socketpath, bool reconnect)
 {
@@ -53,7 +68,7 @@ int progress_ipc_connect_with_path(const char *socketpath, bool reconnect) {
 
 int progress_ipc_connect(bool reconnect)
 {
-	return _progress_ipc_connect(SOCKET_PROGRESS_PATH, reconnect);
+	return _progress_ipc_connect(get_prog_socket(), reconnect);
 }
 
 int progress_ipc_receive(int *connfd, struct progress_msg *msg) {

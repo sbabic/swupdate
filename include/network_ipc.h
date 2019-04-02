@@ -61,6 +61,7 @@ typedef struct {
 	msgdata data;
 } ipc_message;
 
+char *get_ctrl_socket(void);
 int ipc_inst_start(void);
 int ipc_inst_start_ext(sourcetype source, size_t len, const char *info, bool dryrun);
 int ipc_send_data(int connfd, char *buf, int size);

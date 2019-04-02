@@ -33,8 +33,10 @@
 #ifdef CONFIG_SOCKET_CTRL_PATH
 static char* SOCKET_CTRL_PATH = (char*)CONFIG_SOCKET_CTRL_PATH;
 #else
-static char* SOCKET_CTRL_PATH = (char*)"/tmp/sockinstctrl";
+static char* SOCKET_CTRL_PATH = NULL;
 #endif
+
+#define SOCKET_CTRL_DEFAULT  "sockinstctrl"
 
 struct async_lib {
 	int connfd;
@@ -50,6 +52,19 @@ static pthread_t async_thread_id;
 
 #define get_request()	(&request)
 
+char *get_ctrl_socket(void) {
+	if (!SOCKET_CTRL_PATH || !strlen(SOCKET_CTRL_PATH)) {
+		const char *tmpdir = getenv("TMPDIR");
+		if (!tmpdir)
+			tmpdir = "/tmp";
+
+		if (asprintf(&SOCKET_CTRL_PATH, "%s/%s", tmpdir, SOCKET_CTRL_DEFAULT) == -1)
+			return (char *)"/tmp/"SOCKET_CTRL_DEFAULT;
+	}
+
+	return SOCKET_CTRL_PATH;
+}
+
 static int prepare_ipc(void) {
 
 	int connfd;
@@ -61,7 +76,7 @@ static int prepare_ipc(void) {
 	bzero(&servaddr, sizeof(servaddr));
 	servaddr.sun_family = AF_LOCAL;
 
-	strcpy(servaddr.sun_path, SOCKET_CTRL_PATH);
+	strncpy(servaddr.sun_path, get_ctrl_socket(), sizeof(servaddr.sun_path));
 
 	ret = connect(connfd, (struct sockaddr *) &servaddr, sizeof(servaddr));
 	if (ret < 0) {

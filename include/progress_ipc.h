@@ -31,6 +31,8 @@ struct progress_msg {
 	char		info[2048];   	/* additional information about install */
 };
 
+char *get_prog_socket(void);
+
 /* Standard function to connect to progress interface */
 int progress_ipc_connect(bool reconnect);
 

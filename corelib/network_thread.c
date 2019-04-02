@@ -194,7 +194,7 @@ static void unlink_socket(void)
 		return;
 	}
 #endif
-	unlink((char*)CONFIG_SOCKET_CTRL_PATH);
+	unlink(get_ctrl_socket());
 }
 
 void *network_thread (void *data)
@@ -220,7 +220,7 @@ void *network_thread (void *data)
 	register_notifier(network_notifier);
 
 	/* Initialize and bind to UDS */
-	ctrllisten = listener_create((char*)CONFIG_SOCKET_CTRL_PATH, SOCK_STREAM);
+	ctrllisten = listener_create(get_ctrl_socket(), SOCK_STREAM);
 	if (ctrllisten < 0 ) {
 		TRACE("Error creating IPC sockets");
 		exit(2);
@@ -228,7 +228,7 @@ void *network_thread (void *data)
 
 	if (atexit(unlink_socket) != 0) {
 		TRACE("Cannot setup socket cleanup on exit, %s won't be unlinked.",
-			  (char*)CONFIG_SOCKET_CTRL_PATH);
+			  get_ctrl_socket());
 	}
 
 	do {

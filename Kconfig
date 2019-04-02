@@ -146,13 +146,11 @@ menu "Socket Paths"
 
 config SOCKET_CTRL_PATH
 	string "SWUpdate control socket path"
-	default "/tmp/sockinstctrl"
 	help
 	  Path to SWUpdate's IPC socket.
 
 config SOCKET_PROGRESS_PATH
 	string "SWUpdate progress socket path"
-	default "/tmp/swupdateprog"
 	help
 	  Path to the socket progress information is sent to.
 
