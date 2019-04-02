@@ -9,6 +9,7 @@
 #define _SWUPDATE_H
 
 #include <sys/types.h>
+#include <stdbool.h>
 #include "bsdqueue.h"
 #include "globals.h"
 #include "mongoose_interface.h"
@@ -125,6 +126,7 @@ struct swupdate_cfg {
 	char name[SWUPDATE_GENERAL_STRING_SIZE];
 	char description[SWUPDATE_UPDATE_DESCRIPTION_STRING_SIZE];
 	char version[SWUPDATE_GENERAL_STRING_SIZE];
+	bool bootloader_transaction_marker;
 	char software_set[SWUPDATE_GENERAL_STRING_SIZE];
 	char running_mode[SWUPDATE_GENERAL_STRING_SIZE];
 	char output[SWUPDATE_GENERAL_STRING_SIZE];

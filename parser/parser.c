@@ -148,6 +148,13 @@ static bool get_common_fields(parsertype p, void *cfg, struct swupdate_cfg *swcf
 		TRACE("Description %s", swcfg->description);
 	}
 
+	swcfg->bootloader_transaction_marker = true;
+	if((setting = find_node(p, cfg, "bootloader_transaction_marker", swcfg)) != NULL) {
+		get_field(p, setting, NULL, &swcfg->bootloader_transaction_marker);
+		TRACE("Setting bootloader transaction marker: %s",
+			  swcfg->bootloader_transaction_marker == true ? "true" : "false");
+	}
+
 	return true;
 }
 

@@ -809,6 +809,33 @@ SWUpdate scans for all scripts and calls them after installing the images.
 If the data attribute is defined, its value is passed as the last argument(s)
 to the script.
 
+Update Transaction Marker
+-------------------------
+
+By default, SWUpdate sets the bootloader environment variable "recovery_status"
+to "in_progress" prior to an update operation and either unsets it or sets it to
+"failed" after the update operation. This is an interface for SWUpdate-external
+tooling: If there is no "recovery_status" variable in the bootloader's
+environment, the update operation has been successful. Else, if there is
+a "recovery_status" variable with the value "failed", the update operation has
+not been successful.
+
+While this is in general essential behavior for firmware updates, it needn't be
+for less critical update operations. Hence, whether or not the update
+transaction marker is set by SWUpdate can be controlled by the boolean switch
+"bootloader_transaction_marker" which is global per `sw-description` file.
+It defaults to ``true``. The following example snippet disables the update
+transaction marker:
+
+::
+
+	software =
+	{
+		version = "0.1.0";
+		bootloader_transaction_marker = false;
+		...
+
+
 bootloader
 ----------
 
