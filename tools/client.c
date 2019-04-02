@@ -79,7 +79,8 @@ static int printstatus(ipc_message *msg)
 
 /*
  * this is called at the end reporting the status
- * of the upgrade
+ * of the upgrade and running any post-update actions
+ * if successful
  */
 static int end(RECOVERY_STATUS status)
 {
@@ -88,6 +89,13 @@ static int end(RECOVERY_STATUS status)
 	printf("Swupdate %s\n",
 		status == FAILURE ? "*failed* !" :
 			"was successful !");
+
+	if (status == SUCCESS) {
+		printf("Update successful, executing post-update actions.\n");
+		ipc_message msg;
+		if (ipc_postupdate(&msg) != 0)
+			printf("Running post-update failed!\n");
+	}
 
 	pthread_mutex_unlock(&mymutex);
 
