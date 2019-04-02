@@ -31,6 +31,15 @@ struct progress_msg {
 	char		info[2048];   	/* additional information about install */
 };
 
+/* Standard function to connect to progress interface */
 int progress_ipc_connect(bool reconnect);
+
+/*
+ * In case more as an instance of SWUpdate is running, this allows to select
+ * which should be taken
+ */
+int progress_ipc_connect_with_path(const char *socketpath, bool reconnect);
+
+/* Retrieve messages from progress interface (it blocks) */
 int progress_ipc_receive(int *connfd, struct progress_msg *msg);
 #endif

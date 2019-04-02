@@ -21,13 +21,13 @@ char* SOCKET_PROGRESS_PATH = (char*)CONFIG_SOCKET_PROGRESS_PATH;
 char* SOCKET_PROGRESS_PATH = (char*)"/tmp/swupdateprog";
 #endif
 
-int progress_ipc_connect(bool reconnect)
+static int _progress_ipc_connect(const char *socketpath, bool reconnect)
 {
 	struct sockaddr_un servaddr;
 	int fd = socket(AF_LOCAL, SOCK_STREAM, 0);
 	bzero(&servaddr, sizeof(servaddr));
 	servaddr.sun_family = AF_LOCAL;
-	strcpy(servaddr.sun_path, SOCKET_PROGRESS_PATH);
+	strncpy(servaddr.sun_path, socketpath, sizeof(servaddr.sun_path));
 
 	fprintf(stdout, "Trying to connect to SWUpdate...\n");
 
@@ -36,15 +36,24 @@ int progress_ipc_connect(bool reconnect)
 			break;
 		}
 		if (!reconnect) {
-			fprintf(stderr, "cannot communicate with SWUpdate via %s\n", SOCKET_PROGRESS_PATH);
+			fprintf(stderr, "cannot communicate with SWUpdate via %s\n", socketpath);
 			exit(1);
 		}
 
 		usleep(10000);
 	} while (true);
 
-	fprintf(stdout, "Connected to SWUpdate via %s\n", SOCKET_PROGRESS_PATH);
+	fprintf(stdout, "Connected to SWUpdate via %s\n", socketpath);
 	return fd;
+}
+
+int progress_ipc_connect_with_path(const char *socketpath, bool reconnect) {
+	return _progress_ipc_connect(socketpath, reconnect);
+}
+
+int progress_ipc_connect(bool reconnect)
+{
+	return _progress_ipc_connect(SOCKET_PROGRESS_PATH, reconnect);
 }
 
 int progress_ipc_receive(int *connfd, struct progress_msg *msg) {
