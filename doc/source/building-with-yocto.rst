@@ -126,6 +126,22 @@ generating the SWU. The class defines new variables, all of them have the prefix
   process using using CMS method. It is available if SWUPDATE_SIGNING is
   set to CMS.
 
+- **SWUPDATE_AES_FILE** : this is the file with the AES password to encrypt artifact. A new `fstype` is
+  supported by the class (type: `enc`). SWUPDATE_AES_FILE is generated as output from openssl to create
+  a new key with
+
+  ::
+
+                openssl enc -aes-256-cbc -k <PASSPHRASE> -P -md sha1 > $SWUPDATE_AES_FILE
+  
+  To use it, it is enough to add IMAGE_FSTYPES += "enc" to the  artifact. SWUpdate supports decryption of
+  compressed artifact, such as 
+
+  ::
+
+        IMAGE_FSTYPES += ".ext4.gz.enc"
+
+
 Automatic sha256 in sw-description
 ----------------------------------
 
