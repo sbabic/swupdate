@@ -101,7 +101,7 @@ static int send_file(const char* filename) {
 	int rc;
 	if ( (fd = open(filename, O_RDONLY)) < 0) {
 		printf ("I cannot open %s\n", filename);
-		return 1;
+		return EXIT_FAILURE;
 	}
 
 	/* synchronize with a mutex */
@@ -113,14 +113,22 @@ static int send_file(const char* filename) {
 
 	rc = swupdate_async_start(readimage, printstatus,
 				end, dryrun);
-	if (rc)
+
+	/* return if we've hit an error scenario */
+	if (rc < 0) {
 		printf("swupdate_async_start returns %d\n", rc);
+		pthread_mutex_unlock(&mymutex);
+		close(fd);
+		return EXIT_FAILURE;
+	}
 
 	/* Now block */
 	pthread_mutex_lock(&mymutex);
 
 	/* End called, unlock and exit */
 	pthread_mutex_unlock(&mymutex);
+
+	close(fd);
 
 	return end_status;
 }
