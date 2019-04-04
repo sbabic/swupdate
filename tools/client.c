@@ -41,6 +41,7 @@ char buf[256];
 int fd;
 int verbose = 1;
 bool dryrun = false;
+bool run_postupdate = false;
 int end_status = EXIT_SUCCESS;
 
 pthread_mutex_t mymutex;
@@ -79,7 +80,8 @@ static int printstatus(ipc_message *msg)
 
 /*
  * this is called at the end reporting the status
- * of the upgrade
+ * of the upgrade and running any post-update actions
+ * if successful
  */
 static int end(RECOVERY_STATUS status)
 {
@@ -88,6 +90,13 @@ static int end(RECOVERY_STATUS status)
 	printf("Swupdate %s\n",
 		status == FAILURE ? "*failed* !" :
 			"was successful !");
+
+	if (status == SUCCESS && run_postupdate) {
+		printf("Executing post-update actions.\n");
+		ipc_message msg;
+		if (ipc_postupdate(&msg) != 0)
+			printf("Running post-update failed!\n");
+	}
 
 	pthread_mutex_unlock(&mymutex);
 
@@ -143,7 +152,7 @@ int main(int argc, char *argv[]) {
 	pthread_mutex_init(&mymutex, NULL);
 
 	/* parse command line options */
-	while ((c = getopt(argc, argv, "dhqv")) != EOF) {
+	while ((c = getopt(argc, argv, "dhqvp")) != EOF) {
 		switch (c) {
 		case 'd':
 			dryrun = true;
@@ -156,6 +165,9 @@ int main(int argc, char *argv[]) {
 			break;
 		case 'v':
 			verbose++;
+			break;
+		case 'p':
+			run_postupdate = true;
 			break;
 		default:
 			usage();
