@@ -73,6 +73,14 @@ config HAVE_JSON_C
 	bool
 	option env="HAVE_JSON_C"
 
+config HAVE_LIBWEBSOCKETS
+	bool
+	option env="HAVE_LIBWEBSOCKETS"
+
+config HAVE_URIPARSER
+	bool
+	option env="HAVE_URIPARSER"
+
 menu "Swupdate Settings"
 
 menu "General Configuration"

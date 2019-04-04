@@ -9,6 +9,15 @@
  * This handler allows to create a mesh of devices using SWUpdate
  * as agent. The handler is called if an artifact is a SWU image
  * and sends it to the devices provided in sw-description.
+ *
+ * To provide zero-copy and support for installing on multiple
+ * remote devices, the multi interface in libcurl is used.
+ *
+ * This handler spawns a task to provide callback with libcurl.
+ * The main task has an own callback for copyimage(), and
+ * writes into cretated FIFOs (one for each remote device)
+ * because the connections to devices is asynchrounous.
+ *
  */
 
 #include <stdbool.h>
@@ -22,60 +31,20 @@
 #include <string.h>
 #include <swupdate.h>
 #include <handler.h>
+#include <pthread.h>
 #include <util.h>
-#include <curl/curl.h>
 #include <json-c/json.h>
-#include "bsdqueue.h"
-#include "channel_curl.h"
-#include "channel.h"
 #include "parselib.h"
-
-/*
- * The Webserver in SWUpdate expets a custom header
- * with the filename
- */
-#define CUSTOM_HEADER "X_FILENAME: "
-#define MAX_WAIT_MS	30000
-#define POST_URL	"/handle_post_request"
-#define STATUS_URL	"/getstatus.json"
-
-/*
- * The hzandler checks if a remote update was successful
- * asking for the status. It is supposed that the boards go on
- * until they report a success or failure.
- * Following timeout is introduced in case boards answer, but they do not
- * go out for some reasons from the running state.
- */
-#define TIMEOUT_GET_ANSWER_SEC		900	/* 15 minutes */
-#define POLLING_TIME_REQ_STATUS		50	/* in mSec */
+#include "swuforward_handler.h"
 
 void swuforward_handler(void);
-
-/*
- * Track each connection
- * The handler maintains a list of connections and sends the SWU
- * to all of them at once.
- */
-struct curlconn {
-	CURL *curl_handle;	/* CURL handle for posting image */
-	const void *buffer;	/* temporary buffer to transfer image */
-	unsigned int nbytes;	/* bytes to be transferred per iteration */
-	size_t total_bytes;	/* size of SWU image */
-	char *url;		/* URL for forwarding */
-	bool gotMsg;		/* set if the remote board has sent a new msg */
-	RECOVERY_STATUS SWUpdateStatus;	/* final status of update */
-	LIST_ENTRY(curlconn) next;
-};
-LIST_HEAD(listconns, curlconn);
 
 /*
  * global handler data
  *
  */
 struct hnd_priv {
-	CURLM *cm;		/* libcurl multi handle */
 	unsigned int maxwaitms;	/* maximum time in CURL wait */
-	size_t size;		/* size of SWU */
 	struct listconns conns;	/* list of connections */
 };
 
@@ -83,7 +52,7 @@ struct hnd_priv {
  * CURL callback when posting data
  * Read from connection buffer and copy to CURL buffer
  */
-static size_t curl_read_data(void *buffer, size_t size, size_t nmemb, void *userp)
+static size_t curl_read_data(char *buffer, size_t size, size_t nmemb, void *userp)
 {
 	struct curlconn *conn = (struct curlconn *)userp;
 	size_t nbytes;
@@ -92,17 +61,28 @@ static size_t curl_read_data(void *buffer, size_t size, size_t nmemb, void *user
 		return 0;
 	if (!userp) {
 		ERROR("Failure IPC stream file descriptor ");
-		return -EFAULT;
+		return CURL_READFUNC_ABORT;
 	}
 
-	if (conn->nbytes > (nmemb * size))
-		nbytes = nmemb * size;
+	if (nmemb * size > conn->total_bytes)
+		nbytes =  conn->total_bytes;
 	else
-		nbytes = conn->nbytes;
+		nbytes = nmemb * size;
 
-	memcpy(buffer, conn->buffer, nbytes);
+	nbytes = read(conn->fifo[0], buffer, nbytes);
+	if (nbytes == -1 && errno == EAGAIN) {
+		TRACE("No data, try again");
+		nbytes = 0;
+	}
 
-	conn->nbytes -=  nbytes;
+	if (nbytes < 0) {
+		ERROR("Cannot read from FIFO");
+		return CURL_READFUNC_ABORT;
+	}
+
+	nmemb = nbytes / size;
+
+	conn->total_bytes -=  nbytes;
 
 	return nmemb;
 }
@@ -114,58 +94,129 @@ static size_t curl_read_data(void *buffer, size_t size, size_t nmemb, void *user
 static int swu_forward_data(void *data, const void *buf, unsigned int len)
 {
 	struct hnd_priv *priv = (struct hnd_priv *)data;
-	int ret, still_running = 0;
-
+	size_t written;
 	struct curlconn *conn;
+	int index = 0;
+
+	/*
+	 * Iterate all connection and copy the incoming buffer
+	 * to the corresponding FIFO.
+	 * Each connection has own FIFO to transfer the data
+	 * to the curl thread
+	 */
 	LIST_FOREACH(conn, &priv->conns, next) {
-		conn->nbytes += len;
-		conn->buffer = buf;
-	}
+		unsigned int nbytes = len;
+		const void *tmp = buf;
 
-	do {
-		int ready = 1;
+		while (nbytes) {
+			written = write(conn->fifo[1], buf, len);
 
-		LIST_FOREACH(conn, &priv->conns, next) {
-			if (conn->nbytes > 0) {
-				ready = 0;
-				break;
+			if (written < 0) {
+				ERROR ("Cannot write to fifo %d", index);
+				return -EFAULT;
 			}
+			nbytes -= written;
+			tmp += written;
 		}
-
-		/*
-		 * Buffer transferred to all connections,
-		 * just returns and wait for next
-		 */
-		if (ready)
-			break;
-
-		int numfds=0;
-		ret = curl_multi_wait(priv->cm, NULL, 0, priv->maxwaitms, &numfds);
-		if (ret != CURLM_OK) {
-			ERROR("curl_multi_wait() returns %d", ret);
-			return FAILURE;
-		}
-
-		curl_multi_perform(priv->cm, &still_running);
-	} while (still_running);
-
-	if (!still_running) {
-		LIST_FOREACH(conn, &priv->conns, next) {
-			/* check if the buffer was transfered */
-			if (conn->nbytes) {
-				ERROR("Connection lost, data not transferred");
-			}
-			conn->total_bytes += len - conn->nbytes;
-			if (conn->total_bytes != priv->size) {
-				ERROR("Connection lost, SWU not transferred");
-				return -EIO;
-			}
-		}
-		ERROR("Connection lost, skipping data");
 	}
 
 	return 0;
 }
+
+/*
+ * Internal thread to transfer the SWUs to
+ * the other devices.
+ * The thread reads the per-connection FIFO and handles
+ * the curl multi interface.
+ */
+static void *curl_transfer_thread(void *p)
+{
+	struct curlconn *conn = (struct curlconn *)p;
+	const char no_100_header[] = "Expect:";
+	struct curl_slist *headerlist;
+	curl_mimepart *field = NULL;
+	headerlist = NULL;
+
+
+	/*
+	 * This is just to run the scheduler and let the main
+	 * thread to open FIFOs and start writing into it
+	 */
+	conn->curl_handle = curl_easy_init();
+	if (!conn->curl_handle) {
+		/* something very bad, it should never happen */
+		ERROR("FAULT: no handle from libcurl");
+		conn->exitval = FAILURE;
+		goto curl_thread_exit;
+	}
+
+	/*
+	 * The 100-expect header is unwanted
+	 * drop it
+	 */
+	headerlist = curl_slist_append(headerlist, no_100_header);
+
+	/*
+	 * Setting multipart format
+	 */
+	conn->form = curl_mime_init(conn->curl_handle);
+
+	 /* Fill in the filename field */
+	field = curl_mime_addpart(conn->form);
+	curl_mime_name(field, "swupdate-package");
+	curl_mime_type(field, "application/octet-stream");
+	curl_mime_filename(field, "swupdate.swu");
+
+	if ((curl_easy_setopt(conn->curl_handle, CURLOPT_POST, 1L) != CURLE_OK) ||
+	   (curl_mime_data_cb(field, conn->total_bytes, curl_read_data,
+				NULL, NULL, conn) != CURLE_OK) ||
+	    (curl_easy_setopt(conn->curl_handle, CURLOPT_USERAGENT,
+		      "libcurl-agent/1.0") != CURLE_OK) ||
+	    (curl_easy_setopt(conn->curl_handle, CURLOPT_MIMEPOST,
+				      conn->form) != CURLE_OK) ||
+	    (curl_easy_setopt(conn->curl_handle, CURLOPT_HTTPHEADER,
+			      headerlist) != CURLE_OK)) {
+		ERROR("curl set_option was not successful");
+		conn->exitval = FAILURE;
+		goto curl_thread_exit;
+	}
+
+	/* get verbose debug output please */
+	curl_easy_setopt(conn->curl_handle, CURLOPT_VERBOSE, 1L);
+
+	/*
+	 * Set the URL to post the SWU
+	 * This corresponds to the URL set in mongoose interface
+	 */
+	char *posturl = NULL;
+	posturl = (char *)alloca(strlen(conn->url) + strlen(POST_URL_V2) + 1);
+	sprintf(posturl, "%s%s", conn->url, POST_URL_V2);
+
+	/* Set URL */
+	if (curl_easy_setopt(conn->curl_handle, CURLOPT_URL, posturl) != CURLE_OK) {
+		ERROR("Cannot set URL in libcurl");
+		conn->exitval = FAILURE;
+		goto curl_thread_exit;
+	}
+
+	/*
+	 * Now perform the transfer
+	 */
+	CURLcode curlrc = curl_easy_perform(conn->curl_handle);
+	if (curlrc != CURLE_OK) {
+		ERROR("SWU transfer to %s failed (%d) : '%s'", conn->url, curlrc,
+		      curl_easy_strerror(curlrc));
+		conn->exitval = FAILURE;
+	}
+
+	conn->exitval = SUCCESS;
+
+curl_thread_exit:
+	close(conn->fifo[0]);
+	curl_easy_cleanup(conn->curl_handle);
+	pthread_exit(NULL);
+}
+
 
 static json_object *parse_reqstatus(json_object *reply, const char **json_path)
 {
@@ -179,21 +230,22 @@ static json_object *parse_reqstatus(json_object *reply, const char **json_path)
 
 	return json_data;
 }
+
 /*
  * Send a GET to retrieve all traces from the connected board
  */
-static int get_answer(struct curlconn *conn, RECOVERY_STATUS *result, bool ignore)
+static int get_answer_V1(struct curlconn *conn, RECOVERY_STATUS *result, bool ignore)
 {
 	channel_data_t channel_cfg = {
 		.debug = false,
 		.retries = 0,
 		.retry_sleep = 0,
 		.usessl = false};
-	channel_op_res_t response;
 	channel_t *channel = channel_new();
 	json_object *json_data;
 	int status;
 
+	conn->response = CHANNEL_EIO;
 	/*
 	 * Open a curl channel, do not connect yet
 	 */
@@ -202,19 +254,17 @@ static int get_answer(struct curlconn *conn, RECOVERY_STATUS *result, bool ignor
 	}
 
 	if (asprintf(&channel_cfg.url, "%s%s",
-			 conn->url, STATUS_URL) < 0) {
+			 conn->url, STATUS_URL_V1) < 0) {
 		ERROR("Out of memory.");
 		return -ENOMEM; 
 	}
 
 	/* Retrieve last message */
-	response = channel->get(channel, (void *)&channel_cfg);
+	conn->response = channel->get(channel, (void *)&channel_cfg);
 
-	if (response != CHANNEL_OK) {
-		channel->close(channel);
-		free(channel);
-		free(channel_cfg.url);
-		return -1;
+	if (conn->response != CHANNEL_OK) {
+		status = -EIO;
+		goto cleanup;
 	}
 
 	/* Retrieve all fields */
@@ -257,33 +307,65 @@ cleanup:
 	return status;
 }
 
-static int retrieve_msgs(struct hnd_priv *priv, bool ignore)
-{
+static int retrieve_msgs(struct hnd_priv *priv) {
 	struct curlconn *conn;
 	int ret;
 	int result = 0;
+	bool finished = false;
 
-	LIST_FOREACH(conn, &priv->conns, next) {
-		int count = 0;
-		do {
-			ret = get_answer(conn, &conn->SWUpdateStatus, ignore);
-			if (!conn->gotMsg) {
-				usleep(POLLING_TIME_REQ_STATUS * 1000);
-				count++;
-			} else
-				count = 0;
-			if (count > ((TIMEOUT_GET_ANSWER_SEC * 1000) /
-					POLLING_TIME_REQ_STATUS)) {
-				ret = -ETIMEDOUT;
+	while (!finished) {
+		finished = true;
+		LIST_FOREACH(conn, &priv->conns, next) {
+			if ((conn->connstatus == WS_ESTABLISHED) &&
+				(conn->SWUpdateStatus != SUCCESS) &&
+				(conn->SWUpdateStatus != FAILURE)) {
+				ret = swuforward_ws_getanswer(conn, POLLING_TIME_REQ_STATUS);
+				if (ret < 0) {
+					conn->SWUpdateStatus = FAILURE;
+					break;
+				}
+				finished = false;
 			}
-		} while (ret > 0);
-		if (ret != 0 || (conn->SWUpdateStatus != SUCCESS)) {
-			ERROR("Update to %s was NOT successful !", conn->url);
-			result = -1;
+		}
+	}
+
+	/*
+	 * Now we get results from all connection,
+	 * check if all of them were successful
+	 */
+	result = 0;
+	LIST_FOREACH(conn, &priv->conns, next) {
+		if (conn->SWUpdateStatus != SUCCESS) {
+			ERROR("Update to %s failed !!", conn->url);
+			return -EFAULT;
 		}
 	}
 
 	return result;
+}
+
+static int initialize_backchannel(struct hnd_priv *priv)
+{
+	struct curlconn *conn;
+	int ret;
+
+	LIST_FOREACH(conn, &priv->conns, next) {
+
+		ret = swuforward_ws_connect(conn);
+		if (!ret) {
+			do {
+				ret = swuforward_ws_getanswer(conn, POLLING_TIME_REQ_STATUS);
+			} while (ret >= 0 && (conn->connstatus == WS_UNKNOWN));
+			if (conn->connstatus != WS_ESTABLISHED) {
+				ERROR("No connection to %s", conn->url);
+				ret = FAILURE;
+			}
+		}
+		if (ret)
+			break;
+	}
+
+	return ret;
 }
 
 static int install_remote_swu(struct img_type *img,
@@ -291,15 +373,16 @@ static int install_remote_swu(struct img_type *img,
 {
 	struct hnd_priv priv;
 	struct curlconn *conn;
-	int ret, still_running = 0;
+	int ret;
 	struct dict_list_elem *url;
-	struct curl_slist *headerlist;
-	CURLMsg *msg = NULL;
 	struct dict_list *urls;
+	int index = 0;
+	pthread_attr_t attr;
+	int thread_ret = -1;
 
 	/*
 	 * A single SWU can contains encrypted artifacts,
-	 * but the SWU itself canot be encrypted.
+	 * but the SWU itself cannot be encrypted.
 	 * Raise an error if the encrypted attribute is set
 	 */
 
@@ -327,13 +410,17 @@ static int install_remote_swu(struct img_type *img,
 		ret = FAILURE;
 		goto handler_exit;
 	}
-	priv.cm = curl_multi_init();
-	priv.maxwaitms = MAX_WAIT_MS;
-	priv.size = img->size;
 
+	/*
+	 * Scan all devices in the list and set up
+	 * data structure
+	 */
 	LIST_FOREACH(url, urls, next) {
-		char curlheader[SWUPDATE_GENERAL_STRING_SIZE + strlen(CUSTOM_HEADER)];
 
+		/*
+		 * Allocates one structure for connection to download
+		 * the SWU to all slaves in parallel
+		 */
 		conn = (struct curlconn *)calloc(1, sizeof(struct curlconn));
 		if (!conn) {
 			ERROR("FAULT: no memory");
@@ -341,117 +428,101 @@ static int install_remote_swu(struct img_type *img,
 			goto handler_exit;
 		}
 
-		headerlist = NULL;
-
-		conn->curl_handle = curl_easy_init();
 		conn->url = url->value;
+		conn->total_bytes = img->size;
+		conn->SWUpdateStatus = IDLE;
 
-		if (!conn->curl_handle) {
-			/* something very bad, it should never happen */
-			ERROR("FAULT: no handle from libcurl");
-			return FAILURE;
+		/*
+		 * Try to connect to check Webserver Version
+		 * If there is an anwer, but with HTTP=404
+		 * it is V2
+		 * Just V2 is supported (TODO: support older versions, too ?)
+		 */
+
+		ret = get_answer_V1(conn, &conn->SWUpdateStatus, true);
+		if (ret < 0 && (conn->response == CHANNEL_ENOTFOUND)) {
+			conn->ver = SWUPDATE_WWW_V2;
+		} else if (!ret) {
+			conn->ver = SWUPDATE_WWW_V1;
+		} else {
+			ERROR("Remote SWUpdate not answering");
+			ret = FAILURE;
+			goto handler_exit;
 		}
+		TRACE("Found remote server V%d",
+			conn->ver == SWUPDATE_WWW_V2 ? SWUPDATE_WWW_V2 : SWUPDATE_WWW_V1);
 
-		snprintf(curlheader, sizeof(curlheader), "%s%s", CUSTOM_HEADER, img->fname);
-		headerlist = curl_slist_append(headerlist, curlheader);
-
-		if ((curl_easy_setopt(conn->curl_handle, CURLOPT_POST, 1L) != CURLE_OK) ||
-		    (curl_easy_setopt(conn->curl_handle, CURLOPT_READFUNCTION,
-				      curl_read_data) != CURLE_OK) ||
-		    (curl_easy_setopt(conn->curl_handle, CURLOPT_READDATA,
-				      conn) !=CURLE_OK) ||
-	    	    (curl_easy_setopt(conn->curl_handle, CURLOPT_USERAGENT,
-			      "libcurl-agent/1.0") != CURLE_OK) ||
-		    (curl_easy_setopt(conn->curl_handle, CURLOPT_POSTFIELDSIZE,
-				      img->size)!=CURLE_OK) || 
-		    (curl_easy_setopt(conn->curl_handle, CURLOPT_HTTPHEADER,
-				      headerlist) != CURLE_OK)) { 
-			ERROR("curl set_option was not successful");
+		if (conn->ver == SWUPDATE_WWW_V1) {
+			ERROR("FAULT: there is no support for older website");
 			ret = FAILURE;
 			goto handler_exit;
 		}
 
-		/* get verbose debug output please */ 
-		curl_easy_setopt(conn->curl_handle, CURLOPT_VERBOSE, 1L);
-
-		char *posturl = NULL;
-		posturl = (char *)malloc(strlen(conn->url) + strlen(POST_URL) + 1);
-		sprintf(posturl, "%s%s", conn->url, POST_URL); 
-
-		/* Set URL */
-		if (curl_easy_setopt(conn->curl_handle, CURLOPT_URL, posturl) != CURLE_OK) {
-			ERROR("Cannot set URL in libcurl");
-			free(posturl);
+		/*
+		 * Create one FIFO for each connection to be thread safe
+		 */
+		if (pipe(conn->fifo) < 0) {
+			ERROR("Cannot create internal pipes, exit..");
 			ret = FAILURE;
 			goto handler_exit;
 		}
-		free(posturl);
-		curl_multi_add_handle(priv.cm, conn->curl_handle);
+
+		pthread_attr_init(&attr);
+		pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+
+		thread_ret = pthread_create(&conn->transfer_thread, &attr, curl_transfer_thread, conn);
+		if (thread_ret) {
+			ERROR("Code from pthread_create() is %d",
+				thread_ret);
+			conn->transfer_thread = 0;
+			ret = FAILURE;
+			goto handler_exit;
+		}
 		LIST_INSERT_HEAD(&priv.conns, conn, next);
+
+		index++;
 	}
 
-	retrieve_msgs(&priv, true);
-
-	curl_multi_perform(priv.cm, &still_running);
+	if (initialize_backchannel(&priv)) {
+		ERROR("Cannot initialize back connection");
+		goto handler_exit;
+	}
 
 	ret = copyimage(&priv, img, swu_forward_data);
-
 	if (ret) {
 		ERROR("Transferring SWU image was not successful");
 		goto handler_exit;
 	}
 
-	/*
-	 * Now checks if transfer was successful
-	 */
-	int msgs_left = 0;
-	while ((msg = curl_multi_info_read(priv.cm, &msgs_left))) {
-		CURL *eh = NULL;
-		int http_status_code=0;
-		if (msg->msg != CURLMSG_DONE) {
-			ERROR("curl_multi_info_read(), CURLMsg=%d", msg->msg);
+	ret = 0;
+	LIST_FOREACH(conn, &priv.conns, next) {
+		void *status;
+		ret = pthread_join(conn->transfer_thread, &status);
+		close(conn->fifo[1]);
+		if (ret) {
+			ERROR("return code from pthread_join() is %d", ret);
 			ret = FAILURE;
-			break;
+			goto handler_exit;
 		}
-		LIST_FOREACH(conn, &priv.conns, next) {
-			if (conn->curl_handle == msg->easy_handle) {
-				eh = conn->curl_handle;
-				break;
-			}
-		}
-
-		if (!eh) {
-			ERROR("curl handle not found in connections");
+		if (conn->exitval != SUCCESS)
 			ret = FAILURE;
-			break;
-		}
-
-		curl_easy_getinfo(eh, CURLINFO_RESPONSE_CODE, &http_status_code);
-
-		if (http_status_code != 200) {
-			ERROR("Sending %s to %s failed with %d",
-				img->fname, conn->url, http_status_code);
-			ret = FAILURE;
-			break;
-		}
 	}
 
 	/*
 	 * Now check if remote updates were successful
 	 */
 	if (!ret) {
-		ret = retrieve_msgs(&priv, false);
+		ret = retrieve_msgs(&priv);
 	}
 
 handler_exit:
 	LIST_FOREACH(conn, &priv.conns, next) {
+		index = 0;
 		LIST_REMOVE(conn, next);
-		curl_multi_remove_handle(priv.cm, conn->curl_handle);
-		curl_easy_cleanup(conn->curl_handle);
+		swuforward_ws_free(conn);
 		free(conn);
+		index++;
 	}
-
-	curl_multi_cleanup(priv.cm);
 
 	return ret;
 }

@@ -184,6 +184,8 @@ config SWUFORWARDER_HANDLER
 	bool "SWU forwarder"
 	depends on HAVE_LIBCURL
 	depends on HAVE_JSON_C
+	depends on HAVE_LIBWEBSOCKETS
+	depends on HAVE_URIPARSER
 	select CHANNEL_CURL
 	select JSON
 	default n
@@ -199,6 +201,9 @@ comment "swuforward handler needs json-c and curl"
 
 comment "SWU forwarder requires libcurl"
 	depends on !HAVE_LIBCURL
+
+comment "swuforward handler needs json-c and curl"
+	depends on !HAVE_LIBWEBSOCKETS || !HAVE_URIPARSER
 
 config BOOTLOADERHANDLER
 	bool "bootloader"
