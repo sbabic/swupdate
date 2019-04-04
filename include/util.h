@@ -181,6 +181,7 @@ int syslog_init(void);
 char **splitargs(char *args, int *argc);
 char *mstrcat(const char **nodes, const char *delim);
 char** string_split(const char* a_str, const char a_delim);
+char *substring(const char *src, int first, int len);
 void freeargs (char **argv);
 int get_hw_revision(struct hw_type *hw);
 void get_sw_versions(char *cfgfname, struct swupdate_cfg *sw);

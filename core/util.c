@@ -171,6 +171,28 @@ char *mstrcat(const char **nodes, const char *delim)
 	return dest;
 }
 
+/*
+ * Alocate and return a string as part of
+ * another string
+ * s = substring(src, n)
+ * the returned string is allocated on the heap
+ * and must be freed by the caller
+ */
+char *substring(const char *src, int first, int len) {
+	char *s;
+	if (len > strlen(src))
+		len = strlen(src);
+	if (first > len)
+		return NULL;
+	s = malloc(len + 1);
+	if (!s)
+		return NULL;
+	memcpy(s, &src[first], len);
+	s[len] = '\0';
+	return s;
+}
+
+
 int openfileoutput(const char *filename)
 {
 	int fdout;
