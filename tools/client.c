@@ -34,7 +34,15 @@
 #include "network_ipc.h"
 
 static void usage(void) {
-	printf("client <image .swu to be installed>...\n");
+	printf("client [OPTIONS] <image .swu to be installed>...\n");
+	printf(
+		" Available OPTIONS\n"
+		" -h : print help and exit\n"
+		" -d : ask the server to only perform a dryrun\n"
+		" -q : go quite, resets verbosity\n"
+		" -v : go verbose, essentially print upgrade status messages from server\n"
+		" -p : ask the server to run post-update commands if upgrade succeeds\n"
+		);
 }
 
 char buf[256];
