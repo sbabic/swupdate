@@ -34,8 +34,8 @@
 #include "network_ipc.h"
 
 static void usage(void) {
-	printf("client [OPTIONS] <image .swu to be installed>...\n");
-	printf(
+	fprintf(stdout, "client [OPTIONS] <image .swu to be installed>...\n");
+	fprintf(stdout,
 		" Available OPTIONS\n"
 		" -h : print help and exit\n"
 		" -d : ask the server to only perform a dryrun\n"
@@ -79,7 +79,7 @@ static int readimage(char **p, int *size) {
 static int printstatus(ipc_message *msg)
 {
 	if (verbose)
-		printf("Status: %d message: %s\n",
+		fprintf(stdout, "Status: %d message: %s\n",
 			msg->data.status.current,
 			strlen(msg->data.status.desc) > 0 ? msg->data.status.desc : "");
 
@@ -95,15 +95,15 @@ static int end(RECOVERY_STATUS status)
 {
 	end_status = (status == SUCCESS) ? EXIT_SUCCESS : EXIT_FAILURE;
 
-	printf("Swupdate %s\n",
+	fprintf(stdout, "Swupdate %s\n",
 		status == FAILURE ? "*failed* !" :
 			"was successful !");
 
 	if (status == SUCCESS && run_postupdate) {
-		printf("Executing post-update actions.\n");
+		fprintf(stdout, "Executing post-update actions.\n");
 		ipc_message msg;
 		if (ipc_postupdate(&msg) != 0)
-			printf("Running post-update failed!\n");
+			fprintf(stderr, "Running post-update failed!\n");
 	}
 
 	pthread_mutex_unlock(&mymutex);
@@ -116,8 +116,8 @@ static int end(RECOVERY_STATUS status)
  */
 static int send_file(const char* filename) {
 	int rc;
-	if ( (fd = open(filename, O_RDONLY)) < 0) {
-		printf ("I cannot open %s\n", filename);
+	if ((fd = open(filename, O_RDONLY)) < 0) {
+		fprintf(stderr, "Unable to open %s\n", filename);
 		return EXIT_FAILURE;
 	}
 
@@ -133,7 +133,7 @@ static int send_file(const char* filename) {
 
 	/* return if we've hit an error scenario */
 	if (rc < 0) {
-		printf("swupdate_async_start returns %d\n", rc);
+		fprintf(stderr, "swupdate_async_start returns %d\n", rc);
 		pthread_mutex_unlock(&mymutex);
 		close(fd);
 		return EXIT_FAILURE;
