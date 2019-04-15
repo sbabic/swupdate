@@ -58,7 +58,7 @@ void swuforward_handler(void);
  */
 struct curlconn {
 	CURL *curl_handle;	/* CURL handle for posting image */
-	const void *buffer;	/* temprary buffer to transfer image */
+	const void *buffer;	/* temporary buffer to transfer image */
 	unsigned int nbytes;	/* bytes to be transferred per iteration */
 	size_t total_bytes;	/* size of SWU image */
 	char *url;		/* URL for forwarding */
