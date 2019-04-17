@@ -356,10 +356,10 @@ static int receive_msg(int fd, char *rx, size_t size,
 
 static int write_data(int fd, char *buf, size_t size)
 {
-	int written;
+	size_t written;
 	written = write(fd, buf, size);
 	if (written != size) {
-		ERROR("Error in write %d", written);
+		ERROR("Error in write %zu", written);
 		return -EFAULT;
 	}
 
@@ -509,7 +509,8 @@ static int install_uc_firmware_image(struct img_type *img,
 	struct handler_priv hnd_data;
 	struct dict_list *properties;
 	struct dict_list_elem *entry;
-	int cnt, ret = 0;
+	unsigned int cnt;
+	int ret = 0;
 	struct mode_setup *gpio;
 
 	memset(&hnd_data, 0, sizeof(hnd_data));
