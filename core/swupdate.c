@@ -46,7 +46,7 @@
 #include "parselib.h"
 #include "swupdate_settings.h"
 #include "pctl.h"
-#include "bootloader.h"
+#include "state.h"
 
 #ifdef CONFIG_SYSTEMD
 #include <systemd/sd-daemon.h>
@@ -370,7 +370,7 @@ static int install_from_file(char *fname, int check)
 	 * Set "recovery_status" as begin of the transaction"
 	 */
 	if (swcfg.bootloader_transaction_marker) {
-		bootloader_env_set(BOOTVAR_TRANSACTION, "in_progress");
+		save_state_string((char*)BOOTVAR_TRANSACTION, STATE_IN_PROGRESS);
 	}
 
 	ret = install_images(&swcfg, fdsw, 1);
@@ -385,7 +385,7 @@ static int install_from_file(char *fname, int check)
 	}
 
 	if (swcfg.bootloader_transaction_marker) {
-		bootloader_env_unset(BOOTVAR_TRANSACTION);
+		reset_state((char*)BOOTVAR_TRANSACTION);
 	}
 	fprintf(stdout, "Software updated successfully\n");
 	fprintf(stdout, "Please reboot the device to start the new software\n");
@@ -974,7 +974,7 @@ int main(int argc, char **argv)
 		switch (result) {
 		case EXIT_FAILURE:
 			if (swcfg.bootloader_transaction_marker) {
-				bootloader_env_set(BOOTVAR_TRANSACTION, "failed");
+				save_state_string((char*)BOOTVAR_TRANSACTION, STATE_FAILED);
 			}
 			break;
 		case EXIT_SUCCESS:

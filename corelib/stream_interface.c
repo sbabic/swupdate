@@ -42,7 +42,7 @@
 #include "installer.h"
 #include "progress.h"
 #include "pctl.h"
-#include "bootloader.h"
+#include "state.h"
 
 #define BUFF_SIZE	 4096
 #define PERCENT_LB_INDEX	4
@@ -238,7 +238,7 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 				 */
 				if (!installed_directly) {
 					if (software->bootloader_transaction_marker) {
-						bootloader_env_set(BOOTVAR_TRANSACTION, "in_progress");
+						save_state_string((char*)BOOTVAR_TRANSACTION, STATE_IN_PROGRESS);
 					}
 					installed_directly = true;
 				}
@@ -396,14 +396,14 @@ void *network_initializer(void *data)
 			 * initiated an update
 			 */
 			if (software->bootloader_transaction_marker) {
-				bootloader_env_set(BOOTVAR_TRANSACTION, "in_progress");
+				save_state_string((char*)BOOTVAR_TRANSACTION, STATE_IN_PROGRESS);
 			}
 
 			notify(RUN, RECOVERY_NO_ERROR, INFOLEVEL, "Installation in progress");
 			ret = install_images(software, 0, 0);
 			if (ret != 0) {
 				if (software->bootloader_transaction_marker) {
-					bootloader_env_set(BOOTVAR_TRANSACTION, "failed");
+					save_state_string((char*)BOOTVAR_TRANSACTION, STATE_FAILED);
 				}
 				notify(FAILURE, RECOVERY_ERROR, ERRORLEVEL, "Installation failed !");
 				inst.last_install = FAILURE;
@@ -414,7 +414,7 @@ void *network_initializer(void *data)
 				 * that it is not required to start recovery again
 				 */
 				if (software->bootloader_transaction_marker) {
-					bootloader_env_unset(BOOTVAR_TRANSACTION);
+					reset_state((char*)BOOTVAR_TRANSACTION);
 				}
 				notify(SUCCESS, RECOVERY_NO_ERROR, INFOLEVEL, "SWUPDATE successful !");
 				inst.last_install = SUCCESS;
