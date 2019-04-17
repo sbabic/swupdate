@@ -6,6 +6,12 @@ SWU_VER = $(VERSION).$(PATCHLEVEL).$(SUBLEVEL)$(EXTRAVERSION)
 export SWU_VER
 SKIP_STRIP ?= n
 
+ifneq ($(CC),clang)
+GCC_MAJOR = $(shell echo __GNUC__ | $(CC) -E -x c - | tail -n 1)
+GCC_MINOR = $(shell echo __GNUC_MINOR__ | $(CC) -E -x c - | tail -n 1)
+GCC_VERSION = $(GCC_MAJOR)$(GCC_MINOR)
+endif
+
 # -std=gnu99 needed for [U]LLONG_MAX on some systems
 KBUILD_CPPFLAGS += $(call cc-option,-std=gnu99,)
 
@@ -22,7 +28,9 @@ KBUILD_CFLAGS += $(call cc-option,-Wunused-function -Wunused-value,)
 KBUILD_CFLAGS += $(call cc-option,-Wmissing-prototypes -Wmissing-declarations,)
 KBUILD_CFLAGS += $(call cc-option,-Wno-format-security,)
 ifneq ($(CC),clang)
+ifeq ($(shell test $(GCC_VERSION) -ge 70 && echo 1), 1)
 KBUILD_CFLAGS += $(call cc-option,-Wno-format-truncation,)
+endif
 endif
 # If you want to add more -Wsomething above, make sure that it is
 # still possible to build bbox without warnings.
