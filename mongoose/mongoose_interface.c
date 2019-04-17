@@ -196,10 +196,10 @@ static void *broadcast_message_thread(void *data)
 
 static void *broadcast_progress_thread(void *data)
 {
-	int status = -1;
-	int source = -1;
-	int step = 0;
-	int percent = 0;
+	RECOVERY_STATUS status = -1;
+	sourcetype source = -1;
+	unsigned int step = 0;
+	unsigned int percent = 0;
 	int fd = -1;
 
 	for (;;) {
