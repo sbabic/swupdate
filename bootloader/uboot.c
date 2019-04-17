@@ -141,8 +141,11 @@ static int bootloader_initialize(struct uboot_ctx **ctx)
 		return -EINVAL;
 	}
 	if (libuboot_open(*ctx) < 0) {
-		ERROR("Cannot read environment, using default\n");
-		libuboot_load_file(*ctx, CONFIG_UBOOT_DEFAULTENV);
+		WARN("Cannot read environment, using default");
+		if (libuboot_load_file(*ctx, CONFIG_UBOOT_DEFAULTENV) < 0) {
+			ERROR("Error: Cannot read default environment from file");
+			return -ENODATA;
+		}
 	}
 
 	return 0;
