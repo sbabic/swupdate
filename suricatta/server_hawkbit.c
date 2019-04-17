@@ -827,7 +827,7 @@ server_op_res_t server_handle_initial_state(update_state_t stateovrrd)
 	if (stateovrrd != STATE_NOT_AVAILABLE) {
 		state = stateovrrd;
 		TRACE("Got state=%c from command line.", state);
-		if (!is_state_valid(state)) {
+		if (!is_valid_state(state)) {
 			return SERVER_EINIT;
 		}
 	} else {

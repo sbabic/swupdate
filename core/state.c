@@ -26,14 +26,6 @@
 	} \
 } while(0)
 
-bool is_state_valid(update_state_t state) {
-	if ((state < STATE_OK) || (state > STATE_ERROR)) {
-		ERROR("Unknown update state=%c", state);
-		return false;
-	}
-	return true;
-}
-
 server_op_res_t save_state(char *key, update_state_t value)
 {
 	int ret;
@@ -84,5 +76,9 @@ update_state_t get_state(void) {
 	}
 	TRACE("Read state=%c from persistent storage.\n", state);
 
-	return is_state_valid(state) ? state : STATE_ERROR;
+	if (is_valid_state(state)) {
+		return state;
+	}
+	ERROR("Unknown update state=%c", state);
+	return STATE_ERROR;
 }

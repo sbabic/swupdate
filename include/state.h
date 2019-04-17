@@ -43,4 +43,3 @@ server_op_res_t save_state(char *key, update_state_t value);
 server_op_res_t read_state(char *key, update_state_t *value);
 server_op_res_t reset_state(char *key);
 update_state_t get_state(void);
-bool is_state_valid(update_state_t state);
