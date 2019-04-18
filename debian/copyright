@@ -13,6 +13,8 @@ Files:     *
 Copyright: 2014-2019 Stefano Babic <sbabic@denx.de>
 License:   GPL-2+
 
+#The upstream changes its license type
+#https://lists.cip-project.org/pipermail/cip-dev/2019-April/002121.html
 Files:     corelib/channel_curl.c
            corelib/verify_signature.c
            corelib/swupdate_rsa_verify.c
@@ -26,17 +28,20 @@ Files:     corelib/channel_curl.c
 Copyright: 2014-2019 Stefano Babic <sbabic@denx.de>
 License: GPL-2+ with OpenSSL exception
 
+#The upstream changes its license type
 #https://gitter.im/cesanta/mongoose/archives/2015/04/16
 Files:     mongoose/mongoose.c
            mongoose/mongoose.h
 Copyright: 2014 Cesanta Software Limited
 License:   GPL-2 with OpenSSL exception
 
+#The upstream changes its license type
+#https://lists.cip-project.org/pipermail/cip-dev/2019-April/002121.html
 Files:     mongoose/mongoose_interface.c
 Copyright: 2004-2013 Sergey Lyubka
            2013 DENX Software Engineering, Stefano Babic <sbabic@denx.de>
            2017-2018 Weidmüller Interface GmbH & Co. KG, Stefan Herbrechtsmeier <stefan.herbrechtsmeier@weidmueller.com>
-License:   Expat and GPL-2 with OpenSSL exception
+License:   GPL-2 with OpenSSL exception
 
 Files:     bindings/lua_swupdate.c
            include/swupdate_status.h
