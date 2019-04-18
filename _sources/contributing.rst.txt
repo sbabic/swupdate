@@ -6,7 +6,7 @@ Contributions are welcome ! Please follow the following guideline for contributi
 Contribution Checklist
 ----------------------
 
-These are mostly general recommendations and are common practise in a lot of
+These are mostly general recommendations and are common practice in a lot of
 FOSS projects.
 
 - use git to manage your changes [*recomended*]

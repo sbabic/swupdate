@@ -44,6 +44,18 @@ SWUpdate Documentation
    building-with-yocto.rst
 
 ############################################
+Utilities and tools
+############################################
+
+.. toctree::
+   :maxdepth: 2
+
+   client.rst
+   hawkbitcfg.rst
+   sendtohawkbit.rst
+   swupdate_progress.rst
+
+############################################
 Help and support
 ############################################
 

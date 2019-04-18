@@ -109,7 +109,6 @@
 <li class="toctree-l2"><a class="reference internal" href="#configuration-and-build">Configuration and build</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#requirements">Requirements</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#building-with-yocto">Building with Yocto</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#what-about-libubootenv">What about libubootenv ?</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#configuring-swupdate">Configuring SWUpdate</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#building">Building</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#building-a-debian-package">Building a debian package</a><ul>
@@ -141,6 +140,12 @@
 <li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">SWUpdate: API for external programs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
 <li class="toctree-l1"><a class="reference internal" href="building-with-yocto.html">meta-swupdate: building with Yocto</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="client.html">client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hawkbitcfg.html">hawkbitcfg</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sendtohawkbit.html">sendtohawkbit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate_progress.html">progress</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="help_and_support.html">Help and support</a></li>
@@ -395,6 +400,7 @@ MTD and UBI volumes.</li>
 <li>libz, libcrypto are always linked.</li>
 <li>libconfig: it is used by the default parser.</li>
 <li>libarchive (optional) for archive handler</li>
+<li>librsync (optional) for support to apply rdiff patches</li>
 <li>libjson (optional) for JSON parser and Hawkbit</li>
 <li>libubootenv (optional) if support for U-Boot is enabled</li>
 <li>libebgenv (optional) if support for EFI Boot Guard is enabled</li>
@@ -406,41 +412,7 @@ and drop what you do not need.</p>
 </div>
 <div class="section" id="building-with-yocto">
 <h3>Building with Yocto<a class="headerlink" href="#building-with-yocto" title="Permalink to this headline">¶</a></h3>
-<p>A <a class="reference external" href="https://github.com/sbabic/meta-swupdate.git">meta-swupdate</a> layer is provided. It contains the required changes
-for mtd-utils and for generating Lua. Using meta-SWUpdate is a
-straightforward process.</p>
-<p>Firstly, clone meta-SWUpdate.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">sbabic</span><span class="o">/</span><span class="n">meta</span><span class="o">-</span><span class="n">swupdate</span><span class="o">.</span><span class="n">git</span>
-</pre></div>
-</div>
-<p>Add meta-SWUpdate as usual to your bblayers.conf. You have also
-to add meta-oe to the list.</p>
-<p>In meta-SWUpdate there is a recipe to generate an initrd with a
-rescue system with SWUpdate. Use:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">MACHINE</span><span class="o">=&lt;</span><span class="n">your</span> <span class="n">machine</span><span class="o">&gt;</span> <span class="n">bitbake</span> <span class="n">swupdate</span><span class="o">-</span><span class="n">image</span>
-</pre></div>
-</div>
-<p>You will find the result in your tmp/deploy/&lt;your machine&gt; directory.
-How to install and start an initrd is very target specific - please
-check in the documentation of your bootloader.</p>
-</div>
-<div class="section" id="what-about-libubootenv">
-<h3>What about libubootenv ?<a class="headerlink" href="#what-about-libubootenv" title="Permalink to this headline">¶</a></h3>
-<p>This is a common issue when SWUpdate is built. SWUpdate depends on this library,
-that is generated from the U-Boot’s sources. This library allows to safe modify
-the U-Boot environment. It is not required if U-Boot is not used as bootloader.
-If SWUpdate cannot be linked, you are using an old version of U-Boot (you need
-at least 2016.05). If this is the case, you can add your own recipe for
-the package u-boot-fw-utils, adding the code for the library.</p>
-<p>It is important that the package u-boot-fw-utils is built with the same
-sources of the bootloader and for the same machine. In fact, the target
-can have a default environment linked together with U-Boot’s code,
-and it is not (yet) stored into a storage. SWUpdate should be aware of
-it, because it cannot read it: the default environment must be linked
-as well to SWUpdate’s code. This is done inside the libubootenv.</p>
-<p>If you build for a different machine, SWUpdate will destroy the
-environment when it tries to change it the first time. In fact,
-a wrong default environment is taken, and your board won’t boot again.</p>
+<p>See corresponding chapter how to build in Yocto.</p>
 </div>
 <div class="section" id="configuring-swupdate">
 <h3>Configuring SWUpdate<a class="headerlink" href="#configuring-swupdate" title="Permalink to this headline">¶</a></h3>
@@ -672,42 +644,49 @@ Filename with the public key</td>
 </tr>
 <tr class="row-odd"><td>-N</td>
 <td>string</td>
-<td>passed the current installed version of
+<td>passed the minimum required version of
 software. This will be checked with the
 version of new software and forbids
 downgrading.
-Version mconsists of 4 number:
+Version consists of 4 number:
 major.minor.rev.build
 each field is in the range 0..65535</td>
 </tr>
-<tr class="row-even"><td>-o &lt;file&gt;</td>
+<tr class="row-even"><td>-R</td>
+<td>string</td>
+<td>passed the current installed version of
+software. This will be checked with the
+version of new software and forbids
+reinstalling.</td>
+</tr>
+<tr class="row-odd"><td>-o &lt;file&gt;</td>
 <td>string</td>
 <td>saves the stream (SWU) on a file</td>
 </tr>
-<tr class="row-odd"><td>-v</td>
+<tr class="row-even"><td>-v</td>
 <td><ul class="first last simple">
 <li></li>
 </ul>
 </td>
 <td>activate verbose output</td>
 </tr>
-<tr class="row-even"><td>-w &lt;parms&gt;</td>
+<tr class="row-odd"><td>-w &lt;parms&gt;</td>
 <td>string</td>
 <td>start internal webserver and pass to it
 a command line string.</td>
 </tr>
-<tr class="row-odd"><td>-u &lt;parms&gt;</td>
+<tr class="row-even"><td>-u &lt;parms&gt;</td>
 <td>string</td>
 <td>start internal suricatta client daemon and
 pass to it a command line string.
 see suricatta’s documentation for details.</td>
 </tr>
-<tr class="row-even"><td>-H
+<tr class="row-odd"><td>-H
 &lt;board:rev&gt;</td>
 <td>string</td>
 <td>set board name and Hardware revision</td>
 </tr>
-<tr class="row-odd"><td>-c</td>
+<tr class="row-even"><td>-c</td>
 <td><ul class="first last simple">
 <li></li>
 </ul>
@@ -717,15 +696,15 @@ internal tests. It ensures that files
 referenced in sw-description are present.
 Usage: swupdate -c -i &lt;file&gt;</td>
 </tr>
-<tr class="row-even"><td>-p</td>
+<tr class="row-odd"><td>-p</td>
 <td>string</td>
 <td>Execute post-update command.</td>
 </tr>
-<tr class="row-odd"><td>&#160;</td>
+<tr class="row-even"><td>&#160;</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td>-d &lt;parms&gt;</td>
+<tr class="row-odd"><td>-d &lt;parms&gt;</td>
 <td>string</td>
 <td>Active only if CONFIG_DOWNLOAD is set
 start internal downloader client and pass
@@ -733,24 +712,24 @@ to it a command line string.
 See below the internal command line
 arguments for the downloader</td>
 </tr>
-<tr class="row-odd"><td>-u &lt;url&gt;</td>
+<tr class="row-even"><td>-u &lt;url&gt;</td>
 <td>string</td>
 <td>This is the URL where new software is
 pulled. URL is a link to a valid .swu image</td>
 </tr>
-<tr class="row-even"><td>-r &lt;retries&gt;</td>
+<tr class="row-odd"><td>-r &lt;retries&gt;</td>
 <td>integer</td>
 <td>Number of retries before a download is
 considered broken. With “-r 0”, SWUpdate
 will not stop until a valid software is
 loaded.</td>
 </tr>
-<tr class="row-odd"><td>-t &lt;timeout&gt;</td>
+<tr class="row-even"><td>-t &lt;timeout&gt;</td>
 <td>integer</td>
 <td>Timeout for connection lost when
 downloading</td>
 </tr>
-<tr class="row-even"><td>-a &lt;usr:pwd&gt;</td>
+<tr class="row-odd"><td>-a &lt;usr:pwd&gt;</td>
 <td>string</td>
 <td>Send user and password for Basic Auth</td>
 </tr>

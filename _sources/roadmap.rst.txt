@@ -56,7 +56,7 @@ each of them solves a specific use case for a delta update.
 Integration in Linux distro
 ===========================
 
-To allow an easer leraning with SWUpdate and also for test purposes with the
+To allow an easier learning with SWUpdate and also for test purposes with the
 SWU forwarder handler, it makes sense to package SWUpdate for PC Linux distro.
 SWUpdate already supports debian package. Some help from community is asked to
 let the package merged into Debian distro.
@@ -70,7 +70,7 @@ New Handlers
 Users develop own custom handlers - I just enforce and encourage everyone
 to send them and discuss how to integrate custom handler in mainline.
 
-A handler to update a microntroller connected via UART is introduced.
+A handler to update a microcontroller connected via UART is introduced.
 It could be enhanced to support other interfaces (SPI for example).
 
 Some ideas for new handlers:
@@ -137,7 +137,7 @@ Backend: support for Mender
 ---------------------------
 
 There was several discussion how to make a stronger collaboration between
-different update solution and a proposal discussed prevviously is to use SWUpdate as client
+different update solution and a proposal discussed previously is to use SWUpdate as client
 to upgrade from a Mender server, see `BOF at ELCE 2017 <https://elinux.org/images/0/0c/BoF_secure_ota_linux.pdf>`_
 
 Support for multiple Servers simultaneously

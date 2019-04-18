@@ -214,6 +214,7 @@ There are only a few libraries that are required to compile SWUpdate.
 - libz, libcrypto are always linked.
 - libconfig: it is used by the default parser.
 - libarchive (optional) for archive handler
+- librsync (optional) for support to apply rdiff patches
 - libjson (optional) for JSON parser and Hawkbit
 - libubootenv (optional) if support for U-Boot is enabled
 - libebgenv (optional) if support for EFI Boot Guard is enabled
@@ -226,52 +227,7 @@ and drop what you do not need.
 Building with Yocto
 -------------------
 
-A meta-swupdate_ layer is provided. It contains the required changes
-for mtd-utils and for generating Lua. Using meta-SWUpdate is a
-straightforward process.
-
-Firstly, clone meta-SWUpdate.
-
-::
-
-        git clone https://github.com/sbabic/meta-swupdate.git
-
-.. _meta-SWUpdate:  https://github.com/sbabic/meta-swupdate.git
-
-Add meta-SWUpdate as usual to your bblayers.conf. You have also
-to add meta-oe to the list.
-
-In meta-SWUpdate there is a recipe to generate an initrd with a
-rescue system with SWUpdate. Use:
-
-::
-
-	MACHINE=<your machine> bitbake swupdate-image
-
-You will find the result in your tmp/deploy/<your machine> directory.
-How to install and start an initrd is very target specific - please
-check in the documentation of your bootloader.
-
-What about libubootenv ?
-------------------------
-
-This is a common issue when SWUpdate is built. SWUpdate depends on this library,
-that is generated from the U-Boot's sources. This library allows to safe modify
-the U-Boot environment. It is not required if U-Boot is not used as bootloader.
-If SWUpdate cannot be linked, you are using an old version of U-Boot (you need
-at least 2016.05). If this is the case, you can add your own recipe for
-the package u-boot-fw-utils, adding the code for the library.
-
-It is important that the package u-boot-fw-utils is built with the same
-sources of the bootloader and for the same machine. In fact, the target
-can have a default environment linked together with U-Boot's code,
-and it is not (yet) stored into a storage. SWUpdate should be aware of
-it, because it cannot read it: the default environment must be linked
-as well to SWUpdate's code. This is done inside the libubootenv.
-
-If you build for a different machine, SWUpdate will destroy the
-environment when it tries to change it the first time. In fact,
-a wrong default environment is taken, and your board won't boot again.
+See corresponding chapter how to build in Yocto.
 
 Configuring SWUpdate
 --------------------
@@ -500,13 +456,18 @@ Command line parameters
 +-------------+----------+--------------------------------------------+
 | -n          |    -     | run SWUpdate in dry-run mode.              |
 +-------------+----------+--------------------------------------------+
-| -N          | string   | passed the current installed version of    |
+| -N          | string   | passed the minimum required version of     |
 |             |          | software. This will be checked with the    |
 |             |          | version of new software and forbids        |
 |             |          | downgrading.                               |
-|             |          | Version mconsists of 4 number:             |
+|             |          | Version consists of 4 number:              |
 |             |          | major.minor.rev.build                      |
 |             |          | each field is in the range 0..65535        |
++-------------+----------+--------------------------------------------+
+| -R          | string   | passed the current installed version of    |
+|             |          | software. This will be checked with the    |
+|             |          | version of new software and forbids        |
+|             |          | reinstalling.                              |
 +-------------+----------+--------------------------------------------+
 | -o <file>   | string   | saves the stream (SWU) on a file           |
 +-------------+----------+--------------------------------------------+

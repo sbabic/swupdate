@@ -74,7 +74,7 @@ style sheet changes need a rebuild of the web application source code.
 Develop
 -------
 
-The development requires Node.js version 6 or greater and a prebuild
+The development requires Node.js version 6 or greater and a prebuilt
 SWUpdate project with enabled mongoose web server and web application
 interface version 2 support.
 

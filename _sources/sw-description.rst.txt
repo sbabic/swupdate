@@ -71,7 +71,11 @@ The following example explains better the implemented tags:
 			{
 				filename = "fpga.txt";
 				type = "fpga";
-			}
+			},
+			{
+				filename = "bootloader-env";
+				type = "bootloader";
+			},
 		);
 
 		files: (
@@ -95,10 +99,6 @@ The following example explains better the implemented tags:
 		);
 
 		bootenv: (
-			{
-				filename = "bootloader-env";
-				type = "bootloader";
-			},
 			{
 				name = "vram";
 				value = "4M";
@@ -254,7 +254,7 @@ is responsible for calling `SWUpdate` passing proper settings.
 Priority finding the elements in the file
 -----------------------------------------
 
-SWUpdate search for entries in the sdw-description file according to the following priority:
+SWUpdate search for entries in the sw-description file according to the following priority:
 
 1. Try <boardname>.<selection>.<mode>.<entry>
 2. Try <selection>.<mode>.<entry>
@@ -311,8 +311,8 @@ Take an example. The following sw-description describes the release for a set of
     }
 
 On *myboard*, SWUpdate searches and find myboard.stable.copy1(2). When running on different
-boards, SWUpdate does not find an enty corresponding to the boardname and it fallbacks to the
-version without boardname. This lets relalize the same release for different boards having
+boards, SWUpdate does not find an entry corresponding to the boardname and it fallbacks to the
+version without boardname. This lets realize the same release for different boards having
 a complete different hardware. `myboard` could have a eMMC and an ext4 filesystem,
 while another device can have raw flash and install an UBI filesystem. Nevertheless, they are
 both just a different format of the same release and they could be described together in sw-description.
@@ -809,6 +809,33 @@ SWUpdate scans for all scripts and calls them after installing the images.
 If the data attribute is defined, its value is passed as the last argument(s)
 to the script.
 
+Update Transaction Marker
+-------------------------
+
+By default, SWUpdate sets the bootloader environment variable "recovery_status"
+to "in_progress" prior to an update operation and either unsets it or sets it to
+"failed" after the update operation. This is an interface for SWUpdate-external
+tooling: If there is no "recovery_status" variable in the bootloader's
+environment, the update operation has been successful. Else, if there is
+a "recovery_status" variable with the value "failed", the update operation has
+not been successful.
+
+While this is in general essential behavior for firmware updates, it needn't be
+for less critical update operations. Hence, whether or not the update
+transaction marker is set by SWUpdate can be controlled by the boolean switch
+"bootloader_transaction_marker" which is global per `sw-description` file.
+It defaults to ``true``. The following example snippet disables the update
+transaction marker:
+
+::
+
+	software =
+	{
+		version = "0.1.0";
+		bootloader_transaction_marker = false;
+		...
+
+
 bootloader
 ----------
 
@@ -822,7 +849,7 @@ must be chosen from the bootloader selection menu in `menuconfig`.
 
 ::
 
-	bootenv: (
+	images: (
 		{
 			filename = "bootloader-env";
 			type = "bootloader";
@@ -834,12 +861,25 @@ is in the format
 
 ::
 
-	<name of variable>	<value>
+	<name of variable>=<value>
 
 if value is missing, the variable is unset.
 
-In the current implementation, the above file format was inherited for
-GRUB and EFI Boot Guard environment modification as well.
+The format is compatible with U-Boot "env import" command. It is possible
+to produce the file from target as result of "env export".
+
+Comments are allowed in the file to improve readability, see this example:
+
+::
+
+        # Default variables
+        bootslot=0
+        board_name=myboard
+        baudrate=115200
+
+        ## Board Revision dependent
+        board_revision=1.0
+
 
 The second way is to define in a group setting the variables
 that must be changed:

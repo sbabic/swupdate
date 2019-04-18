@@ -38,7 +38,7 @@
               href="genindex.html"/>
         <link rel="search" title="Search" href="search.html"/>
     <link rel="top" title="Embedded Software Update Documentation 2018.11 documentation" href="index.html"/>
-        <link rel="next" title="Help and support" href="help_and_support.html"/>
+        <link rel="next" title="client" href="client.html"/>
         <link rel="prev" title="Getting information on running update" href="progress.html"/> 
 
   
@@ -108,6 +108,7 @@
 <li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">meta-swupdate: building with Yocto</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#what-about-libubootenv">What about libubootenv ?</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#the-swupdate-class">The swupdate class</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#automatic-sha256-in-sw-description">Automatic sha256 in sw-description</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#bitbake-variable-expansion-in-sw-description">BitBake variable expansion in sw-description</a></li>
@@ -116,6 +117,12 @@
 </li>
 </ul>
 </li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="client.html">client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hawkbitcfg.html">hawkbitcfg</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sendtohawkbit.html">sendtohawkbit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate_progress.html">progress</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="help_and_support.html">Help and support</a></li>
@@ -195,8 +202,55 @@ Foundation that provides tools and template to create the own custom Linux-based
 software for embedded systems.</p>
 <p>Add-on features can be added using <em>layers</em>. <a class="reference external" href="https://github.com/sbabic/meta-swupdate.git">meta-swupdate</a> is the layer to
 cross-compile the SWUpdate application and to generate the compound SWU images
-containing the release of the product. As described in Yocto’s documentation
+containing the release of the product.  It contains the required changes
+for mtd-utils and for generating Lua. Using meta-SWUpdate is a
+straightforward process. As described in Yocto’s documentation
 about layers, you should include it in your <em>bblayers.conf</em> file to use it.</p>
+<p>Add meta-SWUpdate as usual to your bblayers.conf. You have also
+to add meta-oe to the list.</p>
+<p>In meta-SWUpdate there is a recipe to generate an initrd with a
+rescue system with SWUpdate. Use:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">MACHINE</span><span class="o">=&lt;</span><span class="n">your</span> <span class="n">machine</span><span class="o">&gt;</span> <span class="n">bitbake</span> <span class="n">swupdate</span><span class="o">-</span><span class="n">image</span>
+</pre></div>
+</div>
+<p>You will find the result in your tmp/deploy/&lt;your machine&gt; directory.
+How to install and start an initrd is very target specific - please
+check in the documentation of your bootloader.</p>
+</div>
+<div class="section" id="what-about-libubootenv">
+<h2>What about libubootenv ?<a class="headerlink" href="#what-about-libubootenv" title="Permalink to this headline">¶</a></h2>
+<p>This is a common issue when SWUpdate is built. SWUpdate depends on this library,
+that is generated from the U-Boot’s sources. This library allows to safe modify
+the U-Boot environment. It is not required if U-Boot is not used as bootloader.
+If SWUpdate cannot be linked, you are using an old version of U-Boot (you need
+at least 2016.05). If this is the case, you can add your own recipe for
+the package u-boot-fw-utils, adding the code for the library.</p>
+<p>It is important that the package u-boot-fw-utils is built with the same
+sources of the bootloader and for the same machine. In fact, the target
+can have a default environment linked together with U-Boot’s code,
+and it is not (yet) stored into a storage. SWUpdate should be aware of
+it, because it cannot read it: the default environment must be linked
+as well to SWUpdate’s code. This is done inside the libubootenv.</p>
+<p>If you build for a different machine, SWUpdate will destroy the
+environment when it tries to change it the first time. In fact,
+a wrong default environment is taken, and your board won’t boot again.</p>
+<p>To avoid possible mismatch, a new library was developped to be hardware independent.
+A strict match with the bootloader is not required anymore. The meta-swupdate layer
+contains recipes to build the new library (<cite>libubootenv</cite>) and adjust SWUpdate to be linked
+against it. To use it as replacement for u-boot-fw-utils:</p>
+<blockquote>
+<div><ul class="simple">
+<li>set PREFERRED_PROVIDER_u-boot-fw-utils = “libuboot”</li>
+<li>add to SWUpdate config:</li>
+</ul>
+</div></blockquote>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">CONFIG_UBOOT</span><span class="o">=</span><span class="n">y</span>
+<span class="n">CONFIG_UBOOT_NEWAPI</span><span class="o">=</span><span class="n">y</span>
+</pre></div>
+</div>
+<p>With this library, you can simply pass the default environment as file (u-boot-initial-env).
+It is recommended for new project to switch to the new library to become independent from
+the bootloader.</p>
 </div>
 <div class="section" id="the-swupdate-class">
 <h2>The swupdate class<a class="headerlink" href="#the-swupdate-class" title="Permalink to this headline">¶</a></h2>
@@ -219,7 +273,7 @@ Example :</li>
 <li><strong>SWUPDATE_IMAGES_FSTYPES</strong> : extension of the artifact. Each artifact can
 have multiple extension according to the IMAGE_FSTYPES variable.
 For example, an image can be generated as tarball and as UBIFS for target.
-Setting the variable for each artifact telles the class which file must
+Setting the variable for each artifact tells the class which file must
 be packed into the SWU image.</li>
 </ul>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">SWUPDATE_IMAGES_FSTYPES</span><span class="p">[</span><span class="n">core</span><span class="o">-</span><span class="n">image</span><span class="o">-</span><span class="n">full</span><span class="o">-</span><span class="n">cmdline</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;.ubifs&quot;</span>
@@ -229,27 +283,45 @@ be packed into the SWU image.</li>
 <li><strong>SWUPDATE_IMAGES_NOAPPEND_MACHINE</strong> : flag to use drop the machine name from the
 artifact file. Most images in <em>deploy</em> have the name of the Yocto’s machine in the
 filename. The class adds automatically the name of the MACHINE to the file, but some
-artifacts can be deploes without it.</li>
+artifacts can be deployed without it.</li>
 </ul>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">SWUPDATE_IMAGES_NOAPPEND_MACHINE</span><span class="p">[</span><span class="n">my</span><span class="o">-</span><span class="n">image</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span>
 </pre></div>
 </div>
-<ul class="simple">
-<li><strong>SWUPDATE_SIGNING</strong> : if set, the SWU is signed. There are 3 allowed values:
-RSA, CMS, CUSTOM. This value determines used signing mechanism.</li>
-<li><strong>SWUPDATE_SIGN_TOOL</strong> : instead of using openssl, use SWUPDATE_SIGN_TOOL to sign
+<ul>
+<li><p class="first"><strong>SWUPDATE_SIGNING</strong> : if set, the SWU is signed. There are 3 allowed values:
+RSA, CMS, CUSTOM. This value determines used signing mechanism.</p>
+</li>
+<li><p class="first"><strong>SWUPDATE_SIGN_TOOL</strong> : instead of using openssl, use SWUPDATE_SIGN_TOOL to sign
 the image. A typical use case is together with a hardware key. It is
-available if SWUPDATE_SIGNING is set to CUSTOM</li>
-<li><strong>SWUPDATE_PRIVATE_KEY</strong> : this is the file with the private key used to sign the
-image using RSA mechanism. Is available if SWUPDATE_SIGNING is set to RSA.</li>
-<li><strong>SWUPDATE_PASSWORD_FILE</strong> : an optional file containing the password for the private
-key. It is available if SWUPDATE_SIGNING is set to RSA.</li>
-<li><strong>SWUPDATE_CMS_KEY</strong> : this is the file with the private key used in signing
+available if SWUPDATE_SIGNING is set to CUSTOM</p>
+</li>
+<li><p class="first"><strong>SWUPDATE_PRIVATE_KEY</strong> : this is the file with the private key used to sign the
+image using RSA mechanism. Is available if SWUPDATE_SIGNING is set to RSA.</p>
+</li>
+<li><p class="first"><strong>SWUPDATE_PASSWORD_FILE</strong> : an optional file containing the password for the private
+key. It is available if SWUPDATE_SIGNING is set to RSA.</p>
+</li>
+<li><p class="first"><strong>SWUPDATE_CMS_KEY</strong> : this is the file with the private key used in signing
 process using CMS mechanism. It is available if SWUPDATE_SIGNING is set to
-CMS.</li>
-<li><strong>SWUPDATE_CMS_CERT</strong> : this is the file with the certificate used in signing
+CMS.</p>
+</li>
+<li><p class="first"><strong>SWUPDATE_CMS_CERT</strong> : this is the file with the certificate used in signing
 process using using CMS method. It is available if SWUPDATE_SIGNING is
-set to CMS.</li>
+set to CMS.</p>
+</li>
+<li><p class="first"><strong>SWUPDATE_AES_FILE</strong> : this is the file with the AES password to encrypt artifact. A new <cite>fstype</cite> is
+supported by the class (type: <cite>enc</cite>). SWUPDATE_AES_FILE is generated as output from openssl to create
+a new key with</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>openssl enc -aes-256-cbc -k &lt;PASSPHRASE&gt; -P -md sha1 &gt; $SWUPDATE_AES_FILE
+</pre></div>
+</div>
+<p>To use it, it is enough to add IMAGE_FSTYPES += “enc” to the  artifact. SWUpdate supports decryption of
+compressed artifact, such as</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">IMAGE_FSTYPES</span> <span class="o">+=</span> <span class="s2">&quot;.ext4.gz.enc&quot;</span>
+</pre></div>
+</div>
+</li>
 </ul>
 <div class="section" id="automatic-sha256-in-sw-description">
 <h3>Automatic sha256 in sw-description<a class="headerlink" href="#automatic-sha256-in-sw-description" title="Permalink to this headline">¶</a></h3>
@@ -315,7 +387,7 @@ For example, to automatically set the version tag:</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="help_and_support.html" class="btn btn-neutral float-right" title="Help and support" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="client.html" class="btn btn-neutral float-right" title="client" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="progress.html" class="btn btn-neutral" title="Getting information on running update" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

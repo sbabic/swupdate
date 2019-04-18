@@ -47,7 +47,7 @@ Choice of algorithm
 The algorithm chosen to sign and verify the sw-descrription file can be
 selected via menuconfig. Currently, the following mechanisms are implemented:
 
-- RSA Public / private key. The private key belongs to thebuildsystem,
+- RSA Public / private key. The private key belongs to the build system,
   while the public key must be installed on the target.
 - CMS using certificates
 
@@ -74,7 +74,7 @@ First, the private key must be created:
         openssl genrsa -aes256 -out priv.pem 
 
 This asks for a passphrase. It is possible to retrieve
-the passhphrase from a file - of course, this must be
+the passphrase from a file - of course, this must be
 protected against intrusion.
 
 ::
@@ -132,7 +132,7 @@ requires the following attributes to be set on the signing certificate:
         keyUsage=digitalSignature
         extendedKeyUsage=emailProtection
 
-It is also possible to completelly disable signing certificate key usage
+It is also possible to completely disable signing certificate key usage
 checking if this requirement cannot be satisfied. This is controlled by
 `CONFIG_CMS_IGNORE_CERTIFICATE_PURPOSE` configuration option.
 
