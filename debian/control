@@ -2,7 +2,8 @@ Source: swupdate
 Section: embedded
 Priority: optional
 Maintainer: Stefano Babic <sbabic@denx.de>
-Uploaders: SZ Lin (林上智) <szlin@debian.org>
+Uploaders: SZ Lin (林上智) <szlin@debian.org>,
+           Nobuhiro Iwamatsu <iwamatsu@debian.org>
 Build-Depends: debhelper (>= 12),
                libconfig9,
                latexmk,
