@@ -59,7 +59,7 @@ A strict match with the bootloader is not required anymore. The meta-swupdate la
 contains recipes to build the new library (`libubootenv`) and adjust SWUpdate to be linked
 against it. To use it as replacement for u-boot-fw-utils:
 
-        - set PREFERRED_PROVIDER_u-boot-fw-utils = "libuboot"
+        - set PREFERRED_PROVIDER_u-boot-fw-utils = "libubootenv"
         - add to SWUpdate config:
 
 ::
