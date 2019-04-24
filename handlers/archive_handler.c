@@ -35,6 +35,7 @@ pthread_t extract_thread;
 
 struct extract_data {
 	int flags;
+	int exitval;
 };
 
 static int
@@ -68,15 +69,24 @@ static void *
 extract(void *p)
 {
 	struct archive *a;
-	struct archive *ext;
-	struct archive_entry *entry;
+	struct archive *ext = NULL;
+	struct archive_entry *entry = NULL;
 	int r;
 	int flags;
 	struct extract_data *data = (struct extract_data *)p;
 	flags = data->flags;
+	int exitval = -EFAULT;
 
 	a = archive_read_new();
+	if (!a) {
+		goto out;
+	}
+
 	ext = archive_write_disk_new();
+	if (!ext) {
+		goto out;
+	}
+
 	archive_write_disk_set_options(ext, flags);
 	/*
 	 * Note: archive_write_disk_set_standard_lookup() is useful
@@ -97,7 +107,7 @@ extract(void *p)
 	if ((r = archive_read_open_filename(a, FIFO, 4096))) {
 		ERROR("archive_read_open_filename(): %s %d",
 		    archive_error_string(a), r);
-		pthread_exit((void *)-1);
+		goto out;
 	}
 	for (;;) {
 		r = archive_read_next_header(a, &entry);
@@ -106,7 +116,7 @@ extract(void *p)
 		if (r != ARCHIVE_OK) {
 			ERROR("archive_read_next_header(): %s %d",
 			    archive_error_string(a), 1);
-			pthread_exit((void *)-1);
+			goto out;
 		}
 
 		if (debug)
@@ -122,31 +132,52 @@ extract(void *p)
 			if (r != ARCHIVE_OK)  {
 				ERROR("archive_write_finish_entry(): %s",
 				    archive_error_string(ext));
-				pthread_exit((void *)-1);
+				goto out;
 			}
 		}
 
 	}
 
-	archive_read_close(a);
-	archive_read_free(a);
-	pthread_exit((void *)0);
+	exitval = 0;
+
+out:
+	if (ext) {
+		r = archive_write_free(ext);
+		if (r) {
+			ERROR("archive_write_free(): %s %d",
+					archive_error_string(a), r);
+			exitval = -EFAULT;
+		}
+	}
+
+	if (a) {
+		archive_read_close(a);
+		archive_read_free(a);
+	}
+
+	data->exitval = exitval;
+	pthread_exit(NULL);
 }
 
 static int install_archive_image(struct img_type *img,
 	void __attribute__ ((__unused__)) *data)
 {
 	char path[255];
-	int fdout;
-	int ret = 0;
-	char pwd[256];
+	int fdout = -1;
+	int ret = -1;
+	int thread_ret = -1;
+	char pwd[256] = "\0";
 	struct extract_data tf;
 	pthread_attr_t attr;
-	void *status;
 	int use_mount = (strlen(img->device) && strlen(img->filesystem)) ? 1 : 0;
+	int is_mounted = 0;
+	int exitval = -EFAULT;
 
 	char* DATADST_DIR = alloca(strlen(get_tmpdir())+strlen(DATADST_DIR_SUFFIX)+1);
 	sprintf(DATADST_DIR, "%s%s", get_tmpdir(), DATADST_DIR_SUFFIX);
+
+	char * FIFO = alloca(strlen(get_tmpdir())+strlen(FIFO_FILE_NAME)+1);
+	sprintf(FIFO, "%s%s", get_tmpdir(), FIFO_FILE_NAME);
 
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
@@ -164,28 +195,32 @@ static int install_archive_image(struct img_type *img,
 			return -1;
 		}
 
+		is_mounted = 1;
+
 		if (snprintf(path, sizeof(path), "%s%s",
 			DATADST_DIR, img->path) >= (int)sizeof(path)) {
 			ERROR("Path too long: %s%s", DATADST_DIR, img->path);
-			return -1;
+			goto out;
 		}
 	} else {
 		if (snprintf(path, sizeof(path), "%s", img->path) >= (int)sizeof(path)) {
 			ERROR("Path too long: %s", img->path);
-			return -1;
+			goto out;
 		}
 	}
 
-	char* FIFO = alloca(strlen(get_tmpdir())+strlen(FIFO_FILE_NAME)+1);
-	sprintf(FIFO, "%s%s", get_tmpdir(), FIFO_FILE_NAME);
 	unlink(FIFO);
-	ret = mkfifo(FIFO, 0666);
+	ret = mkfifo(FIFO, 0600);
 	if (ret) {
 		ERROR("FIFO cannot be created in archive handler");
-		return -1;
+		goto out;
 	}
-	if (!getcwd(pwd, sizeof(pwd)))
-		return -1;
+
+	if (!getcwd(pwd, sizeof(pwd))) {
+		ERROR("Failed to determine current working directory");
+		pwd[0] = '\0';
+		goto out;
+	}
 
 	/*
 	 * Change to directory where tarball must be extracted
@@ -193,7 +228,7 @@ static int install_archive_image(struct img_type *img,
 	ret = chdir(path);
 	if (ret) {
 		ERROR("Fault: chdir not possible");
-		return -EFAULT;
+		goto out;
 	}
 
 	TRACE("Installing file %s on %s, %s attributes",
@@ -201,6 +236,7 @@ static int install_archive_image(struct img_type *img,
 		img->preserve_attributes ? "preserving" : "ignoring");
 
 	tf.flags = 0;
+	tf.exitval = -EFAULT;
 
 	if (img->preserve_attributes) {
 		tf.flags |= ARCHIVE_EXTRACT_OWNER | ARCHIVE_EXTRACT_PERM |
@@ -208,42 +244,66 @@ static int install_archive_image(struct img_type *img,
 				ARCHIVE_EXTRACT_FFLAGS | ARCHIVE_EXTRACT_XATTR;
 	}
 
-	ret = pthread_create(&extract_thread, &attr, extract, &tf);
-	if (ret) {
+	thread_ret = pthread_create(&extract_thread, &attr, extract, &tf);
+	if (thread_ret) {
 		ERROR("Code from pthread_create() is %d",
-			 ret);
-		return -EFAULT;
+			 thread_ret);
+		goto out;
 	}
 
 	fdout = open(FIFO, O_WRONLY);
-
-	ret = copyimage(&fdout, img, NULL);
-	if (ret< 0) {
-		ERROR("Error copying extracted file");
-		return -EFAULT;
+	if (fdout < 0) {
+		ERROR("Failed to open FIFO %s", FIFO);
+		goto out;
 	}
 
-	close(fdout);
+	ret = copyimage(&fdout, img, NULL);
+	if (ret < 0) {
+		ERROR("Error copying extracted file");
+		goto out;
+	}
 
-	ret = pthread_join(extract_thread, &status);
-	if (ret) {
-		ERROR("return code from pthread_join() is %d", ret);
-		return -EFAULT;
+	exitval = 0;
+
+out:
+	if (fdout >= 0) {
+		ret = close(fdout);
+		if (ret) {
+			ERROR("failed to close FIFO %s", FIFO);
+		}
+	}
+
+	if (!thread_ret) {
+		void *status;
+
+		ret = pthread_join(extract_thread, &status);
+		if (ret) {
+			ERROR("return code from pthread_join() is %d", ret);
+			exitval = -EFAULT;
+		}
+		else if (tf.exitval != 0) {
+			ERROR("copyimage status code is %d", tf.exitval);
+			exitval = -EFAULT;
+		}
+	}
+
+	if (pwd[0]) {
+		ret = chdir(pwd);
+		if (ret) {
+			ERROR("chdir failed to revert to directory %s", pwd);
+		}
 	}
 
 	unlink(FIFO);
 
-	ret = chdir(pwd);
-
-	if (ret) {
-		TRACE("Fault: chdir not possible");
+	if (is_mounted) {
+		ret = swupdate_umount(DATADST_DIR);
+		if (ret) {
+			TRACE("Failed to unmount directory %s", DATADST_DIR);
+		}
 	}
 
-	if (use_mount) {
-		swupdate_umount(DATADST_DIR);
-	}
-
-	return ret;
+	return exitval;
 }
 
 __attribute__((constructor))
