@@ -35,6 +35,7 @@
 
 static void usage(void) {
 	fprintf(stdout, "client [OPTIONS] <image .swu to be installed>...\n");
+	fprintf(stdout, " With - or no swu file given, read from STDIN.\n");
 	fprintf(stdout,
 		" Available OPTIONS\n"
 		" -h : print help and exit\n"
@@ -46,7 +47,7 @@ static void usage(void) {
 }
 
 char buf[256];
-int fd;
+int fd = STDIN_FILENO;
 int verbose = 1;
 bool dryrun = false;
 bool run_postupdate = false;
@@ -116,7 +117,7 @@ static int end(RECOVERY_STATUS status)
  */
 static int send_file(const char* filename) {
 	int rc;
-	if ((fd = open(filename, O_RDONLY)) < 0) {
+	if (filename && (fd = open(filename, O_RDONLY)) < 0) {
 		fprintf(stderr, "Unable to open %s\n", filename);
 		return EXIT_FAILURE;
 	}
@@ -145,7 +146,8 @@ static int send_file(const char* filename) {
 	/* End called, unlock and exit */
 	pthread_mutex_unlock(&mymutex);
 
-	close(fd);
+	if (filename)
+		close(fd);
 
 	return end_status;
 }
@@ -186,6 +188,7 @@ int main(int argc, char *argv[]) {
 	argv += optind;
 
 	if (argc == 0 || (argc == 1 && strcmp(argv[0], "-") == 0)) {
+		fprintf(stdout, "no input given, reading from STDIN...\n");
 		if (send_file(NULL)) exit(1);
 	} else {
 		for (int i = 0; i < argc; i++) {
