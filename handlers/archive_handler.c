@@ -6,6 +6,7 @@
  */
 
 #include <sys/types.h>
+#include <locale.h>
 #include <stdio.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -68,6 +69,8 @@ copy_data(struct archive *ar, struct archive *aw)
 static void *
 extract(void *p)
 {
+	locale_t archive_locale;
+	locale_t old_locale;
 	struct archive *a;
 	struct archive *ext = NULL;
 	struct archive_entry *entry = NULL;
@@ -76,6 +79,20 @@ extract(void *p)
 	struct extract_data *data = (struct extract_data *)p;
 	flags = data->flags;
 	int exitval = -EFAULT;
+
+	/*
+	 * Enable system locale - change from the standard (C) to system locale.
+	 * This allows libarchive (in case it is activated) to handle filenames.
+	 * We only change LC_CTYPE since libarchive only needs the charset set.
+	 * We don't use LC_ALL because it causes problems on some systems.
+	 * We restore the original LC_CTYPE after extraction to avoid side effects.
+	 * We use uselocale instead of setlocale to avoid setting LC_CTYPE globally.
+	 * See on libarchive Website for a more complete description of the issue:
+	 *  https://github.com/libarchive/libarchive/issues/587
+	 *  https://github.com/libarchive/libarchive/wiki/Filenames
+	 */
+	archive_locale = newlocale(LC_CTYPE_MASK, "", (locale_t)0);
+	old_locale = uselocale(archive_locale);
 
 	a = archive_read_new();
 	if (!a) {
@@ -155,6 +172,7 @@ out:
 		archive_read_free(a);
 	}
 
+	uselocale(old_locale);
 	data->exitval = exitval;
 	pthread_exit(NULL);
 }
