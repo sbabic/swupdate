@@ -564,6 +564,8 @@ The result must be written in the file /etc/hwrevision (or in
 another file if specified as configuration option) before
 SWUpdate is started.
 
+.. _partitions-ubi-layout:
+
 partitions : UBI layout
 -----------------------
 

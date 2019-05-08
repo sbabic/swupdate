@@ -33,6 +33,101 @@ static struct ubi_part *search_volume(const char *str, struct ubilist *list)
 	return NULL;
 }
 
+/* search a UBI volume by name across all mtd partitions */
+static struct ubi_part *search_volume_global(const char *str)
+{
+	struct flash_description *flash = get_flash_info();
+	struct mtd_info *mtd_info = &flash->mtd;
+	struct mtd_ubi_info *mtd_ubi_info;
+	struct ubi_part *ubivol;
+	int i;
+
+	for (i = mtd_info->lowest_mtd_num; i <= mtd_info->highest_mtd_num; i++) {
+		mtd_ubi_info = &flash->mtd_info[i];
+		ubivol = search_volume(str, &mtd_ubi_info->ubi_partitions);
+		if (ubivol)
+			return ubivol;
+	}
+	return NULL;
+}
+
+/**
+ * check_replace - check for and validate replace property
+ * @img: image information
+ * @vol1: pointer to install target volume
+ * @vol2: pointer to ubi_vol_info pointer. Will be set to point to the
+ *	  to-be-replaced volume in case a volume is found and the
+ *	  request is legal. Otherwise it is set to NULL.
+ *
+ * Return: 0 if replace valid or no replace found. Otherwise <0.
+ */
+static int check_replace(struct img_type *img,
+			 struct ubi_vol_info *vol1,
+			 struct ubi_vol_info **vol2)
+{
+	char *tmpvol_name;
+	struct ubi_part *tmpvol;
+
+	*vol2 = NULL;
+	tmpvol_name = dict_get_value(&img->properties, "replaces");
+
+	if (tmpvol_name == NULL)
+		return 0;
+
+	tmpvol = search_volume_global(tmpvol_name);
+
+	if (!tmpvol) {
+		ERROR("replace: unable to find a volume %s", tmpvol_name);
+		return -1;
+	}
+
+	/* check whether on same device */
+	if (vol1->dev_num != tmpvol->vol_info.dev_num) {
+		ERROR("replace: unable to swap volumes on different devices");
+		return -1;
+	}
+
+	TRACE("replace: will swap UBI volume names %s <-> %s after successful install",
+	      vol1->name, tmpvol->vol_info.name);
+
+	*vol2 = &tmpvol->vol_info;
+
+	return 0;
+}
+
+/**
+ * swap_volnames - swap the names of the given volumes
+ * @vol1: first volume
+ * @vol2: second volume
+ *
+ * Return: 0 if OK, <0 otherwise
+ */
+static int swap_volnames(libubi_t libubi,
+			 struct ubi_vol_info *vol1,
+			 struct ubi_vol_info *vol2)
+{
+	struct ubi_rnvol_req rnvol;
+	char masternode[64];
+
+	snprintf(masternode, sizeof(masternode),
+		 "/dev/ubi%d", vol1->dev_num);
+
+	TRACE("replace: swapping UBI volume names %s <-> %s on %s",
+	      vol1->name, vol2->name, masternode);
+
+	rnvol.ents[0].vol_id = vol1->vol_id;
+	rnvol.ents[0].name_len = strlen(vol2->name);
+	strcpy(rnvol.ents[0].name, vol2->name);
+
+	rnvol.ents[1].vol_id = vol2->vol_id;
+	rnvol.ents[1].name_len = strlen(vol1->name);
+	strcpy(rnvol.ents[1].name, vol1->name);
+
+	rnvol.count = 2;
+
+	return ubi_rnvols(libubi, masternode, &rnvol);
+}
+
 static int update_volume(libubi_t libubi, struct img_type *img,
 	struct ubi_vol_info *vol)
 {
@@ -42,6 +137,7 @@ static int update_volume(libubi_t libubi, struct img_type *img,
 	int err;
 	char sbuf[128];
 	char *decrypted_size_str = NULL;
+	struct ubi_vol_info *repl_vol;
 
 	bytes = img->size;
 	if (img->is_encrypted) {
@@ -95,6 +191,10 @@ static int update_volume(libubi_t libubi, struct img_type *img,
 		return -1;
 	}
 
+	/* check replace property */
+	if(check_replace(img, vol, &repl_vol))
+		return -1;
+
 	fdout = open(node, O_RDWR);
 	if (fdout < 0) {
 		ERROR("cannot open UBI volume \"%s\"", node);
@@ -116,6 +216,15 @@ static int update_volume(libubi_t libubi, struct img_type *img,
 		ERROR("Error copying extracted file");
 		err = -1;
 	}
+
+	/* handle replace */
+	if(repl_vol) {
+		err = swap_volnames(libubi, vol, repl_vol);
+		if(err)
+			ERROR("replace: failed to swap volume names %s<->%s: %d",
+			      vol->name, repl_vol->name, err);
+	}
+
 	close(fdout);
 	return err;
 }
@@ -124,20 +233,12 @@ static int install_ubivol_image(struct img_type *img,
 	void __attribute__ ((__unused__)) *data)
 {
 	struct flash_description *flash = get_flash_info();
-	struct mtd_info *mtd = &flash->mtd;
-	struct mtd_ubi_info *mtd_info;
 	struct ubi_part *ubivol;
-	int i, ret;
+	int ret;
 
-	/* Get the correct information */
-	for (i = mtd->lowest_mtd_num; i <= mtd->highest_mtd_num; i++) {
-		mtd_info = &flash->mtd_info[i];
+	/* find the volume to be updated */
+	ubivol = search_volume_global(img->volname);
 
-		ubivol = search_volume(img->volname,
-			&mtd_info->ubi_partitions);
-		if (ubivol)
-			break;
-	}
 	if (!ubivol) {
 		ERROR("Image %s should be stored in volume "
 			"%s, but no volume found",
