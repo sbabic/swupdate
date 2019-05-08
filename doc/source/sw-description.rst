@@ -583,13 +583,18 @@ in kernel.
 		},
 	);
 
-All fields are mandatory. SWUpdate searches for a volume of the
-selected name and adjusts the size, or creates a new volume if
-no volume with the given name exists. In the latter case, it is
-created on the UBI device attached to the MTD device given by
-"device". "device" can be given by number (e.g. "mtd4") or by name
-(the name of the MTD device, e.g. "ubi_partition"). The UBI device
-is attached automatically.
+All fields are mandatory. SWUpdate searches for a volume of the given
+name and if necessary adjusts size or type (see below). If no volume
+with the given name is found, a new volume is created on the UBI
+device attached to the MTD device given by ``device``. ``device`` can
+be specified by number (e.g. "mtd4") or by name (the name of the MTD
+device, e.g. "ubi_partition"). The UBI device is attached
+automatically.
+
+The default behavior of swupdate is to create a dynamic UBI volume. To
+create a static volume, add a line ``data = "static";`` to the
+respective partition entry.
+
 
 images
 ------

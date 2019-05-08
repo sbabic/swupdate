@@ -158,10 +158,16 @@ static int adjust_volume(struct img_type *cfg,
 	struct ubi_part *ubivol;
 	struct ubi_mkvol_request req;
 	struct mtd_ubi_info *mtd_info;
-	int mtdnum;
+	int mtdnum, req_vol_type;
 	char node[64];
 	int err;
 	struct flash_description *flash = get_flash_info();
+
+	/* determine the requested volume type */
+	if (!strcmp(cfg->type_data, "static"))
+		req_vol_type = UBI_STATIC_VOLUME;
+	else
+		req_vol_type = UBI_DYNAMIC_VOLUME;
 
 	/*
 	 * Partition are adjusted only in one MTD device
@@ -205,8 +211,12 @@ static int adjust_volume(struct img_type *cfg,
 			((cfg->partsize % mtd_info->dev_info.leb_size) ? 1 : 0);
 		allocated_lebs = ubivol->vol_info.rsvd_bytes / mtd_info->dev_info.leb_size;
 
-		if (requested_lebs == allocated_lebs)
+		if (requested_lebs == allocated_lebs &&
+		    req_vol_type == ubivol->vol_info.type) {
+			TRACE("skipping volume %s (same size and type)",
+			      ubivol->vol_info.name);
 			return 0;
+		}
 
 		snprintf(node, sizeof(node), "/dev/ubi%d", ubivol->vol_info.dev_num);
 		err = ubi_rmvol(nandubi->libubi, node, ubivol->vol_info.vol_id);
@@ -228,17 +238,15 @@ static int adjust_volume(struct img_type *cfg,
 	 * Volumes are empty, and they are filled later by the update procedure
 	 */
 	memset(&req, 0, sizeof(req));
-	if (!strcmp(cfg->type_data, "static"))
-		req.vol_type = UBI_STATIC_VOLUME;
-	else
-		req.vol_type = UBI_DYNAMIC_VOLUME;
+	req.vol_type = req_vol_type;
 	req.vol_id = UBI_VOL_NUM_AUTO;
 	req.alignment = 1;
 	req.bytes = cfg->partsize;
 	req.name = cfg->volname;
 	err = ubi_mkvol(nandubi->libubi, node, &req);
 	if (err < 0) {
-		ERROR("cannot create UBIvolume %s of %lld bytes",
+		ERROR("cannot create %s UBI volume %s of %lld bytes",
+		      (req_vol_type == UBI_DYNAMIC_VOLUME) ? "dynamic" : "static",
 			req.name, req.bytes);
 		return err;
 	}
@@ -257,8 +265,9 @@ static int adjust_volume(struct img_type *cfg,
 		return err;
 	}
 	LIST_INSERT_HEAD(&mtd_info->ubi_partitions, ubivol, next);
-	TRACE("Created UBI Volume %s of %lld bytes (requested %lld)",
-		req.name, ubivol->vol_info.rsvd_bytes, req.bytes);
+	TRACE("Created %s UBI volume %s of %lld bytes (old size %lld)",
+	      (req_vol_type == UBI_DYNAMIC_VOLUME) ? "dynamic" : "static",
+	      req.name, req.bytes, ubivol->vol_info.rsvd_bytes);
 
 	return 0;
 }
