@@ -80,11 +80,11 @@ static void lua_dump_table(lua_State *L, char *str, struct img_type *img, const 
 					lua_tostring(L, -1),
 					lua_tostring(L, -2));
 				if (img) {
-					TRACE("Inserting property %s[%s] = %s",
-							key,
-							lua_tostring(L, -1),
+					TRACE("Inserting property %s = %s",
+							key ? key : lua_tostring(L, -1),
 							lua_tostring(L, -2));
-					dict_insert_value(&img->properties, key,
+					dict_insert_value(&img->properties,
+							key ? key : lua_tostring(L, -1),
 							lua_tostring(L, -2));
 				}
 				break;
