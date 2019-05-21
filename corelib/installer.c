@@ -169,7 +169,11 @@ static int update_bootloader_env(struct swupdate_cfg *cfg, const char *script)
 
 		if (!key || !value)
 			continue;
+#if defined(CONFIG_UBOOT) && !defined(CONFIG_UBOOT_NEWAPI)
+		snprintf(buf, sizeof(buf), "%s %s\n", key, value);
+#else
 		snprintf(buf, sizeof(buf), "%s=%s\n", key, value);
+#endif
 		if (write(fd, buf, strlen(buf)) != (ssize_t)strlen(buf)) {
 			  TRACE("Error saving temporary bootloader environment file");
 			  close(fd);
