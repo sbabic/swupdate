@@ -586,19 +586,19 @@ int main(int argc, char **argv)
 	int result = EXIT_SUCCESS;
 #ifdef CONFIG_SURICATTA
 	int opt_u = 0;
-	char suricattaoptions[1024];
+	char *suricattaoptions;
 	char **argvalues = NULL;
 	int argcount = 0;
 #endif
 #ifdef CONFIG_WEBSERVER
 	int opt_w = 0;
-	char weboptions[1024];
+	char *weboptions;
 	char **av = NULL;
 	int ac = 0;
 #endif
 #ifdef CONFIG_DOWNLOAD
 	int opt_d = 0;
-	char dwloptions[1024];
+	char *dwloptions;
 #endif
 	char **dwlav = NULL;
 	int dwlac = 0;
@@ -772,9 +772,14 @@ int main(int argc, char **argv)
 			break;
 #ifdef CONFIG_DOWNLOAD
 		case 'd':
-			(void)snprintf(dwloptions, sizeof(dwloptions), "%s %s", argv[0], optarg);
+			if (asprintf(&dwloptions,"%s %s", argv[0], optarg) ==
+			ENOMEM_ASPRINTF) {
+				ERROR("Cannot allocate memory for downloader options.");
+				exit(EXIT_FAILURE);
+			}
 			dwlav = splitargs(dwloptions, &dwlac);
 			opt_d = 1;
+			free(dwloptions);
 			break;
 #endif
 		case 'H':
@@ -783,16 +788,26 @@ int main(int argc, char **argv)
 			break;
 #ifdef CONFIG_SURICATTA
 		case 'u':
-			(void)snprintf(suricattaoptions, sizeof(suricattaoptions), "%s %s", argv[0], optarg);
+			if (asprintf(&suricattaoptions,"%s %s", argv[0], optarg) ==
+			ENOMEM_ASPRINTF) {
+				ERROR("Cannot allocate memory for suricatta options.");
+				exit(EXIT_FAILURE);
+			}
 			argvalues = splitargs(suricattaoptions, &argcount);
 			opt_u = 1;
+			free(suricattaoptions);
 			break;
 #endif
 #ifdef CONFIG_WEBSERVER
 		case 'w':
-			snprintf(weboptions, sizeof(weboptions), "%s %s", argv[0], optarg);
+			if (asprintf(&weboptions,"%s %s", argv[0], optarg) ==
+			ENOMEM_ASPRINTF) {
+				ERROR("Cannot allocate memory for webserver options.");
+				exit(EXIT_FAILURE);
+			}
 			av = splitargs(weboptions, &ac);
 			opt_w = 1;
+			free(weboptions);
 			break;
 #endif
 		case 'c':
