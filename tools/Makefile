@@ -12,7 +12,8 @@ lib-y += \
 	 client.o \
 	 progress.o \
 	 hawkbitcfg.o \
-	 sendtohawkbit.o
+	 sendtohawkbit.o \
+	 swupdate-sysrestart.o
 
 # # Uncomment the next lines to integrate the compiling/linking of
 # # any .c files placed alongside the above "official" tools in the
