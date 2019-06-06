@@ -528,8 +528,16 @@ Example:
 
 ::
 
-        properties = {
+    images: (
+        {
+            filename = "microcontroller-image";
+            type = "ucfw";
+            device = "/dev/ttymxc5";
+
+            properties: {
                 reset =  "/dev/gpiochip0:38:false";
                 prog =  "/dev/gpiochip0:39:false";
+            };
         }
+    );
 
