@@ -25,6 +25,9 @@ before_install:
     - sudo apt-get install -y librsync1
     - sudo apt-get install -y librsync-dev
     - sudo apt-get install -y doxygen
+    - sudo apt-get install -y graphviz
+    - sudo apt-get install -y autoconf-archive
+    - sudo apt-get install -y linux-headers-$(uname -r)
 
 script:
     - sudo ln -sf /usr/lib/x86_64-linux-gnu/pkgconfig/lua5.2.pc /usr/lib/x86_64-linux-gnu/pkgconfig/lua.pc
@@ -56,6 +59,14 @@ script:
     - sudo install -m 644 libebgenv.a /usr/local/lib/libebgenv.a
     - sudo install -m 755 -d /usr/include/efibootguard
     - sudo install -m 644 include/ebgenv.h /usr/include/efibootguard/ebgenv.h
+    - cd ..
+    - git clone https://git.kernel.org/pub/scm/libs/libgpiod/libgpiod.git
+    - cd libgpiod
+    - mkdir -p include/linux
+    - cp /usr/src/linux-headers-$(uname -r)/include/linux/compiler_types.h include/linux/.
+    - ./autogen.sh --prefix=/usr/local CFLAGS="-I/usr/src/linux-headers-$(uname -r)/include/uapi -Iinclude"
+    - make
+    - sudo make install
     - cd ..
     # Accommodate to trusty's rusty systemd version
     - sudo ln -sf /lib/x86_64-linux-gnu/libsystemd-daemon.so.0 /lib/x86_64-linux-gnu/libsystemd.so
