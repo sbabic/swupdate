@@ -195,7 +195,6 @@ void free_string_array(char **nodes);
 int load_decryption_key(char *fname);
 unsigned char *get_aes_key(void);
 unsigned char *get_aes_ivt(void);
-unsigned char *get_aes_salt(void);
 
 /* Getting global information */
 int get_install_info(sourcetype *source, char *buf, size_t len);

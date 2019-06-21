@@ -299,7 +299,6 @@ int copyfile(int fdin, void *out, unsigned int nbytes, unsigned long *offs, unsi
 	unsigned int md_len = 0;
 	unsigned char *aes_key = NULL;
 	unsigned char *ivt = NULL;
-	unsigned char *salt;
 
 	struct InputState input_state = {
 		.fdin = fdin,
@@ -348,8 +347,7 @@ int copyfile(int fdin, void *out, unsigned int nbytes, unsigned long *offs, unsi
 	if (encrypted) {
 		aes_key = get_aes_key();
 		ivt = get_aes_ivt();
-		salt = get_aes_salt();
-		decrypt_state.dcrypt = swupdate_DECRYPT_init(aes_key, ivt, salt);
+		decrypt_state.dcrypt = swupdate_DECRYPT_init(aes_key, ivt);
 		if (!decrypt_state.dcrypt) {
 			ERROR("decrypt initialization failure, aborting");
 			ret = -EFAULT;
