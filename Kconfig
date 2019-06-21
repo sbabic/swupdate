@@ -376,6 +376,9 @@ choice
 	config SIGALG_RAWRSA
 		bool "RSA PKCS#1.5"
 
+	config SIGALG_RSAPSS
+		bool "RSA PSS"
+
 	config SIGALG_CMS
 		bool "Cryptographic Message Syntax (CMS)"
 

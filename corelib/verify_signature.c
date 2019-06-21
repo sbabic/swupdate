@@ -126,13 +126,19 @@ int swupdate_dgst_init(struct swupdate_cfg *sw, const char *keyfile)
 		goto dgst_init_error;
 	}
 
-#if defined(CONFIG_SIGALG_RAWRSA)
+#if defined(CONFIG_SIGALG_RAWRSA) || defined(CONFIG_SIGALG_RSAPSS)
 	/*
 	 * Load public key
 	 */
 	dgst->pkey = load_pubkey(keyfile);
 	if (!dgst->pkey) {
 		ERROR("Error loading pub key from %s", keyfile);
+		ret = -EINVAL;
+		goto dgst_init_error;
+	}
+	dgst->ckey = EVP_PKEY_CTX_new(dgst->pkey, NULL);
+	if (!dgst->ckey) {
+		ERROR("Error creating context key for %s", keyfile);
 		ret = -EINVAL;
 		goto dgst_init_error;
 	}

@@ -19,5 +19,6 @@ lib-$(CONFIG_LIBCONFIG)		+= swupdate_settings.o \
 lib-$(CONFIG_JSON)		+= parsing_library_libjson.o
 lib-$(CONFIG_CHANNEL_CURL)	+= channel_curl.o
 lib-$(CONFIG_SIGALG_RAWRSA)	+= swupdate_rsa_verify.o
+lib-$(CONFIG_SIGALG_RSAPSS)	+= swupdate_rsa_verify.o
 lib-$(CONFIG_SIGALG_CMS)	+= swupdate_cms_verify.o
 

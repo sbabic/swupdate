@@ -45,6 +45,7 @@
 
 struct swupdate_digest {
 	EVP_PKEY *pkey;		/* this is used for RSA key */
+	EVP_PKEY_CTX *ckey;	/* this is used for RSA key */
 	X509_STORE *certs;	/* this is used if CMS is set */
 	EVP_MD_CTX *ctx;
 #if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)

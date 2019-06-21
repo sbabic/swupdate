@@ -61,8 +61,8 @@ OpenSSL project. A complete documentation can be found at
 the `openSSL Website <https://www.openssl.org/docs/manmaster/man1/openssl.html>`_.
 
 
-Usage with RSA PKCS#1.5
------------------------
+Usage with RSA PKCS#1.5 or RSA PSS
+----------------------------------
 
 Generating private and public key
 .................................
@@ -94,11 +94,18 @@ can be passed to swupdate at the command line with the -k parameter.
 How to sign with RSA
 ....................
 
-Signing the image is very simple:
+Signing the image with rsa-pkcs#1.5 is very simple:
 
 ::
 
         openssl dgst -sha256 -sign priv.pem sw-description > sw-description.sig
+
+Signing the image with rsa-pss is also very simple:
+
+::
+
+        openssl dgst -sha256 -sign priv.pem -sigopt rsa_padding_mode:pss \
+	    -sigopt rsa_pss_saltlen:-2 sw-description > sw-description.sig
 
 
 Usage with certificates and CMS
@@ -165,15 +172,18 @@ A simple script to create a signed image can be:
 
         #!/bin/bash
 
-        MODE="RSA"
+        MODE="RSA-PKCS-1.5"
         PRODUCT_NAME="myproduct"
         CONTAINER_VER="1.0"
         IMAGES="rootfs kernel"
         FILES="sw-description sw-description.sig $IMAGES"
 
         #if you use RSA
-        if [ x"$MODE" == "xRSA" ]; then
+        if [ x"$MODE" == "xRSA-PKCS-1.5" ]; then
             openssl dgst -sha256 -sign priv.pem sw-description > sw-description.sig
+	elif if [ x"$MODE" == "xRSA-PSS" ]; then
+	    openssl dgst -sha256 -sign priv.pem -sigopt rsa_padding_mode:pss \
+	        -sigopt rsa_pss_saltlen:-2 sw-description > sw-description.sig
         else
             openssl cms -sign -in  sw-description -out sw-description.sig -signer mycert.cert.pem \
                 -inkey mycert.key.pem -outform DER -nosmimecap -binary

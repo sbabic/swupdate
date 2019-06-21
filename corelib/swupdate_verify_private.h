@@ -13,7 +13,7 @@
 struct swupdate_digest;
 int dgst_init(struct swupdate_digest *dgst, const EVP_MD *md);
 
-#if defined(CONFIG_SIGALG_RAWRSA)
+#if defined(CONFIG_SIGALG_RAWRSA) || defined(CONFIG_SIGALG_RSAPSS)
 EVP_PKEY *load_pubkey(const char *file);
 #endif
 
