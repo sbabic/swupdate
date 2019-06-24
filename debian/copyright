@@ -4,7 +4,6 @@ Upstream-Contact: Stefano Babic <sbabic@denx.de>
 Source: https://github.com/sbabic/swupdate/tree/debian
 Files-Excluded:
     debian
-    examples/www/
 Comment: The following files were removed because
   debian: Drop the debian directory from upstream
   examples/www/: Remove this directory since it contains minified JavaScript objects
