@@ -43,6 +43,27 @@ Description: Software update framework for embedded systems
   - Allow custom handlers for installing FPGA/ microcontroller firmware.
   - Power-Off safe
 
+Package: swupdate-www
+Section: embedded
+Architecture: linux-any
+Depends: ${misc:Depends}
+Description: Web Application for swupdate
+ This package contains the web application for swupdate.
+ .
+ swupdate is a Linux update agent with the goal to provide an efficient and
+ safe way to update an embedded system.
+ .
+  - Install on embedded media (eMMC, SD, Raw NAND, NOR and SPI-NOR flashes)
+  - Allow delivery single image for multiple devices
+  - Multiple interfaces for getting software
+    1. local storage
+    2. integrated web server
+    3. integrated REST client connector to hawkBit
+    4. remote server download
+  - Software delivered as images, gzipped tarball, etc
+  - Allow custom handlers for installing FPGA/ microcontroller firmware.
+  - Power-Off safe
+
 Package: swupdate-dev
 Section: libdevel
 Architecture: linux-any
