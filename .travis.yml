@@ -1,5 +1,5 @@
 
-dist: xenial
+dist: bionic
 sudo: required
 
 language: c
@@ -9,11 +9,10 @@ before_install:
     - sudo apt-get install -y build-essential
     - sudo apt-get install -y automake
     - sudo apt-get install -y libzmq3-dev
-    - sudo apt-get install -y libcurl4-openssl-dev
     - sudo apt-get install -y liblua5.2-dev
     - sudo apt-get install -y libconfig-dev
     - sudo apt-get install -y libarchive-dev
-    - sudo apt-get install -y libjson0-dev
+    - sudo apt-get install -y libjson-c-dev
     - sudo apt-get install -y zlib1g-dev
     - sudo apt-get install -y git
     - sudo apt-get install -y uuid
@@ -24,6 +23,7 @@ before_install:
     - sudo apt-get install -y check
     - sudo apt-get install -y librsync1
     - sudo apt-get install -y librsync-dev
+    - sudo apt-get install -y liburiparser-dev
     - sudo apt-get install -y doxygen
     - sudo apt-get install -y graphviz
     - sudo apt-get install -y autoconf-archive
@@ -51,6 +51,12 @@ script:
     - make
     - sudo make install
     - cd ..
+    - git clone https://github.com/warmcat/libwebsockets.git
+    - cd libwebsockets
+    - cmake .
+    - make
+    - sudo make install
+    - cd ..
     - git clone https://github.com/siemens/efibootguard.git
     - cd efibootguard
     - autoreconf -fi
@@ -68,6 +74,4 @@ script:
     - make
     - sudo make install
     - cd ..
-    # Accommodate to trusty's rusty systemd version
-    - sudo ln -sf /lib/x86_64-linux-gnu/libsystemd-daemon.so.0 /lib/x86_64-linux-gnu/libsystemd.so
     - for i in configs/*;do echo $i;make `basename $i` && make || exit 1;done
