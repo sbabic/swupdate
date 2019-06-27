@@ -106,7 +106,7 @@ static int start_postinstall_script(struct img_type *img, void *data)
 	scriptfn = *(script_fn *)data;
 
 	/*
-	 * Call only in case of preinstall
+	 * Call only in case of postinstall
 	 */
 	if (scriptfn != POSTINSTALL)
 		return 0;
