@@ -365,12 +365,10 @@ static int parse_scripts(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lu
 			continue;
 
 		/*
-		 * Check for mandatory field
+		 * Check for filename field
 		 */
-		if(!(exist_field_string(p, elem, "filename"))) {
-			TRACE("Script entry without filename field, skipping..");
-			continue;
-		}
+		if(!(exist_field_string(p, elem, "filename")))
+			TRACE("Script entry without filename field.");
 
 		script = (struct img_type *)calloc(1, sizeof(struct img_type));
 		if (!script) {

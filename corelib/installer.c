@@ -99,6 +99,11 @@ static int extract_scripts(int fd, struct imglist *head, int fromfile)
 	const char* tmpdir_scripts = get_tmpdirscripts();
 
 	LIST_FOREACH(script, head, next) {
+		if (!script->fname[0] && (script->provided == 0)) {
+			TRACE("No script provided for script of type %s",
+				script->type);
+			continue;
+		}
 		if (script->provided == 0) {
 			ERROR("Required script %s not found in image",
 				script->fname);
