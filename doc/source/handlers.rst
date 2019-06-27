@@ -163,6 +163,28 @@ However, please note the following limitations:
 - Atomic renames are only possible and permitted for volumes residing
   on the same UBI device.
 
+There is a handler ubiswap that allow to do an atomic swap for several
+ubi volume after all the images were flashed. This handler is a script
+for the point of view of swudate, so the node that provide it the data
+should be added in the section scripts.
+
+::
+
+	scripts: (
+		{
+			type = "ubiswap";
+			properties: {
+				swap-0 = [ "boot" , " boot_r" ];
+				swap-1 = [ "kernel" , "kernel_r" ];
+				swap-2 = [ "rootfs" , "rootfs_r" ];
+			},
+		},
+	);
+
+
+WARNING: if you use the property replaces on an ubi volume that is also
+used with the handler ubiswap, this ubi volume will be swapped twice.
+It's probably not what you want ...
 
 Lua Handlers
 ------------

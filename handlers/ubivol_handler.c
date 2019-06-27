@@ -373,6 +373,127 @@ static int adjust_volume(struct img_type *cfg,
 	return 0;
 }
 
+static int ubi_volume_get_info(char *name, int *dev_num, int *vol_id)
+{
+	struct ubi_part *ubi_part;
+
+	ubi_part = search_volume_global(name);
+	if (!ubi_part) {
+		ERROR("could not found UBI volume %s", name);
+		return -1;
+	}
+
+	*dev_num = ubi_part->vol_info.dev_num;
+	*vol_id  = ubi_part->vol_info.vol_id;
+
+	return 0;
+}
+
+static int swap_volume(struct img_type *img, void *data)
+{
+	script_fn scriptfn;
+	struct flash_description *flash = get_flash_info();
+	libubi_t libubi = flash->libubi;
+	int num, count = 0;
+	struct dict_list *volumes;
+	struct dict_list_elem *volume;
+	char *name[2];
+	int dev_num[2], vol_id[2], global_dev_num = -1;
+	char prop[SWUPDATE_GENERAL_STRING_SIZE];
+	char masternode[UBI_MAX_VOLUME_NAME+1];
+	struct ubi_rnvol_req rnvol;
+	int ret = -1;
+
+	if (!data)
+		return -EINVAL;
+
+	scriptfn = *(script_fn *)data;
+
+	/*
+	 * Call only in case of postinstall
+	 */
+	if (scriptfn != POSTINSTALL)
+		return 0;
+
+	while (1) {
+		snprintf(prop, sizeof(prop), "swap-%d", count);
+		volumes = dict_get_list(&img->properties, prop);
+		if (!volumes)
+			break;
+
+		if (count >= (UBI_MAX_RNVOL / 2)) {
+			ERROR("Too many requested swap");
+			goto out;
+		}
+
+		num = 0;
+		LIST_FOREACH(volume, volumes, next) {
+			if (num >= 2) {
+				ERROR("Too many ubi volume (%s)", prop);
+				goto out;
+			}
+
+			name[num] = volume->value;
+			if (ubi_volume_get_info(volume->value,
+						&dev_num[num],
+						&vol_id[num]) < 0)
+				goto out;
+
+			num++;
+		}
+
+		if (num != 2) {
+			ERROR("Invalid number (%d) of ubi volume (%s)", num, prop);
+			goto out;
+		}
+
+		if (dev_num[0] != dev_num[1]) {
+			ERROR("both volume should be on the same UBI device");
+			goto out;
+		}
+
+		if (global_dev_num == -1) {
+			global_dev_num = dev_num[0];
+			snprintf(&masternode[0], sizeof(masternode),
+				 "/dev/ubi%d", global_dev_num);
+		} else {
+			if (global_dev_num != dev_num[0]) {
+				ERROR("all volumes should be on the"
+				      "same UBI device (%s)", prop);
+				goto out;
+			}
+		}
+
+		TRACE("swap UBI volume %s <-> %s", name[0], name[1]);
+
+		/* swap first -> second */
+		rnvol.ents[2 * count + 0].vol_id = vol_id[0];
+		rnvol.ents[2 * count + 0].name_len = strlen(name[1]);
+		strcpy(rnvol.ents[2 * count + 0].name, name[1]);
+
+		/* swap second -> first */
+		rnvol.ents[2 * count + 1].vol_id = vol_id[1];
+		rnvol.ents[2 * count + 1].name_len = strlen(name[0]);
+		strcpy(rnvol.ents[2 * count + 1].name, name[0]);
+
+		count++;
+	}
+
+	if (!count) {
+		ERROR("No UBI volume provided");
+		goto out;
+	}
+
+	rnvol.count = count * 2;
+
+	ret = ubi_rnvols(libubi, masternode, &rnvol);
+	if (ret)
+		ERROR("failed to swap UBI volume names");
+
+ out:
+	return ret;
+}
+
 __attribute__((constructor))
 void ubi_handler(void)
 {
@@ -380,4 +501,6 @@ void ubi_handler(void)
 				IMAGE_HANDLER, NULL);
 	register_handler("ubipartition", adjust_volume,
 				PARTITION_HANDLER, NULL);
+	register_handler("ubiswap", swap_volume,
+				SCRIPT_HANDLER, NULL);
 }
