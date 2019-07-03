@@ -233,7 +233,7 @@ int install_single_image(struct img_type *img, int dry_run)
 	}
 	TRACE("Found installer for stream %s %s", img->fname, hnd->desc);
 
-	swupdate_progress_inc_step(img->fname);
+	swupdate_progress_inc_step(img->fname, hnd->desc);
 
 	/* TODO : check callback to push results / progress */
 	ret = hnd->installer(img, hnd->data);

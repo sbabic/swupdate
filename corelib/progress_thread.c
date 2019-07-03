@@ -113,13 +113,14 @@ void swupdate_progress_update(unsigned int perc)
 	pthread_mutex_unlock(&prbar->lock);
 }
 
-void swupdate_progress_inc_step(char *image)
+void swupdate_progress_inc_step(char *image, char *handler_name)
 {
 	struct swupdate_progress *prbar = &progress;
 	pthread_mutex_lock(&prbar->lock);
 	prbar->msg.cur_step++;
 	prbar->msg.cur_percent = 0;
 	strncpy(prbar->msg.cur_image, image, sizeof(prbar->msg.cur_image));
+	strncpy(prbar->msg.hnd_name, handler_name, sizeof(prbar->msg.hnd_name));
 	prbar->step_running = true;
 	prbar->msg.status = RUN;
 	send_progress_msg();
