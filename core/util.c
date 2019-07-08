@@ -297,8 +297,7 @@ int check_hw_compatibility(struct swupdate_cfg *cfg)
 
 	TRACE("Hardware %s Revision: %s", cfg->hw.boardname, cfg->hw.revision);
 	LIST_FOREACH(hw, &cfg->hardware, next) {
-		if (hw && strlen(hw->revision) == strlen(cfg->hw.revision) &&
-				(!strcmp(hw->revision, cfg->hw.revision))) {
+		if (hw && (!strcmp(hw->revision, cfg->hw.revision))) {
 			TRACE("Hardware compatibility verified");
 			return 0;
 		}
