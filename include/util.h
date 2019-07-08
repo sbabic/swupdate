@@ -23,6 +23,8 @@
 #define SWUPDATE_SHA_DIGEST_LENGTH	20
 #define AES_BLOCK_SIZE	16
 
+#define HWID_REGEXP_PREFIX	"#RE:"
+
 extern int loglevel;
 
 typedef enum {
@@ -186,6 +188,7 @@ void freeargs (char **argv);
 int get_hw_revision(struct hw_type *hw);
 void get_sw_versions(char *cfgfname, struct swupdate_cfg *sw);
 __u64 version_to_number(const char *version_string);
+int hwid_match(const char* rev, const char* hwrev);
 int check_hw_compatibility(struct swupdate_cfg *cfg);
 int count_elem_list(struct imglist *list);
 unsigned int count_string_array(const char **nodes);

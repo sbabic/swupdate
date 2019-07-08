@@ -545,24 +545,37 @@ Each entry in sw-description can be redirect by a link as in the above example f
 hardware-compatibility
 ----------------------
 
-hardware-compatibility: [ "major.minor", "major.minor", ... ]
+``hardware-compatibility: [ "major.minor", "major.minor", ... ]``
 
-It lists the hardware revisions that are compatible with this software image.
+This entry lists the hardware revisions that are compatible with this
+software image.
 
 Example:
 
+::
+
 	hardware-compatibility: [ "1.0", "1.2", "1.3"];
 
-This means that the software is compatible with HW-Revisions
-1.0, 1.2 and 1.3, but not for 1.1 or other version not explicitly
-listed here.
-It is then duty of the single project to find which is the
-revision of the board where SWUpdate is running. There is no
-assumption how the revision can be obtained (GPIOs, EEPROM,..)
-and each project is free to select the way most appropriate.
-The result must be written in the file /etc/hwrevision (or in
-another file if specified as configuration option) before
-SWUpdate is started.
+This defines that the software is compatible with HW-Revisions 1.0,
+1.2 and 1.3, but not with 1.1 or any other version not explicitly
+listed here. In the above example, compatibility is checked by means
+of string comparision. If the software is compatible with a large
+number of hardware revisions, it may get cumbersome to enumerate all
+compatible versions. To allow more compact specifications, regular
+expressions (POSIX extended) can be used by adding a prefix ``#RE:``
+to the entry. Rewriting the above example would yield:
+
+::
+
+	hardware-compatibility: [ "#RE:^1\.[023]$" ];
+
+It is in the responsibility of the respective project to find the
+revision of the board on which SWUpdate is running. No assumptions are
+made about how the revision can be obtained (GPIOs, EEPROM,..) and
+each project is free to select the most appropriate way. In the end
+the result must be written to the file ``/etc/hwrevision`` (or in
+another file if specified as configuration option) before SWUpdate is
+started.
 
 .. _partitions-ubi-layout:
 
