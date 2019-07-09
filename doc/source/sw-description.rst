@@ -75,7 +75,7 @@ The following example explains better the implemented tags:
 			{
 				filename = "bootloader-env";
 				type = "bootloader";
-			},
+			}
 		);
 
 		files: (
@@ -582,7 +582,7 @@ in kernel.
 			name = <volume name>;
 			size = <size in bytes>;
 			device = <MTD device>;
-		},
+		}
 	);
 
 All fields are mandatory. SWUpdate searches for a volume of the given
@@ -740,7 +740,7 @@ Lua
 		{
 			filename = <Name in CPIO Archive>;
 			type = "lua";
-	 	},
+	 	}
 	);
 
 
@@ -772,7 +772,7 @@ shellscript
 		{
 			filename = <Name in CPIO Archive>;
 			type = "shellscript";
-		},
+		}
 	);
 
 Shell scripts are called via system command.
@@ -791,7 +791,7 @@ preinstall
 		{
 			filename = <Name in CPIO Archive>;
 			type = "preinstall";
-		},
+		}
 	);
 
 preinstall are shell scripts and called via system command.
@@ -808,7 +808,7 @@ postinstall
 		{
 			filename = <Name in CPIO Archive>;
 			type = "postinstall";
-		},
+		}
 	);
 
 postinstall are shell scripts and called via system command.
@@ -860,7 +860,7 @@ must be chosen from the bootloader selection menu in `menuconfig`.
 		{
 			filename = "bootloader-env";
 			type = "bootloader";
-		},
+		}
 	)
 
 The format of the file is described in U-boot documentation. Each line
@@ -897,7 +897,7 @@ that must be changed:
 		{
 			name = <Variable name>;
 			value = <Variable value>;
-		},
+		}
 	)
 
 SWUpdate will internally generate a script that will be passed to the
