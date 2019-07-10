@@ -229,31 +229,7 @@ static int update_volume(libubi_t libubi, struct img_type *img,
 	return err;
 }
 
-static int install_ubivol_image(struct img_type *img,
-	void __attribute__ ((__unused__)) *data)
-{
-	struct flash_description *flash = get_flash_info();
-	struct ubi_part *ubivol;
-	int ret;
-
-	/* find the volume to be updated */
-	ubivol = search_volume_global(img->volname);
-
-	if (!ubivol) {
-		ERROR("Image %s should be stored in volume "
-			"%s, but no volume found",
-			img->fname,
-				img->volname);
-		return -1;
-	}
-	ret = update_volume(flash->libubi, img,
-				&ubivol->vol_info);
-	return ret;
-
-}
-
-static int adjust_volume(struct img_type *cfg,
-	void __attribute__ ((__unused__)) *data)
+static int resize_volume(struct img_type *cfg, long long size)
 {
 	struct flash_description *nandubi = get_flash_info();
 	struct ubi_part *ubivol;
@@ -308,8 +284,8 @@ static int adjust_volume(struct img_type *cfg,
 		}
 
 		/* Check if size is changed */
-		requested_lebs = cfg->partsize / mtd_info->dev_info.leb_size +
-			((cfg->partsize % mtd_info->dev_info.leb_size) ? 1 : 0);
+		requested_lebs = size / mtd_info->dev_info.leb_size +
+			((size % mtd_info->dev_info.leb_size) ? 1 : 0);
 		allocated_lebs = ubivol->vol_info.rsvd_bytes / mtd_info->dev_info.leb_size;
 
 		if (requested_lebs == allocated_lebs &&
@@ -342,7 +318,7 @@ static int adjust_volume(struct img_type *cfg,
 	req.vol_type = req_vol_type;
 	req.vol_id = UBI_VOL_NUM_AUTO;
 	req.alignment = 1;
-	req.bytes = cfg->partsize;
+	req.bytes = size;
 	req.name = cfg->volname;
 	err = ubi_mkvol(nandubi->libubi, node, &req);
 	if (err < 0) {
@@ -371,6 +347,35 @@ static int adjust_volume(struct img_type *cfg,
 	      req.name, req.bytes, ubivol->vol_info.rsvd_bytes);
 
 	return 0;
+}
+
+static int install_ubivol_image(struct img_type *img,
+	void __attribute__ ((__unused__)) *data)
+{
+	struct flash_description *flash = get_flash_info();
+	struct ubi_part *ubivol;
+	int ret;
+
+	/* find the volume to be updated */
+	ubivol = search_volume_global(img->volname);
+
+	if (!ubivol) {
+		ERROR("Image %s should be stored in volume "
+			"%s, but no volume found",
+			img->fname,
+				img->volname);
+		return -1;
+	}
+	ret = update_volume(flash->libubi, img,
+				&ubivol->vol_info);
+	return ret;
+
+}
+
+static int adjust_volume(struct img_type *cfg,
+	void __attribute__ ((__unused__)) *data)
+{
+	return resize_volume(cfg, cfg->partsize);
 }
 
 static int ubi_volume_get_info(char *name, int *dev_num, int *vol_id)
