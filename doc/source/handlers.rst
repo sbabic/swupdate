@@ -186,6 +186,26 @@ WARNING: if you use the property replaces on an ubi volume that is also
 used with the handler ubiswap, this ubi volume will be swapped twice.
 It's probably not what you want ...
 
+volume auto resize
+...........................
+
+The UBI volume handler has support to auto resize before flashing an
+image with the property ``auto-resize``. When this property is set
+on an image, the ubi volume is resized to fit exactly the image.
+
+::
+
+	{
+		filename = "u-boot.img";
+		device = "mtd0";
+		volume = "u-boot_r";
+		properties: {
+			auto-resize = "true";
+		}
+	}
+
+WARNING: when this property is used, the device must be defined.
+
 Lua Handlers
 ------------
 

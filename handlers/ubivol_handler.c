@@ -349,12 +349,101 @@ static int resize_volume(struct img_type *cfg, long long size)
 	return 0;
 }
 
+/**
+ * check_auto_resize - check the property auto-resize for this image
+ * @img: image information
+ *
+ * Return: 1 if the property auto-resize is true, otherwise 0.
+ */
+static int check_ubi_autoresize(struct img_type *img)
+{
+	char *resize;
+	int ret = 0;
+
+	resize = dict_get_value(&img->properties, "auto-resize");
+
+	if (resize && !strcmp(resize, "true"))
+		ret = 1;
+
+	return ret;
+}
+
+static int wait_volume(struct img_type *img)
+{
+	int ret = -1, num = 0, dev_num, vol_id;
+	struct ubi_part *ubivol;
+	struct stat buf;
+	char node[64];
+
+	ubivol = search_volume_global(img->volname);
+	if (!ubivol) {
+		ERROR("can't found volume %s", img->volname);
+		return -1;
+	}
+
+	dev_num = ubivol->vol_info.dev_num;
+	vol_id  = ubivol->vol_info.vol_id;
+
+	snprintf(node, sizeof(node), "/dev/ubi%d_%d",
+		 dev_num,
+		 vol_id);
+
+	while (num++ < 5)
+	{
+		ret = stat(node, &buf);
+		if (!ret)
+			break;
+
+		sleep(1);
+	}
+
+	return ret;
+}
+
 static int install_ubivol_image(struct img_type *img,
 	void __attribute__ ((__unused__)) *data)
 {
 	struct flash_description *flash = get_flash_info();
 	struct ubi_part *ubivol;
 	int ret;
+
+	if (check_ubi_autoresize(img)) {
+		long long bytes = img->size;
+
+		if (img->is_encrypted) {
+			char *decrypted_size_str = NULL;
+
+			decrypted_size_str = dict_get_value(&img->properties,
+							    "decrypted-size");
+
+			bytes = ustrtoull(decrypted_size_str, 0);
+			if (errno) {
+				ERROR("decrypted-size argument: ustrtoull failed");
+				return -1;
+			}
+
+			if (img->compressed) {
+				ERROR("Decryption of compressed UBI images not supported");
+				return -1;
+			}
+			if (bytes < AES_BLOCK_SIZE) {
+				ERROR("Encrypted image size (%lld) too small", bytes);
+				return -1;
+			}
+		}
+
+		ret = resize_volume(img, bytes);
+		if (ret < 0) {
+			ERROR("Can't resize ubi volume %s", img->volname);
+			return -1;
+		}
+
+		ret = wait_volume(img);
+		if (ret < 0) {
+			ERROR("can't found ubi volume %s", img->volname);
+			return -1;
+		}
+	}
 
 	/* find the volume to be updated */
 	ubivol = search_volume_global(img->volname);
