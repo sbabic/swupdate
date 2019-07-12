@@ -159,6 +159,39 @@ static int is_image_installed(struct swver *sw_ver_list,
 	return false;
 }
 
+static int is_image_higher(struct swver *sw_ver_list,
+				struct img_type *img)
+{
+	struct sw_version *swver;
+
+	if (!sw_ver_list)
+		return false;
+
+	if (!strlen(img->id.name) || !strlen(img->id.version) ||
+		!img->id.install_if_higher)
+		return false;
+
+	LIST_FOREACH(swver, sw_ver_list, next) {
+		__u64 minimum_version = version_to_number(swver->version);
+		__u64 newversion = version_to_number(img->id.version);
+
+		/*
+		 * Check if name are identical and the new version is lower
+		 * or equal.
+		 */
+		if (!strncmp(img->id.name, swver->name, sizeof(img->id.name)) &&
+		    (minimum_version >= newversion)) {
+			TRACE("%s(%s) has a higher version installed, skipping...",
+			      img->id.name,
+			      img->id.version);
+
+			return true;
+		}
+	}
+
+	return false;
+}
+
 /*
  * Remove the image if the same version is already installed
  */
@@ -169,6 +202,22 @@ static void remove_installed_image_list(struct imglist *img_list,
 
 	LIST_FOREACH(img, img_list, next) {
 		if (is_image_installed(sw_ver_list, img)) {
+			LIST_REMOVE(img, next);
+			free_image(img);
+		}
+	}
+}
+
+/*
+ * Remove the image if a higher version is already installed
+ */
+static void remove_higher_image_list(struct imglist *img_list,
+				struct swver *sw_ver_list)
+{
+	struct img_type *img;
+
+	LIST_FOREACH(img, img_list, next) {
+		if (is_image_higher(sw_ver_list, img)) {
 			LIST_REMOVE(img, next);
 			free_image(img);
 		}
@@ -281,6 +330,8 @@ int parse(struct swupdate_cfg *sw, const char *descfile)
 	}
 
 	remove_installed_image_list(&sw->images, &sw->installed_sw_list);
+
+	remove_higher_image_list(&sw->images, &sw->installed_sw_list);
 
 	/*
 	 * Compute the total number of installer

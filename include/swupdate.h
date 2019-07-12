@@ -45,6 +45,7 @@ struct sw_version {
 	char name[SWUPDATE_GENERAL_STRING_SIZE];
 	char version[SWUPDATE_GENERAL_STRING_SIZE];
 	int install_if_different;
+	int install_if_higher;
 	LIST_ENTRY(sw_version) next;
 };
 

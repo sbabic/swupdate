@@ -297,6 +297,8 @@ static void lua_bool_to_img(struct img_type *img, const char *key,
 		img->install_directly = (bool)val;
 	if (!strcmp(key, "install_if_different"))
 		img->id.install_if_different = (bool)val;
+	if (!strcmp(key, "install_if_higher"))
+		img->id.install_if_higher = (bool)val;
 	if (!strcmp(key, "encrypted"))
 		img->is_encrypted = (bool)val;
 	if (!strcmp(key, "partition"))
@@ -461,6 +463,7 @@ static void update_table(lua_State* L, struct img_type *img)
 		LUA_PUSH_IMG_BOOL(img, "compressed", compressed);
 		LUA_PUSH_IMG_BOOL(img, "installed_directly", install_directly);
 		LUA_PUSH_IMG_BOOL(img, "install_if_different", id.install_if_different);
+		LUA_PUSH_IMG_BOOL(img, "install_if_higher", id.install_if_higher);
 		LUA_PUSH_IMG_BOOL(img, "encrypted", is_encrypted);
 		LUA_PUSH_IMG_BOOL(img, "partition", is_partitioner);
 		LUA_PUSH_IMG_BOOL(img, "script", is_script);

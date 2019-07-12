@@ -280,6 +280,7 @@ static int parse_common_attributes(parsertype p, void *elem, struct img_type *im
 	get_field(p, elem, "installed-directly", &image->install_directly);
 	get_field(p, elem, "preserve-attributes", &image->preserve_attributes);
 	get_field(p, elem, "install-if-different", &image->id.install_if_different);
+	get_field(p, elem, "install-if-higher", &image->id.install_if_higher);
 	get_field(p, elem, "encrypted", &image->is_encrypted);
 
 	return 0;
@@ -545,7 +546,8 @@ static int parse_images(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua
 			strlen(image->path) ? image->path : image->device,
 			strlen(image->type) ? image->type : "NOT FOUND",
 			image->install_directly ? " (installed from stream)" : "",
-			(strlen(image->id.name) && image->id.install_if_different) ?
+			(strlen(image->id.name) && (image->id.install_if_different ||
+						    image->id.install_if_higher)) ?
 					" Version must be checked" : ""
 			);
 

@@ -1068,6 +1068,11 @@ compared with the data in the versions file. install-if-different is a
 boolean that enables the check for this image. It is then possible to
 check the version just for a subset of the images to be installed.
 
+There is also an attribute "install-if-higher" that check if the version
+of the new software is higher than the version of the installed software.
+If it's false, the new software isn't installed. The goal is to avoid
+installing an older version of software.
+
 
 Embedded Script
 ---------------
@@ -1263,6 +1268,10 @@ There are 4 main sections inside sw-description:
    +-------------+----------+------------+---------------------------------------+
    | install-if\ | bool     | images     | flag                                  |
    | -different  |          | files      | if set, name and version are          |
+   |             |          |            | compared with the entries in          |
+   +-------------+----------+------------+---------------------------------------+
+   | install-if\ | bool     | images     | flag                                  |
+   | -higher     |          | files      | if set, name and version are          |
    |             |          |            | compared with the entries in          |
    +-------------+----------+------------+---------------------------------------+
    | encrypted   | bool     | images     | flag                                  |

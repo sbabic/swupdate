@@ -89,6 +89,8 @@ static void sw_append_stream(struct img_type *img, const char *key,
 		img->install_directly = 1;
 	if (!strcmp(key, "install-if-different"))
 		img->id.install_if_different = 1;
+	if (!strcmp(key, "install-if-higher"))
+		img->id.install_if_higher = 1;
 }
 
 int parse_external(struct swupdate_cfg *software, const char *filename)
