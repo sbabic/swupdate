@@ -500,7 +500,7 @@ void ubi_handler(void)
 	register_handler("ubivol", install_ubivol_image,
 				IMAGE_HANDLER, NULL);
 	register_handler("ubipartition", adjust_volume,
-				PARTITION_HANDLER, NULL);
+				PARTITION_HANDLER | NO_DATA_HANDLER, NULL);
 	register_handler("ubiswap", swap_volume,
-				SCRIPT_HANDLER, NULL);
+				SCRIPT_HANDLER | NO_DATA_HANDLER, NULL);
 }
