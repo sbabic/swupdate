@@ -175,7 +175,7 @@ static int check_provided(struct imglist *list)
 
 	for (p = list->lh_first; p != NULL;
 		p = p->next.le_next) {
-		if (!p->provided) {
+		if (!p->provided && !(get_handler_mask(p) & NO_DATA_HANDLER)) {
 			ERROR("Requested file not found in image: %s", \
 				p->fname);
 			ret = -1;
