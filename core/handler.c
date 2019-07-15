@@ -78,3 +78,15 @@ struct installer_handler *get_next_handler(void)
 	return &supported_types[handler_index++];
 }
 
+unsigned int get_handler_mask(struct img_type *img)
+{
+	struct installer_handler *hnd;
+	unsigned int mask = 0;
+
+	hnd = find_handler(img);
+
+	if (hnd)
+		mask = hnd->mask;
+
+	return mask;
+}

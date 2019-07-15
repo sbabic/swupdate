@@ -25,11 +25,13 @@ typedef enum {
 	FILE_HANDLER = 2,
 	SCRIPT_HANDLER = 4,
 	BOOTLOADER_HANDLER = 8,
-	PARTITION_HANDLER = 16
+	PARTITION_HANDLER = 16,
+	NO_DATA_HANDLER = 32
 } HANDLER_MASK;
 
 #define ANY_HANDLER (IMAGE_HANDLER | FILE_HANDLER | SCRIPT_HANDLER | \
-			BOOTLOADER_HANDLER | PARTITION_HANDLER)
+			BOOTLOADER_HANDLER | PARTITION_HANDLER | \
+			NO_DATA_HANDLER)
 
 typedef int (*handler)(struct img_type *img, void *data);
 struct installer_handler{
@@ -45,4 +47,6 @@ int register_handler(const char *desc,
 struct installer_handler *find_handler(struct img_type *img);
 void print_registered_handlers(void);
 struct installer_handler *get_next_handler(void);
+unsigned int get_handler_mask(struct img_type *img);
+
 #endif
