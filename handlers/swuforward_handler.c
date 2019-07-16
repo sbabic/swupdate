@@ -217,96 +217,6 @@ curl_thread_exit:
 	pthread_exit(NULL);
 }
 
-
-static json_object *parse_reqstatus(json_object *reply, const char **json_path)
-{
-	json_object *json_data;
-
-	json_data = json_get_path_key(reply, json_path);
-	if (json_data == NULL) {
-		ERROR("Got malformed JSON: Could not find path");
-		DEBUG("Got JSON: %s", json_object_to_json_string(json_data));
-	}
-
-	return json_data;
-}
-
-/*
- * Send a GET to retrieve all traces from the connected board
- */
-static int get_answer_V1(struct curlconn *conn, RECOVERY_STATUS *result, bool ignore)
-{
-	channel_data_t channel_cfg = {
-		.debug = false,
-		.retries = 0,
-		.retry_sleep = 0,
-		.usessl = false};
-	channel_t *channel = channel_new();
-	json_object *json_data;
-	int status;
-
-	conn->response = CHANNEL_EIO;
-	/*
-	 * Open a curl channel, do not connect yet
-	 */
-	if (channel->open(channel, &channel_cfg) != CHANNEL_OK) {
-		return -EIO;
-	}
-
-	if (asprintf(&channel_cfg.url, "%s%s",
-			 conn->url, STATUS_URL_V1) < 0) {
-		ERROR("Out of memory.");
-		return -ENOMEM; 
-	}
-
-	/* Retrieve last message */
-	conn->response = channel->get(channel, (void *)&channel_cfg);
-
-	if (conn->response != CHANNEL_OK) {
-		status = -EIO;
-		goto cleanup;
-	}
-
-	/* Retrieve all fields */
-	status = -EBADMSG;
-	if (!(json_data = parse_reqstatus(channel_cfg.json_reply,
-					(const char *[]){"Status", NULL})))
-		goto cleanup;
-	status = json_object_get_int(json_data);
-
-	if (!(json_data = parse_reqstatus(channel_cfg.json_reply,
-					(const char *[]){"Msg", NULL})))
-		goto cleanup;
-	const char *msg = json_object_get_string(json_data);
-
-	if (!(json_data = parse_reqstatus(channel_cfg.json_reply,
-					(const char *[]){"LastResult", NULL})))
-		goto cleanup;
-	int lastResult = json_object_get_int(json_data);
-
-	if (strlen(msg) > 0)
-		conn->gotMsg = (strlen(msg) > 0) ? true : false;
-
-	if (!ignore) {
-		if (strlen(msg)) {
-			TRACE("Update to %s :  %s", conn->url, msg);
-		}
-		if (status == IDLE) {
-			TRACE("Update to %s : %s", conn->url, 
-				(lastResult == SUCCESS) ? "SUCCESS !" : "FAILURE");
-		}
-	}
-
-	*result = lastResult;
-
-cleanup:
-	free(channel_cfg.url);
-	channel->close(channel);
-	free(channel);
-
-	return status;
-}
-
 static int retrieve_msgs(struct hnd_priv *priv) {
 	struct curlconn *conn;
 	int ret;
@@ -431,32 +341,6 @@ static int install_remote_swu(struct img_type *img,
 		conn->url = url->value;
 		conn->total_bytes = img->size;
 		conn->SWUpdateStatus = IDLE;
-
-		/*
-		 * Try to connect to check Webserver Version
-		 * If there is an anwer, but with HTTP=404
-		 * it is V2
-		 * Just V2 is supported (TODO: support older versions, too ?)
-		 */
-
-		ret = get_answer_V1(conn, &conn->SWUpdateStatus, true);
-		if (ret < 0 && (conn->response == CHANNEL_ENOTFOUND)) {
-			conn->ver = SWUPDATE_WWW_V2;
-		} else if (!ret) {
-			conn->ver = SWUPDATE_WWW_V1;
-		} else {
-			ERROR("Remote SWUpdate not answering");
-			ret = FAILURE;
-			goto handler_exit;
-		}
-		TRACE("Found remote server V%d",
-			conn->ver == SWUPDATE_WWW_V2 ? SWUPDATE_WWW_V2 : SWUPDATE_WWW_V1);
-
-		if (conn->ver == SWUPDATE_WWW_V1) {
-			ERROR("FAULT: there is no support for older website");
-			ret = FAILURE;
-			goto handler_exit;
-		}
 
 		/*
 		 * Create one FIFO for each connection to be thread safe

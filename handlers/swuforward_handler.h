@@ -19,9 +19,7 @@
  */
 #define CUSTOM_HEADER "X_FILENAME: "
 #define MAX_WAIT_MS	3000
-#define POST_URL_V1	"/handle_post_request"
 #define POST_URL_V2	"/upload"
-#define STATUS_URL_V1	"/getstatus.json"
 
 /*
  * The handler checks if a remote update was successful
@@ -32,11 +30,6 @@
  */
 #define TIMEOUT_GET_ANSWER_SEC		900	/* 15 minutes */
 #define POLLING_TIME_REQ_STATUS		50	/* in mSec */
-
-typedef enum {
-	SWUPDATE_WWW_V1 = 1,
-	SWUPDATE_WWW_V2 = 2,
-} SWUPDATE_WEB_VER;
 
 typedef enum {
 	WS_UNKNOWN,
@@ -59,7 +52,6 @@ struct curlconn {
 	size_t total_bytes;	/* size of SWU image */
 	int fifo[2];		/* Pipe for IPC */
 	char *url;		/* URL for forwarding */
-	SWUPDATE_WEB_VER ver;	/* version of remote Webserver (V1 or V2) */
 	bool gotMsg;		/* set if the remote board has sent a new msg */
 	RECOVERY_STATUS SWUpdateStatus;	/* final status of update */
 	channel_op_res_t response;
