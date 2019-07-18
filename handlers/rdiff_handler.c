@@ -209,12 +209,8 @@ static int apply_rdiff_chunk_cb(void *out, const void *buf, unsigned int len)
 		}
 		rdiff_stats("[post]", rdiff_state, result);
 
-		if (result == RS_DONE && buffers->eof_in == true) {
+		if (result == RS_DONE) {
 			TRACE("rdiff processing done.");
-			break;
-		}
-		if (result == RS_DONE && buffers->eof_in == false) {
-			WARN("rdiff processing done but input EOF not seen yet?");
 			break;
 		}
 	}
