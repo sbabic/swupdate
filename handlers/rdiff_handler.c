@@ -47,8 +47,6 @@ struct rdiff_t
 	char *inbuf;
 	char *outbuf;
 
-	long long cpio_input_len;
-
 	uint8_t type;
 };
 
@@ -111,7 +109,6 @@ static rs_result fill_inbuffer(struct rdiff_t *rdiff_state, const void *buf, uns
 		TEST_OR_FAIL(*len <= RDIFF_BUFFER_SIZE, RS_IO_ERROR);
 		buffers->next_in = rdiff_state->inbuf;
 		buffers->avail_in = *len;
-		rdiff_state->cpio_input_len -= *len;
 		TRACE("Writing %d bytes to rdiff input buffer.", *len);
 		(void)memcpy(rdiff_state->inbuf, buf, *len);
 		*len = 0;
@@ -128,11 +125,9 @@ static rs_result fill_inbuffer(struct rdiff_t *rdiff_state, const void *buf, uns
 		}
 		TRACE("Appending %d bytes to rdiff input buffer.", buflen);
 		buffers->avail_in += buflen;
-		rdiff_state->cpio_input_len -= buflen;
 		(void)memcpy(target, buf, buflen);
 		*len -= buflen;
 	}
-	buffers->eof_in = rdiff_state->cpio_input_len == 0 ? true : false;
 	return RS_DONE;
 }
 
@@ -178,9 +173,8 @@ static inline void rdiff_stats(const char* msg, struct rdiff_t *rdiff_state, rs_
 		case RS_RUNNING: strresult = (char*)"RUNNING"; break;
 		default: break;
 	}
-	TRACE("%s avail_in=%ld eof_in=%s avail_out=%ld remaining=%lld result=%s",
-		  msg, buffers->avail_in, buffers->eof_in == true ? "true":"false",
-		  buffers->avail_out, rdiff_state->cpio_input_len, strresult);
+	TRACE("%s avail_in=%ld avail_out=%ld result=%s",
+		  msg, buffers->avail_in, buffers->avail_out, strresult);
 }
 
 static int apply_rdiff_chunk_cb(void *out, const void *buf, unsigned int len)
@@ -189,6 +183,7 @@ static int apply_rdiff_chunk_cb(void *out, const void *buf, unsigned int len)
 	rs_buffers_t *buffers = &rdiff_state->buffers;
 	unsigned int inbytesleft = len;
 	rs_result result = RS_RUNNING;
+	rs_result drain_run_result = RS_RUNNING;
 
 	if (buffers->next_out == NULL) {
 		TEST_OR_FAIL(buffers->avail_out == 0, -1);
@@ -196,7 +191,7 @@ static int apply_rdiff_chunk_cb(void *out, const void *buf, unsigned int len)
 		buffers->avail_out = RDIFF_BUFFER_SIZE;
 	}
 
-	while (inbytesleft > 0 || (buffers->eof_in == true && buffers->avail_in > 0)) {
+	while (inbytesleft > 0 || buffers->avail_in > 0) {
 		rdiff_stats("[pre] ", rdiff_state, result);
 		result = fill_inbuffer(rdiff_state, buf, &inbytesleft);
 		if (result != RS_DONE && result != RS_BLOCKED) {
@@ -207,7 +202,9 @@ static int apply_rdiff_chunk_cb(void *out, const void *buf, unsigned int len)
 			ERROR("Error processing rdiff chunk: %s", rs_strerror(result));
 			return -1;
 		}
-		if (drain_outbuffer(rdiff_state) != RS_DONE) {
+		drain_run_result = drain_outbuffer(rdiff_state);
+		if (drain_run_result != RS_DONE) {
+			ERROR("drain_outbuffer return error");
 			return -1;
 		}
 		rdiff_stats("[post]", rdiff_state, result);
@@ -331,8 +328,6 @@ static int apply_rdiff_patch(struct img_type *img,
 		ret = -1;
 		goto cleanup;
 	}
-
-	rdiff_state.cpio_input_len = img->size;
 
 	int loglevelmap[] =
 	{
