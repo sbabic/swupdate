@@ -112,7 +112,7 @@ static rs_result fill_inbuffer(struct rdiff_t *rdiff_state, const void *buf, uns
 		buffers->next_in = rdiff_state->inbuf;
 		buffers->avail_in = *len;
 		rdiff_state->cpio_input_len -= *len;
-		TRACE("Appending %d bytes to rdiff input buffer.", *len);
+		TRACE("Writing %d bytes to rdiff input buffer.", *len);
 		(void)memcpy(rdiff_state->inbuf, buf, *len);
 		*len = 0;
 	} else {
