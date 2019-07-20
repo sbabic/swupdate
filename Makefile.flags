@@ -145,23 +145,12 @@ ifeq ($(CONFIG_JSON),y)
 LDLIBS += json-c
 endif
 
-# signed images require openssl (digest)
-ifneq ($(CONFIG_HASH_VERIFY),)
+ifeq ($(CONFIG_SSL_IMPL_OPENSSL),y)
 LDLIBS += crypto ssl
 endif
 
-# signed images require openssl (digest)
-ifneq ($(CONFIG_ENCRYPTED_IMAGES),)
-LDLIBS += crypto ssl
-endif
-
-# mongoose / webserver
-ifeq ($(CONFIG_WEBSERVER),y)
-ifeq ($(CONFIG_MONGOOSE),y)
-ifeq ($(CONFIG_MONGOOSESSL),y)
-LDLIBS += crypto ssl
-endif
-endif
+ifeq ($(CONFIG_SSL_IMPL_MBEDTLS),y)
+LDLIBS += mbedcrypto mbedtls
 endif
 
 # MTD
@@ -197,20 +186,8 @@ ifeq ($(CONFIG_BOOTLOADER_EBG),y)
 LDLIBS += ebgenv z
 endif
 
-# channel_curl
-ifneq ($(CONFIG_CHANNEL_CURL_SSL),)
-ifeq ($(strip $(findstring crypto,$(LDLIBS))),)
-LDLIBS += crypto ssl
-endif
-endif
-
 # suricatta
 ifneq ($(CONFIG_SURICATTA),)
-ifneq ($(CONFIG_SURICATTA_SSL),)
-ifeq ($(strip $(findstring crypto,$(LDLIBS))),)
-LDLIBS += crypto ssl
-endif
-endif
 ifneq ($(CONFIG_SURICATTA_HAWKBIT),)
 ifeq ($(strip $(findstring json-c,$(LDLIBS))),)
 LDLIBS += json-c

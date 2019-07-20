@@ -51,7 +51,7 @@ static void do_crypt(struct cryptdata *crypt, unsigned char *CRYPTTEXT, unsigned
 	assert_true(ret >= 0);
 	assert_true(len == 0);
 
-	ret = swupdate_DECRYPT_final(dcrypt, crypt->crypttext, &len);
+	ret = swupdate_DECRYPT_final(dcrypt, buffer, &len);
 	assert_true(ret == 0);
 	assert_true(len == (int)strlen((const char *)PLAINTEXT));
 	assert_true(strncmp((const char *)buffer, (const char *)PLAINTEXT, len) == 0);
@@ -119,7 +119,7 @@ static void test_crypt_failure(void **state)
 
 	unsigned char *buffer = calloc(1, strlen((const char *)CRYPTTEXT) + EVP_MAX_BLOCK_LENGTH);
 	int ret = swupdate_DECRYPT_update(dcrypt, buffer, &len, crypt.crypttext, strlen((const char *)CRYPTTEXT) / 2);
-	ret = swupdate_DECRYPT_final(dcrypt, crypt.crypttext, &len);
+	ret = swupdate_DECRYPT_final(dcrypt, buffer, &len);
 	assert_true(ret != 0);
 	free(buffer);
 

@@ -69,6 +69,10 @@ config HAVE_LIBCRYPTO
 	bool
 	option env="HAVE_LIBCRYPTO"
 
+config HAVE_MBEDTLS
+	bool
+	option env="HAVE_MBEDTLS"
+
 config HAVE_JSON_C
 	bool
 	option env="HAVE_JSON_C"
@@ -313,6 +317,25 @@ endmenu
 source bootloader/Config.in
 
 
+choice
+	prompt "SSL implementation to use"
+	default SSL_IMPL_OPENSSL
+	help
+	  Select SSL implementation for hashing, verifying and decrypting images.
+
+	config SSL_IMPL_NONE
+		bool "None"
+
+	config SSL_IMPL_OPENSSL
+		bool "OpenSSL"
+		depends on HAVE_LIBSSL
+
+	config SSL_IMPL_MBEDTLS
+		bool "mbedTLS"
+		depends on HAVE_MBEDTLS
+
+endchoice
+
 config DOWNLOAD
 	bool "Enable image downloading"
 	default n
@@ -329,8 +352,7 @@ config DOWNLOAD_SSL
 	bool "Enable SSL support for image downloading"
 	default n
 	depends on DOWNLOAD
-	depends on HAVE_LIBSSL
-	depends on HAVE_LIBCRYPTO
+	depends on SSL_IMPL_OPENSSL || SSL_IMPL_MBEDTLS
 	select CHANNEL_CURL_SSL
 	help
 	  Enable SSL and checksum verification support in channels
@@ -344,26 +366,25 @@ config CHANNEL_CURL
 config CHANNEL_CURL_SSL
 	bool
 	depends on CHANNEL_CURL
-	depends on HAVE_LIBSSL
-	depends on HAVE_LIBCRYPTO
+	depends on SSL_IMPL_OPENSSL || SSL_IMPL_MBEDTLS
 	select CURL_SSL
 
 config HASH_VERIFY
 	bool "Allow to add sha256 hash to each image"
-	depends on HAVE_LIBSSL
+	depends on SSL_IMPL_OPENSSL || SSL_IMPL_MBEDTLS
 	help
 	  Allow to add a sha256 hash to an artifact.
 	  This is automatically set in case of Signed Image
 
-comment "Hash verification needs libssl"
-	depends on !HAVE_LIBSSL
+comment "Hash checking needs an SSL implementation"
+	depends on !SSL_IMPL_OPENSSL && !SSL_IMPL_MBEDTLS
 
 config SIGNED_IMAGES
 	bool "Enable verification of signed images"
-	depends on HAVE_LIBSSL
+	depends on SSL_IMPL_OPENSSL || SSL_IMPL_MBEDTLS
 	select HASH_VERIFY
-comment "Image verification (signed images) needs libssl"
-	depends on !HAVE_LIBSSL
+comment "Image signature verification needs an SSL implementation"
+	depends on !SSL_IMPL_OPENSSL && !SSL_IMPL_MBEDTLS
 
 choice
 	prompt "Signature verification algorithm"
@@ -381,6 +402,7 @@ choice
 
 	config SIGALG_CMS
 		bool "Cryptographic Message Syntax (CMS)"
+		depends on SSL_IMPL_OPENSSL
 
 endchoice
 
@@ -399,9 +421,9 @@ endmenu
 
 config ENCRYPTED_IMAGES
 	bool "Images can be encrypted with a symmetric key"
-	depends on HAVE_LIBSSL
-comment "Image encryption needs libssl"
-	depends on !HAVE_LIBSSL
+	depends on SSL_IMPL_OPENSSL || SSL_IMPL_MBEDTLS
+comment "Image encryption needs an SSL implementation"
+	depends on !SSL_IMPL_OPENSSL && !SSL_IMPL_MBEDTLS
 
 source suricatta/Config.in
 

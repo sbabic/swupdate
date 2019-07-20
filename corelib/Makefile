@@ -12,13 +12,19 @@ lib-y				+= installer.o \
 lib-$(CONFIG_DOWNLOAD)		+= downloader.o
 lib-$(CONFIG_MTD)		+= mtd-interface.o
 lib-$(CONFIG_LUA)		+= lua_interface.o lua_compat.o
+ifeq ($(CONFIG_SSL_IMPL_OPENSSL),y)
 lib-$(CONFIG_HASH_VERIFY)	+= verify_signature.o
 lib-$(CONFIG_ENCRYPTED_IMAGES)	+= swupdate_decrypt.o
+lib-$(CONFIG_SIGALG_RAWRSA)	+= swupdate_rsa_verify.o
+lib-$(CONFIG_SIGALG_RSAPSS)	+= swupdate_rsa_verify.o
+lib-$(CONFIG_SIGALG_CMS)	+= swupdate_cms_verify.o
+endif
+ifeq ($(CONFIG_SSL_IMPL_MBEDTLS),y)
+lib-$(CONFIG_HASH_VERIFY)	+= verify_signature_mbedtls.o
+lib-$(CONFIG_ENCRYPTED_IMAGES)	+= swupdate_decrypt_mbedtls.o
+lib-$(CONFIG_SIGALG_RAWRSA)	+= swupdate_rsa_verify_mbedtls.o
+endif
 lib-$(CONFIG_LIBCONFIG)		+= swupdate_settings.o \
 				   parsing_library_libconfig.o
 lib-$(CONFIG_JSON)		+= parsing_library_libjson.o
 lib-$(CONFIG_CHANNEL_CURL)	+= channel_curl.o
-lib-$(CONFIG_SIGALG_RAWRSA)	+= swupdate_rsa_verify.o
-lib-$(CONFIG_SIGALG_RSAPSS)	+= swupdate_rsa_verify.o
-lib-$(CONFIG_SIGALG_CMS)	+= swupdate_cms_verify.o
-

@@ -63,7 +63,7 @@ struct swupdate_digest *swupdate_HASH_init(const char *SHAlength)
 	return dgst;
 }
 
-int swupdate_HASH_update(struct swupdate_digest *dgst, unsigned char *buf,
+int swupdate_HASH_update(struct swupdate_digest *dgst, const unsigned char *buf,
 				size_t len)
 {
 	if (!dgst)
@@ -97,7 +97,7 @@ void swupdate_HASH_cleanup(struct swupdate_digest *dgst)
 /*
  * Just a wrap function to memcmp
  */
-int swupdate_HASH_compare(unsigned char *hash1, unsigned char *hash2)
+int swupdate_HASH_compare(const unsigned char *hash1, const unsigned char *hash2)
 {
 	int i;
 

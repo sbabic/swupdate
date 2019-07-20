@@ -67,7 +67,7 @@ struct swupdate_digest *swupdate_DECRYPT_init(unsigned char *key, unsigned char 
 }
 
 int swupdate_DECRYPT_update(struct swupdate_digest *dgst, unsigned char *buf, 
-				int *outlen, unsigned char *cryptbuf, int inlen)
+				int *outlen, const unsigned char *cryptbuf, int inlen)
 {
 	if (EVP_DecryptUpdate(SSL_GET_CTXDEC(dgst), buf, outlen, cryptbuf, inlen) != 1) {
 		const char *reason = ERR_reason_error_string(ERR_peek_error());
