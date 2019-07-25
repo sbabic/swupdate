@@ -410,13 +410,14 @@ static int parse_scripts(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lu
 	return 0;
 }
 
-static int parse_bootloader(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
+static int parse_bootloader(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua_State *L)
 {
 	void *setting, *elem;
-	int count, i;
+	int count, i, skip;
 	struct img_type *script;
-	char name[SWUPDATE_GENERAL_STRING_SIZE];
-	char value[MAX_BOOT_SCRIPT_LINE_LENGTH];
+	struct img_type dummy;
+
+	memset(&dummy, 0, sizeof(dummy));
 
 	setting = find_node(p, cfg, "uboot", swcfg);
 
@@ -441,12 +442,16 @@ static int parse_bootloader(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 			 * Call directly get_field_string with size 0
 			 * to let allocate the place for the strings
 			 */
-			GET_FIELD_STRING(p, elem, "name", name);
-			GET_FIELD_STRING(p, elem, "value", value);
-			dict_set_value(&swcfg->bootloader, name, value);
+			GET_FIELD_STRING(p, elem, "name", dummy.id.name);
+			GET_FIELD_STRING(p, elem, "value", dummy.id.version);
+			skip = run_embscript(p, elem, &dummy, L, swcfg->embscript);
+			if (skip < 0) {
+				return -1;
+			}
+			dict_set_value(&swcfg->bootloader, dummy.id.name, dummy.id.version);
 			TRACE("Bootloader var: %s = %s",
-				name,
-				dict_get_value(&swcfg->bootloader, name));
+				dummy.id.name,
+				dict_get_value(&swcfg->bootloader, dummy.id.name));
 			continue;
 		}
 
@@ -469,6 +474,12 @@ static int parse_bootloader(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 		}
 
 		script->is_script = 1;
+
+		skip = run_embscript(p, elem, script, L, swcfg->embscript);
+		if (skip < 0) {
+			free_image(script);
+			return -1;
+		}
 
 		LIST_INSERT_HEAD(&swcfg->bootscripts, script, next);
 
@@ -664,7 +675,7 @@ static int parser(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 		parse_files(p, cfg, swcfg, L) ||
 		parse_images(p, cfg, swcfg, L) ||
 		parse_scripts(p, cfg, swcfg, L) ||
-		parse_bootloader(p, cfg, swcfg);
+		parse_bootloader(p, cfg, swcfg, L);
 
 	/*
 	 * Move the partitions at the beginning to be processed
