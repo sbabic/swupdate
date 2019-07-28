@@ -16,6 +16,10 @@
 ## Foundation, Inc.
 
 tests-$(CONFIG_ENCRYPTED_IMAGES) += test_crypt
+tests-$(CONFIG_HASH_VERIFY) += test_hash
+ifeq ($(CONFIG_SIGALG_RAWRSA),y)
+tests-$(CONFIG_SIGNED_IMAGES) += test_verify
+endif
 
 ccflags-y += -I$(src)/../
 
@@ -45,7 +49,7 @@ EXECUTE_TEST = echo "RUN $(subst $(obj)/,,$(var))"; CMOCKA_MESSAGE_OUTPUT=TAP $(
 
 PHONY += default
 default:
-	$(info please run 'make corelib-tests' in swupdate main directory)
+	$(info please run 'make test' in swupdate main directory)
 
 PHONY += tests
 ifneq "$(tests-y)" ""
@@ -57,8 +61,27 @@ tests:
 	@:
 endif
 
-$(obj)/%.lnk: $(objtree)/core/built-in.o
+$(obj)/%.lnk: $(obj)/%.o $(objtree)/core/built-in.o
 	$(Q)strip -N main -o $(objtree)/core/built-in.o.tmp $(objtree)/core/built-in.o
 	$(Q)$(call cmd,linktestexe)
+
+DATADIR := test/data
+
+$(obj)/test_verify.o: $(DATADIR)/signature $(DATADIR)/signing-pubkey.pem
+
+.INTERMEDIATE: $(DATADIR)/signature
+$(DATADIR)/signature: $(DATADIR)/to-be-signed $(DATADIR)/signing-secret.pem
+	$(if $(Q),@echo "  SIGN    $@")
+	$(Q)openssl dgst -sha256 -sign $(DATADIR)/signing-secret.pem $(DATADIR)/to-be-signed > $@
+
+.INTERMEDIATE: $(DATADIR)/signing-pubkey.pem
+$(DATADIR)/signing-pubkey.pem: $(DATADIR)/signing-secret.pem
+	$(if $(Q),@echo "  EXPORT  $@")
+	$(Q)openssl rsa -in $< -out $@ -outform PEM -pubout 2>/dev/null
+
+.INTERMEDIATE: $(DATADIR)/signing-secret.pem
+$(DATADIR)/signing-secret.pem:
+	$(if $(Q),@echo "  GEN     $@")
+	$(Q)openssl genrsa -out $@ 2>/dev/null
 
 .PHONY: $(PHONY)

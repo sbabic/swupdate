@@ -476,9 +476,9 @@ PHONY += suricatta-tests
 suricatta-tests: FORCE
 	$(Q)$(MAKE) $(build)=suricatta/test SWOBJS="$(swupdate-objs)" SWLIBS="$(swupdate-libs)" LDLIBS="$(LDLIBS)" tests
 
-PHONY += corelib-tests
-corelib-tests: FORCE
-	$(Q)$(MAKE) $(build)=corelib/test SWOBJS="$(swupdate-objs)" SWLIBS="$(swupdate-libs)" LDLIBS="$(LDLIBS)" tests
+PHONY += test
+test:
+	$(Q)$(MAKE) $(build)=test SWOBJS="$(swupdate-objs)" SWLIBS="$(swupdate-libs)" LDLIBS="$(LDLIBS)" tests
 
 # The actual objects are generated when descending,
 # make sure no implicit rule kicks in

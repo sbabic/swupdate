@@ -29,6 +29,7 @@ before_install:
     - sudo apt-get install -y autoconf-archive
     - sudo apt-get install -y linux-headers-$(uname -r)
     - sudo apt-get install -y libmbedtls-dev
+    - sudo apt-get install -y libcmocka-dev
 
 script:
     - sudo ln -sf /usr/lib/x86_64-linux-gnu/pkgconfig/lua5.2.pc /usr/lib/x86_64-linux-gnu/pkgconfig/lua.pc
@@ -75,4 +76,5 @@ script:
     - make
     - sudo make install
     - cd ..
-    - for i in configs/*;do echo $i;make `basename $i` && make || exit 1;done
+    - sudo ldconfig
+    - for i in configs/*;do echo $i;make `basename $i` && make || exit 1;make test || exit 1;done
