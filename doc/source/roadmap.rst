@@ -134,7 +134,7 @@ stream the image and an error is reported if "installed-directly" is set.
 The handler can be extended to stream images.
 
 Handlers install-able as plugin at runtime
------------------------------------------
+------------------------------------------
 
 The project supports Lua as script language for pre- and postinstall
 script. It will be easy to add a way for installing a handler at run-time
@@ -158,10 +158,10 @@ Raspberri PI 3 and Wandboard. The repo is a community driven project:
 patches welcome.
 
 Back-end support (suricatta mode)
-================================
+=================================
 
 Back-end: check before installing
---------------------------------
+---------------------------------
 
 In some cases (for example, where bandwidth is important), it is better to check
 if an update must be installed instead of installing and performs checks later.
@@ -169,7 +169,7 @@ If SWUpdate provides a way to inform a checker if an update can be accepted
 before downloading, a download is only done when it is really necessary.
 
 Back-end: Hawkbit Offline support
---------------------------------
+---------------------------------
 
 There are several discussions on Hawkbit's ML about how to synchronize
 an offline update (done locally or via the internal Web-server) with
@@ -178,7 +178,7 @@ deploying software. Hawkbit DDI API should be extended, and afterwards
 changes must be implemented in SWUpdate.
 
 Back-end: Consolidate "general server"
--------------------------------------
+--------------------------------------
 
 A second OTA server was introduced with 2018.11, but there is not
 an open source solution for a server. Anyway, the very simple interface
@@ -186,14 +186,14 @@ of the "general server" can be used by anyone to introduce an own server
 instead of a more complicate solution with a back-end like Hawkbit.
 
 Back-end: support for generic down-loader 
----------------------------------------
+-----------------------------------------
 
 SWUpdate in down-loader mode works as one-shot: it simply try to download a SWU
 from a URL. For simple applications, it could be moved into `suricatta` to detect
 if a new version is available before downloading and installing.
 
 Back-end: support for Mender
----------------------------
+----------------------------
 
 There was several discussion how to make a stronger collaboration between
 different update solution and a proposal discussed previously is to use SWUpdate as client
@@ -217,7 +217,7 @@ is to have a low footprint compared to GUI developed with state of art framework
 This lets to still have a rescue that fits in small devices.
 
 Test and Continuous Integration
-==============================
+===============================
 
 The number of configurations and features in SWUpdate is steadily increasing and
 it becomes urgent to find a way to test all incoming patch to fix regression issues.
