@@ -11,6 +11,11 @@
 #include <stdbool.h>
 #include <swupdate_status.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 extern char* SOCKET_PROGRESS_PATH;
 
 /*
@@ -44,4 +49,9 @@ int progress_ipc_connect_with_path(const char *socketpath, bool reconnect);
 
 /* Retrieve messages from progress interface (it blocks) */
 int progress_ipc_receive(int *connfd, struct progress_msg *msg);
+
+#ifdef __cplusplus
+}   // extern "C"
+#endif
+
 #endif

@@ -9,14 +9,18 @@
 #ifndef _IPC_H
 #define _IPC_H
 
+#include <stdbool.h>
+#include "swupdate_status.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*
  * Be careful to include further headers here. This file is the interface
  * to external programs interfacing with SWUpdate as client, and further
  * headers are not exported.
  */
-
-#include <stdbool.h>
-#include "swupdate_status.h"
 
 #define IPC_MAGIC		0x14052001
 
@@ -77,5 +81,9 @@ int ipc_wait_for_complete(getstatus callback);
 int swupdate_image_write(char *buf, int size);
 int swupdate_async_start(writedata wr_func, getstatus status_func,
 				terminated end_func, bool dryrun);
+
+#ifdef __cplusplus
+}   // extern "C"
+#endif
 
 #endif

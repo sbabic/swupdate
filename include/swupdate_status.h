@@ -8,6 +8,10 @@
 #ifndef _SWUPDATE_STATUS_H
 #define _SWUPDATE_STATUS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*
  * This is used to send back the result of an update.
  * It is strictly forbidden to change the order of entries.
@@ -32,5 +36,9 @@ typedef enum {
 	SOURCE_DOWNLOADER,
 	SOURCE_LOCAL
 } sourcetype;
+
+#ifdef __cplusplus
+}   // extern "C"
+#endif
 
 #endif
