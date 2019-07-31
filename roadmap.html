@@ -120,25 +120,33 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Project’s road-map</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#main-goal">Main goal</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#swupdate-as-updater-gateway">SWUpdate as Updater Gateway</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#disk-partitions">Disk partitions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#support-for-further-compressors">Support for further compressors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#system-update">System Update</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#swupdate-as-updater-gateway">SWUpdate as Updater Gateway</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#enhance-swuforward-handler">Enhance swuforward handler</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#binary-delta-updates">Binary delta updates</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#integration-in-linux-distro">Integration in Linux distro</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#handlers">Handlers:</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#new-handlers">New Handlers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#flash-handler">Flash handler</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#handlers-installable-as-plugin-at-runtime">Handlers installable as plugin at runtime</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#handlers-install-able-as-plugin-at-runtime">Handlers install-able as plugin at runtime</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#support-for-evaluation-boards">Support for evaluation boards</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#backend-support-suricatta-mode">Backend support (suricatta mode)</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#backend-hawkbit-offline-support">Backend: Hawkbit Offline support</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#backend-consolidate-general-server">Backend: Consolidate “general server”</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#backend-support-for-mender">Backend: support for Mender</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#back-end-support-suricatta-mode">Back-end support (suricatta mode)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#back-end-check-before-installing">Back-end: check before installing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#back-end-hawkbit-offline-support">Back-end: Hawkbit Offline support</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#back-end-consolidate-general-server">Back-end: Consolidate “general server”</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#back-end-support-for-generic-down-loader">Back-end: support for generic down-loader</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#back-end-support-for-mender">Back-end: support for Mender</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#support-for-multiple-servers-simultaneously">Support for multiple Servers simultaneously</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#swupdate-gui-for-rescue">SWUpdate GUI for rescue</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#test-and-continuos-integration">Test and Continuos Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#test-and-continuous-integration">Test and Continuous Integration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#documentation">Documentation</a></li>
 </ul>
 </li>
@@ -207,11 +215,11 @@
             
   <div class="section" id="project-s-road-map">
 <h1>Project’s road-map<a class="headerlink" href="#project-s-road-map" title="Permalink to this headline">¶</a></h1>
-<p>Please take into account that most of the items here are proposals.
+<p>Please take into account that most of the items here are <em>proposals</em>.
 I get some ideas talking with customers, some ideas are my own thoughts.
 There is no plan when these features will be implemented - this depends
 if enough interest is raised and if there will be contribution to the project
-in terms of patches or financial contribution to develop a feature.</p>
+in terms of patches or financial contributions to develop a feature.</p>
 <p>Thanks again to all companies that have supported my work up now and to
 everybody who has contributed to the project, let me bring SWUpdate
 to the current status !</p>
@@ -222,21 +230,51 @@ SWUpdate suitable for a large number of products.
 This will help to build a community around the project
 itself.</p>
 </div>
+<div class="section" id="disk-partitions">
+<h2>Disk partitions<a class="headerlink" href="#disk-partitions" title="Permalink to this headline">¶</a></h2>
+<p>SWUpdate is able to set and handle UBI partitions, while it requires external
+tools to set up disk partitions (sfdisk / fdisk). Because an update should be self-contained, it is
+desirable that SWUpdate will integrate the code to be able to set up partitions
+configured in sw-descriptions even for disks (eMMC / SD / Hard-disks).
+This will let to use <cite>partitions</cite> inside sw-description to set up disk partitions
+and not only UBI volumes, and add further features as restoring configuration data and so on.</p>
+</div>
+<div class="section" id="support-for-further-compressors">
+<h2>Support for further compressors<a class="headerlink" href="#support-for-further-compressors" title="Permalink to this headline">¶</a></h2>
+<p>SWUpdate supports image compressed with zlib. This is a compromise between compression rate
+and speed to decompress the single artifact. To reduce bandwidth or for big images, a stronger
+compressor could help. Adding a new compressor must be careful done because it changes the
+core of handling an image.</p>
+</div>
+<div class="section" id="system-update">
+<h2>System Update<a class="headerlink" href="#system-update" title="Permalink to this headline">¶</a></h2>
+<p>Not just the single device, but several devices connected together to build a more
+complex system should be updated at once in an atomic way. The installation and the
+restart of the system must be done in a controlled way.</p>
 <div class="section" id="swupdate-as-updater-gateway">
-<h2>SWUpdate as Updater Gateway<a class="headerlink" href="#swupdate-as-updater-gateway" title="Permalink to this headline">¶</a></h2>
+<h3>SWUpdate as Updater Gateway<a class="headerlink" href="#swupdate-as-updater-gateway" title="Permalink to this headline">¶</a></h3>
 <p>This feature was introduced with the “swuforward” handler. It is already
 possible to update a tree of devices if each of them runs SWUpdate. This
-feature is already implemented in SWUpdate for embedded linux.</p>
+feature is already implemented in SWUpdate for embedded Linux.</p>
 <p>Anyway, a lot of embedded devices have small processors and maybe not a full
 blown OS. Ensuring security for all of them can be a risk, and it is
 easier to make sure on a single device. If the device running SWUpdate is
-acting as gateway, it can translate protocols from backend and send
+acting as gateway, it can translate protocols from back-end and send
 package updates to the connected small devices.</p>
 <p>One example could be if SWUpdate runs as MQTT-broker and takes updates
 from Hawkbit. SWUpdate should be able to run multiple instances of
 suricatta to do this.</p>
 <p>One other examples is using LWM2M. The gateway should be generic enough
 to allow to add further protocols in future.</p>
+</div>
+<div class="section" id="enhance-swuforward-handler">
+<h3>Enhance swuforward handler<a class="headerlink" href="#enhance-swuforward-handler" title="Permalink to this headline">¶</a></h3>
+<p>This handler requires that SWUpdate-slaves connected to the master run the Web-server
+with old API using a poll mechanism to check the update’s progress. This forbids
+to run at the same time SWUpdate as slave and with the Website, because in old mode
+the website is not available anymore. If swuforward will switch to Web-sockets and implements
+the newer API, this constraint can be removed.</p>
+</div>
 </div>
 <div class="section" id="binary-delta-updates">
 <h2>Binary delta updates<a class="headerlink" href="#binary-delta-updates" title="Permalink to this headline">¶</a></h2>
@@ -249,6 +287,14 @@ it is strictly required to not reduce the reliability of the update
 and the feature should not introduce leaks and make the system
 more vulnerable. It is accepted that different technologies could be added,
 each of them solves a specific use case for a delta update.</p>
+<p>SWUpdate is already able to perform delta updates based on librsync library. This is
+currently a good compromise to reduce complexity. Anyway, this helps in case of
+small changes, and it is not a general solution between two generic releases.
+A general approach could be to integrate SWUpdate with CA-Sync to allow a delta upgrade
+from any release. First proof of concept shows that changes in both SWUpdate and CA-Sync
+are required to be conform with requirements and security concepts in SWUpdate. A design
+just using CA-Sync as external fetcher without integration in SWUpdate  breaks
+SWUpdate’s security concept.</p>
 </div>
 <div class="section" id="integration-in-linux-distro">
 <h2>Integration in Linux distro<a class="headerlink" href="#integration-in-linux-distro" title="Permalink to this headline">¶</a></h2>
@@ -263,12 +309,12 @@ let the package merged into Debian distro.</p>
 <h3>New Handlers<a class="headerlink" href="#new-handlers" title="Permalink to this headline">¶</a></h3>
 <p>Users develop own custom handlers - I just enforce and encourage everyone
 to send them and discuss how to integrate custom handler in mainline.</p>
-<p>A handler to update a microcontroller connected via UART is introduced.
+<p>A handler to update a micro-controller connected via UART is introduced.
 It could be enhanced to support other interfaces (SPI for example).</p>
 <dl class="docutils">
 <dt>Some ideas for new handlers:</dt>
 <dd><ul class="first last simple">
-<li>handlers to update microcontrollers</li>
+<li>handlers to update micro-controllers</li>
 <li>FPGA updater for FPGA with Flash</li>
 <li>Package handler to install packages (ipk, deb)
 Packages can be inserted into the SWU and the atomicity is
@@ -285,10 +331,10 @@ to show how to solve custom install.</li>
 stream the image and an error is reported if “installed-directly” is set.
 The handler can be extended to stream images.</p>
 </div>
-<div class="section" id="handlers-installable-as-plugin-at-runtime">
-<h3>Handlers installable as plugin at runtime<a class="headerlink" href="#handlers-installable-as-plugin-at-runtime" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="handlers-install-able-as-plugin-at-runtime">
+<h3>Handlers install-able as plugin at runtime<a class="headerlink" href="#handlers-install-able-as-plugin-at-runtime" title="Permalink to this headline">¶</a></h3>
 <p>The project supports Lua as script language for pre- and postinstall
-script. It will be easy to add a way for installing a handler at runtime
+script. It will be easy to add a way for installing a handler at run-time
 written in Lua, allowing to expand SWUpdate to the cases not covered
 in the design phase of a product.</p>
 <p>Of course, this issue is related to the security features: it must be
@@ -301,29 +347,43 @@ a unauthenticated handler cannot run.</p>
 </div>
 <div class="section" id="support-for-evaluation-boards">
 <h2>Support for evaluation boards<a class="headerlink" href="#support-for-evaluation-boards" title="Permalink to this headline">¶</a></h2>
-<p>New is meta-swupdate-boards - examples regarding evaluation boards are
-put there. Currently, there are examples for Beaglebone Black,
-Raspberri PI 3 and Wandboard. Maybe some more boards ? Patches welcome.</p>
+<p>meta-swupdate-boards contains examples with evaluation boards.
+Currently, there are examples using Beaglebone Black,
+Raspberri PI 3 and Wandboard. The repo is a community driven project:
+patches welcome.</p>
 </div>
-<div class="section" id="backend-support-suricatta-mode">
-<h2>Backend support (suricatta mode)<a class="headerlink" href="#backend-support-suricatta-mode" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="backend-hawkbit-offline-support">
-<h3>Backend: Hawkbit Offline support<a class="headerlink" href="#backend-hawkbit-offline-support" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="back-end-support-suricatta-mode">
+<h2>Back-end support (suricatta mode)<a class="headerlink" href="#back-end-support-suricatta-mode" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="back-end-check-before-installing">
+<h3>Back-end: check before installing<a class="headerlink" href="#back-end-check-before-installing" title="Permalink to this headline">¶</a></h3>
+<p>In some cases (for example, where bandwidth is important), it is better to check
+if an update must be installed instead of installing and performs checks later.
+If SWUpdate provides a way to inform a checker if an update can be accepted
+before downloading, a download is only done when it is really necessary.</p>
+</div>
+<div class="section" id="back-end-hawkbit-offline-support">
+<h3>Back-end: Hawkbit Offline support<a class="headerlink" href="#back-end-hawkbit-offline-support" title="Permalink to this headline">¶</a></h3>
 <p>There are several discussions on Hawkbit’s ML about how to synchronize
-an offline update (done locally or via the internal Webserver) with
+an offline update (done locally or via the internal Web-server) with
 the Hawkbit’s server. Currently, Hawkbit thinks to be the only one
 deploying software. Hawkbit DDI API should be extended, and afterwards
 changes must be implemented in SWUpdate.</p>
 </div>
-<div class="section" id="backend-consolidate-general-server">
-<h3>Backend: Consolidate “general server”<a class="headerlink" href="#backend-consolidate-general-server" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="back-end-consolidate-general-server">
+<h3>Back-end: Consolidate “general server”<a class="headerlink" href="#back-end-consolidate-general-server" title="Permalink to this headline">¶</a></h3>
 <p>A second OTA server was introduced with 2018.11, but there is not
 an open source solution for a server. Anyway, the very simple interface
 of the “general server” can be used by anyone to introduce an own server
-instead of a more complicate solution with a backend like Hawkbit.</p>
+instead of a more complicate solution with a back-end like Hawkbit.</p>
 </div>
-<div class="section" id="backend-support-for-mender">
-<h3>Backend: support for Mender<a class="headerlink" href="#backend-support-for-mender" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="back-end-support-for-generic-down-loader">
+<h3>Back-end: support for generic down-loader<a class="headerlink" href="#back-end-support-for-generic-down-loader" title="Permalink to this headline">¶</a></h3>
+<p>SWUpdate in down-loader mode works as one-shot: it simply try to download a SWU
+from a URL. For simple applications, it could be moved into <cite>suricatta</cite> to detect
+if a new version is available before downloading and installing.</p>
+</div>
+<div class="section" id="back-end-support-for-mender">
+<h3>Back-end: support for Mender<a class="headerlink" href="#back-end-support-for-mender" title="Permalink to this headline">¶</a></h3>
 <p>There was several discussion how to make a stronger collaboration between
 different update solution and a proposal discussed previously is to use SWUpdate as client
 to upgrade from a Mender server, see <a class="reference external" href="https://elinux.org/images/0/0c/BoF_secure_ota_linux.pdf">BOF at ELCE 2017</a></p>
@@ -344,8 +404,8 @@ A first version of SWUpdate-GUI was released with a base set of features. The go
 is to have a low footprint compared to GUI developed with state of art frameworks.
 This lets to still have a rescue that fits in small devices.</p>
 </div>
-<div class="section" id="test-and-continuos-integration">
-<h2>Test and Continuos Integration<a class="headerlink" href="#test-and-continuos-integration" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="test-and-continuous-integration">
+<h2>Test and Continuous Integration<a class="headerlink" href="#test-and-continuous-integration" title="Permalink to this headline">¶</a></h2>
 <p>The number of configurations and features in SWUpdate is steadily increasing and
 it becomes urgent to find a way to test all incoming patch to fix regression issues.
 One step in this direction is the support for Travis build - a set of configuration
@@ -356,8 +416,7 @@ and tested on real hardware.</p>
 </div>
 <div class="section" id="documentation">
 <h2>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h2>
-<p>Documentation should be improved. There is just a little documentation for meta-swupdate
-how to set it up with different configurations.</p>
+<p>Documentation is a central point in SWUpdate - maintaining it up to date is a must in this project.</p>
 </div>
 </div>
 

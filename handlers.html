@@ -105,7 +105,11 @@
 <li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#supplied-handlers">Supplied handlers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#creating-own-handlers">Creating own handlers</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#handler-for-ubi-volumes">Handler for UBI Volumes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ubi-volume-handler">UBI Volume Handler</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#atomic-volume-renaming">atomic volume renaming</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#volume-auto-resize">volume auto resize</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#lua-handlers">Lua Handlers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#remote-handler">Remote handler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#swu-forwarder">SWU forwarder</a></li>
@@ -281,28 +285,96 @@ saves in the handlers’ list and pass to the handler when it will
 be executed.</li>
 </ul>
 </div>
-<div class="section" id="handler-for-ubi-volumes">
-<h2>Handler for UBI Volumes<a class="headerlink" href="#handler-for-ubi-volumes" title="Permalink to this headline">¶</a></h2>
-<p>The handler for UBI volumes is thought to update UBI volumes
-without changing the layout of the storage.
-Volumes must be set before: the handler does not create volumes
-itself. It searches for a volume in all MTD (if they are not
-blacklisted: see UBIBLACKLIST) to find the volume where the image
-must be installed. For this reason, volumes must be unique inside
-the system. Two volumes with the same names are not supported
-and drives to unpredictable results. SWUpdate will install
-an image to the first volume that matches with the name, and this
-maybe is not the desired behavior.
-Updating volumes, it is guaranteed that the erase counters are
-preserved and not lost after an update. The way for updating
-is identical to the “ubiupdatevol” from the mtd-utils. In fact,
-the same library from mtd-utils (libubi) is reused by SWUpdate.</p>
-<p>SWUpdate normally creates dynamic volumes. If a static volume is
-desired, set the handler’s data field to “static”.</p>
-<p>If the storage is empty, it is required to setup the layout
-and create the volumes. This can be easy done with a
-preinstall script. Building with meta-SWUpdate, the original
-mtd-utils are available and can be called by a Lua script.</p>
+<div class="section" id="ubi-volume-handler">
+<h2>UBI Volume Handler<a class="headerlink" href="#ubi-volume-handler" title="Permalink to this headline">¶</a></h2>
+<p>The UBI volume handler will update UBI volumes without changing the
+layout on the storage. Therefore, volumes must be created/adjusted
+beforehand. This can be done using the <code class="docutils literal"><span class="pre">partitions</span></code> tag (see
+<a class="reference internal" href="sw-description.html#partitions-ubi-layout"><span class="std std-ref">partitions : UBI layout</span></a>).</p>
+<p>The UBI volume handler will search for volumes in all MTD devices
+(unless blacklisted, see UBIBLACKLIST) to find the volume into which
+the image shall be installed. For this reason, <strong>volume names must be
+unique</strong> within the system. Two volumes with the same name are not
+supported and will lead to unpredictable results (SWUpdate will
+install the image to the first volume with that name it finds, which
+may not be right one!).</p>
+<p>When updating volumes, it is guaranteed that erase counters are
+preserved and not lost. The behavior of updating is identical to that
+of the <code class="docutils literal"><span class="pre">ubiupdatevol(1)</span></code> tool from mtd-utils. In fact, the same
+library from mtd-utils (libubi) is reused by SWUpdate.</p>
+<div class="section" id="atomic-volume-renaming">
+<h3>atomic volume renaming<a class="headerlink" href="#atomic-volume-renaming" title="Permalink to this headline">¶</a></h3>
+<p>The UBI volume handler has basic support for carrying out atomic
+volume renames by defining the <code class="docutils literal"><span class="pre">replaces</span></code> property, which must
+contain a valid UBI volume name. After successfully updating the image
+to <code class="docutils literal"><span class="pre">volume</span></code>, an atomic swap of the names of <code class="docutils literal"><span class="pre">volume</span></code> and
+<code class="docutils literal"><span class="pre">replaces</span></code> is done. Consider the following example</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+        <span class="n">filename</span> <span class="o">=</span><span class="s2">&quot;u-boot.img&quot;</span><span class="p">;</span>
+        <span class="n">volume</span> <span class="o">=</span><span class="s2">&quot;u-boot_r&quot;</span><span class="p">;</span>
+        <span class="n">properties</span><span class="p">:</span> <span class="p">{</span>
+                <span class="n">replaces</span> <span class="o">=</span> <span class="s2">&quot;u-boot&quot;</span><span class="p">;</span>
+        <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>After u-boot.img is successfully installed into the volume “u-boot_r”,
+the volume “u-boot_r” is renamed to “u-boot” and “u-boot” is renamed
+to “u-boot_r”.</p>
+<p>This mechanism allows to implement a simple double copy update
+approach without the need of shared state with the bootloader. For
+example, the U-Boot SPL can be configured to always load U-Boot from
+the volume <code class="docutils literal"><span class="pre">u-boot</span></code> without the need to access the environment. The
+volume replace functionality will ensure that this volume name always
+points to the currently valid volume.</p>
+<p>However, please note the following limitations:</p>
+<ul class="simple">
+<li>Currently the rename takes place after <em>each</em> image was installed
+successfully. Hence, it only makes sense to use this feature for
+images that are independent of the other installed images. A typical
+example is the bootloader. This behavior may be modified in the
+future to only carry out one atomic rename after all images were
+installed successfully.</li>
+<li>Atomic renames are only possible and permitted for volumes residing
+on the same UBI device.</li>
+</ul>
+<p>There is a handler ubiswap that allow to do an atomic swap for several
+ubi volume after all the images were flashed. This handler is a script
+for the point of view of swudate, so the node that provide it the data
+should be added in the section scripts.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">scripts</span><span class="p">:</span> <span class="p">(</span>
+        <span class="p">{</span>
+                <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;ubiswap&quot;</span><span class="p">;</span>
+                <span class="n">properties</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="n">swap</span><span class="o">-</span><span class="mi">0</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">&quot;boot&quot;</span> <span class="p">,</span> <span class="s2">&quot; boot_r&quot;</span> <span class="p">];</span>
+                        <span class="n">swap</span><span class="o">-</span><span class="mi">1</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">&quot;kernel&quot;</span> <span class="p">,</span> <span class="s2">&quot;kernel_r&quot;</span> <span class="p">];</span>
+                        <span class="n">swap</span><span class="o">-</span><span class="mi">2</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">&quot;rootfs&quot;</span> <span class="p">,</span> <span class="s2">&quot;rootfs_r&quot;</span> <span class="p">];</span>
+                <span class="p">},</span>
+        <span class="p">},</span>
+<span class="p">);</span>
+</pre></div>
+</div>
+<p>WARNING: if you use the property replaces on an ubi volume that is also
+used with the handler ubiswap, this ubi volume will be swapped twice.
+It’s probably not what you want …</p>
+</div>
+<div class="section" id="volume-auto-resize">
+<h3>volume auto resize<a class="headerlink" href="#volume-auto-resize" title="Permalink to this headline">¶</a></h3>
+<p>The UBI volume handler has support to auto resize before flashing an
+image with the property <code class="docutils literal"><span class="pre">auto-resize</span></code>. When this property is set
+on an image, the ubi volume is resized to fit exactly the image.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;u-boot.img&quot;</span><span class="p">;</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;mtd0&quot;</span><span class="p">;</span>
+        <span class="n">volume</span> <span class="o">=</span> <span class="s2">&quot;u-boot_r&quot;</span><span class="p">;</span>
+        <span class="n">properties</span><span class="p">:</span> <span class="p">{</span>
+                <span class="n">auto</span><span class="o">-</span><span class="n">resize</span> <span class="o">=</span> <span class="s2">&quot;true&quot;</span><span class="p">;</span>
+        <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>WARNING: when this property is used, the device must be defined.</p>
+</div>
 </div>
 <div class="section" id="lua-handlers">
 <h2>Lua Handlers<a class="headerlink" href="#lua-handlers" title="Permalink to this headline">¶</a></h2>
@@ -629,10 +701,18 @@ and prog gpios. They should be in this format:</p>
 </pre></div>
 </div>
 <p>Example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">properties</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="n">reset</span> <span class="o">=</span>  <span class="s2">&quot;/dev/gpiochip0:38:false&quot;</span><span class="p">;</span>
-        <span class="n">prog</span> <span class="o">=</span>  <span class="s2">&quot;/dev/gpiochip0:39:false&quot;</span><span class="p">;</span>
-<span class="p">}</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">images</span><span class="p">:</span> <span class="p">(</span>
+    <span class="p">{</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;microcontroller-image&quot;</span><span class="p">;</span>
+        <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;ucfw&quot;</span><span class="p">;</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;/dev/ttymxc5&quot;</span><span class="p">;</span>
+
+        <span class="n">properties</span><span class="p">:</span> <span class="p">{</span>
+            <span class="n">reset</span> <span class="o">=</span>  <span class="s2">&quot;/dev/gpiochip0:38:false&quot;</span><span class="p">;</span>
+            <span class="n">prog</span> <span class="o">=</span>  <span class="s2">&quot;/dev/gpiochip0:39:false&quot;</span><span class="p">;</span>
+        <span class="p">};</span>
+    <span class="p">}</span>
+<span class="p">);</span>
 </pre></div>
 </div>
 </div>

@@ -29,28 +29,25 @@ Then, encrypt an image using this information via
 
 ::
 
-        openssl enc -aes-256-cbc -in <INFILE> -out <OUTFILE> -K <KEY> -iv <IV> -S <SALT>
+        openssl enc -aes-256-cbc -in <INFILE> -out <OUTFILE> -K <KEY> -iv <IV>
 
 where ``<INFILE>`` is the unencrypted source image file and ``<OUTFILE>`` is the
 encrypted output image file to be referenced in ``sw-description``.
 ``<KEY>`` is the hex value part of the 2nd line of output from the key generation
-command above, ``<IV>`` is the hex value part of the 3rd line, and ``<SALT>`` is
-the hex value part of the 1st line.
+command above and ``<IV>`` is the hex value part of the 3rd line.
 
 Then, create a key file to be supplied to SWUpdate via the `-K` switch by 
-putting the key, initialization vector, and salt hex values on one line
+putting the key and initialization vector hex values on one line
 separated by whitespace, e.g., for above example values
 
 ::
 
-        B78CC67DD3DC13042A1B575184D4E16D6A09412C242CE253ACEE0F06B5AD68FC 65D793B87B6724BB27954C7664F15FF3 CE7B0488EFBF0D1B
+        B78CC67DD3DC13042A1B575184D4E16D6A09412C242CE253ACEE0F06B5AD68FC 65D793B87B6724BB27954C7664F15FF3
 
 
-Note that, while not recommended and for backwards compatibility, OpenSSL may be
-used without salt. For disabling salt, add the ``-nosalt`` parameter to the key
-generation command above. Accordingly, drop the ``-S <SALT>`` parameter in the
-encryption command and omit the 3rd field of the key file to be supplied to
-SWUpdate being the salt.
+For earlier versions of SWUpdate it was falsely noted that passing the SALT as a
+3rd parameter would increase security. Key and IV are enough for maximum security,
+salt doesn't add any value.
 
 Encryption of UBI volumes
 -------------------------

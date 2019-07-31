@@ -53,6 +53,9 @@ Talks about SWUpdate
        - Updating an Embedded System with SWUpdate Framework by Stefano Babic, ELCE 2017,
          `Slides ELCE 2017 <http://events.linuxfoundation.org/sites/events/files/slides/SWUpdateELCE2017.pdf>`_,
          `Video ELCE 2017 <https://www.youtube.com/watch?v=6sKLH95g4Do>`_
+       - Upgrading buildroot based devices with SWUpdate by Angelo Compagnucci, LinuxLab 2018,
+         `Slides LinuxLab  2018 <https://www.slideshare.net/linuxlab_conf/angelo-compagnucci-upgrading-buildroot-based-devices-with-swupdate>`_,
+         `Video LinuxLab 2018 <https://www.youtube.com/watch?v=8vv5Xf6dBKE>`_
 
 Useful references
 =================
@@ -66,4 +69,3 @@ Useful references
         - `Updating Embedded Linux Devices: SWUpdate <http://mkrak.org/2018/01/26/updating-embedded-linux-devices-part2/>`_
         - `Approach to Software Update Management, Pelux  <https://pelux.io/software-factory/PELUX-3.0/swf-blueprint/docs/articles/architecture/vert-config-SOTA.html>`_
         - `SOTA System, Pelux  <https://pelux.io/software-factory/PELUX-3.0/chapters/architecture/subsystems/SOTA/SOTA-system.html>`_
-        - `Upgrading buildroot based devices with SWUpdate <https://www.slideshare.net/linuxlab_conf/angelo-compagnucci-upgrading-buildroot-based-devices-with-swupdate>`_

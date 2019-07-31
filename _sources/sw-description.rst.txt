@@ -75,7 +75,7 @@ The following example explains better the implemented tags:
 			{
 				filename = "bootloader-env";
 				type = "bootloader";
-			},
+			}
 		);
 
 		files: (
@@ -545,24 +545,39 @@ Each entry in sw-description can be redirect by a link as in the above example f
 hardware-compatibility
 ----------------------
 
-hardware-compatibility: [ "major.minor", "major.minor", ... ]
+``hardware-compatibility: [ "major.minor", "major.minor", ... ]``
 
-It lists the hardware revisions that are compatible with this software image.
+This entry lists the hardware revisions that are compatible with this
+software image.
 
 Example:
 
+::
+
 	hardware-compatibility: [ "1.0", "1.2", "1.3"];
 
-This means that the software is compatible with HW-Revisions
-1.0, 1.2 and 1.3, but not for 1.1 or other version not explicitly
-listed here.
-It is then duty of the single project to find which is the
-revision of the board where SWUpdate is running. There is no
-assumption how the revision can be obtained (GPIOs, EEPROM,..)
-and each project is free to select the way most appropriate.
-The result must be written in the file /etc/hwrevision (or in
-another file if specified as configuration option) before
-SWUpdate is started.
+This defines that the software is compatible with HW-Revisions 1.0,
+1.2 and 1.3, but not with 1.1 or any other version not explicitly
+listed here. In the above example, compatibility is checked by means
+of string comparision. If the software is compatible with a large
+number of hardware revisions, it may get cumbersome to enumerate all
+compatible versions. To allow more compact specifications, regular
+expressions (POSIX extended) can be used by adding a prefix ``#RE:``
+to the entry. Rewriting the above example would yield:
+
+::
+
+	hardware-compatibility: [ "#RE:^1\.[023]$" ];
+
+It is in the responsibility of the respective project to find the
+revision of the board on which SWUpdate is running. No assumptions are
+made about how the revision can be obtained (GPIOs, EEPROM,..) and
+each project is free to select the most appropriate way. In the end
+the result must be written to the file ``/etc/hwrevision`` (or in
+another file if specified as configuration option) before SWUpdate is
+started.
+
+.. _partitions-ubi-layout:
 
 partitions : UBI layout
 -----------------------
@@ -580,16 +595,21 @@ in kernel.
 			name = <volume name>;
 			size = <size in bytes>;
 			device = <MTD device>;
-		},
+		}
 	);
 
-All fields are mandatory. SWUpdate searches for a volume of the
-selected name and adjusts the size, or creates a new volume if
-no volume with the given name exists. In the latter case, it is
-created on the UBI device attached to the MTD device given by
-"device". "device" can be given by number (e.g. "mtd4") or by name
-(the name of the MTD device, e.g. "ubi_partition"). The UBI device
-is attached automatically.
+All fields are mandatory. SWUpdate searches for a volume of the given
+name and if necessary adjusts size or type (see below). If no volume
+with the given name is found, a new volume is created on the UBI
+device attached to the MTD device given by ``device``. ``device`` can
+be specified by number (e.g. "mtd4") or by name (the name of the MTD
+device, e.g. "ubi_partition"). The UBI device is attached
+automatically.
+
+The default behavior of swupdate is to create a dynamic UBI volume. To
+create a static volume, add a line ``data = "static";`` to the
+respective partition entry.
+
 
 images
 ------
@@ -733,7 +753,7 @@ Lua
 		{
 			filename = <Name in CPIO Archive>;
 			type = "lua";
-	 	},
+	 	}
 	);
 
 
@@ -765,7 +785,7 @@ shellscript
 		{
 			filename = <Name in CPIO Archive>;
 			type = "shellscript";
-		},
+		}
 	);
 
 Shell scripts are called via system command.
@@ -784,7 +804,7 @@ preinstall
 		{
 			filename = <Name in CPIO Archive>;
 			type = "preinstall";
-		},
+		}
 	);
 
 preinstall are shell scripts and called via system command.
@@ -801,7 +821,7 @@ postinstall
 		{
 			filename = <Name in CPIO Archive>;
 			type = "postinstall";
-		},
+		}
 	);
 
 postinstall are shell scripts and called via system command.
@@ -853,7 +873,7 @@ must be chosen from the bootloader selection menu in `menuconfig`.
 		{
 			filename = "bootloader-env";
 			type = "bootloader";
-		},
+		}
 	)
 
 The format of the file is described in U-boot documentation. Each line
@@ -890,7 +910,7 @@ that must be changed:
 		{
 			name = <Variable name>;
 			value = <Variable value>;
-		},
+		}
 	)
 
 SWUpdate will internally generate a script that will be passed to the
@@ -1047,6 +1067,11 @@ In sw-description, the optional attributes "name", "version" and
 compared with the data in the versions file. install-if-different is a
 boolean that enables the check for this image. It is then possible to
 check the version just for a subset of the images to be installed.
+
+There is also an attribute "install-if-higher" that check if the version
+of the new software is higher than the version of the installed software.
+If it's false, the new software isn't installed. The goal is to avoid
+installing an older version of software.
 
 
 Embedded Script
@@ -1243,6 +1268,10 @@ There are 4 main sections inside sw-description:
    +-------------+----------+------------+---------------------------------------+
    | install-if\ | bool     | images     | flag                                  |
    | -different  |          | files      | if set, name and version are          |
+   |             |          |            | compared with the entries in          |
+   +-------------+----------+------------+---------------------------------------+
+   | install-if\ | bool     | images     | flag                                  |
+   | -higher     |          | files      | if set, name and version are          |
    |             |          |            | compared with the entries in          |
    +-------------+----------+------------+---------------------------------------+
    | encrypted   | bool     | images     | flag                                  |

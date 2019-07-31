@@ -105,7 +105,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#combining-signing-sw-description-with-hash-verification">Combining signing sw-description with hash verification</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#choice-of-algorithm">Choice of algorithm</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#tool-to-generate-keys-certificates">Tool to generate keys / certificates</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#usage-with-rsa-pkcs-1-5">Usage with RSA PKCS#1.5</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#usage-with-rsa-pkcs-1-5-or-rsa-pss">Usage with RSA PKCS#1.5 or RSA PSS</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#generating-private-and-public-key">Generating private and public key</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#how-to-sign-with-rsa">How to sign with RSA</a></li>
 </ul>
@@ -257,8 +257,8 @@ while the public key must be installed on the target.</li>
 OpenSSL project. A complete documentation can be found at
 the <a class="reference external" href="https://www.openssl.org/docs/manmaster/man1/openssl.html">openSSL Website</a>.</p>
 </div>
-<div class="section" id="usage-with-rsa-pkcs-1-5">
-<h2>Usage with RSA PKCS#1.5<a class="headerlink" href="#usage-with-rsa-pkcs-1-5" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="usage-with-rsa-pkcs-1-5-or-rsa-pss">
+<h2>Usage with RSA PKCS#1.5 or RSA PSS<a class="headerlink" href="#usage-with-rsa-pkcs-1-5-or-rsa-pss" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="generating-private-and-public-key">
 <h3>Generating private and public key<a class="headerlink" href="#generating-private-and-public-key" title="Permalink to this headline">¶</a></h3>
 <p>First, the private key must be created:</p>
@@ -280,8 +280,13 @@ can be passed to swupdate at the command line with the -k parameter.</p>
 </div>
 <div class="section" id="how-to-sign-with-rsa">
 <h3>How to sign with RSA<a class="headerlink" href="#how-to-sign-with-rsa" title="Permalink to this headline">¶</a></h3>
-<p>Signing the image is very simple:</p>
+<p>Signing the image with rsa-pkcs#1.5 is very simple:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">openssl</span> <span class="n">dgst</span> <span class="o">-</span><span class="n">sha256</span> <span class="o">-</span><span class="n">sign</span> <span class="n">priv</span><span class="o">.</span><span class="n">pem</span> <span class="n">sw</span><span class="o">-</span><span class="n">description</span> <span class="o">&gt;</span> <span class="n">sw</span><span class="o">-</span><span class="n">description</span><span class="o">.</span><span class="n">sig</span>
+</pre></div>
+</div>
+<p>Signing the image with rsa-pss is also very simple:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">openssl</span> <span class="n">dgst</span> <span class="o">-</span><span class="n">sha256</span> <span class="o">-</span><span class="n">sign</span> <span class="n">priv</span><span class="o">.</span><span class="n">pem</span> <span class="o">-</span><span class="n">sigopt</span> <span class="n">rsa_padding_mode</span><span class="p">:</span><span class="n">pss</span> \
+    <span class="o">-</span><span class="n">sigopt</span> <span class="n">rsa_pss_saltlen</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span> <span class="n">sw</span><span class="o">-</span><span class="n">description</span> <span class="o">&gt;</span> <span class="n">sw</span><span class="o">-</span><span class="n">description</span><span class="o">.</span><span class="n">sig</span>
 </pre></div>
 </div>
 </div>
@@ -331,15 +336,18 @@ with an error before starting to install.</p>
 <p>A simple script to create a signed image can be:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span>#!/bin/bash
 
-MODE=&quot;RSA&quot;
+MODE=&quot;RSA-PKCS-1.5&quot;
 PRODUCT_NAME=&quot;myproduct&quot;
 CONTAINER_VER=&quot;1.0&quot;
 IMAGES=&quot;rootfs kernel&quot;
 FILES=&quot;sw-description sw-description.sig $IMAGES&quot;
 
 #if you use RSA
-if [ x&quot;$MODE&quot; == &quot;xRSA&quot; ]; then
+if [ x&quot;$MODE&quot; == &quot;xRSA-PKCS-1.5&quot; ]; then
     openssl dgst -sha256 -sign priv.pem sw-description &gt; sw-description.sig
+elif if [ x&quot;$MODE&quot; == &quot;xRSA-PSS&quot; ]; then
+    openssl dgst -sha256 -sign priv.pem -sigopt rsa_padding_mode:pss \
+        -sigopt rsa_pss_saltlen:-2 sw-description &gt; sw-description.sig
 else
     openssl cms -sign -in  sw-description -out sw-description.sig -signer mycert.cert.pem \
         -inkey mycert.key.pem -outform DER -nosmimecap -binary

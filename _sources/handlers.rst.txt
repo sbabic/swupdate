@@ -100,31 +100,111 @@ Where:
   saves in the handlers' list and pass to the handler when it will
   be executed.
 
-Handler for UBI Volumes
------------------------
+UBI Volume Handler
+------------------
 
-The handler for UBI volumes is thought to update UBI volumes
-without changing the layout of the storage.
-Volumes must be set before: the handler does not create volumes
-itself. It searches for a volume in all MTD (if they are not
-blacklisted: see UBIBLACKLIST) to find the volume where the image
-must be installed. For this reason, volumes must be unique inside
-the system. Two volumes with the same names are not supported
-and drives to unpredictable results. SWUpdate will install
-an image to the first volume that matches with the name, and this
-maybe is not the desired behavior.
-Updating volumes, it is guaranteed that the erase counters are
-preserved and not lost after an update. The way for updating
-is identical to the "ubiupdatevol" from the mtd-utils. In fact,
-the same library from mtd-utils (libubi) is reused by SWUpdate.
+The UBI volume handler will update UBI volumes without changing the
+layout on the storage. Therefore, volumes must be created/adjusted
+beforehand. This can be done using the ``partitions`` tag (see
+:ref:`partitions-ubi-layout`).
 
-SWUpdate normally creates dynamic volumes. If a static volume is
-desired, set the handler's data field to "static".
+The UBI volume handler will search for volumes in all MTD devices
+(unless blacklisted, see UBIBLACKLIST) to find the volume into which
+the image shall be installed. For this reason, **volume names must be
+unique** within the system. Two volumes with the same name are not
+supported and will lead to unpredictable results (SWUpdate will
+install the image to the first volume with that name it finds, which
+may not be right one!).
 
-If the storage is empty, it is required to setup the layout
-and create the volumes. This can be easy done with a
-preinstall script. Building with meta-SWUpdate, the original
-mtd-utils are available and can be called by a Lua script.
+When updating volumes, it is guaranteed that erase counters are
+preserved and not lost. The behavior of updating is identical to that
+of the ``ubiupdatevol(1)`` tool from mtd-utils. In fact, the same
+library from mtd-utils (libubi) is reused by SWUpdate.
+
+atomic volume renaming
+...........................
+
+The UBI volume handler has basic support for carrying out atomic
+volume renames by defining the ``replaces`` property, which must
+contain a valid UBI volume name. After successfully updating the image
+to ``volume``, an atomic swap of the names of ``volume`` and
+``replaces`` is done. Consider the following example
+
+::
+
+	{
+		filename ="u-boot.img";
+		volume ="u-boot_r";
+		properties: {
+			replaces = "u-boot";
+		}
+	}
+
+After u-boot.img is successfully installed into the volume "u-boot_r",
+the volume "u-boot_r" is renamed to "u-boot" and "u-boot" is renamed
+to "u-boot_r".
+
+This mechanism allows to implement a simple double copy update
+approach without the need of shared state with the bootloader. For
+example, the U-Boot SPL can be configured to always load U-Boot from
+the volume ``u-boot`` without the need to access the environment. The
+volume replace functionality will ensure that this volume name always
+points to the currently valid volume.
+
+However, please note the following limitations:
+
+- Currently the rename takes place after *each* image was installed
+  successfully. Hence, it only makes sense to use this feature for
+  images that are independent of the other installed images. A typical
+  example is the bootloader. This behavior may be modified in the
+  future to only carry out one atomic rename after all images were
+  installed successfully.
+
+- Atomic renames are only possible and permitted for volumes residing
+  on the same UBI device.
+
+There is a handler ubiswap that allow to do an atomic swap for several
+ubi volume after all the images were flashed. This handler is a script
+for the point of view of swudate, so the node that provide it the data
+should be added in the section scripts.
+
+::
+
+	scripts: (
+		{
+			type = "ubiswap";
+			properties: {
+				swap-0 = [ "boot" , " boot_r" ];
+				swap-1 = [ "kernel" , "kernel_r" ];
+				swap-2 = [ "rootfs" , "rootfs_r" ];
+			},
+		},
+	);
+
+
+WARNING: if you use the property replaces on an ubi volume that is also
+used with the handler ubiswap, this ubi volume will be swapped twice.
+It's probably not what you want ...
+
+volume auto resize
+...........................
+
+The UBI volume handler has support to auto resize before flashing an
+image with the property ``auto-resize``. When this property is set
+on an image, the ubi volume is resized to fit exactly the image.
+
+::
+
+	{
+		filename = "u-boot.img";
+		device = "mtd0";
+		volume = "u-boot_r";
+		properties: {
+			auto-resize = "true";
+		}
+	}
+
+WARNING: when this property is used, the device must be defined.
 
 Lua Handlers
 ------------
@@ -490,8 +570,16 @@ Example:
 
 ::
 
-        properties = {
+    images: (
+        {
+            filename = "microcontroller-image";
+            type = "ucfw";
+            device = "/dev/ttymxc5";
+
+            properties: {
                 reset =  "/dev/gpiochip0:38:false";
                 prog =  "/dev/gpiochip0:39:false";
+            };
         }
+    );
 

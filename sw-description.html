@@ -277,7 +277,7 @@ using of the #include directive is not allowed by SWUpdate.</p>
                 <span class="p">{</span>
                         <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;bootloader-env&quot;</span><span class="p">;</span>
                         <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;bootloader&quot;</span><span class="p">;</span>
-                <span class="p">},</span>
+                <span class="p">}</span>
         <span class="p">);</span>
 
         <span class="n">files</span><span class="p">:</span> <span class="p">(</span>
@@ -721,24 +721,34 @@ The path <cite>software.myboard.stable.common.images</cite>  is then replaced by
 </div>
 <div class="section" id="hardware-compatibility">
 <h2>hardware-compatibility<a class="headerlink" href="#hardware-compatibility" title="Permalink to this headline">¶</a></h2>
-<p>hardware-compatibility: [ “major.minor”, “major.minor”, … ]</p>
-<p>It lists the hardware revisions that are compatible with this software image.</p>
+<p><code class="docutils literal"><span class="pre">hardware-compatibility:</span> <span class="pre">[</span> <span class="pre">&quot;major.minor&quot;,</span> <span class="pre">&quot;major.minor&quot;,</span> <span class="pre">...</span> <span class="pre">]</span></code></p>
+<p>This entry lists the hardware revisions that are compatible with this
+software image.</p>
 <p>Example:</p>
-<blockquote>
-<div>hardware-compatibility: [ “1.0”, “1.2”, “1.3”];</div></blockquote>
-<p>This means that the software is compatible with HW-Revisions
-1.0, 1.2 and 1.3, but not for 1.1 or other version not explicitly
-listed here.
-It is then duty of the single project to find which is the
-revision of the board where SWUpdate is running. There is no
-assumption how the revision can be obtained (GPIOs, EEPROM,..)
-and each project is free to select the way most appropriate.
-The result must be written in the file /etc/hwrevision (or in
-another file if specified as configuration option) before
-SWUpdate is started.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">hardware</span><span class="o">-</span><span class="n">compatibility</span><span class="p">:</span> <span class="p">[</span> <span class="s2">&quot;1.0&quot;</span><span class="p">,</span> <span class="s2">&quot;1.2&quot;</span><span class="p">,</span> <span class="s2">&quot;1.3&quot;</span><span class="p">];</span>
+</pre></div>
+</div>
+<p>This defines that the software is compatible with HW-Revisions 1.0,
+1.2 and 1.3, but not with 1.1 or any other version not explicitly
+listed here. In the above example, compatibility is checked by means
+of string comparision. If the software is compatible with a large
+number of hardware revisions, it may get cumbersome to enumerate all
+compatible versions. To allow more compact specifications, regular
+expressions (POSIX extended) can be used by adding a prefix <code class="docutils literal"><span class="pre">#RE:</span></code>
+to the entry. Rewriting the above example would yield:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">hardware</span><span class="o">-</span><span class="n">compatibility</span><span class="p">:</span> <span class="p">[</span> <span class="s2">&quot;#RE:^1\.[023]$&quot;</span> <span class="p">];</span>
+</pre></div>
+</div>
+<p>It is in the responsibility of the respective project to find the
+revision of the board on which SWUpdate is running. No assumptions are
+made about how the revision can be obtained (GPIOs, EEPROM,..) and
+each project is free to select the most appropriate way. In the end
+the result must be written to the file <code class="docutils literal"><span class="pre">/etc/hwrevision</span></code> (or in
+another file if specified as configuration option) before SWUpdate is
+started.</p>
 </div>
 <div class="section" id="partitions-ubi-layout">
-<h2>partitions : UBI layout<a class="headerlink" href="#partitions-ubi-layout" title="Permalink to this headline">¶</a></h2>
+<span id="id1"></span><h2>partitions : UBI layout<a class="headerlink" href="#partitions-ubi-layout" title="Permalink to this headline">¶</a></h2>
 <p>This tag allows to change the layout of UBI volumes.
 Please take care that MTDs are not touched and they are
 configured by the Device Tree or in another way directly
@@ -748,17 +758,20 @@ in kernel.</p>
                 <span class="n">name</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">volume</span> <span class="n">name</span><span class="o">&gt;</span><span class="p">;</span>
                 <span class="n">size</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">size</span> <span class="ow">in</span> <span class="nb">bytes</span><span class="o">&gt;</span><span class="p">;</span>
                 <span class="n">device</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">MTD</span> <span class="n">device</span><span class="o">&gt;</span><span class="p">;</span>
-        <span class="p">},</span>
+        <span class="p">}</span>
 <span class="p">);</span>
 </pre></div>
 </div>
-<p>All fields are mandatory. SWUpdate searches for a volume of the
-selected name and adjusts the size, or creates a new volume if
-no volume with the given name exists. In the latter case, it is
-created on the UBI device attached to the MTD device given by
-“device”. “device” can be given by number (e.g. “mtd4”) or by name
-(the name of the MTD device, e.g. “ubi_partition”). The UBI device
-is attached automatically.</p>
+<p>All fields are mandatory. SWUpdate searches for a volume of the given
+name and if necessary adjusts size or type (see below). If no volume
+with the given name is found, a new volume is created on the UBI
+device attached to the MTD device given by <code class="docutils literal"><span class="pre">device</span></code>. <code class="docutils literal"><span class="pre">device</span></code> can
+be specified by number (e.g. “mtd4”) or by name (the name of the MTD
+device, e.g. “ubi_partition”). The UBI device is attached
+automatically.</p>
+<p>The default behavior of swupdate is to create a dynamic UBI volume. To
+create a static volume, add a line <code class="docutils literal"><span class="pre">data</span> <span class="pre">=</span> <span class="pre">&quot;static&quot;;</span></code> to the
+respective partition entry.</p>
 </div>
 <div class="section" id="images">
 <h2>images<a class="headerlink" href="#images" title="Permalink to this headline">¶</a></h2>
@@ -870,7 +883,7 @@ be unique inside the same cpio archive.</p>
         <span class="p">{</span>
                 <span class="n">filename</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">Name</span> <span class="ow">in</span> <span class="n">CPIO</span> <span class="n">Archive</span><span class="o">&gt;</span><span class="p">;</span>
                 <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;lua&quot;</span><span class="p">;</span>
-        <span class="p">},</span>
+        <span class="p">}</span>
 <span class="p">);</span>
 </pre></div>
 </div>
@@ -893,7 +906,7 @@ called after installing the images.</p>
         <span class="p">{</span>
                 <span class="n">filename</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">Name</span> <span class="ow">in</span> <span class="n">CPIO</span> <span class="n">Archive</span><span class="o">&gt;</span><span class="p">;</span>
                 <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;shellscript&quot;</span><span class="p">;</span>
-        <span class="p">},</span>
+        <span class="p">}</span>
 <span class="p">);</span>
 </pre></div>
 </div>
@@ -910,7 +923,7 @@ to the script.</p>
         <span class="p">{</span>
                 <span class="n">filename</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">Name</span> <span class="ow">in</span> <span class="n">CPIO</span> <span class="n">Archive</span><span class="o">&gt;</span><span class="p">;</span>
                 <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;preinstall&quot;</span><span class="p">;</span>
-        <span class="p">},</span>
+        <span class="p">}</span>
 <span class="p">);</span>
 </pre></div>
 </div>
@@ -925,7 +938,7 @@ to the script.</p>
         <span class="p">{</span>
                 <span class="n">filename</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">Name</span> <span class="ow">in</span> <span class="n">CPIO</span> <span class="n">Archive</span><span class="o">&gt;</span><span class="p">;</span>
                 <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;postinstall&quot;</span><span class="p">;</span>
-        <span class="p">},</span>
+        <span class="p">}</span>
 <span class="p">);</span>
 </pre></div>
 </div>
@@ -971,7 +984,7 @@ must be chosen from the bootloader selection menu in <cite>menuconfig</cite>.</p
         <span class="p">{</span>
                 <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;bootloader-env&quot;</span><span class="p">;</span>
                 <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;bootloader&quot;</span><span class="p">;</span>
-        <span class="p">},</span>
+        <span class="p">}</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -999,7 +1012,7 @@ that must be changed:</p>
         <span class="p">{</span>
                 <span class="n">name</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">Variable</span> <span class="n">name</span><span class="o">&gt;</span><span class="p">;</span>
                 <span class="n">value</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">Variable</span> <span class="n">value</span><span class="o">&gt;</span><span class="p">;</span>
-        <span class="p">},</span>
+        <span class="p">}</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -1140,6 +1153,10 @@ The file must contains pairs with the name of image and his version, as:</p>
 compared with the data in the versions file. install-if-different is a
 boolean that enables the check for this image. It is then possible to
 check the version just for a subset of the images to be installed.</p>
+<p>There is also an attribute “install-if-higher” that check if the version
+of the new software is higher than the version of the installed software.
+If it’s false, the new software isn’t installed. The goal is to avoid
+installing an older version of software.</p>
 </div>
 <div class="section" id="embedded-script">
 <h2>Embedded Script<a class="headerlink" href="#embedded-script" title="Permalink to this headline">¶</a></h2>
@@ -1228,8 +1245,8 @@ be run twice (as pre- and post- install scripts).</li>
 <li>bootenv: entries are pair with bootloader environment variable name and its
 value.</li>
 </ul>
-<table border="1" class="docutils" id="id1">
-<caption><span class="caption-text">Attributes in sw-description</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<table border="1" class="docutils" id="id2">
+<caption><span class="caption-text">Attributes in sw-description</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="18%" />
 <col width="14%" />
@@ -1380,7 +1397,15 @@ files</td>
 if set, name and version are
 compared with the entries in</td>
 </tr>
-<tr class="row-even"><td>encrypted</td>
+<tr class="row-even"><td>install-if-higher</td>
+<td>bool</td>
+<td>images
+files</td>
+<td>flag
+if set, name and version are
+compared with the entries in</td>
+</tr>
+<tr class="row-odd"><td>encrypted</td>
 <td>bool</td>
 <td>images
 files
@@ -1390,7 +1415,7 @@ if set, file is encrypted
 and must be decrypted before
 installing.</td>
 </tr>
-<tr class="row-odd"><td>data</td>
+<tr class="row-even"><td>data</td>
 <td>string</td>
 <td>images
 files
@@ -1398,7 +1423,7 @@ scripts</td>
 <td>This is used to pass arbitrary data
 to a handler.</td>
 </tr>
-<tr class="row-even"><td>sha256</td>
+<tr class="row-odd"><td>sha256</td>
 <td>string</td>
 <td>images
 files
@@ -1407,25 +1432,25 @@ scripts</td>
 Used for verification of signed
 images.</td>
 </tr>
-<tr class="row-odd"><td>embedded-script</td>
+<tr class="row-even"><td>embedded-script</td>
 <td>string</td>
 <td>&#160;</td>
 <td>Lua code that is embedded in the
 sw-description file.</td>
 </tr>
-<tr class="row-even"><td>offset</td>
+<tr class="row-odd"><td>offset</td>
 <td>string</td>
 <td>images</td>
 <td>Optional destination offset</td>
 </tr>
-<tr class="row-odd"><td>hook</td>
+<tr class="row-even"><td>hook</td>
 <td>string</td>
 <td>images
 files</td>
 <td>The name of the function (Lua) to be
 called when the entry is parsed.</td>
 </tr>
-<tr class="row-even"><td>mtdname</td>
+<tr class="row-odd"><td>mtdname</td>
 <td>string</td>
 <td>images</td>
 <td>name of the MTD to update. Used only
