@@ -49,6 +49,8 @@ struct filehdr {
 	char filename[MAX_IMAGE_FNAME];
 };
 
+int get_cpiohdr(unsigned char *buf, unsigned long *size,
+			unsigned long *namesize, unsigned long *chksum);
 int extract_cpio_header(int fd, struct filehdr *fhdr, unsigned long *offset);
 int extract_img_from_cpio(int fd, unsigned long offset, struct filehdr *fdh);
 

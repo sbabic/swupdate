@@ -26,7 +26,7 @@
 
 #define NPAD_BYTES(o) ((4 - (o % 4)) % 4)
 
-static int get_cpiohdr(unsigned char *buf, unsigned long *size,
+int get_cpiohdr(unsigned char *buf, unsigned long *size,
 			unsigned long *namesize, unsigned long *chksum)
 {
 	struct new_ascii_header *cpiohdr;
