@@ -155,6 +155,15 @@ static bool get_common_fields(parsertype p, void *cfg, struct swupdate_cfg *swcf
 			  swcfg->bootloader_transaction_marker == true ? "true" : "false");
 	}
 
+	if ((setting = find_node(p, cfg, "output", swcfg)) != NULL) {
+		if (!strlen(swcfg->output)) {
+			TRACE("Output file set but not enabled with -o, ignored");
+		} else {
+			GET_FIELD_STRING(p, setting, NULL, swcfg->output);
+			TRACE("Incoming SWU stored : %s", swcfg->output);
+		}
+	}
+
 	return true;
 }
 
