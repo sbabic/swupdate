@@ -24,6 +24,7 @@
 #define AES_BLOCK_SIZE	16
 
 #define HWID_REGEXP_PREFIX	"#RE:"
+#define SWUPDATE_ALIGN(A,S)    (((A) + (S) - 1) & ~((S) - 1))
 
 extern int loglevel;
 
