@@ -296,30 +296,167 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 	}
 }
 
-static int save_stream(int fdin, const char *output)
+static int cpfiles(int fdin, int fdout, size_t max)
 {
 	char *buf;
-	int fdout, ret, len;
 	const int bufsize = 16 * 1024;
-
-	fdout = openfileoutput(output);
-	if (fdout < 0)
-		return -1;
+	int ret, len;
+	size_t maxread;
+	bool cpyall = (max == 0);
 
 	buf = (char *)malloc(bufsize);
 	if (!buf)
 		return -ENOMEM;
 
 	for (;;) {
-		len = read(fdin, buf, bufsize);
+		/*
+		 * No limit set - copy the whole file
+		 * Set max to be always not zero
+		 */
+		if (cpyall)
+			max =  2 * bufsize;
+		maxread = min(bufsize, max);
+		len = read(fdin, buf, maxread);
+		if (len < 0) {
+			free(buf);
+			return -EIO;
+		}
 		if (len == 0)
 			break;
 		ret = copy_write(&fdout, buf, len);
-		if (ret < 0)
+		if (ret < 0) {
+			free(buf);
 			return -EIO;
+		}
+		max -= len;
+		if (max == 0)
+			break;
 	}
 
+	free(buf);
 	return 0;
+}
+
+
+#define SW_TMP_OUTPUT	"swtmp-outputXXXXXXXX"
+static int save_stream(int fdin, struct swupdate_cfg *software)
+{
+	unsigned char *buf;
+	int fdout = -1, ret, len;
+	const int bufsize = 16 * 1024;
+	int tmpfd = -1;
+	char tmpfilename[MAX_IMAGE_FNAME];
+	struct filehdr fdh;
+	unsigned int tmpsize;
+	unsigned long offset;
+	char output_file[MAX_IMAGE_FNAME];
+	const char* TMPDIR = get_tmpdir();
+
+	snprintf(tmpfilename, sizeof(tmpfilename), "%s/%s", TMPDIR, SW_TMP_OUTPUT);
+
+	buf = (unsigned char *)malloc(bufsize);
+	if (!buf) {
+		ERROR("OOM when saving stream");
+		return -ENOMEM;
+	}
+
+	/*
+	 * Cache the beginnining of the SWU to parse
+	 * sw-description and check if the output must be
+	 * redirected. This allows to define the output file on demand
+	 * setting it into sw-description.
+	 */
+	tmpfd = mkstemp(tmpfilename);
+	if (tmpfd < 0) {
+		ERROR("Cannot get space for temporary data, error %d", errno);
+		ret = -EFAULT;
+		goto no_copy_output;
+	}
+	len = read(fdin, buf, bufsize);
+	if (get_cpiohdr(buf, &fdh.size, &fdh.namesize, &fdh.chksum) < 0) {
+		ERROR("CPIO Header corrupted, cannot be parsed");
+		ret = -EINVAL;
+		goto no_copy_output;
+	}
+
+	/*
+	 * Make an estimation for sw-description and signature.
+	 * Signature cannot be very big - if it is, it is an attack.
+	 * So let a buffer just for the signature - tmpsize is enough for both
+	 * sw-description and sw-description.sig, if any.
+	 */
+	tmpsize = SWUPDATE_ALIGN(fdh.size + fdh.namesize + sizeof(struct new_ascii_header) + bufsize - len,
+			bufsize);
+	ret = copy_write(&tmpfd, buf, len);  /* copy the first buffer */
+	if (ret < 0) {
+		ret =  -EIO;
+		goto no_copy_output;
+	}
+
+	/*
+	 * copy enough bytes to have sw-description and sw-description.sig
+	 */
+	ret = cpfiles(fdin, tmpfd, tmpsize);
+	if (ret < 0) {
+		ret =  -EIO;
+		goto no_copy_output;
+	}
+	lseek(tmpfd, 0, SEEK_SET);
+	offset = 0;
+
+	if (extract_file_to_tmp(tmpfd, SW_DESCRIPTION_FILENAME, &offset) < 0) {
+		ERROR("%s cannot be extracted", SW_DESCRIPTION_FILENAME);
+		ret = -EINVAL;
+		goto no_copy_output;
+	}
+#ifdef CONFIG_SIGNED_IMAGES
+	snprintf(output_file, sizeof(output_file), "%s.sig", SW_DESCRIPTION_FILENAME);
+	if (extract_file_to_tmp(tmpfd, output_file, &offset) < 0 ) {
+		ERROR("Signature cannot be extracted:%s", output_file);
+		ret = -EINVAL;
+		goto no_copy_output;
+	}
+
+#endif
+	snprintf(output_file, sizeof(output_file), "%s%s", TMPDIR, SW_DESCRIPTION_FILENAME);
+	if (parse(software, output_file)) {
+		ERROR("Compatible SW not found");
+		ret = -1;
+		goto no_copy_output;
+	}
+
+	/*
+	 * if all is ok, copy the first part of SWU (stored in tmp file)
+	 * into the output
+	 */
+	lseek(tmpfd, 0, SEEK_SET);
+
+	fdout = openfileoutput(software->output);
+	if (fdout < 0)
+		return -1;
+
+	ret = cpfiles(tmpfd, fdout, 0);
+	if (ret < 0)
+		goto no_copy_output;
+
+	ret = cpfiles(fdin, fdout, 0);
+	if (ret < 0)
+		goto no_copy_output;
+
+	ret = 0;
+
+no_copy_output:
+	free(buf);
+	if (fdout > 0)
+		close(fdout);
+	if (tmpfd > 0) {
+		close(tmpfd);
+		unlink(tmpfilename);
+	}
+
+	cleanup_files(software);
+
+	return ret;
 }
 
 void *network_initializer(void *data)
@@ -337,7 +474,7 @@ void *network_initializer(void *data)
 
 	/* handle installation requests (from either source) */
 	while (1) {
-
+		ret = 0;
 		TRACE("Main loop Daemon");
 
 		/* wait for someone to issue an install request */
@@ -359,11 +496,10 @@ void *network_initializer(void *data)
 		 * Check if the stream should be saved
 		 */
 		if (strlen(software->output)) {
-			ret = save_stream(inst.fd, software->output);
+			ret = save_stream(inst.fd, software);
 			if (ret < 0) {
 				notify(FAILURE, RECOVERY_ERROR, ERRORLEVEL,
-					"Image invalid or corrupted. Not installing ...");
-				continue;
+					"Error saving stream, not installing ...");
 			}
 
 			/*
@@ -374,16 +510,17 @@ void *network_initializer(void *data)
 			inst.fd = open(software->output, O_RDONLY,  S_IRUSR);
 		}
 
-
+		if (!ret) {
 #ifdef CONFIG_MTD
-		mtd_cleanup();
-		scan_mtd_devices();
+			mtd_cleanup();
+			scan_mtd_devices();
 #endif
-		/*
-		 * extract the meta data and relevant parts
-		 * (flash images) from the install image
-		 */
-		ret = extract_files(inst.fd, software);
+			/*
+		 	 * extract the meta data and relevant parts
+		 	 * (flash images) from the install image
+		 	 */
+			ret = extract_files(inst.fd, software);
+		}
 		close(inst.fd);
 
 		/* do carry out the installation (flash programming) */
