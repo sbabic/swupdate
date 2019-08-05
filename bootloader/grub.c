@@ -33,7 +33,7 @@ static int grubenv_open(struct grubenv_t *grubenv)
 	size = (size_t)ftell(fp);
 
 	if (size != GRUBENV_SIZE) {
-		ERROR("Ivalid grubenv file size: %d", (int)size);
+		ERROR("Invalid grubenv file size: %d", (int)size);
 		ret = -1;
 		goto cleanup;
 	}
