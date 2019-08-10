@@ -160,6 +160,7 @@ static bool get_common_fields(parsertype p, void *cfg, struct swupdate_cfg *swcf
 			TRACE("Output file set but not enabled with -o, ignored");
 		} else {
 			GET_FIELD_STRING(p, setting, NULL, swcfg->output);
+			get_field(p, setting, NULL, &swcfg->output);
 			TRACE("Incoming SWU stored : %s", swcfg->output);
 		}
 	}
@@ -457,10 +458,12 @@ static int parse_bootloader(parsertype p, void *cfg, struct swupdate_cfg *swcfg,
 			if (skip < 0) {
 				return -1;
 			}
-			dict_set_value(&swcfg->bootloader, dummy.id.name, dummy.id.version);
-			TRACE("Bootloader var: %s = %s",
-				dummy.id.name,
-				dict_get_value(&swcfg->bootloader, dummy.id.name));
+			if (!skip) {
+				dict_set_value(&swcfg->bootloader, dummy.id.name, dummy.id.version);
+				TRACE("Bootloader var: %s = %s",
+					dummy.id.name,
+					dict_get_value(&swcfg->bootloader, dummy.id.name));
+			}
 			continue;
 		}
 
@@ -485,9 +488,11 @@ static int parse_bootloader(parsertype p, void *cfg, struct swupdate_cfg *swcfg,
 		script->is_script = 1;
 
 		skip = run_embscript(p, elem, script, L, swcfg->embscript);
-		if (skip < 0) {
+		if (skip != 0) {
 			free_image(script);
-			return -1;
+			if (skip < 0)
+				return -1;
+			continue;
 		}
 
 		LIST_INSERT_HEAD(&swcfg->bootscripts, script, next);
