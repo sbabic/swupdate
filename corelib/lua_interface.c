@@ -18,6 +18,7 @@
 #include "util.h"
 #include "handler.h"
 #include "bootloader.h"
+#include "progress.h"
 
 #define LUA_TYPE_PEMBSCR 1
 #define LUA_TYPE_HANDLER 2
@@ -804,6 +805,13 @@ static int l_get_tmpdir_scripts(lua_State *L)
 	lua_pushstring(L, get_tmpdirscripts());
 	return 1;
 }
+
+static int l_progress_update(lua_State *L)
+{
+	lua_Number percent =  luaL_checknumber (L, 1);
+	swupdate_progress_update((unsigned int) percent);
+	return 0;
+}
 #endif
 
 /**
@@ -833,6 +841,7 @@ static const luaL_Reg l_swupdate_handler[] = {
         { "call_handler", l_call_handler },
         { "tmpdirscripts", l_get_tmpdir_scripts },
         { "tmpdir", l_get_tmpdir },
+	{ "progress_update", l_progress_update },
         { NULL, NULL }
 };
 #endif
