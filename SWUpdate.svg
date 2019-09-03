@@ -29,7 +29,7 @@
           </cc:Agent>
         </dc:rights>
         <cc:license
-           rdf:resource="http://creativecommons.org/licenses/by-nd/4.0/" />
+           rdf:resource="http://creativecommons.org/licenses/by-sa/4.0/" />
         <dc:creator>
           <cc:Agent>
             <dc:title>Andres Babic &lt;andres.babic@gmail.com&gt;</dc:title>
