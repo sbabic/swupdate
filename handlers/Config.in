@@ -212,6 +212,17 @@ config BOOTLOADERHANDLER
 	  Enable it to change bootloader environment
 	  during the installation process.
 
+config SSBLSWITCH
+	bool "Second Stage Switcher"
+	depends on MTD
+	default n
+	help
+	  This handler allows to switch between two software set
+	  based on an administration block stored in flash (CFI interface).
+	  It works like the switch of UBI and allow to switch in an atomic
+	  way between two software set. It can be used to reliable update
+	  a second stage bootloader.
+
 config UCFWHANDLER
 	bool "microcontroller firmware update"
 	depends on HAVE_LIBGPIOD

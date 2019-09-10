@@ -583,3 +583,63 @@ Example:
         }
     );
 
+SSBL Handler
+------------
+
+This implements a way to switch two software sets using a duplicated structure saved on the
+flash (currently, only NOR flash is supported). Each of the two structures contains address
+and size of the image to be loaded by a first loader. A field contain the "age", and it is
+incremented after each switch to show which is the active set.
+
+
+.. table:: Structure of SSBL Admin
+
+   +---------------------------------------------------------------+-------------+
+   |  SSBL Magic Number (29 bit)Name                               | Age (3 bit) |
+   +---------------------------------------------------------------+-------------+
+   |                            Image Address Offset                             |
+   +-----------------------------------------------------------------------------+
+   |                            Image Size                                       |
+   +-----------------------------------------------------------------------------+
+
+
+The handler implements a post install script. First, it checks for consistency the two
+structures and find the active reading the first 32 bit value with a magic number and the age.
+It increments the age and saves the new structure in the inactive copy. After a reboot,
+the loader will check it and switch the software set.
+
+::
+
+	scripts: (
+		{
+		        type = "ssblswitch";
+			properties: {
+				device = ["mtdX", "mtdY"];
+				offset = ["0", "0"];
+				imageoffs = ["0x780000",  "0xA40000"];
+				imagesize = ["0x800000", "0x800000"];
+			}
+        }
+
+
+Properties in sw-description are all mandatory. They define where the SSBL Administration data
+are stored for both sets. Each properties is an array of two entries, containing values for each
+of the two SSBL administration.
+
+.. table:: Properties for SSBL handler
+
+   +-------------+----------+----------------------------------------------------+
+   |  Name       |  Type    |  Description                                       |
+   +=============+==========+====================================================+
+   | device      | string   | MTD device where the SSBL Admin Header is stored   | 
+   +-------------+----------+----------------------------------------------------+
+   | offset      | hex      | Offset of SSBL header inside the MTD device        | 
+   +-------------+----------+----------------------------------------------------+
+   | imageoffset | hex      | Offset of the image to be loaded by a bootloader   |
+   |             |          | when this SSBL is set.                             |
+   +-------------+----------+----------------------------------------------------+
+   | imagesize   | hex      | Size of the image to be loaded by a bootloader     |
+   |             |          | when this SSBL is set.                             |
+   +-------------+----------+----------------------------------------------------+
+
+

@@ -17,6 +17,7 @@ obj-$(CONFIG_RAW)	+= raw_handler.o
 obj-$(CONFIG_RDIFFHANDLER) += rdiff_handler.o
 obj-$(CONFIG_REMOTE_HANDLER) += remote_handler.o
 obj-$(CONFIG_SHELLSCRIPTHANDLER) += shell_scripthandler.o
+obj-$(CONFIG_SSBLSWITCH) += ssbl_handler.o
 obj-$(CONFIG_SWUFORWARDER_HANDLER) += swuforward_handler.o swuforward-ws.o
 obj-$(CONFIG_UBIVOL)	+= ubivol_handler.o
 obj-$(CONFIG_UCFWHANDLER)	+= ucfw_handler.o
