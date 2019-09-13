@@ -114,6 +114,7 @@ struct swupdate_global_cfg {
 	int dry_run;
 	int no_downgrading;
 	int no_reinstalling;
+	int no_transaction_marker;
 	char publickeyfname[SWUPDATE_GENERAL_STRING_SIZE];
 	char aeskeyfname[SWUPDATE_GENERAL_STRING_SIZE];
 	char postupdatecmd[SWUPDATE_GENERAL_STRING_SIZE];

@@ -80,6 +80,7 @@ static struct option long_options[] = {
 	{"dry-run", no_argument, NULL, 'n'},
 	{"no-downgrading", required_argument, NULL, 'N'},
 	{"no-reinstalling", required_argument, NULL, 'R'},
+	{"no-transaction-marker", no_argument, NULL, 'M'},
 #ifdef CONFIG_SIGNED_IMAGES
 	{"key", required_argument, NULL, 'k'},
 	{"ca-path", required_argument, NULL, 'k'},
@@ -142,6 +143,7 @@ static void usage(char *programname)
 		" -n, --dry-run                  : run SWUpdate without installing the software\n"
 		" -N, --no-downgrading <version> : not install a release older as <version>\n"
 		" -R, --no-reinstalling <version>: not install a release same as <version>\n"
+		" -M, --no-transaction-marker    : disable setting bootloader transaction marker\n"
 		" -o, --output <output file>     : saves the incoming stream\n"
 		" -v, --verbose                  : be verbose, set maximum loglevel\n"
 		"     --version                  : print SWUpdate version and exit\n"
@@ -608,7 +610,7 @@ int main(int argc, char **argv)
 #endif
 	memset(main_options, 0, sizeof(main_options));
 	memset(image_url, 0, sizeof(image_url));
-	strcpy(main_options, "vhni:e:l:Lcf:p:o:N:R:");
+	strcpy(main_options, "vhni:e:l:Lcf:p:o:N:R:M");
 #ifdef CONFIG_MTD
 	strcat(main_options, "b:");
 #endif
@@ -758,6 +760,10 @@ int main(int argc, char **argv)
 			swcfg.globals.no_reinstalling = 1;
 			strncpy(swcfg.globals.current_version, optarg,
 				sizeof(swcfg.globals.current_version));
+			break;
+		case 'M':
+			swcfg.globals.no_transaction_marker = 1;
+			TRACE("transaction_marker globally disabled");
 			break;
 		case 'e':
 			software_select = optarg;
