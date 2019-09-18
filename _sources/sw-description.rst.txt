@@ -856,6 +856,10 @@ transaction marker:
 		...
 
 
+It is also possible to disable setting of the transaction marker
+entirely (and independently of the setting in `sw-description`) by
+starting swupdate with the `-M` option.
+
 bootloader
 ----------
 

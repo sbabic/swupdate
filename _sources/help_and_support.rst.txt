@@ -56,6 +56,9 @@ Talks about SWUpdate
        - Upgrading buildroot based devices with SWUpdate by Angelo Compagnucci, LinuxLab 2018,
          `Slides LinuxLab  2018 <https://www.slideshare.net/linuxlab_conf/angelo-compagnucci-upgrading-buildroot-based-devices-with-swupdate>`_,
          `Video LinuxLab 2018 <https://www.youtube.com/watch?v=8vv5Xf6dBKE>`_
+       - Evolution of (OTA) Update in the IoT world by Stefano Babic, ELC 2019,
+         `Slides ELC 2019 <https://www.slideshare.net/StefanoBabic/evolution-of-otaupdateintheiotworld>`_,
+         `Video ELC 2019 <https://vimeo.com/ondemand/ossna2019/357919008>`_
 
 Useful references
 =================
