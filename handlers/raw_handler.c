@@ -20,8 +20,8 @@
 #include "handler.h"
 #include "util.h"
 
-void raw_handler(void);
-void raw_filecopy_handler(void);
+void raw_image_handler(void);
+void raw_file_handler(void);
 
 static int install_raw_image(struct img_type *img,
 	void __attribute__ ((__unused__)) *data)
@@ -110,14 +110,14 @@ static int install_raw_file(struct img_type *img,
 }
 
 __attribute__((constructor))
-void raw_handler(void)
+void raw_image_handler(void)
 {
 	register_handler("raw", install_raw_image,
 				IMAGE_HANDLER, NULL);
 }
 
 	__attribute__((constructor))
-void raw_filecopy_handler(void)
+void raw_file_handler(void)
 {
 	register_handler("rawfile", install_raw_file,
 				FILE_HANDLER, NULL);
