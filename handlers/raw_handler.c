@@ -9,6 +9,9 @@
 #include <stdio.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/ioctl.h>
+#include <linux/fs.h>
+
 
 #include <unistd.h>
 #include <fcntl.h>
@@ -22,6 +25,7 @@
 
 void raw_image_handler(void);
 void raw_file_handler(void);
+void raw_copyimage_handler(void);
 
 static int install_raw_image(struct img_type *img,
 	void __attribute__ ((__unused__)) *data)
@@ -40,6 +44,58 @@ static int install_raw_image(struct img_type *img,
 #else
 	ret = copyimage(&fdout, img, NULL);
 #endif
+
+	close(fdout);
+	return ret;
+}
+
+static int copy_raw_image(struct img_type *img,
+	void __attribute__ ((__unused__)) *data)
+{
+	int ret;
+	int fdout, fdin;
+	struct dict_list *proplist;
+	struct dict_list_elem *entry;
+	uint32_t checksum;
+	unsigned long offset = 0;
+	size_t size;
+
+	proplist = dict_get_list(&img->properties, "copyfrom");
+
+	if (!proplist || !(entry = LIST_FIRST(proplist))) {
+		ERROR("MIssing source device, no copyfrom property");
+		return -EINVAL;
+	}
+	fdin = open(entry->value, O_RDONLY);
+	if (fdin < 0) {
+		TRACE("Device %s cannot be opened: %s",
+			entry->value, strerror(errno));
+		return -ENODEV;
+	}
+
+	if (ioctl(fdin, BLKGETSIZE64, &size) < 0) {
+		ERROR("Cannot get size of %s", entry->value);
+	}
+
+	fdout = open(img->device, O_RDWR);
+	if (fdout < 0) {
+		TRACE("Device %s cannot be opened: %s",
+			img->device, strerror(errno));
+		close(fdin);
+		return -ENODEV;
+	}
+
+	ret = copyfile(fdin,
+			&fdout,
+			size,
+			&offset,
+			0,
+			0, /* no skip */
+			0, /* no compressed */
+			&checksum,
+			0, /* no sha256 */
+			0, /* no encrypted */
+			NULL);
 
 	close(fdout);
 	return ret;
@@ -121,4 +177,11 @@ void raw_file_handler(void)
 {
 	register_handler("rawfile", install_raw_file,
 				FILE_HANDLER, NULL);
+}
+
+__attribute__((constructor))
+void raw_copyimage_handler(void)
+{
+	register_handler("rawcopy", copy_raw_image,
+				IMAGE_HANDLER | NO_DATA_HANDLER, NULL);
 }
