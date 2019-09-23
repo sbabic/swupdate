@@ -523,6 +523,10 @@ void *network_initializer(void *data)
 		}
 		close(inst.fd);
 
+		if (ret == 0) {
+			ret = preupdatecmd(software);
+		}
+
 		/* do carry out the installation (flash programming) */
 		if (ret == 0) {
 			TRACE("Valid image found: copying to FLASH");

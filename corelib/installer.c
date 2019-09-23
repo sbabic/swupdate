@@ -462,21 +462,39 @@ void cleanup_files(struct swupdate_cfg *software) {
 #endif
 }
 
+static int run_system_cmd(const char *cmd, const char *desc)
+{
+	int ret = 0;
+	if ((strnlen(cmd, SWUPDATE_GENERAL_STRING_SIZE) > 0)
+		&& (strnlen(cmd, SWUPDATE_GENERAL_STRING_SIZE) < SWUPDATE_GENERAL_STRING_SIZE)) {
+		DEBUG("Running %s command '%s' ...", desc, cmd);
+		ret = system(cmd);
+		if (WIFEXITED(ret)) {
+			DEBUG("%s command returned %d", desc, WEXITSTATUS(ret));
+		} else {
+			ERROR("%s command returned %d: '%s'", desc, ret, strerror(errno));
+			return -1;
+		}
+	}
+
+	return ret;
+}
+
+int preupdatecmd(struct swupdate_cfg *swcfg)
+{
+	if (swcfg) {
+		return run_system_cmd(swcfg->globals.preupdatecmd, "Pre-update");
+	}
+
+	return 0;
+}
+
 int postupdate(struct swupdate_cfg *swcfg, const char *info)
 {
 	swupdate_progress_done(info);
 
-	if ((swcfg) && (strnlen(swcfg->globals.postupdatecmd,
-		     SWUPDATE_GENERAL_STRING_SIZE) > 0)) {
-		DEBUG("Executing post-update command '%s'",
-		      swcfg->globals.postupdatecmd);
-		int ret = system(swcfg->globals.postupdatecmd);
-		if (WIFEXITED(ret)) {
-			DEBUG("Post-update command returned %d", WEXITSTATUS(ret));
-		} else {
-			ERROR("Post-update command returned %d: '%s'", ret, strerror(errno));
-			return -1;
-		}
+	if ((swcfg) && (run_system_cmd(swcfg->globals.postupdatecmd, "Post-update") == -1)) {
+		return -1;
 	}
 
 	return 0;
