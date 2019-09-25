@@ -92,7 +92,7 @@ static int install_boot_environment(struct img_type *img,
 			break;
 		case 1:
 			TRACE("name = %s Removed", pair[0]);
-			dict_remove(img->bootloader, pair[0]);
+			dict_set_value(img->bootloader, pair[0], "");
 			break;
 		default:
 			/*
