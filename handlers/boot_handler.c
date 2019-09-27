@@ -19,6 +19,7 @@
 #include "handler.h"
 #include "util.h"
 #include "bootloader.h"
+#include "progress.h"
 
 static void uboot_handler(void);
 static void boot_handler(void);
@@ -112,6 +113,12 @@ static int install_boot_environment(struct img_type *img,
 		}
 		free(pair);
 	}
+	/*
+	 * this handler does not use copyfile()
+	 * and must update itself the progress bar
+	 */
+	swupdate_progress_update(100);
+
 	fclose(fp);
 	free(buf);
 
