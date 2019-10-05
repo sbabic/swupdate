@@ -58,7 +58,7 @@ Talks about SWUpdate
          `Video LinuxLab 2018 <https://www.youtube.com/watch?v=8vv5Xf6dBKE>`_
        - Evolution of (OTA) Update in the IoT world by Stefano Babic, ELC 2019,
          `Slides ELC 2019 <https://www.slideshare.net/StefanoBabic/evolution-of-otaupdateintheiotworld>`_,
-         `Video ELC 2019 <https://vimeo.com/ondemand/ossna2019/357919008>`_
+         `Video ELC 2019 <https://www.youtube.com/watch?v=WZHO18EhD7Y>`_
 
 Useful references
 =================
