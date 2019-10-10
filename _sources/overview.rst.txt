@@ -152,6 +152,8 @@ scripts, and so on.
 Different strategies can be used, depending on the system's
 resources. I am listing some of them.
 
+.. _double_copy:
+
 Double copy with fall-back
 --------------------------
 
@@ -191,6 +193,8 @@ it is always possible to upgrade the not running copy.
 
 SWUpdate will set bootloader's variable to signal the that a new image is
 successfully installed.
+
+.. _single_copy:
 
 Single copy - running as standalone image
 -----------------------------------------

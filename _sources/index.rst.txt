@@ -33,6 +33,7 @@ SWUpdate Documentation
    :maxdepth: 2
 
    swupdate.rst
+   scenarios.rst
    sw-description.rst
    signed_images.rst
    encrypted_images.rst

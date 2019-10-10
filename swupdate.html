@@ -38,7 +38,7 @@
               href="genindex.html"/>
         <link rel="search" title="Search" href="search.html"/>
     <link rel="top" title="Embedded Software Update Documentation 2009.04 documentation" href="index.html"/>
-        <link rel="next" title="SWUpdate: syntax and tags with the default parser" href="sw-description.html"/>
+        <link rel="next" title="Update strategy examples" href="scenarios.html"/>
         <link rel="prev" title="License" href="licensing.html"/> 
 
   
@@ -131,6 +131,7 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="scenarios.html">Update strategy examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sw-description.html">SWUpdate: syntax and tags with the default parser</a></li>
 <li class="toctree-l1"><a class="reference internal" href="signed_images.html">Update images from verified source</a></li>
 <li class="toctree-l1"><a class="reference internal" href="encrypted_images.html">Symmetrically Encrypted Update Images</a></li>
@@ -696,15 +697,19 @@ internal tests. It ensures that files
 referenced in sw-description are present.
 Usage: swupdate -c -i &lt;file&gt;</td>
 </tr>
-<tr class="row-odd"><td>-p</td>
+<tr class="row-odd"><td>-P</td>
+<td>string</td>
+<td>Execute pre-update command.</td>
+</tr>
+<tr class="row-even"><td>-p</td>
 <td>string</td>
 <td>Execute post-update command.</td>
 </tr>
-<tr class="row-even"><td>&#160;</td>
+<tr class="row-odd"><td>&#160;</td>
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td>-d &lt;parms&gt;</td>
+<tr class="row-even"><td>-d &lt;parms&gt;</td>
 <td>string</td>
 <td>Active only if CONFIG_DOWNLOAD is set
 start internal downloader client and pass
@@ -712,24 +717,24 @@ to it a command line string.
 See below the internal command line
 arguments for the downloader</td>
 </tr>
-<tr class="row-even"><td>-u &lt;url&gt;</td>
+<tr class="row-odd"><td>-u &lt;url&gt;</td>
 <td>string</td>
 <td>This is the URL where new software is
 pulled. URL is a link to a valid .swu image</td>
 </tr>
-<tr class="row-odd"><td>-r &lt;retries&gt;</td>
+<tr class="row-even"><td>-r &lt;retries&gt;</td>
 <td>integer</td>
 <td>Number of retries before a download is
 considered broken. With “-r 0”, SWUpdate
 will not stop until a valid software is
 loaded.</td>
 </tr>
-<tr class="row-even"><td>-t &lt;timeout&gt;</td>
+<tr class="row-odd"><td>-t &lt;timeout&gt;</td>
 <td>integer</td>
 <td>Timeout for connection lost when
 downloading</td>
 </tr>
-<tr class="row-odd"><td>-a &lt;usr:pwd&gt;</td>
+<tr class="row-even"><td>-a &lt;usr:pwd&gt;</td>
 <td>string</td>
 <td>Send user and password for Basic Auth</td>
 </tr>
@@ -856,7 +861,7 @@ should inherit it, and add your own sw-description file to generate the image.</
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="sw-description.html" class="btn btn-neutral float-right" title="SWUpdate: syntax and tags with the default parser" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="scenarios.html" class="btn btn-neutral float-right" title="Update strategy examples" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="licensing.html" class="btn btn-neutral" title="License" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

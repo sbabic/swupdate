@@ -98,6 +98,7 @@
 </ul>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="swupdate.html">SWUpdate: software update for embedded system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scenarios.html">Update strategy examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sw-description.html">SWUpdate: syntax and tags with the default parser</a></li>
 <li class="toctree-l1"><a class="reference internal" href="signed_images.html">Update images from verified source</a></li>
 <li class="toctree-l1"><a class="reference internal" href="encrypted_images.html">Symmetrically Encrypted Update Images</a></li>
@@ -115,6 +116,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#swu-forwarder">SWU forwarder</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#rdiff-handler">rdiff handler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#ucfw-handler">ucfw handler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ssbl-handler">SSBL Handler</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="mongoose.html">Mongoose daemon mode</a></li>
@@ -715,6 +717,33 @@ and prog gpios. They should be in this format:</p>
 <span class="p">);</span>
 </pre></div>
 </div>
+</div>
+<div class="section" id="ssbl-handler">
+<h2>SSBL Handler<a class="headerlink" href="#ssbl-handler" title="Permalink to this headline">¶</a></h2>
+<p>This implements a way to switch two software sets using a duplicated structure saved on the
+flash (currently, only NOR flash is supported). Each of the two structures contains address
+and size of the image to be loaded by a first loader. A field contain the “age”, and it is
+incremented after each switch to show which is the active set.</p>
+<table border="1" class="docutils" id="id1">
+<caption><span class="caption-text">Structure of SSBL Admin</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="83%" />
+<col width="17%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>SSBL Magic Number (29 bit)Name</td>
+<td>Age (3 bit)</td>
+</tr>
+<tr class="row-even"><td colspan="2">Image Address Offset</td>
+</tr>
+<tr class="row-odd"><td colspan="2">Image Size</td>
+</tr>
+</tbody>
+</table>
+<p>The handler implements a post install script. First, it checks for consistency the two
+structures and find the active reading the first 32 bit value with a magic number and the age.
+It increments the age and saves the new structure in the inactive copy. After a reboot,
+the loader will check it and switch the software set.</p>
 </div>
 </div>
 

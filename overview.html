@@ -121,6 +121,7 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="swupdate.html">SWUpdate: software update for embedded system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scenarios.html">Update strategy examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sw-description.html">SWUpdate: syntax and tags with the default parser</a></li>
 <li class="toctree-l1"><a class="reference internal" href="signed_images.html">Update images from verified source</a></li>
 <li class="toctree-l1"><a class="reference internal" href="encrypted_images.html">Symmetrically Encrypted Update Images</a></li>
@@ -337,7 +338,7 @@ scripts, and so on.</p>
 <p>Different strategies can be used, depending on the system’s
 resources. I am listing some of them.</p>
 <div class="section" id="double-copy-with-fall-back">
-<h3>Double copy with fall-back<a class="headerlink" href="#double-copy-with-fall-back" title="Permalink to this headline">¶</a></h3>
+<span id="double-copy"></span><h3>Double copy with fall-back<a class="headerlink" href="#double-copy-with-fall-back" title="Permalink to this headline">¶</a></h3>
 <p>If there is enough space on the storage to save
 two copies of the whole software, it is possible to guarantee
 that there is always a working copy even if the software update
@@ -368,7 +369,7 @@ it is always possible to upgrade the not running copy.</p>
 successfully installed.</p>
 </div>
 <div class="section" id="single-copy-running-as-standalone-image">
-<h3>Single copy - running as standalone image<a class="headerlink" href="#single-copy-running-as-standalone-image" title="Permalink to this headline">¶</a></h3>
+<span id="single-copy"></span><h3>Single copy - running as standalone image<a class="headerlink" href="#single-copy-running-as-standalone-image" title="Permalink to this headline">¶</a></h3>
 <p>The software upgrade application consists of kernel (maybe reduced
 dropping not required drivers) and a small root file system, with the
 application and its libraries. The whole size is much less than a single copy of
