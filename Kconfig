@@ -105,6 +105,18 @@ config SYSTEMD
 	  Enable support for systemd's start-up completion
 	  notification and socket-based activation features.
 
+config SYSTEMD_SYSTEM_UNITDIR
+	string "installation path for systemd unit files"
+	depends on SYSTEMD
+	default ""
+	help
+	  Defines the path where systemd service and socket files get
+	  installed to. By default (empty string) the systemd files
+	  are installed to the path provided by the SYSTEMD_SYSTEM_UNITDIR
+	  environment variable or are not installed if this variable is
+	  undefined. To install a set of service files without defining
+	  environment variables, you may set this to /lib/systemd/system.
+
 config SCRIPTS
 	bool "enable pre and postinstall scripts"
 	default y
