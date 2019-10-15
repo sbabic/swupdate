@@ -53,7 +53,7 @@ script:
     - make
     - sudo make install
     - cd ..
-    - git clone https://github.com/warmcat/libwebsockets.git
+    - git clone -b v3.0-stable https://github.com/warmcat/libwebsockets.git
     - cd libwebsockets
     - cmake .
     - make
