@@ -522,22 +522,27 @@ configuration switch ``CONFIG_SYSTEMD``. If enabled, SWUpdate
 signals systemd about start-up completion and can make optional
 use of systemd's socket-based activation feature.
 
-A sample systemd service unit file ``/etc/systemd/system/swupdate.service``
-may look like the following starting SWUpdate in suricatta daemon mode:
+To install a generic set of service and socket files, pass the
+`SYSTEMD_SYSTEM_UNITDIR` parameter, which points to `/lib/systemd/system`
+for example, to the "make install" command.
 
+For further runtime adjustments, some shell code snippets can be added
+to the `/usr/lib/swupdate/conf.d` or `/etc/swupdate/conf.d` folders. The
+code snippets are processed by a full-featured shell in alphabetical order.
+Files from /etc overwrite files from /usr/ with the same name.
+
+The purpose of these code snippets is to assign reasonable command line
+parameters to swupdate. The following variables may be set:
+
+- SWUPDATE_ARGS
+- SWUPDATE_WEBSERVER_ARGS
+- SWUPDATE_DOWNLOAD_ARGS
+
+A sample configuration file ``/usr/lib/swupdate/conf.d/10-suricatta``
+may look like the following starting SWUpdate in suricatta daemon mode:
 ::
 
-	[Unit]
-	Description=SWUpdate daemon
-	Documentation=https://github.com/sbabic/swupdate
-	Documentation=https://sbabic.github.io/swupdate
-
-	[Service]
-	Type=notify
-	ExecStart=/usr/bin/swupdate -u '-t default -u http://localhost -i 25'
-
-	[Install]
-	WantedBy=multi-user.target
+	SWUPDATE_DOWNLOAD_ARGS='-t default -u http://localhost -i 25'
 
 Started via ``systemctl start swupdate.service``, SWUpdate
 (re)creates its sockets on startup. For using socket-based

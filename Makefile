@@ -461,6 +461,26 @@ install: all
 		install -d ${DESTDIR}/usr/lib/lua/$(LUAVER); \
 		install -m 0755 ${lua_swupdate} $(DESTDIR)/usr/lib/lua/$(LUAVER); \
 	fi
+	if [ "x${SYSTEMD_SYSTEM_UNITDIR}" != "x" ]; then \
+		install -d ${DESTDIR}${SYSTEMD_SYSTEM_UNITDIR}; \
+		install -d ${DESTDIR}/usr/lib/swupdate/conf.d; \
+		install -m 755 startup/systemd/swupdate.sh ${DESTDIR}/usr/lib/swupdate; \
+		install -m 644 startup/systemd/swupdate-progress.service ${DESTDIR}${SYSTEMD_SYSTEM_UNITDIR}; \
+		install -m 644 startup/systemd/swupdate-usb@.service ${DESTDIR}${SYSTEMD_SYSTEM_UNITDIR}; \
+		install -m 644 startup/systemd/swupdate.socket ${DESTDIR}${SYSTEMD_SYSTEM_UNITDIR}; \
+		ctrl_path=${CONFIG_SOCKET_CTRL_PATH}; progr_path=${CONFIG_SOCKET_PROGRESS_PATH}; \
+		sed -i -e "s,@@SOCKET_CTRL_PATH@@,$${ctrl_path},g" \
+			-e "s,@@SOCKET_PROGRESS_PATH@@,$${progr_path},g" \
+			${DESTDIR}${SYSTEMD_SYSTEM_UNITDIR}/swupdate.socket; \
+		install -m 644 startup/systemd/swupdate.service ${DESTDIR}${SYSTEMD_SYSTEM_UNITDIR}; \
+		install -d ${DESTDIR}/usr/lib/tmpfiles.d; \
+		install -m 0644 startup/systemd/tmpfiles-swupdate.conf ${DESTDIR}/usr/lib/tmpfiles.d/swupdate.conf; \
+		install -d ${DESTDIR}/etc/udev/rules.d; \
+		install -m 0644 startup/systemd/swupdate-usb.rules ${DESTDIR}/etc/udev/rules.d/; \
+		if [ "x$(CONFIG_MONGOOSE)" == "xy" ]; then \
+			install -m 644 startup/systemd/10-mongoose-args ${DESTDIR}/usr/lib/swupdate/conf.d/; \
+		fi; \
+	fi
 
 PHONY += run-tests
 tests: \
