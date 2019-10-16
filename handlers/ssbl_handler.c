@@ -153,10 +153,10 @@ static int get_inactive_ssbl(struct ssbl_priv *padmins)
 		padmins[0].device, age0,
 		padmins[1].device, age1);
 
-	if (!age0 && age1 == 3)
-		age0 = 4;
-	if (!age1 && age0 == 3)
-		age1 = 4;
+	if (!age0 && age1 == 2)
+		age0 = 3;
+	if (!age1 && age0 == 2)
+		age1 = 3;
 
 	if (age1 > age0)
 		return 0;
