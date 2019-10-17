@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Handlers &mdash; Embedded Software Update Documentation 2009.04 documentation</title>
+  <title>Handlers &mdash; Embedded Software Update Documentation 2009.11 documentation</title>
   
 
   
@@ -37,7 +37,7 @@
         <link rel="index" title="Index"
               href="genindex.html"/>
         <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="Embedded Software Update Documentation 2009.04 documentation" href="index.html"/>
+    <link rel="top" title="Embedded Software Update Documentation 2009.11 documentation" href="index.html"/>
         <link rel="next" title="Mongoose daemon mode" href="mongoose.html"/>
         <link rel="prev" title="Symmetrically Encrypted Update Images" href="encrypted_images.html"/> 
 
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                2019.04
+                2019.11
               </div>
             
           
@@ -744,6 +744,55 @@ incremented after each switch to show which is the active set.</p>
 structures and find the active reading the first 32 bit value with a magic number and the age.
 It increments the age and saves the new structure in the inactive copy. After a reboot,
 the loader will check it and switch the software set.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">scripts</span><span class="p">:</span> <span class="p">(</span>
+        <span class="p">{</span>
+                <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;ssblswitch&quot;</span><span class="p">;</span>
+                <span class="n">properties</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="n">device</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;mtdX&quot;</span><span class="p">,</span> <span class="s2">&quot;mtdY&quot;</span><span class="p">];</span>
+                        <span class="n">offset</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="s2">&quot;0&quot;</span><span class="p">];</span>
+                        <span class="n">imageoffs</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;0x780000&quot;</span><span class="p">,</span>  <span class="s2">&quot;0xA40000&quot;</span><span class="p">];</span>
+                        <span class="n">imagesize</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;0x800000&quot;</span><span class="p">,</span> <span class="s2">&quot;0x800000&quot;</span><span class="p">];</span>
+                <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Properties in sw-description are all mandatory. They define where the SSBL Administration data
+are stored for both sets. Each properties is an array of two entries, containing values for each
+of the two SSBL administration.</p>
+<table border="1" class="docutils" id="id2">
+<caption><span class="caption-text">Properties for SSBL handler</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="17%" />
+<col width="13%" />
+<col width="69%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Name</th>
+<th class="head">Type</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>device</td>
+<td>string</td>
+<td>MTD device where the SSBL Admin Header is stored</td>
+</tr>
+<tr class="row-odd"><td>offset</td>
+<td>hex</td>
+<td>Offset of SSBL header inside the MTD device</td>
+</tr>
+<tr class="row-even"><td>imageoffset</td>
+<td>hex</td>
+<td>Offset of the image to be loaded by a bootloader
+when this SSBL is set.</td>
+</tr>
+<tr class="row-odd"><td>imagesize</td>
+<td>hex</td>
+<td>Size of the image to be loaded by a bootloader
+when this SSBL is set.</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 
@@ -791,7 +840,7 @@ the loader will check it and switch the software set.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'2009.04',
+            VERSION:'2009.11',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
