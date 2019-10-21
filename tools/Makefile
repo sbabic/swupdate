@@ -9,10 +9,10 @@
 # SPDX-License-Identifier:     GPL-2.0-or-later
 
 lib-y += \
-	 client.o \
-	 progress.o \
-	 hawkbitcfg.o \
-	 sendtohawkbit.o \
+	 swupdate-client.o \
+	 swupdate-progress.o \
+	 swupdate-hawkbitcfg.o \
+	 swupdate-sendtohawkbit.o \
 	 swupdate-sysrestart.o
 
 # # Uncomment the next lines to integrate the compiling/linking of
