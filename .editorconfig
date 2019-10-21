@@ -1,0 +1,18 @@
+# top-most EditorConfig file
+root = true
+
+# Unix-style newlines with a newline ending every file
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+
+[CMakeLists.txt]
+indent_size = 2
+indent_style = space
+
+[*.{c,h}]
+indent_brace_style = K&R
+insert_final_newline = true
+indent_style = tab
+tab_width = 8
