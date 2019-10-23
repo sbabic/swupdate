@@ -27,11 +27,93 @@ void raw_image_handler(void);
 void raw_file_handler(void);
 void raw_copyimage_handler(void);
 
+/**
+ * Handle write protection for block devices
+ *
+ * Automatically remove write protection for block devices if:
+ * - The device name starts with /dev/
+ * - The device is a block device
+ * - A corresponding ro flag e.g. /sys/class/block/mmcblk0boot0/force_ro is available
+ * - The force_ro flag can be opened writeable
+ */
+static int blkprotect(struct img_type *img, bool on)
+{
+	const char c_sys_path[] = "/sys/class/block/%s/force_ro";
+	const char c_unprot_char = '0';
+	const char c_prot_char = '1';
+	int ret = 0;  // 0 means OK nothing to do, 1 OK changed protection mode, negative means error
+	int ret_int = 0;
+	ssize_t ret_ss;
+	char *sysfs_path = NULL;
+	int fd_force_ro;
+	struct stat sb;
+	char current_prot;
+
+	if (strncmp("/dev/", img->device, 5) != 0) {
+		return ret;
+	}
+
+	if (lstat(img->device, &sb) == -1) {
+		TRACE("stat for device %s failed: %s", img->device, strerror(errno));
+		return ret;
+	}
+	if(!S_ISBLK(sb.st_mode)) {
+		return ret;
+	}
+
+	ret_int = asprintf(&sysfs_path, c_sys_path, img->device + 5);  // remove "/dev/" from device path
+	if(ret_int < 0) {
+		ret = -ENOMEM;
+		goto blkprotect_out;
+	}
+
+	if (access(sysfs_path, W_OK) == -1) {
+		goto blkprotect_out;
+	}
+
+	// There is a ro flag, the device needs to be protected or unprotected
+	fd_force_ro = open(sysfs_path, O_RDWR);
+	if (fd_force_ro == -1) {
+		ret = -EBADF;
+		goto blkprotect_out;
+	}
+
+	ret_ss = read(fd_force_ro, &current_prot, 1);
+	if (ret_ss == 1) {
+		char requested_prot = (on ? c_prot_char : c_unprot_char);
+		if (requested_prot != current_prot) {
+			ret_ss = write(fd_force_ro, &requested_prot, 1);
+			if(ret_ss == 1) {
+				TRACE("Device %s: changed force_ro to %c", img->device, requested_prot);
+				ret = 1;
+			} else {
+				ret = -EIO;
+			}
+		}
+	} else {
+		ret = -EIO;
+	}
+	if (ret < 0) {
+		TRACE("Device %s: changing force_ro mode failed!", img->device);
+	}
+
+	close(fd_force_ro);
+
+blkprotect_out:
+	if(sysfs_path)
+		free(sysfs_path);
+	return ret;
+}
+
 static int install_raw_image(struct img_type *img,
 	void __attribute__ ((__unused__)) *data)
 {
 	int ret;
 	int fdout;
+
+	int prot_stat = blkprotect(img, false);
+	if (prot_stat < 0)
+		return prot_stat;
 
 	fdout = open(img->device, O_RDWR);
 	if (fdout < 0) {
@@ -44,6 +126,11 @@ static int install_raw_image(struct img_type *img,
 #else
 	ret = copyimage(&fdout, img, NULL);
 #endif
+
+	if (prot_stat == 1) {
+		fsync(fdout);  // At least with Linux 4.14 data are not automatically flushed before ro mode is enabled
+		blkprotect(img, true);  // no error handling, keep ret from copyimage
+	}
 
 	close(fdout);
 	return ret;
