@@ -238,7 +238,7 @@ This event contains which is the current step running and which percentage of th
         +-----------+----------------------------------------------------------------+
         |  name     |   Description                                                  |
         +===========+================================================================+
-        | number    | integer: total number of steps N for this update               |
+        | number    | total number of steps N for this update                        |
         +-----------+----------------------------------------------------------------+
         | step      | running step in range [1..N]                                   |
         +-----------+----------------------------------------------------------------+
