@@ -56,7 +56,7 @@ General Overview
   is saved and restored after repartitioning with all data
   it contains,  to maintain user's data.
 
-- support for compressed images, using the zlib library.
+- support for compressed images, using the zlib and zstd library.
   tarball (tgz file) are supported.
 
 - support for partitioned USB-pen or unpartitioned (mainly

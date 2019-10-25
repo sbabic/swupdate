@@ -33,10 +33,11 @@ and not only UBI volumes, and add further features as restoring configuration da
 Support for further compressors
 ===============================
 
-SWUpdate supports image compressed with zlib. This is a compromise between compression rate
-and speed to decompress the single artifact. To reduce bandwidth or for big images, a stronger
-compressor could help. Adding a new compressor must be careful done because it changes the
-core of handling an image.
+SWUpdate supports image compressed with following formats: zlib, zstd. This is
+a compromise between compression rate and speed to decompress the single artifact.
+To reduce bandwidth or for big images, a stronger compressor could help.
+Adding a new compressor must be careful done because it changes the core of
+handling an image.
 
 System Update
 =============

@@ -34,6 +34,12 @@ extern const char EMBEDDED_LUA_SRC_END[];
 	lua_settable(L, -3);			\
 } while (0)
 
+#define LUA_PUSH_IMG_STRING_VALUE(img, attr, value)  do { \
+	lua_pushstring(L, attr);		\
+	lua_pushstring(L, value);		\
+	lua_settable(L, -3);			\
+} while (0)
+
 #define LUA_PUSH_IMG_BOOL(img, attr, field)  do { \
 	lua_pushstring(L, attr);		\
 	lua_pushboolean(L, img->field);		\
@@ -241,6 +247,16 @@ static void lua_string_to_img(struct img_type *img, const char *key,
 	const char offset[] = "offset";
 	char seek_str[MAX_SEEK_STRING_SIZE];
 
+	if (!strcmp(key, "compressed")) {
+		if (!strcmp(value, "zlib")) {
+			img->compressed = COMPRESSED_ZLIB;
+		} else if (!strcmp(value, "zstd")) {
+			img->compressed = COMPRESSED_ZSTD;
+		} else {
+			ERROR("compressed argument: '%s' invalid", value);
+			img->compressed = COMPRESSED_FALSE;
+		}
+	}
 	if (!strcmp(key, "name")) {
 		strncpy(img->id.name, value,
 			sizeof(img->id.name));
@@ -317,7 +333,6 @@ static void lua_number_to_img(struct img_type *img, const char *key,
 		img->size = (long long)val;
 	if (!strcmp(key, "checksum"))
 		img->checksum = (unsigned int)val;
-
 }
 
 #ifdef CONFIG_HANDLER_IN_LUA
@@ -461,7 +476,6 @@ static void update_table(lua_State* L, struct img_type *img)
 		LUA_PUSH_IMG_STRING(img, "data", type_data);
 		LUA_PUSH_IMG_STRING(img, "filesystem", filesystem);
 
-		LUA_PUSH_IMG_BOOL(img, "compressed", compressed);
 		LUA_PUSH_IMG_BOOL(img, "installed_directly", install_directly);
 		LUA_PUSH_IMG_BOOL(img, "install_if_different", id.install_if_different);
 		LUA_PUSH_IMG_BOOL(img, "install_if_higher", id.install_if_higher);
@@ -472,6 +486,18 @@ static void update_table(lua_State* L, struct img_type *img)
 		LUA_PUSH_IMG_NUMBER(img, "offset", seek);
 		LUA_PUSH_IMG_NUMBER(img, "size", size);
 		LUA_PUSH_IMG_NUMBER(img, "checksum", checksum);
+
+		switch (img->compressed) {
+			case COMPRESSED_ZLIB:
+				LUA_PUSH_IMG_STRING_VALUE(img, "compressed", "zlib");
+				break;
+			case COMPRESSED_ZSTD:
+				LUA_PUSH_IMG_STRING_VALUE(img, "compressed", "zstd");
+				break;
+			default:
+				LUA_PUSH_IMG_BOOL(img, "compressed", compressed);
+				break;
+		}
 
 		lua_pushstring(L, "properties");
 		lua_newtable (L);

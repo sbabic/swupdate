@@ -13,6 +13,9 @@
 #ifdef CONFIG_GUNZIP
 #include <zlib.h>
 #endif
+#ifdef CONFIG_ZSTD
+#include <zstd.h>
+#endif
 
 #include "generated/autoconf.h"
 #include "cpiohdr.h"
@@ -233,22 +236,29 @@ static int decrypt_step(void *state, void *buffer, size_t size)
 	return 0;
 }
 
-#ifdef CONFIG_GUNZIP
+#if defined(CONFIG_GUNZIP) || defined(CONFIG_ZSTD)
+typedef int (*DecompressStep)(void *state, void *buffer, size_t size);
 
-struct GunzipState
-{
+struct DecompressState {
 	PipelineStep upstream_step;
 	void *upstream_state;
-
-	z_stream strm;
-	bool initialized;
+	void *impl_state;
 	uint8_t input[BUFF_SIZE];
 	bool eof;
+};
+#endif
+
+#ifdef CONFIG_GUNZIP
+
+struct GunzipState {
+	z_stream strm;
+	bool initialized;
 };
 
 static int gunzip_step(void *state, void *buffer, size_t size)
 {
-	struct GunzipState *s = (struct GunzipState *)state;
+	struct DecompressState *ds = (struct DecompressState *)state;
+	struct GunzipState *s = (struct GunzipState *)ds->impl_state;
 	int ret;
 	int outlen = 0;
 
@@ -256,23 +266,23 @@ static int gunzip_step(void *state, void *buffer, size_t size)
 	s->strm.avail_out = size;
 	while (outlen == 0) {
 		if (s->strm.avail_in == 0) {
-			ret = s->upstream_step(s->upstream_state, s->input, sizeof s->input);
+			ret = ds->upstream_step(ds->upstream_state, ds->input, sizeof ds->input);
 			if (ret < 0) {
 				return ret;
 			} else if (ret == 0) {
-				s->eof = true;
+				ds->eof = true;
 			}
 			s->strm.avail_in = ret;
-			s->strm.next_in = s->input;
+			s->strm.next_in = ds->input;
 		}
-		if (s->eof) {
+		if (ds->eof) {
 			break;
 		}
 
 		ret = inflate(&s->strm, Z_NO_FLUSH);
 		outlen = size - s->strm.avail_out;
 		if (ret == Z_STREAM_END) {
-			s->eof = true;
+			ds->eof = true;
 			break;
 		}
 		if (ret != Z_OK && ret != Z_BUF_ERROR) {
@@ -281,6 +291,52 @@ static int gunzip_step(void *state, void *buffer, size_t size)
 		}
 	}
 	return outlen;
+}
+
+#endif
+
+#ifdef CONFIG_ZSTD
+
+struct ZstdState {
+	ZSTD_DStream* dctx;
+	ZSTD_inBuffer input_view;
+};
+
+static int zstd_step(void* state, void* buffer, size_t size)
+{
+	struct DecompressState *ds = (struct DecompressState *)state;
+	struct ZstdState *s = (struct ZstdState *)ds->impl_state;
+	size_t decompress_ret;
+	int ret;
+	ZSTD_outBuffer output = { buffer, size, 0 };
+
+	do {
+		if (s->input_view.pos == s->input_view.size) {
+			ret = ds->upstream_step(ds->upstream_state, ds->input, sizeof ds->input);
+			if (ret < 0) {
+				return ret;
+			} else if (ret == 0) {
+				ds->eof = true;
+			}
+			s->input_view.size = ret;
+			s->input_view.pos = 0;
+		}
+
+		do {
+			decompress_ret = ZSTD_decompressStream(s->dctx, &output, &s->input_view);
+
+			if (ZSTD_isError(decompress_ret)) {
+				ERROR("ZSTD_decompressStream failed (returned %zu)", decompress_ret);
+				return -1;
+			}
+
+			if (output.pos == output.size) {
+				break;
+			}
+		} while (s->input_view.pos < s->input_view.size);
+	} while (output.pos == 0 && !ds->eof);
+
+	return output.pos;
 }
 
 #endif
@@ -314,17 +370,29 @@ int copyfile(int fdin, void *out, unsigned int nbytes, unsigned long *offs, unsi
 		.outlen = 0, .eof = false
 	};
 
+#if defined(CONFIG_GUNZIP) || defined(CONFIG_ZSTD)
+	struct DecompressState decompress_state = {
+		.upstream_step = NULL, .upstream_state = NULL,
+		.impl_state = NULL
+	};
+
+	DecompressStep decompress_step = NULL;
 #ifdef CONFIG_GUNZIP
 	struct GunzipState gunzip_state = {
-		.upstream_step = NULL, .upstream_state = NULL,
 		.strm = {
 			.zalloc = Z_NULL, .zfree = Z_NULL, .opaque = Z_NULL,
 			.avail_in = 0, .next_in = Z_NULL,
 			.avail_out = 0, .next_out = Z_NULL
 		},
 		.initialized = false,
-		.eof = false
 	};
+#endif
+#ifdef CONFIG_ZSTD
+	struct ZstdState zstd_state = {
+		.dctx = NULL,
+		.input_view = { NULL, 0, 0 },
+	};
+#endif
 #endif
 
 	PipelineStep step = NULL;
@@ -356,22 +424,42 @@ int copyfile(int fdin, void *out, unsigned int nbytes, unsigned long *offs, unsi
 	}
 
 	if (compressed) {
+		if (compressed == COMPRESSED_TRUE) {
+			WARN("compressed argument: boolean form is deprecated, use the string form");
+		}
 #ifdef CONFIG_GUNZIP
-		/*
-		 * 16 + MAX_WBITS means that Zlib should expect and decode a
-		 * gzip header.
-		 */
-		if (inflateInit2(&gunzip_state.strm, 16 + MAX_WBITS) != Z_OK) {
-			ERROR("inflateInit2 failed");
-			ret = -EFAULT;
+		if (compressed == COMPRESSED_ZLIB || compressed == COMPRESSED_TRUE) {
+			/*
+			 * 16 + MAX_WBITS means that Zlib should expect and decode a
+			 * gzip header.
+			 */
+			if (inflateInit2(&gunzip_state.strm, 16 + MAX_WBITS) != Z_OK) {
+				ERROR("inflateInit2 failed");
+				ret = -EFAULT;
+				goto copyfile_exit;
+			}
+			gunzip_state.initialized = true;
+			decompress_step = &gunzip_step;
+			decompress_state.impl_state = &gunzip_state;
+		} else
+#endif
+#ifdef CONFIG_ZSTD
+		if (compressed == COMPRESSED_ZSTD) {
+			if ((zstd_state.dctx = ZSTD_createDStream()) == NULL) {
+				ERROR("ZSTD_createDStream failed");
+				ret = -EFAULT;
+				goto copyfile_exit;
+			}
+			zstd_state.input_view.src = decompress_state.input;
+			decompress_step = &zstd_step;
+			decompress_state.impl_state = &zstd_state;
+		} else
+#endif
+		{
+			TRACE("Requested decompression method (%d) is not configured!", compressed);
+			ret = -EINVAL;
 			goto copyfile_exit;
 		}
-		gunzip_state.initialized = true;
-#else
-		TRACE("Request decompressing, but CONFIG_GUNZIP not set !");
-		ret = -EINVAL;
-		goto copyfile_exit;
-#endif
 	}
 
 	if (seek) {
@@ -384,19 +472,19 @@ int copyfile(int fdin, void *out, unsigned int nbytes, unsigned long *offs, unsi
 		}
 	}
 
-#ifdef CONFIG_GUNZIP
+#if defined(CONFIG_GUNZIP) || defined(CONFIG_ZSTD)
 	if (compressed) {
 		if (encrypted) {
 			decrypt_state.upstream_step = &input_step;
 			decrypt_state.upstream_state = &input_state;
-			gunzip_state.upstream_step = &decrypt_step;
-			gunzip_state.upstream_state = &decrypt_state;
+			decompress_state.upstream_step = &decrypt_step;
+			decompress_state.upstream_state = &decrypt_state;
 		} else {
-			gunzip_state.upstream_step = &input_step;
-			gunzip_state.upstream_state = &input_state;
+			decompress_state.upstream_step = &input_step;
+			decompress_state.upstream_state = &input_state;
 		}
-		step = &gunzip_step;
-		state = &gunzip_state;
+		step = decompress_step;
+		state = &decompress_state;
 	} else {
 #endif
 		if (encrypted) {
@@ -408,7 +496,7 @@ int copyfile(int fdin, void *out, unsigned int nbytes, unsigned long *offs, unsi
 			step = &input_step;
 			state = &input_state;
 		}
-#ifdef CONFIG_GUNZIP
+#if defined(CONFIG_GUNZIP) || defined(CONFIG_ZSTD)
 	}
 #endif
 
@@ -485,6 +573,11 @@ copyfile_exit:
 #ifdef CONFIG_GUNZIP
 	if (gunzip_state.initialized) {
 		inflateEnd(&gunzip_state.strm);
+	}
+#endif
+#ifdef CONFIG_ZSTD
+	if (zstd_state.dctx != NULL) {
+		ZSTD_freeDStream(zstd_state.dctx);
 	}
 #endif
 

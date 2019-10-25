@@ -61,6 +61,10 @@ config HAVE_ZLIB
 	bool
 	option env="HAVE_ZLIB"
 
+config HAVE_ZSTD
+	bool
+	option env="HAVE_ZSTD"
+
 config HAVE_LIBSSL
 	bool
 	option env="HAVE_LIBSSL"
@@ -445,6 +449,10 @@ config GUNZIP
 	bool
 	depends on HAVE_ZLIB
 	default y
+
+config ZSTD
+	bool "Zstd compression support"
+	depends on HAVE_ZSTD
 
 source parser/Config.in
 source handlers/Config.in

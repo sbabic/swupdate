@@ -83,8 +83,19 @@ static void sw_append_stream(struct img_type *img, const char *key,
 		ascii_to_hash(img->sha256, value);
 	if (!strcmp(key, "encrypted"))
 		img->is_encrypted = 1;
-	if (!strcmp(key, "compressed"))
-		img->compressed = 1;
+	if (!strcmp(key, "compressed")) {
+		if (value != NULL) {
+			if (!strcmp(value, "zlib")) {
+				img->compressed = COMPRESSED_ZLIB;
+			} else if (!strcmp(value, "zstd")) {
+				img->compressed = COMPRESSED_ZSTD;
+			} else {
+				img->compressed = COMPRESSED_TRUE;
+			}
+		} else {
+			img->compressed = COMPRESSED_TRUE;
+		}
+	}
 	if (!strcmp(key, "installed-directly"))
 		img->install_directly = 1;
 	if (!strcmp(key, "install-if-different"))
@@ -113,7 +124,7 @@ int parse_external(struct swupdate_cfg *software, const char *filename)
 	if (ret) {
 		LUAstackDump(L);
 		ERROR("ERROR preparing Parser in Lua %d", ret);
-		
+
 		return 1;
 	}
 
@@ -153,7 +164,7 @@ int parse_external(struct swupdate_cfg *software, const char *filename)
 
 		if (lua_type(L, -1) == LUA_TTABLE) {
 			lua_pushnil(L);
-			image = (struct img_type *)calloc(1, sizeof(struct img_type));	
+			image = (struct img_type *)calloc(1, sizeof(struct img_type));
 			if (!image) {
 				ERROR( "No memory: malloc failed");
 				return -ENOMEM;

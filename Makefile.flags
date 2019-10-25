@@ -162,6 +162,10 @@ ifeq ($(CONFIG_GUNZIP),y)
 LDLIBS += z
 endif
 
+ifeq ($(CONFIG_ZSTD),y)
+LDLIBS += zstd
+endif
+
 ifeq ($(CONFIG_RDIFFHANDLER),y)
 LDLIBS += rsync
 endif
