@@ -40,6 +40,7 @@ SWUpdate Documentation
    handlers.rst
    mongoose.rst
    suricatta.rst
+   hawkbit-setup.rst
    swupdate-ipc.rst
    progress.rst
    building-with-yocto.rst
