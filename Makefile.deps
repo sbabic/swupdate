@@ -14,6 +14,10 @@ ifeq ($(HAVE_LIBCURL),)
 export HAVE_LIBCURL = y
 endif
 
+ifeq ($(HAVE_LIBFDISK),)
+export HAVE_LIBFDISK = y
+endif
+
 ifeq ($(HAVE_LIBGPIOD),)
 export HAVE_LIBGPIOD = y
 endif

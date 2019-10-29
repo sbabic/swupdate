@@ -23,6 +23,8 @@ Supplied handlers
 In mainline there are the handlers for the most common cases. They include:
 	- flash devices in raw mode (both NOR and NAND)
 	- UBI volumes
+        - UBI volumus partitioner
+        - disk partitioner
 	- raw devices, such as a SD Card partition
 	- bootloader (U-Boot, GRUB, EFI Boot Guard) environment
 	- Lua scripts
@@ -684,3 +686,60 @@ Properties ``size`` and ``offset`` are optional, all the other properties are ma
     | offset      | string   | Offset (in bytes) to the start of the partition.   |
     |             |          | If not set, default value 0 will be used.          |
     +-------------+----------+----------------------------------------------------+
+
+Disk partitioner
+----------------
+
+This handler creates or modifies partitions using the library libfdisk. Handler must be put into
+the `partitions` section of sw-description. Setup for each partition is put into the `properties` field
+of sw-description.
+
+.. table:: Properties for diskpart handler
+
+   +-------------+----------+----------------------------------------------------+
+   |  Name       |  Type    |  Description                                       |
+   +=============+==========+====================================================+
+   | labeltype   | string   | "gpt" or "dos"                                     |
+   +-------------+----------+----------------------------------------------------+
+   | partition-X | array    | Array of values belonging to the partition number X|
+   +-------------+----------+----------------------------------------------------+
+
+For each partition, an array of couples key=value must be given. The following keys are
+supported:
+
+.. table:: Setup for a disk partition
+
+   +-------------+----------+----------------------------------------------------+
+   |  Name       |  Type    |  Description                                       |
+   +=============+==========+====================================================+
+   | size        | string   | Size of partition. K, M and G can be used for      |
+   |             |          | Kilobytes, Megabytes and Gigabytes.                |
+   +-------------+----------+----------------------------------------------------+
+   | start       | integer  | First sector for the partition                     |
+   +-------------+----------+----------------------------------------------------+
+   | name        | string   | Name of the partition                              |
+   +-------------+----------+----------------------------------------------------+
+   | type        | string   | Type of partition, it has two different meanings.  |
+   |             |          | It is the hex code for DOS (MBR) partition table   |
+   |             |          | or it is the string identifier in case of GPT.     |
+   +-------------+----------+----------------------------------------------------+
+
+
+
+Example:
+
+::
+
+        properties: {
+		labeltype = "gpt";
+		partition-1 = [ "size=64M", "start=2048",
+                        "name=bigrootfs", "type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B"];
+		partition-2 = ["size=256M", "start=133120",
+                        "name=ldata", "type=EBD0A0A2-B9E5-4433-87C0-68B6B72699C7"];
+		partition-3 = ["size=512M", "start=657408",
+                        "name=log", "type=0FC63DAF-8483-4772-8E79-3D69D8477DE4"];
+		partition-4 = ["size=4G", "start=1705984",
+                        "name=system",  "type=0FC63DAF-8483-4772-8E79-3D69D8477DE4"];
+		partition-5 = ["size=512M", "start=10094592",
+                        "name=part5",  "type=0FC63DAF-8483-4772-8E79-3D69D8477DE4"];
+	}

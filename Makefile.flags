@@ -166,6 +166,10 @@ ifeq ($(CONFIG_ZSTD),y)
 LDLIBS += zstd
 endif
 
+ifeq ($(CONFIG_DISKPART),y)
+LDLIBS += fdisk
+endif
+
 ifeq ($(CONFIG_RDIFFHANDLER),y)
 LDLIBS += rsync
 endif

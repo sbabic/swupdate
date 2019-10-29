@@ -92,6 +92,16 @@ config CFIHAMMING1
 
 	  You do not need this if you do not have an OMAP SoC.
 
+config DISKPART
+	bool "diskpart"
+	depends on HAVE_LIBFDISK
+	default n
+	help
+	  Handler to partition a disk, eMMC or SD
+
+comment "diskpart support needs libfdisk"
+	depends on !HAVE_LIBFDISK
+
 config RAW
 	bool "raw"
 	default n
