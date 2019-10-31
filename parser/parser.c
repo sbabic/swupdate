@@ -351,7 +351,8 @@ static int parse_partitions(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 
 		partition->provided = 1;
 
-		if (!strlen(partition->volname) || !strlen(partition->device)) {
+		if ((!strlen(partition->volname) && !strcmp(partition->type, "ubipartition")) ||
+				!strlen(partition->device)) {
 			ERROR("Partition incompleted in description file");
 			free_image(partition);
 			return -1;
@@ -359,8 +360,10 @@ static int parse_partitions(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 
 		get_field(p, elem, "size", &partition->partsize);
 
+		add_properties(p, elem, partition);
+
 		TRACE("Partition: %s new size %lld bytes",
-			partition->volname,
+			!strcmp(partition->type, "ubipartition") ? partition->volname : partition->device,
 			partition->partsize);
 
 		LIST_INSERT_HEAD(&swcfg->images, partition, next);
