@@ -55,11 +55,8 @@ each of them solves a specific use case for a delta update.
 SWUpdate is already able to perform delta updates based on librsync library. This is
 currently a good compromise to reduce complexity. Anyway, this helps in case of
 small changes, and it is not a general solution between two generic releases.
-A general approach could be to integrate SWUpdate with CA-Sync to allow a delta upgrade
-from any release. First proof of concept shows that changes in both SWUpdate and CA-Sync
-are required to be conform with requirements and security concepts in SWUpdate. A design
-just using CA-Sync as external fetcher without integration in SWUpdate  breaks
-SWUpdate's security concept.
+A general approach could be to integrate SWUpdate with a storage to allow a delta upgrade
+from any release. 
 
 Integration in Linux distro
 ===========================
@@ -68,6 +65,13 @@ To allow an easier learning with SWUpdate and also for test purposes with the
 SWU forwarder handler, it makes sense to package SWUpdate for PC Linux distro.
 SWUpdate already supports debian package. Some help from community is asked to
 let the package merged into Debian distro.
+
+Parser
+======
+
+SWUpdate supports two parsers : libconfig and JSON. It would be nice if tools can
+be used to convert from one format to the other one. Currently, due to some specialties
+in libconfig, a manual conversion is still required.
 
 Handlers:
 =========
@@ -113,6 +117,12 @@ that malware can get the control of the target.
 Current release supports verified images. That means that a handler
 written in Lua could be now be part of the compound image, because
 a unauthenticated handler cannot run.
+
+Security
+========
+
+- add suport for asymmetryc encryption
+- add a way to share symmetric keys (similar as done in TLS)
 
 Support for evaluation boards
 =============================
