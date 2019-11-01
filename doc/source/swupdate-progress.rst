@@ -7,7 +7,7 @@ of SWUpdate to get the status of a running update.
 SYNOPYS
 -------
 
-progress [option]
+swupdate-progress [option]
 
 DESCRIPTION
 -----------

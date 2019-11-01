@@ -52,10 +52,11 @@ Utilities and tools
 .. toctree::
    :maxdepth: 2
 
-   client.rst
-   hawkbitcfg.rst
-   sendtohawkbit.rst
-   swupdate_progress.rst
+   swupdate-client.rst
+   swupdate-hawkbitcfg.rst
+   swupdate-sendtohawkbit.rst
+   swupdate-progress.rst
+   swupdate-sysrestart.rst
 
 ############################################
 Help and support

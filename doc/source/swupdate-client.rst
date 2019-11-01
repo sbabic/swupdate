@@ -9,7 +9,7 @@ use the IPC to forward an image to SWUpdate.
 SYNOPYS
 -------
 
-client [OPTIONS] <image .swu to be installed>...
+swupdate-client [OPTIONS] <image .swu to be installed>...
 
 DESCRIPTION
 -----------

@@ -8,4 +8,4 @@ is supported.
 DESCRIPTION
 -----------
 
-hawkbitcfg <polling time>
+swupdate-hawkbitcfg <polling time>

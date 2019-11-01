@@ -10,6 +10,6 @@ The tool can forward the result for the activation to the Hawkbit server.
 DESCRIPTION
 -----------
 
-sendtohawkbit <action id> <status> <finished> <execution> <detail 1> <detail 2> ..
+swupdate-sendtohawkbit <action id> <status> <finished> <execution> <detail 1> <detail 2> ..
 
 See Hawkbit API to get more info on the single fields.
