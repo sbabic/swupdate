@@ -143,6 +143,13 @@ static void console_notifier (RECOVERY_STATUS status, int error, int level, cons
 	case SUBPROCESS:
 		snprintf(current, sizeof(current), "EVENT [%d] : ", error );
 		break;
+	/*
+	 * PROGRESS is a special case. It is used for subprocesses to send
+	 * progress information via the notifier. A trace with this status
+	 * is processed by the progress notifier
+	 */
+	case PROGRESS:
+		return;
 	case DONE:
 		strncpy(current, "SWUPDATE done : ", sizeof(current));
 		break;
@@ -202,6 +209,22 @@ static void process_notifier (RECOVERY_STATUS status, int event, int level, cons
 	swupdate_progress_info(status, event, msg);
 
 }
+
+/*
+ * Progress notifier: the message should be forwarded to the progress
+ * interface only.
+ */
+static void progress_notifier (RECOVERY_STATUS status, int event, int level, const char *msg)
+{
+	(void)level;
+
+	/* Check just in case a process want to send an info outside */
+	if (status != PROGRESS)
+	       return;
+
+	swupdate_progress_info(status, event, msg);
+}
+
 
 #if defined(__FreeBSD__)
 static char* socket_path = NULL;
@@ -365,6 +388,7 @@ void notify_init(void)
 		STAILQ_INIT(&clients);
 		register_notifier(console_notifier);
 		register_notifier(process_notifier);
+		register_notifier(progress_notifier);
 		start_thread(notifier_thread, NULL);
 	}
 }

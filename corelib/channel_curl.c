@@ -381,7 +381,7 @@ static int channel_callback_xferinfo(void *p, curl_off_t dltotal, curl_off_t dln
 					"{\"percent\": %d, \"msg\":\"Received %" CURL_FORMAT_CURL_OFF_T "B "
 					"of %" CURL_FORMAT_CURL_OFF_T "B\"}",
 					(int)percent, dlnow, dltotal) != ENOMEM_ASPRINTF) {
-		notify(SUBPROCESS, RECOVERY_NO_ERROR, TRACELEVEL, info);
+		notify(PROGRESS, RECOVERY_NO_ERROR, TRACELEVEL, info);
 		free(info);
 	}
 	return 0;
