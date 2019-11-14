@@ -1,2 +1,0 @@
-ACTION=="add", KERNEL=="sd*", SUBSYSTEM=="block", ENV{ID_FS_USAGE}=="filesystem", TAG+="systemd", ENV{SYSTEMD_WANTS}+="swupdate-usb@%k.service"
-
