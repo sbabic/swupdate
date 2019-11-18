@@ -280,95 +280,6 @@ static void *broadcast_progress_thread(void *data)
 }
 
 /*
- * These functions are for V1 of the protocol
- */
-static void upload_handler_v1(struct mg_connection *nc, int ev, void *p)
-{
-	struct mg_str *filename, *data;
-	struct http_message *hm;
-	size_t length;
-	char buf[16];
-	int fd;
-
-	switch (ev) {
-	case MG_EV_HTTP_REQUEST:
-		hm = (struct http_message *) p;
-
-		filename = mg_get_http_header(hm, "X_FILENAME");
-		if (filename == NULL) {
-			mg_http_send_error(nc, 403, NULL);
-			return;
-		}
-
-		data = mg_get_http_header(hm, "Content-length");
-		if (data == NULL || data->len >= ARRAY_SIZE(buf)) {
-			mg_http_send_error(nc, 403, NULL);
-			return;
-		}
-
-		memcpy(buf, data->p, data->len);
-		buf[data->len] = '\0';
-		length = strtoul(data->p, NULL, 10);
-		if (length == 0) {
-			mg_http_send_error(nc, 403, NULL);
-			return;
-		}
-
-		fd = ipc_inst_start_ext(SOURCE_WEBSERVER, filename->len, filename->p, false);
-		ipc_send_data(fd, (char *) hm->body.p, hm->body.len);
-		ipc_end(fd);
-
-		mg_send_response_line(nc, 200,
-			"Content-Type: text/plain\r\n"
-			"Connection: close");
-		mg_send(nc, "\r\n", 2);
-		mg_printf(nc, "Ok, %.*s - %d bytes.\r\n", (int) filename->len, filename->p, (int) length);
-		nc->flags |= MG_F_SEND_AND_CLOSE;
-		break;
-	default:
-		upload_handler(nc, ev, p);
-		break;
-	}
-}
-
-static void recovery_status(struct mg_connection *nc, int ev, void *ev_data)
-{
-	ipc_message ipc;
-	int ret;
-	char buf[4096];
-
-	(void)ev;
-	(void)ev_data;
-
-	ret = ipc_get_status(&ipc);
-
-	if (ret) {
-		mg_http_send_error(nc, 500, NULL);
-		return;
-	}
-
-	snprintf(buf, sizeof(buf),
-		"{\r\n"
-		"\t\"Status\" : \"%d\",\r\n"
-		"\t\"Msg\" : \"%s\",\r\n"
-		"\t\"Error\" : \"%d\",\r\n"
-		"\t\"LastResult\" : \"%d\"\r\n"
-		"}\r\n",
-		ipc.data.status.current,
-		strlen(ipc.data.status.desc) ? ipc.data.status.desc : "",
-		ipc.data.status.error,
-		ipc.data.status.last_result);
-
-	mg_send_head(nc, 200, strlen(buf),
-		"Cache: no-cache\r\n"
-		"Content-Type: text/plain");
-
-	mg_send(nc, buf, strlen(buf));
-
-	nc->flags |= MG_F_SEND_AND_CLOSE;
-}
-
-/*
  * Code common to V1 and V2
  */
 static void upload_handler(struct mg_connection *nc, int ev, void *p)
@@ -429,12 +340,6 @@ static void upload_handler(struct mg_connection *nc, int ev, void *p)
 		free(fus);
 		break;
 	}
-}
-
-static void ev_handler_v1(struct mg_connection __attribute__ ((__unused__)) *nc,
-				int __attribute__ ((__unused__)) ev,
-				void __attribute__ ((__unused__)) *ev_data)
-{
 }
 
 static void ev_handler(struct mg_connection *nc, int ev, void *ev_data)
@@ -627,28 +532,17 @@ int start_mongoose(const char *cfgfname, int argc, char *argv[])
 
 	mg_mgr_init(&mgr, NULL);
 
-	if (opts.api_version == MONGOOSE_API_V1)
-		nc = mg_bind_opt(&mgr, s_http_port, ev_handler_v1, bind_opts);
-	else
-		nc = mg_bind_opt(&mgr, s_http_port, ev_handler, bind_opts);
+	nc = mg_bind_opt(&mgr, s_http_port, ev_handler, bind_opts);
 	if (nc == NULL) {
 		fprintf(stderr, "Failed to start Mongoose: %s\n", *bind_opts.error_string);
 		exit(EXIT_FAILURE);
 	}
 
 	mg_set_protocol_http_websocket(nc);
-	switch (opts.api_version) {
-	case MONGOOSE_API_V1:
-		mg_register_http_endpoint(nc, "/handle_post_request", MG_CB(upload_handler_v1, NULL));
-		mg_register_http_endpoint(nc, "/getstatus.json", MG_CB(recovery_status, NULL));
-		break;
-	case MONGOOSE_API_V2:
-		mg_register_http_endpoint(nc, "/restart", restart_handler);
-		mg_register_http_endpoint(nc, "/upload", MG_CB(upload_handler, NULL));
-		mg_start_thread(broadcast_message_thread, &mgr);
-		mg_start_thread(broadcast_progress_thread, &mgr);
-		break;
-	}
+	mg_register_http_endpoint(nc, "/restart", restart_handler);
+	mg_register_http_endpoint(nc, "/upload", MG_CB(upload_handler, NULL));
+	mg_start_thread(broadcast_message_thread, &mgr);
+	mg_start_thread(broadcast_progress_thread, &mgr);
 
 	printf("Mongoose web server version %s with pid %d started on port(s) %s with web root [%s] and API %s\n",
 		MG_VERSION, getpid(), s_http_port,
