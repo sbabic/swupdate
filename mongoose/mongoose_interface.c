@@ -477,7 +477,6 @@ void mongoose_print_help(void)
 #endif
 		"\t  -r, --document-root <path>     : path to document root directory (default: %s)\n"
 		"\t  -t, --timeout                  : timeout to check if connection is lost (default: check disabled)\n"
-		"\t  -a, --api-version [1|2]        : set Web protocol API to v1 (legacy) or v2 (default v2)\n"
 		"\t  --auth-domain                  : set authentication domain if any (default: none)\n"
 		"\t  --global-auth-file             : set authentication file if any (default: none)\n",
 		MG_PORT, MG_ROOT);
@@ -556,11 +555,6 @@ int start_mongoose(const char *cfgfname, int argc, char *argv[])
 			free(opts.root);
 			opts.root = strdup(optarg);
 			break;
-		case 'a':
-			opts.api_version = (!strcmp(optarg, "1")) ?
-						MONGOOSE_API_V1 :
-						MONGOOSE_API_V2;
-			break;
 		case '?':
 		default:
 			return -EINVAL;
@@ -598,10 +592,9 @@ int start_mongoose(const char *cfgfname, int argc, char *argv[])
 	mg_start_thread(broadcast_message_thread, &mgr);
 	mg_start_thread(broadcast_progress_thread, &mgr);
 
-	printf("Mongoose web server version %s with pid %d started on port(s) %s with web root [%s] and API %s\n",
+	printf("Mongoose web server version %s with pid %d started on port(s) %s with web root [%s]\n",
 		MG_VERSION, getpid(), s_http_port,
-		s_http_server_opts.document_root,
-		(opts.api_version  == MONGOOSE_API_V1) ? "v1" : "v2");
+		s_http_server_opts.document_root);
 
 	for (;;) {
 		mg_mgr_poll(&mgr, 100);
