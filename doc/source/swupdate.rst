@@ -507,8 +507,8 @@ Command line parameters
 |             |          | will not stop until a valid software is    |
 |             |          | loaded.                                    |
 +-------------+----------+--------------------------------------------+
-| -t <timeout>| integer  | Timeout for connection lost when           |
-|             |          | downloading                                |
+| -t <timeout>| integer  | Timeout for connection lost                |
+|             |          | downloader or Webserver                    |
 +-------------+----------+--------------------------------------------+
 | -a <usr:pwd>| string   | Send user and password for Basic Auth      |
 +-------------+----------+--------------------------------------------+

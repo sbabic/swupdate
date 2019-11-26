@@ -26,11 +26,16 @@
 #include <parselib.h>
 #include <progress_ipc.h>
 #include <swupdate_settings.h>
+#include <time.h>
 
 #include "mongoose.h"
+#include "util.h"
 
 #define MG_PORT "8080"
 #define MG_ROOT "."
+
+/* in seconds. If no packet is received with this timeout, connection is broken */
+#define MG_TIMEOUT	120
 
 enum MONGOOSE_API_VERSION {
 	MONGOOSE_API_V1 = 1,
@@ -56,6 +61,7 @@ struct file_upload_state {
 };
 
 static bool run_postupdate;
+static unsigned int watchdog_conn = 0;
 static struct mg_serve_http_opts s_http_server_opts;
 static void upload_handler(struct mg_connection *nc, int ev, void *p);
 
@@ -306,6 +312,18 @@ static void upload_handler(struct mg_connection *nc, int ev, void *p)
 
 		mp->user_data = fus;
 
+		/*
+		 * There is no user data for connection.
+		 * Set the user data to the same structure to make it available
+		 * to the MG_TIMER event
+		 */
+		nc->user_data = mp->user_data;
+
+		if (watchdog_conn > 0) {
+			TRACE("Setting Webserver Watchdog Timer to %d", watchdog_conn);
+			mg_set_timer(nc, mg_time() + watchdog_conn);
+		}
+
 		break;
 
 	case MG_EV_HTTP_PART_DATA:
@@ -337,6 +355,7 @@ static void upload_handler(struct mg_connection *nc, int ev, void *p)
 		nc->flags |= MG_F_SEND_AND_CLOSE;
 
 		mp->user_data = NULL;
+		nc->user_data = mp->user_data;
 		free(fus);
 		break;
 	}
@@ -344,8 +363,31 @@ static void upload_handler(struct mg_connection *nc, int ev, void *p)
 
 static void ev_handler(struct mg_connection *nc, int ev, void *ev_data)
 {
-	if (ev == MG_EV_HTTP_REQUEST) {
+	time_t now;
+
+	switch (ev) {
+	case MG_EV_HTTP_REQUEST:
 		mg_serve_http(nc, ev_data, s_http_server_opts);
+		break;
+	case MG_EV_TIMER:
+		now = (time_t) mg_time();
+		/*
+		 * Check if a multi-part was initiated
+		 */
+		if (nc->user_data && (watchdog_conn > 0) &&
+			(difftime(now, nc->last_io_time) > 2 * watchdog_conn)) {
+			struct file_upload_state *fus;
+
+		       /* Connection lost, drop data */
+			ERROR("Connection lost, no data since %ld now %ld, closing...",
+				nc->last_io_time, now);
+			fus = (struct file_upload_state *) nc->user_data;
+			ipc_end(fus->fd);
+			nc->user_data = NULL;
+			nc->flags |= MG_F_CLOSE_IMMEDIATELY;
+		} else
+			mg_set_timer(nc, mg_time() + watchdog_conn);  // Send us timer event again after 0.5 seconds
+		break;
 	}
 }
 
@@ -399,6 +441,8 @@ static int mongoose_settings(void *elem, void  __attribute__ ((__unused__)) *dat
 	}
 	get_field(LIBCFG_PARSER, elem, "run-postupdate", &run_postupdate);
 
+	get_field(LIBCFG_PARSER, elem, "timeout", &watchdog_conn);
+
 	return 0;
 }
 
@@ -413,6 +457,7 @@ static struct option long_options[] = {
 #endif
 	{"document-root", required_argument, NULL, 'r'},
 	{"api-version", required_argument, NULL, 'a'},
+	{"timeout", required_argument, NULL, 't'},
 	{"auth-domain", required_argument, NULL, '0'},
 	{"global-auth-file", required_argument, NULL, '1'},
 	{NULL, 0, NULL, 0}
@@ -431,6 +476,7 @@ void mongoose_print_help(void)
 		"\t  -K, --ssl-key <key>            : key corresponding to the ssl certificate\n"
 #endif
 		"\t  -r, --document-root <path>     : path to document root directory (default: %s)\n"
+		"\t  -t, --timeout                  : timeout to check if connection is lost (default: check disabled)\n"
 		"\t  -a, --api-version [1|2]        : set Web protocol API to v1 (legacy) or v2 (default v2)\n"
 		"\t  --auth-domain                  : set authentication domain if any (default: none)\n"
 		"\t  --global-auth-file             : set authentication file if any (default: none)\n",
@@ -462,12 +508,17 @@ int start_mongoose(const char *cfgfname, int argc, char *argv[])
 	 */
 	run_postupdate = true;
 
+	/*
+	 * Default no monitor of connection
+	 */
+	watchdog_conn = 0;
+
 	if (cfgfname) {
 		read_module_settings(cfgfname, "webserver", mongoose_settings, &opts);
 	}
 
 	optind = 1;
-	while ((choice = getopt_long(argc, argv, "lp:sC:K:r:a:",
+	while ((choice = getopt_long(argc, argv, "lp:sC:K:r:a:t:",
 				     long_options, NULL)) != -1) {
 		switch (choice) {
 		case '0':
@@ -484,6 +535,9 @@ int start_mongoose(const char *cfgfname, int argc, char *argv[])
 		case 'p':
 			free(opts.port);
 			opts.port = strdup(optarg);
+			break;
+		case 't':
+			watchdog_conn = strtoul(optarg, NULL, 10);
 			break;
 #if MG_ENABLE_SSL
 		case 's':
