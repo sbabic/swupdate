@@ -122,7 +122,9 @@ typedef void (*notifier) (RECOVERY_STATUS status, int error, int level, const ch
 #define DEBUG(format, arg...) \
 	swupdate_notify(RUN, format, DEBUGLEVEL, ## arg)
 
+#ifndef ARRAY_SIZE
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
+#endif
 
 #define STRINGIFY(...) #__VA_ARGS__
 #define SETSTRING(p, v) do { \
