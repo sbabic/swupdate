@@ -58,7 +58,7 @@ The following example explains better the implemented tags:
 			{
 				filename = "sdcard.ext3.gz";
 				device = "/dev/mmcblk0p1";
-				compressed = true;
+				compressed = "zlib";
 			},
 			{
 				filename = "bootlogo.bmp";
@@ -1242,9 +1242,15 @@ There are 4 main sections inside sw-description:
    |             |          | scripts    | regitsters itself.                    |
    |             |          |            | Example: "ubivol", "raw", "rawfile",  |
    +-------------+----------+------------+---------------------------------------+
-   | compressed  | bool     | images     | flag to indicate that "filename" is   |
-   |             |          | files      | zlib-compressed and must be           |
-   |             |          |            | decompressed before being installed   |
+   | compressed  | string   | images     | string to indicate the "filename" is  |
+   |             |          | files      | compressed and must be decompressed   |
+   |             |          |            | before being installed. the value     |
+   |             |          |            | denotes the compression type.         |
+   |             |          |            | currently supported values are "zlib" |
+   |             |          |            | and "zstd".                           |
+   +-------------+----------+------------+---------------------------------------+
+   | compressed  | bool (dep| images     | Deprecated. Use the string form. true |
+   |             | recated) | files      | is equal to 'compression = "zlib"'.   |
    +-------------+----------+------------+---------------------------------------+
    | installed-\ | bool     | images     | flag to indicate that image is        |
    | directly    |          |            | streamed into the target without any  |

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>SWUpdate: API for external programs &mdash; Embedded Software Update Documentation 2009.11 documentation</title>
+  <title>SWUpdate: API for external programs &mdash; Embedded Software Update Documentation 2019.11 documentation</title>
   
 
   
@@ -37,9 +37,9 @@
         <link rel="index" title="Index"
               href="genindex.html"/>
         <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="Embedded Software Update Documentation 2009.11 documentation" href="index.html"/>
+    <link rel="top" title="Embedded Software Update Documentation 2019.11 documentation" href="index.html"/>
         <link rel="next" title="Getting information on running update" href="progress.html"/>
-        <link rel="prev" title="Suricatta daemon mode" href="suricatta.html"/> 
+        <link rel="prev" title="Config for HawkBit under SSL/TLS using private CA / sub CA" href="hawkbit-setup.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -105,20 +105,35 @@
 <li class="toctree-l1"><a class="reference internal" href="handlers.html">Handlers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mongoose.html">Mongoose daemon mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hawkbit-setup.html">Config for HawkBit under SSL/TLS using private CA / sub CA</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">SWUpdate: API for external programs</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#api-description">API Description</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#client-library">Client Library</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#api-to-the-integrated-webserver">API to the integrated Webserver</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id1">Install API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restart-api">Restart API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#websocket-api">WebSocket API</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#status-change-event">Status Change Event</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#source-event">Source Event</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#info-event">Info Event</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#message-event">Message Event</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-event">Step event</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
 <li class="toctree-l1"><a class="reference internal" href="building-with-yocto.html">meta-swupdate: building with Yocto</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="client.html">client</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hawkbitcfg.html">hawkbitcfg</a></li>
-<li class="toctree-l1"><a class="reference internal" href="sendtohawkbit.html">sendtohawkbit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="swupdate_progress.html">progress</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-client.html">client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-hawkbitcfg.html">hawkbitcfg</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-sendtohawkbit.html">sendtohawkbit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-progress.html">progress</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-sysrestart.html">swupdate-sysrestart</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="help_and_support.html">Help and support</a></li>
@@ -206,7 +221,7 @@ and the final result. The API is at the moment very simple, but it can
 easy be extended in the future if new use cases will arise.</p>
 </div>
 <div class="section" id="api-description">
-<h2>API Description<a class="headerlink" href="#api-description" title="Permalink to this headline">¶</a></h2>
+<span id="install-api"></span><h2>API Description<a class="headerlink" href="#api-description" title="Permalink to this headline">¶</a></h2>
 <p>The communication runs via UDS (Unix Domain Socket). The socket is created
 at startup by SWUpdate in /tmp/sockinstctrl as per default configuration.
 This socket should, however, not be used directly but instead by the Client
@@ -257,6 +272,187 @@ how upgrade is going on. It can be omitted if only the result is required.</p>
 of the upgrade.</p>
 <p>Example about using this library is in the examples/client directory.</p>
 </div>
+<div class="section" id="api-to-the-integrated-webserver">
+<h2>API to the integrated Webserver<a class="headerlink" href="#api-to-the-integrated-webserver" title="Permalink to this headline">¶</a></h2>
+<p>The integrated Webserver provides REST resources to push a SWU package and to get inform about the update process.
+This API is based on HTTP standards. There are to kind of interface:</p>
+<ul class="simple">
+<li>Install API to push a SWU and to restart the device after update.</li>
+<li>A WebSocket interface to send the status of the update process.</li>
+</ul>
+<div class="section" id="id1">
+<h3>Install API<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">POST</span> <span class="o">/</span><span class="n">upload</span>
+</pre></div>
+</div>
+<p>This initiates an update: the initiator sends the request and start to stream the SWU in the same
+way as described in <a class="reference internal" href="#install-api"><span class="std std-ref">API Description</span></a>.</p>
+</div>
+<div class="section" id="restart-api">
+<h3>Restart API<a class="headerlink" href="#restart-api" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">POST</span> <span class="o">/</span><span class="n">restart</span>
+</pre></div>
+</div>
+<p>If configured (see post update command), this request will restart the device.</p>
+</div>
+<div class="section" id="websocket-api">
+<h3>WebSocket API<a class="headerlink" href="#websocket-api" title="Permalink to this headline">¶</a></h3>
+<p>The integrated Webserver exposes a WebSocket API. The WebSocket protocol specification defines ws (WebSocket) and wss (WebSocket Secure) as two new uniform resource identifier (URI) schemes that are used for unencrypted and encrypted con
+nections, respectively and both of them are supported by SWUpdate.
+A WebSocket provides full-duplex communication but it is used in SWUpdate to send events to an external host after
+each change in the update process. The Webserver sends JSON formatted responses as results of internal events.</p>
+<p>The response contains the field type, that defines which event is sent.</p>
+<table border="1" class="docutils" id="id2">
+<caption><span class="caption-text">Event Type</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="15%" />
+<col width="85%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">type</th>
+<th class="head">Description of event</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>status</td>
+<td>Event sent when SWUpdate’s internal state changes</td>
+</tr>
+<tr class="row-odd"><td>source</td>
+<td>Event to inform from which interface an update is received</td>
+</tr>
+<tr class="row-even"><td>info</td>
+<td>Event with custom message to be passed to an external process</td>
+</tr>
+<tr class="row-odd"><td>message</td>
+<td>Event that contains the error message in case of error</td>
+</tr>
+<tr class="row-even"><td>step</td>
+<td>Event to inform about the running update</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="status-change-event">
+<h4>Status Change Event<a class="headerlink" href="#status-change-event" title="Permalink to this headline">¶</a></h4>
+<p>This event is sent when the internal SWUpdate status change. Following status are supported:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">IDLE</span>
+<span class="n">START</span>
+<span class="n">RUN</span>
+<span class="n">SUCCESS</span>
+</pre></div>
+</div>
+<p>Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;status&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;SUCCESS&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="source-event">
+<h3>Source Event<a class="headerlink" href="#source-event" title="Permalink to this headline">¶</a></h3>
+<p>This event informs from which interface a SWU is loaded.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;source&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;source&quot;</span><span class="p">:</span> <span class="s2">&quot;WEBSERVER&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The field <cite>source</cite> can have one of the following values:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">UNKNOWN</span>
+<span class="n">WEBSERVER</span>
+<span class="n">SURICATTA</span>
+<span class="n">DOWNLOADER</span>
+<span class="n">LOCAL</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="info-event">
+<h3>Info Event<a class="headerlink" href="#info-event" title="Permalink to this headline">¶</a></h3>
+<p>This event forwards all internal logs sent with level=INFO.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;info&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;source&quot;</span><span class="p">:</span> <span class="o">&lt;</span> <span class="n">text</span> <span class="n">message</span> <span class="o">&gt;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="message-event">
+<h3>Message Event<a class="headerlink" href="#message-event" title="Permalink to this headline">¶</a></h3>
+<p>This event contains the error message in case of failure.</p>
+<table border="1" class="docutils" id="id3">
+<caption><span class="caption-text">Fields for message event</span><a class="headerlink" href="#id3" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="15%" />
+<col width="85%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">name</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>status</td>
+<td>“message”</td>
+</tr>
+<tr class="row-odd"><td>level</td>
+<td>“3” in case of error, “6” as info</td>
+</tr>
+<tr class="row-even"><td>text</td>
+<td>Message associated to the event</td>
+</tr>
+</tbody>
+</table>
+<p>Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;message&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;level&quot;</span><span class="p">:</span> <span class="s2">&quot;3&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;text&quot;</span> <span class="p">:</span> <span class="s2">&quot;[ERROR] : SWUPDATE failed [0] ERROR core/cpio_utils.c : &quot;</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="step-event">
+<h3>Step event<a class="headerlink" href="#step-event" title="Permalink to this headline">¶</a></h3>
+<p>This event contains which is the current step running and which percentage of this step is currently installed.</p>
+<table border="1" class="docutils" id="id4">
+<caption><span class="caption-text">Fields for step event</span><a class="headerlink" href="#id4" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="15%" />
+<col width="85%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">name</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>number</td>
+<td>total number of steps N for this update</td>
+</tr>
+<tr class="row-odd"><td>step</td>
+<td>running step in range [1..N]</td>
+</tr>
+<tr class="row-even"><td>name</td>
+<td>filename of artefact to be installed</td>
+</tr>
+<tr class="row-odd"><td>percent</td>
+<td>percentage of the running step</td>
+</tr>
+</tbody>
+</table>
+<p>Example:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;step&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;number&quot;</span><span class="p">:</span> <span class="s2">&quot;7&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;step&quot;</span><span class="p">:</span> <span class="s2">&quot;2&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;rootfs.ext4.gz&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;percent&quot;</span><span class="p">:</span> <span class="s2">&quot;18&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
 </div>
 
 
@@ -272,7 +468,7 @@ of the upgrade.</p>
         <a href="progress.html" class="btn btn-neutral float-right" title="Getting information on running update" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="suricatta.html" class="btn btn-neutral" title="Suricatta daemon mode" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="hawkbit-setup.html" class="btn btn-neutral" title="Config for HawkBit under SSL/TLS using private CA / sub CA" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -303,7 +499,7 @@ of the upgrade.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'2009.11',
+            VERSION:'2019.11',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

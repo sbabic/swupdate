@@ -1,6 +1,5 @@
 
 
-
 <!DOCTYPE html>
 <!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
 <!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
@@ -9,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Index &mdash; Embedded Software Update Documentation 2019.11 documentation</title>
+  <title>hawkbitcfg &mdash; Embedded Software Update Documentation 2019.11 documentation</title>
   
 
   
@@ -36,9 +35,11 @@
 
   
         <link rel="index" title="Index"
-              href="#"/>
+              href="genindex.html"/>
         <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="Embedded Software Update Documentation 2019.11 documentation" href="index.html"/> 
+    <link rel="top" title="Embedded Software Update Documentation 2019.11 documentation" href="index.html"/>
+        <link rel="next" title="sendtohawkbit" href="swupdate-sendtohawkbit.html"/>
+        <link rel="prev" title="client" href="swupdate-client.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -109,9 +110,12 @@
 <li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
 <li class="toctree-l1"><a class="reference internal" href="building-with-yocto.html">meta-swupdate: building with Yocto</a></li>
 </ul>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="swupdate-client.html">client</a></li>
-<li class="toctree-l1"><a class="reference internal" href="swupdate-hawkbitcfg.html">hawkbitcfg</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">hawkbitcfg</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#description">DESCRIPTION</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="swupdate-sendtohawkbit.html">sendtohawkbit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="swupdate-progress.html">progress</a></li>
 <li class="toctree-l1"><a class="reference internal" href="swupdate-sysrestart.html">swupdate-sysrestart</a></li>
@@ -166,12 +170,14 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>Index</li>
+      <li>hawkbitcfg</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
+            <a href="_sources/swupdate-hawkbitcfg.rst.txt" rel="nofollow"> View page source</a>
+          
         
       </li>
     
@@ -183,11 +189,15 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-
-<h1 id="index">Index</h1>
-
-<div class="genindex-jumpbox">
- 
+  <div class="section" id="hawkbitcfg">
+<h1>hawkbitcfg<a class="headerlink" href="#hawkbitcfg" title="Permalink to this headline">¶</a></h1>
+<p>sendtohawkbit is a small tool that tries to connect to a running instance
+of SWUpdate and configures Hawkbit’s parameter. Currently, only the the polling time
+is supported.</p>
+<div class="section" id="description">
+<h2>DESCRIPTION<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<p>swupdate-hawkbitcfg &lt;polling time&gt;</p>
+</div>
 </div>
 
 
@@ -197,6 +207,15 @@
            </div>
           </div>
           <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="swupdate-sendtohawkbit.html" class="btn btn-neutral float-right" title="sendtohawkbit" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="swupdate-client.html" class="btn btn-neutral" title="client" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
   
 
   <hr/>

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>SWUpdate: syntax and tags with the default parser &mdash; Embedded Software Update Documentation 2009.11 documentation</title>
+  <title>SWUpdate: syntax and tags with the default parser &mdash; Embedded Software Update Documentation 2019.11 documentation</title>
   
 
   
@@ -37,7 +37,7 @@
         <link rel="index" title="Index"
               href="genindex.html"/>
         <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="Embedded Software Update Documentation 2009.11 documentation" href="index.html"/>
+    <link rel="top" title="Embedded Software Update Documentation 2019.11 documentation" href="index.html"/>
         <link rel="next" title="Update images from verified source" href="signed_images.html"/>
         <link rel="prev" title="Update strategy examples" href="scenarios.html"/> 
 
@@ -130,15 +130,17 @@
 <li class="toctree-l1"><a class="reference internal" href="handlers.html">Handlers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mongoose.html">Mongoose daemon mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hawkbit-setup.html">Config for HawkBit under SSL/TLS using private CA / sub CA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">SWUpdate: API for external programs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
 <li class="toctree-l1"><a class="reference internal" href="building-with-yocto.html">meta-swupdate: building with Yocto</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="client.html">client</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hawkbitcfg.html">hawkbitcfg</a></li>
-<li class="toctree-l1"><a class="reference internal" href="sendtohawkbit.html">sendtohawkbit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="swupdate_progress.html">progress</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-client.html">client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-hawkbitcfg.html">hawkbitcfg</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-sendtohawkbit.html">sendtohawkbit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-progress.html">progress</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-sysrestart.html">swupdate-sysrestart</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="help_and_support.html">Help and support</a></li>
@@ -261,7 +263,7 @@ using of the #include directive is not allowed by SWUpdate.</p>
                 <span class="p">{</span>
                         <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;sdcard.ext3.gz&quot;</span><span class="p">;</span>
                         <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;/dev/mmcblk0p1&quot;</span><span class="p">;</span>
-                        <span class="n">compressed</span> <span class="o">=</span> <span class="n">true</span><span class="p">;</span>
+                        <span class="n">compressed</span> <span class="o">=</span> <span class="s2">&quot;zlib&quot;</span><span class="p">;</span>
                 <span class="p">},</span>
                 <span class="p">{</span>
                         <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;bootlogo.bmp&quot;</span><span class="p">;</span>
@@ -1342,14 +1344,25 @@ regitsters itself.
 Example: “ubivol”, “raw”, “rawfile”,</td>
 </tr>
 <tr class="row-even"><td>compressed</td>
-<td>bool</td>
+<td>string</td>
 <td>images
 files</td>
-<td>flag to indicate that “filename” is
-zlib-compressed and must be
-decompressed before being installed</td>
+<td>string to indicate the “filename” is
+compressed and must be decompressed
+before being installed. the value
+denotes the compression type.
+currently supported values are “zlib”
+and “zstd”.</td>
 </tr>
-<tr class="row-odd"><td>installed-directly</td>
+<tr class="row-odd"><td>compressed</td>
+<td>bool (dep
+recated)</td>
+<td>images
+files</td>
+<td>Deprecated. Use the string form. true
+is equal to ‘compression = “zlib”’.</td>
+</tr>
+<tr class="row-even"><td>installed-directly</td>
 <td>bool</td>
 <td>images</td>
 <td>flag to indicate that image is
@@ -1357,19 +1370,19 @@ streamed into the target without any
 temporary copy. Not all handlers
 support streaming.</td>
 </tr>
-<tr class="row-even"><td>name</td>
+<tr class="row-odd"><td>name</td>
 <td>string</td>
 <td>bootenv</td>
 <td>name of the bootloader variable to be
 set.</td>
 </tr>
-<tr class="row-odd"><td>value</td>
+<tr class="row-even"><td>value</td>
 <td>string</td>
 <td>bootenv</td>
 <td>value to be assigned to the
 bootloader variable</td>
 </tr>
-<tr class="row-even"><td>name</td>
+<tr class="row-odd"><td>name</td>
 <td>string</td>
 <td>images
 files</td>
@@ -1378,7 +1391,7 @@ it can be any string and it is
 compared with the entries in
 sw-versions</td>
 </tr>
-<tr class="row-odd"><td>version</td>
+<tr class="row-even"><td>version</td>
 <td>string</td>
 <td>images
 files</td>
@@ -1387,13 +1400,13 @@ it can be any string and it is
 compared with the entries in
 sw-versions</td>
 </tr>
-<tr class="row-even"><td>description</td>
+<tr class="row-odd"><td>description</td>
 <td>string</td>
 <td>&#160;</td>
 <td>user-friendly description of the
 swupdate archive (any string)</td>
 </tr>
-<tr class="row-odd"><td>install-if-different</td>
+<tr class="row-even"><td>install-if-different</td>
 <td>bool</td>
 <td>images
 files</td>
@@ -1401,7 +1414,7 @@ files</td>
 if set, name and version are
 compared with the entries in</td>
 </tr>
-<tr class="row-even"><td>install-if-higher</td>
+<tr class="row-odd"><td>install-if-higher</td>
 <td>bool</td>
 <td>images
 files</td>
@@ -1409,7 +1422,7 @@ files</td>
 if set, name and version are
 compared with the entries in</td>
 </tr>
-<tr class="row-odd"><td>encrypted</td>
+<tr class="row-even"><td>encrypted</td>
 <td>bool</td>
 <td>images
 files
@@ -1419,7 +1432,7 @@ if set, file is encrypted
 and must be decrypted before
 installing.</td>
 </tr>
-<tr class="row-even"><td>data</td>
+<tr class="row-odd"><td>data</td>
 <td>string</td>
 <td>images
 files
@@ -1427,7 +1440,7 @@ scripts</td>
 <td>This is used to pass arbitrary data
 to a handler.</td>
 </tr>
-<tr class="row-odd"><td>sha256</td>
+<tr class="row-even"><td>sha256</td>
 <td>string</td>
 <td>images
 files
@@ -1436,25 +1449,25 @@ scripts</td>
 Used for verification of signed
 images.</td>
 </tr>
-<tr class="row-even"><td>embedded-script</td>
+<tr class="row-odd"><td>embedded-script</td>
 <td>string</td>
 <td>&#160;</td>
 <td>Lua code that is embedded in the
 sw-description file.</td>
 </tr>
-<tr class="row-odd"><td>offset</td>
+<tr class="row-even"><td>offset</td>
 <td>string</td>
 <td>images</td>
 <td>Optional destination offset</td>
 </tr>
-<tr class="row-even"><td>hook</td>
+<tr class="row-odd"><td>hook</td>
 <td>string</td>
 <td>images
 files</td>
 <td>The name of the function (Lua) to be
 called when the entry is parsed.</td>
 </tr>
-<tr class="row-odd"><td>mtdname</td>
+<tr class="row-even"><td>mtdname</td>
 <td>string</td>
 <td>images</td>
 <td>name of the MTD to update. Used only
@@ -1511,7 +1524,7 @@ specifying the devicenode</td>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'2009.11',
+            VERSION:'2019.11',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

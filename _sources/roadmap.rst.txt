@@ -5,8 +5,8 @@ Project's road-map
 Please take into account that most of the items here are *proposals*.
 I get some ideas talking with customers, some ideas are my own thoughts.
 There is no plan when these features will be implemented - this depends
-if enough interest is raised and if there will be contribution to the project
-in terms of patches or financial contributions to develop a feature.
+if there will be contribution to the project in terms of patches or
+financial contributions to develop a feature.
 
 Thanks again to all companies that have supported my work up now and to
 everybody who has contributed to the project, let me bring SWUpdate
@@ -33,46 +33,11 @@ and not only UBI volumes, and add further features as restoring configuration da
 Support for further compressors
 ===============================
 
-SWUpdate supports image compressed with zlib. This is a compromise between compression rate
-and speed to decompress the single artifact. To reduce bandwidth or for big images, a stronger
-compressor could help. Adding a new compressor must be careful done because it changes the
-core of handling an image.
-
-System Update
-=============
-
-Not just the single device, but several devices connected together to build a more
-complex system should be updated at once in an atomic way. The installation and the
-restart of the system must be done in a controlled way.
-
-SWUpdate as Updater Gateway
----------------------------
-
-This feature was introduced with the "swuforward" handler. It is already
-possible to update a tree of devices if each of them runs SWUpdate. This
-feature is already implemented in SWUpdate for embedded Linux.
-
-Anyway, a lot of embedded devices have small processors and maybe not a full
-blown OS. Ensuring security for all of them can be a risk, and it is
-easier to make sure on a single device. If the device running SWUpdate is
-acting as gateway, it can translate protocols from back-end and send
-package updates to the connected small devices.
-
-One example could be if SWUpdate runs as MQTT-broker and takes updates
-from Hawkbit. SWUpdate should be able to run multiple instances of
-suricatta to do this.
-
-One other examples is using LWM2M. The gateway should be generic enough
-to allow to add further protocols in future.
-
-Enhance swuforward handler
---------------------------
-
-This handler requires that SWUpdate-slaves connected to the master run the Web-server
-with old API using a poll mechanism to check the update's progress. This forbids
-to run at the same time SWUpdate as slave and with the Website, because in old mode
-the website is not available anymore. If swuforward will switch to Web-sockets and implements
-the newer API, this constraint can be removed.
+SWUpdate supports image compressed with following formats: zlib, zstd. This is
+a compromise between compression rate and speed to decompress the single artifact.
+To reduce bandwidth or for big images, a stronger compressor could help.
+Adding a new compressor must be careful done because it changes the core of
+handling an image.
 
 Binary delta updates
 ====================
@@ -90,11 +55,8 @@ each of them solves a specific use case for a delta update.
 SWUpdate is already able to perform delta updates based on librsync library. This is
 currently a good compromise to reduce complexity. Anyway, this helps in case of
 small changes, and it is not a general solution between two generic releases.
-A general approach could be to integrate SWUpdate with CA-Sync to allow a delta upgrade
-from any release. First proof of concept shows that changes in both SWUpdate and CA-Sync
-are required to be conform with requirements and security concepts in SWUpdate. A design
-just using CA-Sync as external fetcher without integration in SWUpdate  breaks
-SWUpdate's security concept.
+A general approach could be to integrate SWUpdate with a storage to allow a delta upgrade
+from any release. 
 
 Integration in Linux distro
 ===========================
@@ -103,6 +65,13 @@ To allow an easier learning with SWUpdate and also for test purposes with the
 SWU forwarder handler, it makes sense to package SWUpdate for PC Linux distro.
 SWUpdate already supports debian package. Some help from community is asked to
 let the package merged into Debian distro.
+
+Parser
+======
+
+SWUpdate supports two parsers : libconfig and JSON. It would be nice if tools can
+be used to convert from one format to the other one. Currently, due to some specialties
+in libconfig, a manual conversion is still required.
 
 Handlers:
 =========
@@ -149,6 +118,12 @@ Current release supports verified images. That means that a handler
 written in Lua could be now be part of the compound image, because
 a unauthenticated handler cannot run.
 
+Security
+========
+
+- add suport for asymmetryc encryption
+- add a way to share symmetric keys (similar as done in TLS)
+
 Support for evaluation boards
 =============================
 
@@ -177,14 +152,6 @@ the Hawkbit's server. Currently, Hawkbit thinks to be the only one
 deploying software. Hawkbit DDI API should be extended, and afterwards
 changes must be implemented in SWUpdate.
 
-Back-end: Consolidate "general server"
---------------------------------------
-
-A second OTA server was introduced with 2018.11, but there is not
-an open source solution for a server. Anyway, the very simple interface
-of the "general server" can be used by anyone to introduce an own server
-instead of a more complicate solution with a back-end like Hawkbit.
-
 Back-end: support for generic down-loader 
 -----------------------------------------
 
@@ -212,9 +179,11 @@ SWUpdate GUI for rescue
 
 In case of rescue for HMI devices, it is often required to have a small GUI
 for an operator to set some parameters (network,..) and start an update.
-A first version of SWUpdate-GUI was released with a base set of features. The goal of this simple GUI
+SWUpdate-GUI is released with a base set of features. The goal of this simple GUI
 is to have a low footprint compared to GUI developed with state of art frameworks. 
 This lets to still have a rescue that fits in small devices.
+SWUpdate-GUI is already production-ready and delivered into final products. New
+features coud be developped.
 
 Test and Continuous Integration
 ===============================
