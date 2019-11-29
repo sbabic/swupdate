@@ -18,6 +18,8 @@
  *
  * Alternatively, you can license this software under a commercial
  * license, as set out in <https://www.cesanta.com/license>.
+ *
+ * SPDX-License-Identifier: GPL-2.0
  */
 
 #ifndef CS_MONGOOSE_SRC_COMMON_H_
@@ -3194,7 +3196,7 @@ struct {								\
 	if (LIST_NEXT((elm), field) != NULL &&				\
 	    LIST_NEXT((elm), field)->field.le_prev !=			\
 	     &((elm)->field.le_next))					\
-	     	panic("Bad link elm %p next->prev != elm", (elm));	\
+		panic("Bad link elm %p next->prev != elm", (elm));	\
 } while (0)
 
 #define	QMD_LIST_CHECK_PREV(elm, field) do {				\
@@ -3337,7 +3339,7 @@ struct {								\
 
 #define	QMD_TAILQ_CHECK_TAIL(head, field) do {				\
 	if (*(head)->tqh_last != NULL)					\
-	    	panic("Bad tailq NEXT(%p->tqh_last) != NULL", (head)); 	\
+		panic("Bad tailq NEXT(%p->tqh_last) != NULL", (head)); 	\
 } while (0)
 
 #define	QMD_TAILQ_CHECK_NEXT(elm, field) do {				\
@@ -3844,7 +3846,7 @@ extern "C" {
 struct mg_ssl_if_ctx;
 struct mg_connection;
 
-void mg_ssl_if_init();
+void mg_ssl_if_init(void);
 
 enum mg_ssl_if_result {
   MG_SSL_OK = 0,
