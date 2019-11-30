@@ -1,7 +1,7 @@
-sendtohawkbit
-=============
+swupdate-sendtohawkbit
+======================
 
-sendtohawkbit is a small tool that tries to connect to a running instance
+swupdate-sendtohawkbit is a small tool that tries to connect to a running instance
 of SWUpdate and uses it as proxy to send data to the Hawkbit Server.
 A typical use case is after a new software was installed but it is
 required the acknowledge by an application or by an operator to activate it.
