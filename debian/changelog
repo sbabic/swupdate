@@ -1,3 +1,10 @@
+swupdate (2019.11) experimental; urgency=medium
+
+  [ Stefano Babic ]
+  * Bump 2019.11
+
+ -- Stefano Babic  <sbabic@denx.de>  Sat, 29 Nov 2019 18:34:58 +0800
+
 swupdate (2019.04~rc1+git20190320.bad559b+dfsg-1~exp1) experimental; urgency=medium
 
   [ Stefano Babic ]
