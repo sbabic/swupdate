@@ -292,6 +292,7 @@ static void upload_handler(struct mg_connection *nc, int ev, void *p)
 {
 	struct mg_http_multipart_part *mp;
 	struct file_upload_state *fus;
+	ssize_t written;
 
 	switch (ev) {
 	case MG_EV_HTTP_PART_BEGIN:
@@ -308,6 +309,10 @@ static void upload_handler(struct mg_connection *nc, int ev, void *p)
 			mg_http_send_error(nc, 500, "Failed to queue command");
 			free(fus);
 			break;
+		}
+
+		if (swupdate_file_setnonblock(fus->fd, true)) {
+			WARN("IPC cannot be set in non-blocking, fallback to block mode");
 		}
 
 		mp->user_data = fus;
@@ -333,8 +338,22 @@ static void upload_handler(struct mg_connection *nc, int ev, void *p)
 		if (!fus)
 			break;
 
-		ipc_send_data(fus->fd, (char *) mp->data.p, mp->data.len);
-		fus->len += mp->data.len;
+		written = write(fus->fd, (char *) mp->data.p, mp->data.len);
+		/*
+		 * IPC seems to block, wait for a while
+		 */
+		if (written != mp->data.len) {
+			if (errno != EAGAIN && errno != EWOULDBLOCK) {
+				ERROR("Writing to IPC fails due to %s", strerror(errno));
+			}
+			usleep(100);
+
+			if (written < 0)
+				written = 0;
+		}
+
+		mp->num_data_consumed = written;
+		fus->len += written;
 
 		break;
 
