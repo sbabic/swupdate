@@ -733,3 +733,20 @@ char *swupdate_time_iso8601(void)
 
 	return buf;
 }
+
+int swupdate_file_setnonblock(int fd, bool block)
+{
+	int flags;
+
+	flags = fcntl(fd, F_GETFL, 0);
+	if (flags == -1)
+		return -EFAULT;
+
+	if (block)
+		flags |= O_NONBLOCK;
+	else
+		flags &= ~O_NONBLOCK;
+
+	return !(fcntl(fd, F_SETFL, flags) == -1);
+}
+
