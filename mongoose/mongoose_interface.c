@@ -586,6 +586,15 @@ int start_mongoose(const char *cfgfname, int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
+	/*
+	 * The Event Handler in Webserver will read from socket until there is data.
+	 * This does not guarantes a flow control because data are forwarded
+	 * to SWUpdate internal IPC. If this is not called in blocking mode,
+	 * the Webserver should just read from socket to fill the IPC, but without
+	 * filling all memory.
+	 */
+	nc->recv_mbuf_limit = 256 * 1024;
+
 	mg_set_protocol_http_websocket(nc);
 	mg_register_http_endpoint(nc, "/restart", restart_handler);
 	mg_register_http_endpoint(nc, "/upload", MG_CB(upload_handler, NULL));
