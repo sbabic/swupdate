@@ -394,7 +394,7 @@ static void ev_handler(struct mg_connection *nc, int ev, void *ev_data)
 		 * Check if a multi-part was initiated
 		 */
 		if (nc->user_data && (watchdog_conn > 0) &&
-			(difftime(now, nc->last_io_time) > 2 * watchdog_conn)) {
+			(difftime(now, nc->last_io_time) > watchdog_conn)) {
 			struct file_upload_state *fus;
 
 		       /* Connection lost, drop data */
