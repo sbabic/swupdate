@@ -603,7 +603,7 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 
 	/* reset to optind=1 to parse suricatta's argument vector */
 	optind = 1;
-	while ((choice = getopt_long(argc, argv, "u:l:r:w:",
+	while ((choice = getopt_long(argc, argv, "u:l:r:w:p:",
 				     long_options, NULL)) != -1) {
 		switch (choice) {
 		case 'u':
