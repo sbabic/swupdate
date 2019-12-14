@@ -68,7 +68,7 @@ script:
     - sudo install -m 755 -d /usr/include/efibootguard
     - sudo install -m 644 include/ebgenv.h /usr/include/efibootguard/ebgenv.h
     - cd ..
-    - git clone https://git.kernel.org/pub/scm/libs/libgpiod/libgpiod.git
+    - git clone -b v1.4.1 https://git.kernel.org/pub/scm/libs/libgpiod/libgpiod.git
     - cd libgpiod
     - mkdir -p include/linux
     - cp /usr/src/linux-headers-$(uname -r)/include/linux/compiler_types.h include/linux/.
