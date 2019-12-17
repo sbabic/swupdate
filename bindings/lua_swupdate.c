@@ -20,6 +20,8 @@
 #include <sys/stat.h>
 #include <sys/un.h>
 #include <sys/select.h>
+#include <network_ipc.h>
+#include <stdlib.h>
 
 #include "auxiliar.h"
 
@@ -53,6 +55,12 @@ static int progress(lua_State *L);
 static int progress_connect(lua_State *L);
 static int progress_receive(lua_State *L);
 static int progress_close(lua_State *L);
+
+static int ctrl(lua_State *L);
+static int ctrl_connect(lua_State *L);
+static int ctrl_write(lua_State *L);
+static int ctrl_close(lua_State *L);
+static int ctrl_close_socket(lua_State *L);
 
 int luaopen_lua_swupdate(lua_State *L);
 
@@ -99,6 +107,157 @@ static int netif(lua_State *L)
 	return 1;
 }
 
+struct ctrl_obj {
+	int socket;
+};
+
+/* control object methods */
+static luaL_Reg ctrl_methods[] = {
+	{"__gc",       ctrl_close_socket},
+	{"__tostring", auxiliar_tostring},
+	{"connect",    ctrl_connect},
+	{"write",      ctrl_write},
+	{"close",      ctrl_close},
+	{NULL,         NULL}
+};
+
+/**
+ * @brief Connect to SWUpdate control socket.
+ *
+ * @param  [Lua] The swupdate_control class instance.
+ * @return [Lua] The connection handle (mostly for information), or,
+ *               in case of errors, nil plus an error message.
+ */
+static int ctrl_connect(lua_State *L) {
+	struct ctrl_obj *p = (struct ctrl_obj *) auxiliar_checkclass(L, "swupdate_control", 1);
+	if (p->socket != -1) {
+		lua_pop(L, 1);
+		lua_pushnil(L);
+		lua_pushstring(L, "Already connected to SWUpdate control socket.");
+		return 2;
+	}
+
+	int connfd = ipc_inst_start_ext(SOURCE_LOCAL, 0, NULL, false);
+	if (connfd < 0) {
+		lua_pop(L, 1);
+		lua_pushnil(L);
+		lua_pushstring(L, "Cannot connect to SWUpdate control socket.");
+		return 2;
+	}
+
+	p->socket = connfd;
+
+	lua_pop(L, 1);
+	lua_pushnumber(L, connfd);
+	lua_pushnil(L);
+
+	return 2;
+}
+
+/**
+ * @brief Write data chunk to SWUpdate's control socket.
+ *
+ * @param  [Lua] The swupdate_control class instance.
+ * @param  [Lua] Lua String chunk data to write to SWUpdate's control socket.
+ * @return [Lua] True, or, in case of errors, nil plus an error message.
+ */
+static int ctrl_write(lua_State *L) {
+	struct ctrl_obj *p = (struct ctrl_obj *) auxiliar_checkclass(L, "swupdate_control", 1);
+	luaL_checktype(L, 2, LUA_TSTRING);
+
+	if (p->socket == -1) {
+		lua_pushnil(L);
+		lua_pushstring(L, "Not connected to SWUpdate control socket.");
+		goto ctrl_write_exit;
+	}
+
+	size_t len = 0;
+	const char* buf = lua_tolstring(L, 2, &len);
+	if (!buf) {
+		lua_pushnil(L);
+		lua_pushstring(L, "Error converting Lua chunk data.");
+		goto ctrl_write_exit;
+	}
+	if ((len = ipc_send_data(p->socket, (char *)buf, len)) < 0) {
+		lua_pushnil(L);
+		lua_pushstring(L, "Error writing to SWUpdate control socket.");
+		goto ctrl_write_exit;
+	}
+
+	lua_pushboolean(L, true);
+	lua_pushnil(L);
+
+ctrl_write_exit:
+	lua_remove(L, 1);
+	lua_remove(L, 1);
+	return 2;
+}
+
+static int ctrl_close_socket(lua_State *L) {
+	struct ctrl_obj *p = (struct ctrl_obj *) auxiliar_checkclass(L, "swupdate_control", 1);
+	(void)ipc_end(p->socket);
+	p->socket = -1;
+	lua_remove(L, 1);
+	return 0;
+}
+
+static char *ipc_wait_error_msg = NULL;
+static int ipc_wait_get_msg(ipc_message *msg)
+{
+	if (msg->data.status.error != 0 && msg->data.status.current == FAILURE) {
+		free(ipc_wait_error_msg);
+		ipc_wait_error_msg = strdup(msg->data.status.desc);
+	}
+	return 0;
+}
+
+/**
+ * @brief Close connection to SWUpdate control socket.
+ *
+ * @param  [Lua] The swupdate_control class instance.
+ * @return [Lua] True, or, in case of errors, nil plus an error message.
+ */
+static int ctrl_close(lua_State *L) {
+	struct ctrl_obj *p = (struct ctrl_obj *) auxiliar_checkclass(L, "swupdate_control", 1);
+	if (p->socket == -1) {
+		lua_pop(L, 1);
+		lua_pushboolean(L, true);
+		lua_pushnil(L);
+		return 2;
+	}
+
+	(void)ctrl_close_socket(L);
+
+	if ((RECOVERY_STATUS)ipc_wait_for_complete(ipc_wait_get_msg) == FAILURE) {
+		lua_pushnil(L);
+		lua_pushstring(L, ipc_wait_error_msg);
+		free(ipc_wait_error_msg);
+		ipc_wait_error_msg = NULL;
+		return 2;
+	}
+
+	ipc_message msg;
+	if (ipc_postupdate(&msg) != 0) {
+		lua_pushnil(L);
+		lua_pushstring(L, "SWUpdate succeeded but post-update action failed.");
+		return 2;
+	}
+
+	lua_pushboolean(L, true);
+	lua_pushnil(L);
+	return 2;
+}
+
+static int ctrl(lua_State *L) {
+	/* allocate control object */
+	struct ctrl_obj *p = (struct ctrl_obj *) lua_newuserdata(L, sizeof(*p));
+	p->socket = -1;
+
+	/* set its type as master object */
+	auxiliar_setclass(L, "swupdate_control", -1);
+
+	return 1;
+}
 
 struct prog_obj {
 	RECOVERY_STATUS	status;
@@ -185,6 +344,7 @@ static int progress(lua_State *L) {
  
 static const luaL_Reg lua_swupdate[] = {
   {"progress", progress},
+  {"control", ctrl},
   {"ipv4", netif},
   {NULL, NULL}
 };
@@ -195,5 +355,6 @@ static const luaL_Reg lua_swupdate[] = {
 int luaopen_lua_swupdate(lua_State *L){
 	luaL_newlib(L, lua_swupdate);
 	auxiliar_newclass(L, "swupdate_progress", progress_methods);
+	auxiliar_newclass(L, "swupdate_control", ctrl_methods);
 	return 1;
 }
