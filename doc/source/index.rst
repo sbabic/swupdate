@@ -43,6 +43,7 @@ SWUpdate Documentation
    hawkbit-setup.rst
    swupdate-ipc.rst
    progress.rst
+   bindings.rst
    building-with-yocto.rst
 
 ############################################
