@@ -26,11 +26,12 @@
 #include <cmocka.h>
 #include <network_ipc.h>
 #include <swupdate_status.h>
+#include <util.h>
 #include "suricatta/suricatta.h"
-#include "server_hawkbit.h"
+#include "../suricatta/server_hawkbit.h"
 #include "channel.h"
 #include "channel_curl.h"
-#include "suricatta/state.h"
+#include "state.h"
 
 #define JSON_OBJECT_FREED 1
 #define JSONQUOTE(...) #__VA_ARGS__
@@ -39,7 +40,7 @@
 extern channel_op_res_t channel_close(channel_t *this);
 extern channel_op_res_t channel_open(channel_t *this, void *cfg);
 extern channel_op_res_t channel_put(channel_t *this, void *data);
-extern channel_op_res_t channel_get_file(channel_t *this, void *data, int file_handle);
+extern channel_op_res_t channel_get_file(channel_t *this, void *data);
 extern channel_op_res_t channel_get(channel_t *this, void *data);
 extern channel_op_res_t channel_curl_init(void);
 
@@ -86,9 +87,9 @@ channel_op_res_t __wrap_channel_put(channel_t *this, void *data)
 	return mock_type(channel_op_res_t);
 }
 
-extern channel_op_res_t __real_channel_get_file(channel_t *this, void *data, int file_handle);
-channel_op_res_t __wrap_channel_get_file(channel_t *this, void *data, int file_handle);
-channel_op_res_t __wrap_channel_get_file(channel_t *this, void *data, int file_handle)
+extern channel_op_res_t __real_channel_get_file(channel_t *this, void *data);
+channel_op_res_t __wrap_channel_get_file(channel_t *this, void *data);
+channel_op_res_t __wrap_channel_get_file(channel_t *this, void *data)
 {
 #ifdef CONFIG_SURICATTA_SSL
 	channel_data_t *channel_data = (channel_data_t *)data;
@@ -97,7 +98,6 @@ channel_op_res_t __wrap_channel_get_file(channel_t *this, void *data, int file_h
 #else
 	(void)data;
 #endif
-	(void)file_handle;
 	(void)this;
 	return mock_type(channel_op_res_t);
 }

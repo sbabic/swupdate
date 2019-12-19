@@ -20,6 +20,8 @@ tests-$(CONFIG_HASH_VERIFY) += test_hash
 ifeq ($(CONFIG_SIGALG_RAWRSA),y)
 tests-$(CONFIG_SIGNED_IMAGES) += test_verify
 endif
+tests-$(CONFIG_SURICATTA_HAWKBIT) += test_json
+tests-$(CONFIG_SURICATTA_HAWKBIT) += test_server_hawkbit
 
 ccflags-y += -I$(src)/../
 
@@ -57,7 +59,7 @@ tests: $(tests-objs) $(tests-lnk)
 	@+$(foreach var,$(TARGETS),$(EXECUTE_TEST);)
 else
 tests:
-	@$(info crypto functions are disabled, nothing to test.)
+	@$(info nothing to test.)
 	@:
 endif
 
