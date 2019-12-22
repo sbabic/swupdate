@@ -32,7 +32,7 @@ static int start_lua_script(struct img_type *img, void *data)
 	script_fn scriptfn;
 
 	const char* tmp = get_tmpdirscripts();
-	char filename[MAX_IMAGE_FNAME + strlen(tmp) + 2];
+	char filename[MAX_IMAGE_FNAME + strlen(tmp) + 2 + strlen(img->type_data)];
 
 	if (!data)
 		return -1;
@@ -55,7 +55,7 @@ static int start_lua_script(struct img_type *img, void *data)
 		"%s%s", tmp, img->fname);
 	TRACE("Calling Lua %s", filename);
 
-	ret = run_lua_script(filename, fnname, filename);
+	ret = run_lua_script(filename, fnname, img->type_data);
 
 	return ret;
 
