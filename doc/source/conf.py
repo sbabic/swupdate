@@ -238,6 +238,7 @@ man_pages = [
         ('swupdate-client', 'client', u'SWUpdate client tool', '', 1),
         ('swupdate-hawkbitcfg', 'hawkbitcfg', u'SWUpdate Hawkbit Configuration tool', '', 1),
         ('swupdate-progress', 'progress', u'SWUpdate progress tool', '', 1),
+        ('swupdate-sysrestart', 'sysrestart', u'SWUpdate sysrestart tool', '', 1),
         ]
 
 
