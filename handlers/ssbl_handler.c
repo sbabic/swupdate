@@ -21,11 +21,7 @@
 #include "util.h"
 #include "flash.h"
 
-#if !defined(TESTHOST)
 #define PATH_TO_MTD	"/dev/mtd"
-#else
-#define PATH_TO_MTD	""
-#endif
 
 /*
  * This is used to write a general function
@@ -207,7 +203,6 @@ static int ssbl_swap(struct img_type *img, void *data)
 	 */
 	for (iter = 0; iter < 2; iter++) {
 		pssbl = &admins[iter];
-#if !defined(TESTHOST)
 		pssbl->mtdnum = get_mtd_from_device(pssbl->device);
 		if (pssbl->mtdnum < 0) {
 		/* Allow device to be specified by name OR number */
@@ -221,9 +216,6 @@ static int ssbl_swap(struct img_type *img, void *data)
 		}
 		snprintf(mtd_device, sizeof(mtd_device),
 			"%s%d", PATH_TO_MTD, pssbl->mtdnum);
-#else
-		snprintf(mtd_device, sizeof(mtd_device), "%s", pssbl->device);
-#endif
 		if ((fd = open(mtd_device, O_RDWR)) < 0) {
 			ERROR( "%s: %s: %s", __func__, mtd_device,
 				strerror(errno));
@@ -246,13 +238,9 @@ static int ssbl_swap(struct img_type *img, void *data)
 	 * - write to flash
 	 */
 	pssbl = &admins[get_inactive_ssbl(admins)];
-#if !defined(TESTHOST)
 	flash_erase(pssbl->mtdnum);	/* erase inactive copy */
 	snprintf(mtd_device, sizeof(mtd_device), "%s%d", PATH_TO_MTD,
 		 pssbl->mtdnum);
-#else
-	snprintf(mtd_device, sizeof(mtd_device), "%s", pssbl->device);
-#endif
 	pssbl->ssbl.image_size = pssbl->image_size;
 	pssbl->ssbl.image_offs = pssbl->image_offs;
 
