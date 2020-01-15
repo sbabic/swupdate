@@ -747,6 +747,6 @@ int swupdate_file_setnonblock(int fd, bool block)
 	else
 		flags &= ~O_NONBLOCK;
 
-	return !(fcntl(fd, F_SETFL, flags) == -1);
+	return fcntl(fd, F_SETFL, flags);
 }
 
