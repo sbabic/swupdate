@@ -58,6 +58,7 @@ struct mongoose_options {
 struct file_upload_state {
 	size_t len;
 	int fd;
+	bool error_report; /* if set, stop to flood with errors */
 };
 
 static bool run_postupdate;
@@ -344,7 +345,10 @@ static void upload_handler(struct mg_connection *nc, int ev, void *p)
 		 */
 		if (written != mp->data.len) {
 			if (errno != EAGAIN && errno != EWOULDBLOCK) {
-				ERROR("Writing to IPC fails due to %s", strerror(errno));
+				if (!fus->error_report) {
+					ERROR("Writing to IPC fails due to %s", strerror(errno));
+					fus->error_report = true;
+				}
 			}
 			usleep(100);
 
