@@ -46,19 +46,12 @@ config UBOOT_FWENV
 	  in the tools directory. It tells where the U-Boot
 	  environment is saved.
 
-config UBOOT_NEWAPI
-	bool "Link to new libubootenv API (LGPL-2.1)"
-	depends on UBOOT
-	help
-	  Use a replacement of tools/env from U-Boot
-	  This is to link to libubootenv
-
 comment "U-Boot support needs libubootenv, libz"
 	depends on !HAVE_LIBUBOOTENV || !HAVE_ZLIB
 
 config UBOOT_DEFAULTENV
 	string "U-Boot Initial Environment file"
-	depends on UBOOT_NEWAPI
+	depends on UBOOT
 	default "/etc/u-boot-initial-env"
 	help
 	  This is the file with the initial environment delivered
