@@ -642,4 +642,45 @@ of the two SSBL administration.
    |             |          | when this SSBL is set.                             |
    +-------------+----------+----------------------------------------------------+
 
+Readback Handler
+----------------
 
+To verify that an image was written properly, this readback handler calculates
+the sha256 hash of a partition (or part of it) and compares it against a given
+hash value.
+
+The following example explains how to use this handler:
+
+::
+    scripts: (
+    {
+        device = "/dev/mmcblk2p1";
+        type = "readback";
+        properties: {
+            sha256 = "e7afc9bd98afd4eb7d8325196d21f1ecc0c8864d6342bfc6b6b6c84eac86eb42";
+            size = "184728576";
+            offset = "0";
+        };
+    }
+    );
+
+Properties ``size`` and ``offset`` are optional, all the other properties are mandatory.
+
+.. table:: Properties for readback handler
+
+    +-------------+----------+----------------------------------------------------+
+    |  Name       |  Type    |  Description                                       |
+    +=============+==========+====================================================+
+    | device      | string   | The partition which shall be verified.             |
+    +-------------+----------+----------------------------------------------------+
+    | type        | string   | Identifier for the handler.                        |
+    +-------------+----------+----------------------------------------------------+
+    | sha256      | string   | Expected sha256 hash of the partition.             |
+    +-------------+----------+----------------------------------------------------+
+    | size        | string   | Data size (in bytes) to be verified.               |
+    |             |          | If 0 or not set, the handler will get the          |
+    |             |          | partition size from the device.                    |
+    +-------------+----------+----------------------------------------------------+
+    | offset      | string   | Offset (in bytes) to the start of the partition.   |
+    |             |          | If not set, default value 0 will be used.          |
+    +-------------+----------+----------------------------------------------------+
