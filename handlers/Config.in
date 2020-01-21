@@ -48,7 +48,7 @@ config UBIWHITELIST
 	help
 	  Define a list of MTD devices that are planned to have
 	  always UBI. If first attach fails, the device is erased
-	  and tried again. 
+	  and tried again.
 	  The list can be set as a string with the mtd numbers.
 	  Examples: "0 1 2"
 	  This sets mtd0-mtd1-mtd2 to be used as UBI volumes.
