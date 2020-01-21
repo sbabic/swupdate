@@ -227,7 +227,7 @@ In analogy to C handlers, the prototype for a Lua handler is
 
 where ``image`` is a Lua table (with attributes according to
 :ref:`sw-description's attribute reference <sw-description-attribute-reference>`)
-that describes a single artifact to be processed by the handler. 
+that describes a single artifact to be processed by the handler.
 
 Note that dashes in the attributes' names are replaced with
 underscores for the Lua domain to make them idiomatic, e.g.,
@@ -275,7 +275,7 @@ a different type of artifact than the Lua handler is registered
 for, the ``image`` table's values must satisfy the called
 C handler's expectations: Consider the above Lua handler being
 registered for "images" (``swupdate.HANDLER_MASK.IMAGE_HANDLER``)
-via the ``swupdate.register_handler()`` call shown above. As per the 
+via the ``swupdate.register_handler()`` call shown above. As per the
 :ref:`sw-description's attribute reference <sw-description-attribute-reference>`,
 the "images" artifact type doesn't have the ``path`` attribute
 but the "file" artifact type does. So, for calling the ``rawfile``
@@ -328,10 +328,10 @@ Using the ``image:read()`` method, an artifact's contents may be
 on preexisting C handlers for the purpose intended.
 
 
-Just as C handlers, a Lua handler must consume the artifact 
-described in its ``image`` parameter so that SWUpdate can 
+Just as C handlers, a Lua handler must consume the artifact
+described in its ``image`` parameter so that SWUpdate can
 continue with the next artifact in the stream after the Lua handler
-returns. Chaining handlers, calling ``image:copy2file()``, or using 
+returns. Chaining handlers, calling ``image:copy2file()``, or using
 ``image:read()`` satisfies this requirement.
 
 
@@ -381,7 +381,7 @@ format:
 
 
 ::
-        
+
         INIT:<size of image to be installed>
 
 The external installer is informed about the size of the image to be
@@ -631,9 +631,9 @@ of the two SSBL administration.
    +-------------+----------+----------------------------------------------------+
    |  Name       |  Type    |  Description                                       |
    +=============+==========+====================================================+
-   | device      | string   | MTD device where the SSBL Admin Header is stored   | 
+   | device      | string   | MTD device where the SSBL Admin Header is stored   |
    +-------------+----------+----------------------------------------------------+
-   | offset      | hex      | Offset of SSBL header inside the MTD device        | 
+   | offset      | hex      | Offset of SSBL header inside the MTD device        |
    +-------------+----------+----------------------------------------------------+
    | imageoffset | hex      | Offset of the image to be loaded by a bootloader   |
    |             |          | when this SSBL is set.                             |
