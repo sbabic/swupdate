@@ -106,6 +106,18 @@ config RDIFFHANDLER
 	  Add support for applying librsync's rdiff patches,
 	  see http://librsync.sourcefrog.net/
 
+config READBACKHANDLER
+	bool "readback"
+	depends on HASH_VERIFY
+	default n
+	help
+	  To verify that an image was written properly, this readback handler
+	  calculates the sha256 hash of a partition (or part of it) and compares
+	  it against a given hash value.
+
+	  This is a post-install handler running at the same time as
+	  post-install scripts.
+
 config LUASCRIPTHANDLER
 	bool "Lua Script"
 	depends on LUA

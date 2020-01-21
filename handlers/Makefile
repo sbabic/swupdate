@@ -15,6 +15,7 @@ obj-$(CONFIG_CFIHAMMING1)+= flash_hamming1_handler.o
 obj-$(CONFIG_LUASCRIPTHANDLER) += lua_scripthandler.o
 obj-$(CONFIG_RAW)	+= raw_handler.o
 obj-$(CONFIG_RDIFFHANDLER) += rdiff_handler.o
+obj-$(CONFIG_READBACKHANDLER) += readback_handler.o
 obj-$(CONFIG_REMOTE_HANDLER) += remote_handler.o
 obj-$(CONFIG_SHELLSCRIPTHANDLER) += shell_scripthandler.o
 obj-$(CONFIG_SSBLSWITCH) += ssbl_handler.o
