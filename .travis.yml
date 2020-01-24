@@ -30,6 +30,7 @@ before_install:
     - sudo apt-get install -y linux-headers-$(uname -r)
     - sudo apt-get install -y libmbedtls-dev
     - sudo apt-get install -y libcmocka-dev
+    - sudo apt-get install -y libfdisk-dev
 
 script:
     - sudo ln -sf /usr/lib/x86_64-linux-gnu/pkgconfig/lua5.2.pc /usr/lib/x86_64-linux-gnu/pkgconfig/lua.pc
