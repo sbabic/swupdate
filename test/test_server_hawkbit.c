@@ -247,8 +247,8 @@ static void test_server_has_pending_action(void **state)
 	assert_int_equal(SERVER_OK, server_has_pending_action(&action_id));
 }
 
-extern server_op_res_t server_set_polling_interval(json_object *json_root);
-static void test_server_set_polling_interval(void **state)
+extern server_op_res_t server_set_polling_interval_json(json_object *json_root);
+static void test_server_set_polling_interval_json(void **state)
 {
 	(void)state;
 
@@ -273,11 +273,11 @@ static void test_server_set_polling_interval(void **state)
 	);
 	/* clang-format on */
 
-	assert_int_equal(SERVER_EBADMSG, server_set_polling_interval(NULL));
+	assert_int_equal(SERVER_EBADMSG, server_set_polling_interval_json(NULL));
 
 	json_object *json_data = NULL;
 	assert_non_null((json_data = json_tokener_parse(json_string_valid)));
-	assert_int_equal(SERVER_OK, server_set_polling_interval(json_data));
+	assert_int_equal(SERVER_OK, server_set_polling_interval_json(json_data));
 	assert_int_equal(server_hawkbit.polling_interval, 60);
 	assert_int_equal(json_object_put(json_data), JSON_OBJECT_FREED);
 	json_data = NULL;
@@ -285,7 +285,7 @@ static void test_server_set_polling_interval(void **state)
 	assert_non_null(
 	    (json_data = json_tokener_parse(json_string_invalid_time)));
 	assert_int_equal(SERVER_EBADMSG,
-			 server_set_polling_interval(json_data));
+			 server_set_polling_interval_json(json_data));
 	assert_int_equal(json_object_put(json_data), JSON_OBJECT_FREED);
 }
 
@@ -570,7 +570,7 @@ int main(void)
 	    cmocka_unit_test(test_server_send_deployment_reply),
 	    cmocka_unit_test(test_server_send_cancel_reply),
 	    cmocka_unit_test(test_server_process_update_artifact),
-	    cmocka_unit_test(test_server_set_polling_interval),
+	    cmocka_unit_test(test_server_set_polling_interval_json),
 	    cmocka_unit_test(test_server_has_pending_action)};
 	error_count += cmocka_run_group_tests_name(
 	    "server_hawkbit", hawkbit_server_tests, server_hawkbit_setup,

@@ -91,7 +91,7 @@ server_op_res_t server_process_update_artifact(int action_id,
 						const char *version,
 						const char *name);
 void server_print_help(void);
-server_op_res_t server_set_polling_interval(json_object *json_root);
+server_op_res_t server_set_polling_interval_json(json_object *json_root);
 server_op_res_t server_set_config_data(json_object *json_root);
 server_op_res_t
 server_send_deployment_reply(const int action_id, const int job_cnt_max,
@@ -445,7 +445,7 @@ cleanup:
 	return result;
 }
 
-server_op_res_t server_set_polling_interval(json_object *json_root)
+server_op_res_t server_set_polling_interval_json(json_object *json_root)
 {
 	/*
 	 * if poll time is ruled locally, do not read
@@ -542,7 +542,7 @@ static server_op_res_t server_get_device_info(channel_t *channel, channel_data_t
 	    SERVER_OK) {
 		goto cleanup;
 	}
-	if ((result = server_set_polling_interval(channel_data->json_reply)) !=
+	if ((result = server_set_polling_interval_json(channel_data->json_reply)) !=
 	    SERVER_OK) {
 		goto cleanup;
 	}
