@@ -16,10 +16,38 @@
 #include "pctl.h"
 #include "suricatta/suricatta.h"
 #include "suricatta/server.h"
+#include <network_ipc.h>
 
 void suricatta_print_help(void)
 {
 	server.help();
+}
+
+static server_op_res_t suricatta_ipc(int fd)
+{
+	ipc_message msg;
+	server_op_res_t result = SERVER_OK;
+	int ret;
+
+	ret = read(fd, &msg, sizeof(msg));
+	if (ret != sizeof(msg))
+		return SERVER_EERR;
+
+	switch (msg.data.instmsg.cmd) {
+	case CMD_CONFIG:
+		//result = server_configuration_ipc(&msg);
+		break;
+	default:
+		result = server.ipc(&msg);
+		break;
+	}
+
+	if (write(fd, &msg, sizeof(msg)) != sizeof(msg)) {
+		TRACE("IPC ERROR: sending back msg");
+	}
+
+	/* Send ipc back */
+	return SERVER_OK;
 }
 
 int suricatta_wait(int seconds)
@@ -40,7 +68,7 @@ int suricatta_wait(int seconds)
 	}
 	if (retval && FD_ISSET(sw_sockfd, &readfds)) {
 		TRACE("Suricatta woke up for IPC at %ld seconds", tv.tv_sec);
-		if (server.ipc(sw_sockfd) != SERVER_OK){
+		if (suricatta_ipc(sw_sockfd) != SERVER_OK){
 			DEBUG("Handling IPC failed!");
 		}
 		return (int)tv.tv_sec;

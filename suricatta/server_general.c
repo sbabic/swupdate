@@ -42,7 +42,7 @@
 void server_print_help(void);
 server_op_res_t server_has_pending_action(int *action_id);
 server_op_res_t server_stop(void);
-server_op_res_t server_ipc(int fd);
+server_op_res_t server_ipc(ipc_message *msg);
 server_op_res_t server_start(char *fname, int argc, char *argv[]);
 server_op_res_t server_install_update(void);
 server_op_res_t server_send_target_data(void);
@@ -668,7 +668,7 @@ server_op_res_t server_stop(void)
 	return SERVER_OK;
 }
 
-server_op_res_t server_ipc(int __attribute__ ((__unused__)) fd)
+server_op_res_t server_ipc(ipc_message __attribute__ ((__unused__)) *msg)
 {
 	return SERVER_OK;
 }

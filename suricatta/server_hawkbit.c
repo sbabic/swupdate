@@ -128,7 +128,7 @@ static struct timeval server_time;
 /* Prototypes for "public" functions */
 server_op_res_t server_has_pending_action(int *action_id);
 server_op_res_t server_stop(void);
-server_op_res_t server_ipc(int fd);
+server_op_res_t server_ipc(ipc_message *msg);
 server_op_res_t server_start(char *fname, int argc, char *argv[]);
 server_op_res_t server_install_update(void);
 server_op_res_t server_send_target_data(void);
@@ -1827,22 +1827,16 @@ static server_op_res_t server_configuration_ipc(ipc_message *msg)
 	return SERVER_OK;
 }
 
-server_op_res_t server_ipc(int fd)
+server_op_res_t server_ipc(ipc_message *msg)
 {
-	ipc_message msg;
 	server_op_res_t result = SERVER_OK;
-	int ret;
 
-	ret = read(fd, &msg, sizeof(msg));
-	if (ret != sizeof(msg))
-		return SERVER_EERR;
-
-	switch (msg.data.instmsg.cmd) {
+	switch (msg->data.instmsg.cmd) {
 	case CMD_ACTIVATION:
-		result = server_activation_ipc(&msg);
+		result = server_activation_ipc(msg);
 		break;
 	case CMD_CONFIG:
-		result = server_configuration_ipc(&msg);
+		result = server_configuration_ipc(msg);
 		break;
 	default:
 		result = SERVER_EERR;
@@ -1850,17 +1844,11 @@ server_op_res_t server_ipc(int fd)
 	}
 
 	if (result == SERVER_EERR) {
-		msg.type = NACK;
+		msg->type = NACK;
 	} else
-		msg.type = ACK;
+		msg->type = ACK;
 
-	msg.data.instmsg.len = 0;
-
-	if (write(fd, &msg, sizeof(msg)) != sizeof(msg)) {
-		TRACE("IPC ERROR: sending back msg");
-	}
-
-	/* Send ipc back */
+	msg->data.instmsg.len = 0;
 
 	return SERVER_OK;
 }
