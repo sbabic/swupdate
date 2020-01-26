@@ -339,5 +339,14 @@ int parse(struct swupdate_cfg *sw, const char *descfile)
 	 */
 	swupdate_progress_init(count_elem_list(&sw->images));
 
+	/*
+	 * Send the version string as first message to progress interface
+	 */
+	char *versioninfo;
+	if (asprintf(&versioninfo, "VERSION : %s", sw->version) == ENOMEM_ASPRINTF)
+		ERROR("OOM sending version info");
+	else
+		swupdate_progress_info(RUN, 0, versioninfo);
+
 	return ret;
 }
