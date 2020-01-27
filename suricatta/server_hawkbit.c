@@ -1683,29 +1683,6 @@ server_op_res_t server_stop(void)
  * IPC is to control the Hawkbit's communication
  */
 
-static struct json_object *server_tokenize_msg(char *buf, size_t size)
-{
-
-	struct json_tokener *json_tokenizer = json_tokener_new();
-	enum json_tokener_error json_res;
-	struct json_object *json_root;
-	do {
-		json_root = json_tokener_parse_ex(
-		    json_tokenizer, buf, size);
-	} while ((json_res = json_tokener_get_error(json_tokenizer)) ==
-		 json_tokener_continue);
-	if (json_res != json_tokener_success) {
-		ERROR("Error while parsing channel's returned JSON data: %s",
-		      json_tokener_error_desc(json_res));
-		json_tokener_free(json_tokenizer);
-		return NULL;
-	}
-
-	json_tokener_free(json_tokenizer);
-
-	return json_root;
-}
-
 static server_op_res_t server_activation_ipc(ipc_message *msg)
 {
 	server_op_res_t result = SERVER_OK;
