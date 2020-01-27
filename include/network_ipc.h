@@ -34,9 +34,14 @@ typedef enum {
 	REQ_INSTALL_DRYRUN,
 } msgtype;
 
+/*
+ * Commands are used for IPC to subprocesses. The meaning is then interpreted
+ * by the single subprocess
+ */
 enum {
-	CMD_ACTIVATION,
-	CMD_CONFIG
+	CMD_ACTIVATION,	/* this returns the answer if a SW can be activated */
+	CMD_CONFIG,
+	CMD_ENABLE	/* Enable or disable suricatta mode */
 };
 
 typedef union {

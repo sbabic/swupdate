@@ -13,17 +13,47 @@
 #include <errno.h>
 #include <signal.h>
 #include <sys/select.h>
+#include <json-c/json.h>
 #include "pctl.h"
 #include "suricatta/suricatta.h"
 #include "suricatta/server.h"
+#include "suricatta_private.h"
+#include "parselib.h"
 #include <network_ipc.h>
+
+static bool enable = true;
 
 void suricatta_print_help(void)
 {
 	server.help();
 }
 
-static server_op_res_t suricatta_ipc(int fd)
+static server_op_res_t suricatta_enable(ipc_message *msg)
+{
+	struct json_object *json_root;
+	json_object *json_data;
+
+	json_root = server_tokenize_msg(msg->data.instmsg.buf,
+					sizeof(msg->data.instmsg.buf));
+	if (!json_root) {
+		msg->type = NACK;
+		ERROR("Wrong JSON message, see documentation");
+		return SERVER_EERR;
+	}
+
+	json_data = json_get_path_key(
+	    json_root, (const char *[]){"enable", NULL});
+	if (json_data) {
+		enable = json_object_get_boolean(json_data);
+		TRACE ("suricatta mode %sabled", enable ? "en" : "dis");
+	}
+
+	msg->type = ACK;
+
+	return SERVER_OK;
+}
+
+static server_op_res_t suricatta_ipc(int fd, time_t *seconds)
 {
 	ipc_message msg;
 	server_op_res_t result = SERVER_OK;
@@ -34,8 +64,16 @@ static server_op_res_t suricatta_ipc(int fd)
 		return SERVER_EERR;
 
 	switch (msg.data.instmsg.cmd) {
-	case CMD_CONFIG:
-		//result = server_configuration_ipc(&msg);
+	case CMD_ENABLE:
+		result = suricatta_enable(&msg);
+		/*
+		 * Note: enable works as trigger, too.
+		 * After enable is set, suricatta will try to contact
+		 * the server to check for pending action
+		 * This is done by resetting the number of seconds to
+		 * wait for.
+		 */
+		*seconds = 0;
 		break;
 	default:
 		result = server.ipc(&msg);
@@ -47,7 +85,7 @@ static server_op_res_t suricatta_ipc(int fd)
 	}
 
 	/* Send ipc back */
-	return SERVER_OK;
+	return result;
 }
 
 int suricatta_wait(int seconds)
@@ -68,7 +106,7 @@ int suricatta_wait(int seconds)
 	}
 	if (retval && FD_ISSET(sw_sockfd, &readfds)) {
 		TRACE("Suricatta woke up for IPC at %ld seconds", tv.tv_sec);
-		if (suricatta_ipc(sw_sockfd) != SERVER_OK){
+		if (suricatta_ipc(sw_sockfd, &tv.tv_sec) != SERVER_OK){
 			DEBUG("Handling IPC failed!");
 		}
 		return (int)tv.tv_sec;
@@ -92,20 +130,22 @@ int start_suricatta(const char *cfgfname, int argc, char *argv[])
 
 	TRACE("Server initialized, entering suricatta main loop.");
 	while (true) {
-		switch (server.has_pending_action(&action_id)) {
-		case SERVER_UPDATE_AVAILABLE:
-			DEBUG("About to process available update.");
-			server.install_update();
-			break;
-		case SERVER_ID_REQUESTED:
-			server.send_target_data();
-			break;
-		case SERVER_EINIT:
-			break;
-		case SERVER_OK:
-		default:
-			DEBUG("No pending action to process.");
-			break;
+		if (enable) {
+			switch (server.has_pending_action(&action_id)) {
+			case SERVER_UPDATE_AVAILABLE:
+				DEBUG("About to process available update.");
+				server.install_update();
+				break;
+			case SERVER_ID_REQUESTED:
+				server.send_target_data();
+				break;
+			case SERVER_EINIT:
+				break;
+			case SERVER_OK:
+			default:
+				DEBUG("No pending action to process.");
+				break;
+			}
 		}
 
 		for (int wait_seconds = server.get_polling_interval();
