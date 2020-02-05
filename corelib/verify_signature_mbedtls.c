@@ -1,5 +1,6 @@
 #include <ctype.h>
 #include <errno.h>
+#include <stdlib.h>
 
 #include "sslapi.h"
 #include "util.h"
