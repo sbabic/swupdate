@@ -495,7 +495,6 @@ void server_print_help(void)
 {
 	fprintf(
 	    stderr,
-	    "\tsuricatta (server: general) arguments (mandatory arguments are marked with '*'):\n"
 	    "\t  -u, --url         * Host and port of the server instance, "
 	    "e.g., localhost:8080\n"
 	    "\t  -p, --polldelay     Delay in seconds between two hawkBit "

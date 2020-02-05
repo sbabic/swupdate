@@ -13,18 +13,30 @@
 #include <errno.h>
 #include <signal.h>
 #include <sys/select.h>
+#include <getopt.h>
 #include <json-c/json.h>
 #include "pctl.h"
 #include "suricatta/suricatta.h"
 #include "suricatta/server.h"
 #include "suricatta_private.h"
 #include "parselib.h"
+#include "swupdate_settings.h"
 #include <network_ipc.h>
 
 static bool enable = true;
+static struct option long_options[] = {
+    {"enable", no_argument, NULL, 'e'},
+    {"disable", no_argument, NULL, 'd'},
+    {NULL, 0, NULL, 0}};
 
 void suricatta_print_help(void)
 {
+	fprintf(
+	    stderr,
+	    "\tsuricatta arguments (mandatory arguments are marked with '*'):\n"
+	    "\t  -e, --enable      Daemon enabled at startup (default).\n"
+	    "\t  -d, --disable     Daemon disabled at startup.\n"
+	    );
 	server.help();
 }
 
@@ -88,6 +100,14 @@ static server_op_res_t suricatta_ipc(int fd, time_t *seconds)
 	return result;
 }
 
+static int suricatta_settings(void *elem, void  __attribute__ ((__unused__)) *data)
+{
+	get_field(LIBCFG_PARSER, elem, "enable",
+		&enable);
+
+	return 0;
+}
+
 int suricatta_wait(int seconds)
 {
 	fd_set readfds;
@@ -119,14 +139,58 @@ int start_suricatta(const char *cfgfname, int argc, char *argv[])
 	int action_id;
 	sigset_t sigpipe_mask;
 	sigset_t saved_mask;
+	int choice = 0;
+	char **serverargv;
 
 	sigemptyset(&sigpipe_mask);
 	sigaddset(&sigpipe_mask, SIGPIPE);
 	sigprocmask(SIG_BLOCK, &sigpipe_mask, &saved_mask);
 
-	if (server.start(cfgfname, argc, argv) != SERVER_OK) {
+	/*
+	 * Temporary copy the command line argument
+	 * to pass unchanged to the server instance.
+	 * getopt() will change them when called here
+	 */
+	serverargv = (char **)malloc(argc * sizeof(char **));
+	if (!serverargv) {
+		ERROR("OOM starting suricatta, exiting !");
 		exit(EXIT_FAILURE);
 	}
+	for (int i = 0; i < argc; i++) {
+		serverargv[i] = argv[i];
+	}
+
+	/*
+	 * First check for common properties that do not depend
+	 * from server implementation
+	 */
+	if (cfgfname)
+		read_module_settings(cfgfname, "suricatta", suricatta_settings,
+					NULL);
+	optind = 1;
+	opterr = 0;
+
+	while ((choice = getopt_long(argc, argv, "de",
+				     long_options, NULL)) != -1) {
+		switch (choice) {
+		case 'e':
+			enable = true;
+			break;
+		case 'd':
+			enable = false;
+			break;
+		case '?':
+			break;
+		}
+	}
+
+	/*
+	 * Now start a specific implementation of the server
+	 */
+	if (server.start(cfgfname, argc, serverargv) != SERVER_OK) {
+		exit(EXIT_FAILURE);
+	}
+	free(serverargv);
 
 	TRACE("Server initialized, entering suricatta main loop.");
 	while (true) {
