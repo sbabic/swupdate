@@ -534,7 +534,8 @@ clean: $(clean-dirs)
 		-o -name '.*.d' -o -name '.*.tmp' -o -name '*.mod.c' \
 		-o -name modules.builtin -o -name '.tmp_*.o.*' \
 		-o -name '*.gcno' \) -type f -print | xargs rm -f
-	@$(MAKE) -C doc clean
+	@pwd
+	$(Q)$(MAKE) -f $(srctree)/doc/Makefile BUILDDIR=$(CURDIR)/doc/build clean
 
 # mrproper - Delete all generated files, including .config
 #
@@ -581,17 +582,17 @@ clean := -f $(if $(KBUILD_SRC),$(srctree)/)scripts/Makefile.clean obj
 endif #ifeq ($(config-targets),1)
 endif #ifeq ($(mixed-targets),1)
 
-endif	# skip-makefile
-
-PHONY += FORCE
-FORCE:
-
 # Documentation
 # run Makefile in doc directory
 
 dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub \
 latex latexpdf text man changes linkcheck html doctest:
-	@$(MAKE) -C doc $@
+	$(Q)$(MAKE) -C $(srctree)/doc BUILDDIR=$(CURDIR)/doc/build $@
+
+endif	# skip-makefile
+
+PHONY += FORCE
+FORCE:
 
 # Declare the contents of the .PHONY variable as phony.  We keep that
 # information in a variable so we can use it in if_changed and friends.

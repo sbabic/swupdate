@@ -26,5 +26,5 @@ help:
 	@echo '  randconfig		- generate a random configuration'
 	@echo
 	@echo 'Documentation:'
-	@make -C doc help
+	@$(MAKE) -f $(srctree)/doc/Makefile help
 
