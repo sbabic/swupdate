@@ -341,7 +341,7 @@ static int install_from_file(char *fname, int check)
 	}
 
 	if (cpio_scan(fdsw, &swcfg, pos) < 0) {
-		ERROR("failed to scan for pos '%ld'!", pos);
+		ERROR("failed to scan for pos '%lld'!", (long long)pos);
 		close(fdsw);
 		exit(EXIT_FAILURE);
 	}
