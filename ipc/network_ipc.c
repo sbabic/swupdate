@@ -8,10 +8,13 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <strings.h>
 #include <unistd.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include "network_ipc.h"
+#include "compat.h"
 
 #ifdef CONFIG_SOCKET_CTRL_PATH
 static char* SOCKET_CTRL_PATH = (char*)CONFIG_SOCKET_CTRL_PATH;
