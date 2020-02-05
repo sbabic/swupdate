@@ -202,6 +202,9 @@ CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 CFLAGS_KERNEL	=
 AFLAGS_KERNEL	=
 
+BINDIR ?= /usr/bin
+LIBDIR ?= /usr/lib
+INCLUDEDIR ?= /usr/include
 
 # Use LINUXINCLUDE when you must reference the include/ directory.
 # Needed to be compatible with the O= option
@@ -446,20 +449,20 @@ ${tools-bins}: ${tools-objs} ${swupdate-libs} FORCE
 	$(call cmd,strip)
 
 install: all
-	install -d ${DESTDIR}/usr/bin
-	install -d ${DESTDIR}/usr/include
-	install -d ${DESTDIR}/usr/lib
-	install -m 755 swupdate ${DESTDIR}/usr/bin
+	install -d ${DESTDIR}/${BINDIR}
+	install -d ${DESTDIR}/${INCLUDEDIR}
+	install -d ${DESTDIR}/${LIBDIR}
+	install -m 755 swupdate ${DESTDIR}/${BINDIR}
 	for i in ${tools-bins};do \
-		install -m 755 $$i ${DESTDIR}/usr/bin; \
+		install -m 755 $$i ${DESTDIR}/${BINDIR}; \
 	done
-	install -m 0644 include/network_ipc.h ${DESTDIR}/usr/include
-	install -m 0644 include/swupdate_status.h ${DESTDIR}/usr/include
-	install -m 0644 include/progress_ipc.h ${DESTDIR}/usr/include
-	install -m 0755 ipc/lib.a ${DESTDIR}/usr/lib/libswupdate.a
+	install -m 0644 include/network_ipc.h ${DESTDIR}/${INCLUDEDIR}
+	install -m 0644 include/swupdate_status.h ${DESTDIR}/${INCLUDEDIR}
+	install -m 0644 include/progress_ipc.h ${DESTDIR}/${INCLUDEDIR}
+	install -m 0755 ipc/lib.a ${DESTDIR}/${LIBDIR}/libswupdate.a
 	if [ $(HAVE_LUA) = y ]; then \
-		install -d ${DESTDIR}/usr/lib/lua/$(LUAVER); \
-		install -m 0755 ${lua_swupdate} $(DESTDIR)/usr/lib/lua/$(LUAVER); \
+		install -d ${DESTDIR}/${LIBDIR}/lua/$(LUAVER); \
+		install -m 0755 ${lua_swupdate} $(DESTDIR)/${LIBDIR}/lua/$(LUAVER); \
 	fi
 
 PHONY += run-tests
