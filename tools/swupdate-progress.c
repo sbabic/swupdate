@@ -64,6 +64,7 @@ static struct option long_options[] = {
 	{"wait", no_argument, NULL, 'w'},
 	{"color", no_argument, NULL, 'c'},
 	{"socket", required_argument, NULL, 's'},
+	{"exec", required_argument, NULL, 'e'},
 	{NULL, 0, NULL, 0}
 };
 
@@ -74,6 +75,7 @@ static void usage(char *programname)
 			programname);
 	fprintf(stdout,
 		" -c, --color             : Use colors to show results\n"
+		" -e, --exec <script>     : call the script with the result of update\n"
 		" -r, --reboot            : reboot after a successful update\n"
 		" -w, --wait              : wait for a connection with SWUpdate\n"
 		" -p, --psplash           : send info to the psplash process\n"
@@ -182,10 +184,11 @@ int main(int argc, char **argv)
 	int opt_r = 0;
 	int opt_p = 0;
 	int c;
+	char *script = NULL;
 	RECOVERY_STATUS	status = IDLE;		/* Update Status (Running, Failure) */
 
 	/* Process options with getopt */
-	while ((c = getopt_long(argc, argv, "cwprhs:",
+	while ((c = getopt_long(argc, argv, "cwprhs:e:",
 				long_options, NULL)) != EOF) {
 		switch (c) {
 		case 'c':
@@ -202,6 +205,9 @@ int main(int argc, char **argv)
 			break;
 		case 's':
 			SOCKET_PROGRESS_PATH = strdup(optarg);
+			break;
+		case 'e':
+			script = strdup(optarg);
 			break;
 		case 'h':
 			usage(argv[0]);
@@ -299,6 +305,17 @@ int main(int argc, char **argv)
 			fprintf(stdout, "%s !\n", msg.status == SUCCESS
 							  ? "SUCCESS"
 							  : "FAILURE");
+			if (script) {
+				char *cmd;
+				if (asprintf(&cmd, "%s %s", script,
+						msg.status == SUCCESS ?
+						"SUCCESS" : "FAILURE") == -1) {
+					fprintf(stderr, "OOM calling post-exec script\n");
+				} else {
+					system(cmd);
+					free(cmd);
+				}
+			}
 			resetterm();
 			if (psplash_ok)
 				psplash_progress(psplash_pipe_path, &msg);
