@@ -215,7 +215,7 @@ bool set_find_path(const char **nodes, const char *newpath, char **tmp)
 
 	ref = strdup(newpath);
 	if (!ref) {
-		ERROR("No memory: failed for %lu bytes",
+		ERROR("No memory: failed for %zu bytes",
 		       strlen(newpath) + 1);
 		return false;
 	}
@@ -237,7 +237,7 @@ bool set_find_path(const char **nodes, const char *newpath, char **tmp)
 
 	paths = calloc(count + 1, sizeof(char*) * count);
 	if (!paths) {
-		ERROR("No memory: calloc failed for %lu bytes",
+		ERROR("No memory: calloc failed for %zu bytes",
 		       sizeof(char*) * count);
 		return false;
 	}
@@ -252,7 +252,7 @@ bool set_find_path(const char **nodes, const char *newpath, char **tmp)
 
 	ref = strdup(newpath);
 	if (!ref) {
-		ERROR("No memory: failed for %lu bytes",
+		ERROR("No memory: failed for %zu bytes",
 		       strlen(newpath) + 1);
 		free(paths);
 		return false;
