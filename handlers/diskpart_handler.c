@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <sys/stat.h>
 #include <stdlib.h>
-#include <stdint.h>
+#include <inttypes.h>
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
@@ -177,7 +177,7 @@ static int diskpart(struct img_type *img,
 			elem = LIST_NEXT(elem, next);
 		}
 
-		TRACE("partition-%lu:%s size %lu start %lu type %s",
+		TRACE("partition-%zu:%s size %" PRIu64 " start %zu type %s",
 			part->partno,
 			part->name,
 			part->size,
@@ -253,7 +253,7 @@ static int diskpart(struct img_type *img,
 				WARN("I cannot set all partition's parameters");
 			}
 			if (fdisk_add_partition(cxt, newpa, &partno) < 0) {
-				ERROR("I cannot add partition %lu(%s)", part->partno, part->name);
+				ERROR("I cannot add partition %zu(%s)", part->partno, part->name);
 			}
 			fdisk_unref_partition(newpa);
 		} else {
@@ -262,7 +262,7 @@ static int diskpart(struct img_type *img,
 				WARN("I cannot set all partition's parameters");
 			}
 			if (fdisk_set_partition(cxt, part->partno, pa) < 0) {
-				ERROR("I cannot modify partition %lu(%s)", part->partno, part->name);
+				ERROR("I cannot modify partition %zu(%s)", part->partno, part->name);
 			}
 			fdisk_unref_partition(pa);
 		}
