@@ -368,7 +368,7 @@ swupdate-all	:= $(swupdate-objs) $(swupdate-libs)
 
 tools-dirs	:= $(tools-y)
 tools-objs	:= $(patsubst %,%/built-in.o, $(tools-y))
-tools-bins	:= $(patsubst $(tools-y)/%.c,$(tools-y)/%,$(wildcard $(tools-y)/*.c))
+tools-bins	:= $(patsubst $(srctree)/$(tools-y)/%.c,$(tools-y)/%,$(wildcard $(srctree)/$(tools-y)/*.c))
 tools-bins-unstr:= $(patsubst %,%_unstripped,$(tools-bins))
 tools-all	:= $(tools-objs)
 
