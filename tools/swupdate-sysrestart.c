@@ -67,7 +67,7 @@ static void restart_system(unsigned int ndevs)
 {
 	int dev;
 	CURL *curl_handle;	/* CURL handle */
-	char url[100];
+	char url[NI_MAXHOST + 20];
 	CURLcode curlrc;
 	struct ifaddrs *ifaddr, *ifa;
 	char local[NI_MAXHOST];
