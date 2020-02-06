@@ -9,6 +9,7 @@
 #define _UTIL_H
 
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 #if defined(__linux__)
 #include <linux/types.h>
