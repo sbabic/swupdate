@@ -162,6 +162,9 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 				ERROR("SW not compatible with hardware");
 				return -1;
 			}
+			if (preupdatecmd(software)) {
+				return -1;
+			}
 			status = STREAM_DATA;
 			break;
 
@@ -521,10 +524,6 @@ void *network_initializer(void *data)
 			ret = extract_files(inst.fd, software);
 		}
 		close(inst.fd);
-
-		if (ret == 0) {
-			ret = preupdatecmd(software);
-		}
 
 		/* do carry out the installation (flash programming) */
 		if (ret == 0) {
