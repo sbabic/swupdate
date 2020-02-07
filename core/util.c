@@ -270,16 +270,20 @@ int get_hw_revision(struct hw_type *hw)
 	if ((strlen(b1) > (SWUPDATE_GENERAL_STRING_SIZE) - 1) ||
 		(strlen(b2) > (SWUPDATE_GENERAL_STRING_SIZE - 1))) {
 		ERROR("Board name or revision too long");
-		return -1;
+		ret = -1;
+		goto out;
 	}
 
 	strncpy(hw->boardname, b1, sizeof(hw->boardname));
 	strncpy(hw->revision, b2, sizeof(hw->revision));
 
+	ret = 0;
+
+out:
 	free(b1);
 	free(b2);
 
-	return 0;
+	return ret;
 }
 
 /**
