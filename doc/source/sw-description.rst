@@ -610,6 +610,9 @@ The default behavior of swupdate is to create a dynamic UBI volume. To
 create a static volume, add a line ``data = "static";`` to the
 respective partition entry.
 
+If a size of 0 is given, the volume will be deleted if it exists. This
+can be used to remove orphan volumes possibly created by older software
+versions which are not required anymore.
 
 images
 ------
