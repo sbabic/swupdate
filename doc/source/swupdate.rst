@@ -52,9 +52,7 @@ General Overview
 
 - new partition schema. This is bound with UBI volume.
   SWUpdate can recreate UBI volumes, resizing them and
-  copying the new software. A special UBI volume with the name "data"
-  is saved and restored after repartitioning with all data
-  it contains,  to maintain user's data.
+  copying the new software.
 
 - support for compressed images, using the zlib and zstd library.
   tarball (tgz file) are supported.
@@ -345,8 +343,6 @@ A run of SWUpdate consists mainly of the following steps:
   really in the cpio archive.
 - modify partitions, if required. This consists in a resize
   of UBI volumes, not a resize of MTD partition.
-  A volume with the name "data" is saved and restored after
-  resizing.
 - runs pre-install scripts
 - iterates through all images and call the corresponding
   handler for installing on target.

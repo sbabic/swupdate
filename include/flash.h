@@ -15,9 +15,6 @@
 #include "bsdqueue.h"
 
 #define DEFAULT_CTRL_DEV "/dev/ubi_ctrl"
-#define UBI_DATA_VOLNAME	"data"
-#define UBI_DATACPY_VOLNAME	"datacpy"
-#define MTD_FS_DEVICE		7
 
 struct ubi_part {
 	struct ubi_vol_info vol_info;
