@@ -104,7 +104,7 @@ static void restart_system(unsigned int ndevs)
 		/* something very bad, it should never happen */
 		if (!curl_handle)
 			exit(2);
-		sprintf(url, "http://%s:8080/restart", ipaddrs[dev]);
+		snprintf(url, sizeof(url), "http://%s:8080/restart", ipaddrs[dev]);
 		if ((curl_easy_setopt(curl_handle, CURLOPT_POST, 1L) != CURLE_OK) ||
 			/* get verbose debug output please */
 			(curl_easy_setopt(curl_handle, CURLOPT_VERBOSE,
