@@ -446,8 +446,6 @@ static int parse_bootloader(parsertype p, void *cfg, struct swupdate_cfg *swcfg,
 	struct img_type *script;
 	struct img_type dummy;
 
-	memset(&dummy, 0, sizeof(dummy));
-
 	setting = find_node(p, cfg, "uboot", swcfg);
 
 	if (setting == NULL) {
@@ -462,6 +460,8 @@ static int parse_bootloader(parsertype p, void *cfg, struct swupdate_cfg *swcfg,
 
 		if (!elem)
 			continue;
+
+		memset(&dummy, 0, sizeof(dummy));
 
 		/*
 		 * Check for mandatory field
