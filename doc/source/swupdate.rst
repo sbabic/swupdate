@@ -472,9 +472,16 @@ Command line parameters
 | -w <parms>  | string   | start internal webserver and pass to it    |
 |             |          | a command line string.                     |
 +-------------+----------+--------------------------------------------+
+| -d <parms>  | string   | Active only if CONFIG_DOWNLOAD is set      |
+|             |          | start internal downloader client and pass  |
+|             |          | to it a command line string.               |
+|             |          | See below the internal command line        |
+|             |          | arguments for the downloader.              |
++-------------+----------+--------------------------------------------+
 | -u <parms>  | string   | start internal suricatta client daemon and |
 |             |          | pass to it a command line string.          |
-|             |          | see suricatta's documentation for details. |
+|             |          | See below the internal command line        |
+|             |          | arguments for suricatta.                   |
 +-------------+----------+--------------------------------------------+
 | -H          | string   | set board name and Hardware revision       |
 | <board:rev> |          |                                            |
@@ -488,14 +495,14 @@ Command line parameters
 +-------------+----------+--------------------------------------------+
 | -p          | string   | Execute post-update command.               |
 +-------------+----------+--------------------------------------------+
+
+Parameters used for the downloader: -d, --download [OPTIONS]
+For example: -d "-u example.com"
+Mandatory arguments are marked with '*':
 +-------------+----------+--------------------------------------------+
-| -d <parms>  | string   | Active only if CONFIG_DOWNLOAD is set      |
-|             |          | start internal downloader client and pass  |
-|             |          | to it a command line string.               |
-|             |          | See below the internal command line        |
-|             |          | arguments for the downloader               |
-+-------------+----------+--------------------------------------------+
-| -u <url>    | string   | This is the URL where new software is      |
+|  Parameter  | Type     | Description                                |
++=============+==========+============================================+
+| -u <url>    | string   | * This is the URL where new software is    |
 |             |          | pulled. URL is a link to a valid .swu image|
 +-------------+----------+--------------------------------------------+
 | -r <retries>| integer  | Number of retries before a download is     |
@@ -509,6 +516,43 @@ Command line parameters
 | -a <usr:pwd>| string   | Send user and password for Basic Auth      |
 +-------------+----------+--------------------------------------------+
 
+Parameters used for suricatta: -u, --suricatta [OPTIONS]
+For example: -u "-t default -u localhost:8080 -i 1B7"
+Mandatory arguments are marked with '*':
++-------------------+----------+--------------------------------------------+
+|  Parameter        | Type     | Description                                |
++===================+==========+============================================+
+| -t <tenant>       | string   | * Set hawkBit tenant ID for this device.   |
++-------------------+----------+--------------------------------------------+
+| -u <url>          | string   | * Host and port of the hawkBit instance,   |
+|                   |          | e.g., localhost:8080                       |
++-------------------+----------+--------------------------------------------+
+| -i <id>           | integer  | * The device ID to communicate to hawkBit. |
++-------------------+----------+--------------------------------------------+
+| -c <confirm>      | integer  | Confirm update status to server: 1=AGAIN,  |
+|                   |          | 2=SUCCESS, 3=FAILED                        |
++-------------------+----------+--------------------------------------------+
+| -x                | -        | Do not abort on flawed server certificates.|
++-------------------+----------+--------------------------------------------+
+| -p <polldelay>    | integer  | Delay in seconds between two hawkBit poll  |
+|                   |          | operations (default: 45s).                 |
++-------------------+----------+--------------------------------------------+
+| -r <retry>        | integer  | Resume and retry interrupted downloads     |
+|                   |          | (default: 5 tries).                        |
++-------------------+----------+--------------------------------------------+
+| -w <retrywait>    | integer  | Time to wait prior to retry and resume a   |
+|                   |          | download (default: 5s).                    |
++-------------------+----------+--------------------------------------------+
+| -y <proxy>        | string   | Use proxy. Either give proxy URL,          |
+|                   |          | else {http,all}_proxy env is tried.        |
++-------------------+----------+--------------------------------------------+
+| -k <targettoken>  | string   | Set target token.                          |
++-------------------+----------+--------------------------------------------+
+| -g <gatewaytoken> | string   | Set gateway token.                         |
++-------------------+----------+--------------------------------------------+
+| -f <interface>    | string   | Set the network interface to connect to    |
+|                   |          | Hawkbit.                                   |
++-------------------+----------+--------------------------------------------+
 
 systemd Integration
 -------------------
