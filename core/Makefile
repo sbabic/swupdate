@@ -17,3 +17,10 @@ obj-y += swupdate.o \
 	 pctl.o \
 	 state.o \
 	 syslog.o \
+	 installer.o \
+	 network_thread.o \
+	 stream_interface.o \
+	 progress_thread.o \
+	 parsing_library.o \
+	 artifacts_versions.o \
+	 swupdate_dict.o

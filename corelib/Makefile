@@ -2,13 +2,6 @@
 #
 # SPDX-License-Identifier:     GPL-2.0-or-later
 
-lib-y				+= installer.o \
-				   network_thread.o \
-				   stream_interface.o \
-				   progress_thread.o \
-				   parsing_library.o \
-				   artifacts_versions.o \
-				   swupdate_dict.o
 lib-$(CONFIG_DOWNLOAD)		+= downloader.o
 lib-$(CONFIG_MTD)		+= mtd-interface.o
 lib-$(CONFIG_LUA)		+= lua_interface.o lua_compat.o
