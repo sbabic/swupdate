@@ -14,6 +14,7 @@
 #include <sys/prctl.h>
 #endif
 #include <errno.h>
+#include <string.h>
 #include <pthread.h>
 #include <network_ipc.h>
 #include <pctl.h>
@@ -200,6 +201,25 @@ void start_subprocess(sourcetype type, const char *name, const char *cfgfile,
 {
 
 	start_swupdate_subprocess(type, name, cfgfile, argc, argv, start, NULL);
+}
+
+int run_system_cmd(const char *cmd)
+{
+	int ret = 0;
+
+	if ((strnlen(cmd, SWUPDATE_GENERAL_STRING_SIZE) > 0)
+		&& (strnlen(cmd, SWUPDATE_GENERAL_STRING_SIZE) < SWUPDATE_GENERAL_STRING_SIZE)) {
+		DEBUG("Running %s command...", cmd);
+		ret = system(cmd);
+		if (WIFEXITED(ret)) {
+			TRACE("%s command returned %d", cmd, WEXITSTATUS(ret));
+		} else {
+			ERROR("%s command returned %d: '%s'", cmd, ret, strerror(errno));
+			return -1;
+		}
+	}
+
+	return ret;
 }
 
 /*

@@ -19,6 +19,7 @@
 #include "swupdate.h"
 #include "handler.h"
 #include "util.h"
+#include "pctl.h"
 
 static void shell_handler(void);
 static void shell_preinstall_handler(void);
@@ -41,14 +42,7 @@ static int execute_shell_script(struct img_type *img, const char *fnname)
 	snprintf(shellscript, sizeof(shellscript),
 		 "%s%s %s %s", tmp, img->fname, fnname, img->type_data);
 
-	ret = system(shellscript);
-	if (WIFEXITED(ret)) {
-		ret = WEXITSTATUS(ret);
-		TRACE("Calling shell script %s: return with %d",
-			shellscript, ret);
-	} else {
-		ERROR("%s returns '%s'", img->fname, strerror(errno));
-	}
+	ret = run_system_cmd(shellscript);
 
 	return ret;
 }

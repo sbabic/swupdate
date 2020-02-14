@@ -32,6 +32,7 @@
 #include "parsers.h"
 #include "bootloader.h"
 #include "progress.h"
+#include "pctl.h"
 
 /*
  * function returns:
@@ -458,28 +459,11 @@ void cleanup_files(struct swupdate_cfg *software) {
 #endif
 }
 
-static int run_system_cmd(const char *cmd, const char *desc)
-{
-	int ret = 0;
-	if ((strnlen(cmd, SWUPDATE_GENERAL_STRING_SIZE) > 0)
-		&& (strnlen(cmd, SWUPDATE_GENERAL_STRING_SIZE) < SWUPDATE_GENERAL_STRING_SIZE)) {
-		DEBUG("Running %s command '%s' ...", desc, cmd);
-		ret = system(cmd);
-		if (WIFEXITED(ret)) {
-			DEBUG("%s command returned %d", desc, WEXITSTATUS(ret));
-		} else {
-			ERROR("%s command returned %d: '%s'", desc, ret, strerror(errno));
-			return -1;
-		}
-	}
-
-	return ret;
-}
-
 int preupdatecmd(struct swupdate_cfg *swcfg)
 {
 	if (swcfg) {
-		return run_system_cmd(swcfg->globals.preupdatecmd, "Pre-update");
+		DEBUG("Running Pre-update command");
+		return run_system_cmd(swcfg->globals.preupdatecmd);
 	}
 
 	return 0;
@@ -489,8 +473,9 @@ int postupdate(struct swupdate_cfg *swcfg, const char *info)
 {
 	swupdate_progress_done(info);
 
-	if ((swcfg) && (run_system_cmd(swcfg->globals.postupdatecmd, "Post-update") == -1)) {
-		return -1;
+	if (swcfg) {
+		DEBUG("Running Post-update command");
+		return run_system_cmd(swcfg->globals.postupdatecmd);
 	}
 
 	return 0;
