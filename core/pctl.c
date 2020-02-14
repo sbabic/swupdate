@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/select.h>
 #if defined(__linux__)
 #include <sys/prctl.h>
 #endif
@@ -35,7 +36,7 @@ static int    nprocs = 0;
 
 /*
  * The global pid is used to identify if context is
- * the main process (SWUpdate, pid=0) or it is 
+ * the main process (SWUpdate, pid=0) or it is
  * a child process.
  * This is required when using internal libraries and can be
  * decided between a direct call or (in case of child process)
@@ -90,7 +91,6 @@ static int spawn_process(struct swupdate_task *task,
 	int process_id;
 	int sockfd[2];
 
-
 	/*
 	 * Create the pipe to exchange data with the child
 	 */
@@ -116,7 +116,7 @@ static int spawn_process(struct swupdate_task *task,
 		task->pipe = sockfd[0];
 		return 0;
 	}
-	
+
 	/* Child closes [0] */
 	close(sockfd[0]);
 
@@ -203,19 +203,187 @@ void start_subprocess(sourcetype type, const char *name, const char *cfgfile,
 	start_swupdate_subprocess(type, name, cfgfile, argc, argv, start, NULL);
 }
 
+/*
+ * run_system_cmd executes a shell script in background and intercepts
+ * stdout and stderr of the script, writing then to TRACE and ERROR
+ * This let the output of the scripts to be collected by SWUpdate
+ * tracing capabilities.
+ */
 int run_system_cmd(const char *cmd)
 {
 	int ret = 0;
+	int stdoutpipe[2];
+	int stderrpipe[2];
+	pid_t process_id;
+	int const PIPE_READ = 0;
+	int const PIPE_WRITE = 1;
+	int wstatus;
 
-	if ((strnlen(cmd, SWUPDATE_GENERAL_STRING_SIZE) > 0)
-		&& (strnlen(cmd, SWUPDATE_GENERAL_STRING_SIZE) < SWUPDATE_GENERAL_STRING_SIZE)) {
-		DEBUG("Running %s command...", cmd);
-		ret = system(cmd);
-		if (WIFEXITED(ret)) {
-			TRACE("%s command returned %d", cmd, WEXITSTATUS(ret));
+	if (!strnlen(cmd, SWUPDATE_GENERAL_STRING_SIZE))
+		return 0;
+
+	if (strnlen(cmd, SWUPDATE_GENERAL_STRING_SIZE) > SWUPDATE_GENERAL_STRING_SIZE) {
+		ERROR("Command string too long, skipping..");
+		/* do nothing */
+		return -EINVAL;
+	}
+
+	/*
+	 * Creates pipes to intercept stdout and stderr of the
+	 * child process
+	 */
+	if (pipe(stdoutpipe) < 0) {
+		ERROR("stdout pipe cannot be created, exiting...");
+		return -EFAULT;
+	}
+	if (pipe(stderrpipe) < 0) {
+		ERROR("stderr pipe cannot be created, exiting...");
+		close(stdoutpipe[0]);
+		close(stdoutpipe[1]);
+		return -EFAULT;
+	}
+
+	process_id = fork();
+	/* Child process, this runs the shell command */
+	if (process_id == 0) {
+		if (dup2(stdoutpipe[PIPE_WRITE], STDOUT_FILENO) < 0)
+			exit(errno);
+		if (dup2(stderrpipe[PIPE_WRITE], STDERR_FILENO) < 0)
+			exit(errno);
+		/* close all pipes, not used anymore */
+		close(stdoutpipe[PIPE_READ]);
+		close(stdoutpipe[PIPE_WRITE]);
+		close(stderrpipe[PIPE_READ]);
+		close(stderrpipe[PIPE_WRITE]);
+
+		ret = execl("/bin/sh", "sh", "-c", cmd, (char *)NULL);
+		if (ret) {
+			ERROR("Process %s cannot be started: %s", cmd, strerror(errno));
+			exit(1);
+		}
+	} else {
+		int fds[2];
+
+		close(stdoutpipe[PIPE_WRITE]);
+		close(stderrpipe[PIPE_WRITE]);
+
+		fds[0] = stdoutpipe[PIPE_READ];
+		fds[1] = stderrpipe[PIPE_READ];
+
+		/*
+		 * Now waits until the child process exits and checks
+		 * for the output. Forward data from stdout as TRACE
+		 * and from stderr (of the child process) as ERROR
+		 */
+		do {
+			pid_t w;
+			int n1 = 0;
+			struct timeval tv;
+			fd_set readfds;
+			int n, i;
+			char buf[2][SWUPDATE_GENERAL_STRING_SIZE];
+			char *pbuf;
+			int cindex[2] = {0, 0}; /* this is the first free char inside buffer */
+
+			w = waitpid(process_id, &wstatus, WNOHANG | WUNTRACED | WCONTINUED);
+			if (w == -1) {
+				ERROR("Error from waitpid() !!");
+				close(stdoutpipe[PIPE_READ]);
+				close(stderrpipe[PIPE_READ]);
+				return -EFAULT;
+			}
+
+			/*
+			 * Use buffers (for stdout and stdin) to collect data from
+			 * the cmd. Data can contain multiple lines or just a part
+			 * of a line and must be parsed
+			 */
+			memset(buf[0], 0, SWUPDATE_GENERAL_STRING_SIZE);
+			memset(buf[1], 0, SWUPDATE_GENERAL_STRING_SIZE);
+
+			tv.tv_sec = 1;
+			tv.tv_usec = 0;
+
+			/* Check if the child has sent something */
+			do {
+				FD_ZERO(&readfds);
+				FD_SET(fds[0], &readfds);
+				FD_SET(fds[1], &readfds);
+
+				n1 = 0;
+				ret = select(max(fds[0], fds[1]) + 1, &readfds, NULL, NULL, &tv);
+				if (ret <= 0)
+					break;
+
+				for (i = 0; i < 2 ; i++) {
+					pbuf = buf[i];
+					int c = cindex[i];
+
+					if (FD_ISSET(fds[i], &readfds)) {
+						int last;
+
+						n = read(fds[i], &pbuf[c], SWUPDATE_GENERAL_STRING_SIZE - c);
+						if (n < 0)
+							continue;
+						n += c;	/* add previous data, if any */
+						n1 += n;
+						if (n > 0) {
+
+							/* check if just a part of a line was sent. In that
+							 * case, search for the last line and then copy the rest
+							 * to the begin of the buffer for next read
+							 */
+							last = n - 1;
+							while (last > 0 && pbuf[last] != '\0' && pbuf[last] != '\n')
+									last--;
+							pbuf[last] = '\0';
+							/*
+							 * compute the truncate line that should be
+							 * parsed next time when the rest is received
+							 */
+							int left = n - 1 - last;
+							char **lines = string_split(pbuf, '\n');
+							int nlines = count_string_array((const char **)lines);
+
+							if (last < SWUPDATE_GENERAL_STRING_SIZE - 1) {
+								last++;
+								memcpy(pbuf, &pbuf[last], left);
+								if (last + left < SWUPDATE_GENERAL_STRING_SIZE) {
+									memset(&pbuf[left], 0, SWUPDATE_GENERAL_STRING_SIZE - left);
+								}
+								cindex[i] = left;
+							} else { /* no need to copy, reuse all buffer */
+								memset(pbuf, 0, SWUPDATE_GENERAL_STRING_SIZE);
+								cindex[i] = 0;
+							}
+
+							for (unsigned int index = 0; index < nlines; index++) {
+								switch (i) {
+								case 0:
+									TRACE("%s", lines[index]);
+									break;
+								case 1:
+									ERROR("%s", lines[index]);
+									break;
+								}
+							}
+
+							free_string_array(lines);
+						}
+					}
+				}
+			} while (ret > 0 && n1 > 0);
+		} while (!WIFEXITED(wstatus));
+
+		close(stdoutpipe[PIPE_READ]);
+		close(stderrpipe[PIPE_READ]);
+
+		if (WIFEXITED(wstatus)) {
+			ret = WEXITSTATUS(wstatus);
+			TRACE("%s command returned %d", cmd, ret);
 		} else {
-			ERROR("%s command returned %d: '%s'", cmd, ret, strerror(errno));
-			return -1;
+			TRACE("(%s) killed by signal %d\n", cmd, WTERMSIG(wstatus));
+			ret = -1;
 		}
 	}
 
