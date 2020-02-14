@@ -184,6 +184,7 @@ int main(int argc, char **argv)
 	int opt_r = 0;
 	int opt_p = 0;
 	int c;
+	int ret;
 	char *script = NULL;
 	RECOVERY_STATUS	status = IDLE;		/* Update Status (Running, Failure) */
 
@@ -312,7 +313,10 @@ int main(int argc, char **argv)
 						"SUCCESS" : "FAILURE") == -1) {
 					fprintf(stderr, "OOM calling post-exec script\n");
 				} else {
-					system(cmd);
+					ret = system(cmd);
+					if (ret) {
+						fprintf(stdout, "Executed %s with error : %d\n", cmd, ret);
+					}
 					free(cmd);
 				}
 			}
