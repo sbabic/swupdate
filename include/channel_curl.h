@@ -37,6 +37,7 @@ typedef struct {
 	char *url;
 	char *auth;
 	char *request_body;
+	char *iface;
 #ifdef CONFIG_JSON
 	json_object *json_reply;
 #endif

@@ -42,6 +42,9 @@ void suricatta_channel_settings(void *elem, channel_data_t *chan)
 	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "proxy", tmp);
 	if (strlen(tmp))
 		SETSTRING(chan->proxy, tmp);
+	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "interface", tmp);
+	if (strlen(tmp))
+		SETSTRING(chan->iface, tmp);
 }
 
 server_op_res_t map_channel_retcode(channel_op_res_t response)

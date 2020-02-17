@@ -46,6 +46,7 @@ static struct option long_options[] = {
     {"proxy", optional_argument, NULL, 'y'},
     {"targettoken", required_argument, NULL, 'k'},
     {"gatewaytoken", required_argument, NULL, 'g'},
+    {"interface", required_argument, NULL, 'f'},
     {NULL, 0, NULL, 0}};
 
 static unsigned short mandatory_argument_count = 0;
@@ -1443,7 +1444,8 @@ void server_print_help(void)
 	    "\t  -y, --proxy         Use proxy. Either give proxy URL, else "
 	    "{http,all}_proxy env is tried.\n"
 	    "\t  -k, --targettoken   Set target token.\n"
-	    "\t  -g, --gatewaytoken  Set gateway token.\n",
+	    "\t  -g, --gatewaytoken  Set gateway token.\n"
+	    "\t  -f, --interface     Set the network interface to connect to Hawkbit.\n",
 	    CHANNEL_DEFAULT_POLLING_INTERVAL, CHANNEL_DEFAULT_RESUME_TRIES,
 	    CHANNEL_DEFAULT_RESUME_DELAY);
 }
@@ -1519,7 +1521,7 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 	/* reset to optind=1 to parse suricatta's argument vector */
 	optind = 1;
 	opterr = 0;
-	while ((choice = getopt_long(argc, argv, "t:i:c:u:p:xr:y::w:k:g:",
+	while ((choice = getopt_long(argc, argv, "t:i:c:u:p:xr:y::w:k:g:f:",
 				     long_options, NULL)) != -1) {
 		switch (choice) {
 		case 't':
@@ -1594,6 +1596,9 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 		case 'w':
 			channel_data_defaults.retry_sleep =
 			    (unsigned int)strtoul(optarg, NULL, 10);
+			break;
+		case 'f':
+			SETSTRING(channel_data_defaults.iface, optarg);
 			break;
 		/* Ignore not recognized options, they can be already parsed by the caller */
 		case '?':

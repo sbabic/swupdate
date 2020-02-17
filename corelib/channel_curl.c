@@ -600,6 +600,18 @@ channel_op_res_t channel_set_options(channel_t *this,
 		}
 	}
 
+	/*
+	 * If requested, use a specific interface/IP address
+	 */
+	if (channel_data->iface != NULL) {
+		if (curl_easy_setopt(channel_curl->handle,
+		    CURLOPT_INTERFACE,
+		    channel_data->iface) != CURLE_OK) {
+			result = CHANNEL_EINIT;
+			goto cleanup;
+		}
+	}
+
 	switch (method) {
 	case CHANNEL_GET:
 		if (curl_easy_setopt(channel_curl->handle, CURLOPT_CUSTOMREQUEST,
