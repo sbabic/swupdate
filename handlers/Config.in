@@ -186,6 +186,14 @@ config ARCHIVE
 
 comment "archive support needs libarchive"
 	depends on !HAVE_LIBARCHIVE
+	
+config LOCALE
+	bool "Locale support for filenames"
+	depends on ARCHIVE
+	default y
+	help
+	  Option to remove attempts to use locale in systems
+	  without locale support in toolchain.
 
 config REMOTE_HANDLER
 	bool "Remote handler"

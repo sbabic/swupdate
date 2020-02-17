@@ -69,8 +69,10 @@ copy_data(struct archive *ar, struct archive *aw)
 static void *
 extract(void *p)
 {
+#ifdef CONFIG_LOCALE
 	locale_t archive_locale;
 	locale_t old_locale;
+#endif
 	struct archive *a;
 	struct archive *ext = NULL;
 	struct archive_entry *entry = NULL;
@@ -80,6 +82,7 @@ extract(void *p)
 	flags = data->flags;
 	int exitval = -EFAULT;
 
+#ifdef CONFIG_LOCALE
 	/*
 	 * Enable system locale - change from the standard (C) to system locale.
 	 * This allows libarchive (in case it is activated) to handle filenames.
@@ -93,6 +96,7 @@ extract(void *p)
 	 */
 	archive_locale = newlocale(LC_CTYPE_MASK, "", (locale_t)0);
 	old_locale = uselocale(archive_locale);
+#endif
 
 	a = archive_read_new();
 	if (!a) {
@@ -172,7 +176,9 @@ out:
 		archive_read_free(a);
 	}
 
+#ifdef CONFIG_LOCALE
 	uselocale(old_locale);
+#endif
 	data->exitval = exitval;
 	pthread_exit(NULL);
 }
