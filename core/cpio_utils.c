@@ -80,6 +80,32 @@ static int fill_buffer(int fd, unsigned char *buf, unsigned int nbytes, unsigned
 }
 
 /*
+ * Read padding that could exists between the cpio trailer and the end-of-file.
+ * cpio aligns the file to 512 bytes
+ */
+void extract_padding(int fd, unsigned long *offset)
+{
+    int padding;
+    ssize_t len;
+	unsigned char buf[512];
+
+    if (fd < 0 || !offset)
+        return;
+
+    padding = (512 - (*offset % 512)) % 512;
+    if (padding) {
+        TRACE("Expecting %d padding bytes at end-of-file", padding);
+        len = read(fd, buf, padding);
+        if (len < 0) {
+            DEBUG("Failure while reading padding %d: %s", fd, strerror(errno));
+            return;
+        }
+    }
+
+    return;
+}
+
+/*
  * Export the copy_write{,_*} functions to be used in other modules
  * for copying a buffer to a file.
  */
@@ -759,7 +785,6 @@ int cpio_scan(int fd, struct swupdate_cfg *cfg, off_t start)
 	unsigned long offset = start;
 	int file_listed;
 	uint32_t checksum;
-
 
 	while (1) {
 		file_listed = 0;
