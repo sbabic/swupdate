@@ -51,9 +51,14 @@ static void send_msg(ipc_message *msg)
 	rc = ipc_send_cmd(msg);
 
 	fprintf(stdout, " returned %d\n", rc);
-	if (!rc)
+	if (rc == 0) {
 		fprintf(stdout, "Server returns %s\n",
 				(msg->type == ACK) ? "ACK" : "NACK");
+		if (msg->data.instmsg.len > 0) {
+			fprintf(stdout, "Returned message: %s\n",
+					msg->data.instmsg.buf);
+		}
+	}
 }
 
 /*
