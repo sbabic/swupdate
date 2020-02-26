@@ -115,10 +115,12 @@ int main(int argc, char *argv[]) {
 	 */
 	if (opt_p) {
 		snprintf(buf, size, "{ \"polling\" : \"%lu\"}", polling_time);
+		msg.data.instmsg.len = strnlen(buf, size);
 		send_msg(&msg);
 	}
 	if (opt_e) {
 		snprintf(buf, size, "{ \"enable\" : %s}", enable ? "true" : "false");
+		msg.data.instmsg.len = strnlen(buf, size);
 		send_msg(&msg);
 	}
 
