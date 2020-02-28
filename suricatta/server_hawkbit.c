@@ -19,6 +19,7 @@
 #include <network_ipc.h>
 #include <sys/time.h>
 #include <swupdate_status.h>
+#include <pthread.h>
 #include "suricatta/suricatta.h"
 #include "suricatta_private.h"
 #include "parselib.h"
@@ -50,6 +51,7 @@ static struct option long_options[] = {
     {NULL, 0, NULL, 0}};
 
 static unsigned short mandatory_argument_count = 0;
+static pthread_mutex_t notifylock = PTHREAD_MUTEX_INITIALIZER;
 
 /*
  * See Hawkbit's API for an explanation
@@ -95,7 +97,8 @@ void server_print_help(void);
 server_op_res_t server_set_polling_interval_json(json_object *json_root);
 server_op_res_t server_set_config_data(json_object *json_root);
 server_op_res_t
-server_send_deployment_reply(const int action_id, const int job_cnt_max,
+server_send_deployment_reply(channel_t *channel,
+			     const int action_id, const int job_cnt_max,
 			     const int job_cnt_cur, const char *finished,
 			     const char *execution_status, int numdetails, const char *details[]);
 server_op_res_t server_send_cancel_reply(channel_t *channel, const int action_id);
@@ -347,8 +350,11 @@ static char *server_create_details(int numdetails, const char *details[])
 	char *prev = NULL;
 	char *next = NULL;
 
+	/*
+	 * Note: NEVER call TRACE / ERROR inside this function
+	 * because it generates a recursion
+	 */
 	for (i = 0; i < numdetails; i++) {
-		TRACE("Detail %d %s", i, details[i]);
 		if (i == 0) {
 			ret = asprintf(&next, "\"%s\"", details[i]);
 		} else {
@@ -360,29 +366,26 @@ static char *server_create_details(int numdetails, const char *details[])
 		prev = next;
 	}
 
-	TRACE("Final details: %s", next);
-
 	return next;
 }
 
 server_op_res_t
-server_send_deployment_reply(const int action_id, const int job_cnt_max,
+server_send_deployment_reply(channel_t *channel,
+			     const int action_id, const int job_cnt_max,
 			     const int job_cnt_cur, const char *finished,
 			     const char *execution_status, int numdetails, const char *details[])
 {
-	channel_t *channel = server_hawkbit.channel;
 	assert(channel != NULL);
 	assert(finished != NULL);
 	assert(execution_status != NULL);
 	assert(details != NULL);
 	assert(server_hawkbit.url != NULL);
+	assert(channel != NULL);
 	assert(server_hawkbit.tenant != NULL);
 	assert(server_hawkbit.device_id != NULL);
 
 	char *detail = server_create_details(numdetails, details);
 
-	TRACE("Reporting Installation progress for ID %d: %s / %s / %s",
-	      action_id, finished, execution_status, detail);
 	/* clang-format off */
 	static const char* const json_hawkbit_deployment_feedback = STRINGIFY(
 	{
@@ -427,7 +430,6 @@ server_send_deployment_reply(const int action_id, const int job_cnt_max,
 	}
 	channel_data.url = url;
 	channel_data.request_body = json_reply_string;
-	TRACE("PUTing to %s: %s", channel_data.url, channel_data.request_body);
 	channel_data.method = CHANNEL_POST;
 	result = map_channel_retcode(channel->put(channel, (void *)&channel_data));
 
@@ -811,7 +813,7 @@ static server_op_res_t handle_feedback(int action_id, server_op_res_t result,
 		break;
 	}
 
-	if (server_send_deployment_reply(action_id, 0, 0, reply_result,
+	if (server_send_deployment_reply(server_hawkbit.channel, action_id, 0, 0, reply_result,
 					 reply_execution,
 					 numdetails, details) != SERVER_OK) {
 		ERROR("Error while reporting installation status to server.");
@@ -898,6 +900,107 @@ static int server_update_status_callback(ipc_message *msg)
 	return 0;
 }
 
+static void *process_notification_thread(void *data)
+{
+	const int action_id = *(int *)data;
+	const int MAX_DETAILS = 48;
+	const char *details[MAX_DETAILS];
+	unsigned int numdetails = 0;
+	bool stop = false;
+	channel_data_t channel_data = channel_data_defaults;
+	unsigned int percent = 0;
+	unsigned int step = 0;
+
+
+	/*
+	 * Create a new channel to the server. The opened channel is
+	 * used to download the SWU
+	 */
+	channel_t *channel = channel_new();
+	if (channel->open(channel, &channel_data) != CHANNEL_OK) {
+		free(channel);
+		return NULL;
+	}
+
+	for (;;) {
+		ipc_message msg;
+		bool data_avail = false;
+		int ret = ipc_get_status_timeout(&msg, 100);
+
+		data_avail = ret > 0 && (strlen(msg.data.status.desc) != 0);
+
+		/*
+		 * Mutex used to synchronize end of the thread
+		 * The suricatta thread locks the mutex at the beginning
+		 * and release it when this task should terminate.
+		 * By getting the lock, this task loads know it has to finish
+		 */
+		if (!pthread_mutex_trylock(&notifylock)) {
+			stop = true;
+		}
+
+		if (msg.data.status.current == PROGRESS)
+			continue;
+		/*
+		 * If there is a message
+		 * ret > 0: data available
+		 * ret == 0: TIMEOUT, no more messages
+		 * ret < 0 : ERROR, exit
+		 */
+		if (data_avail && numdetails < MAX_DETAILS) {
+			for (int c = 0; c < strlen(msg.data.status.desc); c++) {
+				switch (msg.data.status.desc[c]) {
+				case '"':
+				case '\'':
+				case '\\':
+				case '\n':
+				case '\r':
+					msg.data.status.desc[c] = ' ';
+					break;
+				}
+			}
+			details[numdetails++] = strdup(msg.data.status.desc);
+		}
+
+		/*
+		 * Flush to the server
+		 */
+		if (numdetails == MAX_DETAILS || (stop && !data_avail)) {
+			TRACE("Update log to server from thread");
+			if (server_send_deployment_reply(
+				channel,
+				action_id, step, percent,
+				reply_status_result_finished.none,
+				reply_status_execution.proceeding, numdetails,
+				&details[0]) != SERVER_OK) {
+				ERROR("Error while sending log to server.");
+			}
+			for (unsigned int count = 0; count < numdetails; count++) {
+				free((void *)details[count]);
+			}
+			numdetails = 0;
+			percent++;
+			if (percent > 100) {
+				percent = 0;
+				step++;
+			}
+		}
+
+		if (stop && !data_avail)
+			break;
+	}
+
+	pthread_mutex_unlock(&notifylock);
+
+	/*
+	 * Now close the channel for feedback
+	 */
+	channel->close(channel);
+	free(channel);
+
+	return NULL;
+}
+
 server_op_res_t server_process_update_artifact(int action_id,
 						json_object *json_data_artifact,
 						const char *update_action,
@@ -910,6 +1013,7 @@ server_op_res_t server_process_update_artifact(int action_id,
 	assert(json_data_artifact != NULL);
 	assert(json_object_get_type(json_data_artifact) == json_type_array);
 	server_op_res_t result = SERVER_OK;
+	pthread_t notify_to_hawkbit_thread;
 
 	/* Initialize list of errors */
 	for (int i = 0; i < HAWKBIT_MAX_REPORTED_ERRORS; i++)
@@ -925,6 +1029,7 @@ server_op_res_t server_process_update_artifact(int action_id,
 	for (int json_data_artifact_count = 0;
 	     json_data_artifact_count < json_data_artifact_max;
 	     json_data_artifact_count++) {
+		int thread_ret = -1;
 		json_data_artifact_item = array_list_get_idx(
 		    json_data_artifact_array, json_data_artifact_count);
 		TRACE("Iterating over JSON, key=%s",
@@ -1037,6 +1142,20 @@ server_op_res_t server_process_update_artifact(int action_id,
 
 		server_get_current_time(&server_time);
 
+		/*
+		 * Start background task to collect logs and
+		 * send to Hawkbit server
+		 */
+		pthread_attr_t attr;
+		pthread_attr_init(&attr);
+		pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+
+		pthread_mutex_init(&notifylock, NULL);
+		pthread_mutex_lock(&notifylock);
+
+		thread_ret = pthread_create(&notify_to_hawkbit_thread, &attr,
+				process_notification_thread, &action_id);
+
 		channel_op_res_t cresult =
 		    channel->get_file(channel, (void *)&channel_data);
 		if ((result = map_channel_retcode(cresult)) != SERVER_OK) {
@@ -1078,6 +1197,13 @@ server_op_res_t server_process_update_artifact(int action_id,
 		}
 
 	cleanup_loop:
+		pthread_mutex_unlock(&notifylock);
+		if (!thread_ret) {
+			if (pthread_join(notify_to_hawkbit_thread, NULL)) {
+				ERROR("return code from pthread_join()");
+			}
+		}
+		pthread_mutex_destroy(&notifylock);
 		if (channel_data.url != NULL) {
 			free(channel_data.url);
 		}
@@ -1128,6 +1254,7 @@ server_op_res_t server_install_update(void)
 	if (server_hawkbit.update_action == deployment_update_action.skip) {
 		const char *details = "Skipped Update.";
 		if (server_send_deployment_reply(
+			server_hawkbit.channel,
 			action_id, 0, 0, reply_status_result_finished.success,
 			reply_status_execution.closed, 1,
 			&details) != SERVER_OK) {
@@ -1206,6 +1333,7 @@ server_op_res_t server_install_update(void)
 		}
 
 		if (server_send_deployment_reply(
+			server_hawkbit.channel,
 			action_id, json_data_chunk_max, json_data_chunk_count,
 			reply_status_result_finished.none,
 			reply_status_execution.proceeding, 1,
@@ -1242,6 +1370,7 @@ server_op_res_t server_install_update(void)
 			        json_object_get_string(json_data_chunk_version),
 			        json_object_get_string(json_data_chunk_part));
 				(void)server_send_deployment_reply(
+				    server_hawkbit.channel,
 			 	    action_id, json_data_chunk_max,
 				    json_data_chunk_count,
 				    reply_status_result_finished.failure,
@@ -1251,6 +1380,7 @@ server_op_res_t server_install_update(void)
 			goto cleanup;
 		}
 		if (server_send_deployment_reply(
+			server_hawkbit.channel,
 			action_id, json_data_chunk_max,
 			json_data_chunk_count + 1,
 			reply_status_result_finished.none,
@@ -1268,6 +1398,7 @@ server_op_res_t server_install_update(void)
 	}
 
 	if (server_send_deployment_reply(
+		server_hawkbit.channel,
 		action_id, json_data_chunk_max, json_data_chunk_count,
 		reply_status_result_finished.none,
 		reply_status_execution.proceeding, 1,
