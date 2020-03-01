@@ -635,3 +635,10 @@ int start_mongoose(const char *cfgfname, int argc, char *argv[])
 
 	return 0;
 }
+
+#if MG_ENABLE_SSL && MG_SSL_IF == MG_SSL_IF_MBEDTLS
+#include <mbedtls/ctr_drbg.h>
+int mg_ssl_if_mbed_random(void *ctx, unsigned char *buf, size_t len) {
+	return mbedtls_ctr_drbg_random(ctx, buf, len);
+}
+#endif
