@@ -16,6 +16,7 @@ ifeq ($(CONFIG_SSL_IMPL_MBEDTLS),y)
 lib-$(CONFIG_HASH_VERIFY)	+= verify_signature_mbedtls.o
 lib-$(CONFIG_ENCRYPTED_IMAGES)	+= swupdate_decrypt_mbedtls.o
 lib-$(CONFIG_SIGALG_RAWRSA)	+= swupdate_rsa_verify_mbedtls.o
+lib-$(CONFIG_SIGALG_RSAPSS)	+= swupdate_rsa_verify_mbedtls.o
 endif
 lib-$(CONFIG_LIBCONFIG)		+= swupdate_settings.o \
 				   parsing_library_libconfig.o
