@@ -48,6 +48,7 @@ static struct option long_options[] = {
     {"targettoken", required_argument, NULL, 'k'},
     {"gatewaytoken", required_argument, NULL, 'g'},
     {"interface", required_argument, NULL, 'f'},
+    {"disable-token-for-dwl", no_argument, NULL, '1'},
     {NULL, 0, NULL, 0}};
 
 static unsigned short mandatory_argument_count = 0;
@@ -112,6 +113,7 @@ server_hawkbit_t server_hawkbit = {.url = NULL,
 				   .tenant = NULL,
 				   .cancel_url = NULL,
 				   .update_action = NULL,
+				   .usetokentodwl = true,
 				   .channel = NULL};
 
 static channel_data_t channel_data_defaults = {.debug = false,
@@ -125,7 +127,8 @@ static channel_data_t channel_data_defaults = {.debug = false,
 					       .format = CHANNEL_PARSE_JSON,
 					       .nocheckanswer = false,
 					       .nofollow = false,
-					       .strictssl = true};
+					       .strictssl = true
+						};
 
 static struct timeval server_time;
 
@@ -1135,6 +1138,14 @@ server_op_res_t server_process_update_artifact(int action_id,
 		channel_data.checkdwl = server_check_during_dwl;
 
 		/*
+		 * There is no authorizytion token when file is loaded, because SWU
+		 * can be on a different server as Hawkbit with a different
+		 * authorization method.
+		 */
+		if (!server_hawkbit.usetokentodwl)
+			channel_data.auth_token = NULL;
+
+		/*
 		 * Retrieve current time to check download time
 		 * This is used in the callback to ask again the hawkbit
 		 * server if the download is longer as the polling time
@@ -1577,7 +1588,8 @@ void server_print_help(void)
 	    "{http,all}_proxy env is tried.\n"
 	    "\t  -k, --targettoken   Set target token.\n"
 	    "\t  -g, --gatewaytoken  Set gateway token.\n"
-	    "\t  -f, --interface     Set the network interface to connect to Hawkbit.\n",
+	    "\t  -f, --interface     Set the network interface to connect to Hawkbit.\n"
+	    "\t  --disable-token-for-dwl Do not send authentication header when downlloading SWU.\n",
 	    CHANNEL_DEFAULT_POLLING_INTERVAL, CHANNEL_DEFAULT_RESUME_TRIES,
 	    CHANNEL_DEFAULT_RESUME_DELAY);
 }
@@ -1606,6 +1618,9 @@ static int server_hawkbit_settings(void *elem, void  __attribute__ ((__unused__)
 		&server_hawkbit.polling_interval);
 
 	suricatta_channel_settings(elem, &channel_data_defaults);
+
+	get_field(LIBCFG_PARSER, elem, "usetokentodwl",
+		&server_hawkbit.usetokentodwl);
 
 	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "targettoken", tmp);
 	if (strlen(tmp))
@@ -1731,6 +1746,9 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 			break;
 		case 'f':
 			SETSTRING(channel_data_defaults.iface, optarg);
+			break;
+		case '1':
+			server_hawkbit.usetokentodwl = false;
 			break;
 		/* Ignore not recognized options, they can be already parsed by the caller */
 		case '?':
