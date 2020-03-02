@@ -592,9 +592,9 @@ channel_op_res_t channel_set_options(channel_t *this,
 		}
 	}
 
-	if (channel_data->header != NULL) {
+	if (channel_data->auth_token != NULL) {
 		if (((channel_curl->header = curl_slist_append(
-				channel_curl->header, channel_data->header)) == NULL)) {
+				channel_curl->header, channel_data->auth_token)) == NULL)) {
 			result = CHANNEL_EINIT;
 			goto cleanup;
 		}

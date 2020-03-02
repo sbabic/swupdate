@@ -150,7 +150,7 @@ static inline void server_hakwbit_settoken(const char *type, const char *token)
 		return;
 	}
 	if (tokens_header != NULL && strlen(tokens_header))
-		SETSTRING(channel_data_defaults.header, tokens_header);
+		SETSTRING(channel_data_defaults.auth_token, tokens_header);
 	free(tokens_header);
 }
 

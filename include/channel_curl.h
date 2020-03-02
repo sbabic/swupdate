@@ -47,7 +47,7 @@ typedef struct {
 	char *ciphers;
 	char *proxy;
 	char *info;
-	char *header;
+	char *auth_token;
 	const char *content_type;
 	unsigned int retry_sleep;
 	unsigned int offs;
