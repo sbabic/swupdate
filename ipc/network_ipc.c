@@ -12,6 +12,7 @@
 #include <strings.h>
 #include <unistd.h>
 #include <sys/socket.h>
+#include <sys/select.h>
 #include <sys/un.h>
 #include "network_ipc.h"
 #include "compat.h"
@@ -98,9 +99,11 @@ int ipc_postupdate(ipc_message *msg) {
 	return 0;
 }
 
-static int __ipc_get_status(int connfd, ipc_message *msg)
+static int __ipc_get_status(int connfd, ipc_message *msg, unsigned int timeout_ms)
 {
 	ssize_t ret;
+	fd_set fds;
+	struct timeval tv;
 
 	memset(msg, 0, sizeof(*msg));
 	msg->magic = IPC_MAGIC;
@@ -109,11 +112,26 @@ static int __ipc_get_status(int connfd, ipc_message *msg)
 	if (ret != sizeof(*msg))
 		return -1;
 
-	ret = read(connfd, msg, sizeof(*msg));
-	if (ret <= 0)
-		return -1;
+	if (!timeout_ms) {
+		ret = read(connfd, msg, sizeof(*msg));
+	} else {
+		FD_ZERO(&fds);
+		FD_SET(connfd, &fds);
 
-	return 0;
+		/*
+		 * Invalid the message
+		 * Caller should check it
+		 */
+		msg->magic = 0;
+
+		tv.tv_sec = 0;
+		tv.tv_usec = timeout_ms * 1000; 
+		ret = select(connfd + 1, &fds, NULL, NULL, &tv);
+		if (ret <= 0 || !FD_ISSET(connfd, &fds))
+			return 0;
+		ret = read(connfd, msg, sizeof(*msg));
+	}
+	return ret;
 }
 
 int ipc_get_status(ipc_message *msg)
@@ -125,7 +143,29 @@ int ipc_get_status(ipc_message *msg)
 	if (connfd < 0) {
 		return -1;
 	}
-	ret = __ipc_get_status(connfd, msg);
+	ret = __ipc_get_status(connfd, msg, 0);
+	close(connfd);
+
+	if (ret > 0)
+		return 0;
+	return -1;
+}
+
+/*
+ * @return : 0 = TIMEOUT
+ *           -1 : error
+ *           else data read
+ */
+int ipc_get_status_timeout(ipc_message *msg, unsigned int timeout_ms)
+{
+	int ret;
+	int connfd;
+
+	connfd = prepare_ipc();
+	if (connfd < 0) {
+		return -1;
+	}
+	ret = __ipc_get_status(connfd, msg, timeout_ms);
 	close(connfd);
 
 	return ret;
@@ -224,7 +264,7 @@ int ipc_wait_for_complete(getstatus callback)
 		fd = prepare_ipc();
 		if (fd < 0)
 			break;
-		ret = __ipc_get_status(fd, &message);
+		ret = __ipc_get_status(fd, &message, 0);
 		ipc_end(fd);
 
 		if (ret < 0) {
