@@ -106,30 +106,6 @@ static const char *get_source_string(unsigned int source)
 	return str[source];
 }
 
-/* Write escaped output to sized buffer */
-static size_t snescape(char *dst, size_t n, const char *src)
-{
-	size_t len = 0;
-
-	if (n < 3)
-		return 0;
-
-	memset(dst, 0, n);
-
-	for (int i = 0; src[i] != '\0'; i++) {
-		if (src[i] == '\\' || src[i] == '\"') {
-			if (len < n - 2)
-				dst[len] = '\\';
-			len++;
-		}
-		if (len < n - 1)
-			dst[len] = src[i];
-		len++;
-	}
-
-	return len;
-}
-
 static void restart_handler(struct mg_connection *nc, int ev, void *ev_data)
 {
 	struct http_message *hm = (struct http_message *) ev_data;

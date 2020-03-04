@@ -754,3 +754,28 @@ int swupdate_file_setnonblock(int fd, bool block)
 	return fcntl(fd, F_SETFL, flags);
 }
 
+/* Write escaped output to sized buffer */
+size_t snescape(char *dst, size_t n, const char *src)
+{
+	size_t len = 0;
+
+	if (n < 3)
+		return 0;
+
+	memset(dst, 0, n);
+
+	for (int i = 0; src[i] != '\0'; i++) {
+		if (src[i] == '\\' || src[i] == '\"') {
+			if (len < n - 2)
+				dst[len] = '\\';
+			len++;
+		}
+		if (len < n - 1)
+			dst[len] = src[i];
+		len++;
+	}
+
+	return len;
+}
+
+
