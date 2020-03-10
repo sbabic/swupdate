@@ -32,6 +32,7 @@ typedef enum {
 	POST_UPDATE,
 	SWUPDATE_SUBPROCESS,
 	REQ_INSTALL_DRYRUN,
+	SET_AES_KEY
 } msgtype;
 
 /*
@@ -62,6 +63,10 @@ typedef union {
 				      * with additional information
 				      */
 	} instmsg;
+	struct {
+		char key_ascii[65]; /* Key size in ASCII (256 bit, 32 bytes bin) + termination */
+		char ivt_ascii[33]; /* Key size in ASCII (16 bytes bin) + termination */
+	} aeskeymsg;
 } msgdata;
 	
 typedef struct {

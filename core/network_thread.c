@@ -396,6 +396,11 @@ void *network_thread (void *data)
 				pthread_mutex_unlock(&msglock);
 
 				break;
+			case SET_AES_KEY:
+				msg.type = ACK;
+				if (set_aes_key(msg.data.aeskeymsg.key_ascii, msg.data.aeskeymsg.ivt_ascii))
+					msg.type = NACK;
+				break;
 			default:
 				msg.type = NACK;
 			}
