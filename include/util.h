@@ -140,6 +140,7 @@ typedef void (*notifier) (RECOVERY_STATUS status, int error, int level, const ch
 uintmax_t
 from_ascii (char const *where, size_t digs, unsigned logbase);
 int ascii_to_hash(unsigned char *hash, const char *s);
+int ascii_to_bin(unsigned char *hash, const char *s, size_t len);
 void hash_to_ascii(const unsigned char *hash, char *s);
 int IsValidHash(const unsigned char *hash);
 
@@ -171,7 +172,7 @@ int copy_write_padded(void *out, const void *buf, unsigned int len);
 int copyfile(int fdin, void *out, unsigned int nbytes, unsigned long *offs,
 	unsigned long long seek,
 	int skip_file, int compressed, uint32_t *checksum,
-	unsigned char *hash, int encrypted, writeimage callback);
+	unsigned char *hash, int encrypted, const char *imgivt, writeimage callback);
 int copyimage(void *out, struct img_type *img, writeimage callback);
 int extract_sw_description(int fd, const char *descfile, off_t *offs);
 off_t extract_next_file(int fd, int fdout, off_t start, int compressed,

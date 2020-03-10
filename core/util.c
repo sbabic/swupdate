@@ -54,7 +54,7 @@ static char* TMPDIRSCRIPT = NULL;
  * Convert a hash as hexa string into a sequence of bytes
  * hash must be an array of 32 bytes as specified by SHA256
  */
-static int ascii_to_bin(unsigned char *hash, const char *s, size_t len)
+int ascii_to_bin(unsigned char *hash, const char *s, size_t len)
 {
 	unsigned int i;
 	unsigned int val;
