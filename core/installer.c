@@ -120,7 +120,7 @@ static int extract_scripts(int fd, struct imglist *head, int fromfile)
 
 		if (fromfile)
 			ret = extract_next_file(fd, fdout, script->offset, 0,
-						script->is_encrypted, script->sha256);
+						script->is_encrypted, script->ivt_ascii, script->sha256);
 		else {
 			int fdin;
 			char *tmpfile;
@@ -147,6 +147,7 @@ static int extract_scripts(int fd, struct imglist *head, int fromfile)
 					&checksum,
 					script->sha256,
 					script->is_encrypted,
+					script->ivt_ascii,
 					NULL);
 			close(fdin);
 		}

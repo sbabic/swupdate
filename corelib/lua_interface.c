@@ -292,6 +292,9 @@ static void lua_string_to_img(struct img_type *img, const char *key,
 			sizeof(img->filesystem));
 	if (!strcmp(key, "sha256"))
 		ascii_to_hash(img->sha256, value);
+	if (!strcmp(key, "ivt"))
+		strncpy(img->ivt_ascii, value,
+			sizeof(img->ivt_ascii));
 
 	if (!strncmp(key, offset, sizeof(offset))) {
 		strncpy(seek_str, value,
@@ -364,6 +367,7 @@ static int l_copy2file(lua_State *L)
 				 &checksum,
 				 img.sha256,
 				 img.is_encrypted,
+				 img.ivt_ascii,
 				 NULL);
 	update_table(L, &img);
 	lua_pop(L, 1);
@@ -435,6 +439,7 @@ static int l_istream_read(lua_State* L)
 				 &checksum,
 				 img.sha256,
 				 img.is_encrypted,
+				 img.ivt_ascii,
 				 istream_read_callback);
 
 	lua_pop(L, 1);
@@ -475,6 +480,7 @@ static void update_table(lua_State* L, struct img_type *img)
 		LUA_PUSH_IMG_STRING(img, "mtdname", path);
 		LUA_PUSH_IMG_STRING(img, "data", type_data);
 		LUA_PUSH_IMG_STRING(img, "filesystem", filesystem);
+		LUA_PUSH_IMG_STRING(img, "ivt", ivt_ascii);
 
 		LUA_PUSH_IMG_BOOL(img, "installed_directly", install_directly);
 		LUA_PUSH_IMG_BOOL(img, "install_if_different", id.install_if_different);

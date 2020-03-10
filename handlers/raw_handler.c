@@ -182,6 +182,7 @@ static int copy_raw_image(struct img_type *img,
 			&checksum,
 			0, /* no sha256 */
 			0, /* no encrypted */
+			NULL, /* no IVT */
 			NULL);
 
 	close(fdout);

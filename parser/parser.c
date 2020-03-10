@@ -308,6 +308,7 @@ static int parse_common_attributes(parsertype p, void *elem, struct img_type *im
 	get_field(p, elem, "install-if-different", &image->id.install_if_different);
 	get_field(p, elem, "install-if-higher", &image->id.install_if_higher);
 	get_field(p, elem, "encrypted", &image->is_encrypted);
+	GET_FIELD_STRING(p, elem, "ivt", image->ivt_ascii);
 
 	return 0;
 }

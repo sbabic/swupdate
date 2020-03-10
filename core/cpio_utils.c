@@ -369,7 +369,7 @@ static int zstd_step(void* state, void* buffer, size_t size)
 
 int copyfile(int fdin, void *out, unsigned int nbytes, unsigned long *offs, unsigned long long seek,
 	int skip_file, int __attribute__ ((__unused__)) compressed,
-	uint32_t *checksum, unsigned char *hash, int encrypted, writeimage callback)
+	uint32_t *checksum, unsigned char *hash, int encrypted, const char *imgivt, writeimage callback)
 {
 	unsigned int percent, prevpercent = 0;
 	int ret = 0;
@@ -381,6 +381,7 @@ int copyfile(int fdin, void *out, unsigned int nbytes, unsigned long *offs, unsi
 	unsigned int md_len = 0;
 	unsigned char *aes_key = NULL;
 	unsigned char *ivt = NULL;
+	unsigned char ivtbuf[32];
 
 	struct InputState input_state = {
 		.fdin = fdin,
@@ -440,7 +441,10 @@ int copyfile(int fdin, void *out, unsigned int nbytes, unsigned long *offs, unsi
 
 	if (encrypted) {
 		aes_key = get_aes_key();
-		ivt = get_aes_ivt();
+		if (imgivt && strlen(imgivt) && !ascii_to_bin(ivtbuf, imgivt, sizeof(ivtbuf))) {
+			ivt = ivtbuf;
+		} else
+			ivt = get_aes_ivt();
 		decrypt_state.dcrypt = swupdate_DECRYPT_init(aes_key, ivt);
 		if (!decrypt_state.dcrypt) {
 			ERROR("decrypt initialization failure, aborting");
@@ -622,6 +626,7 @@ int copyimage(void *out, struct img_type *img, writeimage callback)
 			&img->checksum,
 			img->sha256,
 			img->is_encrypted,
+			img->ivt_ascii,
 			callback);
 }
 
@@ -686,7 +691,7 @@ int extract_sw_description(int fd, const char *descfile, off_t *offs)
 		close(fdout);
 		return -1;
 	}
-	if (copyfile(fd, &fdout, fdh.size, &offset, 0, 0, 0, &checksum, NULL, 0, NULL) < 0) {
+	if (copyfile(fd, &fdout, fdh.size, &offset, 0, 0, 0, &checksum, NULL, 0, NULL, NULL) < 0) {
 		ERROR("%s corrupted or not valid", descfile);
 		close(fdout);
 		return -1;
@@ -732,7 +737,7 @@ int extract_img_from_cpio(int fd, unsigned long offset, struct filehdr *fdh)
 }
 
 off_t extract_next_file(int fd, int fdout, off_t start, int compressed,
-		int encrypted, unsigned char *hash)
+		int encrypted, char *ivt, unsigned char *hash)
 {
 	int ret;
 	struct filehdr fdh;
@@ -758,7 +763,7 @@ off_t extract_next_file(int fd, int fdout, off_t start, int compressed,
 		return ret;
 	}
 
-	ret = copyfile(fd, &fdout, fdh.size, &offset, 0, 0, compressed, &checksum, hash, encrypted, NULL);
+	ret = copyfile(fd, &fdout, fdh.size, &offset, 0, 0, compressed, &checksum, hash, encrypted, ivt, NULL);
 	if (ret < 0) {
 		ERROR("Error copying extracted file");
 		return ret;
@@ -811,7 +816,7 @@ int cpio_scan(int fd, struct swupdate_cfg *cfg, off_t start)
 		 * we do not have to provide fdout
 		 */
 		if (copyfile(fd, NULL, fdh.size, &offset, 0, 1, 0, &checksum, img ? img->sha256 : NULL,
-				0, NULL) != 0) {
+				0, NULL, NULL) != 0) {
 			ERROR("invalid archive");
 			return -1;
 		}

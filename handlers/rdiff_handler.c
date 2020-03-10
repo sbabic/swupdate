@@ -348,6 +348,7 @@ static int apply_rdiff_patch(struct img_type *img,
 			&img->checksum,
 			img->sha256,
 			img->is_encrypted,
+			img->ivt_ascii,
 			apply_rdiff_chunk_cb);
 	if (ret != 0) {
 		ERROR("Error %d running rdiff job, aborting.", ret);

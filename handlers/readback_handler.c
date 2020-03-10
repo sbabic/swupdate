@@ -107,6 +107,7 @@ static int readback_postinst(struct img_type *img)
 			NULL,  /* no checksum */
 			hash,
 			0,     /* no encrypted */
+			NULL,     /* no IVT */
 			NULL); /* no callback */
 	if (status == 0) {
 		INFO("Readback verification success");

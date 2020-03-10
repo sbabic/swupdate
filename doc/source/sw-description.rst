@@ -1292,6 +1292,13 @@ There are 4 main sections inside sw-description:
    |             |          | scripts    | and must be decrypted before          |
    |             |          |            | installing.                           |
    +-------------+----------+------------+---------------------------------------+
+   | ivt         | string   | images     | IVT in case of encrypted artefact     |
+   |             |          | files      | It has no value if "encrypted" is not |
+   |             |          | scripts    | set. Each artefact can have an own    |
+   |             |          |            | IVT to avoid attacker can guess the   |
+   |             |          |            | the key.                              |
+   |             |          |            | It is a ASCII string of 32 chars      |
+   +-------------+----------+------------+---------------------------------------+
    | data        | string   | images     | This is used to pass arbitrary data   |
    |             |          | files      | to a handler.                         |
    |             |          | scripts    |                                       |
