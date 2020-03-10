@@ -503,15 +503,7 @@ int load_decryption_key(char *fname)
 	}
 	fclose(fp);
 
-	if (aes_key)
-		free(aes_key);
-
-	aes_key = (struct decryption_key *)calloc(1, sizeof(*aes_key));
-	if (!aes_key)
-		return -ENOMEM;
-
-	ret = ascii_to_bin(aes_key->key,  b1, sizeof(aes_key->key)  * 2) |
-	      ascii_to_bin(aes_key->ivt,  b2, sizeof(aes_key->ivt)  * 2);
+	ret = set_aes_key(b1, b2);
 
 	if (b1 != NULL)
 		free(b1);
@@ -536,6 +528,45 @@ unsigned char *get_aes_ivt(void) {
 	if (!aes_key)
 		return NULL;
 	return aes_key->ivt;
+}
+
+int set_aes_key(const char *key, const char *ivt)
+{
+	int ret;
+
+	/*
+	 * Allocates the global structure just once
+	 */
+	if (!aes_key) {
+		aes_key = (struct decryption_key *)calloc(1, sizeof(*aes_key));
+		if (!aes_key)
+			return -ENOMEM;
+	}
+
+	ret = ascii_to_bin(aes_key->key,  key, sizeof(aes_key->key) * 2) |
+	      ascii_to_bin(aes_key->ivt,  ivt, sizeof(aes_key->ivt) * 2);
+
+	if (ret) {
+		return -EINVAL;
+	}
+
+	return 0;
+}
+
+int set_aes_ivt(const char *ivt)
+{
+	int ret;
+
+	if (!aes_key)
+		return -EFAULT;
+
+	ret = ascii_to_bin(aes_key->ivt,  ivt, sizeof(aes_key->ivt) * 2);
+
+	if (ret) {
+		return -EINVAL;
+	}
+
+	return 0;
 }
 
 char** string_split(const char* in, const char d)
