@@ -297,7 +297,6 @@ int ipc_send_cmd(ipc_message *msg)
 
 	/* TODO: Check source type */
 	msg->magic = IPC_MAGIC;
-	msg->type = SWUPDATE_SUBPROCESS;
 	ret = write(connfd, msg, sizeof(*msg));
 	if (ret != sizeof(*msg)) {
 		close(connfd);
