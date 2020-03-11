@@ -81,6 +81,7 @@ int main(int argc, char *argv[]) {
 
 	memset(&msg, 0, sizeof(msg));
 	msg.data.instmsg.source = SOURCE_SURICATTA;
+	msg.type = SWUPDATE_SUBPROCESS;
 
 	size = sizeof(msg.data.instmsg.buf);
 	buf = msg.data.instmsg.buf;
