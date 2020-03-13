@@ -21,13 +21,13 @@ menu "Features"
 config SURICATTA_SSL
 	bool "SSL support"
 	default n
-	depends on HAVE_LIBSSL
-	depends on HAVE_LIBCRYPTO
+	depends on SSL_IMPL_OPENSSL || SSL_IMPL_MBEDTLS
+	select CHANNEL_CURL_SSL
 	help
 	  Enable SSL and checksum verification support in suricatta.
 
-comment "SSL support needs libcrypto, libssl"
-	depends on !HAVE_LIBSSL || !HAVE_LIBCRYPTO
+comment "SSL support needs an SSL implementation"
+	depends on !SSL_IMPL_OPENSSL && !SSL_IMPL_MBEDTLS
 
 choice
 	prompt "Update Status Storage"

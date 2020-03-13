@@ -17,7 +17,7 @@
  * Let compile when openSSL is not activated
  */
 #if defined(CONFIG_HASH_VERIFY) || defined(CONFIG_ENCRYPTED_IMAGES) || \
-	defined(CONFIG_SURICATTA_SSL) || defined(CONFIG_CHANNEL_CURL_SSL)
+	defined(CONFIG_CHANNEL_CURL_SSL)
 #if defined(CONFIG_SSL_IMPL_OPENSSL)
 #include <openssl/bio.h>
 #include <openssl/objects.h>

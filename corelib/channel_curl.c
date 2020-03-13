@@ -77,7 +77,7 @@ channel_t *channel_new(void);
 
 channel_op_res_t channel_curl_init(void)
 {
-#if defined(CONFIG_SURICATTA_SSL) || defined(CONFIG_CHANNEL_CURL_SSL)
+#if defined(CONFIG_CHANNEL_CURL_SSL)
 #define CURL_FLAGS CURL_GLOBAL_SSL
 #else
 #define CURL_FLAGS CURL_GLOBAL_NOTHING
