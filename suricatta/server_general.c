@@ -103,7 +103,9 @@ static channel_data_t channel_data_defaults = {.debug = false,
 					       .retries = CHANNEL_DEFAULT_RESUME_TRIES,
 					       .retry_sleep =
 						   CHANNEL_DEFAULT_RESUME_DELAY,
+#ifdef CONFIG_SURICATTA_SSL
 					       .usessl = true,
+#endif
 					       .format = CHANNEL_PARSE_RAW,
 					       .nocheckanswer = true,
 					       .nofollow = true,
