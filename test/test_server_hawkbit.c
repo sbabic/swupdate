@@ -290,7 +290,7 @@ static void test_server_set_polling_interval_json(void **state)
 }
 
 extern server_op_res_t
-server_send_deployment_reply(const int action_id, const int job_cnt_max,
+server_send_deployment_reply(channel_t *channel, const int action_id, const int job_cnt_max,
 			     const int job_cnt_cur, const char *finished,
 			     const char *execution_status, int numdetails, const char *details[]);
 static void test_server_send_deployment_reply(void **state)
@@ -303,6 +303,7 @@ static void test_server_send_deployment_reply(void **state)
 	will_return(__wrap_channel_put, CHANNEL_OK);
 	assert_int_equal(SERVER_OK,
 			 server_send_deployment_reply(
+			     server_hawkbit.channel,
 			     action_id, 5, 5,
 			     reply_status_result_finished.success,
 			     reply_status_execution.closed, 1, details));
@@ -311,6 +312,7 @@ static void test_server_send_deployment_reply(void **state)
 	will_return(__wrap_channel_put, CHANNEL_EIO);
 	assert_int_equal(SERVER_EERR,
 			 server_send_deployment_reply(
+			     server_hawkbit.channel,
 			     action_id, 5, 5,
 			     reply_status_result_finished.success,
 			     reply_status_execution.closed, 1, details));
