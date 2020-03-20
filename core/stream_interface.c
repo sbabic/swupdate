@@ -256,7 +256,7 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 				 * sure that the UBI partitions are adjusted beforehand
 				 */
 				LIST_FOREACH(part, &software->images, next) {
-					if (!part->install_directly) {
+					if (!part->install_directly && part->is_partitioner) {
 						TRACE("Need to adjust partition %s before streaming %s",
 							part->volname, img->fname);
 						if (install_single_image(part, software->globals.dry_run)) {
