@@ -198,9 +198,9 @@ static int is_image_higher(struct swver *sw_ver_list,
 static void remove_installed_image_list(struct imglist *img_list,
 				struct swver *sw_ver_list)
 {
-	struct img_type *img;
+	struct img_type *img, *tmp;
 
-	LIST_FOREACH(img, img_list, next) {
+	LIST_FOREACH_SAFE(img, img_list, next, tmp) {
 		if (is_image_installed(sw_ver_list, img)) {
 			LIST_REMOVE(img, next);
 			free_image(img);
@@ -214,9 +214,9 @@ static void remove_installed_image_list(struct imglist *img_list,
 static void remove_higher_image_list(struct imglist *img_list,
 				struct swver *sw_ver_list)
 {
-	struct img_type *img;
+	struct img_type *img, *tmp;
 
-	LIST_FOREACH(img, img_list, next) {
+	LIST_FOREACH_SAFE(img, img_list, next, tmp) {
 		if (is_image_higher(sw_ver_list, img)) {
 			LIST_REMOVE(img, next);
 			free_image(img);
