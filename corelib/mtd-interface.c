@@ -511,13 +511,13 @@ void mtd_cleanup (void)
 {
 	int i;
 	struct ubilist *list;
-	struct ubi_part *vol;
+	struct ubi_part *vol, *tmp;
 	struct flash_description *flash = get_flash_info();
 
 	if (flash->mtd_info) {
 		for (i = flash->mtd.lowest_mtd_num; i <= flash->mtd.highest_mtd_num; i++) {
 			list = &flash->mtd_info[i].ubi_partitions;
-			LIST_FOREACH(vol, list, next) {
+			LIST_FOREACH_SAFE(vol, list, next, tmp) {
 				LIST_REMOVE(vol, next);
 				free(vol);
 			}
