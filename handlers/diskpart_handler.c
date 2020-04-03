@@ -105,6 +105,7 @@ static int diskpart(struct img_type *img,
 	struct dict_list_elem *elem;
 	struct fdisk_context *cxt;
 	struct partition_data *part;
+	struct partition_data *tmp;
 	int ret = 0;
 	int i;
 	struct hnd_priv priv;
@@ -279,7 +280,7 @@ handler_exit:
 		WARN("Error deassign device %s", img->device);
 
 handler_release:
-	LIST_FOREACH(part, &priv.listparts, next) {
+	LIST_FOREACH_SAFE(part, &priv.listparts, next, tmp) {
 		LIST_REMOVE(part, next);
 		free(part);
 	}
