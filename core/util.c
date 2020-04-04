@@ -145,9 +145,6 @@ char **splitargs(char *args, int *argc)
 			argv[argn] = NULL;
 		}
 
-		if (args && !argv)
-			free (args);
-
 		*argc = argn;
 		return argv;
 }
