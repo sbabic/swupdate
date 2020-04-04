@@ -219,7 +219,7 @@ int main(int argc, char **argv)
 				if (end)
 					*end = '\0';
 				if (is_ipaddress(ipaddr)) {
-					memset(ipaddrs[ndevs], '0', NI_MAXHOST);
+					memset(ipaddrs[ndevs], 0, NI_MAXHOST);
 					strncpy(ipaddrs[ndevs], ipaddr, sizeof(ipaddrs[ndevs]));
 					fprintf(stdout, "Remote device:%s\n", ipaddr);
 					ndevs++;
