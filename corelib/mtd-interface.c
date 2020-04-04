@@ -141,8 +141,8 @@ void mtd_init(void)
 	flash->libmtd = libmtd_open();
 	if (flash->libmtd == NULL) {
 		if (errno == 0)
-			ERROR("MTD is not present in the system");
-		ERROR("cannot open libmtd");
+			WARN("MTD is not present in the system");
+		WARN("cannot open libmtd");
 	}
 }
 
@@ -388,7 +388,7 @@ int scan_mtd_devices (void)
 	bool black;
 
 	if (!libmtd) {
-		ERROR("MTD is not present on the target");
+		WARN("MTD is not present on the target");
 		return -1;
 	}
 	err = mtd_get_info(libmtd, mtd_info);
