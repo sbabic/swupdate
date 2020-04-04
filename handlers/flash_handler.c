@@ -119,14 +119,14 @@ static int flash_write_nand(int mtdnum, struct img_type *img)
 		return -EINVAL;
 	}
 
-	filebuf_max = mtd->eb_size / mtd->min_io_size * pagelen;
-	filebuf = calloc(1, filebuf_max);
-	erase_buffer(filebuf, filebuf_max);
-
 	if ((fd = open(mtd_device, O_RDWR)) < 0) {
 		ERROR( "%s: %s: %s", __func__, mtd_device, strerror(errno));
 		return -ENODEV;
 	}
+
+	filebuf_max = mtd->eb_size / mtd->min_io_size * pagelen;
+	filebuf = calloc(1, filebuf_max);
+	erase_buffer(filebuf, filebuf_max);
 
 	/*
 	 * Get data from input and write to the device while there is
