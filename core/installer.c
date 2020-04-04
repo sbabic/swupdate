@@ -139,6 +139,7 @@ static int extract_scripts(int fd, struct imglist *head, int fromfile)
 			if (fdin < 0) {
 				ERROR("Extracted script not found in %s: %s %d",
 					get_tmpdir(), script->extract_file, errno);
+				close(fdout);
 				return -ENOENT;
 			}
 
