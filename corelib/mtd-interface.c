@@ -148,7 +148,7 @@ void mtd_init(void)
 
 void mtd_set_ubiblacklist(char *mtdlist)
 {
-	strncpy(mtd_ubi_blacklist, mtdlist, sizeof(mtd_ubi_blacklist));
+	strlcpy(mtd_ubi_blacklist, mtdlist, sizeof(mtd_ubi_blacklist));
 }
 
 int get_mtd_from_device(char *s) {
@@ -413,17 +413,17 @@ int scan_mtd_devices (void)
 		case 0:
 			black = true;
 #if defined(CONFIG_UBIBLACKLIST)
-			strncpy(list, CONFIG_UBIBLACKLIST,
+			strlcpy(list, CONFIG_UBIBLACKLIST,
 				sizeof(list));
 #endif
 			/* Blacklist passed on the command line has priority */
 			if (strlen(mtd_ubi_blacklist))
-				strncpy(list, mtd_ubi_blacklist, sizeof(list));
+				strlcpy(list, mtd_ubi_blacklist, sizeof(list));
 			break;
 		case 1:
 			black = false;
 #if defined(CONFIG_UBIWHITELIST)
-			strncpy(list, CONFIG_UBIWHITELIST,
+			strlcpy(list, CONFIG_UBIWHITELIST,
 				sizeof(list));
 #endif
 			break;

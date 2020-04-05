@@ -480,7 +480,7 @@ static int get_gpio_from_property(struct dict_list *prop, struct mode_setup *gpi
 			if (t) *t = '\0';
 			switch (i) {
 			case 0:
-				strncpy(gpio->gpiodev, s, sizeof(gpio->gpiodev));
+				strlcpy(gpio->gpiodev, s, sizeof(gpio->gpiodev));
 				break;
 			case 1:
 				errno = 0;

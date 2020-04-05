@@ -149,11 +149,11 @@ int parse_external(struct swupdate_cfg *software, const char *filename)
 	}
 
 	if (lua_type(L, 1) == LUA_TSTRING)
-		strncpy(software->name, lua_tostring(L, 1),
+		strlcpy(software->name, lua_tostring(L, 1),
 				sizeof(software->name));
 
 	if (lua_type(L, 2) == LUA_TSTRING)
-		strncpy(software->version, lua_tostring(L, 2),
+		strlcpy(software->version, lua_tostring(L, 2),
 				sizeof(software->version));
 	nstreams = 0;
 	lua_pushnil(L);

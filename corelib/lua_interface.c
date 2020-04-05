@@ -1068,7 +1068,7 @@ static int l_call_handler(lua_State *L)
 	}
 
 call_handler_exit:
-	strncpy(img.type, orighndtype, sizeof(img.type));
+	strlcpy(img.type, orighndtype, sizeof(img.type));
 	update_table(L, &img);
 	lua_pop(L, 2);
 	lua_pushnumber(L, ret);

@@ -232,7 +232,7 @@ static int parse_hw_compatibility(parsertype p, void *cfg, struct swupdate_cfg *
 			return -1;
 		}
 
-		strncpy(hwrev->revision, s, sizeof(hwrev->revision));
+		strlcpy(hwrev->revision, s, sizeof(hwrev->revision));
 		LIST_INSERT_HEAD(&swcfg->hardware, hwrev, next);
 		TRACE("Accepted Hw Revision : %s", hwrev->revision);
 	}
@@ -347,7 +347,7 @@ static int parse_partitions(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 		GET_FIELD_STRING(p, elem, "name", partition->volname);
 
 		if (!strlen(partition->type))
-			strncpy(partition->type, "ubipartition", sizeof(partition->type));
+			strlcpy(partition->type, "ubipartition", sizeof(partition->type));
 		partition->is_partitioner = 1;
 
 		partition->provided = 1;

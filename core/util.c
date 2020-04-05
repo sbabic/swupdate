@@ -313,8 +313,8 @@ int get_hw_revision(struct hw_type *hw)
 		goto out;
 	}
 
-	strncpy(hw->boardname, b1, sizeof(hw->boardname));
-	strncpy(hw->revision, b2, sizeof(hw->revision));
+	strlcpy(hw->boardname, b1, sizeof(hw->boardname));
+	strlcpy(hw->revision, b2, sizeof(hw->revision));
 
 	ret = 0;
 

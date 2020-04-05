@@ -213,9 +213,9 @@ static int opt_to_hwrev(char *param, struct hw_type *hw)
 		return -EINVAL;
 	}
 
-	strncpy(hw->revision, s + 1, sizeof(hw->revision));
+	strlcpy(hw->revision, s + 1, sizeof(hw->revision));
 	*s = '\0';
-	strncpy(hw->boardname, param, sizeof(hw->boardname));
+	strlcpy(hw->boardname, param, sizeof(hw->boardname));
 
 	if (!strlen(hw->boardname) || !strlen(hw->revision))
 		return -EINVAL;
@@ -416,9 +416,9 @@ static int parse_image_selector(const char *selector, struct swupdate_cfg *sw)
 	if (len > sizeof(sw->software_set))
 		len = sizeof(sw->software_set);
 
-	strncpy(sw->software_set, selector, len);
+	strlcpy(sw->software_set, selector, len);
 	/* pos + 1 will either be NULL or valid text */
-	strncpy(sw->running_mode, pos + 1, sizeof(sw->running_mode));
+	strlcpy(sw->running_mode, pos + 1, sizeof(sw->running_mode));
 
 	if (strlen(sw->software_set) == 0 || strlen(sw->running_mode) == 0)
 		return -EINVAL;
@@ -727,11 +727,11 @@ int main(int argc, char **argv)
 			break;
 #endif
 		case 'i':
-			strncpy(fname, optarg, sizeof(fname));
+			strlcpy(fname, optarg, sizeof(fname));
 			opt_i = 1;
 			break;
 		case 'o':
-			strncpy(swcfg.output, optarg, sizeof(swcfg.output));
+			strlcpy(swcfg.output, optarg, sizeof(swcfg.output));
 			break;
 		case 'l':
 			loglevel = strtoul(optarg, NULL, 10);
@@ -743,7 +743,7 @@ int main(int argc, char **argv)
 			swcfg.globals.syslog_enabled = 1;
 			break;
 		case 'k':
-			strncpy(swcfg.globals.publickeyfname,
+			strlcpy(swcfg.globals.publickeyfname,
 				optarg,
 			       	sizeof(swcfg.globals.publickeyfname));
 			break;
@@ -751,24 +751,24 @@ int main(int argc, char **argv)
 			swcfg.globals.cert_purpose = parse_cert_purpose(optarg);
 			break;
 		case '2':
-			strncpy(swcfg.globals.forced_signer_name, optarg,
+			strlcpy(swcfg.globals.forced_signer_name, optarg,
 				sizeof(swcfg.globals.forced_signer_name));
 			break;
 #ifdef CONFIG_ENCRYPTED_IMAGES
 		case 'K':
-			strncpy(swcfg.globals.aeskeyfname,
+			strlcpy(swcfg.globals.aeskeyfname,
 				optarg,
 			       	sizeof(swcfg.globals.aeskeyfname));
 			break;
 #endif
 		case 'N':
 			swcfg.globals.no_downgrading = 1;
-			strncpy(swcfg.globals.minimum_version, optarg,
+			strlcpy(swcfg.globals.minimum_version, optarg,
 				sizeof(swcfg.globals.minimum_version));
 			break;
 		case 'R':
 			swcfg.globals.no_reinstalling = 1;
-			strncpy(swcfg.globals.current_version, optarg,
+			strlcpy(swcfg.globals.current_version, optarg,
 				sizeof(swcfg.globals.current_version));
 			break;
 		case 'M':
@@ -830,11 +830,11 @@ int main(int argc, char **argv)
 			opt_c = 1;
 			break;
 		case 'p':
-			strncpy(swcfg.globals.postupdatecmd, optarg,
+			strlcpy(swcfg.globals.postupdatecmd, optarg,
 				sizeof(swcfg.globals.postupdatecmd));
 			break;
 		case 'P':
-			strncpy(swcfg.globals.preupdatecmd, optarg,
+			strlcpy(swcfg.globals.preupdatecmd, optarg,
 				sizeof(swcfg.globals.preupdatecmd));
 			break;
 		default:

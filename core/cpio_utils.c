@@ -649,7 +649,7 @@ int extract_cpio_header(int fd, struct filehdr *fhdr, unsigned long *offset)
 
 	if (fill_buffer(fd, buf, fhdr->namesize , offset, NULL, NULL) < 0)
 		return -EINVAL;
-	strncpy(fhdr->filename, (char *)buf, sizeof(fhdr->filename));
+	strlcpy(fhdr->filename, (char *)buf, sizeof(fhdr->filename));
 
 	/* Skip filename padding, if any */
 	if (fill_buffer(fd, buf, (4 - (*offset % 4)) % 4, offset, NULL, NULL) < 0)
