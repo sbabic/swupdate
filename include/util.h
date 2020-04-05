@@ -169,6 +169,11 @@ int copy_write(void *out, const void *buf, unsigned int len);
 #if defined(__FreeBSD__)
 int copy_write_padded(void *out, const void *buf, unsigned int len);
 #endif
+#if defined(__linux__)
+/* strlcpy was originally developped in FreeBSD, not present in glibc */
+size_t
+strlcpy(char *dst, const char * src, size_t size);
+#endif
 int copyfile(int fdin, void *out, unsigned int nbytes, unsigned long *offs,
 	unsigned long long seek,
 	int skip_file, int compressed, uint32_t *checksum,

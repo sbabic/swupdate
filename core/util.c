@@ -214,6 +214,22 @@ char *substring(const char *src, int first, int len) {
 	return s;
 }
 
+#if defined(__linux__)
+size_t
+strlcpy(char *dst, const char * src, size_t size)
+{
+
+    size_t len = strlen(src);
+    if (len < size) {
+        memcpy(dst, src, len + 1);
+    } else if (len) {
+        memcpy(dst, src, len - 1);
+	/* Add C string terminator */
+        dst[len - 1] = '\0';
+    }
+    return len;
+}
+#endif
 
 int openfileoutput(const char *filename)
 {
