@@ -61,8 +61,8 @@ static int read_sw_version_file(struct swupdate_cfg *sw)
 				ERROR("Allocation error");
 				return -ENOMEM;
 			}
-			strncpy(swcomp->name, name, sizeof(swcomp->name));
-			strncpy(swcomp->version, version, sizeof(swcomp->version));
+			strlcpy(swcomp->name, name, sizeof(swcomp->name));
+			strlcpy(swcomp->version, version, sizeof(swcomp->version));
 			LIST_INSERT_HEAD(&sw->installed_sw_list, swcomp, next);
 			TRACE("Installed %s: Version %s",
 					swcomp->name,
