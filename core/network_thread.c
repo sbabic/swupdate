@@ -274,7 +274,7 @@ void *network_thread (void *data)
 				 *  forward the request without checking
 				 *  the payload
 				 */
-			       
+
 				pipe = pctl_getfd_from_type(msg.data.instmsg.source);
 				if (pipe < 0) {
 					ERROR("Cannot find channel for requested process");
@@ -419,5 +419,5 @@ void *network_thread (void *data)
 			close(ctrlconnfd);
 		pthread_mutex_unlock(&stream_mutex);
 	} while (1);
-	return (void *)0; 
+	return (void *)0;
 }
