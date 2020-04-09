@@ -1110,7 +1110,6 @@ server_op_res_t server_process_update_artifact(int action_id,
 		      json_object_get_string(json_data_artifact_filename),
 		      json_object_get_string(json_data_artifact_url));
 
-		char *filename = NULL;
 		channel_data_t channel_data = channel_data_defaults;
 		channel_data.url =
 		    strdup(json_object_get_string(json_data_artifact_url));
@@ -1217,9 +1216,6 @@ server_op_res_t server_process_update_artifact(int action_id,
 		pthread_mutex_destroy(&notifylock);
 		if (channel_data.url != NULL) {
 			free(channel_data.url);
-		}
-		if (filename != NULL) {
-			free(filename);
 		}
 		if (channel_data.info != NULL) {
 			free(channel_data.info);
