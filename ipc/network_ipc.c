@@ -46,6 +46,9 @@ static int prepare_ipc(void) {
 	struct sockaddr_un servaddr;
 
 	connfd = socket(AF_LOCAL, SOCK_STREAM, 0);
+	if (connfd < 0) {
+		return connfd;
+	}
 	bzero(&servaddr, sizeof(servaddr));
 	servaddr.sun_family = AF_LOCAL;
 
