@@ -454,9 +454,9 @@ static int save_stream(int fdin, struct swupdate_cfg *software)
 
 no_copy_output:
 	free(buf);
-	if (fdout > 0)
+	if (fdout >= 0)
 		close(fdout);
-	if (tmpfd > 0) {
+	if (tmpfd >= 0) {
 		close(tmpfd);
 		unlink(tmpfilename);
 	}
@@ -597,4 +597,3 @@ int get_install_info(sourcetype *source, char *buf, size_t len)
 
 	return len;
 }
-
