@@ -108,7 +108,7 @@ static int diskpart(struct img_type *img,
 	struct partition_data *tmp;
 	int ret = 0;
 	int i;
-	struct hnd_priv priv;
+	struct hnd_priv priv =  {FDISK_DISKLABEL_DOS};
 
 	if (lbtype && strcmp(lbtype, "gpt") && strcmp(lbtype, "dos")) {
 		ERROR("Just GPT or DOS partition table are supported");
