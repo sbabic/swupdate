@@ -128,7 +128,7 @@ static int __ipc_get_status(int connfd, ipc_message *msg, unsigned int timeout_m
 		msg->magic = 0;
 
 		tv.tv_sec = 0;
-		tv.tv_usec = timeout_ms * 1000; 
+		tv.tv_usec = timeout_ms * 1000;
 		ret = select(connfd + 1, &fds, NULL, NULL, &tv);
 		if (ret <= 0 || !FD_ISSET(connfd, &fds))
 			return 0;
