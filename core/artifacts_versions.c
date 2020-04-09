@@ -159,7 +159,7 @@ void get_sw_versions(char __attribute__ ((__unused__)) *cfgname,
  *
  * but they do not need to have all fields.
  * Also major.minor or major.minor.revision are allowed
- * The conversion genearets a 64 bit value that can be compared
+ * The conversion generates a 64 bit value that can be compared
  */
 __u64 version_to_number(const char *version_string)
 {
@@ -180,7 +180,7 @@ __u64 version_to_number(const char *version_string)
 		}
 		free(*ver);
 	}
-	if (count < 4)
+	if ((count < 4) && (count > 0))
 		version <<= 16 * (4 - count);
 	free(versions);
 
