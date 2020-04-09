@@ -123,6 +123,9 @@ int listener_create(const char *path, int type)
 	if (listenfd == -1) {
 		TRACE("creating socket at %s", path);
 		listenfd = socket(AF_LOCAL, type, 0);
+		if (listenfd < 0) {
+			return -1;
+		}
 		unlink(path);
 		bzero(&servaddr, sizeof(servaddr));
 		servaddr.sun_family = AF_LOCAL;
@@ -142,7 +145,6 @@ int listener_create(const char *path, int type)
 			return -1;
 		}
 	return listenfd;
-
 }
 
 static void cleanum_msg_list(void)
