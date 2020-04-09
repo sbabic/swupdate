@@ -1050,7 +1050,7 @@ static int l_call_handler(lua_State *L)
 		lua_pushstring(L, "Error allocating memory");
 		return 2;
 	}
-	strncpy(img.type, lua_tostring(L, 1), sizeof(img.type));
+	strlcpy(img.type, lua_tostring(L, 1), sizeof(img.type));
 
 	if ((hnd = find_handler(&img)) == NULL) {
 		if (asprintf(&msg, "Image type %s not supported!", img.type) == -1) {
