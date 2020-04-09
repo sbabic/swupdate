@@ -687,7 +687,7 @@ int extract_sw_description(int fd, const char *descfile, off_t *offs)
 		ERROR("File Name too long : %s", fdh.filename);
 		return -1;
 	}
-	strncpy(output_file, TMPDIR, sizeof(output_file));
+	strlcpy(output_file, TMPDIR, sizeof(output_file));
 	strcat(output_file, fdh.filename);
 	fdout = openfileoutput(output_file);
 
