@@ -690,6 +690,9 @@ int extract_sw_description(int fd, const char *descfile, off_t *offs)
 	strlcpy(output_file, TMPDIR, sizeof(output_file));
 	strcat(output_file, fdh.filename);
 	fdout = openfileoutput(output_file);
+	if (fdout < 0) {
+		return -1;
+	}
 
 	if (lseek(fd, offset, SEEK_SET) < 0) {
 		ERROR("CPIO file corrupted : %s", strerror(errno));
