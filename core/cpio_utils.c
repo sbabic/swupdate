@@ -112,7 +112,12 @@ void extract_padding(int fd, unsigned long *offset)
 int copy_write(void *out, const void *buf, unsigned int len)
 {
 	int ret;
-	int fd = (out != NULL) ? *(int *)out : -1;
+	int fd;
+
+	if (!out)
+		return -1;
+
+	fd = *(int *)out;
 
 	while (len) {
 		errno = 0;
