@@ -324,7 +324,7 @@ int main(int argc, char **argv)
 			if (psplash_ok)
 				psplash_progress(psplash_pipe_path, &msg);
 			psplash_ok = 0;
-			if ((msg.status == SUCCESS) && opt_r) {
+			if ((msg.status == SUCCESS) && (msg.cur_step > 0) && opt_r) {
 				sleep(5);
 				if (system("reboot") < 0) { /* It should never happen */
 					fprintf(stdout, "Please reset the board.\n");
