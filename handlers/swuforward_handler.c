@@ -55,7 +55,7 @@ struct hnd_priv {
 static size_t curl_read_data(char *buffer, size_t size, size_t nmemb, void *userp)
 {
 	struct curlconn *conn = (struct curlconn *)userp;
-	size_t nbytes;
+	ssize_t nbytes;
 
 	if (!nmemb)
 		return 0;
@@ -94,7 +94,7 @@ static size_t curl_read_data(char *buffer, size_t size, size_t nmemb, void *user
 static int swu_forward_data(void *data, const void *buf, unsigned int len)
 {
 	struct hnd_priv *priv = (struct hnd_priv *)data;
-	size_t written;
+	ssize_t written;
 	struct curlconn *conn;
 	int index = 0;
 
