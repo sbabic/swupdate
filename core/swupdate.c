@@ -665,32 +665,46 @@ int main(int argc, char **argv)
 		switch (c) {
 		case 'f':
 			cfgfname = sdup(optarg);
-			if (read_module_settings(cfgfname, "globals",
-				read_globals_settings, &swcfg)) {
-				fprintf(stderr,
-					 "Error parsing configuration file, exiting..\n");
-				exit(EXIT_FAILURE);
-			}
-
-			loglevel = swcfg.globals.loglevel;
-			if (swcfg.globals.verbose)
-				loglevel = TRACELEVEL;
-
-			int ret = read_module_settings(cfgfname, "processes",
-							read_processes_settings,
-							&swcfg);
-			/*
-			 * ignore other errors, check only if file is parsed
-			 */
-			if (ret == -EINVAL) {
-				fprintf(stderr,
-					 "Error parsing configuration file, exiting..\n");
-				exit(EXIT_FAILURE);
-			}
 			break;
 		case '0':
 			printf("%s", BANNER);
 			exit(EXIT_SUCCESS);
+		}
+	}
+
+	/* Check for (and use) default configuration if present and none
+	 * was supplied on the command line (-f)
+	 */
+	if (cfgfname == NULL) {
+		struct stat stbuf;
+		if (stat(CONFIG_DEFAULT_CONFIG_FILE, &stbuf) == 0) {
+			cfgfname = sdup(CONFIG_DEFAULT_CONFIG_FILE);
+		}
+	}
+
+	/* Load configuration file */
+	if (cfgfname != NULL) {
+		if (read_module_settings(cfgfname, "globals",
+			read_globals_settings, &swcfg)) {
+			fprintf(stderr,
+				 "Error parsing configuration file, exiting..\n");
+			exit(EXIT_FAILURE);
+		}
+
+		loglevel = swcfg.globals.loglevel;
+		if (swcfg.globals.verbose)
+			loglevel = TRACELEVEL;
+
+		int ret = read_module_settings(cfgfname, "processes",
+						read_processes_settings,
+						&swcfg);
+		/*
+		 * ignore other errors, check only if file is parsed
+		 */
+		if (ret == -EINVAL) {
+			fprintf(stderr,
+				 "Error parsing configuration file, exiting..\n");
+			exit(EXIT_FAILURE);
 		}
 	}
 

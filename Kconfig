@@ -113,6 +113,15 @@ config SYSTEMD
 	  Enable support for systemd's start-up completion
 	  notification and socket-based activation features.
 
+config DEFAULT_CONFIG_FILE
+	string "File with default settings"
+	default "/etc/swupdate.cfg"
+	help
+	  SWUpdate may get its default configuration settings
+	  from the specified file (if present). Users may
+	  override the default configuration with the -f
+	  option switch.
+
 config SCRIPTS
 	bool "enable pre and postinstall scripts"
 	default y
