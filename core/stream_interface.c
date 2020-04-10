@@ -368,7 +368,7 @@ static int save_stream(int fdin, struct swupdate_cfg *software)
 	}
 
 	/*
-	 * Cache the beginnining of the SWU to parse
+	 * Cache the beginning of the SWU to parse
 	 * sw-description and check if the output must be
 	 * redirected. This allows to define the output file on demand
 	 * setting it into sw-description.
@@ -380,6 +380,11 @@ static int save_stream(int fdin, struct swupdate_cfg *software)
 		goto no_copy_output;
 	}
 	len = read(fdin, buf, bufsize);
+	if (len < 0) {
+		ERROR("Reading from file failed, error %d", errno);
+		ret = -EFAULT;
+		goto no_copy_output;
+	}
 	if (get_cpiohdr(buf, &fdh.size, &fdh.namesize, &fdh.chksum) < 0) {
 		ERROR("CPIO Header corrupted, cannot be parsed");
 		ret = -EINVAL;
