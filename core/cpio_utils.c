@@ -499,6 +499,12 @@ int copyfile(int fdin, void *out, unsigned int nbytes, unsigned long *offs, unsi
 
 	if (seek) {
 		int fdout = (out != NULL) ? *(int *)out : -1;
+		if (fdout < 0) {
+			ERROR("out argument: invalid fd or pointer");
+			ret = -EFAULT;
+			goto copyfile_exit;
+		}
+
 		TRACE("offset has been defined: %llu bytes", seek);
 		if (lseek(fdout, seek, SEEK_SET) < 0) {
 			ERROR("offset argument: seek failed");
