@@ -59,6 +59,9 @@ static int read_sw_version_file(struct swupdate_cfg *sw)
 			swcomp = (struct sw_version *)calloc(1, sizeof(struct sw_version));
 			if (!swcomp) {
 				ERROR("Allocation error");
+				fclose(fp);
+				free(name);
+				free(version);
 				return -ENOMEM;
 			}
 			strlcpy(swcomp->name, name, sizeof(swcomp->name));
