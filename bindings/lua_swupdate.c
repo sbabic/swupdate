@@ -178,7 +178,7 @@ static int ctrl_write(lua_State *L) {
 		lua_pushstring(L, "Error converting Lua chunk data.");
 		goto ctrl_write_exit;
 	}
-	if ((len = ipc_send_data(p->socket, (char *)buf, len)) < 0) {
+	if (ipc_send_data(p->socket, (char *)buf, len) < 0) {
 		lua_pushnil(L);
 		lua_pushstring(L, "Error writing to SWUpdate control socket.");
 		goto ctrl_write_exit;
