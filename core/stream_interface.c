@@ -533,7 +533,8 @@ void *network_initializer(void *data)
 		 	 */
 			ret = extract_files(inst.fd, software);
 		}
-		close(inst.fd);
+		if (!(inst.fd < 0))
+			close(inst.fd);
 
 		/* do carry out the installation (flash programming) */
 		if (ret == 0) {
