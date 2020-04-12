@@ -643,7 +643,7 @@ int copyimage(void *out, struct img_type *img, writeimage callback)
 
 int extract_cpio_header(int fd, struct filehdr *fhdr, unsigned long *offset)
 {
-	unsigned char buf[256];
+	unsigned char buf[sizeof(fhdr->filename)];
 	if (fill_buffer(fd, buf, sizeof(struct new_ascii_header), offset, NULL, NULL) < 0)
 		return -EINVAL;
 	if (get_cpiohdr(buf, &fhdr->size, &fhdr->namesize, &fhdr->chksum) < 0) {
@@ -660,6 +660,7 @@ int extract_cpio_header(int fd, struct filehdr *fhdr, unsigned long *offset)
 
 	if (fill_buffer(fd, buf, fhdr->namesize , offset, NULL, NULL) < 0)
 		return -EINVAL;
+	buf[fhdr->namesize] = '\0';
 	strlcpy(fhdr->filename, (char *)buf, sizeof(fhdr->filename));
 
 	/* Skip filename padding, if any */
