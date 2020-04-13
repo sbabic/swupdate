@@ -942,7 +942,7 @@ static void *process_notification_thread(void *data)
 			stop = true;
 		}
 
-		if (msg.data.status.current == PROGRESS)
+		if (data_avail && msg.data.status.current == PROGRESS)
 			continue;
 		/*
 		 * If there is a message
