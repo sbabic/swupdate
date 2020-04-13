@@ -41,6 +41,8 @@ Here a short list of the main features:
 - Power-Off safe
 - Hardware / Software compatibility.
 
+More on http://sbabic.github.io/swupdate/swupdate.html
+
 Different components of this software are under different licenses (a mix
 of MIT, GPLv2 and GPLv2+). License information for any file is either explicitly stated
 or defaults to GPL version 2.0+.
