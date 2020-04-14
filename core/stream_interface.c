@@ -518,7 +518,8 @@ void *network_initializer(void *data)
 			 * now replace the file descriptor with
 			 * the saved file
 			 */
-			close(inst.fd);
+			if (!(inst.fd < 0))
+				close(inst.fd);
 			inst.fd = open(software->output, O_RDONLY,  S_IRUSR);
 		}
 
