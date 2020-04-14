@@ -427,9 +427,14 @@ static int parse_image_selector(const char *selector, struct swupdate_cfg *sw)
 }
 
 static void create_directory(const char* path) {
-	char* dpath = alloca(strlen(get_tmpdir())+strlen(path)+1);
-	sprintf(dpath, "%s%s", get_tmpdir(), path);
+	char* dpath;
+	if (asprintf(&dpath, "%s%s", get_tmpdir(), path) ==
+		ENOMEM_ASPRINTF) {
+		ERROR("OOM: Directory %s not created", path);
+		return;
+	}
 	mkdir(dpath, 0777);
+	free(dpath);
 }
 
 #ifndef CONFIG_NOCLEANUP
