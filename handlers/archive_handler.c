@@ -196,27 +196,33 @@ static int install_archive_image(struct img_type *img,
 	int use_mount = (strlen(img->device) && strlen(img->filesystem)) ? 1 : 0;
 	int is_mounted = 0;
 	int exitval = -EFAULT;
-
-	char* DATADST_DIR = alloca(strlen(get_tmpdir())+strlen(DATADST_DIR_SUFFIX)+1);
-	sprintf(DATADST_DIR, "%s%s", get_tmpdir(), DATADST_DIR_SUFFIX);
-
-	char * FIFO = alloca(strlen(get_tmpdir())+strlen(FIFO_FILE_NAME)+1);
-	sprintf(FIFO, "%s%s", get_tmpdir(), FIFO_FILE_NAME);
-
-	pthread_attr_init(&attr);
-	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+	char *DATADST_DIR = NULL;
+	char *FIFO = NULL;
 
 	if (strlen(img->path) == 0) {
 		TRACE("Missing path attribute");
-		return -1;
+		return -EINVAL;
 	}
+
+	if ((asprintf(&DATADST_DIR, "%s%s", get_tmpdir(), DATADST_DIR_SUFFIX) ==
+		ENOMEM_ASPRINTF) ||
+		(asprintf(&FIFO, "%s%s", get_tmpdir(), FIFO_FILE_NAME) ==
+		ENOMEM_ASPRINTF)) {
+		ERROR("Path too long: %s", get_tmpdir());
+		exitval = -ENOMEM;
+		goto out;
+	}
+
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
 	if (use_mount) {
 		ret = swupdate_mount(img->device, DATADST_DIR, img->filesystem);
 		if (ret) {
 			ERROR("Device %s with filesystem %s cannot be mounted",
 				img->device, img->filesystem);
-			return -1;
+			exitval = -EINVAL;
+			goto out;
 		}
 
 		is_mounted = 1;
@@ -255,7 +261,8 @@ static int install_archive_image(struct img_type *img,
 		ret = mkpath(path, 0755);
 		if (ret < 0) {
 			ERROR("I cannot create path %s: %s", path, strerror(errno));
-			return -1;
+			exitval = -EFAULT;
+			goto out;
 		}
 	}
 
@@ -331,7 +338,8 @@ out:
 		}
 	}
 
-	unlink(FIFO);
+	if (FIFO)
+		unlink(FIFO);
 
 	if (is_mounted) {
 		ret = swupdate_umount(DATADST_DIR);
@@ -339,6 +347,9 @@ out:
 			TRACE("Failed to unmount directory %s", DATADST_DIR);
 		}
 	}
+
+	free(DATADST_DIR);
+	free(FIFO);
 
 	return exitval;
 }
