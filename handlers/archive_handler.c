@@ -81,6 +81,7 @@ extract(void *p)
 	struct extract_data *data = (struct extract_data *)p;
 	flags = data->flags;
 	int exitval = -EFAULT;
+	char *FIFO = NULL;
 
 #ifdef CONFIG_LOCALE
 	/*
@@ -123,8 +124,13 @@ extract(void *p)
 	 * Enabling bzip2 is more expensive because the libbz2 library
 	 * isn't very well factored.
 	 */
-	char* FIFO = alloca(strlen(get_tmpdir())+strlen(FIFO_FILE_NAME)+1);
-	sprintf(FIFO, "%s%s", get_tmpdir(), FIFO_FILE_NAME);
+	if  (asprintf(&FIFO, "%s%s", get_tmpdir(), FIFO_FILE_NAME) ==
+		ENOMEM_ASPRINTF) {
+		ERROR("Path too long: %s", get_tmpdir());
+		exitval = -ENOMEM;
+		goto out;
+	}
+
 	if ((r = archive_read_open_filename(a, FIFO, 4096))) {
 		ERROR("archive_read_open_filename(): %s %d",
 		    archive_error_string(a), r);
@@ -175,6 +181,8 @@ out:
 		archive_read_close(a);
 		archive_read_free(a);
 	}
+
+	free(FIFO);
 
 #ifdef CONFIG_LOCALE
 	uselocale(old_locale);
