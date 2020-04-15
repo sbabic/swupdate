@@ -119,8 +119,8 @@ void swupdate_progress_inc_step(char *image, char *handler_name)
 	pthread_mutex_lock(&prbar->lock);
 	prbar->msg.cur_step++;
 	prbar->msg.cur_percent = 0;
-	strncpy(prbar->msg.cur_image, image, sizeof(prbar->msg.cur_image));
-	strncpy(prbar->msg.hnd_name, handler_name, sizeof(prbar->msg.hnd_name));
+	strlcpy(prbar->msg.cur_image, image, sizeof(prbar->msg.cur_image));
+	strlcpy(prbar->msg.hnd_name, handler_name, sizeof(prbar->msg.hnd_name));
 	prbar->step_running = true;
 	prbar->msg.status = RUN;
 	send_progress_msg();
