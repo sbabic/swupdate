@@ -288,6 +288,7 @@ static int searching_for_image(char *name)
 
 	free(dirc);
 	free(basec);
+	closedir(path);
 
 	return fd;
 }
