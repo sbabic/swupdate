@@ -174,11 +174,12 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 				return -1;
 			}
 			if (strcmp("TRAILER!!!", fdh.filename) == 0) {
-                /*
-                 * Keep reading the cpio padding, if any, up to 512 bytes from
-                 * the socket until the client stops writing
-                 */
-                extract_padding(fd, &offset);
+ 				/*
+			 	 * Keep reading the cpio padding, if any, up
+				 * to 512 bytes from the socket until the
+				 * client stops writing
+			 	 */
+				extract_padding(fd, &offset);
 				status = STREAM_END;
 				break;
 			}
