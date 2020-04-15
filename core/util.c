@@ -215,24 +215,35 @@ char *substring(const char *src, int first, int len) {
 }
 
 #if defined(__linux__)
-size_t
-strlcpy(char *dst, const char * src, size_t size)
-{
 
-    size_t len = strlen(src);
-    /*
-     * src is null termintaed,
-     * copy the last '\0', too.
-     */
-    if (len < size) {
-        memcpy(dst, src, len + 1);
-    } else if (len) {
-	/* truncate string */
-        memcpy(dst, src, size - 1);
-	/* Add C string terminator */
-        dst[size - 1] = '\0';
-    }
-    return len;
+/*
+ * Copy string src to buffer dst of size dsize.  At most dsize-1
+ * chars will be copied.  Always NUL terminates (unless dsize == 0).
+ * Returns strlen(src); if retval >= dsize, truncation occurred.
+ */
+size_t
+strlcpy(char * __restrict dst, const char * __restrict src, size_t dsize)
+{
+	const char *osrc = src;
+	size_t nleft = dsize;
+
+	/* Copy as many bytes as will fit. */
+	if (nleft != 0) {
+		while (--nleft != 0) {
+			if ((*dst++ = *src++) == '\0')
+				break;
+		}
+	}
+
+	/* Not enough room in dst, add NUL and traverse rest of src. */
+	if (nleft == 0) {
+		if (dsize != 0)
+			*dst = '\0';		/* NUL-terminate dst */
+		while (*src++)
+			;
+	}
+
+	return(src - osrc - 1);	/* count does not include NUL */
 }
 #endif
 
