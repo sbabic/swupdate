@@ -220,12 +220,17 @@ strlcpy(char *dst, const char * src, size_t size)
 {
 
     size_t len = strlen(src);
+    /*
+     * src is null termintaed,
+     * copy the last '\0', too.
+     */
     if (len < size) {
         memcpy(dst, src, len + 1);
     } else if (len) {
-        memcpy(dst, src, len - 1);
+	/* truncate string */
+        memcpy(dst, src, size - 1);
 	/* Add C string terminator */
-        dst[len - 1] = '\0';
+        dst[size - 1] = '\0';
     }
     return len;
 }
