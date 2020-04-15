@@ -406,17 +406,14 @@ static int install_from_file(char *fname, int check)
 static int parse_image_selector(const char *selector, struct swupdate_cfg *sw)
 {
 	char *pos;
-	size_t len;
 
 	pos = strchr(selector, ',');
 	if (pos == NULL)
 		return -EINVAL;
 
-	len = pos - selector;
-	if (len > sizeof(sw->software_set))
-		len = sizeof(sw->software_set);
+	*pos = '\0';
 
-	strlcpy(sw->software_set, selector, len);
+	strlcpy(sw->software_set, selector, sizeof(sw->software_set));
 	/* pos + 1 will either be NULL or valid text */
 	strlcpy(sw->running_mode, pos + 1, sizeof(sw->running_mode));
 
