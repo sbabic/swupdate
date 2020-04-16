@@ -447,9 +447,16 @@ static int _remove_directory_cb(const char *fpath, const struct stat *sb,
 
 static int remove_directory(const char* path)
 {
-	char* dpath = alloca(strlen(get_tmpdir())+strlen(path)+1);
-	sprintf(dpath, "%s%s", get_tmpdir(), path);
-	return nftw(dpath, _remove_directory_cb, 64, FTW_DEPTH | FTW_PHYS);
+	char* dpath;
+	int ret;
+	if (asprintf(&dpath, "%s%s", get_tmpdir(), path) ==
+		ENOMEM_ASPRINTF) {
+		ERROR("OOM: Directory %s not removed", path);
+		return -ENOMEM;
+	}
+	ret = nftw(dpath, _remove_directory_cb, 64, FTW_DEPTH | FTW_PHYS);
+	free(dpath);
+	return ret;
 }
 #endif
 
