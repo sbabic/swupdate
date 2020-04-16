@@ -82,8 +82,9 @@ int ipc_postupdate(ipc_message *msg) {
 	}
 	memset(msg, 0, sizeof(*msg));
 	if (tmpbuf != NULL) {
-		strncpy(msg->data.instmsg.buf, tmpbuf, sizeof(msg->data.instmsg.buf));
-		msg->data.instmsg.len = strnlen(tmpbuf, sizeof(msg->data.instmsg.buf));
+		msg->data.instmsg.buf[sizeof(msg->data.instmsg.buf) - 1] = '\0';
+		strncpy(msg->data.instmsg.buf, tmpbuf, sizeof(msg->data.instmsg.buf) - 1);
+		msg->data.instmsg.len = strnlen(tmpbuf, sizeof(msg->data.instmsg.buf) - 1);
 	}
 	msg->magic = IPC_MAGIC;
 	msg->type = POST_UPDATE;
