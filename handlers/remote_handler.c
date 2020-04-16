@@ -94,6 +94,8 @@ static int RHmsg_get_ack(struct RHmsg *self, void *request)
 
 	size = zmq_msg_size(&self->frame[0]);
 	string = malloc (size + 1);
+	if (!string)
+		return -ENOMEM;
 	memcpy (string, zmq_msg_data (&self->frame[0]), size);
 	string[size] = '\0';
 	zmq_msg_close(&self->frame[0]);
@@ -107,6 +109,7 @@ static int RHmsg_get_ack(struct RHmsg *self, void *request)
 		len = (strchr(string, ':') - string - 1);
 	if (strncmp(string, "ACK", len) != 0) {
 		ERROR("Remote Handler returns error, exiting");
+		free(string);
 		return -EFAULT;
 	}
 
@@ -120,6 +123,8 @@ static int RHmsg_get_ack(struct RHmsg *self, void *request)
 		if (newtimeout > 0)
 			timeout = newtimeout;
 	}
+
+	free(string);
 
 	return 0;
 }
