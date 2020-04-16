@@ -473,7 +473,8 @@ static int get_gpio_from_property(struct dict_list *prop, struct mode_setup *gpi
 	memset(gpio, 0, sizeof(*gpio));
 
 	LIST_FOREACH(entry, prop, next) {
-		char *s = strdup(entry->value);
+		char *sstore = strdup(entry->value);
+		char *s = sstore;
 		for (i = 0; i < 3; i++) {
 			char *t = strchr(s, ':');
 
@@ -498,6 +499,7 @@ static int get_gpio_from_property(struct dict_list *prop, struct mode_setup *gpi
 				break;
 			s = ++t;
 		}
+		free(sstore);
 	}
 
 	return 0;
