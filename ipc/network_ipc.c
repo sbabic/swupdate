@@ -52,7 +52,7 @@ static int prepare_ipc(void) {
 	bzero(&servaddr, sizeof(servaddr));
 	servaddr.sun_family = AF_LOCAL;
 
-	strncpy(servaddr.sun_path, get_ctrl_socket(), sizeof(servaddr.sun_path));
+	strncpy(servaddr.sun_path, get_ctrl_socket(), sizeof(servaddr.sun_path) - 1);
 
 	ret = connect(connfd, (struct sockaddr *) &servaddr, sizeof(servaddr));
 	if (ret < 0) {
