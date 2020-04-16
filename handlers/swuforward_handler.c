@@ -282,7 +282,7 @@ static int install_remote_swu(struct img_type *img,
 	void __attribute__ ((__unused__)) *data)
 {
 	struct hnd_priv priv;
-	struct curlconn *conn;
+	struct curlconn *conn, *tmp;
 	int ret;
 	struct dict_list_elem *url;
 	struct dict_list *urls;
@@ -400,7 +400,7 @@ static int install_remote_swu(struct img_type *img,
 	}
 
 handler_exit:
-	LIST_FOREACH(conn, &priv.conns, next) {
+	LIST_FOREACH_SAFE(conn, &priv.conns, next, tmp) {
 		index = 0;
 		LIST_REMOVE(conn, next);
 		swuforward_ws_free(conn);
