@@ -260,6 +260,7 @@ static int ssbl_swap(struct img_type *img, void *data)
 	if (ret != sizeof(struct ssbl_admin_sector)) {
 		ERROR( "Cannot write SSBL admin : %s: %s", mtd_device,
 			strerror(errno));
+		close(fd);
 		return -EIO;
 	}
 
@@ -273,6 +274,7 @@ static int ssbl_swap(struct img_type *img, void *data)
 	if (ret != sizeof(uint32_t)) {
 		ERROR( "Cannot write SSBL admin : %s: %s", mtd_device,
 			strerror(errno));
+		close(fd);
 		return -EIO;
 	}
 
