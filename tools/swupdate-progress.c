@@ -105,6 +105,8 @@ static int psplash_init(char *pipe)
 		}
 	}
 
+	close(psplash_pipe_fd);
+
 	return 1;
 }
 
