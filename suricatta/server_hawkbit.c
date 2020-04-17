@@ -1878,6 +1878,9 @@ static server_op_res_t server_activation_ipc(ipc_message *msg)
 
 	int numdetails = json_object_array_length(json_data);
 	const char **details = (const char **)malloc((numdetails + 1) * (sizeof (char *)));
+	if(!details)
+		return SERVER_EERR;
+
 	if (!numdetails)
 		details[0] = "";
 	else {
@@ -1926,6 +1929,8 @@ static server_op_res_t server_activation_ipc(ipc_message *msg)
 	}
 
 	msg->data.instmsg.len = 0;
+
+	free(details);
 
 	return result;
 }
