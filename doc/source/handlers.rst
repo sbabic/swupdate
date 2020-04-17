@@ -654,6 +654,7 @@ hash value.
 The following example explains how to use this handler:
 
 ::
+
     scripts: (
     {
         device = "/dev/mmcblk2p1";
