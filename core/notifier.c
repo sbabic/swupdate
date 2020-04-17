@@ -320,6 +320,10 @@ static void *notifier_thread (void __attribute__ ((__unused__)) *data)
 
 	do {
 		len =  recvfrom(serverfd, &msg, sizeof(msg), 0, NULL, NULL);
+		/*
+		 * Force msg.buf to be Null Terminated
+		 */
+		msg.buf [sizeof(msg.buf) - 1] = '\0';
 
 		if (len > 0) {
 			notify(msg.status, msg.error, msg.level, msg.buf);
