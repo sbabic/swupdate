@@ -94,4 +94,5 @@ before_install:
     - cd ..
     - sudo ldconfig
 
-script: if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then for i in configs/*;do echo $i;make `basename $i` && make || exit 1;make test || exit 1;done; fi
+script:
+    - for i in configs/*;do echo $i;make `basename $i` && make || exit 1;make test || exit 1;done
