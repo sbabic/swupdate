@@ -211,6 +211,13 @@ int main(int argc, char **argv)
 		}
 
 		if (msg.infolen > 0) {
+			/*
+			 * check that msg is NULL terminated
+			 */
+			if (msg.infolen > sizeof(msg.info) - 1) {
+				msg.infolen = sizeof(msg.info) - 1;
+				msg.info[sizeof(msg.info) - 1] = '\0';
+			}
 			char *ipaddr = strstr(msg.info, PATTERN);
 			char *end;
 			if (ipaddr && (strlen(ipaddr) > strlen(PATTERN))) {
