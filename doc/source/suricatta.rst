@@ -53,7 +53,7 @@ tries to report the update status to its upstream server, e.g.,
 hawkBit, prior to entering the main loop awaiting further updates.
 If this initial report fails, e.g., because of a not (yet) configured
 network or a currently unavailable hawkBit server, SWUpdate may exit
-with an according error code. This behavior allows to, for example,
+with an according error code. This behavior allows one to, for example,
 try several upstream servers sequentially.
 If suricatta should keep retrying until the update status is reported
 to its upstream server irrespective of the error conditions, this has

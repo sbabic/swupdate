@@ -1,7 +1,7 @@
 Symmetrically Encrypted Update Images
 =====================================
 
-SWUpdate allows to symmetrically encrypt update images using the
+SWUpdate allows one to symmetrically encrypt update images using the
 256 bit AES block cipher in CBC mode.
 
 

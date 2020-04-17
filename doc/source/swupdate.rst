@@ -295,7 +295,7 @@ Building a debian package
 SWUpdate is thought for Embedded Systems and building in an embedded
 distribution is the first use case. But apart the most used buildsystems
 for embedded as Yocto or Buildroot, in some cases a standard Linux distro
-is used. Not only, a distro package allows to run SWUpdate on Linux PC
+is used. Not only, a distro package allows one to run SWUpdate on Linux PC
 for test purposes without having to fight with dependencies. Using the
 debhelper tools, it is possible to generate a debian package.
 
@@ -425,13 +425,13 @@ Command line parameters
 | -f <file>   | string   | SWUpdate config file to use                |
 +-------------+----------+--------------------------------------------+
 | -b <string> | string   | Active only if CONFIG_UBIATTACH is set     |
-|             |          | It allows to blacklist MTDs when SWUpdate  |
-|             |          | searches for UBI volumes.                  |
+|             |          | It allows one to blacklist MTDs when       |
+|             |          | SWUpdate searches for UBI volumes.         |
 |             |          | Example: U-Boot and environment in MTD0-1: |
 |             |          | **swupdate -b "0 1"**                      |
 +-------------+----------+--------------------------------------------+
 | -e <sel>    | string   | sel is in the format <software>,<mode>     |
-|             |          | It allows to find a subset of rules in     |
+|             |          | It allows one to find a subset of rules in |
 |             |          | the sw-description file. With it,          |
 |             |          | multiple rules are allowed.                |
 |             |          | One common usage is in case of the dual    |

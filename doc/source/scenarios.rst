@@ -1,7 +1,7 @@
 Update strategy examples
 ========================
 
-SWUpdate is a building block and it allows to design and implementing its own
+SWUpdate is a building block and it allows one to design and implementing its own
 update strategy.
 Even if many projects have common ways for updating, it is possible to high customize
 the update for each project.

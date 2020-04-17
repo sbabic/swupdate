@@ -146,7 +146,7 @@ After u-boot.img is successfully installed into the volume "u-boot_r",
 the volume "u-boot_r" is renamed to "u-boot" and "u-boot" is renamed
 to "u-boot_r".
 
-This mechanism allows to implement a simple double copy update
+This mechanism allows one to implement a simple double copy update
 approach without the need of shared state with the bootloader. For
 example, the U-Boot SPL can be configured to always load U-Boot from
 the volume ``u-boot`` without the need to access the environment. The
@@ -165,7 +165,7 @@ However, please note the following limitations:
 - Atomic renames are only possible and permitted for volumes residing
   on the same UBI device.
 
-There is a handler ubiswap that allow to do an atomic swap for several
+There is a handler ubiswap that allow one to do an atomic swap for several
 ubi volume after all the images were flashed. This handler is a script
 for the point of view of swudate, so the node that provide it the data
 should be added in the section scripts.
@@ -338,7 +338,7 @@ returns. Chaining handlers, calling ``image:copy2file()``, or using
 
 
 Note that although the dynamic nature of Lua handlers would
-technically allow to embed them into a to be processed ``.swu``
+technically allow one to embed them into a to be processed ``.swu``
 image, this is not implemented as it carries some security
 implications since the behavior of SWUpdate is changed
 dynamically.
@@ -510,7 +510,7 @@ skipping over unchanged content is handled well by the rdiff algorithm.
 ucfw handler
 ------------
 
-This handler allows to update the firmware on a microcontroller connected to
+This handler allows one to update the firmware on a microcontroller connected to
 the main controller via UART.
 Parameters for setup are passed via sw-description file.  Its behavior can be
 extended to be more general.

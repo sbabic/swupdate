@@ -30,7 +30,7 @@ static struct option long_options[] = {
     {"url", required_argument, NULL, 'u'},
     {"retries", required_argument, NULL, 'r'},
     {"timeout", required_argument, NULL, 't'},
-    {"authentification", required_argument, NULL, 'a'},
+    {"authentication", required_argument, NULL, 'a'},
     {NULL, 0, NULL, 0}};
 
 /*

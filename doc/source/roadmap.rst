@@ -55,7 +55,7 @@ each of them solves a specific use case for a delta update.
 SWUpdate is already able to perform delta updates based on librsync library. This is
 currently a good compromise to reduce complexity. Anyway, this helps in case of
 small changes, and it is not a general solution between two generic releases.
-A general approach could be to integrate SWUpdate with a storage to allow a delta upgrade
+A general approach could be to integrate SWUpdate with a storage to allow one a delta upgrade
 from any release. 
 
 Integration in Linux distro
@@ -98,7 +98,7 @@ Some ideas for new handlers:
 Flash handler
 -------------
 
-The flash handler for raw-devices (mainly NOR flashes) does not allow to
+The flash handler for raw-devices (mainly NOR flashes) does not allow one to
 stream the image and an error is reported if "installed-directly" is set.
 The handler can be extended to stream images.
 
@@ -121,7 +121,7 @@ a unauthenticated handler cannot run.
 Security
 ========
 
-- add suport for asymmetryc encryption
+- add support for asymmetryc encryption
 - add a way to share symmetric keys (similar as done in TLS)
 
 Support for evaluation boards
@@ -183,7 +183,7 @@ SWUpdate-GUI is released with a base set of features. The goal of this simple GU
 is to have a low footprint compared to GUI developed with state of art frameworks. 
 This lets to still have a rescue that fits in small devices.
 SWUpdate-GUI is already production-ready and delivered into final products. New
-features coud be developped.
+features coud be developed.
 
 Test and Continuous Integration
 ===============================
