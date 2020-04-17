@@ -265,8 +265,13 @@ int main(int argc, char **argv)
 
 		}
 
-		if (msg.infolen > 0)
+		if (msg.infolen > 0) {
+			if (msg.infolen >= sizeof(msg.info) - 1) {
+				msg.infolen = sizeof(msg.info) - 1;
+				msg.info[sizeof(msg.info) - 1] = '\0';
+			}
 			fprintf(stdout, "INFO : %s\n\n", msg.info);
+		}
 
 		if (!psplash_ok && opt_p) {
 			psplash_ok = psplash_init(psplash_pipe_path);
