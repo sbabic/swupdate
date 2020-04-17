@@ -276,11 +276,11 @@ int main(int argc, char **argv)
 			fprintf(stdout, "\n");
 
 		filled_len = sizeof(bar) * msg.cur_percent / 100;
-		if (filled_len > sizeof(bar))
-			filled_len = sizeof(bar);
+		if (filled_len > sizeof(bar) - 1)
+			filled_len = sizeof(bar) - 1;
 
 		memset(bar,'=', filled_len);
-		memset(&bar[filled_len], '-', sizeof(bar) - filled_len);
+		memset(&bar[filled_len], '-', sizeof(bar) - filled_len - 1);
 
 		fprintf(stdout, "[ %.60s ] %d of %d %d%% (%s)\r",
 			bar,
