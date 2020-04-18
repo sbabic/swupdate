@@ -431,7 +431,10 @@ static void create_directory(const char* path) {
 		ERROR("OOM: Directory %s not created", path);
 		return;
 	}
-	mkdir(dpath, 0777);
+	if (mkdir(dpath, 0777)) {
+		WARN("Directory %s cannot be created due to : %s",
+		     path, strerror(errno));
+	}
 	free(dpath);
 }
 
