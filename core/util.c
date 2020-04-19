@@ -774,6 +774,7 @@ char *swupdate_time_iso8601(void)
 	char msbuf[4];
 	/* date length is fix, reserve enough space */
 	char *buf = (char *)malloc(DATE_SIZE_ISO8601);
+	char *tmp;
 
 	if (!buf)
 		return NULL;
@@ -787,7 +788,9 @@ char *swupdate_time_iso8601(void)
 	 * Replace '*' placeholder with ms value
 	 */
 	snprintf(msbuf, sizeof(msbuf), "%03d", ms);
-	memcpy(strchr(buf, '*'), msbuf, 3);
+	tmp = strchr(buf, '*');
+	if (tmp)
+		memcpy(tmp, msbuf, 3);
 
 	/*
 	 * strftime add 4 bytes for timezone, ISO8601 uses
