@@ -360,6 +360,9 @@ static int save_stream(int fdin, struct swupdate_cfg *software)
 	char output_file[MAX_IMAGE_FNAME];
 	const char* TMPDIR = get_tmpdir();
 
+	if (fdin < 0)
+		return -EINVAL;
+
 	snprintf(tmpfilename, sizeof(tmpfilename), "%s/%s", TMPDIR, SW_TMP_OUTPUT);
 
 	buf = (unsigned char *)malloc(bufsize);
