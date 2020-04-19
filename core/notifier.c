@@ -102,7 +102,7 @@ void notify(RECOVERY_STATUS status, int error, int level, const char *msg)
 			notifymsg.error = error;
 			notifymsg.level = level;
 			if (msg)
-				strcpy(notifymsg.buf, msg);
+				strlcpy(notifymsg.buf, msg, sizeof(notifymsg.buf) - 1);
 			else
 				notifymsg.buf[0] = '\0';
 			sendto(notifyfd, &notifymsg, sizeof(notifymsg), 0,
