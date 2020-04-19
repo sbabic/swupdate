@@ -34,6 +34,9 @@ int get_cpiohdr(unsigned char *buf, unsigned long *size,
 {
 	struct new_ascii_header *cpiohdr;
 
+	if (!buf)
+		return -EINVAL;
+
 	cpiohdr = (struct new_ascii_header *)buf;
 	if (strncmp(cpiohdr->c_magic, "070702", 6) != 0) {
 		ERROR("CPIO Format not recognized: magic not found");
