@@ -136,7 +136,8 @@ int listener_create(const char *path, int type)
 			return -1;
 		}
 
-		chmod(path,  S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+		if (chmod(path,  S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH) < 0)
+			WARN("chmod cannot be set on socket, error %s", strerror(errno));
 	}
 
 	if (type == SOCK_STREAM)
