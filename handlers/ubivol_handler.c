@@ -564,13 +564,13 @@ static int swap_volume(struct img_type *img, void *data)
 
 		/* swap first -> second */
 		rnvol.ents[2 * count + 0].vol_id = vol_id[0];
-		rnvol.ents[2 * count + 0].name_len = strlen(name[1]);
-		strcpy(rnvol.ents[2 * count + 0].name, name[1]);
+		rnvol.ents[2 * count + 0].name_len = min(strlen(name[1]), UBI_MAX_VOLUME_NAME);
+		strlcpy(rnvol.ents[2 * count + 0].name, name[1], UBI_MAX_VOLUME_NAME);
 
 		/* swap second -> first */
 		rnvol.ents[2 * count + 1].vol_id = vol_id[1];
-		rnvol.ents[2 * count + 1].name_len = strlen(name[0]);
-		strcpy(rnvol.ents[2 * count + 1].name, name[0]);
+		rnvol.ents[2 * count + 1].name_len = min(strlen(name[0]), UBI_MAX_VOLUME_NAME);
+		strlcpy(rnvol.ents[2 * count + 1].name, name[0], UBI_MAX_VOLUME_NAME);
 
 		count++;
 	}
