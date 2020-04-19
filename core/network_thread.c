@@ -129,7 +129,7 @@ int listener_create(const char *path, int type)
 		unlink(path);
 		bzero(&servaddr, sizeof(servaddr));
 		servaddr.sun_family = AF_LOCAL;
-		strcpy(servaddr.sun_path, path);
+		strlcpy(servaddr.sun_path, path, sizeof(servaddr.sun_path) - 1);
 
 		if (bind(listenfd,  (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0) {
 			close(listenfd);
