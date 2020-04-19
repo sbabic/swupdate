@@ -342,6 +342,8 @@ static int install_remote_swu(struct img_type *img,
 		conn->total_bytes = img->size;
 		conn->SWUpdateStatus = IDLE;
 
+		LIST_INSERT_HEAD(&priv.conns, conn, next);
+
 		/*
 		 * Create one FIFO for each connection to be thread safe
 		 */
@@ -362,7 +364,6 @@ static int install_remote_swu(struct img_type *img,
 			ret = FAILURE;
 			goto handler_exit;
 		}
-		LIST_INSERT_HEAD(&priv.conns, conn, next);
 
 		index++;
 	}
