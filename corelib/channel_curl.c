@@ -268,6 +268,7 @@ channel_op_res_t channel_map_http_code(channel_t *this, long *http_response_code
 	case 400: /* Bad Request, e.g., invalid parameters */
 	case 406: /* Not acceptable. Accept header is not response compliant */
 	case 443: /* Connection refused */
+	case 409: /* Conflict */
 		return CHANNEL_EBADMSG;
 	case 404: /* Wrong URL */
 		return CHANNEL_ENOTFOUND;
