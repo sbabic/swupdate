@@ -92,6 +92,7 @@ int main(int argc, char *argv[]) {
 		written = snprintf(buf, size, "}");
 
 	fprintf(stdout, "Sending: '%s'", msg.data.instmsg.buf);
+	msg.data.instmsg.len = strnlen(buf, size);
 
 	rc = ipc_send_cmd(&msg);
 
