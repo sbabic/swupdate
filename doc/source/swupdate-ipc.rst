@@ -214,7 +214,7 @@ The response contains the field type, that defines which event is sent.
 
 
 Status Change Event
-~~~~~~~~~~~~~~~~~~~
+-------------------
 
 This event is sent when the internal SWUpdate status change. Following status are supported:
 
