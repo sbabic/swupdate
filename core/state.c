@@ -21,7 +21,7 @@
 #define CHECK_STATE_VAR(v) do { \
 	if (strnlen(v, BOOTLOADER_VAR_LENGTH) == 0) { \
 		WARN("Update Status Storage Key " \
-			"is empty, setting it to 'ustate'\n"); \
+			"is empty, setting it to 'ustate'"); \
 		v = (char *)"ustate"; \
 	} \
 } while(0)
@@ -76,10 +76,10 @@ update_state_t get_state(void) {
 	update_state_t state;
 
 	if (read_state((char *)STATE_KEY, &state) != SERVER_OK) {
-		ERROR("Cannot read stored update state.\n");
+		ERROR("Cannot read stored update state.");
 		return STATE_ERROR;
 	}
-	TRACE("Read state=%c from persistent storage.\n", state);
+	TRACE("Read state=%c from persistent storage.", state);
 
 	if (is_valid_state(state)) {
 		return state;
