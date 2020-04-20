@@ -1,14 +1,13 @@
-hawkbitcfg
-=============
+swupdate-hawkbitcfg
+===================
 
-sendtohawkbit is a small tool that tries to connect to a running instance
-of SWUpdate and configures Hawkbit's parameter.
+swupdate-hawkbitcfg is a small tool that tries to connect to a running instance
+of SWUpdate and configures hawkBit's parameter.
 
-SYNOPYS
--------
+SYNOPSIS
+--------
 
 swupdate-hawkbitcfg [option]
-
 
 DESCRIPTION
 -----------

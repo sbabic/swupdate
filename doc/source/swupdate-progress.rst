@@ -1,11 +1,11 @@
-progress
-========
+swupdate-progress
+=================
 
-progress that tries to connect to a running instance
+swupdate-progress tries to connect to a running instance
 of SWUpdate to get the status of a running update.
 
-SYNOPYS
--------
+SYNOPSIS
+--------
 
 swupdate-progress [option]
 
@@ -13,7 +13,7 @@ DESCRIPTION
 -----------
 
 swupdate-progress is an example how to connect to SWUpdate via the progress interface.
-It shows on the stdout a simple bar with the procent indication of the current update
+It shows on stdout a simple bar with the percent indication of the current update
 and reports the result of the update. It can optionally drive "psplash" or execute a script
 after an update.
 
