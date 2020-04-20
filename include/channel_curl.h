@@ -6,6 +6,7 @@
  */
 
 #pragma once
+#include "util.h"
 #ifdef CONFIG_JSON
 #include <json-c/json.h>
 #endif

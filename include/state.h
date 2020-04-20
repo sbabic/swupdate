@@ -6,6 +6,7 @@
  */
 
 #pragma once
+#include "util.h"
 #include <stdbool.h>
 
 #ifdef CONFIG_SURICATTA_STATE_CHOICE_BOOTLOADER

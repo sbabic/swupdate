@@ -9,6 +9,7 @@
 #ifndef _IPC_H
 #define _IPC_H
 
+#include <stdlib.h>
 #include <stdbool.h>
 #include "swupdate_status.h"
 
