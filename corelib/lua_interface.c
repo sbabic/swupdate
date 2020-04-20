@@ -711,24 +711,24 @@ static int notify_helper(lua_State *L, LOGLEVEL level)
 	return 0;
 }
 
-static int l_trace(lua_State *L) {
+int lua_notify_trace(lua_State *L) {
 	return notify_helper(L, TRACELEVEL);
 }
 
-static int l_error(lua_State *L) {
+int lua_notify_error(lua_State *L) {
 	return notify_helper(L, ERRORLEVEL);
 }
 
-static int l_info(lua_State *L) {
+int lua_notify_info(lua_State *L) {
 	return notify_helper(L, INFOLEVEL);
 }
 
-static int l_warn(lua_State *L)
+int lua_notify_warn(lua_State *L)
 {
 	return notify_helper(L, WARNLEVEL);
 }
 
-static int l_debug(lua_State *L)
+int lua_notify_debug(lua_State *L)
 {
 	return notify_helper(L, DEBUGLEVEL);
 }
@@ -851,11 +851,11 @@ static int l_progress_update(lua_State *L)
  */
 static const luaL_Reg l_swupdate[] = {
         { "notify", l_notify },
-        { "error", l_error },
-        { "trace", l_trace },
-        { "info", l_info },
-        { "warn", l_warn },
-        { "debug", l_debug },
+        { "error", lua_notify_error },
+        { "trace", lua_notify_trace },
+        { "info", lua_notify_info },
+        { "warn", lua_notify_warn },
+        { "debug", lua_notify_debug },
         { "mount", l_mount },
         { "umount", l_umount },
         { NULL, NULL }
