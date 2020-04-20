@@ -235,6 +235,14 @@ int main(int argc, char **argv)
 			connfd = progress_ipc_connect(opt_w);
 		}
 
+		/*
+		 * if still fails, try later
+		 */
+		if (connfd < 0) {
+			sleep(1);
+			continue;
+		}
+
 		if (progress_ipc_receive(&connfd, &msg) == -1) {
 			continue;
 		}

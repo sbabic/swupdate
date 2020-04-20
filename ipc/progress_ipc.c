@@ -44,6 +44,12 @@ static int _progress_ipc_connect(const char *socketpath, bool reconnect)
 	servaddr.sun_family = AF_LOCAL;
 	strncpy(servaddr.sun_path, socketpath, sizeof(servaddr.sun_path) - 1);
 
+	/*
+	 * Check to get a valid socket
+	 */
+	if (fd < 0)
+		return -1;
+
 	do {
 		if (connect(fd, (struct sockaddr *) &servaddr, sizeof(servaddr)) == 0) {
 			break;

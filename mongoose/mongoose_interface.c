@@ -193,6 +193,13 @@ static void *broadcast_progress_thread(void *data)
 
 		if (fd < 0)
 			fd = progress_ipc_connect(true);
+		/*
+		 * if still fails, try later
+		 */
+		if (fd < 0) {
+			sleep(1);
+			continue;
+		}
 
 		ret = progress_ipc_receive(&fd, &msg);
 		if (ret != sizeof(msg))

@@ -279,6 +279,14 @@ static void *server_progress_thread (void *data)
 			progfd = progress_ipc_connect(true);
 		}
 
+		/*
+		 * if still fails, try later
+		 */
+		if (progfd < 0) {
+			sleep(1);
+			continue;
+		}
+
 		if (progress_ipc_receive(&progfd, &msg) == -1) {
 			continue;
 		}
