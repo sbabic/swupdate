@@ -265,6 +265,9 @@ int main(int argc, char **argv)
 
 		}
 
+		/*
+		 * Be sure that string in message are Null terminated
+		 */
 		if (msg.infolen > 0) {
 			if (msg.infolen >= sizeof(msg.info) - 1) {
 				msg.infolen = sizeof(msg.info) - 1;
@@ -272,6 +275,7 @@ int main(int argc, char **argv)
 			}
 			fprintf(stdout, "INFO : %s\n\n", msg.info);
 		}
+		msg.cur_image[sizeof(msg.cur_image) - 1] = '\0';
 
 		if (!psplash_ok && opt_p) {
 			psplash_ok = psplash_init(psplash_pipe_path);
