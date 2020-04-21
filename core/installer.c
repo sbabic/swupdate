@@ -255,12 +255,13 @@ int install_single_image(struct img_type *img, int dry_run)
 int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 {
 	int ret;
-	struct img_type *img;
+	struct img_type *img, *tmp;
 	char *filename;
 	struct filehdr fdh;
 	struct stat buf;
 	const char* TMPDIR = get_tmpdir();
 	int dry_run = sw->globals.dry_run;
+	bool dropimg;
 
 	/* Extract all scripts, preinstall scripts must be run now */
 	const char* tmpdir_scripts = get_tmpdirscripts();
@@ -280,7 +281,9 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 		}
 	}
 
-	LIST_FOREACH(img, &sw->images, next) {
+	LIST_FOREACH_SAFE(img, &sw->images, next, tmp) {
+
+		dropimg = false;
 
 		/*
 		 *  If image is flagged to be installed from stream
@@ -336,7 +339,7 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 					break;
 				}
 			}
-			free_image(img);
+			dropimg = true;
 			ret = 0;
 		} else {
 			ret = install_single_image(img, dry_run);
@@ -345,9 +348,11 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 		if (!fromfile)
 			close(img->fdin);
 
+		if (dropimg)
+			free_image(img);
+
 		if (ret)
 			return ret;
-
 	}
 
 	/*
