@@ -20,16 +20,6 @@ SWUpdate suitable for a large number of products.
 This will help to build a community around the project
 itself.
 
-Disk partitions
-===============
-
-SWUpdate is able to set and handle UBI partitions, while it requires external
-tools to set up disk partitions (sfdisk / fdisk). Because an update should be self-contained, it is
-desirable that SWUpdate will integrate the code to be able to set up partitions
-configured in sw-descriptions even for disks (eMMC / SD / Hard-disks).
-This will let to use `partitions` inside sw-description to set up disk partitions
-and not only UBI volumes, and add further features as restoring configuration data and so on.
-
 Support for further compressors
 ===============================
 
@@ -39,8 +29,8 @@ To reduce bandwidth or for big images, a stronger compressor could help.
 Adding a new compressor must be careful done because it changes the core of
 handling an image.
 
-Binary delta updates
-====================
+More efficient delta updates - most feature wanted !
+====================================================
 
 A whole update could be very traffic intensive. Specially in case
 of low-bandwidth connections, it could be interesting to introduce
@@ -55,16 +45,8 @@ each of them solves a specific use case for a delta update.
 SWUpdate is already able to perform delta updates based on librsync library. This is
 currently a good compromise to reduce complexity. Anyway, this helps in case of
 small changes, and it is not a general solution between two generic releases.
-A general approach could be to integrate SWUpdate with a storage to allow one a delta upgrade
-from any release. 
-
-Integration in Linux distro
-===========================
-
-To allow an easier learning with SWUpdate and also for test purposes with the
-SWU forwarder handler, it makes sense to package SWUpdate for PC Linux distro.
-SWUpdate already supports debian package. Some help from community is asked to
-let the package merged into Debian distro.
+A general approach could be to integrate SWUpdate with a storage to allow one
+a delta upgrade from any release. 
 
 Parser
 ======
@@ -82,11 +64,7 @@ New Handlers
 Users develop own custom handlers - I just enforce and encourage everyone
 to send them and discuss how to integrate custom handler in mainline.
 
-A handler to update a micro-controller connected via UART is introduced.
-It could be enhanced to support other interfaces (SPI for example).
-
 Some ideas for new handlers:
-        - handlers to update micro-controllers
         - FPGA updater for FPGA with Flash
         - Package handler to install packages (ipk, deb)
           Packages can be inserted into the SWU and the atomicity is
@@ -94,15 +72,17 @@ Some ideas for new handlers:
         - Lua handlers should be added if possible to the project
           to show how to solve custom install.
 
-
 Flash handler
 -------------
 
-The flash handler for raw-devices (mainly NOR flashes) does not allow one to
-stream the image and an error is reported if "installed-directly" is set.
-The handler can be extended to stream images.
+The flash handler for NAND devices in raw mode (without UBI) does n
+ot allow one to stream the image and an error is reported
+if "installed-directly" is set.
+The handler can be extended to stream images.  Anyway, because data on NAND
+should be always put in am UBI container, there are just a few cases
+where this is needed.
 
-Handlers install-able as plugin at runtime
+Handlers installable as plugin at runtime
 ------------------------------------------
 
 The project supports Lua as script language for pre- and postinstall
@@ -179,11 +159,11 @@ SWUpdate GUI for rescue
 
 In case of rescue for HMI devices, it is often required to have a small GUI
 for an operator to set some parameters (network,..) and start an update.
-SWUpdate-GUI is released with a base set of features. The goal of this simple GUI
-is to have a low footprint compared to GUI developed with state of art frameworks. 
+The goal of this simple GUI is to have a low footprint compared to GUI
+developed with state of art frameworks. 
 This lets to still have a rescue that fits in small devices.
 SWUpdate-GUI is already production-ready and delivered into final products. New
-features coud be developed.
+features could be developed on demand.
 
 Test and Continuous Integration
 ===============================
