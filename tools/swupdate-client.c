@@ -39,7 +39,7 @@ static void usage(void) {
 	fprintf(stdout,
 		" Available OPTIONS\n"
 		" -h : print help and exit\n"
-		" -d : ask the server to only perform a dryrun\n"
+		" -d : ask the server to only perform a dry run\n"
 		" -q : go quite, resets verbosity\n"
 		" -v : go verbose, essentially print upgrade status messages from server\n"
 		" -p : ask the server to run post-update commands if upgrade succeeds\n"
@@ -49,7 +49,7 @@ static void usage(void) {
 char buf[256];
 int fd = STDIN_FILENO;
 int verbose = 1;
-bool dryrun = false;
+bool dry_run = false;
 bool run_postupdate = false;
 int end_status = EXIT_SUCCESS;
 
@@ -130,7 +130,7 @@ static int send_file(const char* filename) {
 	end_status = EXIT_SUCCESS;
 
 	rc = swupdate_async_start(readimage, printstatus,
-				end, dryrun);
+				end, dry_run);
 
 	/* return if we've hit an error scenario */
 	if (rc < 0) {
@@ -165,7 +165,7 @@ int main(int argc, char *argv[]) {
 	while ((c = getopt(argc, argv, "dhqvp")) != EOF) {
 		switch (c) {
 		case 'd':
-			dryrun = true;
+			dry_run = true;
 			break;
 		case 'h':
 			usage();

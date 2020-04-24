@@ -350,7 +350,7 @@ void *network_thread (void *data)
 					instp->len = min(msg.data.instmsg.len, sizeof(instp->info));
 
 					/*
-					 * Communicate if a dryrun is asked and set it
+					 * Communicate if a dry run is asked and set it
 					 */
 					if (msg.type == REQ_INSTALL_DRYRUN)
 						instp->dry_run = 1;

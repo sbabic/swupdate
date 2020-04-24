@@ -78,7 +78,7 @@ typedef struct {
 
 char *get_ctrl_socket(void);
 int ipc_inst_start(void);
-int ipc_inst_start_ext(sourcetype source, size_t len, const char *info, bool dryrun);
+int ipc_inst_start_ext(sourcetype source, size_t len, const char *info, bool dry_run);
 int ipc_send_data(int connfd, char *buf, int size);
 void ipc_end(int connfd);
 int ipc_get_status(ipc_message *msg);
@@ -92,7 +92,7 @@ typedef int (*terminated)(RECOVERY_STATUS status);
 int ipc_wait_for_complete(getstatus callback);
 int swupdate_image_write(char *buf, int size);
 int swupdate_async_start(writedata wr_func, getstatus status_func,
-				terminated end_func, bool dryrun);
+				terminated end_func, bool dry_run);
 
 #ifdef __cplusplus
 }   // extern "C"

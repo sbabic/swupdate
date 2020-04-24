@@ -175,7 +175,7 @@ int ipc_get_status_timeout(ipc_message *msg, unsigned int timeout_ms)
 	return ret;
 }
 
-int ipc_inst_start_ext(sourcetype source, size_t len, const char *buf, bool dryrun)
+int ipc_inst_start_ext(sourcetype source, size_t len, const char *buf, bool dry_run)
 {
 	int connfd;
 	ipc_message msg;
@@ -191,7 +191,7 @@ int ipc_inst_start_ext(sourcetype source, size_t len, const char *buf, bool dryr
 	 * Command is request to install
 	 */
 	msg.magic = IPC_MAGIC;
-	msg.type = (!dryrun) ? REQ_INSTALL : REQ_INSTALL_DRYRUN;
+	msg.type = (!dry_run) ? REQ_INSTALL : REQ_INSTALL_DRYRUN;
 
 	/*
 	 * Pass data from interface originating

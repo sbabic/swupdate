@@ -501,7 +501,7 @@ void *network_initializer(void *data)
 		notify(START, RECOVERY_NO_ERROR, INFOLEVEL, "Software Update started !");
 
 		/*
-		 * Check if the dryrun flag is overwrittn
+		 * Check if the dry run flag is overwritten
 		 */
 		if (inst.dry_run)
 			software->globals.dry_run = 1;

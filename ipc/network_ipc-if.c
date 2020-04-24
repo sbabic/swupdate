@@ -108,7 +108,7 @@ static pthread_t start_ipc_thread(void *(* start_routine) (void *), void *arg)
  * Only one running request is accepted
  */
 int swupdate_async_start(writedata wr_func, getstatus status_func,
-				terminated end_func, bool dryrun)
+				terminated end_func, bool dry_run)
 {
 	struct async_lib *rq;
 	int connfd;
@@ -122,7 +122,7 @@ int swupdate_async_start(writedata wr_func, getstatus status_func,
 	rq->get = status_func;
 	rq->end = end_func;
 
-	connfd = ipc_inst_start_ext(SOURCE_UNKNOWN, 0, NULL, dryrun);
+	connfd = ipc_inst_start_ext(SOURCE_UNKNOWN, 0, NULL, dry_run);
 
 	if (connfd < 0)
 		return connfd;
