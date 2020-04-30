@@ -52,9 +52,7 @@ General Overview
 
 - new partition schema. This is bound with UBI volume.
   SWUpdate can recreate UBI volumes, resizing them and
-  copying the new software. A special UBI volume with the name "data"
-  is saved and restored after repartitioning with all data
-  it contains,  to maintain user's data.
+  copying the new software.
 
 - support for compressed images, using the zlib and zstd library.
   tarball (tgz file) are supported.
@@ -297,7 +295,7 @@ Building a debian package
 SWUpdate is thought for Embedded Systems and building in an embedded
 distribution is the first use case. But apart the most used buildsystems
 for embedded as Yocto or Buildroot, in some cases a standard Linux distro
-is used. Not only, a distro package allows to run SWUpdate on Linux PC
+is used. Not only, a distro package allows one to run SWUpdate on Linux PC
 for test purposes without having to fight with dependencies. Using the
 debhelper tools, it is possible to generate a debian package.
 
@@ -345,8 +343,6 @@ A run of SWUpdate consists mainly of the following steps:
   really in the cpio archive.
 - modify partitions, if required. This consists in a resize
   of UBI volumes, not a resize of MTD partition.
-  A volume with the name "data" is saved and restored after
-  resizing.
 - runs pre-install scripts
 - iterates through all images and call the corresponding
   handler for installing on target.
@@ -429,13 +425,13 @@ Command line parameters
 | -f <file>   | string   | SWUpdate config file to use                |
 +-------------+----------+--------------------------------------------+
 | -b <string> | string   | Active only if CONFIG_UBIATTACH is set     |
-|             |          | It allows to blacklist MTDs when SWUpdate  |
-|             |          | searches for UBI volumes.                  |
+|             |          | It allows one to blacklist MTDs when       |
+|             |          | SWUpdate searches for UBI volumes.         |
 |             |          | Example: U-Boot and environment in MTD0-1: |
 |             |          | **swupdate -b "0 1"**                      |
 +-------------+----------+--------------------------------------------+
 | -e <sel>    | string   | sel is in the format <software>,<mode>     |
-|             |          | It allows to find a subset of rules in     |
+|             |          | It allows one to find a subset of rules in |
 |             |          | the sw-description file. With it,          |
 |             |          | multiple rules are allowed.                |
 |             |          | One common usage is in case of the dual    |
@@ -476,9 +472,16 @@ Command line parameters
 | -w <parms>  | string   | start internal webserver and pass to it    |
 |             |          | a command line string.                     |
 +-------------+----------+--------------------------------------------+
+| -d <parms>  | string   | Active only if CONFIG_DOWNLOAD is set      |
+|             |          | start internal downloader client and pass  |
+|             |          | to it a command line string.               |
+|             |          | See below the internal command line        |
+|             |          | arguments for the downloader.              |
++-------------+----------+--------------------------------------------+
 | -u <parms>  | string   | start internal suricatta client daemon and |
 |             |          | pass to it a command line string.          |
-|             |          | see suricatta's documentation for details. |
+|             |          | See below the internal command line        |
+|             |          | arguments for suricatta.                   |
 +-------------+----------+--------------------------------------------+
 | -H          | string   | set board name and Hardware revision       |
 | <board:rev> |          |                                            |
@@ -492,14 +495,14 @@ Command line parameters
 +-------------+----------+--------------------------------------------+
 | -p          | string   | Execute post-update command.               |
 +-------------+----------+--------------------------------------------+
+
+Parameters used for the downloader: -d, --download [OPTIONS]
+For example: -d "-u example.com"
+Mandatory arguments are marked with '*':
 +-------------+----------+--------------------------------------------+
-| -d <parms>  | string   | Active only if CONFIG_DOWNLOAD is set      |
-|             |          | start internal downloader client and pass  |
-|             |          | to it a command line string.               |
-|             |          | See below the internal command line        |
-|             |          | arguments for the downloader               |
-+-------------+----------+--------------------------------------------+
-| -u <url>    | string   | This is the URL where new software is      |
+|  Parameter  | Type     | Description                                |
++=============+==========+============================================+
+| -u <url>    | string   | * This is the URL where new software is    |
 |             |          | pulled. URL is a link to a valid .swu image|
 +-------------+----------+--------------------------------------------+
 | -r <retries>| integer  | Number of retries before a download is     |
@@ -513,6 +516,43 @@ Command line parameters
 | -a <usr:pwd>| string   | Send user and password for Basic Auth      |
 +-------------+----------+--------------------------------------------+
 
+Parameters used for suricatta: -u, --suricatta [OPTIONS]
+For example: -u "-t default -u localhost:8080 -i 1B7"
+Mandatory arguments are marked with '*':
++-------------------+----------+--------------------------------------------+
+|  Parameter        | Type     | Description                                |
++===================+==========+============================================+
+| -t <tenant>       | string   | * Set hawkBit tenant ID for this device.   |
++-------------------+----------+--------------------------------------------+
+| -u <url>          | string   | * Host and port of the hawkBit instance,   |
+|                   |          | e.g., localhost:8080                       |
++-------------------+----------+--------------------------------------------+
+| -i <id>           | integer  | * The device ID to communicate to hawkBit. |
++-------------------+----------+--------------------------------------------+
+| -c <confirm>      | integer  | Confirm update status to server: 1=AGAIN,  |
+|                   |          | 2=SUCCESS, 3=FAILED                        |
++-------------------+----------+--------------------------------------------+
+| -x                | -        | Do not abort on flawed server certificates.|
++-------------------+----------+--------------------------------------------+
+| -p <polldelay>    | integer  | Delay in seconds between two hawkBit poll  |
+|                   |          | operations (default: 45s).                 |
++-------------------+----------+--------------------------------------------+
+| -r <retry>        | integer  | Resume and retry interrupted downloads     |
+|                   |          | (default: 5 tries).                        |
++-------------------+----------+--------------------------------------------+
+| -w <retrywait>    | integer  | Time to wait prior to retry and resume a   |
+|                   |          | download (default: 5s).                    |
++-------------------+----------+--------------------------------------------+
+| -y <proxy>        | string   | Use proxy. Either give proxy URL,          |
+|                   |          | else {http,all}_proxy env is tried.        |
++-------------------+----------+--------------------------------------------+
+| -k <targettoken>  | string   | Set target token.                          |
++-------------------+----------+--------------------------------------------+
+| -g <gatewaytoken> | string   | Set gateway token.                         |
++-------------------+----------+--------------------------------------------+
+| -f <interface>    | string   | Set the network interface to connect to    |
+|                   |          | Hawkbit.                                   |
++-------------------+----------+--------------------------------------------+
 
 systemd Integration
 -------------------

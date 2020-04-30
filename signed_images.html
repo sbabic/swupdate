@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Update images from verified source &mdash; Embedded Software Update Documentation 2019.11 documentation</title>
+  <title>Update images from verified source &mdash; Embedded Software Update Documentation 2020.04 documentation</title>
   
 
   
@@ -19,42 +19,36 @@
   
 
   
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="genindex.html"/>
-        <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="Embedded Software Update Documentation 2019.11 documentation" href="index.html"/>
-        <link rel="next" title="Symmetrically Encrypted Update Images" href="encrypted_images.html"/>
-        <link rel="prev" title="SWUpdate: syntax and tags with the default parser" href="sw-description.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Symmetrically Encrypted Update Images" href="encrypted_images.html" />
+    <link rel="prev" title="SWUpdate: syntax and tags with the default parser" href="sw-description.html" /> 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -68,7 +62,7 @@
             
             
               <div class="version">
-                2019.11
+                2020.04
               </div>
             
           
@@ -129,13 +123,14 @@
 <li class="toctree-l1"><a class="reference internal" href="hawkbit-setup.html">Config for HawkBit under SSL/TLS using private CA / sub CA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">SWUpdate: API for external programs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bindings.html">Language Bindings</a></li>
 <li class="toctree-l1"><a class="reference internal" href="building-with-yocto.html">meta-swupdate: building with Yocto</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="swupdate-client.html">client</a></li>
-<li class="toctree-l1"><a class="reference internal" href="swupdate-hawkbitcfg.html">hawkbitcfg</a></li>
-<li class="toctree-l1"><a class="reference internal" href="swupdate-sendtohawkbit.html">sendtohawkbit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="swupdate-progress.html">progress</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-client.html">swupdate-client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-hawkbitcfg.html">swupdate-hawkbitcfg</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-sendtohawkbit.html">swupdate-sendtohawkbit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-progress.html">swupdate-progress</a></li>
 <li class="toctree-l1"><a class="reference internal" href="swupdate-sysrestart.html">swupdate-sysrestart</a></li>
 </ul>
 <ul>
@@ -155,7 +150,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">Embedded Software Update Documentation</a>
@@ -163,9 +158,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -265,17 +261,17 @@ the <a class="reference external" href="https://www.openssl.org/docs/manmaster/m
 <div class="section" id="generating-private-and-public-key">
 <h3>Generating private and public key<a class="headerlink" href="#generating-private-and-public-key" title="Permalink to this headline">¶</a></h3>
 <p>First, the private key must be created:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">openssl</span> <span class="n">genrsa</span> <span class="o">-</span><span class="n">aes256</span> <span class="o">-</span><span class="n">out</span> <span class="n">priv</span><span class="o">.</span><span class="n">pem</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">openssl</span> <span class="n">genrsa</span> <span class="o">-</span><span class="n">aes256</span> <span class="o">-</span><span class="n">out</span> <span class="n">priv</span><span class="o">.</span><span class="n">pem</span>
 </pre></div>
 </div>
 <p>This asks for a passphrase. It is possible to retrieve
 the passphrase from a file - of course, this must be
 protected against intrusion.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">openssl</span> <span class="n">genrsa</span> <span class="o">-</span><span class="n">aes256</span> <span class="o">-</span><span class="n">passout</span> <span class="n">file</span><span class="p">:</span><span class="n">passout</span> <span class="o">-</span><span class="n">out</span> <span class="n">priv</span><span class="o">.</span><span class="n">pem</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">openssl</span> <span class="n">genrsa</span> <span class="o">-</span><span class="n">aes256</span> <span class="o">-</span><span class="n">passout</span> <span class="n">file</span><span class="p">:</span><span class="n">passout</span> <span class="o">-</span><span class="n">out</span> <span class="n">priv</span><span class="o">.</span><span class="n">pem</span>
 </pre></div>
 </div>
 <p>The private key is used to export the public key with:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">openssl</span> <span class="n">rsa</span> <span class="o">-</span><span class="ow">in</span> <span class="n">priv</span><span class="o">.</span><span class="n">pem</span> <span class="o">-</span><span class="n">out</span> <span class="n">public</span><span class="o">.</span><span class="n">pem</span> <span class="o">-</span><span class="n">outform</span> <span class="n">PEM</span> <span class="o">-</span><span class="n">pubout</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">openssl</span> <span class="n">rsa</span> <span class="o">-</span><span class="ow">in</span> <span class="n">priv</span><span class="o">.</span><span class="n">pem</span> <span class="o">-</span><span class="n">out</span> <span class="n">public</span><span class="o">.</span><span class="n">pem</span> <span class="o">-</span><span class="n">outform</span> <span class="n">PEM</span> <span class="o">-</span><span class="n">pubout</span>
 </pre></div>
 </div>
 <p>“public.pem” contains the key in a format suitable for swupdate. The file
@@ -284,11 +280,11 @@ can be passed to swupdate at the command line with the -k parameter.</p>
 <div class="section" id="how-to-sign-with-rsa">
 <h3>How to sign with RSA<a class="headerlink" href="#how-to-sign-with-rsa" title="Permalink to this headline">¶</a></h3>
 <p>Signing the image with rsa-pkcs#1.5 is very simple:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">openssl</span> <span class="n">dgst</span> <span class="o">-</span><span class="n">sha256</span> <span class="o">-</span><span class="n">sign</span> <span class="n">priv</span><span class="o">.</span><span class="n">pem</span> <span class="n">sw</span><span class="o">-</span><span class="n">description</span> <span class="o">&gt;</span> <span class="n">sw</span><span class="o">-</span><span class="n">description</span><span class="o">.</span><span class="n">sig</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">openssl</span> <span class="n">dgst</span> <span class="o">-</span><span class="n">sha256</span> <span class="o">-</span><span class="n">sign</span> <span class="n">priv</span><span class="o">.</span><span class="n">pem</span> <span class="n">sw</span><span class="o">-</span><span class="n">description</span> <span class="o">&gt;</span> <span class="n">sw</span><span class="o">-</span><span class="n">description</span><span class="o">.</span><span class="n">sig</span>
 </pre></div>
 </div>
 <p>Signing the image with rsa-pss is also very simple:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">openssl</span> <span class="n">dgst</span> <span class="o">-</span><span class="n">sha256</span> <span class="o">-</span><span class="n">sign</span> <span class="n">priv</span><span class="o">.</span><span class="n">pem</span> <span class="o">-</span><span class="n">sigopt</span> <span class="n">rsa_padding_mode</span><span class="p">:</span><span class="n">pss</span> \
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">openssl</span> <span class="n">dgst</span> <span class="o">-</span><span class="n">sha256</span> <span class="o">-</span><span class="n">sign</span> <span class="n">priv</span><span class="o">.</span><span class="n">pem</span> <span class="o">-</span><span class="n">sigopt</span> <span class="n">rsa_padding_mode</span><span class="p">:</span><span class="n">pss</span> \
     <span class="o">-</span><span class="n">sigopt</span> <span class="n">rsa_pss_saltlen</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span> <span class="n">sw</span><span class="o">-</span><span class="n">description</span> <span class="o">&gt;</span> <span class="n">sw</span><span class="o">-</span><span class="n">description</span><span class="o">.</span><span class="n">sig</span>
 </pre></div>
 </div>
@@ -298,7 +294,7 @@ can be passed to swupdate at the command line with the -k parameter.</p>
 <h2>Usage with certificates and CMS<a class="headerlink" href="#usage-with-certificates-and-cms" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="generating-self-signed-certificates">
 <h3>Generating self-signed certificates<a class="headerlink" href="#generating-self-signed-certificates" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">openssl</span> <span class="n">req</span> <span class="o">-</span><span class="n">x509</span> <span class="o">-</span><span class="n">newkey</span> <span class="n">rsa</span><span class="p">:</span><span class="mi">4096</span> <span class="o">-</span><span class="n">nodes</span> <span class="o">-</span><span class="n">keyout</span> <span class="n">mycert</span><span class="o">.</span><span class="n">key</span><span class="o">.</span><span class="n">pem</span> \
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">openssl</span> <span class="n">req</span> <span class="o">-</span><span class="n">x509</span> <span class="o">-</span><span class="n">newkey</span> <span class="n">rsa</span><span class="p">:</span><span class="mi">4096</span> <span class="o">-</span><span class="n">nodes</span> <span class="o">-</span><span class="n">keyout</span> <span class="n">mycert</span><span class="o">.</span><span class="n">key</span><span class="o">.</span><span class="n">pem</span> \
     <span class="o">-</span><span class="n">out</span> <span class="n">mycert</span><span class="o">.</span><span class="n">cert</span><span class="o">.</span><span class="n">pem</span> <span class="o">-</span><span class="n">subj</span> <span class="s2">&quot;/O=SWUpdate /CN=target&quot;</span>
 </pre></div>
 </div>
@@ -311,7 +307,7 @@ the private key and it is used for signing. It is <em>not</em> delivered on the 
 <p>It is also possible to use PKI issued code signing certificates. However,
 SWUpdate uses OpenSSL library for handling CMS signatures and the library
 requires the following attributes to be set on the signing certificate:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">keyUsage</span><span class="o">=</span><span class="n">digitalSignature</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">keyUsage</span><span class="o">=</span><span class="n">digitalSignature</span>
 <span class="n">extendedKeyUsage</span><span class="o">=</span><span class="n">emailProtection</span>
 </pre></div>
 </div>
@@ -322,7 +318,7 @@ checking if this requirement cannot be satisfied. This is controlled by
 <div class="section" id="how-to-sign-with-cms">
 <h3>How to sign with CMS<a class="headerlink" href="#how-to-sign-with-cms" title="Permalink to this headline">¶</a></h3>
 <p>Signing the image is simple as in the previous case:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">openssl</span> <span class="n">cms</span> <span class="o">-</span><span class="n">sign</span> <span class="o">-</span><span class="ow">in</span>  <span class="n">sw</span><span class="o">-</span><span class="n">description</span> <span class="o">-</span><span class="n">out</span> <span class="n">sw</span><span class="o">-</span><span class="n">description</span><span class="o">.</span><span class="n">sig</span> <span class="o">-</span><span class="n">signer</span> <span class="n">mycert</span><span class="o">.</span><span class="n">cert</span><span class="o">.</span><span class="n">pem</span> \
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">openssl</span> <span class="n">cms</span> <span class="o">-</span><span class="n">sign</span> <span class="o">-</span><span class="ow">in</span>  <span class="n">sw</span><span class="o">-</span><span class="n">description</span> <span class="o">-</span><span class="n">out</span> <span class="n">sw</span><span class="o">-</span><span class="n">description</span><span class="o">.</span><span class="n">sig</span> <span class="o">-</span><span class="n">signer</span> <span class="n">mycert</span><span class="o">.</span><span class="n">cert</span><span class="o">.</span><span class="n">pem</span> \
         <span class="o">-</span><span class="n">inkey</span> <span class="n">mycert</span><span class="o">.</span><span class="n">key</span><span class="o">.</span><span class="n">pem</span> <span class="o">-</span><span class="n">outform</span> <span class="n">DER</span> <span class="o">-</span><span class="n">nosmimecap</span> <span class="o">-</span><span class="n">binary</span>
 </pre></div>
 </div>
@@ -337,7 +333,7 @@ SHA256 sum of the image. If an image does not have the sha256 attribute,
 the whole compound image results as not verified and SWUpdate stops
 with an error before starting to install.</p>
 <p>A simple script to create a signed image can be:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>#!/bin/bash
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>#!/bin/bash
 
 MODE=&quot;RSA-PKCS-1.5&quot;
 PRODUCT_NAME=&quot;myproduct&quot;
@@ -363,7 +359,7 @@ for i in $FILES;do
 <div class="section" id="example-for-sw-description-with-signed-image">
 <h2>Example for sw-description with signed image<a class="headerlink" href="#example-for-sw-description-with-signed-image" title="Permalink to this headline">¶</a></h2>
 <p>The example applies to a Beaglebone, installing Yocto images:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">software</span> <span class="o">=</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">software</span> <span class="o">=</span>
 <span class="p">{</span>
         <span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;0.1.0&quot;</span><span class="p">;</span>
 
@@ -399,9 +395,7 @@ is mandatory and the program stops if the public key is not passed.</p>
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -410,7 +404,7 @@ is mandatory and the program stops if the public key is not passed.</p>
         <a href="encrypted_images.html" class="btn btn-neutral float-right" title="Symmetrically Encrypted Update Images" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="sw-description.html" class="btn btn-neutral" title="SWUpdate: syntax and tags with the default parser" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="sw-description.html" class="btn btn-neutral float-left" title="SWUpdate: syntax and tags with the default parser" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -419,11 +413,11 @@ is mandatory and the program stops if the public key is not passed.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2013-2019, Stefano Babic.
+        &copy; Copyright 2013-2020, Stefano Babic
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -436,36 +430,15 @@ is mandatory and the program stops if the public key is not passed.</p>
   
 
 
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'2019.11',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
   </script>
+
+  
+  
+    
    
 
 </body>

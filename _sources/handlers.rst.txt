@@ -23,6 +23,8 @@ Supplied handlers
 In mainline there are the handlers for the most common cases. They include:
 	- flash devices in raw mode (both NOR and NAND)
 	- UBI volumes
+        - UBI volumus partitioner
+        - disk partitioner
 	- raw devices, such as a SD Card partition
 	- bootloader (U-Boot, GRUB, EFI Boot Guard) environment
 	- Lua scripts
@@ -144,7 +146,7 @@ After u-boot.img is successfully installed into the volume "u-boot_r",
 the volume "u-boot_r" is renamed to "u-boot" and "u-boot" is renamed
 to "u-boot_r".
 
-This mechanism allows to implement a simple double copy update
+This mechanism allows one to implement a simple double copy update
 approach without the need of shared state with the bootloader. For
 example, the U-Boot SPL can be configured to always load U-Boot from
 the volume ``u-boot`` without the need to access the environment. The
@@ -163,7 +165,7 @@ However, please note the following limitations:
 - Atomic renames are only possible and permitted for volumes residing
   on the same UBI device.
 
-There is a handler ubiswap that allow to do an atomic swap for several
+There is a handler ubiswap that allow one to do an atomic swap for several
 ubi volume after all the images were flashed. This handler is a script
 for the point of view of swudate, so the node that provide it the data
 should be added in the section scripts.
@@ -227,7 +229,7 @@ In analogy to C handlers, the prototype for a Lua handler is
 
 where ``image`` is a Lua table (with attributes according to
 :ref:`sw-description's attribute reference <sw-description-attribute-reference>`)
-that describes a single artifact to be processed by the handler. 
+that describes a single artifact to be processed by the handler.
 
 Note that dashes in the attributes' names are replaced with
 underscores for the Lua domain to make them idiomatic, e.g.,
@@ -275,7 +277,7 @@ a different type of artifact than the Lua handler is registered
 for, the ``image`` table's values must satisfy the called
 C handler's expectations: Consider the above Lua handler being
 registered for "images" (``swupdate.HANDLER_MASK.IMAGE_HANDLER``)
-via the ``swupdate.register_handler()`` call shown above. As per the 
+via the ``swupdate.register_handler()`` call shown above. As per the
 :ref:`sw-description's attribute reference <sw-description-attribute-reference>`,
 the "images" artifact type doesn't have the ``path`` attribute
 but the "file" artifact type does. So, for calling the ``rawfile``
@@ -328,15 +330,15 @@ Using the ``image:read()`` method, an artifact's contents may be
 on preexisting C handlers for the purpose intended.
 
 
-Just as C handlers, a Lua handler must consume the artifact 
-described in its ``image`` parameter so that SWUpdate can 
+Just as C handlers, a Lua handler must consume the artifact
+described in its ``image`` parameter so that SWUpdate can
 continue with the next artifact in the stream after the Lua handler
-returns. Chaining handlers, calling ``image:copy2file()``, or using 
+returns. Chaining handlers, calling ``image:copy2file()``, or using
 ``image:read()`` satisfies this requirement.
 
 
 Note that although the dynamic nature of Lua handlers would
-technically allow to embed them into a to be processed ``.swu``
+technically allow one to embed them into a to be processed ``.swu``
 image, this is not implemented as it carries some security
 implications since the behavior of SWUpdate is changed
 dynamically.
@@ -381,7 +383,7 @@ format:
 
 
 ::
-        
+
         INIT:<size of image to be installed>
 
 The external installer is informed about the size of the image to be
@@ -508,7 +510,7 @@ skipping over unchanged content is handled well by the rdiff algorithm.
 ucfw handler
 ------------
 
-This handler allows to update the firmware on a microcontroller connected to
+This handler allows one to update the firmware on a microcontroller connected to
 the main controller via UART.
 Parameters for setup are passed via sw-description file.  Its behavior can be
 extended to be more general.
@@ -631,9 +633,9 @@ of the two SSBL administration.
    +-------------+----------+----------------------------------------------------+
    |  Name       |  Type    |  Description                                       |
    +=============+==========+====================================================+
-   | device      | string   | MTD device where the SSBL Admin Header is stored   | 
+   | device      | string   | MTD device where the SSBL Admin Header is stored   |
    +-------------+----------+----------------------------------------------------+
-   | offset      | hex      | Offset of SSBL header inside the MTD device        | 
+   | offset      | hex      | Offset of SSBL header inside the MTD device        |
    +-------------+----------+----------------------------------------------------+
    | imageoffset | hex      | Offset of the image to be loaded by a bootloader   |
    |             |          | when this SSBL is set.                             |
@@ -642,4 +644,103 @@ of the two SSBL administration.
    |             |          | when this SSBL is set.                             |
    +-------------+----------+----------------------------------------------------+
 
+Readback Handler
+----------------
 
+To verify that an image was written properly, this readback handler calculates
+the sha256 hash of a partition (or part of it) and compares it against a given
+hash value.
+
+The following example explains how to use this handler:
+
+::
+
+    scripts: (
+    {
+        device = "/dev/mmcblk2p1";
+        type = "readback";
+        properties: {
+            sha256 = "e7afc9bd98afd4eb7d8325196d21f1ecc0c8864d6342bfc6b6b6c84eac86eb42";
+            size = "184728576";
+            offset = "0";
+        };
+    }
+    );
+
+Properties ``size`` and ``offset`` are optional, all the other properties are mandatory.
+
+.. table:: Properties for readback handler
+
+    +-------------+----------+----------------------------------------------------+
+    |  Name       |  Type    |  Description                                       |
+    +=============+==========+====================================================+
+    | device      | string   | The partition which shall be verified.             |
+    +-------------+----------+----------------------------------------------------+
+    | type        | string   | Identifier for the handler.                        |
+    +-------------+----------+----------------------------------------------------+
+    | sha256      | string   | Expected sha256 hash of the partition.             |
+    +-------------+----------+----------------------------------------------------+
+    | size        | string   | Data size (in bytes) to be verified.               |
+    |             |          | If 0 or not set, the handler will get the          |
+    |             |          | partition size from the device.                    |
+    +-------------+----------+----------------------------------------------------+
+    | offset      | string   | Offset (in bytes) to the start of the partition.   |
+    |             |          | If not set, default value 0 will be used.          |
+    +-------------+----------+----------------------------------------------------+
+
+Disk partitioner
+----------------
+
+This handler creates or modifies partitions using the library libfdisk. Handler must be put into
+the `partitions` section of sw-description. Setup for each partition is put into the `properties` field
+of sw-description.
+
+.. table:: Properties for diskpart handler
+
+   +-------------+----------+----------------------------------------------------+
+   |  Name       |  Type    |  Description                                       |
+   +=============+==========+====================================================+
+   | labeltype   | string   | "gpt" or "dos"                                     |
+   +-------------+----------+----------------------------------------------------+
+   | partition-X | array    | Array of values belonging to the partition number X|
+   +-------------+----------+----------------------------------------------------+
+
+For each partition, an array of couples key=value must be given. The following keys are
+supported:
+
+.. table:: Setup for a disk partition
+
+   +-------------+----------+----------------------------------------------------+
+   |  Name       |  Type    |  Description                                       |
+   +=============+==========+====================================================+
+   | size        | string   | Size of partition. K, M and G can be used for      |
+   |             |          | Kilobytes, Megabytes and Gigabytes.                |
+   +-------------+----------+----------------------------------------------------+
+   | start       | integer  | First sector for the partition                     |
+   +-------------+----------+----------------------------------------------------+
+   | name        | string   | Name of the partition                              |
+   +-------------+----------+----------------------------------------------------+
+   | type        | string   | Type of partition, it has two different meanings.  |
+   |             |          | It is the hex code for DOS (MBR) partition table   |
+   |             |          | or it is the string identifier in case of GPT.     |
+   +-------------+----------+----------------------------------------------------+
+
+
+
+Example:
+
+::
+
+        properties: {
+		labeltype = "gpt";
+		partition-1 = [ "size=64M", "start=2048",
+                        "name=bigrootfs", "type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B"];
+		partition-2 = ["size=256M", "start=133120",
+                        "name=ldata", "type=EBD0A0A2-B9E5-4433-87C0-68B6B72699C7"];
+		partition-3 = ["size=512M", "start=657408",
+                        "name=log", "type=0FC63DAF-8483-4772-8E79-3D69D8477DE4"];
+		partition-4 = ["size=4G", "start=1705984",
+                        "name=system",  "type=0FC63DAF-8483-4772-8E79-3D69D8477DE4"];
+		partition-5 = ["size=512M", "start=10094592",
+                        "name=part5",  "type=0FC63DAF-8483-4772-8E79-3D69D8477DE4"];
+	}

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>meta-swupdate: building with Yocto &mdash; Embedded Software Update Documentation 2019.11 documentation</title>
+  <title>meta-swupdate: building with Yocto &mdash; Embedded Software Update Documentation 2020.04 documentation</title>
   
 
   
@@ -19,42 +19,36 @@
   
 
   
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="genindex.html"/>
-        <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="Embedded Software Update Documentation 2019.11 documentation" href="index.html"/>
-        <link rel="next" title="client" href="swupdate-client.html"/>
-        <link rel="prev" title="Getting information on running update" href="progress.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="swupdate-client" href="swupdate-client.html" />
+    <link rel="prev" title="Language Bindings" href="bindings.html" /> 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -68,7 +62,7 @@
             
             
               <div class="version">
-                2019.11
+                2020.04
               </div>
             
           
@@ -108,6 +102,7 @@
 <li class="toctree-l1"><a class="reference internal" href="hawkbit-setup.html">Config for HawkBit under SSL/TLS using private CA / sub CA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">SWUpdate: API for external programs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bindings.html">Language Bindings</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">meta-swupdate: building with Yocto</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#what-about-libubootenv">What about libubootenv ?</a></li>
@@ -121,10 +116,10 @@
 </li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="swupdate-client.html">client</a></li>
-<li class="toctree-l1"><a class="reference internal" href="swupdate-hawkbitcfg.html">hawkbitcfg</a></li>
-<li class="toctree-l1"><a class="reference internal" href="swupdate-sendtohawkbit.html">sendtohawkbit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="swupdate-progress.html">progress</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-client.html">swupdate-client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-hawkbitcfg.html">swupdate-hawkbitcfg</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-sendtohawkbit.html">swupdate-sendtohawkbit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-progress.html">swupdate-progress</a></li>
 <li class="toctree-l1"><a class="reference internal" href="swupdate-sysrestart.html">swupdate-sysrestart</a></li>
 </ul>
 <ul>
@@ -144,7 +139,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">Embedded Software Update Documentation</a>
@@ -152,9 +147,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -213,7 +209,7 @@ about layers, you should include it in your <em>bblayers.conf</em> file to use i
 to add meta-oe to the list.</p>
 <p>In meta-SWUpdate there is a recipe to generate an initrd with a
 rescue system with SWUpdate. Use:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">MACHINE</span><span class="o">=&lt;</span><span class="n">your</span> <span class="n">machine</span><span class="o">&gt;</span> <span class="n">bitbake</span> <span class="n">swupdate</span><span class="o">-</span><span class="n">image</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">MACHINE</span><span class="o">=&lt;</span><span class="n">your</span> <span class="n">machine</span><span class="o">&gt;</span> <span class="n">bitbake</span> <span class="n">swupdate</span><span class="o">-</span><span class="n">image</span>
 </pre></div>
 </div>
 <p>You will find the result in your tmp/deploy/&lt;your machine&gt; directory.
@@ -223,7 +219,7 @@ check in the documentation of your bootloader.</p>
 <div class="section" id="what-about-libubootenv">
 <h2>What about libubootenv ?<a class="headerlink" href="#what-about-libubootenv" title="Permalink to this headline">¶</a></h2>
 <p>This is a common issue when SWUpdate is built. SWUpdate depends on this library,
-that is generated from the U-Boot’s sources. This library allows to safe modify
+that is generated from the U-Boot’s sources. This library allows one to safe modify
 the U-Boot environment. It is not required if U-Boot is not used as bootloader.
 If SWUpdate cannot be linked, you are using an old version of U-Boot (you need
 at least 2016.05). If this is the case, you can add your own recipe for
@@ -237,7 +233,7 @@ as well to SWUpdate’s code. This is done inside the libubootenv.</p>
 <p>If you build for a different machine, SWUpdate will destroy the
 environment when it tries to change it the first time. In fact,
 a wrong default environment is taken, and your board won’t boot again.</p>
-<p>To avoid possible mismatch, a new library was developped to be hardware independent.
+<p>To avoid possible mismatch, a new library was developed to be hardware independent.
 A strict match with the bootloader is not required anymore. The meta-swupdate layer
 contains recipes to build the new library (<cite>libubootenv</cite>) and adjust SWUpdate to be linked
 against it. To use it as replacement for u-boot-fw-utils:</p>
@@ -247,7 +243,7 @@ against it. To use it as replacement for u-boot-fw-utils:</p>
 <li>add to SWUpdate config:</li>
 </ul>
 </div></blockquote>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">CONFIG_UBOOT</span><span class="o">=</span><span class="n">y</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">CONFIG_UBOOT</span><span class="o">=</span><span class="n">y</span>
 <span class="n">CONFIG_UBOOT_NEWAPI</span><span class="o">=</span><span class="n">y</span>
 </pre></div>
 </div>
@@ -269,7 +265,7 @@ The list contains the name of images without any extension for MACHINE or
 filetype, that are added automatically.
 Example :</li>
 </ul>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">SWUPDATE_IMAGES</span> <span class="o">=</span> <span class="s2">&quot;core-image-full-cmdline uImage&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">SWUPDATE_IMAGES</span> <span class="o">=</span> <span class="s2">&quot;core-image-full-cmdline uImage&quot;</span>
 </pre></div>
 </div>
 <ul class="simple">
@@ -279,7 +275,7 @@ For example, an image can be generated as tarball and as UBIFS for target.
 Setting the variable for each artifact tells the class which file must
 be packed into the SWU image.</li>
 </ul>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">SWUPDATE_IMAGES_FSTYPES</span><span class="p">[</span><span class="n">core</span><span class="o">-</span><span class="n">image</span><span class="o">-</span><span class="n">full</span><span class="o">-</span><span class="n">cmdline</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;.ubifs&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">SWUPDATE_IMAGES_FSTYPES</span><span class="p">[</span><span class="n">core</span><span class="o">-</span><span class="n">image</span><span class="o">-</span><span class="n">full</span><span class="o">-</span><span class="n">cmdline</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;.ubifs&quot;</span>
 </pre></div>
 </div>
 <ul class="simple">
@@ -288,7 +284,7 @@ artifact file. Most images in <em>deploy</em> have the name of the Yocto’s mac
 filename. The class adds automatically the name of the MACHINE to the file, but some
 artifacts can be deployed without it.</li>
 </ul>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">SWUPDATE_IMAGES_NOAPPEND_MACHINE</span><span class="p">[</span><span class="n">my</span><span class="o">-</span><span class="n">image</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">SWUPDATE_IMAGES_NOAPPEND_MACHINE</span><span class="p">[</span><span class="n">my</span><span class="o">-</span><span class="n">image</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span>
 </pre></div>
 </div>
 <ul>
@@ -316,12 +312,12 @@ set to CMS.</p>
 <li><p class="first"><strong>SWUPDATE_AES_FILE</strong> : this is the file with the AES password to encrypt artifact. A new <cite>fstype</cite> is
 supported by the class (type: <cite>enc</cite>). SWUPDATE_AES_FILE is generated as output from openssl to create
 a new key with</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>openssl enc -aes-256-cbc -k &lt;PASSPHRASE&gt; -P -md sha1 &gt; $SWUPDATE_AES_FILE
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>openssl enc -aes-256-cbc -k &lt;PASSPHRASE&gt; -P -md sha1 &gt; $SWUPDATE_AES_FILE
 </pre></div>
 </div>
 <p>To use it, it is enough to add IMAGE_FSTYPES += “enc” to the  artifact. SWUpdate supports decryption of
 compressed artifact, such as</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">IMAGE_FSTYPES</span> <span class="o">+=</span> <span class="s2">&quot;.ext4.gz.enc&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">IMAGE_FSTYPES</span> <span class="o">+=</span> <span class="s2">&quot;.ext4.gz.enc&quot;</span>
 </pre></div>
 </div>
 </li>
@@ -331,11 +327,11 @@ compressed artifact, such as</p>
 <p>The swupdate class takes care of computing and inserting sha256 hashes in the
 sw-description file. The attribute <em>sha256</em> <strong>must</strong> be set in case the image
 is signed. Each artifact must have the attribute:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">sha256</span> <span class="o">=</span> <span class="s2">&quot;@artifact-file-name&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sha256</span> <span class="o">=</span> <span class="s2">&quot;@artifact-file-name&quot;</span>
 </pre></div>
 </div>
 <p>For example, to add sha256 to the standard Yocto core-image-full-cmdline:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">sha256</span> <span class="o">=</span> <span class="s2">&quot;@core-image-full-cmdline-machine.ubifs&quot;</span><span class="p">;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sha256</span> <span class="o">=</span> <span class="s2">&quot;@core-image-full-cmdline-machine.ubifs&quot;</span><span class="p">;</span>
 </pre></div>
 </div>
 <p>The name of the file must be the same as in deploy directory.</p>
@@ -345,13 +341,13 @@ is signed. Each artifact must have the attribute:</p>
 <p>To insert the value of a BitBake variable into the update file, pre- and
 postfix the variable name with “&#64;&#64;”.
 For example, to automatically set the version tag:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;@@DISTRO_VERSION@@&quot;</span><span class="p">;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;@@DISTRO_VERSION@@&quot;</span><span class="p">;</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="template-for-recipe-using-the-class">
 <h3>Template for recipe using the class<a class="headerlink" href="#template-for-recipe-using-the-class" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">DESCRIPTION</span> <span class="o">=</span> <span class="s2">&quot;Example recipe generating SWU image&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">DESCRIPTION</span> <span class="o">=</span> <span class="s2">&quot;Example recipe generating SWU image&quot;</span>
 <span class="n">SECTION</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
 
 <span class="n">LICENSE</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
@@ -382,18 +378,16 @@ For example, to automatically set the version tag:</p>
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="swupdate-client.html" class="btn btn-neutral float-right" title="client" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="swupdate-client.html" class="btn btn-neutral float-right" title="swupdate-client" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="progress.html" class="btn btn-neutral" title="Getting information on running update" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="bindings.html" class="btn btn-neutral float-left" title="Language Bindings" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -402,11 +396,11 @@ For example, to automatically set the version tag:</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2013-2019, Stefano Babic.
+        &copy; Copyright 2013-2020, Stefano Babic
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -419,36 +413,15 @@ For example, to automatically set the version tag:</p>
   
 
 
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'2019.11',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
   </script>
+
+  
+  
+    
    
 
 </body>

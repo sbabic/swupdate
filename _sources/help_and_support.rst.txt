@@ -72,3 +72,4 @@ Useful references
         - `Updating Embedded Linux Devices: SWUpdate <http://mkrak.org/2018/01/26/updating-embedded-linux-devices-part2/>`_
         - `Approach to Software Update Management, Pelux  <https://pelux.io/software-factory/PELUX-3.0/swf-blueprint/docs/articles/architecture/vert-config-SOTA.html>`_
         - `SOTA System, Pelux  <https://pelux.io/software-factory/PELUX-3.0/chapters/architecture/subsystems/SOTA/SOTA-system.html>`_
+        - `Building a Linux system for the STM32MP1: remote firmware updates, Bootlin <https://bootlin.com/blog/tag/swupdate/>`_

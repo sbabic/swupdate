@@ -399,7 +399,7 @@ the section with `-e stable,<rev number>`.
 If each of them requires an own section, it is the way to do. Anyway, it is more probable
 than revisions can be grouped together, for example board with the same major revision
 number could have the same installation instructions. This leads in the example to 3 groups
-for rev1.X, rev2.X and rev3.X. Links allow to group section together. When a "ref" is found
+for rev1.X, rev2.X and rev3.X. Links allow one to group section together. When a "ref" is found
 when SWUpdate searches for a group (images, files, script, bootenv), it replaces the current path
 in the tree with the value of the string. In this way, the example above can be written in this way:
 
@@ -559,7 +559,7 @@ Example:
 This defines that the software is compatible with HW-Revisions 1.0,
 1.2 and 1.3, but not with 1.1 or any other version not explicitly
 listed here. In the above example, compatibility is checked by means
-of string comparision. If the software is compatible with a large
+of string comparison. If the software is compatible with a large
 number of hardware revisions, it may get cumbersome to enumerate all
 compatible versions. To allow more compact specifications, regular
 expressions (POSIX extended) can be used by adding a prefix ``#RE:``
@@ -582,7 +582,7 @@ started.
 partitions : UBI layout
 -----------------------
 
-This tag allows to change the layout of UBI volumes.
+This tag allows one to change the layout of UBI volumes.
 Please take care that MTDs are not touched and they are
 configured by the Device Tree or in another way directly
 in kernel.
@@ -610,6 +610,9 @@ The default behavior of swupdate is to create a dynamic UBI volume. To
 create a static volume, add a line ``data = "static";`` to the
 respective partition entry.
 
+If a size of 0 is given, the volume will be deleted if it exists. This
+can be used to remove orphan volumes possibly created by older software
+versions which are not required anymore.
 
 images
 ------
@@ -1288,6 +1291,13 @@ There are 4 main sections inside sw-description:
    |             |          | files      | if set, file is encrypted             |
    |             |          | scripts    | and must be decrypted before          |
    |             |          |            | installing.                           |
+   +-------------+----------+------------+---------------------------------------+
+   | ivt         | string   | images     | IVT in case of encrypted artefact     |
+   |             |          | files      | It has no value if "encrypted" is not |
+   |             |          | scripts    | set. Each artefact can have an own    |
+   |             |          |            | IVT to avoid attacker can guess the   |
+   |             |          |            | the key.                              |
+   |             |          |            | It is a ASCII string of 32 chars      |
    +-------------+----------+------------+---------------------------------------+
    | data        | string   | images     | This is used to pass arbitrary data   |
    |             |          | files      | to a handler.                         |

@@ -42,7 +42,7 @@ The exchanged packets are described in network_ipc.h
 Where the fields have the meaning:
 
 - magic : a magic number as simple proof of the packet
-- type : one of REQ_INSTALL, ACK, NACK, GET_STATUS, POST_UPDATE
+- type : one of REQ_INSTALL, ACK, NACK, GET_STATUS, POST_UPDATE, SWUPDATE_SUBPROCESS
 - msgdata : a buffer used by the client to send the image
   or by SWUpdate to report back notifications and status.
 
@@ -60,6 +60,8 @@ will be ignored until a new REQ_INSTALL will be received.
 Client Library
 ==============
 
+Functions to start an update
+----------------------------
 A library simplifies the usage of the IPC making available a way to
 start asynchronously an update.
 
@@ -86,6 +88,73 @@ of the upgrade.
 
 Example about using this library is in the examples/client directory.
 
+Functions to control SWUpdate
+-----------------------------
+
+::
+
+        int ipc_send_cmd(ipc_message *msg);
+
+ipc_send_cmd is used to send a command to a SWUpdate subprocess (as suricatta). The function is synchron,
+that means it clocks until the subprocess has answered with ACK or NACK. This function sets `type` to SWUPDATE_SUBPROCESS.
+The caller must then set the other fields in message according to the destination.
+The msgdata field is a structure as:
+
+::
+
+     struct {
+        sourcetype source; /* Who triggered the update */
+        int	cmd;	   /* Optional encoded command */
+        int	timeout;     /* timeout in seconds if an aswer is expected */
+        unsigned int len;    /* Len of data valid in buf */
+        char	buf[2048];   /*
+                              * Buffer that each source can fill
+                              * with additional information
+                              */
+        }
+
+The caller fills `source` with the subprocess that acceps the command. Values of cmd
+are in `network_ipc.h`.
+
+Messages for suricatta
+----------------------
+
+suricatta accepts messages in JSON format. The message must be formatted in the `buf` field of
+the message data.
+
+Setting the polling time
+........................
+
+::
+
+        { "polling" : <value in seconds, range 0..X>}
+
+Setting it to 0 has the special meaning that the polling time is retrieved from the Backend
+(if this is supported by the server).
+
+Enable / disable Suricatta daemon
+.................................
+
+::
+
+        { "enable" : true }
+        { "enable" : false }
+
+Activate an already installed Software
+......................................
+
+After a software was installed, the new software boots and if everything runs fine,
+an acknowledge should be sent to the Hawkbit server. If this feature is used, for example
+to let the end user decide if the new software is accepted, the paramters used by the installation
+should be stored during the update process.
+
+::
+
+        { "id" : <action id>,
+          "finished" : "success", "failure", "none",
+          "execution" : ["closed", "proceeding", canceled", "rejected", "resumed"]
+          "details" : [ ]
+        }
 
 API to the integrated Webserver
 ===============================
@@ -145,7 +214,7 @@ The response contains the field type, that defines which event is sent.
 
 
 Status Change Event
-~~~~~~~~~~~~~~~~~~~
+-------------------
 
 This event is sent when the internal SWUpdate status change. Following status are supported:
 
@@ -259,3 +328,4 @@ Example:
 		"percent": "18"
 	}
 			
+

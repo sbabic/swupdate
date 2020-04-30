@@ -75,7 +75,6 @@ Recipe
   {
    tenant = "default";
    id = "machineID";
-   confirm = 0;
    url = "https://hb.domain:8443";
    nocheckcert = false;
    cafile = "/etc/swupdate/priv-cachain.pem"; /* CA + sub CA in one file */

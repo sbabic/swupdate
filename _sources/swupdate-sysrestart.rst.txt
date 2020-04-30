@@ -4,8 +4,8 @@ swupdate-sysrestart
 swupdate-sysrestart is a restart controller. It checks the update status
 and in case of success, it reboots all devices that were updated.
 
-SYNOPYS
--------
+SYNOPSIS
+--------
 
 swupdate-sysrestart [option]
 

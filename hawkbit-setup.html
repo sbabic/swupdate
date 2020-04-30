@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Config for HawkBit under SSL/TLS using private CA / sub CA &mdash; Embedded Software Update Documentation 2019.11 documentation</title>
+  <title>Config for HawkBit under SSL/TLS using private CA / sub CA &mdash; Embedded Software Update Documentation 2020.04 documentation</title>
   
 
   
@@ -19,42 +19,36 @@
   
 
   
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="genindex.html"/>
-        <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="Embedded Software Update Documentation 2019.11 documentation" href="index.html"/>
-        <link rel="next" title="SWUpdate: API for external programs" href="swupdate-ipc.html"/>
-        <link rel="prev" title="Suricatta daemon mode" href="suricatta.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="SWUpdate: API for external programs" href="swupdate-ipc.html" />
+    <link rel="prev" title="Suricatta daemon mode" href="suricatta.html" /> 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -68,7 +62,7 @@
             
             
               <div class="version">
-                2019.11
+                2020.04
               </div>
             
           
@@ -112,13 +106,14 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">SWUpdate: API for external programs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bindings.html">Language Bindings</a></li>
 <li class="toctree-l1"><a class="reference internal" href="building-with-yocto.html">meta-swupdate: building with Yocto</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="swupdate-client.html">client</a></li>
-<li class="toctree-l1"><a class="reference internal" href="swupdate-hawkbitcfg.html">hawkbitcfg</a></li>
-<li class="toctree-l1"><a class="reference internal" href="swupdate-sendtohawkbit.html">sendtohawkbit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="swupdate-progress.html">progress</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-client.html">swupdate-client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-hawkbitcfg.html">swupdate-hawkbitcfg</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-sendtohawkbit.html">swupdate-sendtohawkbit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-progress.html">swupdate-progress</a></li>
 <li class="toctree-l1"><a class="reference internal" href="swupdate-sysrestart.html">swupdate-sysrestart</a></li>
 </ul>
 <ul>
@@ -138,7 +133,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">Embedded Software Update Documentation</a>
@@ -146,9 +141,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -204,9 +200,9 @@
 </ol>
 <blockquote>
 <div><ul class="simple">
-<li>Create a pkcs#12 (<code class="docutils literal"><span class="pre">.p12</span></code>) file, rolling server key, server, private CA, sub CA certs into a single file.</li>
+<li>Create a pkcs#12 (<code class="docutils literal notranslate"><span class="pre">.p12</span></code>) file, rolling server key, server, private CA, sub CA certs into a single file.</li>
 <li>Use a password on the server key you won’t be ashamed of.</li>
-<li>Also create a single <code class="docutils literal"><span class="pre">.pem</span></code> file for the private CA + sub-CA</li>
+<li>Also create a single <code class="docutils literal notranslate"><span class="pre">.pem</span></code> file for the private CA + sub-CA</li>
 </ul>
 </div></blockquote>
 <ol class="arabic simple" start="2">
@@ -215,18 +211,18 @@
 <blockquote>
 <div><ul class="simple">
 <li>HawkBit uses the Java KeyStore to access credentials, but a JKS is not designed apparently to hold CA certs, which is a problem for private CAs. The workaround is to make it gulp an entire pkcs#12 file.</li>
-<li>It looks like a JKS like this cannot have a password different from the one protecting the <code class="docutils literal"><span class="pre">.p12</span></code>. Keytool also seems to have a little tendency to destruct the <code class="docutils literal"><span class="pre">.jks</span></code> if you change your mind and want to change the password… Basically do everything you need with openssl and use only keytool for generating the <code class="docutils literal"><span class="pre">.jks</span></code> file.</li>
+<li>It looks like a JKS like this cannot have a password different from the one protecting the <code class="docutils literal notranslate"><span class="pre">.p12</span></code>. Keytool also seems to have a little tendency to destruct the <code class="docutils literal notranslate"><span class="pre">.jks</span></code> if you change your mind and want to change the password… Basically do everything you need with openssl and use only keytool for generating the <code class="docutils literal notranslate"><span class="pre">.jks</span></code> file.</li>
 </ul>
-<p>The following command imports a <code class="docutils literal"><span class="pre">.p12</span></code> into a “pkcs12 Java keystore”, keeping the same password:</p>
-<div class="code bash highlight-default"><div class="highlight"><pre><span></span><span class="n">keytool</span> <span class="o">-</span><span class="n">importkeystore</span> <span class="o">-</span><span class="n">srckeystore</span> <span class="n">hb</span><span class="o">-</span><span class="k">pass</span><span class="o">.</span><span class="n">p12</span> <span class="o">-</span><span class="n">srcstoretype</span> <span class="n">pkcs12</span> \
+<p>The following command imports a <code class="docutils literal notranslate"><span class="pre">.p12</span></code> into a “pkcs12 Java keystore”, keeping the same password:</p>
+<div class="code bash highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">keytool</span> <span class="o">-</span><span class="n">importkeystore</span> <span class="o">-</span><span class="n">srckeystore</span> <span class="n">hb</span><span class="o">-</span><span class="k">pass</span><span class="o">.</span><span class="n">p12</span> <span class="o">-</span><span class="n">srcstoretype</span> <span class="n">pkcs12</span> \
         <span class="o">-</span><span class="n">destkeystore</span> <span class="n">hb</span><span class="o">-</span><span class="k">pass</span><span class="o">.</span><span class="n">jks</span> <span class="o">-</span><span class="n">deststoretype</span> <span class="n">pkcs12</span> \
         <span class="o">-</span><span class="n">alias</span> <span class="mi">1</span> <span class="o">-</span><span class="n">deststorepass</span> <span class="o">&lt;</span><span class="n">password_of_p12</span><span class="o">&gt;</span>
 </pre></div>
 </div>
-<p>Then you need to adapt <code class="docutils literal"><span class="pre">application.properties</span></code> of the HawkBit server to make use of the keystore.
+<p>Then you need to adapt <code class="docutils literal notranslate"><span class="pre">application.properties</span></code> of the HawkBit server to make use of the keystore.
 There are extra requirements to make HawkBit send artifacts via HTTPS.</p>
-<p>This is the relevant part of <code class="docutils literal"><span class="pre">&lt;HawkBit</span> <span class="pre">dir&gt;/hawkbit-runtime/hawkbit-update-server/src/main/resources/application.properties</span></code>:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># HTTPS mode working w/ swupdate</span>
+<p>This is the relevant part of <code class="docutils literal notranslate"><span class="pre">&lt;HawkBit</span> <span class="pre">dir&gt;/hawkbit-runtime/hawkbit-update-server/src/main/resources/application.properties</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># HTTPS mode working w/ swupdate</span>
 <span class="c1"># See also https://docs.spring.io/spring-boot/docs/1.4.7.RELEASE/reference/html/howto-embedded-servlet-containers.html#howto-configure-ssl</span>
 <span class="c1">#          https://github.com/eclipse/hawkbit/issues/618</span>
 <span class="c1">#</span>
@@ -261,15 +257,14 @@ There are extra requirements to make HawkBit send artifacts via HTTPS.</p>
 <blockquote>
 <div><ul class="simple">
 <li>The client needs the private CA certificate(s) to authenticate the server.</li>
-<li>There is a setting in swupdate to specify the path to a single CA cert, not a directory. Beyond that, libcurl looks into <code class="docutils literal"><span class="pre">/etc/ssl/certs</span></code>. So we’re using a compound “CA chain” <code class="docutils literal"><span class="pre">.pem</span></code> file to hold both private CA and sub-CA in our preferred location.</li>
+<li>There is a setting in swupdate to specify the path to a single CA cert, not a directory. Beyond that, libcurl looks into <code class="docutils literal notranslate"><span class="pre">/etc/ssl/certs</span></code>. So we’re using a compound “CA chain” <code class="docutils literal notranslate"><span class="pre">.pem</span></code> file to hold both private CA and sub-CA in our preferred location.</li>
 </ul>
-<p>This is the relevant part of <code class="docutils literal"><span class="pre">/etc/swupdate/swupdate.conf</span></code>:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">...</span>
+<p>This is the relevant part of <code class="docutils literal notranslate"><span class="pre">/etc/swupdate/swupdate.conf</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">...</span>
 <span class="n">suricatta</span> <span class="p">:</span>
 <span class="p">{</span>
  <span class="n">tenant</span> <span class="o">=</span> <span class="s2">&quot;default&quot;</span><span class="p">;</span>
  <span class="nb">id</span> <span class="o">=</span> <span class="s2">&quot;machineID&quot;</span><span class="p">;</span>
- <span class="n">confirm</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
  <span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://hb.domain:8443&quot;</span><span class="p">;</span>
  <span class="n">nocheckcert</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
  <span class="n">cafile</span> <span class="o">=</span> <span class="s2">&quot;/etc/swupdate/priv-cachain.pem&quot;</span><span class="p">;</span> <span class="o">/*</span> <span class="n">CA</span> <span class="o">+</span> <span class="n">sub</span> <span class="n">CA</span> <span class="ow">in</span> <span class="n">one</span> <span class="n">file</span> <span class="o">*/</span>
@@ -284,9 +279,7 @@ There are extra requirements to make HawkBit send artifacts via HTTPS.</p>
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -295,7 +288,7 @@ There are extra requirements to make HawkBit send artifacts via HTTPS.</p>
         <a href="swupdate-ipc.html" class="btn btn-neutral float-right" title="SWUpdate: API for external programs" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="suricatta.html" class="btn btn-neutral" title="Suricatta daemon mode" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="suricatta.html" class="btn btn-neutral float-left" title="Suricatta daemon mode" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -304,11 +297,11 @@ There are extra requirements to make HawkBit send artifacts via HTTPS.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2013-2019, Stefano Babic.
+        &copy; Copyright 2013-2020, Stefano Babic
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -321,36 +314,15 @@ There are extra requirements to make HawkBit send artifacts via HTTPS.</p>
   
 
 
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'2019.11',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
   </script>
+
+  
+  
+    
    
 
 </body>

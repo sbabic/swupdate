@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Project’s road-map &mdash; Embedded Software Update Documentation 2019.11 documentation</title>
+  <title>Project’s road-map &mdash; Embedded Software Update Documentation 2020.04 documentation</title>
   
 
   
@@ -19,41 +19,35 @@
   
 
   
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="genindex.html"/>
-        <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="Embedded Software Update Documentation 2019.11 documentation" href="index.html"/>
-        <link rel="prev" title="Contributing to SWUpdate" href="contributing.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Contributing to SWUpdate" href="contributing.html" /> 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -67,7 +61,7 @@
             
             
               <div class="version">
-                2019.11
+                2020.04
               </div>
             
           
@@ -107,13 +101,14 @@
 <li class="toctree-l1"><a class="reference internal" href="hawkbit-setup.html">Config for HawkBit under SSL/TLS using private CA / sub CA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">SWUpdate: API for external programs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bindings.html">Language Bindings</a></li>
 <li class="toctree-l1"><a class="reference internal" href="building-with-yocto.html">meta-swupdate: building with Yocto</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="swupdate-client.html">client</a></li>
-<li class="toctree-l1"><a class="reference internal" href="swupdate-hawkbitcfg.html">hawkbitcfg</a></li>
-<li class="toctree-l1"><a class="reference internal" href="swupdate-sendtohawkbit.html">sendtohawkbit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="swupdate-progress.html">progress</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-client.html">swupdate-client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-hawkbitcfg.html">swupdate-hawkbitcfg</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-sendtohawkbit.html">swupdate-sendtohawkbit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-progress.html">swupdate-progress</a></li>
 <li class="toctree-l1"><a class="reference internal" href="swupdate-sysrestart.html">swupdate-sysrestart</a></li>
 </ul>
 <ul>
@@ -123,15 +118,13 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Project’s road-map</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#main-goal">Main goal</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#disk-partitions">Disk partitions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#support-for-further-compressors">Support for further compressors</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#binary-delta-updates">Binary delta updates</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#integration-in-linux-distro">Integration in Linux distro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#more-efficient-delta-updates-most-feature-wanted">More efficient delta updates - most feature wanted !</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#parser">Parser</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#handlers">Handlers:</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#new-handlers">New Handlers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#flash-handler">Flash handler</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#handlers-install-able-as-plugin-at-runtime">Handlers install-able as plugin at runtime</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#handlers-installable-as-plugin-at-runtime">Handlers installable as plugin at runtime</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#security">Security</a></li>
@@ -160,7 +153,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">Embedded Software Update Documentation</a>
@@ -168,9 +161,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -229,15 +223,6 @@ SWUpdate suitable for a large number of products.
 This will help to build a community around the project
 itself.</p>
 </div>
-<div class="section" id="disk-partitions">
-<h2>Disk partitions<a class="headerlink" href="#disk-partitions" title="Permalink to this headline">¶</a></h2>
-<p>SWUpdate is able to set and handle UBI partitions, while it requires external
-tools to set up disk partitions (sfdisk / fdisk). Because an update should be self-contained, it is
-desirable that SWUpdate will integrate the code to be able to set up partitions
-configured in sw-descriptions even for disks (eMMC / SD / Hard-disks).
-This will let to use <cite>partitions</cite> inside sw-description to set up disk partitions
-and not only UBI volumes, and add further features as restoring configuration data and so on.</p>
-</div>
 <div class="section" id="support-for-further-compressors">
 <h2>Support for further compressors<a class="headerlink" href="#support-for-further-compressors" title="Permalink to this headline">¶</a></h2>
 <p>SWUpdate supports image compressed with following formats: zlib, zstd. This is
@@ -246,8 +231,8 @@ To reduce bandwidth or for big images, a stronger compressor could help.
 Adding a new compressor must be careful done because it changes the core of
 handling an image.</p>
 </div>
-<div class="section" id="binary-delta-updates">
-<h2>Binary delta updates<a class="headerlink" href="#binary-delta-updates" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="more-efficient-delta-updates-most-feature-wanted">
+<h2>More efficient delta updates - most feature wanted !<a class="headerlink" href="#more-efficient-delta-updates-most-feature-wanted" title="Permalink to this headline">¶</a></h2>
 <p>A whole update could be very traffic intensive. Specially in case
 of low-bandwidth connections, it could be interesting to introduce
 a way for delta binary updates.
@@ -260,15 +245,8 @@ each of them solves a specific use case for a delta update.</p>
 <p>SWUpdate is already able to perform delta updates based on librsync library. This is
 currently a good compromise to reduce complexity. Anyway, this helps in case of
 small changes, and it is not a general solution between two generic releases.
-A general approach could be to integrate SWUpdate with a storage to allow a delta upgrade
-from any release.</p>
-</div>
-<div class="section" id="integration-in-linux-distro">
-<h2>Integration in Linux distro<a class="headerlink" href="#integration-in-linux-distro" title="Permalink to this headline">¶</a></h2>
-<p>To allow an easier learning with SWUpdate and also for test purposes with the
-SWU forwarder handler, it makes sense to package SWUpdate for PC Linux distro.
-SWUpdate already supports debian package. Some help from community is asked to
-let the package merged into Debian distro.</p>
+A general approach could be to integrate SWUpdate with a storage to allow one
+a delta upgrade from any release.</p>
 </div>
 <div class="section" id="parser">
 <h2>Parser<a class="headerlink" href="#parser" title="Permalink to this headline">¶</a></h2>
@@ -282,12 +260,9 @@ in libconfig, a manual conversion is still required.</p>
 <h3>New Handlers<a class="headerlink" href="#new-handlers" title="Permalink to this headline">¶</a></h3>
 <p>Users develop own custom handlers - I just enforce and encourage everyone
 to send them and discuss how to integrate custom handler in mainline.</p>
-<p>A handler to update a micro-controller connected via UART is introduced.
-It could be enhanced to support other interfaces (SPI for example).</p>
 <dl class="docutils">
 <dt>Some ideas for new handlers:</dt>
 <dd><ul class="first last simple">
-<li>handlers to update micro-controllers</li>
 <li>FPGA updater for FPGA with Flash</li>
 <li>Package handler to install packages (ipk, deb)
 Packages can be inserted into the SWU and the atomicity is
@@ -300,12 +275,15 @@ to show how to solve custom install.</li>
 </div>
 <div class="section" id="flash-handler">
 <h3>Flash handler<a class="headerlink" href="#flash-handler" title="Permalink to this headline">¶</a></h3>
-<p>The flash handler for raw-devices (mainly NOR flashes) does not allow to
-stream the image and an error is reported if “installed-directly” is set.
-The handler can be extended to stream images.</p>
+<p>The flash handler for NAND devices in raw mode (without UBI) does n
+ot allow one to stream the image and an error is reported
+if “installed-directly” is set.
+The handler can be extended to stream images.  Anyway, because data on NAND
+should be always put in am UBI container, there are just a few cases
+where this is needed.</p>
 </div>
-<div class="section" id="handlers-install-able-as-plugin-at-runtime">
-<h3>Handlers install-able as plugin at runtime<a class="headerlink" href="#handlers-install-able-as-plugin-at-runtime" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="handlers-installable-as-plugin-at-runtime">
+<h3>Handlers installable as plugin at runtime<a class="headerlink" href="#handlers-installable-as-plugin-at-runtime" title="Permalink to this headline">¶</a></h3>
 <p>The project supports Lua as script language for pre- and postinstall
 script. It will be easy to add a way for installing a handler at run-time
 written in Lua, allowing to expand SWUpdate to the cases not covered
@@ -321,7 +299,7 @@ a unauthenticated handler cannot run.</p>
 <div class="section" id="security">
 <h2>Security<a class="headerlink" href="#security" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li>add suport for asymmetryc encryption</li>
+<li>add support for asymmetryc encryption</li>
 <li>add a way to share symmetric keys (similar as done in TLS)</li>
 </ul>
 </div>
@@ -373,11 +351,11 @@ interest will be waked up.</p>
 <h2>SWUpdate GUI for rescue<a class="headerlink" href="#swupdate-gui-for-rescue" title="Permalink to this headline">¶</a></h2>
 <p>In case of rescue for HMI devices, it is often required to have a small GUI
 for an operator to set some parameters (network,..) and start an update.
-SWUpdate-GUI is released with a base set of features. The goal of this simple GUI
-is to have a low footprint compared to GUI developed with state of art frameworks.
+The goal of this simple GUI is to have a low footprint compared to GUI
+developed with state of art frameworks.
 This lets to still have a rescue that fits in small devices.
 SWUpdate-GUI is already production-ready and delivered into final products. New
-features coud be developped.</p>
+features could be developed on demand.</p>
 </div>
 <div class="section" id="test-and-continuous-integration">
 <h2>Test and Continuous Integration<a class="headerlink" href="#test-and-continuous-integration" title="Permalink to this headline">¶</a></h2>
@@ -397,16 +375,14 @@ and tested on real hardware.</p>
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
       
-        <a href="contributing.html" class="btn btn-neutral" title="Contributing to SWUpdate" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="contributing.html" class="btn btn-neutral float-left" title="Contributing to SWUpdate" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -415,11 +391,11 @@ and tested on real hardware.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2013-2019, Stefano Babic.
+        &copy; Copyright 2013-2020, Stefano Babic
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -432,36 +408,15 @@ and tested on real hardware.</p>
   
 
 
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'2019.11',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
   </script>
+
+  
+  
+    
    
 
 </body>

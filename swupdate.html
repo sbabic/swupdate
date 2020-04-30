@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>SWUpdate: software update for embedded system &mdash; Embedded Software Update Documentation 2019.11 documentation</title>
+  <title>SWUpdate: software update for embedded system &mdash; Embedded Software Update Documentation 2020.04 documentation</title>
   
 
   
@@ -19,42 +19,36 @@
   
 
   
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="genindex.html"/>
-        <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="Embedded Software Update Documentation 2019.11 documentation" href="index.html"/>
-        <link rel="next" title="Update strategy examples" href="scenarios.html"/>
-        <link rel="prev" title="License" href="licensing.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Update strategy examples" href="scenarios.html" />
+    <link rel="prev" title="License" href="licensing.html" /> 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -68,7 +62,7 @@
             
             
               <div class="version">
-                2019.11
+                2020.04
               </div>
             
           
@@ -141,13 +135,14 @@
 <li class="toctree-l1"><a class="reference internal" href="hawkbit-setup.html">Config for HawkBit under SSL/TLS using private CA / sub CA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">SWUpdate: API for external programs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bindings.html">Language Bindings</a></li>
 <li class="toctree-l1"><a class="reference internal" href="building-with-yocto.html">meta-swupdate: building with Yocto</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="swupdate-client.html">client</a></li>
-<li class="toctree-l1"><a class="reference internal" href="swupdate-hawkbitcfg.html">hawkbitcfg</a></li>
-<li class="toctree-l1"><a class="reference internal" href="swupdate-sendtohawkbit.html">sendtohawkbit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="swupdate-progress.html">progress</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-client.html">swupdate-client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-hawkbitcfg.html">swupdate-hawkbitcfg</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-sendtohawkbit.html">swupdate-sendtohawkbit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-progress.html">swupdate-progress</a></li>
 <li class="toctree-l1"><a class="reference internal" href="swupdate-sysrestart.html">swupdate-sysrestart</a></li>
 </ul>
 <ul>
@@ -167,7 +162,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">Embedded Software Update Documentation</a>
@@ -175,9 +170,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -262,9 +258,7 @@ and images on devices. Passing a whole image can still be updated
 as a partition on the SD card, or a MTD partition.</li>
 <li>new partition schema. This is bound with UBI volume.
 SWUpdate can recreate UBI volumes, resizing them and
-copying the new software. A special UBI volume with the name “data”
-is saved and restored after repartitioning with all data
-it contains,  to maintain user’s data.</li>
+copying the new software.</li>
 <li>support for compressed images, using the zlib and zstd library.
 tarball (tgz file) are supported.</li>
 <li>support for partitioned USB-pen or unpartitioned (mainly
@@ -366,8 +360,8 @@ the image that must be installed.</p>
 <p>The feature can be set on image basis, that means that a user can
 decide which partial images should be streamed. If not streamed (see
 installed-directly flag), files are temporary extracted into the directory
-pointed to by the environment variable <code class="docutils literal"><span class="pre">TMPDIR</span></code> with <code class="docutils literal"><span class="pre">/tmp</span></code> as
-fall-back if <code class="docutils literal"><span class="pre">TMPDIR</span></code> is not set.
+pointed to by the environment variable <code class="docutils literal notranslate"><span class="pre">TMPDIR</span></code> with <code class="docutils literal notranslate"><span class="pre">/tmp</span></code> as
+fall-back if <code class="docutils literal notranslate"><span class="pre">TMPDIR</span></code> is not set.
 Of course, by streaming it is not possible to make checks on the whole delivered
 software before installing.
 The temporary copy is done only when updated from network. When the image
@@ -377,7 +371,7 @@ is stored on an external storage, there is no need of that copy.</p>
 <h3>Images fully streamed<a class="headerlink" href="#images-fully-streamed" title="Permalink to this headline">¶</a></h3>
 <p>In case of remote update, SWUpdate extracts relevant images from the stream
 and copies them into the directory pointed to by the environment variable
-<code class="docutils literal"><span class="pre">TMPDIR</span></code> (if unset, to <code class="docutils literal"><span class="pre">/tmp</span></code>) before calling the handlers.
+<code class="docutils literal notranslate"><span class="pre">TMPDIR</span></code> (if unset, to <code class="docutils literal notranslate"><span class="pre">/tmp</span></code>) before calling the handlers.
 This guarantee that an update is initiated only if all parts are present and
 correct. However, on some systems with less resources, the amount of RAM
 to copy the images could be not enough, for example if the filesystem on
@@ -424,7 +418,7 @@ is reached using the internal parser and disabling the web server.
 Any option has a small help describing its usage. In the default
 configuration, many options are already activated.</p>
 <p>To configure the options:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">menuconfig</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">menuconfig</span>
 </pre></div>
 </div>
 </div>
@@ -436,7 +430,7 @@ It is also possible to set the cross-compiler prefix as option with
 make menuconfig.</li>
 <li>generate the code</li>
 </ul>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">make</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span>
 </pre></div>
 </div>
 <p>The result is the binary “swupdate”. A second binary “progress” is built,
@@ -444,11 +438,11 @@ but it is not strictly required. It is an example how to build your
 own interface to SWUpdate to show a progress bar or whatever you want on your
 HMI. The example simply prints on the console the current status of the update.</p>
 <p>In the Yocto buildsystem,:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">bitbake</span> <span class="n">swupdate</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">bitbake</span> <span class="n">swupdate</span>
 </pre></div>
 </div>
 <p>This will build the package</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">bitbake</span> <span class="n">swupdate</span><span class="o">-</span><span class="n">image</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">bitbake</span> <span class="n">swupdate</span><span class="o">-</span><span class="n">image</span>
 </pre></div>
 </div>
 <p>This builds a rescue image. The result is a Ramdisk that
@@ -458,7 +452,7 @@ swupdate into your rootfs. Check your image recipe, and
 simply add it to the list of the installed packages.</p>
 <p>For example, if we want to add it to the standard “core-image-full-cmdline”
 image, we can add a <em>recipes-extended/images/core-image-full-cmdline.bbappend</em></p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">IMAGE_INSTALL</span> <span class="o">+=</span> <span class="s2">&quot; </span><span class="se">\</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">IMAGE_INSTALL</span> <span class="o">+=</span> <span class="s2">&quot; </span><span class="se">\</span>
 <span class="s2">                        swupdate </span><span class="se">\</span>
 <span class="s2">                        swupdate-www </span><span class="se">\</span>
 <span class="s2">                 &quot;</span>
@@ -472,12 +466,12 @@ your own logo, template ans style.</p>
 <p>SWUpdate is thought for Embedded Systems and building in an embedded
 distribution is the first use case. But apart the most used buildsystems
 for embedded as Yocto or Buildroot, in some cases a standard Linux distro
-is used. Not only, a distro package allows to run SWUpdate on Linux PC
+is used. Not only, a distro package allows one to run SWUpdate on Linux PC
 for test purposes without having to fight with dependencies. Using the
 debhelper tools, it is possible to generate a debian package.</p>
 <div class="section" id="steps-for-building-a-debian-package">
 <h4>Steps for building a debian package<a class="headerlink" href="#steps-for-building-a-debian-package" title="Permalink to this headline">¶</a></h4>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">debian</span><span class="o">/</span><span class="n">rules</span> <span class="n">clean</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">debian</span><span class="o">/</span><span class="n">rules</span> <span class="n">clean</span>
 <span class="o">./</span><span class="n">debian</span><span class="o">/</span><span class="n">rules</span> <span class="n">build</span>
 <span class="n">fakeroot</span> <span class="n">debian</span><span class="o">/</span><span class="n">rules</span> <span class="n">binary</span>
 </pre></div>
@@ -487,7 +481,7 @@ debhelper tools, it is possible to generate a debian package.</p>
 <div class="section" id="alternative-way-signing-source-package">
 <h4>Alternative way signing source package<a class="headerlink" href="#alternative-way-signing-source-package" title="Permalink to this headline">¶</a></h4>
 <p>You can use dpkg-buildpackage:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">dpkg</span><span class="o">-</span><span class="n">buildpackage</span> <span class="o">-</span><span class="n">us</span> <span class="o">-</span><span class="n">uc</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dpkg</span><span class="o">-</span><span class="n">buildpackage</span> <span class="o">-</span><span class="n">us</span> <span class="o">-</span><span class="n">uc</span>
 <span class="n">debsign</span> <span class="o">-</span><span class="n">k</span> <span class="o">&lt;</span><span class="n">keyId</span><span class="o">&gt;</span>
 </pre></div>
 </div>
@@ -513,9 +507,7 @@ with the table in sw-description.</li>
 <li>check that all components described in sw-description are
 really in the cpio archive.</li>
 <li>modify partitions, if required. This consists in a resize
-of UBI volumes, not a resize of MTD partition.
-A volume with the name “data” is saved and restored after
-resizing.</li>
+of UBI volumes, not a resize of MTD partition.</li>
 <li>runs pre-install scripts</li>
 <li>iterates through all images and call the corresponding
 handler for installing on target.</li>
@@ -527,20 +519,20 @@ in sw-description.</li>
 <p>The first step that fails, stops the entire procedure and
 an error is reported.</p>
 <p>To start SWUpdate expecting the image from a file:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">swupdate</span> <span class="o">-</span><span class="n">i</span> <span class="o">&lt;</span><span class="n">filename</span><span class="o">&gt;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">swupdate</span> <span class="o">-</span><span class="n">i</span> <span class="o">&lt;</span><span class="n">filename</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 <p>To start with the embedded web server:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">swupdate</span> <span class="o">-</span><span class="n">w</span> <span class="s2">&quot;&lt;web server options&gt;&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">swupdate</span> <span class="o">-</span><span class="n">w</span> <span class="s2">&quot;&lt;web server options&gt;&quot;</span>
 </pre></div>
 </div>
 <p>The main important parameters for the web server are “document-root” and “port”.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">swupdate</span> <span class="o">-</span><span class="n">w</span> <span class="s2">&quot;--document-root ./www --port 8080&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">swupdate</span> <span class="o">-</span><span class="n">w</span> <span class="s2">&quot;--document-root ./www --port 8080&quot;</span>
 </pre></div>
 </div>
 <p>The embedded web server is taken from the Mongoose project.</p>
 <p>The whole list of options will be retrieved with:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">swupdate</span> <span class="o">-</span><span class="n">h</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">swupdate</span> <span class="o">-</span><span class="n">h</span>
 </pre></div>
 </div>
 <p>This uses as website the pages delivered with the code. Of course,
@@ -548,7 +540,7 @@ they can be customized and replaced. The website uses AJAX to communicate
 with SWUpdate, and to show the progress of the update to the operator.</p>
 <p>The default port of the Web-server is 8080. You can then connect to the target
 with:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">http</span><span class="p">:</span><span class="o">//&lt;</span><span class="n">target_ip</span><span class="o">&gt;</span><span class="p">:</span><span class="mi">8080</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">http</span><span class="p">:</span><span class="o">//&lt;</span><span class="n">target_ip</span><span class="o">&gt;</span><span class="p">:</span><span class="mi">8080</span>
 </pre></div>
 </div>
 <p>If it works, the start page should be displayed as in next figure.</p>
@@ -569,7 +561,7 @@ An example of the notifications sent back to the browser is in the next figure:<
 line option. Assuming <cite>sw-description</cite> file contains a collection
 named <cite>stable</cite>, with <cite>alt</cite> installation location, <cite>SWUpdate</cite> can be
 called like this:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">swupdate</span> <span class="o">--</span><span class="n">select</span> <span class="n">stable</span><span class="p">,</span><span class="n">alt</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">swupdate</span> <span class="o">--</span><span class="n">select</span> <span class="n">stable</span><span class="p">,</span><span class="n">alt</span>
 </pre></div>
 </div>
 </div>
@@ -595,15 +587,15 @@ called like this:</p>
 <tr class="row-odd"><td>-b &lt;string&gt;</td>
 <td>string</td>
 <td>Active only if CONFIG_UBIATTACH is set
-It allows to blacklist MTDs when SWUpdate
-searches for UBI volumes.
+It allows one to blacklist MTDs when
+SWUpdate searches for UBI volumes.
 Example: U-Boot and environment in MTD0-1:
 <strong>swupdate -b “0 1”</strong></td>
 </tr>
 <tr class="row-even"><td>-e &lt;sel&gt;</td>
 <td>string</td>
 <td>sel is in the format &lt;software&gt;,&lt;mode&gt;
-It allows to find a subset of rules in
+It allows one to find a subset of rules in
 the sw-description file. With it,
 multiple rules are allowed.
 One common usage is in case of the dual
@@ -678,80 +670,112 @@ reinstalling.</td>
 <td>start internal webserver and pass to it
 a command line string.</td>
 </tr>
-<tr class="row-even"><td>-u &lt;parms&gt;</td>
-<td>string</td>
-<td>start internal suricatta client daemon and
-pass to it a command line string.
-see suricatta’s documentation for details.</td>
-</tr>
-<tr class="row-odd"><td>-H
-&lt;board:rev&gt;</td>
-<td>string</td>
-<td>set board name and Hardware revision</td>
-</tr>
-<tr class="row-even"><td>-c</td>
-<td><ul class="first last simple">
-<li></li>
-</ul>
-</td>
-<td>This will check <code class="docutils literal"><span class="pre">*.swu</span></code> file against
-internal tests. It ensures that files
-referenced in sw-description are present.
-Usage: swupdate -c -i &lt;file&gt;</td>
-</tr>
-<tr class="row-odd"><td>-P</td>
-<td>string</td>
-<td>Execute pre-update command.</td>
-</tr>
-<tr class="row-even"><td>-p</td>
-<td>string</td>
-<td>Execute post-update command.</td>
-</tr>
-<tr class="row-odd"><td>&#160;</td>
-<td>&#160;</td>
-<td>&#160;</td>
-</tr>
 <tr class="row-even"><td>-d &lt;parms&gt;</td>
 <td>string</td>
 <td>Active only if CONFIG_DOWNLOAD is set
 start internal downloader client and pass
 to it a command line string.
 See below the internal command line
-arguments for the downloader</td>
+arguments for the downloader.</td>
 </tr>
-<tr class="row-odd"><td>-u &lt;url&gt;</td>
+<tr class="row-odd"><td>-u &lt;parms&gt;</td>
 <td>string</td>
-<td>This is the URL where new software is
-pulled. URL is a link to a valid .swu image</td>
+<td>start internal suricatta client daemon and
+pass to it a command line string.
+See below the internal command line
+arguments for suricatta.</td>
 </tr>
-<tr class="row-even"><td>-r &lt;retries&gt;</td>
-<td>integer</td>
-<td>Number of retries before a download is
-considered broken. With “-r 0”, SWUpdate
-will not stop until a valid software is
-loaded.</td>
-</tr>
-<tr class="row-odd"><td>-t &lt;timeout&gt;</td>
-<td>integer</td>
-<td>Timeout for connection lost
-downloader or Webserver</td>
-</tr>
-<tr class="row-even"><td>-a &lt;usr:pwd&gt;</td>
+<tr class="row-even"><td>-H
+&lt;board:rev&gt;</td>
 <td>string</td>
-<td>Send user and password for Basic Auth</td>
+<td>set board name and Hardware revision</td>
+</tr>
+<tr class="row-odd"><td>-c</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td>This will check <code class="docutils literal notranslate"><span class="pre">*.swu</span></code> file against
+internal tests. It ensures that files
+referenced in sw-description are present.
+Usage: swupdate -c -i &lt;file&gt;</td>
+</tr>
+<tr class="row-even"><td>-P</td>
+<td>string</td>
+<td>Execute pre-update command.</td>
+</tr>
+<tr class="row-odd"><td>-p</td>
+<td>string</td>
+<td>Execute post-update command.</td>
 </tr>
 </tbody>
 </table>
+<p>Parameters used for the downloader: -d, –download [OPTIONS]
+For example: -d “-u example.com”
+Mandatory arguments are marked with ‘*’:
++————-+———-+——————————————–+
+|  Parameter  | Type     | Description                                |
++=============+==========+============================================+
+| -u &lt;url&gt;    | string   | * This is the URL where new software is    |
+|             |          | pulled. URL is a link to a valid .swu image|
++————-+———-+——————————————–+
+| -r &lt;retries&gt;| integer  | Number of retries before a download is     |
+|             |          | considered broken. With “-r 0”, SWUpdate   |
+|             |          | will not stop until a valid software is    |
+|             |          | loaded.                                    |
++————-+———-+——————————————–+
+| -t &lt;timeout&gt;| integer  | Timeout for connection lost                |
+|             |          | downloader or Webserver                    |
++————-+———-+——————————————–+
+| -a &lt;usr:pwd&gt;| string   | Send user and password for Basic Auth      |
++————-+———-+——————————————–+</p>
+<p>Parameters used for suricatta: -u, –suricatta [OPTIONS]
+For example: -u “-t default -u localhost:8080 -i 1B7”
+Mandatory arguments are marked with ‘*’:
++——————-+———-+——————————————–+
+|  Parameter        | Type     | Description                                |
++===================+==========+============================================+
+| -t &lt;tenant&gt;       | string   | * Set hawkBit tenant ID for this device.   |
++——————-+———-+——————————————–+
+| -u &lt;url&gt;          | string   | * Host and port of the hawkBit instance,   |
+|                   |          | e.g., localhost:8080                       |
++——————-+———-+——————————————–+
+| -i &lt;id&gt;           | integer  | * The device ID to communicate to hawkBit. |
++——————-+———-+——————————————–+
+| -c &lt;confirm&gt;      | integer  | Confirm update status to server: 1=AGAIN,  |
+|                   |          | 2=SUCCESS, 3=FAILED                        |
++——————-+———-+——————————————–+
+| -x                | -        | Do not abort on flawed server certificates.|
++——————-+———-+——————————————–+
+| -p &lt;polldelay&gt;    | integer  | Delay in seconds between two hawkBit poll  |
+|                   |          | operations (default: 45s).                 |
++——————-+———-+——————————————–+
+| -r &lt;retry&gt;        | integer  | Resume and retry interrupted downloads     |
+|                   |          | (default: 5 tries).                        |
++——————-+———-+——————————————–+
+| -w &lt;retrywait&gt;    | integer  | Time to wait prior to retry and resume a   |
+|                   |          | download (default: 5s).                    |
++——————-+———-+——————————————–+
+| -y &lt;proxy&gt;        | string   | Use proxy. Either give proxy URL,          |
+|                   |          | else {http,all}_proxy env is tried.        |
++——————-+———-+——————————————–+
+| -k &lt;targettoken&gt;  | string   | Set target token.                          |
++——————-+———-+——————————————–+
+| -g &lt;gatewaytoken&gt; | string   | Set gateway token.                         |
++——————-+———-+——————————————–+
+| -f &lt;interface&gt;    | string   | Set the network interface to connect to    |
+|                   |          | Hawkbit.                                   |
++——————-+———-+——————————————–+</p>
 </div>
 <div class="section" id="systemd-integration">
 <h3>systemd Integration<a class="headerlink" href="#systemd-integration" title="Permalink to this headline">¶</a></h3>
 <p>SWUpdate has optional <a class="reference external" href="https://www.freedesktop.org/wiki/Software/systemd/">systemd</a> support via the compile-time
-configuration switch <code class="docutils literal"><span class="pre">CONFIG_SYSTEMD</span></code>. If enabled, SWUpdate
+configuration switch <code class="docutils literal notranslate"><span class="pre">CONFIG_SYSTEMD</span></code>. If enabled, SWUpdate
 signals systemd about start-up completion and can make optional
 use of systemd’s socket-based activation feature.</p>
-<p>A sample systemd service unit file <code class="docutils literal"><span class="pre">/etc/systemd/system/swupdate.service</span></code>
+<p>A sample systemd service unit file <code class="docutils literal notranslate"><span class="pre">/etc/systemd/system/swupdate.service</span></code>
 may look like the following starting SWUpdate in suricatta daemon mode:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">Unit</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">Unit</span><span class="p">]</span>
 <span class="n">Description</span><span class="o">=</span><span class="n">SWUpdate</span> <span class="n">daemon</span>
 <span class="n">Documentation</span><span class="o">=</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">sbabic</span><span class="o">/</span><span class="n">swupdate</span>
 <span class="n">Documentation</span><span class="o">=</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">sbabic</span><span class="o">.</span><span class="n">github</span><span class="o">.</span><span class="n">io</span><span class="o">/</span><span class="n">swupdate</span>
@@ -764,11 +788,11 @@ may look like the following starting SWUpdate in suricatta daemon mode:</p>
 <span class="n">WantedBy</span><span class="o">=</span><span class="n">multi</span><span class="o">-</span><span class="n">user</span><span class="o">.</span><span class="n">target</span>
 </pre></div>
 </div>
-<p>Started via <code class="docutils literal"><span class="pre">systemctl</span> <span class="pre">start</span> <span class="pre">swupdate.service</span></code>, SWUpdate
+<p>Started via <code class="docutils literal notranslate"><span class="pre">systemctl</span> <span class="pre">start</span> <span class="pre">swupdate.service</span></code>, SWUpdate
 (re)creates its sockets on startup. For using socket-based
 activation, an accompanying systemd socket unit file
-<code class="docutils literal"><span class="pre">/etc/systemd/system/swupdate.socket</span></code> is required:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">Unit</span><span class="p">]</span>
+<code class="docutils literal notranslate"><span class="pre">/etc/systemd/system/swupdate.socket</span></code> is required:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">Unit</span><span class="p">]</span>
 <span class="n">Description</span><span class="o">=</span><span class="n">SWUpdate</span> <span class="n">socket</span> <span class="n">listener</span>
 <span class="n">Documentation</span><span class="o">=</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">sbabic</span><span class="o">/</span><span class="n">swupdate</span>
 <span class="n">Documentation</span><span class="o">=</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">sbabic</span><span class="o">.</span><span class="n">github</span><span class="o">.</span><span class="n">io</span><span class="o">/</span><span class="n">swupdate</span>
@@ -781,15 +805,15 @@ activation, an accompanying systemd socket unit file
 <span class="n">WantedBy</span><span class="o">=</span><span class="n">sockets</span><span class="o">.</span><span class="n">target</span>
 </pre></div>
 </div>
-<p>On <code class="docutils literal"><span class="pre">swupdate.socket</span></code> being started, systemd creates the socket
+<p>On <code class="docutils literal notranslate"><span class="pre">swupdate.socket</span></code> being started, systemd creates the socket
 files and hands them over to SWUpdate when it starts. So, for
-example, when talking to <code class="docutils literal"><span class="pre">/tmp/swupdateprog</span></code>, systemd starts
-<code class="docutils literal"><span class="pre">swupdate.service</span></code> and hands-over the socket files. The socket
+example, when talking to <code class="docutils literal notranslate"><span class="pre">/tmp/swupdateprog</span></code>, systemd starts
+<code class="docutils literal notranslate"><span class="pre">swupdate.service</span></code> and hands-over the socket files. The socket
 files are also handed over on a “regular” start of SWUpdate via
-<code class="docutils literal"><span class="pre">systemctl</span> <span class="pre">start</span> <span class="pre">swupdate.service</span></code>.</p>
-<p>Note that the socket paths in the two <code class="docutils literal"><span class="pre">ListenStream=</span></code> directives
-have to match the socket paths <code class="docutils literal"><span class="pre">CONFIG_SOCKET_CTRL_PATH</span></code> and
-<code class="docutils literal"><span class="pre">CONFIG_SOCKET_PROGRESS_PATH</span></code> in SWUpdate’s configuration.
+<code class="docutils literal notranslate"><span class="pre">systemctl</span> <span class="pre">start</span> <span class="pre">swupdate.service</span></code>.</p>
+<p>Note that the socket paths in the two <code class="docutils literal notranslate"><span class="pre">ListenStream=</span></code> directives
+have to match the socket paths <code class="docutils literal notranslate"><span class="pre">CONFIG_SOCKET_CTRL_PATH</span></code> and
+<code class="docutils literal notranslate"><span class="pre">CONFIG_SOCKET_PROGRESS_PATH</span></code> in SWUpdate’s configuration.
 Here, the default socket path configuration is depicted.</p>
 </div>
 </div>
@@ -830,7 +854,7 @@ simple to be built.
 The file describing the images (“sw-description”, but the name can be
 configured) must be the first file in the cpio archive.</p>
 <p>To produce an image, a script like this can be used:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>CONTAINER_VER=&quot;1.0&quot;
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>CONTAINER_VER=&quot;1.0&quot;
 PRODUCT_NAME=&quot;my-software&quot;
 FILES=&quot;sw-description image1.ubifs  \
        image2.gz.u-boot uImage.bin myfile sdcard.img&quot;
@@ -841,7 +865,7 @@ for i in $FILES;do
 <p>The single images can be put in any order inside the cpio container, with the
 exception of sw-description, that must be the first one.
 To check your generated image you can run the following command:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">swupdate</span> <span class="o">-</span><span class="n">c</span> <span class="o">-</span><span class="n">i</span> <span class="n">my</span><span class="o">-</span><span class="n">software_1</span><span class="o">.</span><span class="mf">0.</span><span class="n">swu</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">swupdate</span> <span class="o">-</span><span class="n">c</span> <span class="o">-</span><span class="n">i</span> <span class="n">my</span><span class="o">-</span><span class="n">software_1</span><span class="o">.</span><span class="mf">0.</span><span class="n">swu</span>
 </pre></div>
 </div>
 <div class="section" id="support-of-compound-image">
@@ -855,9 +879,7 @@ should inherit it, and add your own sw-description file to generate the image.</
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -866,7 +888,7 @@ should inherit it, and add your own sw-description file to generate the image.</
         <a href="scenarios.html" class="btn btn-neutral float-right" title="Update strategy examples" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="licensing.html" class="btn btn-neutral" title="License" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="licensing.html" class="btn btn-neutral float-left" title="License" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -875,11 +897,11 @@ should inherit it, and add your own sw-description file to generate the image.</
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2013-2019, Stefano Babic.
+        &copy; Copyright 2013-2020, Stefano Babic
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -892,36 +914,15 @@ should inherit it, and add your own sw-description file to generate the image.</
   
 
 
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'2019.11',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
   </script>
+
+  
+  
+    
    
 
 </body>

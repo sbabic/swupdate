@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>SWUpdate: syntax and tags with the default parser &mdash; Embedded Software Update Documentation 2019.11 documentation</title>
+  <title>SWUpdate: syntax and tags with the default parser &mdash; Embedded Software Update Documentation 2020.04 documentation</title>
   
 
   
@@ -19,42 +19,36 @@
   
 
   
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="genindex.html"/>
-        <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="Embedded Software Update Documentation 2019.11 documentation" href="index.html"/>
-        <link rel="next" title="Update images from verified source" href="signed_images.html"/>
-        <link rel="prev" title="Update strategy examples" href="scenarios.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Update images from verified source" href="signed_images.html" />
+    <link rel="prev" title="Update strategy examples" href="scenarios.html" /> 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -68,7 +62,7 @@
             
             
               <div class="version">
-                2019.11
+                2020.04
               </div>
             
           
@@ -133,13 +127,14 @@
 <li class="toctree-l1"><a class="reference internal" href="hawkbit-setup.html">Config for HawkBit under SSL/TLS using private CA / sub CA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">SWUpdate: API for external programs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bindings.html">Language Bindings</a></li>
 <li class="toctree-l1"><a class="reference internal" href="building-with-yocto.html">meta-swupdate: building with Yocto</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="swupdate-client.html">client</a></li>
-<li class="toctree-l1"><a class="reference internal" href="swupdate-hawkbitcfg.html">hawkbitcfg</a></li>
-<li class="toctree-l1"><a class="reference internal" href="swupdate-sendtohawkbit.html">sendtohawkbit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="swupdate-progress.html">progress</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-client.html">swupdate-client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-hawkbitcfg.html">swupdate-hawkbitcfg</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-sendtohawkbit.html">swupdate-sendtohawkbit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-progress.html">swupdate-progress</a></li>
 <li class="toctree-l1"><a class="reference internal" href="swupdate-sysrestart.html">swupdate-sysrestart</a></li>
 </ul>
 <ul>
@@ -159,7 +154,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">Embedded Software Update Documentation</a>
@@ -167,9 +162,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -229,7 +225,7 @@ for an explanation of basic types.
 The whole description must be contained in the sw-description file itself:
 using of the #include directive is not allowed by SWUpdate.</p>
 <p>The following example explains better the implemented tags:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">software</span> <span class="o">=</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">software</span> <span class="o">=</span>
 <span class="p">{</span>
         <span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;0.1.0&quot;</span><span class="p">;</span>
         <span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;Firmware update for XXXXX Project&quot;</span><span class="p">;</span>
@@ -333,7 +329,7 @@ completely customizable, everybody can set his own rules.
 For this specific example, the sw-description is written in XML format,
 with tags identifying the images for each device. To run it, the liblxp
 library is needed.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
 &lt;software version=&quot;1.0&quot;&gt;
   &lt;name&gt;Update Image&lt;/name&gt;
   &lt;version&gt;1.0.0&lt;/version&gt;
@@ -366,7 +362,7 @@ By reading the delivered image, SWUpdate will ignore all images that
 are not in the list processed by the parser. In this way, it is possible
 to have a single delivered image for the update of multiple devices.</p>
 <p>Multiple devices are supported by the default parser, too.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">software</span> <span class="o">=</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">software</span> <span class="o">=</span>
 <span class="p">{</span>
     <span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;0.1.0&quot;</span><span class="p">;</span>
 
@@ -393,7 +389,7 @@ for each device you have.</p>
 <p>By default the hardware information is extracted from
 <cite>/etc/hwrevision</cite> file. The file should contain a single line in the
 following format:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">boardname</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">revision</span><span class="o">&gt;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">boardname</span><span class="o">&gt;</span> <span class="o">&lt;</span><span class="n">revision</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 <p>Where:</p>
@@ -409,7 +405,7 @@ list</li>
 dual copy strategy. The simplest case is to define two installation
 locations for the firmware image and call <cite>SWUpdate</cite> selecting the
 appropriate image.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">software</span> <span class="o">=</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">software</span> <span class="o">=</span>
 <span class="p">{</span>
         <span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;0.1.0&quot;</span><span class="p">;</span>
 
@@ -451,7 +447,7 @@ is responsible for calling <cite>SWUpdate</cite> passing proper settings.</p>
 <li>Try &lt;entry&gt;</li>
 </ol>
 <p>Take an example. The following sw-description describes the release for a set of boards.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">software</span> <span class="o">=</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">software</span> <span class="o">=</span>
 <span class="p">{</span>
         <span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;0.1.0&quot;</span><span class="p">;</span>
 
@@ -511,7 +507,7 @@ It is important to understand the priorities how SWUpdate scans for entries duri
 hw revision and they differ in Hardware. Some of them can be grouped together, some of them
 require a dedicated section. A way (but not the only one !) could be to add <em>mode</em> and selects
 the section with <cite>-e stable,&lt;rev number&gt;</cite>.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">software</span> <span class="o">=</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">software</span> <span class="o">=</span>
 <span class="p">{</span>
         <span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;0.1.0&quot;</span><span class="p">;</span>
 
@@ -583,10 +579,10 @@ the section with <cite>-e stable,&lt;rev number&gt;</cite>.</p>
 <p>If each of them requires an own section, it is the way to do. Anyway, it is more probable
 than revisions can be grouped together, for example board with the same major revision
 number could have the same installation instructions. This leads in the example to 3 groups
-for rev1.X, rev2.X and rev3.X. Links allow to group section together. When a “ref” is found
+for rev1.X, rev2.X and rev3.X. Links allow one to group section together. When a “ref” is found
 when SWUpdate searches for a group (images, files, script, bootenv), it replaces the current path
 in the tree with the value of the string. In this way, the example above can be written in this way:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span> <span class="n">software</span> <span class="o">=</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span> <span class="n">software</span> <span class="o">=</span>
  <span class="p">{</span>
          <span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;0.1.0&quot;</span><span class="p">;</span>
 
@@ -659,7 +655,7 @@ In the following example, rev40 sets a link to a “common” section, where <ci
 is found. This is sets via a link, too, to a section in the parent node.
 The path <cite>software.myboard.stable.common.images</cite>  is then replaced by
 <cite>software.myboard.stable.trythis</cite></p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">software</span> <span class="o">=</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">software</span> <span class="o">=</span>
 <span class="p">{</span>
   <span class="n">version</span> <span class="o">=</span> <span class="p">{</span>
           <span class="n">ref</span> <span class="o">=</span> <span class="s2">&quot;#./commonversion&quot;</span><span class="p">;</span>
@@ -724,39 +720,39 @@ The path <cite>software.myboard.stable.common.images</cite>  is then replaced by
 </div>
 <div class="section" id="hardware-compatibility">
 <h2>hardware-compatibility<a class="headerlink" href="#hardware-compatibility" title="Permalink to this headline">¶</a></h2>
-<p><code class="docutils literal"><span class="pre">hardware-compatibility:</span> <span class="pre">[</span> <span class="pre">&quot;major.minor&quot;,</span> <span class="pre">&quot;major.minor&quot;,</span> <span class="pre">...</span> <span class="pre">]</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">hardware-compatibility:</span> <span class="pre">[</span> <span class="pre">&quot;major.minor&quot;,</span> <span class="pre">&quot;major.minor&quot;,</span> <span class="pre">...</span> <span class="pre">]</span></code></p>
 <p>This entry lists the hardware revisions that are compatible with this
 software image.</p>
 <p>Example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">hardware</span><span class="o">-</span><span class="n">compatibility</span><span class="p">:</span> <span class="p">[</span> <span class="s2">&quot;1.0&quot;</span><span class="p">,</span> <span class="s2">&quot;1.2&quot;</span><span class="p">,</span> <span class="s2">&quot;1.3&quot;</span><span class="p">];</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">hardware</span><span class="o">-</span><span class="n">compatibility</span><span class="p">:</span> <span class="p">[</span> <span class="s2">&quot;1.0&quot;</span><span class="p">,</span> <span class="s2">&quot;1.2&quot;</span><span class="p">,</span> <span class="s2">&quot;1.3&quot;</span><span class="p">];</span>
 </pre></div>
 </div>
 <p>This defines that the software is compatible with HW-Revisions 1.0,
 1.2 and 1.3, but not with 1.1 or any other version not explicitly
 listed here. In the above example, compatibility is checked by means
-of string comparision. If the software is compatible with a large
+of string comparison. If the software is compatible with a large
 number of hardware revisions, it may get cumbersome to enumerate all
 compatible versions. To allow more compact specifications, regular
-expressions (POSIX extended) can be used by adding a prefix <code class="docutils literal"><span class="pre">#RE:</span></code>
+expressions (POSIX extended) can be used by adding a prefix <code class="docutils literal notranslate"><span class="pre">#RE:</span></code>
 to the entry. Rewriting the above example would yield:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">hardware</span><span class="o">-</span><span class="n">compatibility</span><span class="p">:</span> <span class="p">[</span> <span class="s2">&quot;#RE:^1\.[023]$&quot;</span> <span class="p">];</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">hardware</span><span class="o">-</span><span class="n">compatibility</span><span class="p">:</span> <span class="p">[</span> <span class="s2">&quot;#RE:^1\.[023]$&quot;</span> <span class="p">];</span>
 </pre></div>
 </div>
 <p>It is in the responsibility of the respective project to find the
 revision of the board on which SWUpdate is running. No assumptions are
 made about how the revision can be obtained (GPIOs, EEPROM,..) and
 each project is free to select the most appropriate way. In the end
-the result must be written to the file <code class="docutils literal"><span class="pre">/etc/hwrevision</span></code> (or in
+the result must be written to the file <code class="docutils literal notranslate"><span class="pre">/etc/hwrevision</span></code> (or in
 another file if specified as configuration option) before SWUpdate is
 started.</p>
 </div>
 <div class="section" id="partitions-ubi-layout">
 <span id="id1"></span><h2>partitions : UBI layout<a class="headerlink" href="#partitions-ubi-layout" title="Permalink to this headline">¶</a></h2>
-<p>This tag allows to change the layout of UBI volumes.
+<p>This tag allows one to change the layout of UBI volumes.
 Please take care that MTDs are not touched and they are
 configured by the Device Tree or in another way directly
 in kernel.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">partitions</span><span class="p">:</span> <span class="p">(</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">partitions</span><span class="p">:</span> <span class="p">(</span>
         <span class="p">{</span>
                 <span class="n">name</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">volume</span> <span class="n">name</span><span class="o">&gt;</span><span class="p">;</span>
                 <span class="n">size</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">size</span> <span class="ow">in</span> <span class="nb">bytes</span><span class="o">&gt;</span><span class="p">;</span>
@@ -768,19 +764,22 @@ in kernel.</p>
 <p>All fields are mandatory. SWUpdate searches for a volume of the given
 name and if necessary adjusts size or type (see below). If no volume
 with the given name is found, a new volume is created on the UBI
-device attached to the MTD device given by <code class="docutils literal"><span class="pre">device</span></code>. <code class="docutils literal"><span class="pre">device</span></code> can
+device attached to the MTD device given by <code class="docutils literal notranslate"><span class="pre">device</span></code>. <code class="docutils literal notranslate"><span class="pre">device</span></code> can
 be specified by number (e.g. “mtd4”) or by name (the name of the MTD
 device, e.g. “ubi_partition”). The UBI device is attached
 automatically.</p>
 <p>The default behavior of swupdate is to create a dynamic UBI volume. To
-create a static volume, add a line <code class="docutils literal"><span class="pre">data</span> <span class="pre">=</span> <span class="pre">&quot;static&quot;;</span></code> to the
+create a static volume, add a line <code class="docutils literal notranslate"><span class="pre">data</span> <span class="pre">=</span> <span class="pre">&quot;static&quot;;</span></code> to the
 respective partition entry.</p>
+<p>If a size of 0 is given, the volume will be deleted if it exists. This
+can be used to remove orphan volumes possibly created by older software
+versions which are not required anymore.</p>
 </div>
 <div class="section" id="images">
 <h2>images<a class="headerlink" href="#images" title="Permalink to this headline">¶</a></h2>
 <p>The tag “images” collects the image that are installed to the system.
 The syntax is:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">images</span><span class="p">:</span> <span class="p">(</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">images</span><span class="p">:</span> <span class="p">(</span>
         <span class="p">{</span>
                 <span class="n">filename</span><span class="p">[</span><span class="n">mandatory</span><span class="p">]</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">Name</span> <span class="ow">in</span> <span class="n">CPIO</span> <span class="n">Archive</span><span class="o">&gt;</span><span class="p">;</span>
                 <span class="n">volume</span><span class="p">[</span><span class="n">optional</span><span class="p">]</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">destination</span> <span class="n">volume</span><span class="o">&gt;</span><span class="p">;</span>
@@ -801,21 +800,21 @@ The syntax is:</p>
 <em>device</em> cannot be used at the same time. If device is set,
 the raw handler is automatically selected.</p>
 <p>The following example is to update a UBI volume:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
         <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;core-image-base.ubifs&quot;</span><span class="p">;</span>
         <span class="n">volume</span> <span class="o">=</span> <span class="s2">&quot;rootfs&quot;</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p>To update an image in raw mode, the syntax is:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
         <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;core-image-base.ext3&quot;</span><span class="p">;</span>
         <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;/dev/mmcblk0p1&quot;</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 <p>To flash an image at a specific offset, the syntax is:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
         <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;u-boot.bin&quot;</span><span class="p">;</span>
         <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;/dev/mmcblk0p1&quot;</span><span class="p">;</span>
         <span class="n">offset</span> <span class="o">=</span> <span class="s2">&quot;16K&quot;</span><span class="p">;</span>
@@ -828,7 +827,7 @@ way. Flashes must be erased before copying, and writing into NAND
 must take care of bad blocks and ECC errors. For this reasons, the
 handler “flash” must be selected:</p>
 <p>For example, to copy the kernel into the MTD7 of a NAND flash:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
         <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;uImage&quot;</span><span class="p">;</span>
         <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;mtd7&quot;</span><span class="p">;</span>
         <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;flash&quot;</span><span class="p">;</span>
@@ -839,7 +838,7 @@ handler “flash” must be selected:</p>
 <em>volume</em> is only mandatory in case of UBI volumes. It should be not used
 in other cases.</p>
 <p>Alternatively, for the handler “flash”, the <em>mtdname</em> can be specified, instead of the device name:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
         <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;uImage&quot;</span><span class="p">;</span>
         <span class="n">mtdname</span> <span class="o">=</span> <span class="s2">&quot;kernel&quot;</span><span class="p">;</span>
         <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;flash&quot;</span><span class="p">;</span>
@@ -852,7 +851,7 @@ in other cases.</p>
 <p>It is possible to copy single files instead of images.
 This is not the preferred way, but it can be used for
 debugging or special purposes.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">files</span><span class="p">:</span> <span class="p">(</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">files</span><span class="p">:</span> <span class="p">(</span>
         <span class="p">{</span>
                 <span class="n">filename</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">Name</span> <span class="ow">in</span> <span class="n">CPIO</span> <span class="n">Archive</span><span class="o">&gt;</span><span class="p">;</span>
                 <span class="n">path</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">path</span> <span class="ow">in</span> <span class="n">filesystem</span><span class="o">&gt;</span><span class="p">;</span>
@@ -882,7 +881,7 @@ be unique inside the same cpio archive.</p>
 <p>If no type is given, SWUpdate default to “lua”.</p>
 <div class="section" id="lua">
 <h3>Lua<a class="headerlink" href="#lua" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">scripts</span><span class="p">:</span> <span class="p">(</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">scripts</span><span class="p">:</span> <span class="p">(</span>
         <span class="p">{</span>
                 <span class="n">filename</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">Name</span> <span class="ow">in</span> <span class="n">CPIO</span> <span class="n">Archive</span><span class="o">&gt;</span><span class="p">;</span>
                 <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;lua&quot;</span><span class="p">;</span>
@@ -892,12 +891,12 @@ be unique inside the same cpio archive.</p>
 </div>
 <p>Lua scripts are run using the internal interpreter.</p>
 <p>They must have at least one of the following functions:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">function</span> <span class="n">preinst</span><span class="p">()</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">function</span> <span class="n">preinst</span><span class="p">()</span>
 </pre></div>
 </div>
 <p>SWUpdate scans for all scripts and check for a preinst function. It is
 called before installing the images.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">function</span> <span class="n">postinst</span><span class="p">()</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">function</span> <span class="n">postinst</span><span class="p">()</span>
 </pre></div>
 </div>
 <p>SWUpdate scans for all scripts and check for a postinst function. It is
@@ -905,7 +904,7 @@ called after installing the images.</p>
 </div>
 <div class="section" id="shellscript">
 <h3>shellscript<a class="headerlink" href="#shellscript" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">scripts</span><span class="p">:</span> <span class="p">(</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">scripts</span><span class="p">:</span> <span class="p">(</span>
         <span class="p">{</span>
                 <span class="n">filename</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">Name</span> <span class="ow">in</span> <span class="n">CPIO</span> <span class="n">Archive</span><span class="o">&gt;</span><span class="p">;</span>
                 <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;shellscript&quot;</span><span class="p">;</span>
@@ -922,7 +921,7 @@ to the script.</p>
 </div>
 <div class="section" id="preinstall">
 <h3>preinstall<a class="headerlink" href="#preinstall" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">scripts</span><span class="p">:</span> <span class="p">(</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">scripts</span><span class="p">:</span> <span class="p">(</span>
         <span class="p">{</span>
                 <span class="n">filename</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">Name</span> <span class="ow">in</span> <span class="n">CPIO</span> <span class="n">Archive</span><span class="o">&gt;</span><span class="p">;</span>
                 <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;preinstall&quot;</span><span class="p">;</span>
@@ -937,7 +936,7 @@ to the script.</p>
 </div>
 <div class="section" id="postinstall">
 <h3>postinstall<a class="headerlink" href="#postinstall" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">scripts</span><span class="p">:</span> <span class="p">(</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">scripts</span><span class="p">:</span> <span class="p">(</span>
         <span class="p">{</span>
                 <span class="n">filename</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">Name</span> <span class="ow">in</span> <span class="n">CPIO</span> <span class="n">Archive</span><span class="o">&gt;</span><span class="p">;</span>
                 <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;postinstall&quot;</span><span class="p">;</span>
@@ -964,9 +963,9 @@ not been successful.</p>
 for less critical update operations. Hence, whether or not the update
 transaction marker is set by SWUpdate can be controlled by the boolean switch
 “bootloader_transaction_marker” which is global per <cite>sw-description</cite> file.
-It defaults to <code class="docutils literal"><span class="pre">true</span></code>. The following example snippet disables the update
+It defaults to <code class="docutils literal notranslate"><span class="pre">true</span></code>. The following example snippet disables the update
 transaction marker:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">software</span> <span class="o">=</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">software</span> <span class="o">=</span>
 <span class="p">{</span>
         <span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;0.1.0&quot;</span><span class="p">;</span>
         <span class="n">bootloader_transaction_marker</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
@@ -986,7 +985,7 @@ informs SWUpdate to call the bootloader handler to manage the file
 (requires enabling bootloader handler in configuration). There is one
 bootloader handler for all supported bootloaders. The appropriate bootloader
 must be chosen from the bootloader selection menu in <cite>menuconfig</cite>.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">images</span><span class="p">:</span> <span class="p">(</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">images</span><span class="p">:</span> <span class="p">(</span>
         <span class="p">{</span>
                 <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;bootloader-env&quot;</span><span class="p">;</span>
                 <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;bootloader&quot;</span><span class="p">;</span>
@@ -996,14 +995,14 @@ must be chosen from the bootloader selection menu in <cite>menuconfig</cite>.</p
 </div>
 <p>The format of the file is described in U-boot documentation. Each line
 is in the format</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">name</span> <span class="n">of</span> <span class="n">variable</span><span class="o">&gt;=&lt;</span><span class="n">value</span><span class="o">&gt;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">name</span> <span class="n">of</span> <span class="n">variable</span><span class="o">&gt;=&lt;</span><span class="n">value</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 <p>if value is missing, the variable is unset.</p>
 <p>The format is compatible with U-Boot “env import” command. It is possible
 to produce the file from target as result of “env export”.</p>
 <p>Comments are allowed in the file to improve readability, see this example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Default variables</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Default variables</span>
 <span class="n">bootslot</span><span class="o">=</span><span class="mi">0</span>
 <span class="n">board_name</span><span class="o">=</span><span class="n">myboard</span>
 <span class="n">baudrate</span><span class="o">=</span><span class="mi">115200</span>
@@ -1014,7 +1013,7 @@ to produce the file from target as result of “env export”.</p>
 </div>
 <p>The second way is to define in a group setting the variables
 that must be changed:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">bootenv</span><span class="p">:</span> <span class="p">(</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">bootenv</span><span class="p">:</span> <span class="p">(</span>
         <span class="p">{</span>
                 <span class="n">name</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">Variable</span> <span class="n">name</span><span class="o">&gt;</span><span class="p">;</span>
                 <span class="n">value</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">Variable</span> <span class="n">value</span><span class="o">&gt;</span><span class="p">;</span>
@@ -1035,11 +1034,11 @@ name. This mechanism can be used to override particular setting in
 board specific fashion.</p>
 <p>Assuming that the hardware information file <cite>/etc/hwrevision</cite> contains
 the following entry:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">my</span><span class="o">-</span><span class="n">board</span> <span class="mf">0.1</span><span class="o">.</span><span class="mi">0</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">my</span><span class="o">-</span><span class="n">board</span> <span class="mf">0.1</span><span class="o">.</span><span class="mi">0</span>
 </pre></div>
 </div>
 <p>and the following description:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">software</span> <span class="o">=</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">software</span> <span class="o">=</span>
 <span class="p">{</span>
         <span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;0.1.0&quot;</span><span class="p">;</span>
 
@@ -1077,7 +1076,7 @@ scope. The tag names must not be any of: <cite>version</cite>,
 <cite>hardware-compatibility</cite>, <cite>uboot</cite>, <cite>bootenv</cite>, <cite>files</cite>, <cite>scripts</cite>, <cite>partitions</cite>,
 <cite>images</cite></p>
 <p>An example description file:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">software</span> <span class="o">=</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">software</span> <span class="o">=</span>
 <span class="p">{</span>
         <span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;0.1&quot;</span><span class="p">;</span>
 
@@ -1146,11 +1145,11 @@ device in a single file, but the device should install it just when needed.</p>
 containing all versions of the installed images. This must be generated
 before running SWUpdate.
 The file must contains pairs with the name of image and his version, as:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">name</span> <span class="n">of</span> <span class="n">component</span><span class="o">&gt;</span>     <span class="o">&lt;</span><span class="n">version</span><span class="o">&gt;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">name</span> <span class="n">of</span> <span class="n">component</span><span class="o">&gt;</span>     <span class="o">&lt;</span><span class="n">version</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 <p>Version is a string and can have any value. For example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">bootloader</span>              <span class="mf">2015.01</span><span class="o">-</span><span class="n">rc3</span><span class="o">-</span><span class="mi">00456</span><span class="o">-</span><span class="n">gd4978d</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">bootloader</span>              <span class="mf">2015.01</span><span class="o">-</span><span class="n">rc3</span><span class="o">-</span><span class="mi">00456</span><span class="o">-</span><span class="n">gd4978d</span>
 <span class="n">kernel</span>                  <span class="mf">3.17</span><span class="o">.</span><span class="mi">0</span><span class="o">-</span><span class="mi">00215</span><span class="o">-</span><span class="n">g2e876af</span>
 </pre></div>
 </div>
@@ -1171,17 +1170,17 @@ of conditions where some parameters are known just by the target at runtime. The
 script is global to all sections, but it can contain several functions that can be specific
 for each entry in the sw-description file.</p>
 <p>These attributes are used for an embedded-script:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">embedded</span><span class="o">-</span><span class="n">script</span> <span class="o">=</span> <span class="s2">&quot;&lt;Lua code&quot;</span><span class="o">&gt;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">embedded</span><span class="o">-</span><span class="n">script</span> <span class="o">=</span> <span class="s2">&quot;&lt;Lua code&quot;</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 <p>It must be taken into account that the parser has already run and usage of double quotes can
 interfere with the parser. For this reason, each double quote in the script must be escaped.</p>
 <p>That means a simple Lua code as:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;Test&quot;</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;Test&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>must be changed to:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="nb">print</span> <span class="p">(</span>\<span class="s2">&quot;Test</span><span class="se">\&quot;</span><span class="s2">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span> <span class="p">(</span>\<span class="s2">&quot;Test</span><span class="se">\&quot;</span><span class="s2">)</span>
 </pre></div>
 </div>
 <p>If not, the parser thinks to have the closure of the script and this generates an error.
@@ -1189,7 +1188,7 @@ See the examples directory for examples how to use it.
 Any entry in files or images can trigger one function in the script. The “hook” attribute
 tells the parser to load the script and to search for the function pointed to by the hook
 attribute. For example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">files</span><span class="p">:</span> <span class="p">(</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">files</span><span class="p">:</span> <span class="p">(</span>
         <span class="p">{</span>
                 <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;examples.tar&quot;</span><span class="p">;</span>
                 <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;archive&quot;</span><span class="p">;</span>
@@ -1205,12 +1204,12 @@ activated, the parser raises an error because a sw-description with an embedded 
 be parsed, but the interpreter is not available.</p>
 <p>Each Lua function receives as parameter a table with the setup for the current entry. A hook
 in Lua is in the format:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">function</span> <span class="n">lua_hook</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">function</span> <span class="n">lua_hook</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>image is a table where the keys are the list of available attributes. If an attribute contains
 a “-“, it is replaced with “_”, because “-” cannot be used in Lua. This means, for example, that:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">install</span><span class="o">-</span><span class="k">if</span><span class="o">-</span><span class="n">different</span> <span class="o">==&gt;</span> <span class="n">install_if_different</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">install</span><span class="o">-</span><span class="k">if</span><span class="o">-</span><span class="n">different</span> <span class="o">==&gt;</span> <span class="n">install_if_different</span>
 <span class="n">install</span><span class="o">-</span><span class="n">directly</span>     <span class="o">==&gt;</span> <span class="n">install_directly</span>
 </pre></div>
 </div>
@@ -1223,7 +1222,7 @@ The Lua function must return 2 values:</p>
 </ul>
 </div></blockquote>
 <p>Example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">function</span> <span class="n">set_version</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">function</span> <span class="n">set_version</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
         <span class="nb">print</span> <span class="p">(</span>\<span class="s2">&quot;RECOVERY_STATUS.RUN: </span><span class="se">\&quot;</span><span class="s2">.. swupdate.RECOVERY_STATUS.RUN)</span>
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">l</span> <span class="ow">in</span> <span class="n">pairs</span><span class="p">(</span><span class="n">image</span><span class="p">)</span> <span class="n">do</span>
                 <span class="n">swupdate</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span>\<span class="s2">&quot;image[</span><span class="se">\&quot;</span><span class="s2"> .. tostring(k) .. </span><span class="se">\&quot;</span><span class="s2">] = </span><span class="se">\&quot;</span><span class="s2"> .. tostring(l))</span>
@@ -1432,7 +1431,19 @@ if set, file is encrypted
 and must be decrypted before
 installing.</td>
 </tr>
-<tr class="row-odd"><td>data</td>
+<tr class="row-odd"><td>ivt</td>
+<td>string</td>
+<td>images
+files
+scripts</td>
+<td>IVT in case of encrypted artefact
+It has no value if “encrypted” is not
+set. Each artefact can have an own
+IVT to avoid attacker can guess the
+the key.
+It is a ASCII string of 32 chars</td>
+</tr>
+<tr class="row-even"><td>data</td>
 <td>string</td>
 <td>images
 files
@@ -1440,7 +1451,7 @@ scripts</td>
 <td>This is used to pass arbitrary data
 to a handler.</td>
 </tr>
-<tr class="row-even"><td>sha256</td>
+<tr class="row-odd"><td>sha256</td>
 <td>string</td>
 <td>images
 files
@@ -1449,25 +1460,25 @@ scripts</td>
 Used for verification of signed
 images.</td>
 </tr>
-<tr class="row-odd"><td>embedded-script</td>
+<tr class="row-even"><td>embedded-script</td>
 <td>string</td>
 <td>&#160;</td>
 <td>Lua code that is embedded in the
 sw-description file.</td>
 </tr>
-<tr class="row-even"><td>offset</td>
+<tr class="row-odd"><td>offset</td>
 <td>string</td>
 <td>images</td>
 <td>Optional destination offset</td>
 </tr>
-<tr class="row-odd"><td>hook</td>
+<tr class="row-even"><td>hook</td>
 <td>string</td>
 <td>images
 files</td>
 <td>The name of the function (Lua) to be
 called when the entry is parsed.</td>
 </tr>
-<tr class="row-even"><td>mtdname</td>
+<tr class="row-odd"><td>mtdname</td>
 <td>string</td>
 <td>images</td>
 <td>name of the MTD to update. Used only
@@ -1482,9 +1493,7 @@ specifying the devicenode</td>
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
@@ -1493,7 +1502,7 @@ specifying the devicenode</td>
         <a href="signed_images.html" class="btn btn-neutral float-right" title="Update images from verified source" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="scenarios.html" class="btn btn-neutral" title="Update strategy examples" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="scenarios.html" class="btn btn-neutral float-left" title="Update strategy examples" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -1502,11 +1511,11 @@ specifying the devicenode</td>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2013-2019, Stefano Babic.
+        &copy; Copyright 2013-2020, Stefano Babic
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -1519,36 +1528,15 @@ specifying the devicenode</td>
   
 
 
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'2019.11',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
   </script>
+
+  
+  
+    
    
 
 </body>

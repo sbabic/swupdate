@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>client &mdash; Embedded Software Update Documentation 2019.11 documentation</title>
+  <title>swupdate-client &mdash; Embedded Software Update Documentation 2020.04 documentation</title>
   
 
   
@@ -19,42 +19,36 @@
   
 
   
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
-  
-  
-    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  
-
-  
-
-  
-        <link rel="index" title="Index"
-              href="genindex.html"/>
-        <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="Embedded Software Update Documentation 2019.11 documentation" href="index.html"/>
-        <link rel="next" title="hawkbitcfg" href="swupdate-hawkbitcfg.html"/>
-        <link rel="prev" title="meta-swupdate: building with Yocto" href="building-with-yocto.html"/> 
-
-  
-  <script src="_static/js/modernizr.min.js"></script>
-
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="swupdate-hawkbitcfg" href="swupdate-hawkbitcfg.html" />
+    <link rel="prev" title="meta-swupdate: building with Yocto" href="building-with-yocto.html" /> 
 </head>
 
-<body class="wy-body-for-nav" role="document">
+<body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -68,7 +62,7 @@
             
             
               <div class="version">
-                2019.11
+                2020.04
               </div>
             
           
@@ -108,17 +102,18 @@
 <li class="toctree-l1"><a class="reference internal" href="hawkbit-setup.html">Config for HawkBit under SSL/TLS using private CA / sub CA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">SWUpdate: API for external programs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bindings.html">Language Bindings</a></li>
 <li class="toctree-l1"><a class="reference internal" href="building-with-yocto.html">meta-swupdate: building with Yocto</a></li>
 </ul>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">client</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#synopys">SYNOPYS</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">swupdate-client</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#synopsis">SYNOPSIS</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#description">DESCRIPTION</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="swupdate-hawkbitcfg.html">hawkbitcfg</a></li>
-<li class="toctree-l1"><a class="reference internal" href="swupdate-sendtohawkbit.html">sendtohawkbit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="swupdate-progress.html">progress</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-hawkbitcfg.html">swupdate-hawkbitcfg</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-sendtohawkbit.html">swupdate-sendtohawkbit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-progress.html">swupdate-progress</a></li>
 <li class="toctree-l1"><a class="reference internal" href="swupdate-sysrestart.html">swupdate-sysrestart</a></li>
 </ul>
 <ul>
@@ -138,7 +133,7 @@
     <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
 
       
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+      <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">Embedded Software Update Documentation</a>
@@ -146,9 +141,10 @@
       </nav>
 
 
-      
       <div class="wy-nav-content">
+        
         <div class="rst-content">
+        
           
 
 
@@ -171,7 +167,7 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>client</li>
+      <li>swupdate-client</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -190,20 +186,19 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="client">
-<h1>client<a class="headerlink" href="#client" title="Permalink to this headline">¶</a></h1>
-<p>client is a small tool that sends a SWU image to a running instance
-of SWUpdate. It can be used if the update package (SWU) is downloaded
-by another application external to SWUpdate. It is an example how to
-use the IPC to forward an image to SWUpdate.</p>
-<div class="section" id="synopys">
-<h2>SYNOPYS<a class="headerlink" href="#synopys" title="Permalink to this headline">¶</a></h2>
-<p>swupdate-client [OPTIONS] &lt;image .swu to be installed&gt;…</p>
+  <div class="section" id="swupdate-client">
+<h1>swupdate-client<a class="headerlink" href="#swupdate-client" title="Permalink to this headline">¶</a></h1>
+<p>swupdate-client is a small tool that sends a SWU image to a running instance of
+SWUpdate. It can be used if the update package (SWU) is downloaded by another
+application external to SWUpdate. It is an example how to use the IPC to forward
+an image to SWUpdate.</p>
+<div class="section" id="synopsis">
+<h2>SYNOPSIS<a class="headerlink" href="#synopsis" title="Permalink to this headline">¶</a></h2>
+<p>swupdate-client [OPTIONS] &lt;image.swu to be installed&gt;…</p>
 </div>
 <div class="section" id="description">
 <h2>DESCRIPTION<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<blockquote>
-<div><table class="docutils option-list" frame="void" rules="none">
+<table class="docutils option-list" frame="void" rules="none">
 <col class="option" />
 <col class="description" />
 <tbody valign="top">
@@ -212,10 +207,10 @@ use the IPC to forward an image to SWUpdate.</p>
 <td>print help and exit</td></tr>
 <tr><td class="option-group">
 <kbd><span class="option">-d</span></kbd></td>
-<td>ask the server to only perform a dryrun</td></tr>
+<td>ask the server to only perform a dry-run</td></tr>
 <tr><td class="option-group">
 <kbd><span class="option">-q</span></kbd></td>
-<td>go quite, resets verbosity</td></tr>
+<td>go quiet, resets verbosity</td></tr>
 <tr><td class="option-group">
 <kbd><span class="option">-v</span></kbd></td>
 <td>go verbose, essentially print upgrade status messages from server</td></tr>
@@ -224,24 +219,21 @@ use the IPC to forward an image to SWUpdate.</p>
 <td>ask the server to run post-update commands if upgrade succeeds</td></tr>
 </tbody>
 </table>
-</div></blockquote>
 </div>
 </div>
 
 
            </div>
-           <div class="articleComments">
-            
-           </div>
+           
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="swupdate-hawkbitcfg.html" class="btn btn-neutral float-right" title="hawkbitcfg" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="swupdate-hawkbitcfg.html" class="btn btn-neutral float-right" title="swupdate-hawkbitcfg" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="building-with-yocto.html" class="btn btn-neutral" title="meta-swupdate: building with Yocto" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="building-with-yocto.html" class="btn btn-neutral float-left" title="meta-swupdate: building with Yocto" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -250,11 +242,11 @@ use the IPC to forward an image to SWUpdate.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2013-2019, Stefano Babic.
+        &copy; Copyright 2013-2020, Stefano Babic
 
     </p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
 
 </footer>
 
@@ -267,36 +259,15 @@ use the IPC to forward an image to SWUpdate.</p>
   
 
 
-  
-
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'2019.11',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
-
-  
-
-  
-  
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-  
-
-  
-  
   <script type="text/javascript">
       jQuery(function () {
-          SphinxRtdTheme.StickyNav.enable();
+          SphinxRtdTheme.Navigation.enable(true);
       });
   </script>
+
+  
+  
+    
    
 
 </body>

@@ -37,7 +37,7 @@ What about libubootenv ?
 ========================
 
 This is a common issue when SWUpdate is built. SWUpdate depends on this library,
-that is generated from the U-Boot's sources. This library allows to safe modify
+that is generated from the U-Boot's sources. This library allows one to safe modify
 the U-Boot environment. It is not required if U-Boot is not used as bootloader.
 If SWUpdate cannot be linked, you are using an old version of U-Boot (you need
 at least 2016.05). If this is the case, you can add your own recipe for
@@ -54,7 +54,7 @@ If you build for a different machine, SWUpdate will destroy the
 environment when it tries to change it the first time. In fact,
 a wrong default environment is taken, and your board won't boot again.
 
-To avoid possible mismatch, a new library was developped to be hardware independent.
+To avoid possible mismatch, a new library was developed to be hardware independent.
 A strict match with the bootloader is not required anymore. The meta-swupdate layer
 contains recipes to build the new library (`libubootenv`) and adjust SWUpdate to be linked
 against it. To use it as replacement for u-boot-fw-utils:
