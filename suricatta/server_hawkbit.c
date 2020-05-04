@@ -631,7 +631,7 @@ static server_op_res_t server_get_deployment_info(channel_t *channel, channel_da
 		}
 	}
 	TRACE("Associated Action ID for Update Action is %d", *action_id);
-	result = update_status == SERVER_OK ? result : update_status;
+	result = update_status;
 
 cleanup:
 	if (channel_data_device_info.json_reply != NULL &&
