@@ -174,7 +174,7 @@ int main(int argc, char **argv)
 {
 	int connfd;
 	struct progress_msg msg;
-	const char *tmpdir;
+	const char *rundir;
 	char psplash_pipe_path[256];
 	int psplash_ok = 0;
 	unsigned int curstep = 0;
@@ -223,10 +223,10 @@ int main(int argc, char **argv)
 		}
 	}
 		
-	tmpdir = getenv("TMPDIR");
-	if (!tmpdir)
-		tmpdir = "/tmp";
-	snprintf(psplash_pipe_path, sizeof(psplash_pipe_path), "%s/psplash_fifo", tmpdir);
+	rundir = getenv("PSPLASH_FIFO_DIR");
+	if (!rundir)
+		rundir = "/run";
+	snprintf(psplash_pipe_path, sizeof(psplash_pipe_path), "%s/psplash_fifo", rundir);
 
 
 	connfd = -1;
