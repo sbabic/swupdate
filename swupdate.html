@@ -712,60 +712,131 @@ Usage: swupdate -c -i &lt;file&gt;</td>
 </table>
 <p>Parameters used for the downloader: -d, –download [OPTIONS]
 For example: -d “-u example.com”
-Mandatory arguments are marked with ‘*’:
-+————-+———-+——————————————–+
-|  Parameter  | Type     | Description                                |
-+=============+==========+============================================+
-| -u &lt;url&gt;    | string   | * This is the URL where new software is    |
-|             |          | pulled. URL is a link to a valid .swu image|
-+————-+———-+——————————————–+
-| -r &lt;retries&gt;| integer  | Number of retries before a download is     |
-|             |          | considered broken. With “-r 0”, SWUpdate   |
-|             |          | will not stop until a valid software is    |
-|             |          | loaded.                                    |
-+————-+———-+——————————————–+
-| -t &lt;timeout&gt;| integer  | Timeout for connection lost                |
-|             |          | downloader or Webserver                    |
-+————-+———-+——————————————–+
-| -a &lt;usr:pwd&gt;| string   | Send user and password for Basic Auth      |
-+————-+———-+——————————————–+</p>
+Mandatory arguments are marked with ‘*’:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="19%" />
+<col width="15%" />
+<col width="66%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Parameter</th>
+<th class="head">Type</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>-u &lt;url&gt;</td>
+<td>string</td>
+<td><ul class="first simple">
+<li>This is the URL where new software is</li>
+</ul>
+<p class="last">pulled. URL is a link to a valid .swu image</p>
+</td>
+</tr>
+<tr class="row-odd"><td>-r &lt;retries&gt;</td>
+<td>integer</td>
+<td>Number of retries before a download is
+considered broken. With “-r 0”, SWUpdate
+will not stop until a valid software is
+loaded.</td>
+</tr>
+<tr class="row-even"><td>-t &lt;timeout&gt;</td>
+<td>integer</td>
+<td>Timeout for connection lost
+downloader or Webserver</td>
+</tr>
+<tr class="row-odd"><td>-a &lt;usr:pwd&gt;</td>
+<td>string</td>
+<td>Send user and password for Basic Auth</td>
+</tr>
+</tbody>
+</table>
 <p>Parameters used for suricatta: -u, –suricatta [OPTIONS]
 For example: -u “-t default -u localhost:8080 -i 1B7”
-Mandatory arguments are marked with ‘*’:
-+——————-+———-+——————————————–+
-|  Parameter        | Type     | Description                                |
-+===================+==========+============================================+
-| -t &lt;tenant&gt;       | string   | * Set hawkBit tenant ID for this device.   |
-+——————-+———-+——————————————–+
-| -u &lt;url&gt;          | string   | * Host and port of the hawkBit instance,   |
-|                   |          | e.g., localhost:8080                       |
-+——————-+———-+——————————————–+
-| -i &lt;id&gt;           | integer  | * The device ID to communicate to hawkBit. |
-+——————-+———-+——————————————–+
-| -c &lt;confirm&gt;      | integer  | Confirm update status to server: 1=AGAIN,  |
-|                   |          | 2=SUCCESS, 3=FAILED                        |
-+——————-+———-+——————————————–+
-| -x                | -        | Do not abort on flawed server certificates.|
-+——————-+———-+——————————————–+
-| -p &lt;polldelay&gt;    | integer  | Delay in seconds between two hawkBit poll  |
-|                   |          | operations (default: 45s).                 |
-+——————-+———-+——————————————–+
-| -r &lt;retry&gt;        | integer  | Resume and retry interrupted downloads     |
-|                   |          | (default: 5 tries).                        |
-+——————-+———-+——————————————–+
-| -w &lt;retrywait&gt;    | integer  | Time to wait prior to retry and resume a   |
-|                   |          | download (default: 5s).                    |
-+——————-+———-+——————————————–+
-| -y &lt;proxy&gt;        | string   | Use proxy. Either give proxy URL,          |
-|                   |          | else {http,all}_proxy env is tried.        |
-+——————-+———-+——————————————–+
-| -k &lt;targettoken&gt;  | string   | Set target token.                          |
-+——————-+———-+——————————————–+
-| -g &lt;gatewaytoken&gt; | string   | Set gateway token.                         |
-+——————-+———-+——————————————–+
-| -f &lt;interface&gt;    | string   | Set the network interface to connect to    |
-|                   |          | Hawkbit.                                   |
-+——————-+———-+——————————————–+</p>
+Mandatory arguments are marked with ‘*’:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="26%" />
+<col width="14%" />
+<col width="60%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Parameter</th>
+<th class="head">Type</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>-t &lt;tenant&gt;</td>
+<td>string</td>
+<td><ul class="first last simple">
+<li>Set hawkBit tenant ID for this device.</li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td>-u &lt;url&gt;</td>
+<td>string</td>
+<td><ul class="first simple">
+<li>Host and port of the hawkBit instance,</li>
+</ul>
+<p class="last">e.g., localhost:8080</p>
+</td>
+</tr>
+<tr class="row-even"><td>-i &lt;id&gt;</td>
+<td>integer</td>
+<td><ul class="first last simple">
+<li>The device ID to communicate to hawkBit.</li>
+</ul>
+</td>
+</tr>
+<tr class="row-odd"><td>-c &lt;confirm&gt;</td>
+<td>integer</td>
+<td>Confirm update status to server: 1=AGAIN,
+2=SUCCESS, 3=FAILED</td>
+</tr>
+<tr class="row-even"><td>-x</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td>Do not abort on flawed server certificates.</td>
+</tr>
+<tr class="row-odd"><td>-p &lt;polldelay&gt;</td>
+<td>integer</td>
+<td>Delay in seconds between two hawkBit poll
+operations (default: 45s).</td>
+</tr>
+<tr class="row-even"><td>-r &lt;retry&gt;</td>
+<td>integer</td>
+<td>Resume and retry interrupted downloads
+(default: 5 tries).</td>
+</tr>
+<tr class="row-odd"><td>-w &lt;retrywait&gt;</td>
+<td>integer</td>
+<td>Time to wait prior to retry and resume a
+download (default: 5s).</td>
+</tr>
+<tr class="row-even"><td>-y &lt;proxy&gt;</td>
+<td>string</td>
+<td>Use proxy. Either give proxy URL,
+else {http,all}_proxy env is tried.</td>
+</tr>
+<tr class="row-odd"><td>-k &lt;targettoken&gt;</td>
+<td>string</td>
+<td>Set target token.</td>
+</tr>
+<tr class="row-even"><td>-g &lt;gatewaytoken&gt;</td>
+<td>string</td>
+<td>Set gateway token.</td>
+</tr>
+<tr class="row-odd"><td>-f &lt;interface&gt;</td>
+<td>string</td>
+<td>Set the network interface to connect to
+Hawkbit.</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div class="section" id="systemd-integration">
 <h3>systemd Integration<a class="headerlink" href="#systemd-integration" title="Permalink to this headline">¶</a></h3>
