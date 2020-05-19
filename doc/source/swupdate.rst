@@ -499,6 +499,7 @@ Command line parameters
 Parameters used for the downloader: -d, --download [OPTIONS]
 For example: -d "-u example.com"
 Mandatory arguments are marked with '*':
+
 +-------------+----------+--------------------------------------------+
 |  Parameter  | Type     | Description                                |
 +=============+==========+============================================+
@@ -519,6 +520,7 @@ Mandatory arguments are marked with '*':
 Parameters used for suricatta: -u, --suricatta [OPTIONS]
 For example: -u "-t default -u localhost:8080 -i 1B7"
 Mandatory arguments are marked with '*':
+
 +-------------------+----------+--------------------------------------------+
 |  Parameter        | Type     | Description                                |
 +===================+==========+============================================+
