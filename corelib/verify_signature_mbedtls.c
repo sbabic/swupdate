@@ -109,25 +109,23 @@ int swupdate_HASH_compare(const unsigned char *hash1, const unsigned char *hash2
 int swupdate_dgst_init(struct swupdate_cfg *sw, const char *keyfile)
 {
 	struct swupdate_digest *dgst;
-	int error;
 
 	dgst = calloc(1, sizeof(*dgst));
 	if (!dgst) {
 		return -ENOMEM;
 	}
 
+#ifdef CONFIG_SIGNED_IMAGES
 	mbedtls_pk_init(&dgst->mbedtls_pk_context);
 
-	error = mbedtls_pk_parse_public_keyfile(&dgst->mbedtls_pk_context, keyfile);
+	int error = mbedtls_pk_parse_public_keyfile(&dgst->mbedtls_pk_context, keyfile);
 	if (error) {
 		ERROR("mbedtls_pk_parse_public_keyfile: %d", error);
-		goto fail;
+		free(dgst);
+		return -EIO;
 	}
+#endif
 
 	sw->dgst = dgst;
 	return 0;
-
-fail:
-	free(dgst);
-	return -EIO;
 }
