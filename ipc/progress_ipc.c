@@ -56,7 +56,8 @@ static int _progress_ipc_connect(const char *socketpath, bool reconnect)
 		}
 		if (!reconnect) {
 			fprintf(stderr, "cannot communicate with SWUpdate via %s\n", socketpath);
-			exit(1);
+			close(fd);
+			return -1;
 		}
 
 		usleep(10000);
