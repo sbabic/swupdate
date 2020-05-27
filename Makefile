@@ -465,10 +465,8 @@ install: all
 		install -m 0755 ${lua_swupdate} $(DESTDIR)/${LIBDIR}/lua/$(LUAVER); \
 	fi
 
-PHONY += run-tests
-tests: \
-	acceptance-tests \
-	corelib-tests
+PHONY += tests
+tests: acceptance-tests
 
 PHONY += acceptance-tests
 acceptance-tests: FORCE
