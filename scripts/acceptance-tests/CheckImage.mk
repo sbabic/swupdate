@@ -48,8 +48,8 @@ quiet_cmd_download = GET     $@
 #
 tests-y += FileNotFoundTest
 tests-y += CrapFileTest
-tests-y += ImgNameErrorTest
-tests-$(CONFIG_LIBCONFIG) += ValidImageTest
+tests-$(CONFIG_LIBCONFIG) += $(if $(CONFIG_RAW), ImgNameErrorTest)
+tests-$(CONFIG_LIBCONFIG) += $(if $(CONFIG_RAW), ValidImageTest)
 tests-y += InvOptsNoImg
 tests-$(CONFIG_MONGOOSE) += InvOptsCheckWithWeb
 tests-$(CONFIG_SURICATTA) += InvOptsCheckWithSur
