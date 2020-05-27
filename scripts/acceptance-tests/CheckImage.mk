@@ -18,7 +18,7 @@
 #
 # test commands for --check command-line option
 #
-SWU_CHECK_BASE = ./swupdate -l 5 -c $(if $(CONFIG_SIGNED_IMAGES),-k $(obj)/cacert.pem) $(if $(strip $(filter %.cfg, $^)), -f $(filter %.cfg, $^))
+SWU_CHECK_BASE = ./swupdate -l 5 -c $(if $(CONFIG_SIGALG_CMS),-k $(obj)/cacert.pem) $(if $(strip $(filter %.cfg, $^)), -f $(filter %.cfg, $^))
 SWU_CHECK = $(SWU_CHECK_BASE) $(if $(CONFIG_HW_COMPATIBILITY),-H test:1) $(if $(strip $(filter-out FORCE,$<)),-i $<) $(if $(strip $(KBUILD_VERBOSE:0=)),,>/dev/null 2>&1)
 
 quiet_cmd_swu_check_assert_false = RUN     $@
@@ -49,25 +49,27 @@ quiet_cmd_download = GET     $@
 tests-y += FileNotFoundTest
 tests-y += CrapFileTest
 tests-$(CONFIG_LIBCONFIG) += $(if $(CONFIG_RAW), ImgNameErrorTest)
+ifeq ($(CONFIG_SIGNED_IMAGES),$(CONFIG_SIGALG_CMS))
 tests-$(CONFIG_LIBCONFIG) += $(if $(CONFIG_RAW), ValidImageTest)
+endif
 tests-y += InvOptsNoImg
 tests-$(CONFIG_MONGOOSE) += InvOptsCheckWithWeb
 tests-$(CONFIG_SURICATTA) += InvOptsCheckWithSur
-tests-$(CONFIG_SIGNED_IMAGES) += InvSigNameCheck
-tests-$(CONFIG_SIGNED_IMAGES) += ValidSigNameCheck
+tests-$(CONFIG_SIGALG_CMS) += InvSigNameCheck
+tests-$(CONFIG_SIGALG_CMS) += ValidSigNameCheck
 
 #
 # file not found test
 #
 PHONY += FileNotFoundTest FileNotFound.swu
-FileNotFoundTest: FileNotFound.swu FORCE $(if $(CONFIG_SIGNED_IMAGES), $(obj)/cacert.pem)
+FileNotFoundTest: FileNotFound.swu FORCE $(if $(CONFIG_SIGALG_CMS), $(obj)/cacert.pem)
 	$(call cmd,swu_check_assert_false)
 
 #
 # corrupt file test
 #
 PHONY += CrapFileTest
-CrapFileTest: $(obj)/CrapFile.swu FORCE $(if $(CONFIG_SIGNED_IMAGES), $(obj)/cacert.pem)
+CrapFileTest: $(obj)/CrapFile.swu FORCE $(if $(CONFIG_SIGALG_CMS), $(obj)/cacert.pem)
 	$(call cmd,swu_check_assert_false)
 
 clean-files += CrapFile.swu
@@ -79,7 +81,7 @@ $(obj)/CrapFile.swu:
 # test of update file with image name in sw-description missmatch
 #
 PHONY += ImgNameErrorTest
-ImgNameErrorTest: $(obj)/ImgNameError.swu FORCE $(if $(CONFIG_SIGNED_IMAGES), $(obj)/cacert.pem)
+ImgNameErrorTest: $(obj)/ImgNameError.swu FORCE $(if $(CONFIG_SIGALG_CMS), $(obj)/cacert.pem)
 	$(call cmd,swu_check_assert_false)
 
 %/hello.txt:
@@ -111,7 +113,7 @@ software =\n\
 	}\n\
 " > $@
 
-with_sig = $1 $(if $(CONFIG_SIGNED_IMAGES),$(addsuffix .sig, $1))
+with_sig = $1 $(if $(CONFIG_SIGALG_CMS),$(addsuffix .sig, $1))
 
 clean-files +=  ImgNameError.swu
 $(obj)/ImgNameError.swu: $(call with_sig, $(obj)/ImgNameError/sw-description) $(obj)/ImgNameError/hello.txt
@@ -121,7 +123,7 @@ $(obj)/ImgNameError.swu: $(call with_sig, $(obj)/ImgNameError/sw-description) $(
 # Test of a valid *.swu file
 #
 PHONY += ValidImageTest
-ValidImageTest: $(obj)/ValidImage.swu FORCE $(if $(CONFIG_SIGNED_IMAGES), $(obj)/cacert.pem)
+ValidImageTest: $(obj)/ValidImage.swu FORCE $(if $(CONFIG_SIGALG_CMS), $(obj)/cacert.pem)
 	$(call cmd,swu_check_assert_true)
 
 clean-dirs += ValidImage
@@ -158,21 +160,21 @@ $(obj)/ValidImage.swu: $(call with_sig, $(obj)/ValidImage/sw-description) $(obj)
 # invalid option test, no image given
 #
 PHONY += InvOptsNoImg
-InvOptsNoImg: FORCE $(if $(CONFIG_SIGNED_IMAGES), $(obj)/cacert.pem)
+InvOptsNoImg: FORCE $(if $(CONFIG_SIGALG_CMS), $(obj)/cacert.pem)
 	$(call cmd,swu_check_assert_false)
 
 #
 # invalid option test, web server with check
 #
 PHONY += InvOptsCheckWithWeb
-InvOptsCheckWithWeb: FORCE $(if $(CONFIG_SIGNED_IMAGES), $(obj)/cacert.pem)
+InvOptsCheckWithWeb: FORCE $(if $(CONFIG_SIGALG_CMS), $(obj)/cacert.pem)
 	$(call cmd,swu_check_inv_websrv)
 
 #
 # invalid option test, suricatta with check
 #
 PHONY += InvOptsCheckWithSur
-InvOptsCheckWithSur: FORCE $(if $(CONFIG_SIGNED_IMAGES), $(obj)/cacert.pem)
+InvOptsCheckWithSur: FORCE $(if $(CONFIG_SIGALG_CMS), $(obj)/cacert.pem)
 	$(call cmd,swu_check_inv_suricatta)
 
 clean-files += signer.pem cacert.pem
@@ -187,7 +189,7 @@ $(obj)/signer.pem $(obj)/cacert.pem:
 # invalid signer name
 #
 PHONY += InvSigNameCheck
-InvSigNameCheck: $(obj)/ValidImage.swu $(obj)/InvSigNameCheck.cfg FORCE $(if $(CONFIG_SIGNED_IMAGES), $(obj)/cacert.pem)
+InvSigNameCheck: $(obj)/ValidImage.swu $(obj)/InvSigNameCheck.cfg FORCE $(if $(CONFIG_SIGALG_CMS), $(obj)/cacert.pem)
 	$(call cmd,swu_check_assert_false)
 
 clean-files += InvSigNameCheck.cfg
@@ -202,7 +204,7 @@ globals: {\n\
 # valid signer name
 #
 PHONY += ValidSigNameCheck
-ValidSigNameCheck: $(obj)/ValidImage.swu $(obj)/ValidSigNameCheck.cfg FORCE $(if $(CONFIG_SIGNED_IMAGES), $(obj)/cacert.pem)
+ValidSigNameCheck: $(obj)/ValidImage.swu $(obj)/ValidSigNameCheck.cfg FORCE $(if $(CONFIG_SIGALG_CMS), $(obj)/cacert.pem)
 	$(call cmd,swu_check_assert_true)
 
 clean-files += ValidSigNameCheck.cfg
