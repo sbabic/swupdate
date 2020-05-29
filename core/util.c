@@ -54,24 +54,27 @@ static char* TMPDIRSCRIPT = NULL;
  * Convert a hash as hexa string into a sequence of bytes
  * hash must be an array of 32 bytes as specified by SHA256
  */
-int ascii_to_bin(unsigned char *dest, const char *src, size_t srclen)
+int ascii_to_bin(unsigned char *dest, size_t dstlen, const char *src)
 {
 	unsigned int i;
 	unsigned int val;
+	size_t srclen;
 
 	if (src == NULL) {
 		return 0;
 	}
 
+	srclen = strlen(src);
+
 	if (srclen % 2)
 		return -EINVAL;
-	if (strlen(src) == srclen) {
-		for (i = 0; i < srclen; i+= 2) {
-			val = from_ascii(&src[i], 2, LG_16);
-			dest[i / 2] = val;
+	if (srclen == 2 * dstlen) {
+		for (i = 0; i < dstlen; i++) {
+			val = from_ascii(&src[i*2], 2, LG_16);
+			dest[i] = val;
 		}
 	} else
-		return -1;
+		return -EINVAL;
 
 	return 0;
 }
@@ -463,7 +466,7 @@ from_ascii (char const *where, size_t digs, unsigned logbase)
 
 int ascii_to_hash(unsigned char *hash, const char *s)
 {
-	return ascii_to_bin(hash, s, 64);
+	return ascii_to_bin(hash, SHA256_HASH_LENGTH, s);
 }
 
 void hash_to_ascii(const unsigned char *hash, char *str)
@@ -572,8 +575,8 @@ int set_aes_key(const char *key, const char *ivt)
 			return -ENOMEM;
 	}
 
-	ret = ascii_to_bin(aes_key->key,  key, sizeof(aes_key->key) * 2) |
-	      ascii_to_bin(aes_key->ivt,  ivt, sizeof(aes_key->ivt) * 2);
+	ret = ascii_to_bin(aes_key->key, sizeof(aes_key->key), key) |
+	      ascii_to_bin(aes_key->ivt, sizeof(aes_key->ivt), ivt);
 
 	if (ret) {
 		return -EINVAL;
@@ -589,7 +592,7 @@ int set_aes_ivt(const char *ivt)
 	if (!aes_key)
 		return -EFAULT;
 
-	ret = ascii_to_bin(aes_key->ivt,  ivt, sizeof(aes_key->ivt) * 2);
+	ret = ascii_to_bin(aes_key->ivt, sizeof(aes_key->ivt), ivt);
 
 	if (ret) {
 		return -EINVAL;

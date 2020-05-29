@@ -389,7 +389,7 @@ int copyfile(int fdin, void *out, unsigned int nbytes, unsigned long *offs, unsi
 	unsigned int md_len = 0;
 	unsigned char *aes_key = NULL;
 	unsigned char *ivt = NULL;
-	unsigned char ivtbuf[32];
+	unsigned char ivtbuf[16];
 
 	struct InputState input_state = {
 		.fdin = fdin,
@@ -449,7 +449,7 @@ int copyfile(int fdin, void *out, unsigned int nbytes, unsigned long *offs, unsi
 
 	if (encrypted) {
 		aes_key = get_aes_key();
-		if (imgivt && strlen(imgivt) && !ascii_to_bin(ivtbuf, imgivt, sizeof(ivtbuf))) {
+		if (imgivt && strlen(imgivt) && !ascii_to_bin(ivtbuf, sizeof(ivtbuf), imgivt)) {
 			ivt = ivtbuf;
 		} else
 			ivt = get_aes_ivt();

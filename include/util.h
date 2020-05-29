@@ -140,7 +140,7 @@ typedef void (*notifier) (RECOVERY_STATUS status, int error, int level, const ch
 uintmax_t
 from_ascii (char const *where, size_t digs, unsigned logbase);
 int ascii_to_hash(unsigned char *hash, const char *s);
-int ascii_to_bin(unsigned char *dest, const char *src, size_t srclen);
+int ascii_to_bin(unsigned char *dest, size_t dstlen, const char *src);
 void hash_to_ascii(const unsigned char *hash, char *s);
 int IsValidHash(const unsigned char *hash);
 
