@@ -74,7 +74,7 @@ struct img_type {
 	int compressed;
 	int preserve_attributes; /* whether to preserve attributes in archives */
 	int is_encrypted;
-	char ivt_ascii[32];
+	char ivt_ascii[33];
 	int install_directly;
 	int is_script;
 	int is_partitioner;
