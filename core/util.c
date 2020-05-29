@@ -54,21 +54,21 @@ static char* TMPDIRSCRIPT = NULL;
  * Convert a hash as hexa string into a sequence of bytes
  * hash must be an array of 32 bytes as specified by SHA256
  */
-int ascii_to_bin(unsigned char *hash, const char *s, size_t len)
+int ascii_to_bin(unsigned char *dest, const char *src, size_t srclen)
 {
 	unsigned int i;
 	unsigned int val;
 
-	if (s == NULL) {
+	if (src == NULL) {
 		return 0;
 	}
 
-	if (len % 2)
+	if (srclen % 2)
 		return -EINVAL;
-	if (strlen(s) == len) {
-		for (i = 0; i < len; i+= 2) {
-			val = from_ascii(&s[i], 2, LG_16);
-			hash[i / 2] = val;
+	if (strlen(src) == srclen) {
+		for (i = 0; i < srclen; i+= 2) {
+			val = from_ascii(&src[i], 2, LG_16);
+			dest[i / 2] = val;
 		}
 	} else
 		return -1;
