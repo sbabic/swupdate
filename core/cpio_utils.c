@@ -793,9 +793,7 @@ off_t extract_next_file(int fd, int fdout, off_t start, int compressed,
 		(unsigned long)checksum,
 		(checksum == fdh.chksum) ? "VERIFIED" : "WRONG");
 
-	if (checksum != fdh.chksum) {
-		ERROR("Checksum WRONG ! Computed 0x%lx, it should be 0x%lx",
-			(unsigned long)checksum, fdh.chksum);
+	if (!swupdate_verify_chksum(checksum, fdh.chksum)) {
 		return -EINVAL;
 	}
 
@@ -839,9 +837,7 @@ int cpio_scan(int fd, struct swupdate_cfg *cfg, off_t start)
 			return -1;
 		}
 
-		if ((uint32_t)(fdh.chksum) != checksum) {
-			ERROR("Checksum verification failed for %s: %x != %x",
-			fdh.filename, (uint32_t)fdh.chksum, checksum);
+		if (!swupdate_verify_chksum(fdh.chksum, checksum)) {
 			return -1;
 		}
 

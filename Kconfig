@@ -396,6 +396,18 @@ config HASH_VERIFY
 comment "Hash checking needs an SSL implementation"
 	depends on !SSL_IMPL_OPENSSL && !SSL_IMPL_MBEDTLS
 
+config DISABLE_CPIO_CRC
+	bool "Disable cpio CRC verify if SHA 256 is enabled"
+	depends on HASH_VERIFY
+	default n
+	help
+	  Disable CRC check in cpio header if sha256 is enabled.
+	  CRC in CPIO is not a real crc, but it is simply the sum
+	  of all bytes belonging to a file as 32 bit value. It is
+	  very weak and does not add any further safety if sha256
+	  is activated. CPIO in Linux distros has also a bug and
+	  CRC field is set to 0 when a file is larger as 2GB.
+
 config SIGNED_IMAGES
 	bool "Enable verification of signed images"
 	depends on SSL_IMPL_OPENSSL || SSL_IMPL_MBEDTLS

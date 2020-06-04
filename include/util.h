@@ -11,6 +11,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #if defined(__linux__)
 #include <linux/types.h>
 #endif
@@ -85,6 +86,8 @@ struct installer {
 
 typedef void (*notifier) (RECOVERY_STATUS status, int error, int level, const char *msg);
 
+void notify(RECOVERY_STATUS status, int error, int level, const char *msg);
+void notify_init(void);
 #define swupdate_notify(status, format, level, arg...) do { \
 	if (loglevel >= level) { \
 		char tmpbuf[NOTIFY_BUF_SIZE]; \
@@ -137,6 +140,22 @@ typedef void (*notifier) (RECOVERY_STATUS status, int error, int level, const ch
 
 #define LG_16 4
 #define FROM_HEX(f) from_ascii (f, sizeof f, LG_16)
+#if !defined(CONFIG_DISABLE_CPIO_CRC)
+static inline bool swupdate_verify_chksum(const uint32_t chk1, const uint32_t chk2) {
+	bool ret = (chk1 == chk2);
+	if (!ret) {
+		ERROR("Checksum WRONG ! Computed 0x%ux, it should be 0x%ux",
+			chk1, chk2);
+	}
+	return ret;
+}
+#else
+static inline bool swupdate_verify_chksum(
+		const uint32_t  __attribute__ ((__unused__))chk1,
+		const uint32_t  __attribute__ ((__unused__))chk2) {
+	return true;
+}
+#endif
 uintmax_t
 from_ascii (char const *where, size_t digs, unsigned logbase);
 int ascii_to_hash(unsigned char *hash, const char *s);
@@ -187,8 +206,6 @@ int mkpath(char *dir, mode_t mode);
 int swupdate_file_setnonblock(int fd, bool block);
 
 int register_notifier(notifier client);
-void notify(RECOVERY_STATUS status, int error, int level, const char *msg);
-void notify_init(void);
 int syslog_init(void);
 
 char **splitargs(char *args, int *argc);

@@ -103,11 +103,9 @@ static int extract_file_to_tmp(int fd, const char *fname, unsigned long *poffs)
 		close(fdout);
 		return -1;
 	}
-	if (checksum != (uint32_t)fdh.chksum) {
+	if (!swupdate_verify_chksum(checksum, fdh.chksum)) {
 		close(fdout);
-		ERROR("Checksum WRONG ! Computed 0x%ux, it should be 0x%ux",
-			(unsigned int)checksum, (unsigned int)fdh.chksum);
-			return -1;
+		return -1;
 	}
 	close(fdout);
 
@@ -218,9 +216,7 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 					close(fdout);
 					return -1;
 				}
-				if (checksum != (unsigned long)fdh.chksum) {
-					ERROR("Checksum WRONG ! Computed 0x%ux, it should be 0x%ux",
-						(unsigned int)checksum, (unsigned int)fdh.chksum);
+				if (!swupdate_verify_chksum(checksum, fdh.chksum)) {
 					close(fdout);
 					return -1;
 				}
@@ -231,9 +227,7 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 				if (copyfile(fd, &fdout, fdh.size, &offset, 0, skip, 0, &checksum, NULL, 0, NULL, NULL) < 0) {
 					return -1;
 				}
-				if (checksum != (unsigned long)fdh.chksum) {
-					ERROR("Checksum WRONG ! Computed 0x%ux, it should be 0x%ux",
-						(unsigned int)checksum, (unsigned int)fdh.chksum);
+				if (!swupdate_verify_chksum(checksum, fdh.chksum)) {
 					return -1;
 				}
 				break;
