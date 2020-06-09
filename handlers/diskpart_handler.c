@@ -273,7 +273,8 @@ static int diskpart(struct img_type *img,
 	/*
 	 * Everything done, write into disk
 	 */
-	ret = fdisk_write_disklabel(cxt);
+	ret = fdisk_write_disklabel(cxt) |
+		fdisk_reread_partition_table(cxt);
 
 handler_exit:
 	if (fdisk_deassign_device(cxt, 0))
