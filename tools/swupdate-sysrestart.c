@@ -264,7 +264,7 @@ int main(int argc, char **argv)
 #else
 #warning "swupdate-sysrestart needs libcurl, replaced with dummy"
 
-int main(int argc, char **argv)
+int main(int __attribute__((__unused__)) argc, char __attribute__((__unused__)) **argv)
 {
 	fprintf(stderr, "Curl not available, exiting..\n");
 	exit(1);
