@@ -146,7 +146,7 @@ static void usage(char *programname)
 		" -N, --no-downgrading <version> : not install a release older as <version>\n"
 		" -R, --no-reinstalling <version>: not install a release same as <version>\n"
 		" -M, --no-transaction-marker    : disable setting bootloader transaction marker\n"
-		" -o, --output <output file>     : saves the incoming stream\n"
+		" -o, --output <filename>        : saves the incoming stream\n"
 		" -v, --verbose                  : be verbose, set maximum loglevel\n"
 		"     --version                  : print SWUpdate version and exit\n"
 #ifdef CONFIG_HW_COMPATIBILITY
@@ -700,7 +700,7 @@ int main(int argc, char **argv)
 		if (read_module_settings(cfgfname, "globals",
 			read_globals_settings, &swcfg)) {
 			fprintf(stderr,
-				 "Error parsing configuration file, exiting..\n");
+				 "Error parsing configuration file, exiting.\n");
 			exit(EXIT_FAILURE);
 		}
 
@@ -716,7 +716,7 @@ int main(int argc, char **argv)
 		 */
 		if (ret == -EINVAL) {
 			fprintf(stderr,
-				 "Error parsing configuration file, exiting..\n");
+				 "Error parsing configuration file, exiting.\n");
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -873,7 +873,8 @@ int main(int argc, char **argv)
 
 	if (optind < argc) {
 		/* SWUpdate has no non-option arguments, fail on them */
-		usage(argv[0]);
+		fprintf(stderr,
+			 "Error: Non-option or unrecognized argument(s) given, see --help.\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -883,28 +884,25 @@ int main(int argc, char **argv)
 	 */
 	if (public_key_mandatory && !strlen(swcfg.globals.publickeyfname)) {
 		fprintf(stderr,
-			 "swupdate built for signed image, provide a public key file\n");
-		usage(argv[0]);
+			 "Error: SWUpdate is built for signed images, provide a public key file.\n");
 		exit(EXIT_FAILURE);
 	}
 
 	if (opt_c && !opt_i) {
 		fprintf(stderr,
-			"request check for local image, it requires -i\n");
-		usage(argv[0]);
+			"Error: Checking local images requires -i <file>.\n");
 		exit(EXIT_FAILURE);
 	}
 
 	if (opt_i && strlen(swcfg.output)) {
 		fprintf(stderr,
-			"Output just from network - do you know cp ?\n");
-		usage(argv[0]);
+			"Error: Use cp for -i <image> -o <outfile>.\n");
 		exit(EXIT_FAILURE);
 	}
 
 #ifdef CONFIG_SURICATTA
 	if (opt_u && (opt_c || opt_i)) {
-		fprintf(stderr, "invalid mode combination with suricatta.\n");
+		fprintf(stderr, "Error: Invalid mode combination with suricatta.\n");
 		exit(EXIT_FAILURE);
 	}
 #endif
@@ -914,7 +912,7 @@ int main(int argc, char **argv)
 	if (strlen(swcfg.globals.publickeyfname)) {
 		if (swupdate_dgst_init(&swcfg, swcfg.globals.publickeyfname)) {
 			fprintf(stderr,
-				 "Crypto cannot be initialized\n");
+				 "Error: Crypto cannot be initialized.\n");
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -991,7 +989,7 @@ int main(int argc, char **argv)
 	if (strlen(swcfg.globals.aeskeyfname)) {
 		if (load_decryption_key(swcfg.globals.aeskeyfname)) {
 			fprintf(stderr,
-				"Key file does not contain a valid AES key\n");
+				"Error: Key file does not contain a valid AES key.\n");
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -1010,7 +1008,7 @@ int main(int argc, char **argv)
 
 	if (opt_e) {
 		if (parse_image_selector(software_select, &swcfg)) {
-			fprintf(stderr, "Incorrect select option format\n");
+			fprintf(stderr, "Error: Incorrect select option format.\n");
 			exit(EXIT_FAILURE);
 		}
 		fprintf(stderr, "software set: %s mode: %s\n",

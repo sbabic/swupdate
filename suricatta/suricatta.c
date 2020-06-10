@@ -32,7 +32,7 @@ static struct option long_options[] = {
 void suricatta_print_help(void)
 {
 	fprintf(
-	    stderr,
+	    stdout,
 	    "\tsuricatta arguments (mandatory arguments are marked with '*'):\n"
 	    "\t  -e, --enable      Daemon enabled at startup (default).\n"
 	    "\t  -d, --disable     Daemon disabled at startup.\n"

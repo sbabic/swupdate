@@ -1565,7 +1565,7 @@ cleanup:
 void server_print_help(void)
 {
 	fprintf(
-	    stderr,
+	    stdout,
 	    "\t  -t, --tenant      * Set hawkBit tenant ID for this device.\n"
 	    "\t  -u, --url         * Host and port of the hawkBit instance, "
 	    "e.g., localhost:8080\n"

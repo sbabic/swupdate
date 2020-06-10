@@ -504,7 +504,7 @@ unsigned int server_get_polling_interval(void)
 void server_print_help(void)
 {
 	fprintf(
-	    stderr,
+	    stdout,
 	    "\t  -u, --url         * Host and port of the server instance, "
 	    "e.g., localhost:8080\n"
 	    "\t  -p, --polldelay     Delay in seconds between two hawkBit "
