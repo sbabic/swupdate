@@ -42,7 +42,8 @@ The exchanged packets are described in network_ipc.h
 Where the fields have the meaning:
 
 - magic : a magic number as simple proof of the packet
-- type : one of REQ_INSTALL, ACK, NACK, GET_STATUS, POST_UPDATE, SWUPDATE_SUBPROCESS
+- type : one of REQ_INSTALL, REQ_INSTALL_DRYRUN, ACK, NACK,
+  GET_STATUS, POST_UPDATE, SWUPDATE_SUBPROCESS, SET_AES_KEY
 - msgdata : a buffer used by the client to send the image
   or by SWUpdate to report back notifications and status.
 
