@@ -15,4 +15,5 @@ indent_style = space
 indent_brace_style = K&R
 insert_final_newline = true
 indent_style = tab
+indent_size = tab
 tab_width = 8
