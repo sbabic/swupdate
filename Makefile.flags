@@ -194,18 +194,6 @@ ifeq ($(CONFIG_BOOTLOADER_EBG),y)
 LDLIBS += ebgenv z
 endif
 
-# suricatta
-ifneq ($(CONFIG_SURICATTA),)
-ifneq ($(CONFIG_SURICATTA_HAWKBIT),)
-ifeq ($(strip $(findstring json-c,$(LDLIBS))),)
-LDLIBS += json-c
-endif
-ifeq ($(strip $(findstring curl,$(LDLIBS))),)
-LDLIBS += curl
-endif
-endif
-endif
-
 # SWU forwarder
 ifneq ($(CONFIG_SWUFORWARDER_HANDLER),)
 LDLIBS += websockets uriparser
