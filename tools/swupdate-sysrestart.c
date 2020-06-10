@@ -134,7 +134,6 @@ int main(int argc, char **argv)
 {
 	int connfd;
 	struct progress_msg msg;
-	const char *tmpdir;
 	int opt_w = 0;
 	int c;
 	int ret;
@@ -162,10 +161,6 @@ int main(int argc, char **argv)
 			break;
 		}
 	}
-
-	tmpdir = getenv("TMPDIR");
-	if (!tmpdir)
-		tmpdir = "/tmp";
 
 	/* initialize CURL */
 	ret = curl_global_init(CURL_GLOBAL_DEFAULT);
