@@ -210,7 +210,7 @@ void cleanup_version(char* str)
  * Also major.minor or major.minor.revision are allowed
  * The conversion generates a 64 bit value that can be compared
  */
-__u64 version_to_number(const char *version_string)
+static __u64 version_to_number(const char *version_string)
 {
 	char **versions = NULL;
 	char **ver;
@@ -234,4 +234,50 @@ __u64 version_to_number(const char *version_string)
 	free(versions);
 
 	return version;
+}
+
+/*
+ * Compare 2 versions.
+ *
+ * Mind that this function accepts both version types:
+ * - old-style: major.minor.revision.buildinfo
+ * - semantic versioning: major.minor.patch[-prerelease][+buildinfo]
+ *   see https://semver.org
+ *
+ * Returns -1, 0 or 1 of left is respectively lower than, equal to or greater than right.
+ */
+int compare_versions(const char* left_version, const char* right_version)
+{
+	if (is_oldstyle_version(left_version) && is_oldstyle_version(right_version))
+	{
+		__u64 left_u64 = version_to_number(left_version);
+		__u64 right_u64 = version_to_number(right_version);
+
+		if (left_u64 < right_u64)
+			return -1;
+		else if (left_u64 > right_u64)
+			return 1;
+		else
+			return 0;
+	}
+	else
+	{
+		semver_t left_sem = {};
+		semver_t right_sem = {};
+		int comparison;
+
+		/* There's no error checking here.
+		 * Oldstyle code also defaults to treating unparseable version as 0.
+		 * Failed semver_parse also leads to 0.0.0 if properly initialized.
+		 */
+		semver_parse(left_version, &left_sem);
+		semver_parse(right_version, &right_sem);
+
+		comparison = semver_compare(left_sem, right_sem);
+
+		semver_free(&left_sem);
+		semver_free(&right_sem);
+
+		return comparison;
+	}
 }

@@ -172,15 +172,15 @@ static int is_image_higher(struct swver *sw_ver_list,
 		return false;
 
 	LIST_FOREACH(swver, sw_ver_list, next) {
-		__u64 minimum_version = version_to_number(swver->version);
-		__u64 newversion = version_to_number(img->id.version);
+		const char* current_version = swver->version;
+		const char* proposed_version = img->id.version;
 
 		/*
 		 * Check if name are identical and the new version is lower
 		 * or equal.
 		 */
 		if (!strncmp(img->id.name, swver->name, sizeof(img->id.name)) &&
-		    (minimum_version >= newversion)) {
+		    (compare_versions(proposed_version, current_version) < 0)) {
 			TRACE("%s(%s) has a higher version installed, skipping...",
 			      img->id.name,
 			      img->id.version);
@@ -306,10 +306,7 @@ int parse(struct swupdate_cfg *sw, const char *descfile)
 	 * newer version
 	 */
 	if (sw->globals.no_downgrading) {
-		__u64 minimum_version = version_to_number(sw->globals.minimum_version);
-		__u64 newversion = version_to_number(sw->version);
-
-		if (newversion < minimum_version) {
+		if (compare_versions(sw->version, sw->globals.minimum_version) < 0) {
 			ERROR("No downgrading allowed: new version %s <= installed %s",
 				sw->version, sw->globals.minimum_version);
 			return -EPERM;

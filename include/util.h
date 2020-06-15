@@ -217,7 +217,7 @@ void freeargs (char **argv);
 int get_hw_revision(struct hw_type *hw);
 void get_sw_versions(char *cfgfname, struct swupdate_cfg *sw);
 void cleanup_version(char* str);
-__u64 version_to_number(const char *version_string);
+int compare_versions(const char* left_version, const char* right_version);
 int hwid_match(const char* rev, const char* hwrev);
 int check_hw_compatibility(struct swupdate_cfg *cfg);
 int count_elem_list(struct imglist *list);
