@@ -2,7 +2,8 @@
  * semver.c
  *
  * Copyright (c) 2015-2017 Tomas Aparicio
- * MIT licensed
+ *
+ * SPDX-License-Identifier: MIT
  */
 
 #include <stdio.h>
