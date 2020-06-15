@@ -23,4 +23,5 @@ obj-y += swupdate.o \
 	 progress_thread.o \
 	 parsing_library.o \
 	 artifacts_versions.o \
-	 swupdate_dict.o
+	 swupdate_dict.o \
+	 semver.o
