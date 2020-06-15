@@ -456,9 +456,10 @@ Command line parameters
 |             |          | software. This will be checked with the    |
 |             |          | version of new software and forbids        |
 |             |          | downgrading.                               |
-|             |          | Version consists of 4 number:              |
-|             |          | major.minor.rev.build                      |
-|             |          | each field is in the range 0..65535        |
+|             |          | Version consists of either 4 numbers       |
+|             |          | (major.minor.rev.build with each field in  |
+|             |          | the range 0..65535) or it is a semantic    |
+|             |          | version.                                   |
 +-------------+----------+--------------------------------------------+
 | -R          | string   | passed the current installed version of    |
 |             |          | software. This will be checked with the    |

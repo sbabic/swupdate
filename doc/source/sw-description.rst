@@ -1062,24 +1062,39 @@ The file must contains pairs with the name of image and his version, as:
 
 	<name of component>	<version>
 
-Version is a string and can have any value. For example:
-
-::
-
-        bootloader              2015.01-rc3-00456-gd4978d
-        kernel                  3.17.0-00215-g2e876af
-
 In sw-description, the optional attributes "name", "version" and
 "install-if-different" provide the connection. Name and version are then
 compared with the data in the versions file. install-if-different is a
 boolean that enables the check for this image. It is then possible to
 check the version just for a subset of the images to be installed.
 
-There is also an attribute "install-if-higher" that check if the version
+If used with "install-if-different", then version can be any string.
+For example:
+
+::
+
+        bootloader              2015.01-rc3-00456-gd4978d
+        kernel                  3.17.0-00215-g2e876af
+
+There is also an attribute "install-if-higher" that checks if the version
 of the new software is higher than the version of the installed software.
 If it's false, the new software isn't installed. The goal is to avoid
 installing an older version of software.
 
+In this case, version can be any of 2 formats. Either the version consists
+of *up to* 4 numbers separated by a dot, e.g. `<major>.<minor>.<rev>.<build>`,
+or it is a `semantic version <https://semver.org>`_.
+
+::
+
+        bootloader              2018.03.01
+        kernel                  3.17.0-pre1+g2e876af
+        rfs                     0.17-foo3.bar5+2020.07.01
+        app                     1.7
+
+It is advised not to mix version formats! Semantic versions only support 3
+numbers (major, minor, patch) and the fourth number will be silently dropped
+if present.
 
 Embedded Script
 ---------------
