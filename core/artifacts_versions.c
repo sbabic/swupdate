@@ -25,6 +25,7 @@
 #include "swupdate.h"
 #include "parselib.h"
 #include "swupdate_settings.h"
+#include "semver.h"
 
 /*
  * Read versions of components from a file, if provided
@@ -66,6 +67,9 @@ static int read_sw_version_file(struct swupdate_cfg *sw)
 			}
 			strlcpy(swcomp->name, name, sizeof(swcomp->name));
 			strlcpy(swcomp->version, version, sizeof(swcomp->version));
+
+			cleanup_version(swcomp->version);
+
 			LIST_INSERT_HEAD(&sw->installed_sw_list, swcomp, next);
 			TRACE("Installed %s: Version %s",
 					swcomp->name,
@@ -118,6 +122,8 @@ static int versions_settings(void *setting, void *data)
 		GET_FIELD_STRING(LIBCFG_PARSER, elem, "name", swcomp->name);
 		GET_FIELD_STRING(LIBCFG_PARSER, elem, "version", swcomp->version);
 
+		cleanup_version(swcomp->version);
+
 		LIST_INSERT_HEAD(&sw->installed_sw_list, swcomp, next);
 		TRACE("Installed %s: Version %s",
 			swcomp->name,
@@ -153,6 +159,46 @@ void get_sw_versions(char __attribute__ ((__unused__)) *cfgname,
 	read_sw_version_file(sw);
 }
 #endif
+
+static const char ACCEPTED_CHARS[] = "0123456789.";
+
+static bool is_oldstyle_version(const char* version_string)
+{
+	while (*version_string)
+	{
+		if (strchr(ACCEPTED_CHARS, *version_string) == NULL)
+			return false;
+	}
+	return true;
+}
+
+void cleanup_version(char* str)
+{
+	semver_t version = {};
+	int res = semver_clean(str);
+
+	/* This is only expected for overly long version strings.
+	 * Is SWUPDATE_GENERAL_STRING_SIZE > semver.c:MAX_SIZE + 1???
+	 */
+	assert(res == 0);
+	if (res == -1) {
+		WARN("Version string too long. Using 0.0.0 instead!");
+		str[0] = '\0';
+		return;
+	}
+
+	if (is_oldstyle_version(str))
+		return;
+
+	if (semver_parse(str, &version) == 0) {
+		semver_render(&version, str);
+	} else {
+		WARN("Unparseable version string. Using 0.0.0 instead!");
+		str[0] = '\0';
+	}
+
+	semver_free(&version);
+}
 
 /*
  * convert a version string into a number

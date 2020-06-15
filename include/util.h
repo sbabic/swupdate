@@ -216,6 +216,7 @@ size_t snescape(char *dst, size_t n, const char *src);
 void freeargs (char **argv);
 int get_hw_revision(struct hw_type *hw);
 void get_sw_versions(char *cfgfname, struct swupdate_cfg *sw);
+void cleanup_version(char* str);
 __u64 version_to_number(const char *version_string);
 int hwid_match(const char* rev, const char* hwrev);
 int check_hw_compatibility(struct swupdate_cfg *cfg);
