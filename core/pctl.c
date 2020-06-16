@@ -263,6 +263,7 @@ int run_system_cmd(const char *cmd)
 		}
 	} else {
 		int fds[2];
+		pid_t w;
 
 		close(stdoutpipe[PIPE_WRITE]);
 		close(stderrpipe[PIPE_WRITE]);
@@ -276,7 +277,6 @@ int run_system_cmd(const char *cmd)
 		 * and from stderr (of the child process) as ERROR
 		 */
 		do {
-			pid_t w;
 			int n1 = 0;
 			struct timeval tv;
 			fd_set readfds;
@@ -373,7 +373,7 @@ int run_system_cmd(const char *cmd)
 					}
 				}
 			} while (ret > 0 && n1 > 0);
-		} while (!WIFEXITED(wstatus));
+		} while (w != process_id);
 
 		close(stdoutpipe[PIPE_READ]);
 		close(stderrpipe[PIPE_READ]);
