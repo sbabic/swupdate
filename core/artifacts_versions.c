@@ -168,6 +168,7 @@ static bool is_oldstyle_version(const char* version_string)
 	{
 		if (strchr(ACCEPTED_CHARS, *version_string) == NULL)
 			return false;
+		++version_string;
 	}
 	return true;
 }
