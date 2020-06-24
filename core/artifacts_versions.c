@@ -192,6 +192,7 @@ void cleanup_version(char* str)
 		return;
 
 	if (semver_parse(str, &version) == 0) {
+		*str = '\0';
 		semver_render(&version, str);
 	} else {
 		WARN("Unparseable version string. Using 0.0.0 instead!");
