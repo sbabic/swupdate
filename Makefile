@@ -456,9 +456,9 @@ install: all
 	for i in ${tools-bins};do \
 		install -m 755 $$i ${DESTDIR}/${BINDIR}; \
 	done
-	install -m 0644 include/network_ipc.h ${DESTDIR}/${INCLUDEDIR}
-	install -m 0644 include/swupdate_status.h ${DESTDIR}/${INCLUDEDIR}
-	install -m 0644 include/progress_ipc.h ${DESTDIR}/${INCLUDEDIR}
+	install -m 0644 $(srctree)/include/network_ipc.h ${DESTDIR}/${INCLUDEDIR}
+	install -m 0644 $(srctree)/include/swupdate_status.h ${DESTDIR}/${INCLUDEDIR}
+	install -m 0644 $(srctree)/include/progress_ipc.h ${DESTDIR}/${INCLUDEDIR}
 	install -m 0755 ipc/lib.a ${DESTDIR}/${LIBDIR}/libswupdate.a
 	if [ $(HAVE_LUA) = y ]; then \
 		install -d ${DESTDIR}/${LIBDIR}/lua/$(LUAVER); \
