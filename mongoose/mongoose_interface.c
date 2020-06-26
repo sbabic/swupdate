@@ -111,20 +111,20 @@ static void restart_handler(struct mg_connection *nc, int ev, void *ev_data)
 	struct http_message *hm = (struct http_message *) ev_data;
 	ipc_message msg = {};
 
-	(void)ev;
+	if (ev == MG_EV_HTTP_REQUEST) {
+		if(mg_vcasecmp(&hm->method, "POST") != 0) {
+			mg_http_send_error(nc, 405, "Method Not Allowed");
+			return;
+		}
 
-	if(mg_vcasecmp(&hm->method, "POST") != 0) {
-		mg_http_send_error(nc, 405, "Method Not Allowed");
-		return;
+		int ret = ipc_postupdate(&msg);
+		if (ret) {
+			mg_http_send_error(nc, 500, "Failed to queue command");
+			return;
+		}
+
+		mg_http_send_error(nc, 201, "Device will reboot now.");
 	}
-
-	int ret = ipc_postupdate(&msg);
-	if (ret) {
-		mg_http_send_error(nc, 500, "Failed to queue command");
-		return;
-	}
-
-	mg_http_send_error(nc, 201, "Device will reboot now.");
 }
 
 static void broadcast_callback(struct mg_connection *nc, int ev, void *ev_data)
