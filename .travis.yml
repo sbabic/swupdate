@@ -52,7 +52,7 @@ before_install:
     - sudo mkdir -p /usr/local/lib
     - sudo mkdir -p /usr/local/include
     - sudo mkdir -p /usr/local/include/mtd
-    - git clone git://git.infradead.org/mtd-utils.git
+    - git clone https://github.com/sigma-star/mtd-utils
     - cd mtd-utils
     - git checkout -b tmp v2.0.0
     - ./autogen.sh
