@@ -208,8 +208,8 @@ static int install_raw_file(struct img_type *img,
 	if (use_mount) {
 		ret = swupdate_mount(img->device, DATADST_DIR, img->filesystem);
 		if (ret) {
-			ERROR("Device %s with filesystem %s cannot be mounted",
-				img->device, img->filesystem);
+			ERROR("Device %s with filesystem %s cannot be mounted: %s",
+				img->device, img->filesystem, strerror(errno));
 			return -1;
 		}
 
