@@ -24,6 +24,7 @@
 #include <network_ipc.h>
 
 static bool enable = true;
+static bool trigger = false;
 static struct option long_options[] = {
     {"enable", no_argument, NULL, 'e'},
     {"disable", no_argument, NULL, 'd'},
@@ -58,6 +59,22 @@ static server_op_res_t suricatta_enable(ipc_message *msg)
 	if (json_data) {
 		enable = json_object_get_boolean(json_data);
 		TRACE ("suricatta mode %sabled", enable ? "en" : "dis");
+	}
+	else {
+	  /*
+	   * check if polling of server is requested via IPC (trigger)
+	   * This allows to force to check if an update is available
+	   * on the server. This is useful in case the device is not always
+	   * online, and it just checks for update (and then update should run
+	   * immediately) just when online.
+	   */
+	  json_data = json_get_path_key(
+	      json_root, (const char *[]){"trigger", NULL});
+	  if (json_data) {
+	    trigger = json_object_get_boolean(json_data);
+	    TRACE ("suricatta polling trigger received, checking on server");
+	  }
+
 	}
 
 	msg->type = ACK;
@@ -194,7 +211,8 @@ int start_suricatta(const char *cfgfname, int argc, char *argv[])
 
 	TRACE("Server initialized, entering suricatta main loop.");
 	while (true) {
-		if (enable) {
+		if (enable || trigger) {
+			trigger = false;
 			switch (server.has_pending_action(&action_id)) {
 			case SERVER_UPDATE_AVAILABLE:
 				DEBUG("About to process available update.");
@@ -202,6 +220,8 @@ int start_suricatta(const char *cfgfname, int argc, char *argv[])
 				break;
 			case SERVER_ID_REQUESTED:
 				server.send_target_data();
+				trigger = true;
+				continue;
 				break;
 			case SERVER_EINIT:
 				break;

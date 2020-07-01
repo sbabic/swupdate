@@ -141,6 +141,20 @@ Enable / disable Suricatta daemon
         { "enable" : true }
         { "enable" : false }
 
+Trigger a check on the server
+.............................
+
+This is useful in case the device is mostly offline, and when it is online, it should check
+immediately if an update exists and run it. In fact, after enabling the suricatta daemon,
+the update follows the usual states, and the daemon waits for a polling time before
+loading the new software. This command forces an update (if available) without changing the
+polling time.
+
+::
+
+        { "trigger" : true }
+
+
 Activate an already installed Software
 ......................................
 
