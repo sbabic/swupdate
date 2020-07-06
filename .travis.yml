@@ -58,8 +58,8 @@ before_install:
     - ./autogen.sh
     - ./configure
     - make
-    - sudo install -m 644 include/libubi.h /usr/local/include/mtd
-    - sudo install -m 644 include/libmtd.h /usr/local/include/mtd
+    - sudo install -m 644 include/libubi.h /usr/local/include
+    - sudo install -m 644 include/libmtd.h /usr/local/include
     - sudo install -m 644 include/mtd/ubi-media.h /usr/local/include/mtd
     - sudo install -m 644 *.a /usr/local/lib
     - cd ..

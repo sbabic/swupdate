@@ -10,8 +10,8 @@
 #define _FLASH_PART_H
 
 #include <stdint.h>
-#include <mtd/libmtd.h>
-#include <mtd/libubi.h>
+#include <libmtd.h>
+#include <libubi.h>
 #include "bsdqueue.h"
 
 #define DEFAULT_CTRL_DEV "/dev/ubi_ctrl"
