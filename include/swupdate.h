@@ -65,6 +65,7 @@ struct img_type {
 	char volname[MAX_VOLNAME];	/* Useful for UBI	*/
 	char device[MAX_VOLNAME];	/* device associated with image if any */
 	char path[MAX_IMAGE_FNAME];	/* Path where image must be installed */
+	char mtdname[MAX_IMAGE_FNAME];	/* MTD device where image must be installed */
 	char type_data[SWUPDATE_GENERAL_STRING_SIZE];	/* Data for handler */
 	char extract_file[MAX_IMAGE_FNAME];
 	char filesystem[MAX_IMAGE_FNAME];

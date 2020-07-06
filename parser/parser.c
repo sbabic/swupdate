@@ -280,7 +280,7 @@ static int parse_common_attributes(parsertype p, void *elem, struct img_type *im
 	GET_FIELD_STRING(p, elem, "path", image->path);
 	GET_FIELD_STRING(p, elem, "volume", image->volname);
 	GET_FIELD_STRING(p, elem, "device", image->device);
-	GET_FIELD_STRING(p, elem, "mtdname", image->path);
+	GET_FIELD_STRING(p, elem, "mtdname", image->mtdname);
 	GET_FIELD_STRING(p, elem, "filesystem", image->filesystem);
 	GET_FIELD_STRING(p, elem, "type", image->type);
 	GET_FIELD_STRING(p, elem, "offset", seek_str);

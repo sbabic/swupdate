@@ -327,13 +327,13 @@ static int install_flash_image(struct img_type *img,
 {
 	int mtdnum;
 
-	if (strlen(img->path))
-		mtdnum = get_mtd_from_name(img->path);
+	if (strlen(img->mtdname))
+		mtdnum = get_mtd_from_name(img->mtdname);
 	else
 		mtdnum = get_mtd_from_device(img->device);
 	if (mtdnum < 0) {
 		ERROR("Wrong MTD device in description: %s",
-			strlen(img->path) ? img->path : img->device);
+			strlen(img->mtdname) ? img->mtdname : img->device);
 		return -1;
 	}
 

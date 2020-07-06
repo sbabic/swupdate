@@ -279,8 +279,8 @@ static void lua_string_to_img(struct img_type *img, const char *key,
 		strncpy(img->device, value,
 			sizeof(img->device));
 	if (!strcmp(key, "mtdname"))
-		strncpy(img->path, value,
-			sizeof(img->path));
+		strncpy(img->mtdname, value,
+			sizeof(img->mtdname));
 	if (!strcmp(key, "path"))
 		strncpy(img->path, value,
 			sizeof(img->path));
@@ -477,7 +477,7 @@ static void update_table(lua_State* L, struct img_type *img)
 		LUA_PUSH_IMG_STRING(img, "type", type);
 		LUA_PUSH_IMG_STRING(img, "device", device);
 		LUA_PUSH_IMG_STRING(img, "path", path);
-		LUA_PUSH_IMG_STRING(img, "mtdname", path);
+		LUA_PUSH_IMG_STRING(img, "mtdname", mtdname);
 		LUA_PUSH_IMG_STRING(img, "data", type_data);
 		LUA_PUSH_IMG_STRING(img, "filesystem", filesystem);
 		LUA_PUSH_IMG_STRING(img, "ivt", ivt_ascii);

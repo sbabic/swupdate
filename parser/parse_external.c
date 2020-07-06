@@ -51,8 +51,8 @@ static void sw_append_stream(struct img_type *img, const char *key,
 			sizeof(img->id.version));
 	}
 	if (!strcmp(key, "mtdname") || !strcmp(key, "dest"))
-		strlcpy(img->path, value,
-			sizeof(img->path));
+		strlcpy(img->mtdname, value,
+			sizeof(img->mtdname));
 	if (!strcmp(key, "filesystem"))
 		strlcpy(img->filesystem, value,
 			sizeof(img->filesystem));
