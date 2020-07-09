@@ -179,7 +179,7 @@ int main(int argc, char **argv)
 	int psplash_ok = 0;
 	unsigned int curstep = 0;
 	unsigned int percent = 0;
-	char bar[60];
+	char bar[61];
 	unsigned int filled_len;
 	int opt_c = 0;
 	int opt_w = 0;
@@ -298,6 +298,7 @@ int main(int argc, char **argv)
 
 		memset(bar,'=', filled_len);
 		memset(&bar[filled_len], '-', sizeof(bar) - filled_len - 1);
+                bar[sizeof(bar)-1] = 0;
 
 		fprintf(stdout, "[ %.60s ] %d of %d %d%% (%s)\r",
 			bar,
