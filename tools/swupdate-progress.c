@@ -179,7 +179,8 @@ int main(int argc, char **argv)
 	int psplash_ok = 0;
 	unsigned int curstep = 0;
 	unsigned int percent = 0;
-	char bar[60];
+	const int bar_len = 60;
+	char bar[bar_len+1];
 	unsigned int filled_len;
 	int opt_c = 0;
 	int opt_w = 0;
@@ -292,14 +293,16 @@ int main(int argc, char **argv)
 		if ((msg.cur_step != curstep) && (curstep != 0))
 			fprintf(stdout, "\n");
 
-		filled_len = sizeof(bar) * msg.cur_percent / 100;
-		if (filled_len > sizeof(bar) - 1)
-			filled_len = sizeof(bar) - 1;
+		filled_len = bar_len * msg.cur_percent / 100;
+		if (filled_len > bar_len)
+			filled_len = bar_len;
 
 		memset(bar,'=', filled_len);
-		memset(&bar[filled_len], '-', sizeof(bar) - filled_len - 1);
+		memset(&bar[filled_len], '-', bar_len - filled_len);
+		bar[bar_len] = '\0';
 
-		fprintf(stdout, "[ %.60s ] %d of %d %d%% (%s)\r",
+		fprintf(stdout, "[ %.*s ] %d of %d %d%% (%s)\r",
+			bar_len,
 			bar,
 			msg.cur_step, msg.nsteps, msg.cur_percent,
 		       	msg.cur_image);
