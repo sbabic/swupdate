@@ -792,13 +792,11 @@ int main(int argc, char **argv)
 			swcfg.globals.no_downgrading = 1;
 			strlcpy(swcfg.globals.minimum_version, optarg,
 				sizeof(swcfg.globals.minimum_version));
-			cleanup_version(swcfg.globals.minimum_version);
 			break;
 		case 'R':
 			swcfg.globals.no_reinstalling = 1;
 			strlcpy(swcfg.globals.current_version, optarg,
 				sizeof(swcfg.globals.current_version));
-			cleanup_version(swcfg.globals.current_version);
 			break;
 		case 'M':
 			swcfg.globals.no_transaction_marker = 1;

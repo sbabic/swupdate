@@ -273,9 +273,6 @@ static int parse_common_attributes(parsertype p, void *elem, struct img_type *im
 
 	GET_FIELD_STRING(p, elem, "name", image->id.name);
 	GET_FIELD_STRING(p, elem, "version", image->id.version);
-
-	cleanup_version(image->id.version);
-
 	GET_FIELD_STRING(p, elem, "filename", image->fname);
 	GET_FIELD_STRING(p, elem, "path", image->path);
 	GET_FIELD_STRING(p, elem, "volume", image->volname);

@@ -68,8 +68,6 @@ static int read_sw_version_file(struct swupdate_cfg *sw)
 			strlcpy(swcomp->name, name, sizeof(swcomp->name));
 			strlcpy(swcomp->version, version, sizeof(swcomp->version));
 
-			cleanup_version(swcomp->version);
-
 			LIST_INSERT_HEAD(&sw->installed_sw_list, swcomp, next);
 			TRACE("Installed %s: Version %s",
 					swcomp->name,
@@ -122,8 +120,6 @@ static int versions_settings(void *setting, void *data)
 		GET_FIELD_STRING(LIBCFG_PARSER, elem, "name", swcomp->name);
 		GET_FIELD_STRING(LIBCFG_PARSER, elem, "version", swcomp->version);
 
-		cleanup_version(swcomp->version);
-
 		LIST_INSERT_HEAD(&sw->installed_sw_list, swcomp, next);
 		TRACE("Installed %s: Version %s",
 			swcomp->name,
@@ -173,35 +169,6 @@ static bool is_oldstyle_version(const char* version_string)
 	return true;
 }
 
-void cleanup_version(char* str)
-{
-	semver_t version = {};
-	int res = semver_clean(str);
-
-	/* This is only expected for overly long version strings.
-	 * Is SWUPDATE_GENERAL_STRING_SIZE > semver.c:MAX_SIZE + 1???
-	 */
-	assert(res == 0);
-	if (res == -1) {
-		WARN("Version string too long. Using 0.0.0 instead!");
-		str[0] = '\0';
-		return;
-	}
-
-	if (is_oldstyle_version(str))
-		return;
-
-	if (semver_parse(str, &version) == 0) {
-		*str = '\0';
-		semver_render(&version, str);
-	} else {
-		WARN("Unparseable version string. Using 0.0.0 instead!");
-		str[0] = '\0';
-	}
-
-	semver_free(&version);
-}
-
 /*
  * convert a version string into a number
  * version string is in the format:
@@ -245,6 +212,7 @@ static __u64 version_to_number(const char *version_string)
  * - old-style: major.minor.revision.buildinfo
  * - semantic versioning: major.minor.patch[-prerelease][+buildinfo]
  *   see https://semver.org
+ * - if neither works, we fallback to lexicographical comparison
  *
  * Returns -1, 0 or 1 of left is respectively lower than, equal to or greater than right.
  */
@@ -254,6 +222,9 @@ int compare_versions(const char* left_version, const char* right_version)
 	{
 		__u64 left_u64 = version_to_number(left_version);
 		__u64 right_u64 = version_to_number(right_version);
+
+		DEBUG("Comparing old-style versions '%s' <-> '%s'", left_version, right_version);
+		TRACE("Parsed: '%llu' <-> '%llu'", left_u64, right_u64);
 
 		if (left_u64 < right_u64)
 			return -1;
@@ -268,18 +239,35 @@ int compare_versions(const char* left_version, const char* right_version)
 		semver_t right_sem = {};
 		int comparison;
 
-		/* There's no error checking here.
-		 * Oldstyle code also defaults to treating unparseable version as 0.
-		 * Failed semver_parse also leads to 0.0.0 if properly initialized.
+		/*
+		 * Check if semantic version is possible
 		 */
-		semver_parse(left_version, &left_sem);
-		semver_parse(right_version, &right_sem);
+		if (!semver_parse(left_version, &left_sem) && !semver_parse(right_version, &right_sem)) {
+			DEBUG("Comparing semantic versions '%s' <-> '%s'", left_version, right_version);
+			if (loglevel >= TRACELEVEL)
+			{
+				char left_rendered[SWUPDATE_GENERAL_STRING_SIZE];
+				char right_rendered[SWUPDATE_GENERAL_STRING_SIZE];
 
-		comparison = semver_compare(left_sem, right_sem);
+				left_rendered[0] = right_rendered[0] = '\0';
 
+				semver_render(&left_sem, left_rendered);
+				semver_render(&right_sem, right_rendered);
+				TRACE("Parsed: '%s' <-> '%s'", left_rendered, right_rendered);
+			}
+
+			comparison = semver_compare(left_sem, right_sem);
+			semver_free(&left_sem);
+			semver_free(&right_sem);
+			return comparison;
+		}
 		semver_free(&left_sem);
 		semver_free(&right_sem);
 
-		return comparison;
+		/*
+		 * Last attempt: just compare the two strings
+		 */
+		DEBUG("Comparing lexicographically '%s' <-> '%s'", left_version, right_version);
+		return strcmp(left_version, right_version);
 	}
 }

@@ -147,7 +147,7 @@ static int is_image_installed(struct swver *sw_ver_list,
 		 * Check if name and version are identical
 		 */
 		if (!strncmp(img->id.name, swver->name, sizeof(img->id.name)) &&
-		    !strncmp(img->id.version, swver->version, sizeof(img->id.version))) {
+		    !compare_versions(img->id.version, swver->version)) {
 			TRACE("%s(%s) already installed, skipping...",
 				img->id.name,
 				img->id.version);
