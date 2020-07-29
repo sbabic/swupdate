@@ -208,6 +208,26 @@ on an image, the ubi volume is resized to fit exactly the image.
 
 WARNING: when this property is used, the device must be defined.
 
+volume always remove
+....................
+
+The UBI volume handler has support to always remove ubi volume
+before flashing with the property ``always-remove``. When this property
+is set on an image, the ubi volume is always removed. This property
+should be used with property ``auto-resize``.
+
+::
+
+	{
+		filename = "u-boot.img";
+		device = "mtd0";
+		volume = "u-boot_r";
+		properties: {
+			always-remove = "true";
+			auto-resize = "true";
+		}
+	}
+
 Lua Handlers
 ------------
 

@@ -128,6 +128,25 @@ static int swap_volnames(libubi_t libubi,
 	return ubi_rnvols(libubi, masternode, &rnvol);
 }
 
+/**
+ * check_ubi_alwaysremove - check the property always-remove for this image
+ * @img: image information
+ *
+ * Return: 1 if the property always-remove is true, otherwise 0.
+ */
+static int check_ubi_alwaysremove(struct img_type *img)
+{
+	char *always;
+	int ret = 0;
+
+	always = dict_get_value(&img->properties, "always-remove");
+
+	if (always && !strcmp(always, "true"))
+		ret = 1;
+
+	return ret;
+}
+
 static int update_volume(libubi_t libubi, struct img_type *img,
 	struct ubi_vol_info *vol)
 {
@@ -289,7 +308,8 @@ static int resize_volume(struct img_type *cfg, long long size)
 		allocated_lebs = ubivol->vol_info.rsvd_bytes / mtd_info->dev_info.leb_size;
 
 		if (requested_lebs == allocated_lebs &&
-		    req_vol_type == ubivol->vol_info.type) {
+		    req_vol_type == ubivol->vol_info.type &&
+		    !check_ubi_alwaysremove(cfg)) {
 			TRACE("skipping volume %s (same size and type)",
 			      ubivol->vol_info.name);
 			return 0;
