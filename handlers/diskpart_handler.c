@@ -21,6 +21,11 @@
 
 void diskpart_handler(void);
 
+/*
+ * This is taken from libfdisk to declare if a field is not set
+ */
+#define LIBFDISK_INIT_UNDEF(_x)	((__typeof__(_x)) -1)
+
 /**
  * Keys for the properties field in sw-description
  */
@@ -71,16 +76,23 @@ static int diskpart_set_partition(struct fdisk_context *cxt,
 	unsigned long sector_size = fdisk_get_sector_size(cxt);
 	struct fdisk_label *lb;
 	struct fdisk_parttype *parttype = NULL;
-	int ret;
+	int ret = 0;
 
 	lb = fdisk_get_label(cxt, NULL);
 
 	if (!sector_size)
 		sector_size = 1;
-	ret = fdisk_partition_set_partno(pa, part->partno) ||
-	      fdisk_partition_set_size(pa, part->size / sector_size) ||
-	      fdisk_partition_set_name(pa, part->name) ||
-	      fdisk_partition_set_start(pa, part->start);
+	fdisk_partition_unset_partno(pa);
+	fdisk_partition_unset_size(pa);
+	fdisk_partition_unset_start(pa);
+	if (part->start != LIBFDISK_INIT_UNDEF(part->start))
+		ret = fdisk_partition_set_start(pa, part->start);
+	if (part->partno != LIBFDISK_INIT_UNDEF(part->partno))
+		ret |= fdisk_partition_set_partno(pa, part->partno);
+	if (strlen(part->name))
+	      ret |= fdisk_partition_set_name(pa, part->name);
+	if (part->size != LIBFDISK_INIT_UNDEF(part->size))
+	      ret |= fdisk_partition_set_size(pa, part->size / sector_size);
 
 	/*
 	 * GPT uses strings instead of hex code for partition type
@@ -150,6 +162,10 @@ static int diskpart(struct img_type *img,
 		}
 		elem = LIST_FIRST(parts);
 
+		part->partno = LIBFDISK_INIT_UNDEF(part->partno);
+		part->start = LIBFDISK_INIT_UNDEF(part->start);
+		part->size = LIBFDISK_INIT_UNDEF(part->size);
+
 		part->partno = strtoul(entry->key  + strlen("partition-"), NULL, 10);
 		while (elem) {
 			char *equal = index(elem->value, '=');
@@ -179,10 +195,10 @@ static int diskpart(struct img_type *img,
 		}
 
 		TRACE("partition-%zu:%s size %" PRIu64 " start %zu type %s",
-			part->partno,
-			part->name,
-			part->size,
-			part->start,
+			part->partno != LIBFDISK_INIT_UNDEF(part->partno) ? part->partno : 0,
+			strlen(part->name) ? part->name : "UNDEF NAME",
+			part->size != LIBFDISK_INIT_UNDEF(part->size) ? part->size : 0,
+			part->start!= LIBFDISK_INIT_UNDEF(part->start) ? part->start : 0,
 			part->type);
 
 		/*
@@ -253,10 +269,12 @@ static int diskpart(struct img_type *img,
 			if (ret) {
 				WARN("I cannot set all partition's parameters");
 			}
-			if (fdisk_add_partition(cxt, newpa, &partno) < 0) {
-				ERROR("I cannot add partition %zu(%s)", part->partno, part->name);
+			if ((ret = fdisk_add_partition(cxt, newpa, &partno)) < 0) {
+				ERROR("I cannot add partition %zu(%s): %d", part->partno, part->name, ret);
 			}
 			fdisk_unref_partition(newpa);
+			if (ret < 0)
+				goto handler_exit;
 		} else {
 			ret = diskpart_set_partition(cxt, pa, part);
 			if (ret) {
@@ -267,6 +285,7 @@ static int diskpart(struct img_type *img,
 			}
 			fdisk_unref_partition(pa);
 		}
+		fdisk_reset_partition(pa);
 		i++;
 	}
 
