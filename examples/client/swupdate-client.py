@@ -11,21 +11,23 @@ import requests
 import websockets
 import sys
 
+
 class SWUpdater:
     "" " Python helper class for SWUpdate " ""
 
-    url_upload = 'http://{}:8080/upload'
-    url_status = 'ws://{}:8080/ws'
+    url_upload = 'http://{}:{}/upload'
+    url_status = 'ws://{}:{}/ws'
 
-    def __init__ (self, path_image, host_name):
+    def __init__ (self, path_image, host_name, port):
         self.__image = path_image
         self.__host_name = host_name
+        self.__port = port
 
 
     async def wait_update_finished(self, timeout = 300):
         print ("Wait update finished")
         async def get_finish_messages ():
-            async with websockets.connect(self.url_status.format(self.__host_name)) as websocket:
+            async with websockets.connect(self.url_status.format(self.__host_name, self.__port)) as websocket:
                 while True:
                     message = await websocket.recv()
                     data = json.loads(message)
@@ -41,8 +43,9 @@ class SWUpdater:
 
     def update (self, timeout = 300):
         print ("Start uploading image...")
+        print (self.url_upload.format(self.__host_name, self.__port))
         try:
-            response = requests.post(self.url_upload.format(self.__host_name), files = { 'file':open (self.__image, 'rb') })
+            response = requests.post(self.url_upload.format(self.__host_name, self.__port), files = { 'file':open (self.__image, 'rb') })
 
             if response.status_code != 200:
                 raise Exception ("Cannot upload software image: {}".  format (response.status_code))
@@ -58,9 +61,13 @@ class SWUpdater:
 if __name__ == "__main__":
     sys.path.append (os.getcwd ())
 
-    if len (sys.argv) != 3:
-       print ("Usage: swupdate.py <path to image> <hostname>")
-       exit (0)
+    if len (sys.argv) == 3:
+        port = "8080"
+    elif len (sys.argv) == 4:
+        port = sys.argv[3]
+    else:
+       print ("Usage: swupdate.py <path to image> <hostname> [port]")
+       exit (1)
 
 
-    SWUpdater (sys.argv[1], sys.argv[2]).update ()
+    SWUpdater (sys.argv[1], sys.argv[2], port).update ()
