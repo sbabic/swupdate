@@ -58,7 +58,11 @@ Talks about SWUpdate
          `Video LinuxLab 2018 <https://www.youtube.com/watch?v=8vv5Xf6dBKE>`_
        - Evolution of (OTA) Update in the IoT world by Stefano Babic, ELC 2019,
          `Slides ELC 2019 <https://www.slideshare.net/StefanoBabic/evolution-of-otaupdateintheiotworld>`_,
-         `Video ELC 2019 <https://www.youtube.com/watch?v=WZHO18EhD7Y>`_
+         `Video ELC 2019 <https://www.youtube.com/watch?v=WZHO18EhD7Y>`_,
+       - There is No Store For Self-Driving Car Parts by Stephen Segal and Matt Fornero (Cruise LLC), ELC 2020,
+         `Slides Cruise ELC 2020 <https://static.sched.com/hosted_files/ossna2020/56/No_Store_for_AV_Parts_ELC_NA_2020.pdf>`_,
+       - Secure Boot and Over-the-Air Updates - That's simple, no ? by Jan Kiszka (Siemens AG), ELC 2020,
+         `Slides Secure OTA ELC 2020 <https://static.sched.com/hosted_files/ossna2020/17/Secure-OTA-Updates_elc-na-2020.pdf>`_
 
 Useful references
 =================
