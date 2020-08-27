@@ -747,20 +747,45 @@ supported:
 
 
 
-Example:
+GPT example:
 
 ::
 
-        properties: {
-		labeltype = "gpt";
-		partition-1 = [ "size=64M", "start=2048",
-                        "name=bigrootfs", "type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B"];
-		partition-2 = ["size=256M", "start=133120",
-                        "name=ldata", "type=EBD0A0A2-B9E5-4433-87C0-68B6B72699C7"];
-		partition-3 = ["size=512M", "start=657408",
-                        "name=log", "type=0FC63DAF-8483-4772-8E79-3D69D8477DE4"];
-		partition-4 = ["size=4G", "start=1705984",
-                        "name=system",  "type=0FC63DAF-8483-4772-8E79-3D69D8477DE4"];
-		partition-5 = ["size=512M", "start=10094592",
-                        "name=part5",  "type=0FC63DAF-8483-4772-8E79-3D69D8477DE4"];
+        partitions: (
+	{
+           type = "diskpart";
+	   device = "/dev/sde";
+           properties: {
+	        labeltype = "gpt";
+                partition-1 = [ "size=64M", "start=2048",
+                    "name=bigrootfs", "type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B"];
+                partition-2 = ["size=256M", "start=133120",
+                    "name=ldata", "type=EBD0A0A2-B9E5-4433-87C0-68B6B72699C7"];
+                partition-3 = ["size=512M", "start=657408",
+                    "name=log", "type=0FC63DAF-8483-4772-8E79-3D69D8477DE4"];
+                partition-4 = ["size=4G", "start=1705984",
+                    "name=system",  "type=0FC63DAF-8483-4772-8E79-3D69D8477DE4"];
+                partition-5 = ["size=512M", "start=10094592",
+                    "name=part5",  "type=0FC63DAF-8483-4772-8E79-3D69D8477DE4"];
+	   }
+        }
+
+
+MBR Example:
+
+::
+
+	partitions: (
+	{
+	   type = "diskpart";
+	   device = "/dev/sde";
+	   properties: {
+		labeltype = "dos";
+		partition-1 = [ "size=64M", "start=2048", "name=bigrootfs", "type=0x83"];
+		partition-2 = ["size=256M", "start=133120", "name=ldata", "type=0x83"];
+		partition-3 = ["size=256M", "start=657408", "name=log", "type=0x83"];
+		partition-4 = ["size=6G", "start=1181696", "name=system",  "type=0x5"];
+		partition-5 = ["size=512M", "start=1183744", "name=part5",  "type=0x83"];
+		partition-6 = ["size=512M", "start=2234368", "name=part6",  "type=0x83"];
+	   }
 	}
