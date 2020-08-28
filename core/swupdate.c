@@ -391,7 +391,7 @@ static int install_from_file(char *fname, int check)
 	close(fdsw);
 
 	if (ret) {
-		fprintf(stdout, "Software updated failed\n");
+		fprintf(stdout, "Software update failed\n");
 		return EXIT_FAILURE;
 	}
 
