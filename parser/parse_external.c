@@ -40,7 +40,7 @@ static void sw_append_stream(struct img_type *img, const char *key,
 	if (!strcmp(key, "filename")) {
 		strlcpy(img->fname, value,
 			sizeof(img->fname));
-		img->required = 1;
+		img->skip = SKIP_NONE;
 	}
 	if (!strcmp(key, "name")) {
 		strlcpy(img->id.name, value,

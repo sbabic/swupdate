@@ -336,6 +336,8 @@ static void lua_number_to_img(struct img_type *img, const char *key,
 		img->size = (long long)val;
 	if (!strcmp(key, "checksum"))
 		img->checksum = (unsigned int)val;
+	if (!strcmp(key, "skip"))
+		img->skip = (unsigned int)val;
 }
 
 #ifdef CONFIG_HANDLER_IN_LUA
@@ -492,6 +494,7 @@ static void update_table(lua_State* L, struct img_type *img)
 		LUA_PUSH_IMG_NUMBER(img, "offset", seek);
 		LUA_PUSH_IMG_NUMBER(img, "size", size);
 		LUA_PUSH_IMG_NUMBER(img, "checksum", checksum);
+		LUA_PUSH_IMG_NUMBER(img, "skip", skip);
 
 		switch (img->compressed) {
 			case COMPRESSED_ZLIB:
@@ -540,7 +543,7 @@ static void update_table(lua_State* L, struct img_type *img)
 #endif
 
 		lua_getfield(L, -1, "_private");
-		LUA_PUSH_IMG_NUMBER(img, "offset", offset);
+        LUA_PUSH_IMG_NUMBER(img, "offset", offset);
 		lua_pop(L, 1);
 
 		char *hashstring = alloca(2 * SHA256_HASH_LENGTH + 1);

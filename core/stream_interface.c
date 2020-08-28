@@ -281,7 +281,7 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 			 */
 
 			LIST_FOREACH(img, &software->images, next) {
-				if (! img->required)
+				if (  img->skip)
 					continue;
 				if (! img->fname[0])
 					continue;

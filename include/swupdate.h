@@ -41,6 +41,13 @@ enum {
 	INSTALL_FROM_STREAM
 };
 
+typedef enum {
+	SKIP_NONE=0,
+	SKIP_SAME,
+	SKIP_HIGHER,
+	SKIP_SCRIPT
+} skip_t;
+
 enum {
   COMPRESSED_FALSE,
   COMPRESSED_TRUE,
@@ -70,7 +77,7 @@ struct img_type {
 	char extract_file[MAX_IMAGE_FNAME];
 	char filesystem[MAX_IMAGE_FNAME];
 	unsigned long long seek;
-	int required;
+	skip_t skip;
 	int provided;
 	int compressed;
 	int preserve_attributes; /* whether to preserve attributes in archives */

@@ -248,6 +248,68 @@ static int parse_hw_compatibility(parsertype __attribute__ ((__unused__))p,
 }
 #endif
 
+static int is_image_installed(struct swver *sw_ver_list,
+                              struct img_type *img)
+{
+    struct sw_version *swver;
+
+    if (!sw_ver_list)
+        return false;
+
+    if (!strlen(img->id.name) || !strlen(img->id.version) ||
+        !img->id.install_if_different)
+        return false;
+
+    LIST_FOREACH(swver, sw_ver_list, next) {
+        /*
+         * Check if name and version are identical
+         */
+        if (!strncmp(img->id.name, swver->name, sizeof(img->id.name)) &&
+            !compare_versions(img->id.version, swver->version)) {
+            TRACE("%s(%s) already installed, skipping...",
+                  img->id.name,
+                  img->id.version);
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
+static int is_image_higher(struct swver *sw_ver_list,
+                           struct img_type *img)
+{
+    struct sw_version *swver;
+
+    if (!sw_ver_list)
+        return false;
+
+    if (!strlen(img->id.name) || !strlen(img->id.version) ||
+        !img->id.install_if_higher)
+        return false;
+
+    LIST_FOREACH(swver, sw_ver_list, next) {
+        const char* current_version = swver->version;
+        const char* proposed_version = img->id.version;
+
+        /*
+         * Check if name are identical and the new version is lower
+         * or equal.
+         */
+        if (!strncmp(img->id.name, swver->name, sizeof(img->id.name)) &&
+            (compare_versions(proposed_version, current_version) < 0)) {
+            TRACE("%s(%s) has a higher version installed, skipping...",
+                  img->id.name,
+                  img->id.version);
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
 static int run_embscript(parsertype p, void *elem, struct img_type *img,
 			 lua_State *L, const char *embscript)
 {
@@ -260,7 +322,7 @@ static int run_embscript(parsertype p, void *elem, struct img_type *img,
 	return lua_parser_fn(L, embfcn, img);
 }
 
-static int parse_common_attributes(parsertype p, void *elem, struct img_type *image)
+static int parse_common_attributes(parsertype p, void *elem, struct img_type *image, struct swupdate_cfg *cfg)
 {
 	char seek_str[MAX_SEEK_STRING_SIZE];
 	const char* compressed;
@@ -310,6 +372,14 @@ static int parse_common_attributes(parsertype p, void *elem, struct img_type *im
 	get_field(p, elem, "encrypted", &image->is_encrypted);
 	GET_FIELD_STRING(p, elem, "ivt", image->ivt_ascii);
 
+	if (is_image_installed(&cfg->installed_sw_list, image)) {
+		image->skip = SKIP_SAME;
+	} else if (is_image_higher(&cfg->installed_sw_list, image)) {
+		image->skip = SKIP_HIGHER;
+	} else {
+		image->skip = SKIP_NONE;
+	}
+
 	return 0;
 }
 
@@ -340,7 +410,7 @@ static int parse_partitions(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 			ERROR("No memory: malloc failed");
 			return -ENOMEM;
 		}
-		if (parse_common_attributes(p, elem, partition) < 0) {
+		if (parse_common_attributes(p, elem, partition, swcfg) < 0) {
 			free_image(partition);
 			return -1;
 		}
@@ -407,7 +477,7 @@ static int parse_scripts(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lu
 			return -ENOMEM;
 		}
 
-		if (parse_common_attributes(p, elem, script) < 0) {
+		if (parse_common_attributes(p, elem, script, swcfg) < 0) {
 			free_image(script);
 			return -1;
 		}
@@ -430,7 +500,7 @@ static int parse_scripts(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lu
 			skip ? "Skip" : "Found",
 			script->fname);
 
-		if (skip) {
+		if (skip || script->skip != SKIP_NONE) {
 			free_image(script);
 			continue;
 		}
@@ -500,7 +570,7 @@ static int parse_bootloader(parsertype p, void *cfg, struct swupdate_cfg *swcfg,
 			return -ENOMEM;
 		}
 
-		if (parse_common_attributes(p, elem, script) < 0) {
+		if (parse_common_attributes(p, elem, script, swcfg) < 0) {
 			free_image(script);
 			return -1;
 		}
@@ -508,7 +578,7 @@ static int parse_bootloader(parsertype p, void *cfg, struct swupdate_cfg *swcfg,
 		script->is_script = 1;
 
 		skip = run_embscript(p, elem, script, L, swcfg->embscript);
-		if (skip != 0) {
+		if (skip != 0 || script->skip != SKIP_NONE) {
 			free_image(script);
 			if (skip < 0)
 				return -1;
@@ -557,7 +627,7 @@ static int parse_images(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua
 			return -ENOMEM;
 		}
 
-		if (parse_common_attributes(p, elem, image) < 0) {
+		if (parse_common_attributes(p, elem, image, swcfg) < 0) {
 			free_image(image);
 			return -1;
 		}
@@ -595,8 +665,7 @@ static int parse_images(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua
 						    image->id.install_if_higher)) ?
 					" Version must be checked" : ""
 			);
-
-		if (skip) {
+		if (skip || image->skip != SKIP_NONE) {
 			free_image(image);
 			continue;
 		}
@@ -640,7 +709,7 @@ static int parse_files(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua_
 			return -ENOMEM;
 		}
 
-		if (parse_common_attributes(p, elem, file) < 0) {
+		if (parse_common_attributes(p, elem, file, swcfg) < 0) {
 			free_image(file);
 			return -1;
 		}
@@ -670,7 +739,7 @@ static int parse_files(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua_
 			(strlen(file->id.name) && file->id.install_if_different) ?
 					"; Version must be checked" : "");
 
-		if (skip) {
+		if (skip || file->skip != SKIP_NONE) {
 			free_image(file);
 			continue;
 		}
