@@ -30,6 +30,7 @@
 #include "swupdate.h"
 #include "pctl.h"
 #include "generated/autoconf.h"
+#include "state.h"
 
 #ifdef CONFIG_SYSTEMD
 #include <systemd/sd-daemon.h>
@@ -213,6 +214,7 @@ void *network_thread (void *data)
 	int pipe;
 	fd_set pipefds;
 	struct timeval tv;
+	update_state_t value;
 
 	if (!instp) {
 		TRACE("Fatal error: Network thread aborting...");
@@ -403,6 +405,11 @@ void *network_thread (void *data)
 				msg.type = ACK;
 				if (set_aes_key(msg.data.aeskeymsg.key_ascii, msg.data.aeskeymsg.ivt_ascii))
 					msg.type = NACK;
+				break;
+			case SET_UPDATE_STATE:
+				value = *(update_state_t *)msg.data.msg;
+				ret = save_state((char *)STATE_KEY, value);
+				msg.type = (ret == 0) ? ACK : NACK;
 				break;
 			default:
 				msg.type = NACK;

@@ -33,7 +33,8 @@ typedef enum {
 	POST_UPDATE,
 	SWUPDATE_SUBPROCESS,
 	REQ_INSTALL_DRYRUN,
-	SET_AES_KEY
+	SET_AES_KEY,
+	SET_UPDATE_STATE	/* set bootloader ustate */
 } msgtype;
 
 /*

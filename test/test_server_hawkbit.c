@@ -23,10 +23,13 @@
 #include <stdarg.h>
 #include <stddef.h>
 #include <setjmp.h>
+#include <sys/types.h>
+#include <unistd.h>
 #include <cmocka.h>
 #include <network_ipc.h>
 #include <swupdate_status.h>
 #include <util.h>
+#include "pctl.h"
 #include "suricatta/suricatta.h"
 #include "../suricatta/server_hawkbit.h"
 #include "channel.h"
@@ -538,7 +541,7 @@ static void test_server_install_update(void **state)
 	will_return(__wrap_channel_get_file, CHANNEL_OK);
 	will_return(__wrap_ipc_wait_for_complete, SUCCESS);
 	will_return(__wrap_channel_put, CHANNEL_OK);
-	will_return(__wrap_save_state, SERVER_OK);
+	//will_return(__wrap_save_state, SERVER_OK);
 	will_return(__wrap_channel_put, CHANNEL_OK);
 	assert_int_equal(SERVER_OK, server_install_update());
 }
@@ -574,6 +577,7 @@ int main(void)
 	    cmocka_unit_test(test_server_process_update_artifact),
 	    cmocka_unit_test(test_server_set_polling_interval_json),
 	    cmocka_unit_test(test_server_has_pending_action)};
+	pid = getpid();
 	error_count += cmocka_run_group_tests_name(
 	    "server_hawkbit", hawkbit_server_tests, server_hawkbit_setup,
 	    server_hawkbit_teardown);

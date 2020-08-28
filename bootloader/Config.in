@@ -49,6 +49,33 @@ config UBOOT_FWENV
 comment "U-Boot support needs libubootenv, libz"
 	depends on !HAVE_LIBUBOOTENV || !HAVE_ZLIB
 
+choice
+	prompt "Update Status Storage"
+	help
+	  Place to persistently store the update
+	  status for, e.g., communicating it to SWUpdate after
+	  a reboot.
+
+config UPDATE_STATE_CHOICE_NONE
+	bool "None"
+	help
+	  Do not store update status.
+
+config UPDATE_STATE_CHOICE_BOOTLOADER
+	bool "Bootloader"
+	help
+	  Store update status in Bootloader's environment.
+	  Specify Bootloader environment variable name to store update status in.
+
+endchoice
+
+config UPDATE_STATE_BOOTLOADER
+	string "Store Update Status in Bootloader Environment variable"
+	default "ustate"
+	depends on UPDATE_STATE_CHOICE_BOOTLOADER
+	help
+	  Store update information in Bootloader's environment.
+
 config UBOOT_DEFAULTENV
 	string "U-Boot Initial Environment file"
 	depends on UBOOT

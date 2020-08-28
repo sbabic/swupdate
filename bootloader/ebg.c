@@ -18,14 +18,6 @@
 #include <state.h>
 #include "bootloader.h"
 
-#ifdef CONFIG_SURICATTA_STATE_CHOICE_BOOTLOADER
-#define EXPANDTOKL2(token) token
-#define EXPANDTOK(token) EXPANDTOKL2(token)
-#define STATE_KEY EXPANDTOK(CONFIG_SURICATTA_STATE_BOOTLOADER)
-#else
-#define STATE_KEY "none"
-#endif
-
 #define RCS_KEY   "recovery_status"
 #define RCS_VALUE "in_progress"
 

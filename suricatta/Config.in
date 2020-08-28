@@ -29,32 +29,6 @@ config SURICATTA_SSL
 comment "SSL support needs an SSL implementation"
 	depends on !SSL_IMPL_OPENSSL && !SSL_IMPL_MBEDTLS
 
-choice
-	prompt "Update Status Storage"
-	help
-	  Place for suricatta to persistently store the update
-	  status for, e.g., communicating it to the server after
-	  a reboot.
-
-config SURICATTA_STATE_CHOICE_NONE
-	bool "None"
-	help
-	  Do not store update status.
-
-config SURICATTA_STATE_CHOICE_BOOTLOADER
-	bool "Bootloader"
-	help
-	  Store update status in Bootloader's environment.
-	  Specify Bootloader environment variable name to store update status in.
-
-endchoice
-
-config SURICATTA_STATE_BOOTLOADER
-	string "Store Update Status in Bootloader Environment variable"
-	default "ustate"
-	depends on SURICATTA_STATE_CHOICE_BOOTLOADER
-	help
-	  Store update information in Bootloader's environment.
 
 endmenu
 
