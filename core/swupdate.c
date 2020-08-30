@@ -924,59 +924,6 @@ int main(int argc, char **argv)
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = sigchld_handler;
 	sigaction(SIGCHLD, &sa, NULL);
-
-	/*
-	 * If just a check is required, do not
-	 * start background processes and threads
-	 */
-	if (!opt_c) {
-		/* Start embedded web server */
-#if defined(CONFIG_MONGOOSE)
-		if (opt_w) {
-			start_subprocess(SOURCE_WEBSERVER, "webserver",
-						cfgfname, ac, av,
-						start_mongoose);
-			freeargs(av);
-		}
-#endif
-
-#if defined(CONFIG_SURICATTA)
-		if (opt_u) {
-			start_subprocess(SOURCE_SURICATTA, "suricatta",
-					 cfgfname, argcount,
-				       	 argvalues, start_suricatta);
-
-			freeargs(argvalues);
-		}
-#endif
-
-#ifdef CONFIG_DOWNLOAD
-		if (opt_d) {
-			start_subprocess(SOURCE_DOWNLOADER, "download",
-				       	 cfgfname, dwlac,
-				       	 dwlav, start_download);
-			freeargs(dwlav);
-		}
-#endif
-
-		/*
-		 * Start all processes added in the config file
-		 */
-		struct extproc *proc;
-
-		LIST_FOREACH(proc, &swcfg.extprocs, next) {
-			dwlav = splitargs(proc->exec, &dwlac);
-
-			dwlav[dwlac] = NULL;
-
-			start_subprocess_from_file(SOURCE_UNKNOWN, proc->name,
-						   cfgfname, dwlac,
-						   dwlav, dwlav[0]);
-
-			freeargs(dwlav);
-		}
-	}
-
 #ifdef CONFIG_UBIATTACH
 	if (strlen(swcfg.globals.mtdblacklist))
 		mtd_set_ubiblacklist(swcfg.globals.mtdblacklist);
@@ -1026,6 +973,52 @@ int main(int argc, char **argv)
 		network_daemon = start_thread(network_initializer, &swcfg);
 
 		start_thread(progress_bar_thread, NULL);
+
+		/* Start embedded web server */
+#if defined(CONFIG_MONGOOSE)
+		if (opt_w) {
+			start_subprocess(SOURCE_WEBSERVER, "webserver",
+					 cfgfname, ac, av,
+					 start_mongoose);
+			freeargs(av);
+		}
+#endif
+
+#if defined(CONFIG_SURICATTA)
+		if (opt_u) {
+			start_subprocess(SOURCE_SURICATTA, "suricatta",
+					 cfgfname, argcount,
+					 argvalues, start_suricatta);
+
+			freeargs(argvalues);
+		}
+#endif
+
+#ifdef CONFIG_DOWNLOAD
+		if (opt_d) {
+			start_subprocess(SOURCE_DOWNLOADER, "download",
+					 cfgfname, dwlac,
+					 dwlav, start_download);
+			freeargs(dwlav);
+		}
+#endif
+
+		/*
+		 * Start all processes added in the config file
+		 */
+		struct extproc *proc;
+
+		LIST_FOREACH(proc, &swcfg.extprocs, next) {
+			dwlav = splitargs(proc->exec, &dwlac);
+
+			dwlav[dwlac] = NULL;
+
+			start_subprocess_from_file(SOURCE_UNKNOWN, proc->name,
+						   cfgfname, dwlac,
+						   dwlav, dwlav[0]);
+
+			freeargs(dwlav);
+		}
 	}
 
 	if (opt_i) {
