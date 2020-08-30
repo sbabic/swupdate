@@ -556,7 +556,9 @@ void *network_initializer(void *data)
 				}
 				notify(FAILURE, RECOVERY_ERROR, ERRORLEVEL, "Installation failed !");
 				inst.last_install = FAILURE;
-
+				if (save_state((char *)STATE_KEY, STATE_FAILED) != SERVER_OK) {
+					WARN("Cannot persistently store FAILED update state.");
+				}
 			} else {
 				/*
 				 * Clear the recovery variable to indicate to bootloader
@@ -567,6 +569,9 @@ void *network_initializer(void *data)
 				}
 				notify(SUCCESS, RECOVERY_NO_ERROR, INFOLEVEL, "SWUPDATE successful !");
 				inst.last_install = SUCCESS;
+				if (save_state((char *)STATE_KEY, STATE_INSTALLED) != SERVER_OK) {
+					WARN("Cannot persistently store INSTALLED update state.");
+				}
 			}
 		} else {
 			inst.last_install = FAILURE;

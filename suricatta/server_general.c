@@ -556,15 +556,6 @@ server_op_res_t server_install_update(void)
 		goto cleanup;
 	}
 
-	/*
-	 * Everything fine, set the state to INSTALLED
-	 */
-	if ((result = save_state((char *)STATE_KEY, STATE_INSTALLED)) !=
-	    SERVER_OK) {
-		ERROR("Cannot persistently store update state.\n");
-		goto cleanup;
-	}
-
 cleanup:
 	free(channel_data.url);
 	return result;

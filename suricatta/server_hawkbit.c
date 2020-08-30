@@ -1398,12 +1398,6 @@ server_op_res_t server_install_update(void)
 		}
 	}
 
-	if ((result = save_state((char *)STATE_KEY, STATE_INSTALLED)) !=
-	    SERVER_OK) {
-		ERROR("Cannot persistently store update state.");
-		goto cleanup;
-	}
-
 	if (server_send_deployment_reply(
 		server_hawkbit.channel,
 		action_id, json_data_chunk_max, json_data_chunk_count,
@@ -1925,7 +1919,10 @@ static server_op_res_t server_activation_ipc(ipc_message *msg)
 		/*
 		 * Save the state
 		 */
-		save_state((char *)STATE_KEY, STATE_OK);
+		if ((result = save_state((char *)STATE_KEY, STATE_OK)) != SERVER_OK) {
+			ERROR("Error while resetting update state on persistent "
+			"storage.\n");
+		}
 	}
 
 	msg->data.instmsg.len = 0;
