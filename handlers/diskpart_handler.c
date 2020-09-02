@@ -243,48 +243,24 @@ static int diskpart(struct img_type *img,
 
 	i = 0;
 
-	if (priv.labeltype == FDISK_DISKLABEL_DOS) {
-		fdisk_delete_all_partitions(cxt);
-	}
+	fdisk_delete_all_partitions(cxt);
 
 	LIST_FOREACH(part, &priv.listparts, next) {
 		struct fdisk_partition *pa = NULL;
 		size_t partno;
+		struct fdisk_partition *newpa;
 
-		/*
-		 * Allow to have not consecutives partitions
-		 */
-		if (part->partno > i) {
-			while (i < part->partno) {
-				TRACE("DELETE PARTITION %d", i);
-				fdisk_delete_partition(cxt, i);
-				i++;
-			}
+		newpa = fdisk_new_partition();
+		ret = diskpart_set_partition(cxt, newpa, part);
+		if (ret) {
+			WARN("I cannot set all partition's parameters");
 		}
-
-		if (fdisk_get_partition(cxt, part->partno, &pa)) {
-			struct fdisk_partition *newpa;
-			newpa = fdisk_new_partition();
-			ret = diskpart_set_partition(cxt, newpa, part);
-			if (ret) {
-				WARN("I cannot set all partition's parameters");
-			}
-			if ((ret = fdisk_add_partition(cxt, newpa, &partno)) < 0) {
-				ERROR("I cannot add partition %zu(%s): %d", part->partno, part->name, ret);
-			}
-			fdisk_unref_partition(newpa);
-			if (ret < 0)
-				goto handler_exit;
-		} else {
-			ret = diskpart_set_partition(cxt, pa, part);
-			if (ret) {
-				WARN("I cannot set all partition's parameters");
-			}
-			if (fdisk_set_partition(cxt, part->partno, pa) < 0) {
-				ERROR("I cannot modify partition %zu(%s)", part->partno, part->name);
-			}
-			fdisk_unref_partition(pa);
+		if ((ret = fdisk_add_partition(cxt, newpa, &partno)) < 0) {
+			ERROR("I cannot add partition %zu(%s): %d", part->partno, part->name, ret);
 		}
+		fdisk_unref_partition(newpa);
+		if (ret < 0)
+			goto handler_exit;
 		fdisk_reset_partition(pa);
 		i++;
 	}
@@ -292,8 +268,11 @@ static int diskpart(struct img_type *img,
 	/*
 	 * Everything done, write into disk
 	 */
-	ret = fdisk_write_disklabel(cxt) |
-		fdisk_reread_partition_table(cxt);
+	ret = fdisk_write_disklabel(cxt);
+	if (ret)
+		ERROR("Partition table cannot be written on disk");
+	if (fdisk_reread_partition_table(cxt))
+		WARN("Table cannot be reread from the disk, be careful !");
 
 handler_exit:
 	if (fdisk_deassign_device(cxt, 0))
