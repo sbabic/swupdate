@@ -551,6 +551,28 @@ static int read_globals_settings(void *elem, void *data)
 	return 0;
 }
 
+const char *loglevnames[] = {
+	[ERRORLEVEL] = "error",
+	[WARNLEVEL] = "warning",
+	[INFOLEVEL] = "info",
+	[DEBUGLEVEL] = "debug",
+	[TRACELEVEL] = "trace"
+};
+
+static int read_console_settings(void *elem, void __attribute__ ((__unused__)) *data)
+{
+	char tmp[SWUPDATE_GENERAL_STRING_SIZE] = "";
+	int i;
+
+	for (i = ERRORLEVEL; i <= TRACELEVEL; i++) {
+		memset(tmp, 0, sizeof(tmp));
+		GET_FIELD_STRING(LIBCFG_PARSER, elem, loglevnames[i], tmp);
+		if (tmp[0] != '\0')
+			notifier_set_color(i, tmp);
+	}
+	return 0;
+}
+
 static int read_processes_settings(void *settings, void *data)
 {
 	struct swupdate_cfg *sw = (struct swupdate_cfg *)data;
@@ -707,6 +729,13 @@ int main(int argc, char **argv)
 		loglevel = swcfg.globals.loglevel;
 		if (swcfg.globals.verbose)
 			loglevel = TRACELEVEL;
+
+		if (read_module_settings(cfgfname, "logcolors",
+			read_console_settings, &swcfg)) {
+			fprintf(stderr,
+				 "Error parsing configuration file, exiting.\n");
+			exit(EXIT_FAILURE);
+		}
 
 		int ret = read_module_settings(cfgfname, "processes",
 						read_processes_settings,

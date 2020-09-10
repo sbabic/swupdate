@@ -63,6 +63,128 @@ static bool console_priority_prefix = false;
 static bool console_ansi_colors = false;
 
 /*
+ * Escape sequences:
+ * they are in the format <ESC>[{attr};{fg};{bg}m
+ * where :
+ * <ESC> Escape char 0x1B
+ * attr : attriibute
+ * fg : foreground
+ * bg : background
+ */
+
+enum console_attr {
+	RESET,
+	BRIGHT,
+	DIM,
+	UNDERLINE,
+	BLINK,
+	REVERSE,
+	HIDDEN
+};
+
+#define RESET		0
+#define BRIGHT 		1
+#define DIM		2
+#define UNDERLINE 	3
+#define BLINK		4
+#define REVERSE		7
+#define HIDDEN		8
+
+
+
+enum console_colors {
+	BLACK,
+	RED,
+	GREEN,
+	YELLOW,
+	BLUE,
+	MAGENTA,
+	CYAN,
+	WHITE,
+	COLOR_NONE
+};
+
+struct logcolor {
+	int attr;
+	int fg;
+	int bg;
+};
+
+#define RESET_COLOR "\x1b[0m"
+
+static const char *ascii_string_colors[] = {
+	"black",
+	"red",
+	"green",
+	"yellow",
+	"blue",
+	"magenta",
+	"cyan",
+	"white",
+	"none"
+};
+
+static const char *ascii_string_attributes[] = {
+	"normal",
+	"bright",
+	"dim",
+	"underline",
+	"underline",
+	"blink",
+	"blink",
+	"reverse",
+	"hidden"
+};
+
+struct logcolor consolecolors[] = {
+	[ERRORLEVEL] = {BRIGHT, RED, COLOR_NONE},
+	[WARNLEVEL] = {BRIGHT, YELLOW, COLOR_NONE},
+	[INFOLEVEL] = {BRIGHT, GREEN, COLOR_NONE},
+	[DEBUGLEVEL] = {BRIGHT, BLACK, COLOR_NONE},
+	[TRACELEVEL] = {BRIGHT, BLACK, COLOR_NONE}
+};
+
+static void set_console_color(int level, char *buf, size_t size) {
+	struct logcolor *attr;
+	if (level < 0 || level >= ARRAY_SIZE(consolecolors))
+		return;
+	memset(buf, 0, size);
+	attr = &consolecolors[level];
+	if (attr->fg == COLOR_NONE && attr->attr == RESET)
+		return;
+	if (attr->fg != COLOR_NONE)
+		snprintf(buf, size, "%c[%d;%dm", 0x1B, attr->attr, attr->fg + 30);
+	else
+		snprintf(buf, size, "%c[%dm", 0x1B, attr->attr);
+}
+
+void notifier_set_color(int level, char *col)
+{
+	int i;
+	char *attr;
+	if (level < ERRORLEVEL || level > LASTLOGLEVEL || !col)
+		return;
+	attr = strchr(col, ':');
+	if (attr && (strlen(col) > (attr - col + 1))) {
+		*attr = '\0';
+		attr++;
+	} else
+		attr = NULL;
+
+	for (i = 0; i < ARRAY_SIZE(ascii_string_colors); i++) {
+		if (!strcmp(col, ascii_string_colors[i])) {
+			consolecolors[level].fg = i;
+		}
+	}
+	if (attr)
+		for (i = 0; i < ARRAY_SIZE(ascii_string_attributes); i++) {
+			if (!strcmp(attr, ascii_string_attributes[i])) {
+				consolecolors[level].attr = i;
+			}
+		}
+}
+
+/*
  * This allows to extend the list of notifier.
  * One can register a new notifier and it will
  * receive any notification that is sent via
@@ -121,6 +243,7 @@ void notify(RECOVERY_STATUS status, int error, int level, const char *msg)
 static void console_notifier (RECOVERY_STATUS status, int error, int level, const char *msg)
 {
 	char current[80];
+	char color[32];
 	switch(status) {
 	case IDLE:
 		strncpy(current, "No SWUPDATE running : ", sizeof(current));
@@ -155,30 +278,30 @@ static void console_notifier (RECOVERY_STATUS status, int error, int level, cons
 		break;
 	}
 
+	if (console_ansi_colors)
+		set_console_color(level, color, sizeof(color));
+	else
+		color[0] = '0';
+
 	switch (level) {
 	case ERRORLEVEL:
-		fprintf(stderr, "%s%s[ERROR]",
-				console_ansi_colors ? "\033[01;31m" : "",
+		fprintf(stderr, "%s%s[ERROR]", color,
 				console_priority_prefix ? "<3>" : "");
 		break;
 	case WARNLEVEL:
-		fprintf(stdout, "%s%s[WARN ]",
-				console_ansi_colors ? "\033[01;33m" : "",
+		fprintf(stdout, "%s%s[WARN ]", color,
 				console_priority_prefix ? "<4>" : "");
 		break;
 	case INFOLEVEL:
-		fprintf(stdout, "%s%s[INFO ]",
-				console_ansi_colors ? "\033[01;32m" : "",
+		fprintf(stdout, "%s%s[INFO ]", color,
 				console_priority_prefix ? "<6>" : "");
 		break;
 	case DEBUGLEVEL:
-		fprintf(stdout, "%s%s[DEBUG]",
-				console_ansi_colors ? "\033[01;30m" : "",
+		fprintf(stdout, "%s%s[DEBUG]", color,
 				console_priority_prefix ? "<7>" : "");
 		break;
 	case TRACELEVEL:
-		fprintf(stdout, "%s%s[TRACE]",
-				console_ansi_colors ? "\033[01;30m" : "",
+		fprintf(stdout, "%s%s[TRACE]", color,
 				console_priority_prefix ? "<7>" : "");
 		break;
 	}
