@@ -76,6 +76,9 @@ static void lua_dump_table(lua_State *L, char *str, struct img_type *img, const 
 	/* Stack: table, ... */
 	lua_pushnil(L);
 	/* Stack: nil, table, ... */
+	if (!lua_istable(L, -2)) {
+		return;
+	}
 	while (lua_next(L, -2)) {
 		/* Stack: value, key, table, ... */
 		lua_pushvalue(L, -2);
@@ -161,7 +164,7 @@ void LUAstackDump(lua_State *L)
 				char *s;
 
 				if (asprintf(&s, "(%d) [table ]", i) != ENOMEM_ASPRINTF) {
-					lua_pushvalue(L, -1);
+					lua_pushvalue(L, i);
 					lua_dump_table(L, s, NULL, NULL);
 					lua_pop(L, 1);
 					free(s);
