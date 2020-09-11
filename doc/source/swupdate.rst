@@ -499,12 +499,12 @@ Command line parameters
 
 Parameters used for the downloader: -d, --download [OPTIONS]
 For example: -d "-u example.com"
-Mandatory arguments are marked with '*':
+Mandatory arguments are marked with '\*':
 
 +-------------+----------+--------------------------------------------+
 |  Parameter  | Type     | Description                                |
 +=============+==========+============================================+
-| -u <url>    | string   | * This is the URL where new software is    |
+| -u <url>    | string   | \* This is the URL where new software is   |
 |             |          | pulled. URL is a link to a valid .swu image|
 +-------------+----------+--------------------------------------------+
 | -r <retries>| integer  | Number of retries before a download is     |
@@ -520,17 +520,17 @@ Mandatory arguments are marked with '*':
 
 Parameters used for suricatta: -u, --suricatta [OPTIONS]
 For example: -u "-t default -u localhost:8080 -i 1B7"
-Mandatory arguments are marked with '*':
+Mandatory arguments are marked with '\*':
 
 +-------------------+----------+--------------------------------------------+
 |  Parameter        | Type     | Description                                |
 +===================+==========+============================================+
-| -t <tenant>       | string   | * Set hawkBit tenant ID for this device.   |
+| -t <tenant>       | string   | \* Set hawkBit tenant ID for this device.  |
 +-------------------+----------+--------------------------------------------+
-| -u <url>          | string   | * Host and port of the hawkBit instance,   |
+| -u <url>          | string   | \* Host and port of the hawkBit instance,  |
 |                   |          | e.g., localhost:8080                       |
 +-------------------+----------+--------------------------------------------+
-| -i <id>           | integer  | * The device ID to communicate to hawkBit. |
+| -i <id>           | integer  | \* The device ID to communicate to hawkBit.|
 +-------------------+----------+--------------------------------------------+
 | -c <confirm>      | integer  | Confirm update status to server: 1=AGAIN,  |
 |                   |          | 2=SUCCESS, 3=FAILED                        |
