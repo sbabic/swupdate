@@ -567,10 +567,13 @@ void *network_initializer(void *data)
 				if (software->bootloader_transaction_marker) {
 					reset_state((char*)BOOTVAR_TRANSACTION);
 				}
-				notify(SUCCESS, RECOVERY_NO_ERROR, INFOLEVEL, "SWUPDATE successful !");
-				inst.last_install = SUCCESS;
 				if (save_state((char *)STATE_KEY, STATE_INSTALLED) != SERVER_OK) {
-					WARN("Cannot persistently store INSTALLED update state.");
+					ERROR("Cannot persistently store INSTALLED update state.");
+					notify(FAILURE, RECOVERY_ERROR, ERRORLEVEL, "Installation failed !");
+					inst.last_install = FAILURE;
+				} else {
+					notify(SUCCESS, RECOVERY_NO_ERROR, INFOLEVEL, "SWUPDATE successful !");
+					inst.last_install = SUCCESS;
 				}
 			}
 		} else {
