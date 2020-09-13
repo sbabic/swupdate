@@ -49,6 +49,11 @@ For earlier versions of SWUpdate it was falsely noted that passing the SALT as a
 3rd parameter would increase security. Key and IV are enough for maximum security,
 salt doesn't add any value.
 
+You should change the IV with every encryption, see CWE-329_. The ``ivt``
+sw-description attribute overrides the key file's IV for one specific image.
+
+.. _CWE-329: http://cwe.mitre.org/data/definitions/329.html
+
 Encryption of UBI volumes
 -------------------------
 
@@ -67,6 +72,7 @@ this:
 			filename = "rootfs.ubifs.enc";
 			volume = "rootfs";
 			encrypted = true;
+			ivt = "65D793B87B6724BB27954C7664F15FF3";
 			properties = {decrypted-size = "104857600";}
 		}
 	);
