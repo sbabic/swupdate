@@ -25,6 +25,7 @@ typedef enum {
 	CHANNEL_GET,
 	CHANNEL_POST,
 	CHANNEL_PUT,
+	CHANNEL_PATCH,
 } channel_method_t;
 
 typedef enum {

@@ -772,7 +772,7 @@ static channel_op_res_t parse_reply(channel_data_t *channel_data, output_data_t 
 	return CHANNEL_OK;
 }
 
-static channel_op_res_t channel_post_method(channel_t *this, void *data)
+static channel_op_res_t channel_post_method(channel_t *this, void *data, int method)
 {
 	channel_curl_t *channel_curl = this->priv;
 	assert(data != NULL);
@@ -798,20 +798,29 @@ static channel_op_res_t channel_post_method(channel_t *this, void *data)
 		goto cleanup_header;
 	}
 
-	if ((curl_easy_setopt(channel_curl->handle, CURLOPT_POST, 1L) != CURLE_OK) ||
-		(curl_easy_setopt(channel_curl->handle, CURLOPT_POSTFIELDS,
-					channel_data->request_body) != CURLE_OK)) {
+	CURLcode curl_result;
+	if (method == CHANNEL_PATCH) {
+		curl_result = curl_easy_setopt(channel_curl->handle, CURLOPT_CUSTOMREQUEST, "PATCH");
+	} else {
+		curl_result = curl_easy_setopt(channel_curl->handle, CURLOPT_POST, 1L);
+	}
+	if (curl_result != CURLE_OK) {
 		result = CHANNEL_EINIT;
-		ERROR("Set POST channel method option failed.");
+		ERROR("Set POST/PATCH channel method option failed.");
+		goto cleanup_header;
+	}
+	if (curl_easy_setopt(channel_curl->handle, CURLOPT_POSTFIELDS, channel_data->request_body) != CURLE_OK) {
+		result = CHANNEL_EINIT;
+		ERROR("Set POST/PATCH channel data option failed.");
 		goto cleanup_header;
 	}
 	if (channel_data->debug) {
-		TRACE("Posted to %s: %s", channel_data->url, channel_data->request_body);
+		TRACE("POSTed/PATCHed to %s: %s", channel_data->url, channel_data->request_body);
 	}
 
 	CURLcode curlrc = curl_easy_perform(channel_curl->handle);
 	if (curlrc != CURLE_OK) {
-		ERROR("Channel put operation failed (%d): '%s'", curlrc,
+		ERROR("Channel POST/PATCH operation failed (%d): '%s'", curlrc,
 		      curl_easy_strerror(curlrc));
 		result = channel_map_curl_error(curlrc);
 		goto cleanup_header;
@@ -913,9 +922,10 @@ channel_op_res_t channel_put(channel_t *this, void *data)
 	case CHANNEL_PUT:
 		return channel_put_method(this, data);
 	case CHANNEL_POST:
-		return channel_post_method(this, data);
+	case CHANNEL_PATCH:
+		return channel_post_method(this, data, channel_data->method);
 	default:
-		TRACE("Channel method (POST, PUT) is not set !");
+		TRACE("Channel method (POST, PUT, PATCH) is not set !");
 		return CHANNEL_EINIT;
 	}
 }
