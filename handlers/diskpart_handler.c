@@ -26,6 +26,10 @@ void diskpart_handler(void);
  */
 #define LIBFDISK_INIT_UNDEF(_x)	((__typeof__(_x)) -1)
 
+/* Linux native partition type */
+ #define GPT_DEFAULT_ENTRY_TYPE "0FC63DAF-8483-4772-8E79-3D69D8477DE4"
+
+
 /**
  * Keys for the properties field in sw-description
  */
@@ -69,16 +73,12 @@ struct hnd_priv {
  *
  * return 0 if ok
  */
-static int diskpart_set_partition(struct fdisk_context *cxt,
-				  struct fdisk_partition *pa,
-				  struct partition_data *part)
+static int diskpart_set_partition(struct fdisk_partition *pa,
+				  struct partition_data *part,
+				  unsigned long sector_size,
+				  struct fdisk_parttype *parttype)
 {
-	unsigned long sector_size = fdisk_get_sector_size(cxt);
-	struct fdisk_label *lb;
-	struct fdisk_parttype *parttype = NULL;
 	int ret = 0;
-
-	lb = fdisk_get_label(cxt, NULL);
 
 	if (!sector_size)
 		sector_size = 1;
@@ -87,26 +87,53 @@ static int diskpart_set_partition(struct fdisk_context *cxt,
 	fdisk_partition_unset_start(pa);
 	if (part->start != LIBFDISK_INIT_UNDEF(part->start))
 		ret = fdisk_partition_set_start(pa, part->start);
+	else
+		ret = fdisk_partition_start_follow_default(pa, 1);
 	if (part->partno != LIBFDISK_INIT_UNDEF(part->partno))
 		ret |= fdisk_partition_set_partno(pa, part->partno);
+	else
+		ret |= fdisk_partition_partno_follow_default(pa, 1);
 	if (strlen(part->name))
 	      ret |= fdisk_partition_set_name(pa, part->name);
 	if (part->size != LIBFDISK_INIT_UNDEF(part->size))
 	      ret |= fdisk_partition_set_size(pa, part->size / sector_size);
-
-	/*
-	 * GPT uses strings instead of hex code for partition type
-	 */
-	if (fdisk_is_label(cxt, GPT)) {
-		parttype = fdisk_label_get_parttype_from_string(lb, part->type); 
-	} else if (fdisk_is_label(cxt, DOS)) {
-		parttype = fdisk_label_get_parttype_from_code(lb, ustrtoull(part->type, 16));
-	} else
-		WARN("Partition type set just for GPT or DOS");
+	else
+		ret |= fdisk_partition_end_follow_default(pa, 1);
 
 	if (parttype)
 		ret |= fdisk_partition_set_type(pa, parttype);
+
 	return ret;
+}
+
+/*
+ * Return true if partition differs
+ */
+static bool diskpart_partition_cmp(const char *lbtype, struct fdisk_partition *firstpa, struct fdisk_partition *secondpa)
+{
+	if (!firstpa || !secondpa)
+		return true;
+
+	if (firstpa && secondpa && (fdisk_partition_cmp_partno(firstpa, secondpa) ||
+		(!fdisk_partition_start_is_default(firstpa) && !fdisk_partition_start_is_default(secondpa) && 
+		fdisk_partition_cmp_start(firstpa, secondpa)) ||
+		(!strcmp(lbtype, "gpt") &&
+			(strcmp(fdisk_parttype_get_string(fdisk_partition_get_type(firstpa)),
+				fdisk_parttype_get_string(fdisk_partition_get_type(secondpa))) ||
+			strcmp(fdisk_partition_get_name(firstpa) ? fdisk_partition_get_name(firstpa) : "",
+		       		fdisk_partition_get_name(secondpa) ? fdisk_partition_get_name(secondpa) : ""))) ||
+		(!strcmp(lbtype, "dos") &&
+			fdisk_parttype_get_code(fdisk_partition_get_type(firstpa)) !=
+			fdisk_parttype_get_code(fdisk_partition_get_type(secondpa))) ||
+		fdisk_partition_get_size(firstpa) != fdisk_partition_get_size(secondpa))) {
+		TRACE("Partition differ : %s(%lu) <--> %s(%lu)",
+			fdisk_partition_get_name (firstpa) ? fdisk_partition_get_name(firstpa) : "",
+			fdisk_partition_get_size(firstpa),
+			fdisk_partition_get_name(secondpa) ? fdisk_partition_get_name(secondpa) : "",
+			fdisk_partition_get_size(secondpa));
+		return true;
+	}
+	return false;
 }
 
 static int diskpart(struct img_type *img,
@@ -118,11 +145,15 @@ static int diskpart(struct img_type *img,
 	struct fdisk_context *cxt;
 	struct partition_data *part;
 	struct partition_data *tmp;
+	struct fdisk_table *tb = NULL;
+	struct fdisk_table *oldtb = NULL;
+	struct fdisk_parttype *parttype = NULL;
 	int ret = 0;
-	int i;
+	unsigned long i;
 	struct hnd_priv priv =  {FDISK_DISKLABEL_DOS};
+	bool createtable = false;
 
-	if (lbtype && strcmp(lbtype, "gpt") && strcmp(lbtype, "dos")) {
+	if (!lbtype || (strcmp(lbtype, "gpt") && strcmp(lbtype, "dos"))) {
 		ERROR("Just GPT or DOS partition table are supported");
 		return -EINVAL;
 	}
@@ -221,6 +252,7 @@ static int diskpart(struct img_type *img,
 			LIST_INSERT_BEFORE(p, part, next);
 		}
 	}
+
 	/*
 	 * Check partition table
 	 */
@@ -228,6 +260,7 @@ static int diskpart(struct img_type *img,
 		WARN("%s does not contain a recognized partition table",
 		     img->device);
 		fdisk_create_disklabel(cxt, lbtype);
+		createtable = true;
 	} else if (lbtype) {
 		if (!strcmp(lbtype, "gpt"))
 			priv.labeltype = FDISK_DISKLABEL_GPT;
@@ -238,43 +271,120 @@ static int diskpart(struct img_type *img,
 			WARN("Partition table of different type, setting to %s, all data lost !",
 				lbtype);
 			fdisk_create_disklabel(cxt, lbtype);
+			createtable = true;
 		}
+	}
+
+	struct fdisk_label *lb = fdisk_get_label(cxt, NULL);
+	unsigned long sector_size = fdisk_get_sector_size(cxt);
+
+	/*
+	 * Create a new in-memory partition taböe to be compared
+	 * with the table on the disk, and applied if differs
+	 */
+	tb = fdisk_new_table();
+
+	if (fdisk_get_partitions(cxt, &oldtb))
+		createtable = true;
+
+	if (!tb) {
+		ERROR("OOM creating new table !");
+		ret = -ENOMEM;
+		goto handler_exit;
 	}
 
 	i = 0;
 
-	fdisk_delete_all_partitions(cxt);
-
 	LIST_FOREACH(part, &priv.listparts, next) {
-		struct fdisk_partition *pa = NULL;
-		size_t partno;
 		struct fdisk_partition *newpa;
 
 		newpa = fdisk_new_partition();
-		ret = diskpart_set_partition(cxt, newpa, part);
+		/*
+	 	 * GPT uses strings instead of hex code for partition type
+	 	*/
+		if (fdisk_is_label(cxt, GPT)) {
+			parttype = fdisk_label_get_parttype_from_string(lb, part->type); 
+			if (!parttype)
+				parttype = fdisk_label_get_parttype_from_string(lb, GPT_DEFAULT_ENTRY_TYPE); 
+		} else {
+			parttype = fdisk_label_get_parttype_from_code(lb, ustrtoull(part->type, 16));
+		}
+		ret = diskpart_set_partition(newpa, part, sector_size, parttype);
 		if (ret) {
 			WARN("I cannot set all partition's parameters");
 		}
-		if ((ret = fdisk_add_partition(cxt, newpa, &partno)) < 0) {
+		if ((ret = fdisk_table_add_partition(tb, newpa)) < 0) {
 			ERROR("I cannot add partition %zu(%s): %d", part->partno, part->name, ret);
 		}
 		fdisk_unref_partition(newpa);
 		if (ret < 0)
 			goto handler_exit;
-		fdisk_reset_partition(pa);
 		i++;
 	}
 
 	/*
-	 * Everything done, write into disk
+	 * A partiton table was found on disk, now compares the two tables
+	 * to check if they differ.
 	 */
-	ret = fdisk_write_disklabel(cxt);
-	if (ret)
-		ERROR("Partition table cannot be written on disk");
-	if (fdisk_reread_partition_table(cxt))
-		WARN("Table cannot be reread from the disk, be careful !");
+	if (!createtable) {
+		size_t numpartondisk = fdisk_table_get_nents(oldtb);
+
+		if (numpartondisk != i) {
+			TRACE("Number of partitions differs on disk: %lu <--> requested: %lu", numpartondisk, i);
+			createtable = true;
+		} else {
+			struct fdisk_partition *pa, *newpa;
+			struct fdisk_iter *itr	 = fdisk_new_iter(FDISK_ITER_FORWARD);
+			struct fdisk_iter *olditr = fdisk_new_iter(FDISK_ITER_FORWARD);
+
+			i = 0;
+			while (i < numpartondisk && !createtable) {
+				newpa=NULL;
+				pa = NULL;
+				if (fdisk_table_next_partition (tb, itr, &newpa) ||
+					fdisk_table_next_partition (oldtb, olditr, &pa)) {
+					TRACE("Partition not found, something went wrong %lu !", i);
+					ret = -EFAULT;
+					goto handler_exit;
+				}
+				if (diskpart_partition_cmp(lbtype, pa, newpa)) {
+					createtable = true;
+				}
+
+				fdisk_unref_partition(newpa);
+				fdisk_unref_partition(pa);
+				i++;
+			}
+		}
+	}
+
+	if (createtable) {
+		TRACE("Partitions on disk differ, write to disk;");
+		fdisk_delete_all_partitions(cxt);
+		ret = fdisk_apply_table(cxt, tb);
+		if (ret) {
+			ERROR("Partition table cannot be applied !");
+			goto handler_exit;
+		}
+
+		/*
+		 * Everything done, write into disk
+		 */
+		ret = fdisk_write_disklabel(cxt);
+		if (ret)
+			ERROR("Partition table cannot be written on disk");
+		if (fdisk_reread_partition_table(cxt))
+			WARN("Table cannot be reread from the disk, be careful !");
+	} else {
+		ret = 0;
+		TRACE("Same partition table on disk, do not touch partition table !");
+	}
 
 handler_exit:
+	if (tb)
+		fdisk_unref_table(tb);
+	if (oldtb)
+		fdisk_unref_table(oldtb);
 	if (fdisk_deassign_device(cxt, 0))
 		WARN("Error deassign device %s", img->device);
 
