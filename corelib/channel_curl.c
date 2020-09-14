@@ -634,16 +634,6 @@ channel_op_res_t channel_set_options(channel_t *this,
 		}
 		break;
 	case CHANNEL_POST:
-		if ((curl_easy_setopt(channel_curl->handle, CURLOPT_POST, 1L) !=
-		     CURLE_OK) ||
-		    (curl_easy_setopt(channel_curl->handle, CURLOPT_POSTFIELDS,
-				      channel_data->request_body) != CURLE_OK)) {
-			result = CHANNEL_EINIT;
-			goto cleanup;
-		}
-		if (channel_data->debug) {
-			TRACE("Posted: %s", channel_data->request_body);
-		}
 		break;
 	}
 
@@ -741,6 +731,17 @@ static channel_op_res_t channel_post_method(channel_t *this, void *data)
 	    CHANNEL_OK) {
 		ERROR("Set channel option failed.");
 		goto cleanup_header;
+	}
+
+	if ((curl_easy_setopt(channel_curl->handle, CURLOPT_POST, 1L) != CURLE_OK) ||
+		(curl_easy_setopt(channel_curl->handle, CURLOPT_POSTFIELDS,
+					channel_data->request_body) != CURLE_OK)) {
+		result = CHANNEL_EINIT;
+		ERROR("Set channel option failed.");
+		goto cleanup_header;
+	}
+	if (channel_data->debug) {
+		TRACE("Posted to %s: %s", channel_data->url, channel_data->request_body);
 	}
 
 	CURLcode curlrc = curl_easy_perform(channel_curl->handle);
