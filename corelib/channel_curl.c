@@ -722,7 +722,7 @@ static void channel_log_reply(channel_op_res_t result, channel_data_t *channel_d
 			case 403:
 			case 404:
 			case 500:
-				DEBUG("The error message is: '%s'", chunk->memory);
+				DEBUG("The error message is: '%s'", chunk ? chunk->memory : "N/A");
 				break;
 			default:
 				break;
@@ -898,13 +898,11 @@ static channel_op_res_t channel_put_method(channel_t *this, void *data)
 	channel_log_effective_url(this);
 
 	result = channel_map_http_code(this, &channel_data->http_response_code);
-	if (result != CHANNEL_OK) {
-		ERROR("Channel operation returned HTTP error code %ld.",
-		      channel_data->http_response_code);
+
+	if (channel_data->nocheckanswer)
 		goto cleanup_header;
-	}
-	TRACE("Channel put operation returned HTTP error code %ld.",
-	      channel_data->http_response_code);
+
+	channel_log_reply(result, channel_data, NULL);
 
 cleanup_header:
 	curl_easy_reset(channel_curl->handle);
