@@ -712,6 +712,29 @@ static size_t put_read_callback(void *ptr, size_t size, size_t nmemb, void *data
 	return n;
 }
 
+static void channel_log_reply(channel_op_res_t result, channel_data_t *channel_data,
+			      output_data_t *chunk)
+{
+	if (result != CHANNEL_OK) {
+		ERROR("Channel operation returned HTTP error code %ld.",
+			channel_data->http_response_code);
+		switch (channel_data->http_response_code) {
+			case 403:
+			case 404:
+			case 500:
+				DEBUG("The error message is: '%s'", chunk->memory);
+				break;
+			default:
+				break;
+		}
+		return;
+	}
+	if (channel_data->debug) {
+		TRACE("Channel operation returned HTTP status code %ld.",
+		      channel_data->http_response_code);
+	}
+}
+
 static channel_op_res_t setup_reply_buffer(CURL *handle, write_callback_t *wrdata)
 {
 	wrdata->outdata->memory = NULL;
@@ -1146,26 +1169,11 @@ channel_op_res_t channel_get(channel_t *this, void *data)
 	if (channel_data->nocheckanswer)
 		goto cleanup_header;
 
-	if (result != CHANNEL_OK) {
-		ERROR("Channel operation returned HTTP error code %ld.",
-		      channel_data->http_response_code);
-		switch (channel_data->http_response_code) {
-			case 403:
-			case 404:
-			case 500:
-				DEBUG("The error's message is: '%s'\n", outdata.memory);
-				break;
-			default:
-				break;
-		}
-		goto cleanup_header;
-	}
-	if (channel_data->debug) {
-		TRACE("Channel operation returned HTTP status code %ld.",
-			channel_data->http_response_code);
-	}
+	channel_log_reply(result, channel_data, &outdata);
 
-	result = parse_reply(channel_data, &outdata);
+	if (result == CHANNEL_OK) {
+	    result = parse_reply(channel_data, &outdata);
+	}
 
 cleanup_header:
 	outdata.memory != NULL ? free(outdata.memory) : (void)0;
