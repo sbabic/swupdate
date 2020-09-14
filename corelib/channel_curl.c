@@ -1158,9 +1158,7 @@ channel_op_res_t channel_get(channel_t *this, void *data)
 		goto cleanup_header;
 	}
 
-	if (channel_data->debug) {
-		channel_log_effective_url(this);
-	}
+	channel_log_effective_url(this);
 
 	result = channel_map_http_code(this, &channel_data->http_response_code);
 
