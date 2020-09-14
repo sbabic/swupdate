@@ -60,8 +60,7 @@ size_t channel_callback_membuffer(void *streamdata, size_t size, size_t nmemb,
 				   write_callback_t *data);
 channel_op_res_t channel_map_http_code(channel_t *this, long *http_response_code);
 channel_op_res_t channel_map_curl_error(CURLcode res);
-channel_op_res_t channel_set_options(channel_t *this, channel_data_t *channel_data,
-				     channel_method_t method);
+channel_op_res_t channel_set_options(channel_t *this, channel_data_t *channel_data);
 char *channel_get_redirect_url(channel_t *this);
 
 static void channel_log_effective_url(channel_t *this);
@@ -475,9 +474,7 @@ static channel_op_res_t channel_set_content_type(channel_t *this,
 	return result;
 }
 
-channel_op_res_t channel_set_options(channel_t *this,
-					channel_data_t *channel_data,
-					channel_method_t method)
+channel_op_res_t channel_set_options(channel_t *this, channel_data_t *channel_data)
 {
 	if (channel_data->low_speed_timeout == 0) {
 		channel_data->low_speed_timeout = SPEED_LOW_TIME_SEC;
@@ -618,27 +615,6 @@ channel_op_res_t channel_set_options(channel_t *this,
 			result = CHANNEL_EINIT;
 			goto cleanup;
 		}
-	}
-
-	switch (method) {
-	case CHANNEL_GET:
-		if (curl_easy_setopt(channel_curl->handle, CURLOPT_CUSTOMREQUEST,
-				     "GET") != CURLE_OK) {
-			result = CHANNEL_EINIT;
-			goto cleanup;
-		}
-		break;
-	case CHANNEL_PUT:
-		if ((curl_easy_setopt(channel_curl->handle, CURLOPT_PUT, 1L) !=
-		     CURLE_OK) ||
-		     (curl_easy_setopt(channel_curl->handle, CURLOPT_UPLOAD, 1L) !=
-		      CURLE_OK)) {
-			result = CHANNEL_EINIT;
-			goto cleanup;
-		}
-		break;
-	case CHANNEL_POST:
-		break;
 	}
 
 	if (channel_curl->proxy != NULL) {
@@ -813,8 +789,7 @@ static channel_op_res_t channel_post_method(channel_t *this, void *data)
 		goto cleanup_header;
 	}
 
-	if ((result = channel_set_options(this, channel_data, CHANNEL_POST)) !=
-	    CHANNEL_OK) {
+	if ((result = channel_set_options(this, channel_data)) != CHANNEL_OK) {
 		ERROR("Set channel option failed.");
 		goto cleanup_header;
 	}
@@ -827,7 +802,7 @@ static channel_op_res_t channel_post_method(channel_t *this, void *data)
 		(curl_easy_setopt(channel_curl->handle, CURLOPT_POSTFIELDS,
 					channel_data->request_body) != CURLE_OK)) {
 		result = CHANNEL_EINIT;
-		ERROR("Set channel option failed.");
+		ERROR("Set POST channel method option failed.");
 		goto cleanup_header;
 	}
 	if (channel_data->debug) {
@@ -880,9 +855,15 @@ static channel_op_res_t channel_put_method(channel_t *this, void *data)
 		goto cleanup_header;
 	}
 
-	if ((result = channel_set_options(this, channel_data, CHANNEL_PUT)) !=
-	    CHANNEL_OK) {
+	if ((result = channel_set_options(this, channel_data)) != CHANNEL_OK) {
 		ERROR("Set channel option failed.");
+		goto cleanup_header;
+	}
+
+	if ((curl_easy_setopt(channel_curl->handle, CURLOPT_PUT, 1L) != CURLE_OK) ||
+	    (curl_easy_setopt(channel_curl->handle, CURLOPT_UPLOAD, 1L) != CURLE_OK)) {
+		ERROR("Set PUT channel method option failed.");
+		result = CHANNEL_EINIT;
 		goto cleanup_header;
 	}
 
@@ -971,9 +952,15 @@ channel_op_res_t channel_get_file(channel_t *this, void *data)
 		goto cleanup_header;
 	}
 
-	if ((result = channel_set_options(this, channel_data, CHANNEL_GET)) !=
-	    CHANNEL_OK) {
+	if ((result = channel_set_options(this, channel_data)) != CHANNEL_OK) {
 		ERROR("Set channel option failed.");
+		goto cleanup_header;
+	}
+
+	if (curl_easy_setopt(channel_curl->handle, CURLOPT_CUSTOMREQUEST, "GET") !=
+	    CURLE_OK) {
+		ERROR("Set GET channel method option failed.");
+		result = CHANNEL_EINIT;
 		goto cleanup_header;
 	}
 
@@ -1146,9 +1133,15 @@ channel_op_res_t channel_get(channel_t *this, void *data)
 		goto cleanup_header;
 	}
 
-	if ((result = channel_set_options(this, channel_data, CHANNEL_GET)) !=
-	    CHANNEL_OK) {
+	if ((result = channel_set_options(this, channel_data)) != CHANNEL_OK) {
 		ERROR("Set channel option failed.");
+		goto cleanup_header;
+	}
+
+	if (curl_easy_setopt(channel_curl->handle, CURLOPT_CUSTOMREQUEST, "GET") !=
+	    CURLE_OK) {
+		ERROR("Set GET channel method option failed.");
+		result = CHANNEL_EINIT;
 		goto cleanup_header;
 	}
 
