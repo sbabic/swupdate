@@ -54,7 +54,7 @@ typedef struct {
 
 /* Prototypes for "internal" functions */
 /* Note that they're not `static` so that they're callable from unit tests. */
-size_t channel_callback_write_file(void *streamdata, size_t size, size_t nmemb,
+size_t channel_callback_ipc(void *streamdata, size_t size, size_t nmemb,
 				   write_callback_t *data);
 size_t channel_callback_membuffer(void *streamdata, size_t size, size_t nmemb,
 				   write_callback_t *data);
@@ -155,8 +155,8 @@ channel_op_res_t channel_open(channel_t *this, void *cfg)
 	return CHANNEL_OK;
 }
 
-static channel_op_res_t result_channel_callback_write_file;
-size_t channel_callback_write_file(void *streamdata, size_t size, size_t nmemb,
+static channel_op_res_t result_channel_callback_ipc;
+size_t channel_callback_ipc(void *streamdata, size_t size, size_t nmemb,
 				   write_callback_t *data)
 {
 	if (!nmemb) {
@@ -164,14 +164,14 @@ size_t channel_callback_write_file(void *streamdata, size_t size, size_t nmemb,
 	}
 	if (!data)
 		return 0;
-	result_channel_callback_write_file = CHANNEL_OK;
+	result_channel_callback_ipc = CHANNEL_OK;
 
 	if (data->channel_data->usessl) {
 		if (swupdate_HASH_update(data->channel_data->dgst,
 					 streamdata,
 					 size * nmemb) < 0) {
 			ERROR("Updating checksum of chunk failed.");
-			result_channel_callback_write_file = CHANNEL_EIO;
+			result_channel_callback_ipc = CHANNEL_EIO;
 			return 0;
 		}
 	}
@@ -179,7 +179,7 @@ size_t channel_callback_write_file(void *streamdata, size_t size, size_t nmemb,
 	if (ipc_send_data(data->output, streamdata, (int)(size * nmemb)) <
 	    0) {
 		ERROR("Writing into SWUpdate IPC stream failed.");
-		result_channel_callback_write_file = CHANNEL_EIO;
+		result_channel_callback_ipc = CHANNEL_EIO;
 		return 0;
 	}
 
@@ -995,9 +995,9 @@ channel_op_res_t channel_get_file(channel_t *this, void *data)
 	write_callback_t wrdata;
 	wrdata.channel_data = channel_data;
 	wrdata.output = file_handle;
-	result_channel_callback_write_file = CHANNEL_OK;
+	result_channel_callback_ipc = CHANNEL_OK;
 	if ((curl_easy_setopt(channel_curl->handle, CURLOPT_WRITEFUNCTION,
-			      channel_callback_write_file) != CURLE_OK) ||
+			      channel_callback_ipc) != CURLE_OK) ||
 	    (curl_easy_setopt(channel_curl->handle, CURLOPT_WRITEDATA,
 			      &wrdata) != CURLE_OK)) {
 		ERROR("Cannot setup file writer callback function.");
@@ -1086,7 +1086,7 @@ channel_op_res_t channel_get_file(channel_t *this, void *data)
 
 	channel_log_reply(result, channel_data, NULL);
 
-	if (result_channel_callback_write_file != CHANNEL_OK) {
+	if (result_channel_callback_ipc != CHANNEL_OK) {
 		result = CHANNEL_EIO;
 		goto cleanup_file;
 	}
