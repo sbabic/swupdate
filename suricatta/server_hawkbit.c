@@ -316,6 +316,7 @@ server_op_res_t server_send_cancel_reply(channel_t *channel, const int action_id
 	channel_data_reply.url = url;
 	channel_data_reply.request_body = json_reply_string;
 	channel_data_reply.method = CHANNEL_POST;
+	channel_data_reply.format = CHANNEL_PARSE_NONE;
 	result = map_channel_retcode(channel->put(channel, (void *)&channel_data_reply));
 
 cleanup:
@@ -324,11 +325,6 @@ cleanup:
 	}
 	if (json_reply_string != NULL) {
 		free(json_reply_string);
-	}
-	if (channel_data_reply.json_reply != NULL &&
-	    json_object_put(channel_data_reply.json_reply) !=
-		JSON_OBJECT_FREED) {
-		ERROR("JSON object should be freed but was not.");
 	}
 
 	/*
@@ -433,6 +429,7 @@ server_send_deployment_reply(channel_t *channel,
 	}
 	channel_data.url = url;
 	channel_data.request_body = json_reply_string;
+	channel_data.format = CHANNEL_PARSE_NONE;
 	channel_data.method = CHANNEL_POST;
 	result = map_channel_retcode(channel->put(channel, (void *)&channel_data));
 
@@ -444,10 +441,6 @@ cleanup:
 	}
 	if (json_reply_string != NULL) {
 		free(json_reply_string);
-	}
-	if (channel_data.json_reply != NULL &&
-	    json_object_put(channel_data.json_reply) != JSON_OBJECT_FREED) {
-		ERROR("JSON object should be freed but was not.");
 	}
 	return result;
 }
