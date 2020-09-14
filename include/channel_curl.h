@@ -28,6 +28,7 @@ typedef enum {
 } channel_method_t;
 
 typedef enum {
+	CHANNEL_PARSE_NONE,
 	CHANNEL_PARSE_JSON,
 	CHANNEL_PARSE_RAW
 } channel_body_t;
@@ -42,6 +43,7 @@ typedef struct {
 #ifdef CONFIG_JSON
 	json_object *json_reply;
 #endif
+	char *raw_reply;
 	char *cafile;
 	char *sslkey;
 	char *sslcert;

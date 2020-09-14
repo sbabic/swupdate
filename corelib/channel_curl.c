@@ -772,18 +772,27 @@ static channel_op_res_t parse_reply(channel_data_t *channel_data, output_data_t 
 			    json_tokenizer, chunk->memory, (int)chunk->size);
 		} while ((json_res = json_tokener_get_error(json_tokenizer)) ==
 			 json_tokener_continue);
+		/* json_tokenizer is not used for json_tokener_error_desc, hence can be freed here. */
+		json_tokener_free(json_tokenizer);
 		if (json_res != json_tokener_success) {
 			ERROR("Error while parsing channel's returned JSON data: %s",
 			      json_tokener_error_desc(json_res));
-			json_tokener_free(json_tokenizer);
 			return CHANNEL_EBADMSG;
 		}
-		if (channel_data->debug) {
-			TRACE("Got JSON: %s", chunk->memory);
-		}
-		json_tokener_free(json_tokenizer);
 	}
 #endif
+	if (channel_data->format == CHANNEL_PARSE_RAW) {
+		/* strndup is strnlen + malloc + memcpy, seems more appropriate than just malloc + memcpy. */
+		if ((channel_data->raw_reply = strndup(chunk->memory, chunk->size)) == NULL) {
+			ERROR("Channel reply buffer memory allocation failed with OOM.");
+			return CHANNEL_ENOMEM;
+		}
+	}
+
+	if (channel_data->debug) {
+		/* If reply is not \0 terminated, impose an upper bound. */
+		TRACE("Got channel reply: %s", strndupa(chunk->memory, chunk->size));
+	}
 	return CHANNEL_OK;
 }
 
