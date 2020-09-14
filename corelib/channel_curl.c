@@ -981,7 +981,7 @@ channel_op_res_t channel_get_file(channel_t *this, void *data)
 		file_handle = ipc_inst_start_ext(channel_data->source,
 			channel_data->info == NULL ? 0 : strlen(channel_data->info),
 			channel_data->info,
-			false /*no dry run */);
+			channel_data->dry_run);
 		if (file_handle > 0)
 			break;
 		sleep(1);

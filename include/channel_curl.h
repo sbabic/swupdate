@@ -44,6 +44,7 @@ typedef struct {
 	json_object *json_reply;
 #endif
 	char *raw_reply;
+	bool dry_run;
 	char *cafile;
 	char *sslkey;
 	char *sslcert;
