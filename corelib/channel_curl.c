@@ -1074,15 +1074,8 @@ channel_op_res_t channel_get_file(channel_t *this, void *data)
 	      total_bytes_downloaded, total_bytes_downloaded / 1024 / 1024);
 
 	result = channel_map_http_code(this, &channel_data->http_response_code);
-	if (result != CHANNEL_OK) {
-		ERROR("Channel operation returned HTTP error code %ld.",
-		      channel_data->http_response_code);
-		goto cleanup_file;
-	}
-	if (channel_data->debug) {
-		TRACE("Channel operation returned HTTP status code %ld.",
-			channel_data->http_response_code);
-	}
+
+	channel_log_reply(result, channel_data, NULL);
 
 	if (result_channel_callback_write_file != CHANNEL_OK) {
 		result = CHANNEL_EIO;
