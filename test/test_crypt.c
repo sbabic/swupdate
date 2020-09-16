@@ -40,10 +40,10 @@ static void hex2bin(unsigned char *dest, const unsigned char *source)
 	}
 }
 
-static void do_crypt(struct cryptdata *crypt, unsigned char *CRYPTTEXT, unsigned char *PLAINTEXT)
+static void do_crypt(struct cryptdata *crypt, char keylen, unsigned char *CRYPTTEXT, unsigned char *PLAINTEXT)
 {
 	int len;
-	void *dcrypt = swupdate_DECRYPT_init(crypt->key, 32, crypt->iv);
+	void *dcrypt = swupdate_DECRYPT_init(crypt->key, keylen, crypt->iv);
 	assert_non_null(dcrypt);
 
 	unsigned char *buffer = calloc(1, strlen((const char *)CRYPTTEXT) + EVP_MAX_BLOCK_LENGTH);
@@ -58,13 +58,13 @@ static void do_crypt(struct cryptdata *crypt, unsigned char *CRYPTTEXT, unsigned
 	free(buffer);
 }
 
-static void test_crypt_1(void **state)
+static void test_crypt_128(void **state)
 {
 	(void)state;
 
-	unsigned char KEY[] = "E5E9FA1BA31ECD1AE84F75CAAA474F3A663F05F412028F81DA65D26EE56424B2";
+	unsigned char KEY[] = "E5E9FA1BA31ECD1AE84F75CAAA474FB2";
 	unsigned char IV[] = "E93DA465B309C53FEC5FF93C9637DA58";
-	unsigned char CRYPTTEXT[] = "E4B7745CA14039555CECD548BB33E0C3";
+	unsigned char CRYPTTEXT[] = "a68148be39f9c60175ccc31c19ab92e7";
 	unsigned char PLAINTEXT[] = "CRYPTTEST";
 
 	struct cryptdata crypt;
@@ -72,14 +72,35 @@ static void test_crypt_1(void **state)
 	hex2bin((crypt.iv = calloc(1, strlen((const char *)IV))), IV);
 	hex2bin((crypt.crypttext = calloc(1, strlen((const char *)CRYPTTEXT))), CRYPTTEXT);
 
-	do_crypt(&crypt, &CRYPTTEXT[0], &PLAINTEXT[0]);
+	do_crypt(&crypt, 16, &CRYPTTEXT[0], &PLAINTEXT[0]);
 
 	free(crypt.key);
 	free(crypt.iv);
 	free(crypt.crypttext);
 }
 
-static void test_crypt_2(void **state)
+static void test_crypt_192(void **state)
+{
+	(void)state;
+
+	unsigned char KEY[] = "F8A4B2D01A4A28C39E50D789C5B3CC386E56B63F16A7211A";
+	unsigned char IV[] = "08E8E00743E98EE82B90BBCC0DE83A77";
+	unsigned char CRYPTTEXT[] = "b5adf128eed12c9f13bd85cfdbe2d0fc";
+	unsigned char PLAINTEXT[] = "CRYPTTEST";
+
+	struct cryptdata crypt;
+	hex2bin((crypt.key = calloc(1, strlen((const char *)KEY))), KEY);
+	hex2bin((crypt.iv = calloc(1, strlen((const char *)IV))), IV);
+	hex2bin((crypt.crypttext = calloc(1, strlen((const char *)CRYPTTEXT))), CRYPTTEXT);
+
+	do_crypt(&crypt, 24, &CRYPTTEXT[0], &PLAINTEXT[0]);
+
+	free(crypt.key);
+	free(crypt.iv);
+	free(crypt.crypttext);
+}
+
+static void test_crypt_256(void **state)
 {
 	(void)state;
 
@@ -93,7 +114,7 @@ static void test_crypt_2(void **state)
 	hex2bin((crypt.iv = calloc(1, strlen((const char *)IV))), IV);
 	hex2bin((crypt.crypttext = calloc(1, strlen((const char *)CRYPTTEXT))), CRYPTTEXT);
 
-	do_crypt(&crypt, &CRYPTTEXT[0], &PLAINTEXT[0]);
+	do_crypt(&crypt, 32, &CRYPTTEXT[0], &PLAINTEXT[0]);
 
 	free(crypt.key);
 	free(crypt.iv);
@@ -132,9 +153,10 @@ int main(void)
 {
 	int error_count = 0;
 	const struct CMUnitTest crypt_tests[] = {
-		cmocka_unit_test(test_crypt_1),
-		cmocka_unit_test(test_crypt_failure),
-		cmocka_unit_test(test_crypt_2)
+		cmocka_unit_test(test_crypt_128),
+		cmocka_unit_test(test_crypt_192),
+		cmocka_unit_test(test_crypt_256),
+		cmocka_unit_test(test_crypt_failure)
 	};
 	error_count += cmocka_run_group_tests_name("crypt", crypt_tests, NULL, NULL);
 	return error_count;
