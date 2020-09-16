@@ -4780,7 +4780,7 @@ static enum mg_ssl_if_result mg_use_cert(SSL_CTX *ctx, const char *cert,
       SSL_CTX_set_options(ctx, SSL_OP_SINGLE_DH_USE);
       DH_free(dh);
     }
-#if OPENSSL_VERSION_NUMBER > 0x10002000L
+#if OPENSSL_VERSION_NUMBER > 0x10002000L && !defined(LIBWOLFSSL_VERSION_STRING)
     SSL_CTX_set_ecdh_auto(ctx, 1);
 #endif
 #endif
