@@ -243,7 +243,8 @@ static int decrypt_step(void *state, void *buffer, size_t size)
 		if (inlen != 0) {
 			ret = swupdate_DECRYPT_update(s->dcrypt,
 				s->output, &s->outlen, s->input, inlen);
-		} else {
+		}
+		if (inlen == 0 || ret == 0) {
 			/*
 			 * Finalise the decryption. Further plaintext bytes may
 			 * be written at this stage.
