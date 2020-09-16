@@ -58,6 +58,8 @@ static inline uint32_t SSL_X509_get_extended_key_usage(X509 *x)
 #endif /* CONFIG_SIGALG_CMS */
 
 #ifdef CONFIG_SSL_IMPL_WOLFSSL
+#define EVP_PKEY_CTX_set_rsa_pss_saltlen(ctx, len) (1)
+
 #define X509_PURPOSE_CODE_SIGN EXTKEYUSE_CODESIGN
 #define SSL_PURPOSE_EMAIL_PROT EXTKEYUSE_EMAILPROT
 #else
