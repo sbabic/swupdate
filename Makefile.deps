@@ -70,6 +70,10 @@ ifeq ($(HAVE_MBEDTLS),)
 export HAVE_MBEDTLS = y
 endif
 
+ifeq ($(HAVE_P11KIT),)
+export HAVE_P11KIT = y
+endif
+
 ifeq ($(HAVE_JSON_C),)
 export HAVE_JSON_C = y
 endif

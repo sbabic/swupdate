@@ -15,7 +15,9 @@
 ## along with this program; if not, write to the Free Software
 ## Foundation, Inc.
 
+ifneq ($(CONFIG_PKCS11),y)
 tests-$(CONFIG_ENCRYPTED_IMAGES) += test_crypt
+endif
 tests-$(CONFIG_HASH_VERIFY) += test_hash
 ifeq ($(CONFIG_SIGALG_RAWRSA),y)
 tests-$(CONFIG_SIGNED_IMAGES) += test_verify

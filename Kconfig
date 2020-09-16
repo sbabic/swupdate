@@ -85,6 +85,10 @@ config HAVE_MBEDTLS
 	bool
 	option env="HAVE_MBEDTLS"
 
+config HAVE_P11KIT
+	bool
+	option env="HAVE_P11KIT"
+
 config HAVE_JSON_C
 	bool
 	option env="HAVE_JSON_C"
@@ -461,6 +465,15 @@ config ENCRYPTED_IMAGES
 	depends on SSL_IMPL_OPENSSL || SSL_IMPL_WOLFSSL || SSL_IMPL_MBEDTLS
 comment "Image encryption needs an SSL implementation"
 	depends on !SSL_IMPL_OPENSSL && !SSL_IMPL_WOLFSSL && !SSL_IMPL_MBEDTLS
+
+config PKCS11
+	bool "Enable PKCS#11 cryptographic operations"
+	default n
+	depends on HAVE_WOLFSSL && HAVE_P11KIT && ENCRYPTED_IMAGES
+	help
+	  Enable using PKCS#11 for AES decryption instead of having the plain
+	  key available in a file. This is implemented with wolfSSL independent
+	  from the SSL implementation and replaces the plain key method.
 
 source suricatta/Config.in
 

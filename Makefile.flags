@@ -152,6 +152,13 @@ endif
 ifeq ($(CONFIG_SSL_IMPL_WOLFSSL),y)
 KBUILD_CPPFLAGS += -I/usr/include/wolfssl -DOPENSSL_ALL -DWOLFSSL_APACHE_HTTPD
 LDLIBS += wolfssl
+else ifeq ($(CONFIG_PKCS11),y)
+LDLIBS += wolfssl
+endif
+
+ifeq ($(CONFIG_PKCS11),y)
+KBUILD_CPPFLAGS += -I/usr/include/p11-kit-1
+LDLIBS += p11-kit
 endif
 
 ifeq ($(CONFIG_SSL_IMPL_MBEDTLS),y)

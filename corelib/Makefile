@@ -7,7 +7,11 @@ lib-$(CONFIG_MTD)		+= mtd-interface.o
 lib-$(CONFIG_LUA)		+= lua_interface.o lua_compat.o
 ifeq ($(CONFIG_SSL_IMPL_OPENSSL)$(CONFIG_SSL_IMPL_WOLFSSL),y)
 lib-$(CONFIG_HASH_VERIFY)	+= verify_signature.o
+ifeq ($(CONFIG_PKCS11),y)
+lib-$(CONFIG_ENCRYPTED_IMAGES)	+= swupdate_decrypt_pkcs11.o
+else
 lib-$(CONFIG_ENCRYPTED_IMAGES)	+= swupdate_decrypt.o
+endif
 lib-$(CONFIG_SIGALG_RAWRSA)	+= swupdate_rsa_verify.o
 lib-$(CONFIG_SIGALG_RSAPSS)	+= swupdate_rsa_verify.o
 endif
@@ -17,7 +21,11 @@ lib-$(CONFIG_SIGALG_CMS)	+= swupdate_cms_verify.o
 endif
 ifeq ($(CONFIG_SSL_IMPL_MBEDTLS),y)
 lib-$(CONFIG_HASH_VERIFY)	+= verify_signature_mbedtls.o
+ifeq ($(CONFIG_PKCS11),y)
+lib-$(CONFIG_ENCRYPTED_IMAGES)	+= swupdate_decrypt_pkcs11.o
+else
 lib-$(CONFIG_ENCRYPTED_IMAGES)	+= swupdate_decrypt_mbedtls.o
+endif
 lib-$(CONFIG_SIGALG_RAWRSA)	+= swupdate_rsa_verify_mbedtls.o
 lib-$(CONFIG_SIGALG_RSAPSS)	+= swupdate_rsa_verify_mbedtls.o
 endif
