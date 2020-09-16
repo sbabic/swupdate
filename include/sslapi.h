@@ -28,16 +28,34 @@
 #include <openssl/evp.h>
 #include <openssl/hmac.h>
 #include <openssl/aes.h>
+#include <openssl/opensslv.h>
 
 #ifdef CONFIG_SIGALG_CMS
 #if defined(LIBRESSL_VERSION_NUMBER)
 #error "LibreSSL does not support CMS, please select RSA PKCS"
 #else
 #include <openssl/cms.h>
-#endif
-#endif
 
-#include <openssl/opensslv.h>
+static inline uint32_t SSL_X509_get_extension_flags(X509 *x)
+{
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
+	return x->ex_flags;
+#else
+	return X509_get_extension_flags(x);
+#endif
+}
+
+static inline uint32_t SSL_X509_get_extended_key_usage(X509 *x)
+{
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
+	return x->ex_xkusage;
+#else
+	return X509_get_extended_key_usage(x);
+#endif
+}
+
+#endif
+#endif /* CONFIG_SIGALG_CMS */
 
 #define X509_PURPOSE_CODE_SIGN (X509_PURPOSE_MAX + 1)
 #define SSL_PURPOSE_EMAIL_PROT X509_PURPOSE_SMIME_SIGN
@@ -78,24 +96,6 @@ struct swupdate_digest {
 #else
 #define swupdate_crypto_init()
 #endif
-
-static inline uint32_t SSL_X509_get_extension_flags(X509 *x)
-{
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
-	return x->ex_flags;
-#else
-	return X509_get_extension_flags(x);
-#endif
-}
-
-static inline uint32_t SSL_X509_get_extended_key_usage(X509 *x)
-{
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
-	return x->ex_xkusage;
-#else
-	return X509_get_extended_key_usage(x);
-#endif
-}
 
 #elif defined(CONFIG_SSL_IMPL_MBEDTLS)
 #include <mbedtls/md.h>
