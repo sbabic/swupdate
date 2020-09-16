@@ -150,7 +150,7 @@ LDLIBS += crypto ssl
 endif
 
 ifeq ($(CONFIG_SSL_IMPL_WOLFSSL),y)
-KBUILD_CPPFLAGS += -I/usr/include/wolfssl
+KBUILD_CPPFLAGS += -I/usr/include/wolfssl -DOPENSSL_ALL -DWOLFSSL_APACHE_HTTPD
 LDLIBS += wolfssl
 endif
 
