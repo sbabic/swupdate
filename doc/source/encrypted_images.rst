@@ -2,7 +2,8 @@ Symmetrically Encrypted Update Images
 =====================================
 
 SWUpdate allows one to symmetrically encrypt update images using the
-256 bit AES block cipher in CBC mode.
+AES block cipher in CBC mode. The following shows encryption with 256
+bit key length but you may use other key lengths as well.
 
 
 Building an Encrypted SWU Image
