@@ -3,10 +3,12 @@
 #include "sslapi.h"
 #include "util.h"
 
-struct swupdate_digest *swupdate_DECRYPT_init(unsigned char *key, unsigned char *iv)
+struct swupdate_digest *swupdate_DECRYPT_init(unsigned char *key, char keylen, unsigned char *iv)
 {
 	struct swupdate_digest *dgst;
+	mbedtls_cipher_type_t cipher_type;
 	const mbedtls_cipher_info_t *cipher_info;
+	int key_bitlen;
 	int error;
 
 	if ((key == NULL) || (iv == NULL)) {
@@ -14,7 +16,24 @@ struct swupdate_digest *swupdate_DECRYPT_init(unsigned char *key, unsigned char 
 		return NULL;
 	}
 
-	cipher_info = mbedtls_cipher_info_from_type(MBEDTLS_CIPHER_AES_256_CBC);
+	switch (keylen) {
+	case AES_128_KEY_LEN:
+		cipher_type = MBEDTLS_CIPHER_AES_128_CBC;
+		key_bitlen = 128;
+		break;
+	case AES_192_KEY_LEN:
+		cipher_type = MBEDTLS_CIPHER_AES_192_CBC;
+		key_bitlen = 192;
+		break;
+	case AES_256_KEY_LEN:
+		cipher_type = MBEDTLS_CIPHER_AES_256_CBC;
+		key_bitlen = 256;
+		break;
+	default:
+		return NULL;
+	}
+
+	cipher_info = mbedtls_cipher_info_from_type(cipher_type);
 	if (!cipher_info) {
 		ERROR("mbedtls_cipher_info_from_type");
 		return NULL;
@@ -33,7 +52,7 @@ struct swupdate_digest *swupdate_DECRYPT_init(unsigned char *key, unsigned char 
 		goto fail;
 	}
 
-	error = mbedtls_cipher_setkey(&dgst->mbedtls_cipher_context, key, 256, MBEDTLS_DECRYPT);
+	error = mbedtls_cipher_setkey(&dgst->mbedtls_cipher_context, key, key_bitlen, MBEDTLS_DECRYPT);
 	if (error) {
 		ERROR("mbedtls_cipher_setkey: %d", error);
 		goto fail;

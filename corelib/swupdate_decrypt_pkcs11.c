@@ -22,7 +22,8 @@ static void wolfssl_debug(int __attribute__ ((__unused__)) level, const char *co
 }
 #endif
 
-struct swupdate_digest *swupdate_DECRYPT_init(unsigned char *uri, unsigned char *iv)
+struct swupdate_digest *swupdate_DECRYPT_init(unsigned char *uri,
+					char __attribute__ ((__unused__)) keylen, unsigned char *iv)
 {
 	struct swupdate_digest *dgst;
 	const char *library;

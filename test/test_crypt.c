@@ -43,7 +43,7 @@ static void hex2bin(unsigned char *dest, const unsigned char *source)
 static void do_crypt(struct cryptdata *crypt, unsigned char *CRYPTTEXT, unsigned char *PLAINTEXT)
 {
 	int len;
-	void *dcrypt = swupdate_DECRYPT_init(crypt->key, crypt->iv);
+	void *dcrypt = swupdate_DECRYPT_init(crypt->key, 32, crypt->iv);
 	assert_non_null(dcrypt);
 
 	unsigned char *buffer = calloc(1, strlen((const char *)CRYPTTEXT) + EVP_MAX_BLOCK_LENGTH);
@@ -114,7 +114,7 @@ static void test_crypt_failure(void **state)
 	hex2bin((crypt.crypttext = calloc(1, strlen((const char *)CRYPTTEXT))), CRYPTTEXT);
 
 	int len;
-	void *dcrypt = swupdate_DECRYPT_init(crypt.key, crypt.iv);
+	void *dcrypt = swupdate_DECRYPT_init(crypt.key, 32, crypt.iv);
 	assert_non_null(dcrypt);
 
 	unsigned char *buffer = calloc(1, strlen((const char *)CRYPTTEXT) + EVP_MAX_BLOCK_LENGTH);

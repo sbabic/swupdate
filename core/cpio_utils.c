@@ -454,7 +454,7 @@ int copyfile(int fdin, void *out, unsigned int nbytes, unsigned long *offs, unsi
 			ivt = ivtbuf;
 		} else
 			ivt = get_aes_ivt();
-		decrypt_state.dcrypt = swupdate_DECRYPT_init(aes_key, ivt);
+		decrypt_state.dcrypt = swupdate_DECRYPT_init(aes_key, get_aes_keylen(), ivt);
 		if (!decrypt_state.dcrypt) {
 			ERROR("decrypt initialization failure, aborting");
 			ret = -EFAULT;

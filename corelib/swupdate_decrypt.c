@@ -17,9 +17,10 @@
 #include "sslapi.h"
 #include "util.h"
 
-struct swupdate_digest *swupdate_DECRYPT_init(unsigned char *key, unsigned char *iv)
+struct swupdate_digest *swupdate_DECRYPT_init(unsigned char *key, char keylen, unsigned char *iv)
 {
 	struct swupdate_digest *dgst;
+	const EVP_CIPHER *cipher;
 	int ret;
 
 	if ((key == NULL) || (iv == NULL)) {
@@ -27,7 +28,19 @@ struct swupdate_digest *swupdate_DECRYPT_init(unsigned char *key, unsigned char 
 		return NULL;
 	}
 
-	const EVP_CIPHER *cipher = EVP_aes_256_cbc();
+	switch (keylen) {
+	case AES_128_KEY_LEN:
+		cipher = EVP_aes_128_cbc();
+		break;
+	case AES_192_KEY_LEN:
+		cipher = EVP_aes_192_cbc();
+		break;
+	case AES_256_KEY_LEN:
+		cipher = EVP_aes_256_cbc();
+		break;
+	default:
+		return NULL;
+	}
 
 	dgst = calloc(1, sizeof(*dgst));
 	if (!dgst) {
