@@ -18,7 +18,7 @@
  */
 #if defined(CONFIG_HASH_VERIFY) || defined(CONFIG_ENCRYPTED_IMAGES) || \
 	defined(CONFIG_CHANNEL_CURL_SSL)
-#if defined(CONFIG_SSL_IMPL_OPENSSL)
+#if defined(CONFIG_SSL_IMPL_OPENSSL) || defined(CONFIG_SSL_IMPL_WOLFSSL)
 #include <openssl/bio.h>
 #include <openssl/objects.h>
 #include <openssl/err.h>

@@ -21,13 +21,13 @@ menu "Features"
 config SURICATTA_SSL
 	bool "SSL support"
 	default n
-	depends on SSL_IMPL_OPENSSL || SSL_IMPL_MBEDTLS
+	depends on SSL_IMPL_OPENSSL || SSL_IMPL_WOLFSSL || SSL_IMPL_MBEDTLS
 	select CHANNEL_CURL_SSL
 	help
 	  Enable SSL and checksum verification support in suricatta.
 
 comment "SSL support needs an SSL implementation"
-	depends on !SSL_IMPL_OPENSSL && !SSL_IMPL_MBEDTLS
+	depends on !SSL_IMPL_OPENSSL && !SSL_IMPL_WOLFSSL && !SSL_IMPL_MBEDTLS
 
 
 endmenu

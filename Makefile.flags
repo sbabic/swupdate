@@ -149,6 +149,11 @@ ifeq ($(CONFIG_SSL_IMPL_OPENSSL),y)
 LDLIBS += crypto ssl
 endif
 
+ifeq ($(CONFIG_SSL_IMPL_WOLFSSL),y)
+KBUILD_CPPFLAGS += -I/usr/include/wolfssl
+LDLIBS += wolfssl
+endif
+
 ifeq ($(CONFIG_SSL_IMPL_MBEDTLS),y)
 LDLIBS += mbedcrypto mbedtls mbedx509
 endif

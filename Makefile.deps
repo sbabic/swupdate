@@ -62,6 +62,10 @@ ifeq ($(HAVE_LIBCRYPTO),)
 export HAVE_LIBCRYPTO = y
 endif
 
+ifeq ($(HAVE_WOLFSSL),)
+export HAVE_WOLFSSL = y
+endif
+
 ifeq ($(HAVE_MBEDTLS),)
 export HAVE_MBEDTLS = y
 endif

@@ -28,11 +28,11 @@ config MONGOOSEIPV6
 config MONGOOSESSL
 	bool "SSL support"
 	depends on MONGOOSE
-	depends on SSL_IMPL_OPENSSL || SSL_IMPL_MBEDTLS
+	depends on SSL_IMPL_OPENSSL || SSL_IMPL_WOLFSSL || SSL_IMPL_MBEDTLS
 	help
 	   It enables SSL support into mongoose
 
 comment "SSL support needs an SSL implementation"
-	depends on !SSL_IMPL_OPENSSL && !SSL_IMPL_MBEDTLS
+	depends on !SSL_IMPL_OPENSSL && !SSL_IMPL_WOLFSSL && !SSL_IMPL_MBEDTLS
 
 endif

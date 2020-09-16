@@ -77,6 +77,10 @@ config HAVE_LIBCRYPTO
 	bool
 	option env="HAVE_LIBCRYPTO"
 
+config HAVE_WOLFSSL
+	bool
+	option env="HAVE_WOLFSSL"
+
 config HAVE_MBEDTLS
 	bool
 	option env="HAVE_MBEDTLS"
@@ -347,6 +351,10 @@ choice
 		bool "OpenSSL"
 		depends on HAVE_LIBSSL
 
+	config SSL_IMPL_WOLFSSL
+		bool "wolfSSL (with OpenSSL compatibility layer)"
+		depends on HAVE_WOLFSSL
+
 	config SSL_IMPL_MBEDTLS
 		bool "mbedTLS"
 		depends on HAVE_MBEDTLS
@@ -369,7 +377,7 @@ config DOWNLOAD_SSL
 	bool "Enable SSL support for image downloading"
 	default n
 	depends on DOWNLOAD
-	depends on SSL_IMPL_OPENSSL || SSL_IMPL_MBEDTLS
+	depends on SSL_IMPL_OPENSSL || SSL_IMPL_WOLFSSL || SSL_IMPL_MBEDTLS
 	select CHANNEL_CURL_SSL
 	help
 	  Enable SSL and checksum verification support in channels
@@ -383,18 +391,18 @@ config CHANNEL_CURL
 config CHANNEL_CURL_SSL
 	bool
 	depends on CHANNEL_CURL
-	depends on SSL_IMPL_OPENSSL || SSL_IMPL_MBEDTLS
+	depends on SSL_IMPL_OPENSSL || SSL_IMPL_WOLFSSL || SSL_IMPL_MBEDTLS
 	select CURL_SSL
 
 config HASH_VERIFY
 	bool "Allow to add sha256 hash to each image"
-	depends on SSL_IMPL_OPENSSL || SSL_IMPL_MBEDTLS
+	depends on SSL_IMPL_OPENSSL || SSL_IMPL_WOLFSSL || SSL_IMPL_MBEDTLS
 	help
 	  Allow to add a sha256 hash to an artifact.
 	  This is automatically set in case of Signed Image
 
 comment "Hash checking needs an SSL implementation"
-	depends on !SSL_IMPL_OPENSSL && !SSL_IMPL_MBEDTLS
+	depends on !SSL_IMPL_OPENSSL && !SSL_IMPL_WOLFSSL && !SSL_IMPL_MBEDTLS
 
 config DISABLE_CPIO_CRC
 	bool "Disable cpio CRC verify if SHA 256 is enabled"
@@ -410,10 +418,10 @@ config DISABLE_CPIO_CRC
 
 config SIGNED_IMAGES
 	bool "Enable verification of signed images"
-	depends on SSL_IMPL_OPENSSL || SSL_IMPL_MBEDTLS
+	depends on SSL_IMPL_OPENSSL || SSL_IMPL_WOLFSSL || SSL_IMPL_MBEDTLS
 	select HASH_VERIFY
 comment "Image signature verification needs an SSL implementation"
-	depends on !SSL_IMPL_OPENSSL && !SSL_IMPL_MBEDTLS
+	depends on !SSL_IMPL_OPENSSL && !SSL_IMPL_WOLFSSL && !SSL_IMPL_MBEDTLS
 
 choice
 	prompt "Signature verification algorithm"
@@ -450,9 +458,9 @@ endmenu
 
 config ENCRYPTED_IMAGES
 	bool "Images can be encrypted with a symmetric key"
-	depends on SSL_IMPL_OPENSSL || SSL_IMPL_MBEDTLS
+	depends on SSL_IMPL_OPENSSL || SSL_IMPL_WOLFSSL || SSL_IMPL_MBEDTLS
 comment "Image encryption needs an SSL implementation"
-	depends on !SSL_IMPL_OPENSSL && !SSL_IMPL_MBEDTLS
+	depends on !SSL_IMPL_OPENSSL && !SSL_IMPL_WOLFSSL && !SSL_IMPL_MBEDTLS
 
 source suricatta/Config.in
 
