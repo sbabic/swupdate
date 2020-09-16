@@ -173,7 +173,7 @@ static int update_volume(libubi_t libubi, struct img_type *img,
 			ERROR("Decryption of compressed UBI images not supported");
 			return -1;
 		}
-		if (bytes < AES_BLOCK_SIZE) {
+		if (bytes < AES_BLK_SIZE) {
 			ERROR("Encrypted image size (%lld) too small", bytes);
 			return -1;
 		}
@@ -448,7 +448,7 @@ static int install_ubivol_image(struct img_type *img,
 				ERROR("Decryption of compressed UBI images not supported");
 				return -1;
 			}
-			if (bytes < AES_BLOCK_SIZE) {
+			if (bytes < AES_BLK_SIZE) {
 				ERROR("Encrypted image size (%lld) too small", bytes);
 				return -1;
 			}

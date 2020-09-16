@@ -211,7 +211,7 @@ struct DecryptState
 
 	void *dcrypt;	/* use a private context for decryption */
 	uint8_t input[BUFF_SIZE];
-	uint8_t output[BUFF_SIZE + AES_BLOCK_SIZE];
+	uint8_t output[BUFF_SIZE + AES_BLK_SIZE];
 	int outlen;
 	bool eof;
 };

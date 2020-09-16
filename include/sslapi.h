@@ -122,7 +122,6 @@ struct swupdate_digest {
 #endif /* CONFIG_SSL_IMPL */
 #else
 #define swupdate_crypto_init()
-#define AES_BLOCK_SIZE	16
 #endif
 
 #if defined(CONFIG_HASH_VERIFY)

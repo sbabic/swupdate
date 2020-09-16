@@ -23,7 +23,7 @@
 #define ENOMEM_ASPRINTF		-1
 
 #define SWUPDATE_SHA_DIGEST_LENGTH	20
-#define AES_BLOCK_SIZE	16
+#define AES_BLK_SIZE	16
 
 #define HWID_REGEXP_PREFIX	"#RE:"
 #define SWUPDATE_ALIGN(A,S)    (((A) + (S) - 1) & ~((S) - 1))
