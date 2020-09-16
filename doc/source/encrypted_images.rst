@@ -109,3 +109,14 @@ Running SWUpdate with Encrypted Images
 Symmetric encryption support is activated by setting the ``ENCRYPTED_IMAGES``
 option in SWUpdate's configuration. Use the `-K` parameter to provide the
 symmetric key file generated above to SWUpdate.
+
+Decrypting with a PKCS#11 token
+-------------------------------
+
+PKCS#11 support is activated by setting the ``PKCS11`` option in SWUpdate's
+configuration. The key file has to have a PKCS#11 URL instead of the key then,
+containing at least the elements of this example:
+
+::
+
+        pkcs11:slot-id=42;id=%CA%FE%BA%BE?pin-value=1234&module-path=/usr/lib/libsofthsm2.so 65D793B87B6724BB27954C7664F15FF3
