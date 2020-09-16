@@ -730,12 +730,12 @@ int main(int argc, char **argv)
 		if (swcfg.globals.verbose)
 			loglevel = TRACELEVEL;
 
-		if (read_module_settings(cfgfname, "logcolors",
-			read_console_settings, &swcfg)) {
-			fprintf(stderr,
-				 "Error parsing configuration file, exiting.\n");
-			exit(EXIT_FAILURE);
-		}
+		/*
+		 * logcolors is optional, ignore error code
+		 * if not found
+		 */
+		(void)read_module_settings(cfgfname, "logcolors",
+			read_console_settings, &swcfg);
 
 		int ret = read_module_settings(cfgfname, "processes",
 						read_processes_settings,
