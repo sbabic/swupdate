@@ -18,6 +18,16 @@
  */
 #if defined(CONFIG_HASH_VERIFY) || defined(CONFIG_ENCRYPTED_IMAGES) || \
 	defined(CONFIG_CHANNEL_CURL_SSL)
+
+#ifdef CONFIG_PKCS11
+#include <wolfssl/options.h>
+#include <wolfssl/wolfcrypt/aes.h>
+#include <wolfssl/wolfcrypt/wc_pkcs11.h>
+// Exclude p11-kit's pkcs11.h to prevent conflicting with wolfssl's
+#define PKCS11_H 1
+#include <p11-kit/uri.h>
+#endif
+
 #if defined(CONFIG_SSL_IMPL_OPENSSL) || defined(CONFIG_SSL_IMPL_WOLFSSL)
 #include <openssl/bio.h>
 #include <openssl/objects.h>
@@ -74,7 +84,13 @@ struct swupdate_digest {
 	EVP_PKEY_CTX *ckey;	/* this is used for RSA key */
 	X509_STORE *certs;	/* this is used if CMS is set */
 	EVP_MD_CTX *ctx;
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
+#ifdef CONFIG_PKCS11
+	unsigned char last_decr[AES_BLOCK_SIZE + 1];
+	P11KitUri *p11uri;
+	Aes ctxdec;
+	Pkcs11Dev pkdev;
+	Pkcs11Token pktoken;
+#elif OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 	EVP_CIPHER_CTX ctxdec;
 #else
 	EVP_CIPHER_CTX *ctxdec;
@@ -119,9 +135,15 @@ struct swupdate_digest {
 #ifdef CONFIG_SIGNED_IMAGES
 	mbedtls_pk_context mbedtls_pk_context;
 #endif /* CONFIG_SIGNED_IMAGES */
-#ifdef CONFIG_ENCRYPTED_IMAGES
+#ifdef CONFIG_PKCS11
+	unsigned char last_decr[AES_BLOCK_SIZE + 1];
+	P11KitUri *p11uri;
+	Aes ctxdec;
+	Pkcs11Dev pkdev;
+	Pkcs11Token pktoken;
+#elif defined(CONFIG_ENCRYPTED_IMAGES)
 	mbedtls_cipher_context_t mbedtls_cipher_context;
-#endif /* CONFIG_ENCRYPTED_IMAGES */
+#endif /* CONFIG_PKCS11 */
 };
 
 #else /* CONFIG_SSL_IMPL */
