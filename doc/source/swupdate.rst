@@ -207,10 +207,11 @@ There are only a few libraries that are required to compile SWUpdate.
   They are commonly not exported and not installed, but they are
   linked by SWUpdate to reuse the same functions for upgrading
   MTD and UBI volumes.
-- openssl: required with the Webserver
+- openssl / wolfssl / mbedtls (optional) for cryptographic operations
+- p11-kit & wolfssl (optional) for PKCS#11 support
 - Lua: liblua and the development headers.
-- libz, libcrypto are always linked.
-- libconfig: it is used by the default parser.
+- libz is always linked.
+- libconfig (optional) for the default parser
 - libarchive (optional) for archive handler
 - librsync (optional) for support to apply rdiff patches
 - libjson (optional) for JSON parser and hawkBit
