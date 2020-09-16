@@ -29,16 +29,18 @@
 #include "generated/autoconf.h"
 
 /*
- * key  is 256 bit for aes_256
- * ivt  is 128 bit
+ * key    is 256 bit for max aes_256
+ * keylen is the actual aes key length
+ * ivt    is 128 bit
  */
 struct decryption_key {
 #ifdef CONFIG_PKCS11
 	char * key;
 #else
-	unsigned char key[32];
+	unsigned char key[AES_256_KEY_LEN];
 #endif
-	unsigned char ivt[16];
+	char keylen;
+	unsigned char ivt[AES_BLK_SIZE];
 };
 
 static struct decryption_key *aes_key = NULL;
@@ -560,6 +562,12 @@ unsigned char *get_aes_key(void) {
 	return aes_key->key;
 }
 
+char get_aes_keylen(void) {
+	if (!aes_key)
+		return -1;
+	return aes_key->keylen;
+}
+
 unsigned char *get_aes_ivt(void) {
 	if (!aes_key)
 		return NULL;
@@ -588,7 +596,18 @@ int set_aes_key(const char *key, const char *ivt)
 		return -ENOMEM;
 	strncpy(aes_key->key, key, keylen);
 #else
-	ret |= ascii_to_bin(aes_key->key, sizeof(aes_key->key), key);
+	keylen = strlen(key);
+	switch (keylen) {
+	case AES_128_KEY_LEN * 2:
+	case AES_192_KEY_LEN * 2:
+	case AES_256_KEY_LEN * 2:
+		// valid hex string size for AES 128/192/256
+		aes_key->keylen = keylen / 2;
+		break;
+	default:
+		return -EINVAL;
+	}
+	ret |= ascii_to_bin(aes_key->key, aes_key->keylen, key);
 #endif
 
 	if (ret) {

@@ -24,6 +24,9 @@
 
 #define SWUPDATE_SHA_DIGEST_LENGTH	20
 #define AES_BLK_SIZE	16
+#define AES_128_KEY_LEN	16
+#define AES_192_KEY_LEN	24
+#define AES_256_KEY_LEN	32
 
 #define HWID_REGEXP_PREFIX	"#RE:"
 #define SWUPDATE_ALIGN(A,S)    (((A) + (S) - 1) & ~((S) - 1))
@@ -227,6 +230,7 @@ void free_string_array(char **nodes);
 /* Decryption key functions */
 int load_decryption_key(char *fname);
 unsigned char *get_aes_key(void);
+char get_aes_keylen(void);
 unsigned char *get_aes_ivt(void);
 int set_aes_key(const char *key, const char *ivt);
 int set_aes_ivt(const char *ivt);
