@@ -33,7 +33,11 @@
  * ivt  is 128 bit
  */
 struct decryption_key {
+#ifdef CONFIG_PKCS11
+	char * key;
+#else
 	unsigned char key[32];
+#endif
 	unsigned char ivt[16];
 };
 
@@ -565,6 +569,7 @@ unsigned char *get_aes_ivt(void) {
 int set_aes_key(const char *key, const char *ivt)
 {
 	int ret;
+	size_t keylen;
 
 	/*
 	 * Allocates the global structure just once
@@ -575,8 +580,16 @@ int set_aes_key(const char *key, const char *ivt)
 			return -ENOMEM;
 	}
 
-	ret = ascii_to_bin(aes_key->key, sizeof(aes_key->key), key) |
-	      ascii_to_bin(aes_key->ivt, sizeof(aes_key->ivt), ivt);
+	ret = ascii_to_bin(aes_key->ivt, sizeof(aes_key->ivt), ivt);
+#ifdef CONFIG_PKCS11
+	keylen = strlen(key) + 1;
+	aes_key->key = malloc(keylen);
+	if (!aes_key->key)
+		return -ENOMEM;
+	strncpy(aes_key->key, key, keylen);
+#else
+	ret |= ascii_to_bin(aes_key->key, sizeof(aes_key->key), key);
+#endif
 
 	if (ret) {
 		return -EINVAL;

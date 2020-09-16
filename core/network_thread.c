@@ -402,8 +402,10 @@ void *network_thread (void *data)
 
 				break;
 			case SET_AES_KEY:
+#ifndef CONFIG_PKCS11
 				msg.type = ACK;
 				if (set_aes_key(msg.data.aeskeymsg.key_ascii, msg.data.aeskeymsg.ivt_ascii))
+#endif
 					msg.type = NACK;
 				break;
 			case SET_UPDATE_STATE:
