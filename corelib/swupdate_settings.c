@@ -53,7 +53,6 @@ static int read_settings_file(config_t *cfg, const char *filename)
 {
 	int ret;
 
-	/* Read the file. If there is an error, report it and exit. */
 	ret = config_read_file(cfg, filename);
 	if (ret != CONFIG_TRUE) {
 		fprintf(stderr, "%s ", config_error_file(cfg));
@@ -78,7 +77,6 @@ int read_module_settings(const char *filename, const char *module, settings_call
 	memset(&cfg, 0, sizeof(cfg));
 	config_init(&cfg);
 
-	/* Read the file. If there is an error, report it and exit. */
 	if (read_settings_file(&cfg, filename) != CONFIG_TRUE) {
 		config_destroy(&cfg);
 		ERROR("Error reading configuration file, skipping....");

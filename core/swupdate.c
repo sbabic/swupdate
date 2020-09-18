@@ -719,35 +719,33 @@ int main(int argc, char **argv)
 
 	/* Load configuration file */
 	if (cfgfname != NULL) {
-		if (read_module_settings(cfgfname, "globals",
-			read_globals_settings, &swcfg)) {
+		/*
+		 * 'globals' section is mandatory if configuration file is specified.
+		 */
+		int ret = read_module_settings(cfgfname, "globals",
+					       read_globals_settings, &swcfg);
+		if (ret != 0) {
+			/*
+			 * Exit on -ENODATA or -EINVAL errors.
+			 */
 			fprintf(stderr,
-				 "Error parsing configuration file, exiting.\n");
+			    "Error parsing configuration file: %s, exiting.\n",
+			    ret == -ENODATA ? "'globals' section missing"
+					    : "cannot read");
 			exit(EXIT_FAILURE);
 		}
 
-		loglevel = swcfg.globals.loglevel;
-		if (swcfg.globals.verbose)
-			loglevel = TRACELEVEL;
+		loglevel = swcfg.globals.verbose ? TRACELEVEL : swcfg.globals.loglevel;
 
 		/*
-		 * logcolors is optional, ignore error code
-		 * if not found
+		 * The following sections are optional, hence -ENODATA error code is
+		 * ignored if the section is not found. -EINVAL will not happen here.
 		 */
 		(void)read_module_settings(cfgfname, "logcolors",
-			read_console_settings, &swcfg);
+					   read_console_settings, &swcfg);
 
-		int ret = read_module_settings(cfgfname, "processes",
-						read_processes_settings,
-						&swcfg);
-		/*
-		 * ignore other errors, check only if file is parsed
-		 */
-		if (ret == -EINVAL) {
-			fprintf(stderr,
-				 "Error parsing configuration file, exiting.\n");
-			exit(EXIT_FAILURE);
-		}
+		(void)read_module_settings(cfgfname, "processes",
+					   read_processes_settings, &swcfg);
 	}
 
 	printf("%s\n", BANNER);
