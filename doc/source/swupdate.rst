@@ -95,7 +95,7 @@ General Overview
        - pulling from remote Server (HTTP, HTTPS, ..)
        - using a Backend. SWUpdate is open to talk with back end
          servers for rolling out software updates.
-         Current version supports the Hawkbit server, but other
+         Current version supports the hawkBit server, but other
          backend can be added.
 
 - Can be configured to check for compatibility between software and hardware
@@ -213,7 +213,7 @@ There are only a few libraries that are required to compile SWUpdate.
 - libconfig: it is used by the default parser.
 - libarchive (optional) for archive handler
 - librsync (optional) for support to apply rdiff patches
-- libjson (optional) for JSON parser and Hawkbit
+- libjson (optional) for JSON parser and hawkBit
 - libubootenv (optional) if support for U-Boot is enabled
 - libebgenv (optional) if support for EFI Boot Guard is enabled
 - libcurl used to communicate with network
@@ -374,7 +374,7 @@ The main important parameters for the web server are "document-root" and "port".
 
 The embedded web server is taken from the Mongoose project.
 
-The whole list of options will be retrieved with:
+The list of available options (depending on activated features) is shown with:
 
 ::
 
@@ -422,15 +422,17 @@ Command line parameters
 +-------------+----------+--------------------------------------------+
 |  Parameter  | Type     | Description                                |
 +=============+==========+============================================+
-| -f <file>   | string   | SWUpdate config file to use                |
+| -f <file>   | string   | SWUpdate configuration file to use.        |
+|             |          | See ``examples/configuration/swupdate.cfg``|
+|             |          | in the source code for details.            |
 +-------------+----------+--------------------------------------------+
-| -b <string> | string   | Active only if CONFIG_UBIATTACH is set     |
+| -b <string> | string   | Available if CONFIG_UBIATTACH is set.      |
 |             |          | It allows one to blacklist MTDs when       |
 |             |          | SWUpdate searches for UBI volumes.         |
 |             |          | Example: U-Boot and environment in MTD0-1: |
-|             |          | **swupdate -b "0 1"**                      |
+|             |          | ``swupdate -b "0 1"``.                     |
 +-------------+----------+--------------------------------------------+
-| -e <sel>    | string   | sel is in the format <software>,<mode>     |
+| -e <sel>    | string   | ``sel`` is in the format <software>,<mode>.|
 |             |          | It allows one to find a subset of rules in |
 |             |          | the sw-description file. With it,          |
 |             |          | multiple rules are allowed.                |
@@ -439,66 +441,86 @@ Command line parameters
 |             |          | -e "stable, copy1"  ==> install on copy1   |
 |             |          | -e "stable, copy2"  ==> install on copy2   |
 +-------------+----------+--------------------------------------------+
-| -h          |    -     | run usage with help                        |
+| -h          |    -     | Run usage with help.                       |
 +-------------+----------+--------------------------------------------+
-| -k          | string   | Active if CONFIG_SIGNED is set             |
-|             |          | Filename with the public key               |
+| -k <file>   | string   | Available if CONFIG_SIGNED is set.         |
+|             |          | Filename with the public key.              |
 +-------------+----------+--------------------------------------------+
-| -l <level>  |    int   | Set loglevel                               |
+| -K <file>   | string   | Available on CONFIG_ENCRYPTED_IMAGES set.  |
+|             |          | Filename with the symmetric key to be used |
+|             |          | for decryption.                            |
 +-------------+----------+--------------------------------------------+
-| -L          |    -     | Send LOG output to syslog(local)           |
+| --cert-\    | string   | Available if CONFIG_SIGNED_IMAGES is set.  |
+| purpose     |          | Set expected certificate purpose.          |
+| <purpose>   |          |                                            |
 +-------------+----------+--------------------------------------------+
-| -i <file>   | string   | run SWUpdate with a local .swu file        |
+| --forced-\  | string   | Available if CONFIG_SIGNED_IMAGES is set.  |
+| signer-\    |          | Set expected common name of signer         |
+| name <cn>   |          | certificate.                               |
 +-------------+----------+--------------------------------------------+
-| -n          |    -     | run SWUpdate in dry-run mode.              |
+| --ca-\      | string   | Available if CONFIG_SIGNED_IMAGES is set.  |
+| path <file> |          | Path to the Certificate Authority (PEM).   |
 +-------------+----------+--------------------------------------------+
-| -N          | string   | passed the minimum required version of     |
-|             |          | software. This will be checked with the    |
-|             |          | version of new software and forbids        |
-|             |          | downgrading.                               |
+| -l <level>  | int      | Set loglevel.                              |
++-------------+----------+--------------------------------------------+
+| -L          |    -     | Send LOG output to syslog (local).         |
++-------------+----------+--------------------------------------------+
+| -i <file>   | string   | Run SWUpdate with a local .swu file.       |
++-------------+----------+--------------------------------------------+
+| -n          |    -     | Run SWUpdate in dry-run mode.              |
++-------------+----------+--------------------------------------------+
+| -N <version>| string   | The minimum required version of software.  |
+|             |          | This will be checked with the version of   |
+|             |          | new software and forbids downgrading.      |
 |             |          | Version consists of either 4 numbers       |
 |             |          | (major.minor.rev.build with each field in  |
 |             |          | the range 0..65535) or it is a semantic    |
 |             |          | version.                                   |
 +-------------+----------+--------------------------------------------+
-| -R          | string   | passed the current installed version of    |
-|             |          | software. This will be checked with the    |
-|             |          | version of new software and forbids        |
-|             |          | reinstalling.                              |
+| -R <version>| string   | The current installed version of software. |
+|             |          | This will be checked with the version of   |
+|             |          | new software and forbids reinstalling.     |
 +-------------+----------+--------------------------------------------+
-| -o <file>   | string   | saves the stream (SWU) on a file           |
+| -o <file>   | string   | Save the stream (SWU) to a file.           |
 +-------------+----------+--------------------------------------------+
-| -v          |    -     | activate verbose output                    |
+| -v          |    -     | Activate verbose output.                   |
 +-------------+----------+--------------------------------------------+
-| -w <parms>  | string   | start internal webserver and pass to it    |
+| -M          |    -     | Disable setting the bootloader transaction |
+|             |          | marker.                                    |
++-------------+----------+--------------------------------------------+
+| -w <parms>  | string   | Available if CONFIG_WEBSERVER is set.      |
+|             |          | Start internal webserver and pass to it    |
 |             |          | a command line string.                     |
 +-------------+----------+--------------------------------------------+
-| -d <parms>  | string   | Active only if CONFIG_DOWNLOAD is set      |
-|             |          | start internal downloader client and pass  |
+| -d <parms>  | string   | Available if CONFIG_DOWNLOAD is set.       |
+|             |          | Start internal downloader client and pass  |
 |             |          | to it a command line string.               |
 |             |          | See below the internal command line        |
 |             |          | arguments for the downloader.              |
 +-------------+----------+--------------------------------------------+
-| -u <parms>  | string   | start internal suricatta client daemon and |
+| -u <parms>  | string   | Available if CONFIG_SURICATTA is set.      |
+|             |          | Start internal suricatta client daemon and |
 |             |          | pass to it a command line string.          |
 |             |          | See below the internal command line        |
 |             |          | arguments for suricatta.                   |
 +-------------+----------+--------------------------------------------+
-| -H          | string   | set board name and Hardware revision       |
-| <board:rev> |          |                                            |
+| -H          | string   | Available on CONFIG_HW_COMPATIBILITY set.  |
+| <board:rev> |          | Set board name and hardware revision.      |
 +-------------+----------+--------------------------------------------+
-| -c          |    -     | This will check ``*.swu`` file against     |
-|             |          | internal tests. It ensures that files      |
+| -c          |    -     | Check ``*.swu`` file. It ensures that files|
 |             |          | referenced in sw-description are present.  |
-|             |          | Usage: swupdate -c -i <file>               |
+|             |          | Usage: ``swupdate -c -i <file>``           |
 +-------------+----------+--------------------------------------------+
-| -P          | string   | Execute pre-update command.                |
+| -P <cmd>    | string   | Execute pre-update command.                |
 +-------------+----------+--------------------------------------------+
-| -p          | string   | Execute post-update command.               |
+| -p <cmd>    | string   | Execute post-update command.               |
 +-------------+----------+--------------------------------------------+
 
-Parameters used for the downloader: -d, --download [OPTIONS]
-For example: -d "-u example.com"
+Downloader command line parameters
+..................................
+
+Example: ``swupdate -d "-u example.com"``
+
 Mandatory arguments are marked with '\*':
 
 +-------------+----------+--------------------------------------------+
@@ -518,44 +540,57 @@ Mandatory arguments are marked with '\*':
 | -a <usr:pwd>| string   | Send user and password for Basic Auth      |
 +-------------+----------+--------------------------------------------+
 
-Parameters used for suricatta: -u, --suricatta [OPTIONS]
-For example: -u "-t default -u localhost:8080 -i 1B7"
+Suricatta command line parameters
+.................................
+
+Example: ``swupdate -u "-t default -u localhost:8080 -i 1B7"``
+
+Note that different suricatta modules may have different parameters.
+The below listed options are for SWUpdate's hawkBit support.
+
 Mandatory arguments are marked with '\*':
 
-+-------------------+----------+--------------------------------------------+
-|  Parameter        | Type     | Description                                |
-+===================+==========+============================================+
-| -t <tenant>       | string   | \* Set hawkBit tenant ID for this device.  |
-+-------------------+----------+--------------------------------------------+
-| -u <url>          | string   | \* Host and port of the hawkBit instance,  |
-|                   |          | e.g., localhost:8080                       |
-+-------------------+----------+--------------------------------------------+
-| -i <id>           | integer  | \* The device ID to communicate to hawkBit.|
-+-------------------+----------+--------------------------------------------+
-| -c <confirm>      | integer  | Confirm update status to server: 1=AGAIN,  |
-|                   |          | 2=SUCCESS, 3=FAILED                        |
-+-------------------+----------+--------------------------------------------+
-| -x                | -        | Do not abort on flawed server certificates.|
-+-------------------+----------+--------------------------------------------+
-| -p <polldelay>    | integer  | Delay in seconds between two hawkBit poll  |
-|                   |          | operations (default: 45s).                 |
-+-------------------+----------+--------------------------------------------+
-| -r <retry>        | integer  | Resume and retry interrupted downloads     |
-|                   |          | (default: 5 tries).                        |
-+-------------------+----------+--------------------------------------------+
-| -w <retrywait>    | integer  | Time to wait prior to retry and resume a   |
-|                   |          | download (default: 5s).                    |
-+-------------------+----------+--------------------------------------------+
-| -y <proxy>        | string   | Use proxy. Either give proxy URL,          |
-|                   |          | else {http,all}_proxy env is tried.        |
-+-------------------+----------+--------------------------------------------+
-| -k <targettoken>  | string   | Set target token.                          |
-+-------------------+----------+--------------------------------------------+
-| -g <gatewaytoken> | string   | Set gateway token.                         |
-+-------------------+----------+--------------------------------------------+
-| -f <interface>    | string   | Set the network interface to connect to    |
-|                   |          | Hawkbit.                                   |
-+-------------------+----------+--------------------------------------------+
++-------------------------+----------+--------------------------------------------+
+|  Parameter              | Type     | Description                                |
++=========================+==========+============================================+
+| -t <tenant>             | string   | \* Set hawkBit tenant ID for this device.  |
++-------------------------+----------+--------------------------------------------+
+| -u <url>                | string   | \* Host and port of the hawkBit instance,  |
+|                         |          | e.g., localhost:8080                       |
++-------------------------+----------+--------------------------------------------+
+| -i <id>                 | integer  | \* The device ID to communicate to hawkBit.|
++-------------------------+----------+--------------------------------------------+
+| -c <confirm>            | integer  | Confirm update status to server: 1=AGAIN,  |
+|                         |          | 2=SUCCESS, 3=FAILED                        |
++-------------------------+----------+--------------------------------------------+
+| -x                      | -        | Do not abort on flawed server certificates.|
++-------------------------+----------+--------------------------------------------+
+| -p <polldelay>          | integer  | Delay in seconds between two hawkBit poll  |
+|                         |          | operations (default: 45s).                 |
++-------------------------+----------+--------------------------------------------+
+| -r <retry>              | integer  | Resume and retry interrupted downloads     |
+|                         |          | (default: 5 tries).                        |
++-------------------------+----------+--------------------------------------------+
+| -w <retrywait>          | integer  | Time to wait prior to retry and resume a   |
+|                         |          | download (default: 5s).                    |
++-------------------------+----------+--------------------------------------------+
+| -y <proxy>              | string   | Use proxy. Either give proxy URL,          |
+|                         |          | else {http,all}_proxy env is tried.        |
++-------------------------+----------+--------------------------------------------+
+| -k <targettoken>        | string   | Set target token.                          |
++-------------------------+----------+--------------------------------------------+
+| -g <gatewaytoken>       | string   | Set gateway token.                         |
++-------------------------+----------+--------------------------------------------+
+| -f <interface>          | string   | Set the network interface to connect to    |
+|                         |          | hawkBit.                                   |
++-------------------------+----------+--------------------------------------------+
+| -e                      | -        | Daemon enabled at startup (default).       |
++-------------------------+----------+--------------------------------------------+
+| -d                      | -        | Daemon disabled at startup.                |
++-------------------------+----------+--------------------------------------------+
+| --disable-token-for-dwl | -        | Do not send authentication header when     |
+|                         |          | downloading SWU.                           |
++-------------------------+----------+--------------------------------------------+
 
 systemd Integration
 -------------------
