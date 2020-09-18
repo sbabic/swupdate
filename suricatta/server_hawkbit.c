@@ -55,7 +55,7 @@ static unsigned short mandatory_argument_count = 0;
 static pthread_mutex_t notifylock = PTHREAD_MUTEX_INITIALIZER;
 
 /*
- * See Hawkbit's API for an explanation
+ * See hawkBit's API for an explanation
  *
  */
 static const char *execution_values[] = { "closed", "proceeding", "canceled","scheduled", "rejected", "resumed", NULL };
@@ -168,7 +168,7 @@ static inline void server_hakwbit_settoken(const char *type, const char *token)
 static inline void server_hawkbit_error(const char *s)
 {
 	int cnt = server_hawkbit.errorcnt;
-	/* Store locally just the errors to send them back to hawkbit */
+	/* Store locally just the errors to send them back to hawkBit */
 	if ((s) &&
 		(cnt < HAWKBIT_MAX_REPORTED_ERRORS)) {
 		server_hawkbit.errors[cnt] = strdup(s);
@@ -235,7 +235,7 @@ static const char *json_get_deployment_update_action(json_object *json_reply)
 	}
 	TRACE("Server delivered unknown 'update' field, skipping..");
 	/*
-	 * Hawkbit API has just skip, forced, attempt, this
+	 * hawkBit API has just skip, forced, attempt, this
 	 * does not happen
 	 */
 	return deployment_update_action.skip;
@@ -686,7 +686,7 @@ static int server_check_during_dwl(void)
 	}
 
 	/*
-	 * Send a device Info to the Hawkbit Server
+	 * Send a device Info to the hawkBit Server
 	 */
 	server_op_res_t result =
 	    server_get_deployment_info(channel, &channel_data, &action_id);
@@ -745,7 +745,7 @@ server_op_res_t server_has_pending_action(int *action_id)
 
 	/*
 	 * First check if initialization was completed or
-	 * a feedback should be sent to Hawkbit
+	 * a feedback should be sent to hawkBit
 	 */
 	if (server_hawkbit.update_state == STATE_WAIT) {
 		return SERVER_OK;
@@ -775,7 +775,7 @@ server_op_res_t server_has_pending_action(int *action_id)
 static void add_detail_error(const char *s)
 {
 	int cnt = server_hawkbit.errorcnt;
-	/* Store locally just the errors to send them back to hawkbit */
+	/* Store locally just the errors to send them back to hawkBit */
 	if ((s) && (!strncmp(s, "ERROR", 5)) &&
 		(cnt < HAWKBIT_MAX_REPORTED_ERRORS)) {
 
@@ -897,7 +897,7 @@ server_op_res_t server_handle_initial_state(update_state_t stateovrrd)
 
 static int server_update_status_callback(ipc_message *msg)
 {
-	/* Store locally just the errors to send them back to hawkbit */
+	/* Store locally just the errors to send them back to hawkBit */
 	add_detail_error(msg->data.status.desc);
 
 	return 0;
@@ -1138,7 +1138,7 @@ server_op_res_t server_process_update_artifact(int action_id,
 
 		/*
 		 * There is no authorizytion token when file is loaded, because SWU
-		 * can be on a different server as Hawkbit with a different
+		 * can be on a different server as hawkBit with a different
 		 * authorization method.
 		 */
 		if (!server_hawkbit.usetokentodwl)
@@ -1146,7 +1146,7 @@ server_op_res_t server_process_update_artifact(int action_id,
 
 		/*
 		 * Retrieve current time to check download time
-		 * This is used in the callback to ask again the hawkbit
+		 * This is used in the callback to ask again the hawkBit
 		 * server if the download is longer as the polling time
 		 */
 
@@ -1154,7 +1154,7 @@ server_op_res_t server_process_update_artifact(int action_id,
 
 		/*
 		 * Start background task to collect logs and
-		 * send to Hawkbit server
+		 * send to hawkBit server
 		 */
 		pthread_attr_t attr;
 		pthread_attr_init(&attr);
@@ -1578,7 +1578,7 @@ void server_print_help(void)
 	    "{http,all}_proxy env is tried.\n"
 	    "\t  -k, --targettoken   Set target token.\n"
 	    "\t  -g, --gatewaytoken  Set gateway token.\n"
-	    "\t  -f, --interface     Set the network interface to connect to Hawkbit.\n"
+	    "\t  -f, --interface     Set the network interface to connect to hawkBit.\n"
 	    "\t  --disable-token-for-dwl Do not send authentication header when downlloading SWU.\n",
 	    CHANNEL_DEFAULT_POLLING_INTERVAL, CHANNEL_DEFAULT_RESUME_TRIES,
 	    CHANNEL_DEFAULT_RESUME_DELAY);
@@ -1639,7 +1639,7 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 		read_module_settings(fname, "suricatta", server_hawkbit_settings,
 					NULL);
 		/*
-		 * Then try "hawkbit" because each server has its own
+		 * Then try "hawkBit" because each server has its own
 		 * section
 		 */
 		read_module_settings(fname, "hawkbit", server_hawkbit_settings,
@@ -1825,7 +1825,7 @@ server_op_res_t server_stop(void)
 }
 
 /*
- * IPC is to control the Hawkbit's communication
+ * IPC is to control the hawkBit's communication
  */
 
 static server_op_res_t server_activation_ipc(ipc_message *msg)

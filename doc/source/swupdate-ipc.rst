@@ -159,7 +159,7 @@ Activate an already installed Software
 ......................................
 
 After a software was installed, the new software boots and if everything runs fine,
-an acknowledge should be sent to the Hawkbit server. If this feature is used, for example
+an acknowledge should be sent to the hawkBit server. If this feature is used, for example
 to let the end user decide if the new software is accepted, the paramters used by the installation
 should be stored during the update process.
 

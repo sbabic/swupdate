@@ -123,13 +123,13 @@ if an update must be installed instead of installing and performs checks later.
 If SWUpdate provides a way to inform a checker if an update can be accepted
 before downloading, a download is only done when it is really necessary.
 
-Back-end: Hawkbit Offline support
+Back-end: hawkBit Offline support
 ---------------------------------
 
-There are several discussions on Hawkbit's ML about how to synchronize
+There are several discussions on hawkBit's ML about how to synchronize
 an offline update (done locally or via the internal Web-server) with
-the Hawkbit's server. Currently, Hawkbit thinks to be the only one
-deploying software. Hawkbit DDI API should be extended, and afterwards
+the hawkBit's server. Currently, hawkBit thinks to be the only one
+deploying software. hawkBit DDI API should be extended, and afterwards
 changes must be implemented in SWUpdate.
 
 Back-end: support for generic down-loader 

@@ -1,13 +1,13 @@
 ==========================================================
-Config for HawkBit under SSL/TLS using private CA / sub CA
+Config for hawkBit under SSL/TLS using private CA / sub CA
 ==========================================================
 
-A user-contributed recipe based on HawkBit (0.2.0-SNAPSHOT) + swupdate (v2018.03)
+A user-contributed recipe based on hawkBit (0.2.0-SNAPSHOT) + swupdate (v2018.03)
 
 Purpose
 -------
 
-Use HTTPS on a HawkBit server to avoid server spoofing. Anonymous client connections are authorized.
+Use HTTPS on a hawkBit server to avoid server spoofing. Anonymous client connections are authorized.
 
 Recipe
 ------
@@ -18,9 +18,9 @@ Recipe
  * Use a password on the server key you won't be ashamed of.
  * Also create a single ``.pem`` file for the private CA + sub-CA
 
-2. On the HawkBit host:
+2. On the hawkBit host:
 
- * HawkBit uses the Java KeyStore to access credentials, but a JKS is not designed apparently to hold CA certs, which is a problem for private CAs. The workaround is to make it gulp an entire pkcs#12 file.
+ * hawkBit uses the Java KeyStore to access credentials, but a JKS is not designed apparently to hold CA certs, which is a problem for private CAs. The workaround is to make it gulp an entire pkcs#12 file.
  * It looks like a JKS like this cannot have a password different from the one protecting the ``.p12``. Keytool also seems to have a little tendency to destruct the ``.jks`` if you change your mind and want to change the password... Basically do everything you need with openssl and use only keytool for generating the ``.jks`` file.
 
  The following command imports a ``.p12`` into a "pkcs12 Java keystore", keeping the same password:
@@ -31,10 +31,10 @@ Recipe
           -destkeystore hb-pass.jks -deststoretype pkcs12 \
           -alias 1 -deststorepass <password_of_p12>
 
- Then you need to adapt ``application.properties`` of the HawkBit server to make use of the keystore.
- There are extra requirements to make HawkBit send artifacts via HTTPS.
+ Then you need to adapt ``application.properties`` of the hawkBit server to make use of the keystore.
+ There are extra requirements to make hawkBit send artifacts via HTTPS.
 
- This is the relevant part of ``<HawkBit dir>/hawkbit-runtime/hawkbit-update-server/src/main/resources/application.properties``::
+ This is the relevant part of ``<hawkBit dir>/hawkbit-runtime/hawkbit-update-server/src/main/resources/application.properties``::
 
   # HTTPS mode working w/ swupdate
   # See also https://docs.spring.io/spring-boot/docs/1.4.7.RELEASE/reference/html/howto-embedded-servlet-containers.html#howto-configure-ssl
