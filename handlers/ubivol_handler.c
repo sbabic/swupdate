@@ -150,7 +150,7 @@ static int check_ubi_alwaysremove(struct img_type *img)
 static int update_volume(libubi_t libubi, struct img_type *img,
 	struct ubi_vol_info *vol)
 {
-	long long bytes;
+	long long bytes, decompressed_bytes;
 	int fdout;
 	char node[64];
 	int err;
@@ -219,7 +219,19 @@ static int update_volume(libubi_t libubi, struct img_type *img,
 		ERROR("cannot open UBI volume \"%s\"", node);
 		return -1;
 	}
-	err = ubi_update_start(libubi, fdout, bytes);
+
+	if (img->compressed) {
+		decompressed_bytes = strtoll(dict_get_value(&img->properties, "decompressed-size"), NULL, 10);
+		if (!decompressed_bytes) {
+			ERROR("UBIFS to be decompressed, but decompressed-size not found");
+			return -EINVAL;
+		}
+	}
+	else {
+		decompressed_bytes = bytes;
+	}
+
+	err = ubi_update_start(libubi, fdout, decompressed_bytes);
 	if (err) {
 		ERROR("cannot start volume \"%s\" update", node);
 		return -1;
