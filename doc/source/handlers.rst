@@ -228,6 +228,45 @@ should be used with property ``auto-resize``.
 		}
 	}
 
+size properties
+...............
+Due to a limit in the Linux kernel API for UBI volumes, the size reserved to be
+written on disk should be declared before actually writing anything.
+Unfortunately, the size of an encrypted or compressed image is not known until
+the decryption or decompression finished. This prevents correct declaration of
+the file size to be written on disk.
+
+For this reason UBI images can declare the special properties "decrypted-size"
+or "decompressed-size" like this:
+
+::
+
+	images: ( {
+			filename = "rootfs.ubifs.enc";
+			volume = "rootfs";
+			encrypted = true;
+			properties: {
+				decrypted-size = "104857600";
+			}
+		},
+		{
+			filename = "homefs.ubifs.gz";
+			volume = "homefs";
+			compressed = "zlib";
+			properties: {
+				decompressed-size = "420000000";
+			}
+		}
+	);
+
+The real size of the image should be calculated and written to the
+sw-description before assembling the cpio archive.
+In this example, 104857600 is the size of the rootfs after the decryption: the
+encrypted size is by the way larger. The decompressed size is of the homefs is
+420000000.
+
+The sizes are bytes in decimal notation.
+
 Lua Handlers
 ------------
 
