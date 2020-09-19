@@ -420,6 +420,9 @@ config DISABLE_CPIO_CRC
 	  is activated. CPIO in Linux distros has also a bug and
 	  CRC field is set to 0 when a file is larger as 2GB.
 
+	  SWUpdate supports the newc cpio format if this is
+	  selected. That format does not have a checksum.
+
 config SIGNED_IMAGES
 	bool "Enable verification of signed images"
 	depends on SSL_IMPL_OPENSSL || SSL_IMPL_WOLFSSL || SSL_IMPL_MBEDTLS

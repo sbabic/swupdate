@@ -38,6 +38,9 @@ int get_cpiohdr(unsigned char *buf, unsigned long *size,
 		return -EINVAL;
 
 	cpiohdr = (struct new_ascii_header *)buf;
+#ifdef CONFIG_DISABLE_CPIO_CRC
+	if (strncmp(cpiohdr->c_magic, "070701", 6) != 0)
+#endif
 	if (strncmp(cpiohdr->c_magic, "070702", 6) != 0) {
 		ERROR("CPIO Format not recognized: magic not found");
 			return -EINVAL;
@@ -724,11 +727,13 @@ int extract_sw_description(int fd, const char *descfile, off_t *offs)
 		(unsigned long)checksum,
 		(checksum == fdh.chksum) ? "VERIFIED" : "WRONG");
 
+#ifndef CONFIG_DISABLE_CPIO_CRC
 	if (checksum != fdh.chksum) {
 		ERROR("Checksum WRONG ! Computed 0x%lx, it should be 0x%lx",
 			(unsigned long)checksum, fdh.chksum);
 		return -1;
 	}
+#endif
 
 	*offs = offset;
 
