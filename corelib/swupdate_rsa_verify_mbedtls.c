@@ -47,7 +47,17 @@ int swupdate_verify_file(struct swupdate_digest *dgst, const char *sigfile,
 	int error;
 	uint8_t hash_computed[32];
 	const mbedtls_md_info_t *md_info;
+	mbedtls_pk_type_t pk_type = MBEDTLS_PK_RSA;
 	uint8_t signature[256];
+	void *pss_options = NULL;
+#if defined(CONFIG_SIGALG_RSAPSS)
+	pk_type = MBEDTLS_PK_RSASSA_PSS;
+	mbedtls_pk_rsassa_pss_options options = {
+		.mgf1_hash_id = MBEDTLS_MD_SHA256,
+		.expected_salt_len = MBEDTLS_RSA_SALT_LEN_ANY
+	};
+	pss_options = &options;
+#endif
 
 	(void)signer_name;
 
@@ -70,7 +80,8 @@ int swupdate_verify_file(struct swupdate_digest *dgst, const char *sigfile,
 		return error;
 	}
 
-	return mbedtls_pk_verify(
+	return mbedtls_pk_verify_ext(
+		pk_type, pss_options,
 		&dgst->mbedtls_pk_context, mbedtls_md_get_type(md_info),
 		hash_computed, sizeof(hash_computed),
 		signature, sizeof(signature)
