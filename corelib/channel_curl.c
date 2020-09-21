@@ -712,6 +712,58 @@ static size_t put_read_callback(void *ptr, size_t size, size_t nmemb, void *data
 	return n;
 }
 
+static channel_op_res_t setup_reply_buffer(CURL *handle, write_callback_t *wrdata)
+{
+	wrdata->outdata->memory = NULL;
+	wrdata->outdata->size = 0;
+
+	if ((wrdata->outdata->memory = malloc(1)) == NULL) {
+		ERROR("Channel buffer reservation failed with OOM.");
+		return CHANNEL_ENOMEM;
+	}
+
+	if ((curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION,
+			      channel_callback_membuffer) != CURLE_OK) ||
+	    (curl_easy_setopt(handle, CURLOPT_WRITEDATA, (void *)wrdata) != CURLE_OK)) {
+		ERROR("Cannot setup memory buffer writer callback function.");
+		return CHANNEL_EINIT;
+	}
+
+	return CHANNEL_OK;
+}
+
+static channel_op_res_t parse_reply(channel_data_t *channel_data, output_data_t *chunk)
+{
+	if (!chunk->memory) {
+		ERROR("Channel reply buffer was not filled.");
+		return CHANNEL_ENOMEM;
+	}
+
+#ifdef CONFIG_JSON
+	if (channel_data->format == CHANNEL_PARSE_JSON) {
+		assert(channel_data->json_reply == NULL);
+		enum json_tokener_error json_res;
+		struct json_tokener *json_tokenizer = json_tokener_new();
+		do {
+			channel_data->json_reply = json_tokener_parse_ex(
+			    json_tokenizer, chunk->memory, (int)chunk->size);
+		} while ((json_res = json_tokener_get_error(json_tokenizer)) ==
+			 json_tokener_continue);
+		if (json_res != json_tokener_success) {
+			ERROR("Error while parsing channel's returned JSON data: %s",
+			      json_tokener_error_desc(json_res));
+			json_tokener_free(json_tokenizer);
+			return CHANNEL_EBADMSG;
+		}
+		if (channel_data->debug) {
+			TRACE("Got JSON: %s", chunk->memory);
+		}
+		json_tokener_free(json_tokenizer);
+	}
+#endif
+	return CHANNEL_OK;
+}
+
 static channel_op_res_t channel_post_method(channel_t *this, void *data)
 {
 	channel_curl_t *channel_curl = this->priv;
@@ -1055,7 +1107,8 @@ channel_op_res_t channel_get(channel_t *this, void *data)
 	channel_op_res_t result = CHANNEL_OK;
 	channel_data_t *channel_data = (channel_data_t *)data;
 	channel_data->http_response_code = 0;
-
+	output_data_t outdata = {};
+	write_callback_t wrdata = { .channel_data = channel_data, .outdata = &outdata };
 
 	if ((result = channel_set_content_type(this, channel_data)) !=
 	    CHANNEL_OK) {
@@ -1069,24 +1122,8 @@ channel_op_res_t channel_get(channel_t *this, void *data)
 		goto cleanup_header;
 	}
 
-	output_data_t chunk = {.memory = NULL, .size = 0};
-	if ((chunk.memory = malloc(1)) == NULL) {
-		ERROR("Channel buffer reservation failed with OOM.");
-		result = CHANNEL_ENOMEM;
+	if ((result = setup_reply_buffer(channel_curl->handle, &wrdata)) != CHANNEL_OK) {
 		goto cleanup_header;
-	}
-
-	write_callback_t wrdata;
-	wrdata.channel_data = channel_data;
-	wrdata.outdata = &chunk;
-
-	if ((curl_easy_setopt(channel_curl->handle, CURLOPT_WRITEFUNCTION,
-			      channel_callback_membuffer) != CURLE_OK) ||
-	    (curl_easy_setopt(channel_curl->handle, CURLOPT_WRITEDATA,
-			      (void *)&wrdata) != CURLE_OK)) {
-		ERROR("Cannot setup memory buffer writer callback function.");
-		result = CHANNEL_EINIT;
-		goto cleanup_chunk;
 	}
 
 	if (channel_data->debug) {
@@ -1097,7 +1134,7 @@ channel_op_res_t channel_get(channel_t *this, void *data)
 		ERROR("Channel get operation failed (%d): '%s'", curlrc,
 		      curl_easy_strerror(curlrc));
 		result = channel_map_curl_error(curlrc);
-		goto cleanup_chunk;
+		goto cleanup_header;
 	}
 
 	if (channel_data->debug) {
@@ -1107,7 +1144,7 @@ channel_op_res_t channel_get(channel_t *this, void *data)
 	result = channel_map_http_code(this, &channel_data->http_response_code);
 
 	if (channel_data->nocheckanswer)
-		goto cleanup_chunk;
+		goto cleanup_header;
 
 	if (result != CHANNEL_OK) {
 		ERROR("Channel operation returned HTTP error code %ld.",
@@ -1116,43 +1153,22 @@ channel_op_res_t channel_get(channel_t *this, void *data)
 			case 403:
 			case 404:
 			case 500:
-				DEBUG("The error's message is: '%s'\n", chunk.memory);
+				DEBUG("The error's message is: '%s'\n", outdata.memory);
 				break;
 			default:
 				break;
 		}
-		goto cleanup_chunk;
+		goto cleanup_header;
 	}
 	if (channel_data->debug) {
 		TRACE("Channel operation returned HTTP status code %ld.",
 			channel_data->http_response_code);
 	}
 
-#ifdef CONFIG_JSON
-	assert(channel_data->json_reply == NULL);
-	enum json_tokener_error json_res;
-	struct json_tokener *json_tokenizer = json_tokener_new();
-	do {
-		channel_data->json_reply = json_tokener_parse_ex(
-		    json_tokenizer, chunk.memory, (int)chunk.size);
-	} while ((json_res = json_tokener_get_error(json_tokenizer)) ==
-		 json_tokener_continue);
-	if (json_res != json_tokener_success) {
-		ERROR("Error while parsing channel's returned JSON data: %s",
-		      json_tokener_error_desc(json_res));
-		result = CHANNEL_EBADMSG;
-		goto cleanup_json_tokenizer;
-	}
-	if (channel_data->debug) {
-		TRACE("Get JSON: %s", chunk.memory);
-	}
+	result = parse_reply(channel_data, &outdata);
 
-cleanup_json_tokenizer:
-	json_tokener_free(json_tokenizer);
-#endif
-cleanup_chunk:
-	chunk.memory != NULL ? free(chunk.memory) : (void)0;
 cleanup_header:
+	outdata.memory != NULL ? free(outdata.memory) : (void)0;
 	curl_easy_reset(channel_curl->handle);
 	curl_slist_free_all(channel_curl->header);
 	channel_curl->header = NULL;
