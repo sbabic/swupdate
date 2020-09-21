@@ -514,6 +514,10 @@ channel_op_res_t channel_set_options(channel_t *this,
 		goto cleanup;
 	}
 
+	if (channel_data->debug) {
+		(void)curl_easy_setopt(channel_curl->handle, CURLOPT_VERBOSE, 1L);
+	}
+
 	if ((!channel_data->nofollow) &&
 	    (curl_easy_setopt(channel_curl->handle, CURLOPT_FOLLOWLOCATION, 1) !=
 	     CURLE_OK)) {
@@ -717,10 +721,6 @@ static channel_op_res_t channel_post_method(channel_t *this, void *data)
 	channel_op_res_t result = CHANNEL_OK;
 	channel_data_t *channel_data = (channel_data_t *)data;
 
-	if (channel_data->debug) {
-		curl_easy_setopt(channel_curl->handle, CURLOPT_VERBOSE, 1L);
-	}
-
 	if ((result = channel_set_content_type(this, channel_data)) !=
 	    CHANNEL_OK) {
 		ERROR("Set content-type option failed.");
@@ -782,10 +782,6 @@ static channel_op_res_t channel_put_method(channel_t *this, void *data)
 	channel_op_res_t result = CHANNEL_OK;
 	channel_data_t *channel_data = (channel_data_t *)data;
 	channel_data->offs = 0;
-
-	if (channel_data->debug) {
-		curl_easy_setopt(channel_curl->handle, CURLOPT_VERBOSE, 1L);
-	}
 
 	if ((result = channel_set_content_type(this, channel_data)) !=
 	    CHANNEL_OK) {
@@ -873,10 +869,6 @@ channel_op_res_t channel_get_file(channel_t *this, void *data)
 			ERROR("Cannot initialize sha1 checksum context.");
 			return result;
 		}
-	}
-
-	if (channel_data->debug) {
-		curl_easy_setopt(channel_curl->handle, CURLOPT_VERBOSE, 1L);
 	}
 
 	if (((channel_curl->header = curl_slist_append(
@@ -1064,9 +1056,6 @@ channel_op_res_t channel_get(channel_t *this, void *data)
 	channel_data_t *channel_data = (channel_data_t *)data;
 	channel_data->http_response_code = 0;
 
-	if (channel_data->debug) {
-		curl_easy_setopt(channel_curl->handle, CURLOPT_VERBOSE, 1L);
-	}
 
 	if ((result = channel_set_content_type(this, channel_data)) !=
 	    CHANNEL_OK) {
