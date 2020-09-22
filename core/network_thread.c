@@ -410,8 +410,10 @@ void *network_thread (void *data)
 				break;
 			case SET_UPDATE_STATE:
 				value = *(update_state_t *)msg.data.msg;
-				ret = save_state((char *)STATE_KEY, value);
-				msg.type = (ret == 0) ? ACK : NACK;
+				msg.type = (is_valid_state(value) &&
+					    save_state((char *)STATE_KEY, value) == SERVER_OK)
+					       ? ACK
+					       : NACK;
 				break;
 			default:
 				msg.type = NACK;
