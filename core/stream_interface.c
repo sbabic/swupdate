@@ -565,7 +565,7 @@ void *network_initializer(void *data)
 				 * that it is not required to start recovery again
 				 */
 				if (software->bootloader_transaction_marker) {
-					reset_state((char*)BOOTVAR_TRANSACTION);
+					unset_state((char*)BOOTVAR_TRANSACTION);
 				}
 				if (save_state((char *)STATE_KEY, STATE_INSTALLED) != SERVER_OK) {
 					ERROR("Cannot persistently store INSTALLED update state.");

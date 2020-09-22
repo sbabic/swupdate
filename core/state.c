@@ -83,7 +83,7 @@ server_op_res_t read_state(char *key, update_state_t *value)
 
 	return SERVER_OK;
 }
-server_op_res_t reset_state(char *key)
+server_op_res_t unset_state(char *key)
 {
 	int ret;
 

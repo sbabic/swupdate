@@ -60,5 +60,5 @@ static inline char* get_state_string(update_state_t state) {
 server_op_res_t save_state(char *key, update_state_t value);
 server_op_res_t save_state_string(char *key, update_state_t value);
 server_op_res_t read_state(char *key, update_state_t *value);
-server_op_res_t reset_state(char *key);
+server_op_res_t unset_state(char *key);
 update_state_t get_state(void);
