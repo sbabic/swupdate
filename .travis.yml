@@ -1,5 +1,5 @@
 
-dist: bionic
+dist: focal
 sudo: required
 
 language: c
@@ -37,7 +37,7 @@ before_install:
     - sudo apt-get install -y libsystemd-dev
     - sudo apt-get install -y libsystemd0
     - sudo apt-get install -y check
-    - sudo apt-get install -y librsync1
+    - sudo apt-get install -y librsync2
     - sudo apt-get install -y librsync-dev
     - sudo apt-get install -y liburiparser-dev
     - sudo apt-get install -y doxygen
