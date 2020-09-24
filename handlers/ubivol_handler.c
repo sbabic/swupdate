@@ -147,38 +147,59 @@ static int check_ubi_alwaysremove(struct img_type *img)
 	return ret;
 }
 
-static int update_volume(libubi_t libubi, struct img_type *img,
-	struct ubi_vol_info *vol)
+static long long get_output_size(struct img_type *img)
 {
-	long long bytes, decompressed_bytes;
-	int fdout;
-	char node[64];
-	int err;
-	char sbuf[128];
-	char *decrypted_size_str = NULL;
-	struct ubi_vol_info *repl_vol;
+	char *output_size_str = NULL;
+	long long bytes = img->size;
 
-	bytes = img->size;
-	if (img->is_encrypted) {
+	if (img->compressed) {
+		output_size_str = dict_get_value(&img->properties, "decompressed-size");
 
-		decrypted_size_str = dict_get_value(&img->properties, "decrypted-size");
+		bytes = ustrtoull(output_size_str, 0);
+		if (errno) {
+			ERROR("decompressed-size argument: ustrtoull failed");
+			return -1;
+		}
 
-		bytes = ustrtoull(decrypted_size_str, 0);
+		if (bytes == 0) {
+			ERROR("UBIFS to be decompressed, but decompressed-size not valid");
+			return -1;
+		}
+		TRACE("Image is compressed, decompressed size %lld bytes", bytes);
+
+	} else if (img->is_encrypted) {
+
+		output_size_str = dict_get_value(&img->properties, "decrypted-size");
+
+		bytes = ustrtoull(output_size_str, 0);
 		if (errno){
 			ERROR("decrypted-size argument: ustrtoull failed");
 			return -1;
 		}
 
-		if (img->compressed) {
-			ERROR("Decryption of compressed UBI images not supported");
-			return -1;
-		}
 		if (bytes < AES_BLK_SIZE) {
 			ERROR("Encrypted image size (%lld) too small", bytes);
 			return -1;
 		}
 		TRACE("Image is crypted, decrypted size %lld bytes", bytes);
 	}
+
+	return bytes;
+}
+
+static int update_volume(libubi_t libubi, struct img_type *img,
+	struct ubi_vol_info *vol)
+{
+	long long bytes;
+	int fdout;
+	char node[64];
+	int err;
+	char sbuf[128];
+	struct ubi_vol_info *repl_vol;
+
+	bytes = get_output_size(img);
+	if (bytes <= 0)
+		return -1;
 
 	if (!libubi) {
 		ERROR("Request to write into UBI, but no UBI on system");
@@ -219,19 +240,7 @@ static int update_volume(libubi_t libubi, struct img_type *img,
 		ERROR("cannot open UBI volume \"%s\"", node);
 		return -1;
 	}
-
-	if (img->compressed) {
-		decompressed_bytes = strtoll(dict_get_value(&img->properties, "decompressed-size"), NULL, 10);
-		if (!decompressed_bytes) {
-			ERROR("UBIFS to be decompressed, but decompressed-size not found");
-			return -EINVAL;
-		}
-	}
-	else {
-		decompressed_bytes = bytes;
-	}
-
-	err = ubi_update_start(libubi, fdout, decompressed_bytes);
+	err = ubi_update_start(libubi, fdout, bytes);
 	if (err) {
 		ERROR("cannot start volume \"%s\" update", node);
 		return -1;
@@ -442,29 +451,9 @@ static int install_ubivol_image(struct img_type *img,
 	int ret;
 
 	if (check_ubi_autoresize(img)) {
-		long long bytes = img->size;
-
-		if (img->is_encrypted) {
-			char *decrypted_size_str = NULL;
-
-			decrypted_size_str = dict_get_value(&img->properties,
-							    "decrypted-size");
-
-			bytes = ustrtoull(decrypted_size_str, 0);
-			if (errno) {
-				ERROR("decrypted-size argument: ustrtoull failed");
-				return -1;
-			}
-
-			if (img->compressed) {
-				ERROR("Decryption of compressed UBI images not supported");
-				return -1;
-			}
-			if (bytes < AES_BLK_SIZE) {
-				ERROR("Encrypted image size (%lld) too small", bytes);
-				return -1;
-			}
-		}
+		long long bytes = get_output_size(img);
+		if (bytes <= 0)
+			return -1;
 
 		ret = resize_volume(img, bytes);
 		if (ret < 0) {
