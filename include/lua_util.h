@@ -31,7 +31,9 @@ int lua_notify_debug(lua_State *L);
 
 #if !defined(LUA_VERSION_NUM) || LUA_VERSION_NUM == 501
 #define LUA_OK 0
+#if !defined(luaL_newlib)
 #define luaL_newlib(L, l) (lua_newtable((L)),luaL_setfuncs((L), (l), 0))
+#endif
 void luaL_setfuncs(lua_State *L, const luaL_Reg *l, int nup);
 void luaL_requiref(lua_State *L, char const* modname, lua_CFunction openf, int glb);
 
@@ -64,6 +66,9 @@ void luaL_buffinit(lua_State *L, luaL_Buffer_52 *B);
 
 #define luaL_pushresult luaL_pushresult_52
 void luaL_pushresult(luaL_Buffer_52 *B);
+
+#define luaL_checkversion(L) ((void)0)
+#define lua_rawlen(L, i) lua_objlen(L, i)
 #endif
 
 #else
