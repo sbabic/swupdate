@@ -547,14 +547,13 @@ channel_op_res_t channel_set_options(channel_t *this, channel_data_t *channel_da
 		goto cleanup;
 	}
 
-	/*
-	 * if the caller wants to parse the headers,
-	 * collect them in a dictionary.
-	 * The caller must provide a valid dictionary
-	 * for it
-	 */
-
 	if (channel_data->headers) {
+		/*
+		 * Setup supply request and receive reply HTTP headers.
+		 * A LIST_INIT()'d dictionary is expected at channel_data->headers.
+		 * The dictionary is modified in-place with the received headers,
+		 * if any, by channel_callback_headers().
+		 */
 		if ((curl_easy_setopt(channel_curl->handle,
 			      CURLOPT_HEADERFUNCTION,
 			      channel_callback_headers) != CURLE_OK) ||
@@ -562,6 +561,26 @@ channel_op_res_t channel_set_options(channel_t *this, channel_data_t *channel_da
 			      channel_data->headers) != CURLE_OK)) {
 			result = CHANNEL_EINIT;
 			goto cleanup;
+		}
+
+		struct dict_entry *entry;
+		char *header;
+		LIST_FOREACH(entry, channel_data->headers, next)
+		{
+			if (ENOMEM_ASPRINTF ==
+			    asprintf(&header, "%s: %s",
+				     dict_entry_get_key(entry),
+				     dict_entry_get_value(entry))) {
+				result = CHANNEL_EINIT;
+				goto cleanup;
+			}
+			if ((channel_curl->header = curl_slist_append(
+				  channel_curl->header, header)) == NULL) {
+				free(header);
+				result = CHANNEL_EINIT;
+				goto cleanup;
+			}
+			free(header);
 		}
 	}
 
