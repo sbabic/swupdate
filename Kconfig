@@ -381,11 +381,9 @@ config DOWNLOAD_SSL
 	bool "Enable SSL support for image downloading"
 	default n
 	depends on DOWNLOAD
-	depends on SSL_IMPL_OPENSSL || SSL_IMPL_WOLFSSL || SSL_IMPL_MBEDTLS
 	select CHANNEL_CURL_SSL
 	help
-	  Enable SSL and checksum verification support in channels
-	  using libcurl.
+	  Enable SSL support in channels using libcurl.
 
 config CHANNEL_CURL
 	bool
@@ -395,7 +393,6 @@ config CHANNEL_CURL
 config CHANNEL_CURL_SSL
 	bool
 	depends on CHANNEL_CURL
-	depends on SSL_IMPL_OPENSSL || SSL_IMPL_WOLFSSL || SSL_IMPL_MBEDTLS
 	select CURL_SSL
 
 config HASH_VERIFY
