@@ -419,7 +419,8 @@ static size_t channel_callback_headers(char *buffer, size_t size, size_t nitems,
 		key = info;
 		val = p + 1; /* Next char after ':' */
 		while(isspace((unsigned char)*val)) val++;
-		/* Remove '\n' from header's value. */
+		/* Remove '\n', '\r', and '\r\n' from header's value. */
+		*strchrnul(val, '\r') = '\0';
 		*strchrnul(val, '\n') = '\0';
 		/* For multiple same-key headers, only the last is saved. */
 		dict_set_value(dict, key, val);
