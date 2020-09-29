@@ -86,7 +86,7 @@ int main(int argc, char *argv[]) {
 			break;
 	}
 
-	if (i > 4)
+	if (i > 5)
 		written = snprintf(buf, size, "]}");
 	else
 		written = snprintf(buf, size, "}");
