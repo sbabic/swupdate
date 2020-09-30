@@ -226,13 +226,10 @@ config SWUFORWARDER_HANDLER
 	  embedded SWU to the other devices using the
 	  Webserver REST API.
 
-comment "swuforward handler needs json-c and curl"
+comment "swuforward handler needs json-c and libcurl"
 	depends on !HAVE_JSON_C || !HAVE_LIBCURL
 
-comment "SWU forwarder requires libcurl"
-	depends on !HAVE_LIBCURL
-
-comment "swuforward handler needs json-c and curl"
+comment "swuforward handler needs websockets and uriparser"
 	depends on !HAVE_LIBWEBSOCKETS || !HAVE_URIPARSER
 
 config BOOTLOADERHANDLER
