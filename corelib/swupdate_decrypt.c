@@ -12,7 +12,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include <openssl/opensslv.h>
 #include "swupdate.h"
 #include "sslapi.h"
 #include "util.h"
