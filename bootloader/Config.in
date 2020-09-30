@@ -23,6 +23,9 @@ config UBOOT
 	  Support for U-Boot
 	  https://www.denx.de/wiki/U-Boot
 
+comment "U-Boot support needs libubootenv and libz"
+	depends on !HAVE_LIBUBOOTENV || !HAVE_ZLIB
+
 config BOOTLOADER_NONE
 	bool "Environment in RAM"
 	help
@@ -45,9 +48,6 @@ config UBOOT_FWENV
 	  This is the file described in U-Boot documentation
 	  in the tools directory. It tells where the U-Boot
 	  environment is saved.
-
-comment "U-Boot support needs libubootenv, libz"
-	depends on !HAVE_LIBUBOOTENV || !HAVE_ZLIB
 
 choice
 	prompt "Update Status Storage"
