@@ -27,7 +27,7 @@
 #include <p11-kit/uri.h>
 #endif
 
-#if defined(CONFIG_SSL_IMPL_OPENSSL) || defined(CONFIG_SSL_IMPL_WOLFSSL)
+#ifdef CONFIG_SSL_IMPL_OPENSSL
 #include <openssl/bio.h>
 #include <openssl/objects.h>
 #include <openssl/err.h>
@@ -38,6 +38,21 @@
 #include <openssl/hmac.h>
 #include <openssl/aes.h>
 #include <openssl/opensslv.h>
+#elif defined(CONFIG_SSL_IMPL_WOLFSSL)
+#include <wolfssl/options.h>
+#include <wolfssl/openssl/bio.h>
+#include <wolfssl/openssl/objects.h>
+#include <wolfssl/openssl/err.h>
+#include <wolfssl/openssl/x509.h>
+#include <wolfssl/openssl/x509v3.h>
+#include <wolfssl/openssl/pem.h>
+#include <wolfssl/openssl/evp.h>
+#include <wolfssl/openssl/hmac.h>
+#include <wolfssl/openssl/aes.h>
+#include <wolfssl/openssl/opensslv.h>
+#endif
+
+#if defined(CONFIG_SSL_IMPL_OPENSSL) || defined(CONFIG_SSL_IMPL_WOLFSSL)
 
 #ifdef CONFIG_SIGALG_CMS
 #if defined(LIBRESSL_VERSION_NUMBER)

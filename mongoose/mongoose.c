@@ -4493,10 +4493,15 @@ struct mg_iface *mg_socks_mk_iface(struct mg_mgr *mgr, const char *proxy_addr) {
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
+#ifdef CONFIG_SSL_IMPL_WOLFSSL
+#include <wolfssl/openssl/ssl.h>
+#include <wolfssl/openssl/tls1.h>
+#else
 #include <openssl/ssl.h>
 #ifndef KR_VERSION
 #include <openssl/tls1.h>
 #endif
+#endif /*CONFIG_SSL_IMPL_WOLFSSL */
 
 struct mg_ssl_if_ctx {
   SSL *ssl;
