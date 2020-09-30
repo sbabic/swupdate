@@ -157,7 +157,6 @@ LDLIBS += wolfssl
 endif
 
 ifeq ($(CONFIG_PKCS11),y)
-KBUILD_CPPFLAGS += -I/usr/include/p11-kit-1
 LDLIBS += p11-kit
 endif
 
