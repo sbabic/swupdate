@@ -13,10 +13,6 @@ config HAVE_FREEBSD
 	bool
 	option env="HAVE_FREEBSD"
 
-config HAVE_DOT_CONFIG
-	bool
-	default y
-
 config HAVE_LUA
 	bool
 	option env="HAVE_LUA"
