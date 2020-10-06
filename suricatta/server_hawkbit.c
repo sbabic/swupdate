@@ -1883,7 +1883,15 @@ static server_op_res_t server_activation_ipc(ipc_message *msg)
 	result =
 	    server_get_deployment_info(server_hawkbit.channel, &channel_data, &server_action_id);
 
-	server_op_res_t response = SERVER_OK;
+        if (result != SERVER_OK && result != SERVER_UPDATE_AVAILABLE &&
+            result != SERVER_NO_UPDATE_AVAILABLE &&
+            result != SERVER_UPDATE_CANCELED && result != SERVER_ID_REQUESTED) {
+          DEBUG("Hawkbit is not accessible, bailing out (%d)", result);
+          result = SERVER_EERR;
+          goto cleanup;
+        }
+
+        server_op_res_t response = SERVER_OK;
 
 	if (result == SERVER_UPDATE_CANCELED) {
 		DEBUG("Acknowledging cancelled update.");
@@ -1920,6 +1928,7 @@ static server_op_res_t server_activation_ipc(ipc_message *msg)
 
 	msg->data.instmsg.len = 0;
 
+cleanup:
 	free(details);
 
 	return result;
