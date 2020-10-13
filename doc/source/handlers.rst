@@ -23,11 +23,18 @@ Supplied handlers
 In mainline there are the handlers for the most common cases. They include:
 	- flash devices in raw mode (both NOR and NAND)
 	- UBI volumes
-        - UBI volumus partitioner
+        - UBI volumes partitioner
+        - raw flashes handler (NAND, NOR, SPI-NOR, CFI interface)
         - disk partitioner
 	- raw devices, such as a SD Card partition
 	- bootloader (U-Boot, GRUB, EFI Boot Guard) environment
-	- Lua scripts
+	- Lua scripts handler
+        - shell scripts handler
+        - rdiff handler
+        - readback handler
+        - archive (zo, tarballs) handler
+        - remote handler
+        - microcontroller update handler
 
 For example, if an image is marked to be updated into a UBI volume,
 the parser must fill a supplied table setting "ubi" as required handler,
