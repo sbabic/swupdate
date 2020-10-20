@@ -183,7 +183,7 @@ int main(int argc, char **argv)
 			continue;
 		}
 
-		if (progress_ipc_receive(&connfd, &msg) == -1) {
+		if (progress_ipc_receive(&connfd, &msg) <= 0) {
 			continue;
 		}
 

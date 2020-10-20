@@ -287,7 +287,7 @@ static void *server_progress_thread (void *data)
 			continue;
 		}
 
-		if (progress_ipc_receive(&progfd, &msg) == -1) {
+		if (progress_ipc_receive(&progfd, &msg) <= 0) {
 			continue;
 		}
 

@@ -297,7 +297,7 @@ static int progress_close(lua_State __attribute__ ((__unused__)) *L) {
 static int progress_receive(lua_State *L) {
 	struct prog_obj *p = (struct prog_obj *) auxiliar_checkclass(L, "swupdate_progress", 1);
 	int connfd = p->socket;
-	if (progress_ipc_receive(&connfd, &p->msg) == -1) {
+	if (progress_ipc_receive(&connfd, &p->msg) <= 0) {
         	lua_pushnil(L);
 		return 2;
 	};
