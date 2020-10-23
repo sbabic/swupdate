@@ -23,6 +23,7 @@
 #include "sslapi.h"
 #include "channel.h"
 #include "channel_curl.h"
+#include "progress.h"
 #ifdef CONFIG_JSON
 #include <json-c/json.h>
 #endif
@@ -379,14 +380,7 @@ static int channel_callback_xferinfo(void *p, curl_off_t dltotal, curl_off_t dln
 		return 0;
 	}
 	*last_percent = percent;
-	char *info;
-	if (asprintf(&info,
-					"{\"percent\": %d, \"msg\":\"Received %" CURL_FORMAT_CURL_OFF_T "B "
-					"of %" CURL_FORMAT_CURL_OFF_T "B\"}",
-					(int)percent, dlnow, dltotal) != ENOMEM_ASPRINTF) {
-		notify(PROGRESS, RECOVERY_NO_ERROR, TRACELEVEL, info);
-		free(info);
-	}
+	swupdate_download_update(percent, dltotal);
 	return 0;
 }
 
