@@ -1415,6 +1415,7 @@ cleanup:
 	if (result == SERVER_OK) {
 		INFO("Update successful, executing post-update actions.");
 		ipc_message msg;
+		memset(&msg, 0, sizeof(msg));
 		if (ipc_postupdate(&msg) != 0) {
 			result = SERVER_EERR;
 		} else {
