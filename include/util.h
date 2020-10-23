@@ -73,6 +73,7 @@ typedef enum {
 enum {
 	RECOVERY_NO_ERROR,
 	RECOVERY_ERROR,
+	RECOVERY_DWL,
 };
 
 struct installer {

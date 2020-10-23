@@ -12,6 +12,15 @@
 #include <progress_ipc.h>
 
 /*
+ * Internal structures to be used to forward progress data
+ */
+
+struct progress_dwl_data {
+	unsigned int	dwl_percent;	/* % downloaded data */
+	unsigned long long dwl_bytes;	/* total of bytes to be downloaded */
+};
+
+/*
  * Internal SWUpdate functions to drive the progress
  * interface. Common progress definitions for internal
  * as well as external use are defined in progress_ipc.h
@@ -23,6 +32,8 @@ void swupdate_progress_step_completed(void);
 void swupdate_progress_end(RECOVERY_STATUS status);
 void swupdate_progress_done(const char *info);
 void swupdate_progress_info(RECOVERY_STATUS status, int cause, const char *msg);
+
+void swupdate_download_update(unsigned int perc, unsigned long long totalbytes);
 
 void *progress_bar_thread (void *data);
 

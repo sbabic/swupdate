@@ -25,6 +25,7 @@
 #include "swupdate.h"
 #include <handler.h>
 #include "util.h"
+#include "pctl.h"
 #include "network_ipc.h"
 #include "network_interface.h"
 #include <progress.h>
@@ -86,6 +87,18 @@ static void send_progress_msg(void)
 	}
 }
 
+static void _swupdate_download_update(unsigned int perc, unsigned long long totalbytes)
+{
+	struct swupdate_progress *prbar = &progress;
+	pthread_mutex_lock(&prbar->lock);
+	if (perc != prbar->msg.dwl_percent) {
+		prbar->msg.dwl_percent = perc;
+		prbar->msg.dwl_bytes = totalbytes;
+		send_progress_msg();
+	}
+	pthread_mutex_unlock(&prbar->lock);
+}
+
 void swupdate_progress_init(unsigned int nsteps) {
 	struct swupdate_progress *prbar = &progress;
 	pthread_mutex_lock(&prbar->lock);
@@ -111,6 +124,25 @@ void swupdate_progress_update(unsigned int perc)
 		send_progress_msg();
 	}
 	pthread_mutex_unlock(&prbar->lock);
+}
+
+void swupdate_download_update(unsigned int perc, unsigned long long totalbytes)
+{
+	char	info[PRINFOSIZE];   		/* info */
+
+	/*
+	 * Not called by main process, for example by suricatta or Webserver
+	 */
+	if (pid == getpid()) {
+		struct progress_dwl_data *pdwl = (struct progress_dwl_data *)info;
+		pdwl->dwl_percent = perc;
+		pdwl->dwl_bytes = totalbytes;
+		notify(PROGRESS, RECOVERY_DWL, TRACELEVEL, info);
+		return;
+	}
+
+	/* Called by main process, emit a progress message */
+	_swupdate_download_update(perc, totalbytes);
 }
 
 void swupdate_progress_inc_step(char *image, char *handler_name)

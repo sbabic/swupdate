@@ -345,6 +345,12 @@ static void progress_notifier (RECOVERY_STATUS status, int event, int level, con
 	if (status != PROGRESS)
 	       return;
 
+	if (event == RECOVERY_DWL) {
+		struct progress_dwl_data *pdwl = (struct progress_dwl_data *)msg;
+		swupdate_download_update(pdwl->dwl_percent, pdwl->dwl_bytes);
+		return;
+	}
+
 	swupdate_progress_info(status, event, msg);
 }
 
