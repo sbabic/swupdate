@@ -44,9 +44,12 @@
 #define CYAN		6
 #define	WHITE		7
 
+static bool silent = false;
+
 static void resetterm(void)
 {
-	fprintf(stdout, "%c[%dm", 0x1B, RESET);
+	if (!silent)
+		fprintf(stdout, "%c[%dm", 0x1B, RESET);
 }
 
 static void textcolor(int attr, int fg, int bg)
@@ -54,7 +57,8 @@ static void textcolor(int attr, int fg, int bg)
 
 	/* Command is the control command to the terminal */
 	sprintf(command, "%c[%d;%d;%dm", 0x1B, attr, fg + 30, bg + 40);
-	fprintf(stdout, "%s", command);
+	if (!silent)
+		fprintf(stdout, "%s", command);
 }
 
 static struct option long_options[] = {
@@ -65,6 +69,7 @@ static struct option long_options[] = {
 	{"color", no_argument, NULL, 'c'},
 	{"socket", required_argument, NULL, 's'},
 	{"exec", required_argument, NULL, 'e'},
+	{"quiet", no_argument, NULL, 'q'},
 	{NULL, 0, NULL, 0}
 };
 
@@ -81,6 +86,7 @@ static void usage(char *programname)
 		" -p, --psplash           : send info to the psplash process\n"
 		" -s, --socket <path>     : path to progress IPC socket\n"
 		" -h, --help              : print this help and exit\n"
+		" -q, --quiet             : do not print progress bar\n"
 		);
 }
 
@@ -231,6 +237,9 @@ int main(int argc, char **argv)
 			usage(argv[0]);
 			exit(0);
 			break;
+		case 'q':
+			silent = true;
+			break;
 		default:
 			usage(argv[0]);
 			exit(1);
@@ -310,17 +319,21 @@ int main(int argc, char **argv)
 
 			if (msg.cur_step > 0) {
 				if ((msg.cur_step != curstep) && (curstep != 0)){
-					fprintf(stdout, "\n");
-					fflush(stdout);
+					if (!silent) {
+						fprintf(stdout, "\n");
+						fflush(stdout);
+					}
 				}
 				fill_progress_bar(bar, sizeof(bar), msg.cur_percent);
 
-				fprintf(stdout, "[ %.*s ] %d of %d %d%% (%s) dwl %d%%\r",
-					bar_len,
-					bar,
-					msg.cur_step, msg.nsteps, msg.cur_percent,
-					msg.cur_image, msg.dwl_percent);
-				fflush(stdout);
+				if (!silent) {
+					fprintf(stdout, "[ %.*s ] %d of %d %d%% (%s) dwl %d%%\r",
+						bar_len,
+						bar,
+						msg.cur_step, msg.nsteps, msg.cur_percent,
+						msg.cur_image, msg.dwl_percent);
+					fflush(stdout);
+				}
 
 				if (psplash_ok && ((msg.cur_step != curstep) || (msg.cur_percent != percent))) {
 					psplash_progress(psplash_pipe_path, &msg);
