@@ -18,6 +18,10 @@ ifeq ($(HAVE_LIBFDISK),)
 export HAVE_LIBFDISK = y
 endif
 
+ifeq ($(HAVE_LIBBLKID),)
+export HAVE_LIBBLKID = y
+endif
+
 ifeq ($(HAVE_LIBGPIOD),)
 export HAVE_LIBGPIOD = y
 endif

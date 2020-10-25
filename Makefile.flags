@@ -181,6 +181,10 @@ ifeq ($(CONFIG_DISKPART),y)
 LDLIBS += fdisk
 endif
 
+ifeq ($(CONFIG_UNIQUEUUID),y)
+LDLIBS += blkid
+endif
+
 ifeq ($(CONFIG_RDIFFHANDLER),y)
 LDLIBS += rsync
 endif

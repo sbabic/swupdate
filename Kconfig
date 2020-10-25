@@ -33,6 +33,10 @@ config HAVE_LIBFDISK
 	bool
 	option env="HAVE_LIBFDISK"
 
+config HAVE_LIBBLKID
+	bool
+	option env="HAVE_LIBBLKID"
+
 config HAVE_LIBGPIOD
 	bool
 	option env="HAVE_LIBGPIOD"

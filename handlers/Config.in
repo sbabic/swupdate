@@ -102,6 +102,23 @@ config DISKPART
 comment "diskpart support needs libfdisk"
 	depends on !HAVE_LIBFDISK
 
+config UNIQUEUUID
+	bool "uniqueuuid"
+	depends on HAVE_LIBBLKID
+	default n
+	help
+	  This handler checks that no filesystem on the device has
+	  a UUID from a list (list is added as part of "properties"
+	  in sw-description) for this handler.
+	  This is useful for bootloader (like GRUB) that use UUID to
+	  select the partition to be started, and in case two or
+	  more filesystem have the same UUID, a wrong one is started.
+	  This handler is a partition handler and it is guaranteed that
+	  it runs before any image is installed on the device.
+
+comment "uniqueuuid support needs libblkid"
+	depends on !HAVE_LIBBLKID
+
 config RAW
 	bool "raw"
 	default n

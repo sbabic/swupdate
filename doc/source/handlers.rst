@@ -835,3 +835,25 @@ MBR Example:
 		partition-6 = ["size=512M", "start=2234368", "name=part6",  "type=0x83"];
 	   }
 	}
+
+Unique UUID Handler
+-------------------
+
+This handler checks if the device already has a filesystems with a provide UUID. This is helpful
+in case the bootloader chooses the device to boot from the UUID and not from the partition number.
+One use case is with the GRUB bootloader when GRUB_DISABLE_LINUX_UUID is not set, as usual on
+Linux Distro as Debian or Ubuntu.
+
+The handler iterates all UUIDs given in sw-description and raises error if one of them is
+found on the device. It is a partition handler and it runs before any image is installed.
+
+::
+
+	partitions: (
+	{
+		type = "uniqueuuid";
+		properties: {
+			fs-uuid = ["21f16cae-612f-4bc6-8ef5-e68cc9dc4380",
+                                   "18e12df1-d8e1-4283-8727-37727eb4261d"];
+		}
+	});
