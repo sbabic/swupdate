@@ -170,6 +170,21 @@ static void psplash_progress(char *pipe, struct progress_msg *pmsg)
 	free(buf);
 }
 
+static void fill_progress_bar(char *bar, size_t size, unsigned int percent)
+{
+	/* the max len for a bar is size-1 sue to string terminator */
+	unsigned int filled_len, remain;
+
+	if (percent > 100)
+		percent = 100;
+	filled_len = (size - 1) * percent / 100;
+	memset(bar, 0, size);
+
+	memset(bar,'=', filled_len);
+	remain = (size - 1) - filled_len;
+	memset(&bar[filled_len], '-', remain);
+}
+
 int main(int argc, char **argv)
 {
 	int connfd;
@@ -181,7 +196,6 @@ int main(int argc, char **argv)
 	unsigned int percent = 0;
 	const int bar_len = 60;
 	char bar[bar_len+1];
-	unsigned int filled_len;
 	int opt_c = 0;
 	int opt_w = 0;
 	int opt_r = 0;
@@ -189,7 +203,7 @@ int main(int argc, char **argv)
 	int c;
 	int ret;
 	char *script = NULL;
-	RECOVERY_STATUS	status = IDLE;		/* Update Status (Running, Failure) */
+	bool wait_update = true;
 
 	/* Process options with getopt */
 	while ((c = getopt_long(argc, argv, "cwprhs:e:",
@@ -229,7 +243,6 @@ int main(int argc, char **argv)
 		rundir = "/run";
 	snprintf(psplash_pipe_path, sizeof(psplash_pipe_path), "%s/psplash_fifo", rundir);
 
-
 	connfd = -1;
 	while (1) {
 		if (connfd < 0) {
@@ -251,27 +264,30 @@ int main(int argc, char **argv)
 		/*
 		 * Something happens, show the info
 		 */
-		if ((status == IDLE) && (msg.status != IDLE)) {
-			fprintf(stdout, "\nUpdate started !\n");
-			fprintf(stdout, "Interface: ");
-			switch (msg.source) {
-			case SOURCE_UNKNOWN:
-				fprintf(stdout, "UNKNOWN\n\n");
-				break;
-			case SOURCE_WEBSERVER:
-				fprintf(stdout, "WEBSERVER\n\n");
-				break;
-			case SOURCE_SURICATTA:
-				fprintf(stdout, "BACKEND\n\n");
-				break;
-			case SOURCE_DOWNLOADER:
-				fprintf(stdout, "DOWNLOADER\n\n");
-				break;
-			case SOURCE_LOCAL:
-				fprintf(stdout, "LOCAL\n\n");
-				break;
+		if (wait_update) {
+			if (msg.status == START || msg.status == RUN) {
+				fprintf(stdout, "\n\nUpdate started !\n");
+				fprintf(stdout, "Interface: ");
+				switch (msg.source) {
+				case SOURCE_UNKNOWN:
+					fprintf(stdout, "UNKNOWN\n\n");
+					break;
+				case SOURCE_WEBSERVER:
+					fprintf(stdout, "WEBSERVER\n\n");
+					break;
+				case SOURCE_SURICATTA:
+					fprintf(stdout, "BACKEND\n\n");
+					break;
+				case SOURCE_DOWNLOADER:
+					fprintf(stdout, "DOWNLOADER\n\n");
+					break;
+				case SOURCE_LOCAL:
+					fprintf(stdout, "LOCAL\n\n");
+					break;
+				}
+				curstep = 0;
+				wait_update = false;
 			}
-
 		}
 
 		/*
@@ -282,7 +298,7 @@ int main(int argc, char **argv)
 				msg.infolen = sizeof(msg.info) - 1;
 			}
 			msg.info[msg.infolen] = '\0';
-			fprintf(stdout, "INFO : %s\n\n", msg.info);
+			fprintf(stdout, "INFO : %s\r", msg.info);
 		}
 		msg.cur_image[sizeof(msg.cur_image) - 1] = '\0';
 
@@ -290,34 +306,35 @@ int main(int argc, char **argv)
 			psplash_ok = psplash_init(psplash_pipe_path);
 		}
 
-		if ((msg.cur_step != curstep) && (curstep != 0))
-			fprintf(stdout, "\n");
+		if (!wait_update) {
 
-		filled_len = bar_len * msg.cur_percent / 100;
-		if (filled_len > bar_len)
-			filled_len = bar_len;
+			if (msg.cur_step > 0) {
+				if ((msg.cur_step != curstep) && (curstep != 0)){
+					fprintf(stdout, "\n");
+					fflush(stdout);
+				}
+				fill_progress_bar(bar, sizeof(bar), msg.cur_percent);
 
-		memset(bar,'=', filled_len);
-		memset(&bar[filled_len], '-', bar_len - filled_len);
-		bar[bar_len] = '\0';
+				fprintf(stdout, "[ %.*s ] %d of %d %d%% (%s) dwl %d%%\r",
+					bar_len,
+					bar,
+					msg.cur_step, msg.nsteps, msg.cur_percent,
+					msg.cur_image, msg.dwl_percent);
+				fflush(stdout);
 
-		fprintf(stdout, "[ %.*s ] %d of %d %d%% (%s)\r",
-			bar_len,
-			bar,
-			msg.cur_step, msg.nsteps, msg.cur_percent,
-		       	msg.cur_image);
-		fflush(stdout);
-
-		if (psplash_ok && ((msg.cur_step != curstep) || (msg.cur_percent != percent))) {
-			psplash_progress(psplash_pipe_path, &msg);
-			curstep = msg.cur_step;
-			percent = msg.cur_percent;
+				if (psplash_ok && ((msg.cur_step != curstep) || (msg.cur_percent != percent))) {
+					psplash_progress(psplash_pipe_path, &msg);
+					curstep = msg.cur_step;
+					percent = msg.cur_percent;
+				}
+				curstep = msg.cur_step;
+				percent = msg.cur_percent;
+			}
 		}
 
 		switch (msg.status) {
 		case SUCCESS:
 		case FAILURE:
-			fprintf(stdout, "\n\n");
 			if (opt_c) {
 				if (msg.status == FAILURE)
 					textcolor(BLINK, RED, BLACK);
@@ -325,7 +342,7 @@ int main(int argc, char **argv)
 					textcolor(BRIGHT, GREEN, BLACK);
 			}
 
-			fprintf(stdout, "%s !\n", msg.status == SUCCESS
+			fprintf(stdout, "\n%s !\n", msg.status == SUCCESS
 							  ? "SUCCESS"
 							  : "FAILURE");
 			if (script) {
@@ -352,14 +369,13 @@ int main(int argc, char **argv)
 					fprintf(stdout, "Please reset the board.\n");
 				}
 			}
+			wait_update = true;
 			break;
 		case DONE:
-			fprintf(stdout, "\nDONE.\n");
+			fprintf(stdout, "\nDONE.\n\n");
 			break;
 		default:
 			break;
 		}
-
-		status = msg.status;
 	}
 }
