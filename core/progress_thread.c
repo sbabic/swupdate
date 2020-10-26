@@ -63,20 +63,20 @@ static struct swupdate_progress progress;
 static void send_progress_msg(void)
 {
 	struct progress_conn *conn, *tmp;
-	struct swupdate_progress *prbar = &progress;
+	struct swupdate_progress *pprog = &progress;
 	void *buf;
 	size_t count;
 	ssize_t n;
 
-	SIMPLEQ_FOREACH_SAFE(conn, &prbar->conns, next, tmp) {
-		buf = &prbar->msg;
-		count = sizeof(prbar->msg);
+	SIMPLEQ_FOREACH_SAFE(conn, &pprog->conns, next, tmp) {
+		buf = &pprog->msg;
+		count = sizeof(pprog->msg);
 		while (count > 0) {
 			n = send(conn->sockfd, buf, count, MSG_NOSIGNAL);
 			if (n <= 0) {
 				TRACE("A progress client disappeared, removing it.");
 				close(conn->sockfd);
-				SIMPLEQ_REMOVE(&prbar->conns, conn,
+				SIMPLEQ_REMOVE(&pprog->conns, conn,
 					       	progress_conn, next);
 				free(conn);
 				break;
@@ -89,41 +89,41 @@ static void send_progress_msg(void)
 
 static void _swupdate_download_update(unsigned int perc, unsigned long long totalbytes)
 {
-	struct swupdate_progress *prbar = &progress;
-	pthread_mutex_lock(&prbar->lock);
-	if (perc != prbar->msg.dwl_percent) {
-		prbar->msg.dwl_percent = perc;
-		prbar->msg.dwl_bytes = totalbytes;
+	struct swupdate_progress *pprog = &progress;
+	pthread_mutex_lock(&pprog->lock);
+	if (perc != pprog->msg.dwl_percent) {
+		pprog->msg.dwl_percent = perc;
+		pprog->msg.dwl_bytes = totalbytes;
 		send_progress_msg();
 	}
-	pthread_mutex_unlock(&prbar->lock);
+	pthread_mutex_unlock(&pprog->lock);
 }
 
 void swupdate_progress_init(unsigned int nsteps) {
-	struct swupdate_progress *prbar = &progress;
-	pthread_mutex_lock(&prbar->lock);
+	struct swupdate_progress *pprog = &progress;
+	pthread_mutex_lock(&pprog->lock);
 
-	prbar->msg.nsteps = nsteps;
-	prbar->msg.cur_step = 0;
-	prbar->msg.status = START;
-	prbar->msg.cur_percent = 0;
-	prbar->msg.infolen = get_install_info(&prbar->msg.source, prbar->msg.info,
-						sizeof(prbar->msg.info));
+	pprog->msg.nsteps = nsteps;
+	pprog->msg.cur_step = 0;
+	pprog->msg.status = START;
+	pprog->msg.cur_percent = 0;
+	pprog->msg.infolen = get_install_info(&pprog->msg.source, pprog->msg.info,
+						sizeof(pprog->msg.info));
 	send_progress_msg();
 	/* Info is just an event, reset it after sending */
-	prbar->msg.infolen = 0;
-	pthread_mutex_unlock(&prbar->lock);
+	pprog->msg.infolen = 0;
+	pthread_mutex_unlock(&pprog->lock);
 }
 
 void swupdate_progress_update(unsigned int perc)
 {
-	struct swupdate_progress *prbar = &progress;
-	pthread_mutex_lock(&prbar->lock);
-	if (perc != prbar->msg.cur_percent && prbar->step_running) {
-		prbar->msg.cur_percent = perc;
+	struct swupdate_progress *pprog = &progress;
+	pthread_mutex_lock(&pprog->lock);
+	if (perc != pprog->msg.cur_percent && pprog->step_running) {
+		pprog->msg.cur_percent = perc;
 		send_progress_msg();
 	}
-	pthread_mutex_unlock(&prbar->lock);
+	pthread_mutex_unlock(&pprog->lock);
 }
 
 void swupdate_download_update(unsigned int perc, unsigned long long totalbytes)
@@ -147,64 +147,64 @@ void swupdate_download_update(unsigned int perc, unsigned long long totalbytes)
 
 void swupdate_progress_inc_step(char *image, char *handler_name)
 {
-	struct swupdate_progress *prbar = &progress;
-	pthread_mutex_lock(&prbar->lock);
-	prbar->msg.cur_step++;
-	prbar->msg.cur_percent = 0;
-	strlcpy(prbar->msg.cur_image, image, sizeof(prbar->msg.cur_image));
-	strlcpy(prbar->msg.hnd_name, handler_name, sizeof(prbar->msg.hnd_name));
-	prbar->step_running = true;
-	prbar->msg.status = RUN;
+	struct swupdate_progress *pprog = &progress;
+	pthread_mutex_lock(&pprog->lock);
+	pprog->msg.cur_step++;
+	pprog->msg.cur_percent = 0;
+	strlcpy(pprog->msg.cur_image, image, sizeof(pprog->msg.cur_image));
+	strlcpy(pprog->msg.hnd_name, handler_name, sizeof(pprog->msg.hnd_name));
+	pprog->step_running = true;
+	pprog->msg.status = RUN;
 	send_progress_msg();
-	pthread_mutex_unlock(&prbar->lock);
+	pthread_mutex_unlock(&pprog->lock);
 }
 
 void swupdate_progress_step_completed(void)
 {
-	struct swupdate_progress *prbar = &progress;
-	pthread_mutex_lock(&prbar->lock);
-	prbar->step_running = false;
-	prbar->msg.status = IDLE;
-	pthread_mutex_unlock(&prbar->lock);
+	struct swupdate_progress *pprog = &progress;
+	pthread_mutex_lock(&pprog->lock);
+	pprog->step_running = false;
+	pprog->msg.status = IDLE;
+	pthread_mutex_unlock(&pprog->lock);
 }
 
 void swupdate_progress_end(RECOVERY_STATUS status)
 {
-	struct swupdate_progress *prbar = &progress;
-	pthread_mutex_lock(&prbar->lock);
-	prbar->step_running = false;
-	prbar->msg.status = status;
+	struct swupdate_progress *pprog = &progress;
+	pthread_mutex_lock(&pprog->lock);
+	pprog->step_running = false;
+	pprog->msg.status = status;
 	send_progress_msg();
-	pthread_mutex_unlock(&prbar->lock);
+	pthread_mutex_unlock(&pprog->lock);
 }
 
 void swupdate_progress_info(RECOVERY_STATUS status, int cause, const char *info)
 {
-	struct swupdate_progress *prbar = &progress;
-	pthread_mutex_lock(&prbar->lock);
-	snprintf(prbar->msg.info, sizeof(prbar->msg.info), "{'%d': %s}",
+	struct swupdate_progress *pprog = &progress;
+	pthread_mutex_lock(&pprog->lock);
+	snprintf(pprog->msg.info, sizeof(pprog->msg.info), "{'%d': %s}",
 			cause, info);
-	prbar->msg.infolen = strlen(prbar->msg.info);
-	prbar->msg.status = status;
+	pprog->msg.infolen = strlen(pprog->msg.info);
+	pprog->msg.status = status;
 	send_progress_msg();
 	/* Info is just an event, reset it after sending */
-	prbar->msg.infolen = 0;
-	pthread_mutex_unlock(&prbar->lock);
+	pprog->msg.infolen = 0;
+	pthread_mutex_unlock(&pprog->lock);
 }
 
 void swupdate_progress_done(const char *info)
 {
-	struct swupdate_progress *prbar = &progress;
-	pthread_mutex_lock(&prbar->lock);
+	struct swupdate_progress *pprog = &progress;
+	pthread_mutex_lock(&pprog->lock);
 	if (info != NULL) {
-		snprintf(prbar->msg.info, sizeof(prbar->msg.info), "%s", info);
-		prbar->msg.infolen = strlen(prbar->msg.info);
+		snprintf(pprog->msg.info, sizeof(pprog->msg.info), "%s", info);
+		pprog->msg.infolen = strlen(pprog->msg.info);
 	}
-	prbar->step_running = false;
-	prbar->msg.status = DONE;
+	pprog->step_running = false;
+	pprog->msg.status = DONE;
 	send_progress_msg();
-	prbar->msg.infolen = 0;
-	pthread_mutex_unlock(&prbar->lock);
+	pprog->msg.infolen = 0;
+	pthread_mutex_unlock(&pprog->lock);
 }
 
 static void unlink_socket(void)
@@ -226,11 +226,11 @@ void *progress_bar_thread (void __attribute__ ((__unused__)) *data)
 	int listen, connfd;
 	socklen_t clilen;
 	struct sockaddr_un cliaddr;
-	struct swupdate_progress *prbar = &progress;
+	struct swupdate_progress *pprog = &progress;
 	struct progress_conn *conn;
 
-	pthread_mutex_init(&prbar->lock, NULL);
-	SIMPLEQ_INIT(&prbar->conns);
+	pthread_mutex_init(&pprog->lock, NULL);
+	SIMPLEQ_INIT(&pprog->conns);
 
 	/* Initialize and bind to UDS */
 	listen = listener_create(get_prog_socket(), SOCK_STREAM);
@@ -264,8 +264,8 @@ void *progress_bar_thread (void __attribute__ ((__unused__)) *data)
 			continue;
 		}
 		conn->sockfd = connfd;
-		pthread_mutex_lock(&prbar->lock);
-		SIMPLEQ_INSERT_TAIL(&prbar->conns, conn, next);
-		pthread_mutex_unlock(&prbar->lock);
+		pthread_mutex_lock(&pprog->lock);
+		SIMPLEQ_INSERT_TAIL(&pprog->conns, conn, next);
+		pthread_mutex_unlock(&pprog->lock);
 	} while(1);
 }
