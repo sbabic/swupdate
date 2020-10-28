@@ -49,6 +49,7 @@ static struct option long_options[] = {
     {"gatewaytoken", required_argument, NULL, 'g'},
     {"interface", required_argument, NULL, 'f'},
     {"disable-token-for-dwl", no_argument, NULL, '1'},
+    {"cache", required_argument, NULL, '2'},
     {NULL, 0, NULL, 0}};
 
 static unsigned short mandatory_argument_count = 0;
@@ -114,6 +115,7 @@ server_hawkbit_t server_hawkbit = {.url = NULL,
 				   .cancel_url = NULL,
 				   .update_action = NULL,
 				   .usetokentodwl = true,
+				   .cached_file = NULL,
 				   .channel = NULL};
 
 static channel_data_t channel_data_defaults = {.debug = false,
@@ -1138,6 +1140,13 @@ server_op_res_t server_process_update_artifact(int action_id,
 			channel_data.auth_token = NULL;
 
 		/*
+		 * If there is a cached file, try to read the SWU from the file
+		 * first and then load the remaining from network
+		 */
+		if (server_hawkbit.cached_file)
+			channel_data.cached_file = server_hawkbit.cached_file;
+
+		/*
 		 * Retrieve current time to check download time
 		 * This is used in the callback to ask again the hawkBit
 		 * server if the download is longer as the polling time
@@ -1222,6 +1231,10 @@ cleanup:
 	if (!json_data_artifact_installed) {
 		server_hawkbit_error("No suitable .swu image found");
 		result = SERVER_EERR;
+	}
+	if (server_hawkbit.cached_file) {
+		free(server_hawkbit.cached_file);
+		server_hawkbit.cached_file = NULL;
 	}
 
 	return result;
@@ -1573,7 +1586,8 @@ void server_print_help(void)
 	    "\t  -k, --targettoken   Set target token.\n"
 	    "\t  -g, --gatewaytoken  Set gateway token.\n"
 	    "\t  -f, --interface     Set the network interface to connect to hawkBit.\n"
-	    "\t  --disable-token-for-dwl Do not send authentication header when downlloading SWU.\n",
+	    "\t  --disable-token-for-dwl Do not send authentication header when downlloading SWU.\n"
+	    "\t  --cache <file>      Use cache file as starting SWU\n",
 	    CHANNEL_DEFAULT_POLLING_INTERVAL, CHANNEL_DEFAULT_RESUME_TRIES,
 	    CHANNEL_DEFAULT_RESUME_DELAY);
 }
@@ -1652,7 +1666,7 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 	/* reset to optind=1 to parse suricatta's argument vector */
 	optind = 1;
 	opterr = 0;
-	while ((choice = getopt_long(argc, argv, "t:i:c:u:p:xr:y::w:k:g:f:",
+	while ((choice = getopt_long(argc, argv, "t:i:c:u:p:xr:y::w:k:g:f:2:",
 				     long_options, NULL)) != -1) {
 		switch (choice) {
 		case 't':
@@ -1733,6 +1747,9 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 			break;
 		case '1':
 			server_hawkbit.usetokentodwl = false;
+			break;
+		case '2':
+			SETSTRING(server_hawkbit.cached_file, optarg);
 			break;
 		/* Ignore not recognized options, they can be already parsed by the caller */
 		case '?':

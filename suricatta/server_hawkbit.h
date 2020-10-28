@@ -41,6 +41,7 @@ typedef struct {
 	const char *update_action;
 	char *targettoken;
 	char *gatewaytoken;
+	char *cached_file;
 	bool usetokentodwl;
 } server_hawkbit_t;
 

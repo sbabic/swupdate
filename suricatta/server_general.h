@@ -21,6 +21,7 @@ typedef struct {
 	char *logurl;
 	unsigned int polling_interval;
 	bool debug;
+	char *cached_file;
 	struct dict configdata;
 	struct dict httpheaders;
 	update_state_t update_state;

@@ -64,6 +64,7 @@ static struct option long_options[] = {
     {"polldelay", required_argument, NULL, 'p'},
     {"retry", required_argument, NULL, 'r'},
     {"retrywait", required_argument, NULL, 'w'},
+    {"cache", required_argument, NULL, '2'},
     {NULL, 0, NULL, 0}};
 
 static unsigned short mandatory_argument_count = 0;
@@ -96,6 +97,7 @@ extern channel_op_res_t channel_curl_init(void);
 server_general_t server_general = {.url = NULL,
 				   .polling_interval = 30,
 				   .debug = false,
+				   .cached_file = NULL,
 				   .channel = NULL};
 
 static channel_data_t channel_data_defaults = {.debug = false,
@@ -535,6 +537,13 @@ server_op_res_t server_install_update(void)
 
 	channel_data.url = strdup(url);
 
+	/*
+	 * If there is a cached file, try to read the SWU from the file
+	 * first and then load the remaining from network
+	 */
+	if (server_general.cached_file)
+		channel_data.cached_file = server_general.cached_file;
+
 	channel_op_res_t cresult =
 	    channel->get_file(channel, (void *)&channel_data);
 	if ((result = map_channel_retcode(cresult)) != SERVER_OK) {
@@ -558,6 +567,10 @@ server_op_res_t server_install_update(void)
 
 cleanup:
 	free(channel_data.url);
+	if (!server_general.cached_file) {
+		free(server_general.cached_file);
+		server_general.cached_file = NULL;
+	}
 	return result;
 }
 
@@ -605,7 +618,7 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 	/* reset to optind=1 to parse suricatta's argument vector */
 	optind = 1;
 	opterr = 0;
-	while ((choice = getopt_long(argc, argv, "u:l:r:w:p:",
+	while ((choice = getopt_long(argc, argv, "u:l:r:w:p:2:",
 				     long_options, NULL)) != -1) {
 		switch (choice) {
 		case 'u':
@@ -626,6 +639,9 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 		case 'w':
 			channel_data_defaults.retry_sleep =
 			    (unsigned int)strtoul(optarg, NULL, 10);
+			break;
+		case '2':
+			SETSTRING(server_general.cached_file, optarg);
 			break;
 		/* Ignore not recognized options, they can be already parsed by the caller */
 		case '?':
