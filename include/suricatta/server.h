@@ -39,7 +39,8 @@ static struct server_t {
 	    .install_update = &server_install_update,
 	    .send_target_data = &server_send_target_data,
 	    .get_polling_interval = &server_get_polling_interval,
-	    .help = &server_print_help,
-	    .ipc = &server_ipc,
 	    .start = &server_start,
-	    .stop = &server_stop};
+	    .stop = &server_stop,
+	    .ipc = &server_ipc,
+	    .help = &server_print_help,
+};
