@@ -7,6 +7,9 @@
 
 #include <stdbool.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <string.h>
 #include <ctype.h>
 #include <errno.h>
@@ -191,6 +194,46 @@ size_t channel_callback_ipc(void *streamdata, size_t size, size_t nmemb,
 	 */
 
 	return size * nmemb;
+}
+
+#define BUFF_SIZE 16384
+static unsigned long long int resume_cache_file(const char *fname,
+					  write_callback_t *data)
+{
+	int fdsw;
+	char *buf;
+	ssize_t cnt;
+	unsigned long long processed = 0;
+
+	if (!fname || !strlen(fname))
+		return 0;
+	fdsw = open(fname, O_RDONLY);
+	if (fdsw < 0)
+		return 0; /* ignore, load from network */
+	buf = calloc(1, BUFF_SIZE);
+	if (!buf) {
+		ERROR("Channel get operation failed with OOM");
+		close(fdsw);
+		return 0;
+	}
+
+	while ((cnt = read(fdsw, buf, BUFF_SIZE)) > 0) {
+		if (!channel_callback_ipc(buf, cnt, 1, data))
+			break;
+		processed += cnt;
+	}
+
+	close(fdsw);
+	free(buf);
+
+	/*
+	 * Cache file is used just once: after it is read, it is
+	 * dropped automatically to avoid to reuse it again
+	 * for next update
+	 */
+	unlink(fname);
+
+	return processed;
 }
 
 size_t channel_callback_membuffer(void *streamdata, size_t size, size_t nmemb,
@@ -1031,6 +1074,28 @@ channel_op_res_t channel_get_file(channel_t *this, void *data)
 	unsigned long long int total_bytes_downloaded = 0;
 	unsigned char try_count = 0;
 	CURLcode curlrc = CURLE_OK;
+
+	if (channel_data->cached_file) {
+
+		total_bytes_downloaded = resume_cache_file(channel_data->cached_file,
+							   &wrdata);
+		if (total_bytes_downloaded > 0) {
+			TRACE("Resume from cache file %s, restored %lld bytes",
+				channel_data->cached_file,
+				total_bytes_downloaded);
+	                /*
+			 * Simulate that a partial download was already done,
+			 * and tune parameters if retries is not set
+			 */
+			channel_data->retries++;
+			try_count++;
+		}
+	}
+
+	/*
+	 * If there is a cache file, read data from cache first
+	 * and load from URL the remaining data
+	 */
 	do {
 		if (try_count > 0) {
 			if (channel_data->retries == 0) {

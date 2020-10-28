@@ -38,6 +38,7 @@ typedef enum {
 
 typedef struct {
 	char *url;
+	char *cached_file;
 	char *auth;
 	char *request_body;
 	char *iface;
