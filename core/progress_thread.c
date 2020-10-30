@@ -89,11 +89,15 @@ static void send_progress_msg(void)
 
 static void _swupdate_download_update(unsigned int perc, unsigned long long totalbytes)
 {
+	/*
+	 * TODO: totalbytes should be forwarded correctly
+	 * after adding it to the progress message
+	 */
 	struct swupdate_progress *pprog = &progress;
 	pthread_mutex_lock(&pprog->lock);
 	if (perc != pprog->msg.dwl_percent) {
 		pprog->msg.dwl_percent = perc;
-		pprog->msg.dwl_bytes = totalbytes;
+		totalbytes = totalbytes;
 		send_progress_msg();
 	}
 	pthread_mutex_unlock(&pprog->lock);
@@ -136,7 +140,6 @@ void swupdate_download_update(unsigned int perc, unsigned long long totalbytes)
 	if (pid == getpid()) {
 		struct progress_dwl_data *pdwl = (struct progress_dwl_data *)info;
 		pdwl->dwl_percent = perc;
-		pdwl->dwl_bytes = totalbytes;
 		notify(PROGRESS, RECOVERY_DWL, TRACELEVEL, info);
 		return;
 	}
