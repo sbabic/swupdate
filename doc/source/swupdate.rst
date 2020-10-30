@@ -592,6 +592,11 @@ Mandatory arguments are marked with '\*':
 | --disable-token-for-dwl | -        | Do not send authentication header when     |
 |                         |          | downloading SWU.                           |
 +-------------------------+----------+--------------------------------------------+
+| --cache-file            | string   | This allow to resume an update after a     |
+|                         |          | power cut. If the SWU is saved in a file,  |
+|                         |          | SWUpdate can reuse the file and download   |
+|                         |          | just the remaining part of the SWU.        |
++-------------------------+----------+--------------------------------------------+
 
 systemd Integration
 -------------------
