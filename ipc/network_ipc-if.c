@@ -1,13 +1,13 @@
 /*
- * (C) Copyright 2008-2017
+ * (C) Copyright 2008-2020
  * Stefano Babic, DENX Software Engineering, sbabic@denx.de.
- * 	on behalf of ifm electronic GmbH
  *
  * SPDX-License-Identifier:     LGPL-2.1-or-later
  */
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <errno.h>
 #include <signal.h>
 #include <pthread.h>
@@ -143,4 +143,31 @@ int swupdate_image_write(char *buf, int size)
 	rq = get_request();
 
 	return ipc_send_data(rq->connfd, buf, size);
+}
+
+/*
+ * Set via IPC the AES key for decryption
+ * key is passed as ASCII string
+ */
+int swupdate_set_aes(char *key, char *ivt)
+{
+	ipc_message msg;
+
+	if (!key || !ivt)
+		return -EINVAL;
+	if (strlen(key) != 64 && strlen(ivt) != 32)
+		return -EINVAL;
+
+	memset(&msg, 0, sizeof(msg));
+
+	msg.magic = IPC_MAGIC;
+	msg.type = SET_AES_KEY;
+
+	/*
+	 * Lenght for key and IVT are fixed
+	 */
+	strncpy(msg.data.aeskeymsg.key_ascii, key, sizeof(msg.data.aeskeymsg.key_ascii) - 1);
+	strncpy(msg.data.aeskeymsg.ivt_ascii, ivt, sizeof(msg.data.aeskeymsg.ivt_ascii) - 1);
+
+	return ipc_send_cmd(&msg);
 }

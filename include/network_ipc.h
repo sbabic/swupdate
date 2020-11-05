@@ -94,6 +94,7 @@ int ipc_wait_for_complete(getstatus callback);
 int swupdate_image_write(char *buf, int size);
 int swupdate_async_start(writedata wr_func, getstatus status_func,
 				terminated end_func, bool dry_run);
+int swupdate_set_aes(char *key, char *ivt);
 
 #ifdef __cplusplus
 }   // extern "C"
