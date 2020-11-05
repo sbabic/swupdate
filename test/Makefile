@@ -49,7 +49,7 @@ quiet_cmd_linktestexe = LD      $(basename $@)
 						"$(SWLIBS)" \
 						"$(LDLIBS) cmocka"
 
-EXECUTE_TEST = echo "RUN $(subst $(obj)/,,$(var))"; CMOCKA_MESSAGE_OUTPUT=TAP $(var)
+EXECUTE_TEST = echo "RUN $(subst $(obj)/,,$(var))"; LD_LIBRARY_PATH=$(objtree) CMOCKA_MESSAGE_OUTPUT=TAP $(var)
 
 PHONY += default
 default:

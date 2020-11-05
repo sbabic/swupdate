@@ -4,6 +4,8 @@ SUBLEVEL = 0
 EXTRAVERSION = -rc1
 NAME =
 
+IPCLIB_VERSION = 0.1
+
 # *DOCUMENTATION*
 # To see a list of typical targets execute "make help"
 # More info can be located in ./README
@@ -357,9 +359,15 @@ include $(srctree)/Makefile.flags
 # Defaults to vmlinux, but the arch makefile usually adds further targets
 
 objs-y		:= core handlers
-libs-y		:= corelib ipc mongoose parser suricatta bootloader
-shareds-y	:= bindings
+libs-y		:= corelib mongoose parser suricatta bootloader
+bindings-y	:= bindings
 tools-y		:= tools
+
+ipc-y		:= ipc
+ipc-lib 	:= $(patsubst %,%/built-in.o, $(ipc-y))
+ipc-dirs 	:= $(ipc-y)
+
+swupdate-ipc-lib 	:= libswupdate.so.${IPCLIB_VERSION}
 
 swupdate-dirs	:= $(objs-y) $(libs-y)
 swupdate-objs	:= $(patsubst %,%/built-in.o, $(objs-y))
@@ -376,9 +384,9 @@ ifeq ($(HAVE_LUA),y)
 lua_swupdate	:= lua_swupdate.so.0.1
 endif
 
-shared-dirs	:= $(shareds-y)
-shared-libs	:= $(patsubst %,%/built-in.o, $(shareds-y))
-shared-all	:= $(shared-libs)
+bindings-dirs	:= $(bindings-y)
+bindings-libs	:= $(patsubst %,%/built-in.o, $(bindings-y))
+bindings-all	:= $(bindings-libs)
 
 PHONY += cfg-sanity-check
 cfg-sanity-check:
@@ -401,11 +409,11 @@ quiet_cmd_swupdate = LD      $@
       "$(CC)" \
       "$(KBUILD_CFLAGS) $(CFLAGS_swupdate)" \
       "$(LDFLAGS) $(EXTRA_LDFLAGS) $(LDFLAGS_swupdate)" \
-      "$(swupdate-objs)" \
+      "$(swupdate-objs) $(ipc-lib)" \
       "$(swupdate-libs)" \
-      "$(LDLIBS)"
+	  "$(LDLIBS)"
 
-swupdate_unstripped: $(swupdate-all) FORCE
+swupdate_unstripped: ${swupdate-ipc-lib} $(swupdate-all) FORCE
 	$(call if_changed,swupdate)
 
 quiet_cmd_addon = LD      $@
@@ -413,10 +421,10 @@ quiet_cmd_addon = LD      $@
       "$@" \
       "$(CC)" \
       "$(KBUILD_CFLAGS) $(CFLAGS_swupdate)" \
-      "$(LDFLAGS) $(EXTRA_LDFLAGS) $(LDFLAGS_swupdate)" \
+      "$(LDFLAGS) $(EXTRA_LDFLAGS) $(LDFLAGS_swupdate) -L$(objtree)" \
       "$(2)" \
       "$(swupdate-libs)" \
-      "$(LDLIBS)"
+	  "$(LDLIBS) :${swupdate-ipc-lib}"
 
 quiet_cmd_shared = LD      $@
       cmd_shared = $(srctree)/scripts/trylink \
@@ -424,12 +432,16 @@ quiet_cmd_shared = LD      $@
       "$(CC)" \
       "-shared -Wl,-soname,$@" \
       "$(KBUILD_CFLAGS) $(CFLAGS_swupdate)" \
-      "$(LDFLAGS) $(EXTRA_LDFLAGS) $(LDFLAGS_swupdate)" \
-      "$(shared-libs) ipc/lib.a" \
-      "$(LDLIBS)"
+      "$(LDFLAGS) $(EXTRA_LDFLAGS) $(LDFLAGS_swupdate) -L$(objtree)" \
+      "$(2)" \
+	  "" \
+	  "$(LDLIBS)"
 
-lua_swupdate.so.0.1: $(shared-libs) ${swupdate-libs} FORCE
-	$(call if_changed,shared)
+lua_swupdate.so.0.1: $(bindings-libs) ${swupdate-ipc-lib} FORCE
+	$(call if_changed,shared,$(bindings-libs) $(ipc-lib))
+
+${swupdate-ipc-lib}: $(ipc-lib) FORCE
+	$(call if_changed,shared,$(ipc-lib))
 
 ifeq ($(SKIP_STRIP),y)
 quiet_cmd_strip = echo $@
@@ -443,7 +455,7 @@ endif
 swupdate: cfg-sanity-check swupdate_unstripped
 	$(call cmd,strip)
 
-${tools-bins}: ${tools-objs} ${swupdate-libs} FORCE
+${tools-bins}: ${swupdate-ipc-lib} ${tools-objs} ${swupdate-libs} FORCE
 	$(call if_changed,addon,$@.o)
 	@mv $@ $@_unstripped
 	$(call cmd,strip)
@@ -459,7 +471,8 @@ install: all
 	install -m 0644 $(srctree)/include/network_ipc.h ${DESTDIR}/${INCLUDEDIR}
 	install -m 0644 $(srctree)/include/swupdate_status.h ${DESTDIR}/${INCLUDEDIR}
 	install -m 0644 $(srctree)/include/progress_ipc.h ${DESTDIR}/${INCLUDEDIR}
-	install -m 0755 ipc/lib.a ${DESTDIR}/${LIBDIR}/libswupdate.a
+	install -m 0755 $(objtree)/${swupdate-ipc-lib} ${DESTDIR}/${LIBDIR}
+	ln -sr ${DESTDIR}/${LIBDIR}/${swupdate-ipc-lib} ${DESTDIR}/${LIBDIR}/libswupdate.so
 	if [ $(HAVE_LUA) = y ]; then \
 		install -d ${DESTDIR}/${LIBDIR}/lua/$(LUAVER); \
 		install -m 0755 ${lua_swupdate} $(DESTDIR)/${LIBDIR}/lua/$(LUAVER); \
@@ -474,13 +487,14 @@ acceptance-tests: FORCE
 
 PHONY += test
 test:
-	$(Q)$(MAKE) $(build)=test SWOBJS="$(swupdate-objs)" SWLIBS="$(swupdate-libs)" LDLIBS="$(LDLIBS)" tests
+	$(Q)$(MAKE) $(build)=test SWOBJS="$(swupdate-objs)" SWLIBS="$(swupdate-libs) ${swupdate-ipc-lib}" LDLIBS="$(LDLIBS)" tests
 
 # The actual objects are generated when descending,
 # make sure no implicit rule kicks in
 $(sort $(swupdate-all)): $(swupdate-dirs) ;
 $(sort $(tools-all)): $(tools-dirs) ;
-$(sort $(shared-all)): $(shared-dirs) ;
+$(sort $(bindings-all)): $(bindings-dirs) ;
+$(sort $(ipc-lib)): $(ipc-dirs) ;
 
 # Handle descending into subdirectories listed in $(vmlinux-dirs)
 # Preset locale variables to speed up the build process. Limit locale
@@ -488,12 +502,14 @@ $(sort $(shared-all)): $(shared-dirs) ;
 # make menuconfig etc.
 # Error messages still appears in the original language
 
-PHONY += $(swupdate-dirs) $(tools-dirs) $(shared-dirs)
+PHONY += $(swupdate-dirs) $(tools-dirs) $(bindings-dirs) $(ipc-dirs)
 $(swupdate-dirs): scripts
 	$(Q)$(MAKE) $(build)=$@
 $(tools-dirs): scripts
 	$(Q)$(MAKE) $(build)=$@
-$(shared-dirs): scripts
+$(bindings-dirs): scripts
+	$(Q)$(MAKE) $(build)=$@
+$(ipc-dirs): scripts
 	$(Q)$(MAKE) $(build)=$@
 
 ###
@@ -505,7 +521,7 @@ $(shared-dirs): scripts
 
 # Directories & files removed with 'make clean'
 CLEAN_DIRS  +=
-CLEAN_FILES += swupdate swupdate_unstripped* lua_swupdate* ${tools-bins} \
+CLEAN_FILES += swupdate swupdate_unstripped* lua_swupdate* libswupdate* ${tools-bins} \
 	$(patsubst %,%_unstripped,$(tools-bins)) \
 	$(patsubst %,%.out,$(tools-bins)) \
 	$(patsubst %,%.map,$(tools-bins)) \
@@ -518,7 +534,7 @@ MRPROPER_FILES += .config .config.old tags TAGS cscope* GPATH GTAGS GRTAGS GSYMS
 #
 clean: rm-dirs  := $(CLEAN_DIRS)
 clean: rm-files := $(CLEAN_FILES)
-clean-dirs      := $(addprefix _clean_, $(swupdate-dirs) $(tools-dirs) $(shared-dirs) scripts/acceptance-tests)
+clean-dirs      := $(addprefix _clean_, $(swupdate-dirs) $(ipc-dirs) $(tools-dirs) $(bindings-dirs) scripts/acceptance-tests)
 
 PHONY += $(clean-dirs) clean archclean
 $(clean-dirs):
