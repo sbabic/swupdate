@@ -129,8 +129,11 @@ static int send_file(const char* filename) {
 	/* May be set non-zero by end() function on failure */
 	end_status = EXIT_SUCCESS;
 
+	struct swupdate_request req;
+	swupdate_prepare_req(&req);
+	req.dry_run = dry_run;
 	rc = swupdate_async_start(readimage, printstatus,
-				end, dry_run);
+				end, &req, sizeof(req));
 
 	/* return if we've hit an error scenario */
 	if (rc < 0) {

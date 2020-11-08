@@ -108,7 +108,7 @@ static pthread_t start_ipc_thread(void *(* start_routine) (void *), void *arg)
  * Only one running request is accepted
  */
 int swupdate_async_start(writedata wr_func, getstatus status_func,
-				terminated end_func, bool dry_run)
+				terminated end_func, void *priv, ssize_t size)
 {
 	struct async_lib *rq;
 	int connfd;
@@ -122,7 +122,7 @@ int swupdate_async_start(writedata wr_func, getstatus status_func,
 	rq->get = status_func;
 	rq->end = end_func;
 
-	connfd = ipc_inst_start_ext(SOURCE_UNKNOWN, 0, NULL, dry_run);
+	connfd = ipc_inst_start_ext(SOURCE_UNKNOWN, priv, size);
 
 	if (connfd < 0)
 		return connfd;
@@ -170,4 +170,12 @@ int swupdate_set_aes(char *key, char *ivt)
 	strncpy(msg.data.aeskeymsg.ivt_ascii, ivt, sizeof(msg.data.aeskeymsg.ivt_ascii) - 1);
 
 	return ipc_send_cmd(&msg);
+}
+
+void swupdate_prepare_req(struct swupdate_request *req) {
+	if (!req)
+		return;
+	memset(req, 0, sizeof(struct swupdate_request));
+	req->apiversion = SWUPDATE_API_VERSION;
+	return;
 }

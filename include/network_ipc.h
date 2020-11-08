@@ -11,6 +11,7 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 #include "swupdate_status.h"
 
 #ifdef __cplusplus
@@ -34,7 +35,8 @@ typedef enum {
 	SWUPDATE_SUBPROCESS,
 	REQ_INSTALL_DRYRUN,
 	SET_AES_KEY,
-	SET_UPDATE_STATE	/* set bootloader ustate */
+	SET_UPDATE_STATE,	/* set bootloader ustate */
+	REQ_INSTALL_EXT
 } msgtype;
 
 /*
@@ -77,9 +79,24 @@ typedef struct {
 	msgdata data;
 } ipc_message;
 
+#define SWUPDATE_API_VERSION 	0x1
+/*
+ * Install structure to be filled before calling
+ * ipc and async functions
+ */
+struct swupdate_request {
+	unsigned int apiversion;
+	int type;
+	bool dry_run;
+	size_t len;
+	const char *info;
+	char *software_set;
+	char *running_mode;
+};
+
 char *get_ctrl_socket(void);
 int ipc_inst_start(void);
-int ipc_inst_start_ext(sourcetype source, size_t len, const char *info, bool dry_run);
+int ipc_inst_start_ext(sourcetype source, void *priv, ssize_t size);
 int ipc_send_data(int connfd, char *buf, int size);
 void ipc_end(int connfd);
 int ipc_get_status(ipc_message *msg);
@@ -91,9 +108,11 @@ typedef int (*writedata)(char **buf, int *size);
 typedef int (*getstatus)(ipc_message *msg);
 typedef int (*terminated)(RECOVERY_STATUS status);
 int ipc_wait_for_complete(getstatus callback);
+void swupdate_prepare_req(struct swupdate_request *req);
 int swupdate_image_write(char *buf, int size);
 int swupdate_async_start(writedata wr_func, getstatus status_func,
-				terminated end_func, bool dry_run);
+				terminated end_func,
+				void *priv, ssize_t size);
 int swupdate_set_aes(char *key, char *ivt);
 
 #ifdef __cplusplus

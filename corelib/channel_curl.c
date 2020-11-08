@@ -1037,11 +1037,14 @@ channel_op_res_t channel_get_file(channel_t *this, void *data)
 		goto cleanup_header;
 	}
 
+	struct swupdate_request req;
+	swupdate_prepare_req(&req);
+	req.dry_run = channel_data->dry_run;
+	req.len = channel_data->info == NULL ? 0 : strlen(channel_data->info);
+	req.info = channel_data->info;
 	for (int retries = 3; retries >= 0; retries--) {
 		file_handle = ipc_inst_start_ext(channel_data->source,
-			channel_data->info == NULL ? 0 : strlen(channel_data->info),
-			channel_data->info,
-			channel_data->dry_run);
+			&req, sizeof(struct swupdate_request));
 		if (file_handle > 0)
 			break;
 		sleep(1);

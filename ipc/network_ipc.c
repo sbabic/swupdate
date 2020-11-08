@@ -11,6 +11,7 @@
 #include <string.h>
 #include <strings.h>
 #include <unistd.h>
+#include <errno.h>
 #include <sys/socket.h>
 #include <sys/select.h>
 #include <sys/un.h>
@@ -175,12 +176,24 @@ int ipc_get_status_timeout(ipc_message *msg, unsigned int timeout_ms)
 	return ret;
 }
 
-int ipc_inst_start_ext(sourcetype source, size_t len, const char *buf, bool dry_run)
+int ipc_inst_start_ext(sourcetype source, void *priv, ssize_t size)
 {
 	int connfd;
 	ipc_message msg;
 	ssize_t ret;
+	bool dry_run = false;
+	struct swupdate_request *req = NULL;
+	size_t len = 0;
+	const char *buf = NULL;
 
+	if (priv) {
+		if (size != sizeof(struct swupdate_request))
+			return -EINVAL;
+		req = (struct swupdate_request *)priv;
+		dry_run = req->dry_run;
+		len = req->len;
+		buf = req->info;
+	}
 	connfd = prepare_ipc();
 	if (connfd < 0)
 		return -1;
@@ -233,7 +246,7 @@ int ipc_inst_start_ext(sourcetype source, size_t len, const char *buf, bool dry_
  */
 int ipc_inst_start(void)
 {
-	return ipc_inst_start_ext(SOURCE_UNKNOWN, 0, NULL, false);
+	return ipc_inst_start_ext(SOURCE_UNKNOWN, NULL, 0);
 }
 
 /*

@@ -137,7 +137,7 @@ static int ctrl_connect(lua_State *L) {
 		return 2;
 	}
 
-	int connfd = ipc_inst_start_ext(SOURCE_LOCAL, 0, NULL, false);
+	int connfd = ipc_inst_start_ext(SOURCE_LOCAL, NULL, 0);
 	if (connfd < 0) {
 		lua_pop(L, 1);
 		lua_pushnil(L);
