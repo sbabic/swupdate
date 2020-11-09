@@ -27,6 +27,7 @@ struct progress_msg {
 	unsigned int	magic;		/* Magic Number */
 	RECOVERY_STATUS	status;		/* Update Status (Running, Failure) */
 	unsigned int	dwl_percent;	/* % downloaded data */
+	unsigned long long dwl_bytes;   /* total of bytes to be downloaded */
 	unsigned int	nsteps;		/* No. total of steps */
 	unsigned int	cur_step;	/* Current step index */
 	unsigned int	cur_percent;	/* % in current step */

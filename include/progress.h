@@ -12,15 +12,6 @@
 #include <progress_ipc.h>
 
 /*
- * Internal structures to be used to forward progress data
- */
-
-struct progress_dwl_data {
-	unsigned int	dwl_percent;	/* % downloaded data */
-	unsigned long long dwl_bytes;	/* total of bytes to be downloaded */
-};
-
-/*
  * Internal SWUpdate functions to drive the progress
  * interface. Common progress definitions for internal
  * as well as external use are defined in progress_ipc.h

@@ -327,11 +327,11 @@ int main(int argc, char **argv)
 				fill_progress_bar(bar, sizeof(bar), msg.cur_percent);
 
 				if (!silent) {
-					fprintf(stdout, "[ %.*s ] %d of %d %d%% (%s) dwl %d%%\r",
+					fprintf(stdout, "[ %.*s ] %d of %d %d%% (%s), dwl %d%% of %llu bytes\r",
 						bar_len,
 						bar,
 						msg.cur_step, msg.nsteps, msg.cur_percent,
-						msg.cur_image, msg.dwl_percent);
+						msg.cur_image, msg.dwl_percent, msg.dwl_bytes);
 					fflush(stdout);
 				}
 

@@ -97,7 +97,7 @@ static void _swupdate_download_update(unsigned int perc, unsigned long long tota
 	pthread_mutex_lock(&pprog->lock);
 	if (perc != pprog->msg.dwl_percent) {
 		pprog->msg.dwl_percent = perc;
-		totalbytes = totalbytes;
+		pprog->msg.dwl_bytes = totalbytes;
 		send_progress_msg();
 	}
 	pthread_mutex_unlock(&pprog->lock);
@@ -138,8 +138,13 @@ void swupdate_download_update(unsigned int perc, unsigned long long totalbytes)
 	 * Not called by main process, for example by suricatta or Webserver
 	 */
 	if (pid == getpid()) {
-		struct progress_dwl_data *pdwl = (struct progress_dwl_data *)info;
-		pdwl->dwl_percent = perc;
+		/*
+		 * Notify can just receive a string as message
+		 * so it is necessary to encode further information as string
+		 * and decode them in the notifier, in this case
+		 * the progress_notifier
+		 */
+		snprintf(info, sizeof(info) - 1, "%d-%llu", perc, totalbytes);
 		notify(PROGRESS, RECOVERY_DWL, TRACELEVEL, info);
 		return;
 	}
