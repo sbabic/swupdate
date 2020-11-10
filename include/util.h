@@ -76,18 +76,6 @@ enum {
 	RECOVERY_DWL,
 };
 
-struct installer {
-	int	fd;			/* install image file handle */
-	RECOVERY_STATUS	status;		/* "idle" or "request source" info */
-	RECOVERY_STATUS	last_install;	/* result from last installation */
-	int	last_error;		/* error code if installation failed */
-	char	errormsg[64];		/* error message if installation failed */
-	sourcetype source; 		/* Who triggered the update */
-	int	dry_run;		/* set it if no changes in hardware must be done */
-	unsigned int len;    		/* Len of data valid in info */
-	char	info[2048];   		/* info */
-};
-
 typedef void (*notifier) (RECOVERY_STATUS status, int error, int level, const char *msg);
 
 void notify(RECOVERY_STATUS status, int error, int level, const char *msg);

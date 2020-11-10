@@ -40,6 +40,7 @@
 #include "network_interface.h"
 #include "mongoose_interface.h"
 #include "installer.h"
+#include "installer_priv.h"
 #include "progress.h"
 #include "pctl.h"
 #include "state.h"

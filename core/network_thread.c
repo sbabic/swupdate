@@ -27,6 +27,7 @@
 #include "network_ipc.h"
 #include "network_interface.h"
 #include "installer.h"
+#include "installer_priv.h"
 #include "swupdate.h"
 #include "pctl.h"
 #include "generated/autoconf.h"
