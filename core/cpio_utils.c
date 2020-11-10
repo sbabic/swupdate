@@ -721,9 +721,10 @@ int extract_sw_description(int fd, const char *descfile, off_t *offs)
 
 	close(fdout);
 
-	TRACE("Found file:\n\tfilename %s\n\tsize %lu\n\tchecksum 0x%lx %s",
-		fdh.filename,
-		(unsigned long)fdh.size,
+	TRACE("Found file");
+	TRACE("filename %s", fdh.filename);
+	TRACE("\tsize %lu", (unsigned long)fdh.size);
+	TRACE("\tchecksum 0x%lx %s",
 		(unsigned long)checksum,
 		(checksum == fdh.chksum) ? "VERIFIED" : "WRONG");
 

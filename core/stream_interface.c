@@ -93,7 +93,9 @@ static int extract_file_to_tmp(int fd, const char *fname, unsigned long *poffs)
 		ERROR("Path too long: %s%s", TMPDIR, fdh.filename);
 		return -1;
 	}
-	TRACE("Found file:\n\tfilename %s\n\tsize %u", fdh.filename, (unsigned int)fdh.size);
+	TRACE("Found file");
+	TRACE("\tfilename %s", fdh.filename);
+	TRACE("\tsize %u", (unsigned int)fdh.size);
 
 	fdout = openfileoutput(output_file);
 	if (fdout < 0)
@@ -195,9 +197,9 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 					break;
 			}
 
-			TRACE("Found file:\n\tfilename %s\n\tsize %u %s",
-				fdh.filename,
-				(unsigned int)fdh.size,
+			TRACE("Found file");
+			TRACE("\tfilename %s", fdh.filename);
+			TRACE("\tsize %u %s", (unsigned int)fdh.size,
 				(skip == SKIP_FILE ? "Not required: skipping" : "required"));
 
 			fdout = -1;
