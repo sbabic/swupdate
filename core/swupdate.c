@@ -892,7 +892,7 @@ int main(int argc, char **argv)
 				sizeof(swcfg.globals.preupdatecmd));
 			break;
 		default:
-			usage(argv[0]);
+			fprintf(stdout, "Try %s -h for usage\n", argv[0]);
 			exit(EXIT_FAILURE);
 			break;
 		}
