@@ -1658,8 +1658,6 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 
 	if (loglevel >= DEBUGLEVEL) {
 		server_hawkbit.debug = true;
-	}
-	if (loglevel >= TRACELEVEL) {
 		channel_data_defaults.debug = true;
 	}
 

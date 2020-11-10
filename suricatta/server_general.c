@@ -611,7 +611,7 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 					&server_general.configdata);
 	}
 
-	if (loglevel >= TRACELEVEL) {
+	if (loglevel >= DEBUGLEVEL) {
 		channel_data_defaults.debug = true;
 	}
 
