@@ -140,8 +140,8 @@ struct logcolor consolecolors[] = {
 	[ERRORLEVEL] = {BRIGHT, RED, COLOR_NONE},
 	[WARNLEVEL] = {BRIGHT, YELLOW, COLOR_NONE},
 	[INFOLEVEL] = {BRIGHT, GREEN, COLOR_NONE},
-	[DEBUGLEVEL] = {BRIGHT, BLACK, COLOR_NONE},
-	[TRACELEVEL] = {BRIGHT, BLACK, COLOR_NONE}
+	[DEBUGLEVEL] = {RESET, COLOR_NONE, COLOR_NONE},
+	[TRACELEVEL] = {RESET, COLOR_NONE, COLOR_NONE}
 };
 
 static void set_console_color(int level, char *buf, size_t size) {
