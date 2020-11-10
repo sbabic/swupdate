@@ -607,8 +607,7 @@ void *network_initializer(void *data)
 int get_install_info(sourcetype *source, char *buf, size_t len)
 {
 	len = min(len, inst.len);
-
-	memcpy(buf, inst.info, len);
+	memcpy(buf, inst.data, len);
 	*source = inst.source;
 
 	return len;

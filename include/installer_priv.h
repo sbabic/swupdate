@@ -19,7 +19,7 @@ struct installer {
 	sourcetype source; 		/* Who triggered the update */
 	int	dry_run;		/* set it if no changes in hardware must be done */
 	unsigned int len;    		/* Len of data valid in info, data is optional */
-	char	info[2048];   		/* info */
+	char	data[2048];   		/* This is a placeholder for installation request */
 };
 
 #endif

@@ -350,7 +350,6 @@ void *network_thread (void *data)
 				if (instp->status == IDLE) {
 					instp->fd = ctrlconnfd;
 					instp->source = msg.data.instmsg.source;
-					instp->len = min(msg.data.instmsg.len, sizeof(instp->info));
 
 					/*
 					 * Communicate if a dry run is asked and set it
@@ -359,9 +358,6 @@ void *network_thread (void *data)
 						instp->dry_run = 1;
 					else
 						instp->dry_run = 0;
-
-					memcpy(instp->info, msg.data.instmsg.buf,
-						instp->len);
 
 					/*
 					 * Prepare answer
