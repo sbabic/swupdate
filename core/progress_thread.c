@@ -178,6 +178,12 @@ void swupdate_progress_end(RECOVERY_STATUS status)
 	pprog->step_running = false;
 	pprog->msg.status = status;
 	send_progress_msg();
+	pprog->msg.nsteps = 0;
+	pprog->msg.cur_step = 0;
+	pprog->msg.cur_percent = 0;
+	pprog->msg.dwl_percent = 0;
+	pprog->msg.dwl_bytes = 0;
+
 	pthread_mutex_unlock(&pprog->lock);
 }
 
@@ -207,10 +213,6 @@ void swupdate_progress_done(const char *info)
 	pprog->msg.status = DONE;
 	send_progress_msg();
 	pprog->msg.infolen = 0;
-	pprog->msg.nsteps = 0;
-	pprog->msg.cur_step = 0;
-	pprog->msg.cur_percent = 0;
-	pprog->msg.dwl_percent = 0;
 	pthread_mutex_unlock(&pprog->lock);
 }
 
