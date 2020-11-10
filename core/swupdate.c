@@ -748,10 +748,6 @@ int main(int argc, char **argv)
 					   read_processes_settings, &swcfg);
 	}
 
-	printf("%s\n", BANNER);
-	printf("Licensed under GPLv2. See source distribution for detailed "
-		"copyright notices.\n\n");
-
 	/*
 	 * Command line should be parsed a second time
 	 * This let line parameters overload
@@ -943,6 +939,10 @@ int main(int argc, char **argv)
 			exit(EXIT_FAILURE);
 		}
 	}
+
+	printf("%s\n", BANNER);
+	printf("Licensed under GPLv2. See source distribution for detailed "
+		"copyright notices.\n\n");
 
 	/*
 	 * Install a child handler to check if a subprocess
