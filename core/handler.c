@@ -46,9 +46,9 @@ void print_registered_handlers(void)
 	if (!nr_installers)
 		return;
 
-	printf("Registered handlers:\n");
+	INFO("Registered handlers:");
 	for (i = 0; i < nr_installers; i++) {
-		printf("\t%s\n", supported_types[i].desc);
+		INFO("\t%s", supported_types[i].desc);
 	}
 }
 
