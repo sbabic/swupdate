@@ -49,6 +49,21 @@ enum {
 	CMD_ENABLE	/* Enable or disable suricatta mode */
 };
 
+#define SWUPDATE_API_VERSION 	0x1
+/*
+ * Install structure to be filled before calling
+ * ipc and async functions
+ */
+struct swupdate_request {
+	unsigned int apiversion;
+	sourcetype source;
+	bool dry_run;
+	size_t len;
+	char info[512];
+	char software_set[256];
+	char running_mode[256];
+};
+
 typedef union {
 	char msg[128];
 	struct { 
@@ -58,6 +73,14 @@ typedef union {
 		char desc[2048];
 	} status;
 	struct {
+		struct swupdate_request req;
+		unsigned int len;    /* Len of data valid in buf */
+		char	buf[2048];   /*
+				      * Buffer that each source can fill
+				      * with additional information
+				      */
+	} instmsg;
+	struct {
 		sourcetype source; /* Who triggered the update */
 		int	cmd;	   /* Optional encoded command */
 		int	timeout;     /* timeout in seconds if an aswer is expected */
@@ -66,7 +89,7 @@ typedef union {
 				      * Buffer that each source can fill
 				      * with additional information
 				      */
-	} instmsg;
+	} procmsg;
 	struct {
 		char key_ascii[65]; /* Key size in ASCII (256 bit, 32 bytes bin) + termination */
 		char ivt_ascii[33]; /* Key size in ASCII (16 bytes bin) + termination */
@@ -78,21 +101,6 @@ typedef struct {
 	int type;
 	msgdata data;
 } ipc_message;
-
-#define SWUPDATE_API_VERSION 	0x1
-/*
- * Install structure to be filled before calling
- * ipc and async functions
- */
-struct swupdate_request {
-	unsigned int apiversion;
-	int type;
-	bool dry_run;
-	size_t len;
-	const char *info;
-	char *software_set;
-	char *running_mode;
-};
 
 char *get_ctrl_socket(void);
 int ipc_inst_start(void);

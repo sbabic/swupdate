@@ -1843,8 +1843,8 @@ static server_op_res_t server_activation_ipc(ipc_message *msg)
 	update_state_t update_state = STATE_NOT_AVAILABLE;
 	struct json_object *json_root;
 
-	json_root = server_tokenize_msg(msg->data.instmsg.buf,
-					sizeof(msg->data.instmsg.buf));
+	json_root = server_tokenize_msg(msg->data.procmsg.buf,
+					sizeof(msg->data.procmsg.buf));
 	if (!json_root)
 		return SERVER_EERR;
 
@@ -1942,7 +1942,7 @@ static server_op_res_t server_activation_ipc(ipc_message *msg)
 		}
 	}
 
-	msg->data.instmsg.len = 0;
+	msg->data.procmsg.len = 0;
 
 cleanup:
 	free(details);
@@ -1956,8 +1956,8 @@ static server_op_res_t server_configuration_ipc(ipc_message *msg)
 	unsigned int polling;
 	json_object *json_data;
 
-	json_root = server_tokenize_msg(msg->data.instmsg.buf,
-					sizeof(msg->data.instmsg.buf));
+	json_root = server_tokenize_msg(msg->data.procmsg.buf,
+					sizeof(msg->data.procmsg.buf));
 	if (!json_root)
 		return SERVER_EERR;
 
@@ -1979,7 +1979,7 @@ server_op_res_t server_ipc(ipc_message *msg)
 {
 	server_op_res_t result = SERVER_OK;
 
-	switch (msg->data.instmsg.cmd) {
+	switch (msg->data.procmsg.cmd) {
 	case CMD_ACTIVATION:
 		result = server_activation_ipc(msg);
 		break;
@@ -1996,7 +1996,7 @@ server_op_res_t server_ipc(ipc_message *msg)
 	} else
 		msg->type = ACK;
 
-	msg->data.instmsg.len = 0;
+	msg->data.procmsg.len = 0;
 
 	return SERVER_OK;
 }

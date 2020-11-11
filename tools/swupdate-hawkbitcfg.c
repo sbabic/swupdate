@@ -47,16 +47,16 @@ static void send_msg(ipc_message *msg)
 {
 	int rc;
 
-	fprintf(stdout, "Sending: '%s'", msg->data.instmsg.buf);
+	fprintf(stdout, "Sending: '%s'", msg->data.procmsg.buf);
 	rc = ipc_send_cmd(msg);
 
 	fprintf(stdout, " returned %d\n", rc);
 	if (rc == 0) {
 		fprintf(stdout, "Server returns %s\n",
 				(msg->type == ACK) ? "ACK" : "NACK");
-		if (msg->data.instmsg.len > 0) {
+		if (msg->data.procmsg.len > 0) {
 			fprintf(stdout, "Returned message: %s\n",
-					msg->data.instmsg.buf);
+					msg->data.procmsg.buf);
 		}
 	}
 }
@@ -80,11 +80,11 @@ int main(int argc, char *argv[]) {
 	}
 
 	memset(&msg, 0, sizeof(msg));
-	msg.data.instmsg.source = SOURCE_SURICATTA;
+	msg.data.procmsg.source = SOURCE_SURICATTA;
 	msg.type = SWUPDATE_SUBPROCESS;
 
-	size = sizeof(msg.data.instmsg.buf);
-	buf = msg.data.instmsg.buf;
+	size = sizeof(msg.data.procmsg.buf);
+	buf = msg.data.procmsg.buf;
 
 	/* Process options with getopt */
 	while ((c = getopt_long(argc, argv, "p:edh",
@@ -92,12 +92,12 @@ int main(int argc, char *argv[]) {
 		switch (c) {
 		case 'p':
 			opt_p = 1;
-			msg.data.instmsg.cmd = CMD_CONFIG;
+			msg.data.procmsg.cmd = CMD_CONFIG;
 			polling_time = strtoul(optarg, NULL, 10);
 			break;
 		case 'e':
 		case 'd':
-			msg.data.instmsg.cmd = CMD_ENABLE;
+			msg.data.procmsg.cmd = CMD_ENABLE;
 			opt_e = 1;
 			enable = (c == 'e');
 			break;
@@ -121,12 +121,12 @@ int main(int argc, char *argv[]) {
 	 */
 	if (opt_p) {
 		snprintf(buf, size, "{ \"polling\" : \"%lu\"}", polling_time);
-		msg.data.instmsg.len = strnlen(buf, size);
+		msg.data.procmsg.len = strnlen(buf, size);
 		send_msg(&msg);
 	}
 	if (opt_e) {
 		snprintf(buf, size, "{ \"enable\" : %s}", enable ? "true" : "false");
-		msg.data.instmsg.len = strnlen(buf, size);
+		msg.data.procmsg.len = strnlen(buf, size);
 		send_msg(&msg);
 	}
 

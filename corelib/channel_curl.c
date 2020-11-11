@@ -1040,8 +1040,11 @@ channel_op_res_t channel_get_file(channel_t *this, void *data)
 	struct swupdate_request req;
 	swupdate_prepare_req(&req);
 	req.dry_run = channel_data->dry_run;
-	req.len = channel_data->info == NULL ? 0 : strlen(channel_data->info);
-	req.info = channel_data->info;
+	req.source = channel_data->source;
+	if (channel_data->info) {
+		strncpy(req.info, channel_data->info,
+			  sizeof(req.info) - 1 );
+	}
 	for (int retries = 3; retries >= 0; retries--) {
 		file_handle = ipc_inst_start_ext(channel_data->source,
 			&req, sizeof(struct swupdate_request));

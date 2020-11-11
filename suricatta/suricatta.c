@@ -46,8 +46,8 @@ static server_op_res_t suricatta_enable(ipc_message *msg)
 	struct json_object *json_root;
 	json_object *json_data;
 
-	json_root = server_tokenize_msg(msg->data.instmsg.buf,
-					sizeof(msg->data.instmsg.buf));
+	json_root = server_tokenize_msg(msg->data.procmsg.buf,
+					sizeof(msg->data.procmsg.buf));
 	if (!json_root) {
 		msg->type = NACK;
 		ERROR("Wrong JSON message, see documentation");
@@ -92,7 +92,7 @@ static server_op_res_t suricatta_ipc(int fd, time_t *seconds)
 	if (ret != sizeof(msg))
 		return SERVER_EERR;
 
-	switch (msg.data.instmsg.cmd) {
+	switch (msg.data.procmsg.cmd) {
 	case CMD_ENABLE:
 		result = suricatta_enable(&msg);
 		/*

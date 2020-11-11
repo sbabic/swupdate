@@ -49,6 +49,7 @@ static RECOVERY_STATUS download_from_url(channel_data_t* channel_data)
 	TRACE("Image download started : %s", channel_data->url);
 
 	RECOVERY_STATUS result = SUCCESS;
+	channel_data->source = SOURCE_DOWNLOADER;
 	channel_op_res_t chanresult = channel->get_file(channel, channel_data);
 	if (chanresult != CHANNEL_OK) {
 		result = FAILURE;

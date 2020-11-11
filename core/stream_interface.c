@@ -500,7 +500,7 @@ void *network_initializer(void *data)
 		/*
 		 * Check if the dry run flag is overwritten
 		 */
-		if (inst.dry_run)
+		if (inst.req.dry_run)
 			software->globals.dry_run = 1;
 		else
 			software->globals.dry_run = 0;
@@ -606,9 +606,9 @@ void *network_initializer(void *data)
  */
 int get_install_info(sourcetype *source, char *buf, size_t len)
 {
-	len = min(len, inst.len);
-	memcpy(buf, inst.data, len);
-	*source = inst.source;
+	len = min(len - 1, strlen(inst.req.info));
+	strncpy(buf, inst.req.info, len);
+	*source = inst.req.source;
 
 	return len;
 }

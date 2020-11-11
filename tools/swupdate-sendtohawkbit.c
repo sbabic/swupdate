@@ -43,12 +43,12 @@ int main(int argc, char *argv[]) {
 	}
 
 	memset(&msg, 0, sizeof(msg));
-	msg.data.instmsg.source = SOURCE_SURICATTA;
-	msg.data.instmsg.cmd = CMD_ACTIVATION;
+	msg.data.procmsg.source = SOURCE_SURICATTA;
+	msg.data.procmsg.cmd = CMD_ACTIVATION;
 	msg.type = SWUPDATE_SUBPROCESS;
 
-	size = sizeof(msg.data.instmsg.buf);
-	buf = msg.data.instmsg.buf;
+	size = sizeof(msg.data.procmsg.buf);
+	buf = msg.data.procmsg.buf;
 
 	/*
 	 * Build a json string with the command line parameters
@@ -91,8 +91,8 @@ int main(int argc, char *argv[]) {
 	else
 		written = snprintf(buf, size, "}");
 
-	fprintf(stdout, "Sending: '%s'", msg.data.instmsg.buf);
-	msg.data.instmsg.len = strnlen(msg.data.instmsg.buf, sizeof(msg.data.instmsg.buf));
+	fprintf(stdout, "Sending: '%s'", msg.data.procmsg.buf);
+	msg.data.procmsg.len = strnlen(msg.data.procmsg.buf, sizeof(msg.data.procmsg.buf));
 
 	rc = ipc_send_cmd(&msg);
 

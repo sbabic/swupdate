@@ -9,6 +9,7 @@
 #define _INSTALLER_PRIV_H
 
 #include "swupdate_status.h"
+#include "network_ipc.h"
 
 struct installer {
 	int	fd;			/* install image file handle */
@@ -16,10 +17,7 @@ struct installer {
 	RECOVERY_STATUS	last_install;	/* result from last installation */
 	int	last_error;		/* error code if installation failed */
 	char	errormsg[64];		/* error message if installation failed */
-	sourcetype source; 		/* Who triggered the update */
-	int	dry_run;		/* set it if no changes in hardware must be done */
-	unsigned int len;    		/* Len of data valid in info, data is optional */
-	char	data[2048];   		/* This is a placeholder for installation request */
+	struct swupdate_request req;
 };
 
 #endif

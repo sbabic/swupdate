@@ -263,7 +263,7 @@ void *network_thread (void *data)
 			switch (msg.type) {
 			case POST_UPDATE:
 				if (postupdate(get_swupdate_cfg(),
-							   msg.data.instmsg.len > 0 ? msg.data.instmsg.buf : NULL) == 0) {
+							   msg.data.procmsg.len > 0 ? msg.data.procmsg.buf : NULL) == 0) {
 					msg.type = ACK;
 					sprintf(msg.data.msg, "Post-update actions successfully executed.");
 				} else {
@@ -279,14 +279,14 @@ void *network_thread (void *data)
 				 *  the payload
 				 */
 
-				pipe = pctl_getfd_from_type(msg.data.instmsg.source);
+				pipe = pctl_getfd_from_type(msg.data.procmsg.source);
 				if (pipe < 0) {
 					ERROR("Cannot find channel for requested process");
 					msg.type = NACK;
 					break;
 				}
 				TRACE("Received Message for %s",
-					pctl_getname_from_type(msg.data.instmsg.source));
+					pctl_getname_from_type(msg.data.procmsg.source));
 				if (fcntl(pipe, F_GETFL) < 0 && errno == EBADF) {
 					ERROR("Pipe not available or closed: %d", pipe);
 					msg.type = NACK;
@@ -316,10 +316,10 @@ void *network_thread (void *data)
 				FD_ZERO(&pipefds);
 				FD_SET(pipe, &pipefds);
 				tv.tv_usec = 0;
-				if (!msg.data.instmsg.timeout)
+				if (!msg.data.procmsg.timeout)
 					tv.tv_sec = DEFAULT_INTERNAL_TIMEOUT;
 				else
-					tv.tv_sec = msg.data.instmsg.timeout;
+					tv.tv_sec = msg.data.procmsg.timeout;
 				ret = select(pipe + 1, &pipefds, NULL, NULL, &tv);
 
 				/*
@@ -349,15 +349,7 @@ void *network_thread (void *data)
 				TRACE("Incoming network request: processing...");
 				if (instp->status == IDLE) {
 					instp->fd = ctrlconnfd;
-					instp->source = msg.data.instmsg.source;
-
-					/*
-					 * Communicate if a dry run is asked and set it
-					 */
-					if (msg.type == REQ_INSTALL_DRYRUN)
-						instp->dry_run = 1;
-					else
-						instp->dry_run = 0;
+					instp->req = msg.data.instmsg.req;
 
 					/*
 					 * Prepare answer
