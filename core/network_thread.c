@@ -345,7 +345,6 @@ void *network_thread (void *data)
 
 				break;
 			case REQ_INSTALL:
-			case REQ_INSTALL_DRYRUN:
 				TRACE("Incoming network request: processing...");
 				if (instp->status == IDLE) {
 					instp->fd = ctrlconnfd;
