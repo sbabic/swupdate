@@ -476,6 +476,7 @@ void *network_initializer(void *data)
 {
 	int ret;
 	struct swupdate_cfg *software = data;
+	struct swupdate_request *req;
 
 	/* No installation in progress */
 	memset(&inst, 0, sizeof(inst));
@@ -497,13 +498,29 @@ void *network_initializer(void *data)
 		pthread_mutex_unlock(&stream_mutex);
 		notify(START, RECOVERY_NO_ERROR, INFOLEVEL, "Software Update started !");
 
+		req = &inst.req;
+
 		/*
 		 * Check if the dry run flag is overwritten
 		 */
-		if (inst.req.dry_run)
+		if (req->dry_run)
 			software->globals.dry_run = 1;
 		else
 			software->globals.dry_run = 0;
+
+		/*
+		 * Find the selection to be installed
+		 */
+		if ((strnlen(req->software_set, sizeof(req->software_set)) > 0) &&
+				(strnlen(req->running_mode, sizeof(req->running_mode)) > 0)) {
+			strlcpy(software->software_set, req->software_set, sizeof(software->software_set) - 1);
+			strlcpy(software->running_mode, req->running_mode, sizeof(software->running_mode) - 1);
+		} else {
+			strlcpy(software->software_set, software->globals.default_software_set,
+				sizeof(software->software_set) - 1);
+			strlcpy(software->running_mode, software->globals.default_running_mode,
+				sizeof(software->running_mode) - 1);
+		}
 
 		/*
 		 * Check if the stream should be saved

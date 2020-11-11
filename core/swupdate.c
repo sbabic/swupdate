@@ -414,8 +414,14 @@ static int parse_image_selector(const char *selector, struct swupdate_cfg *sw)
 
 	*pos = '\0';
 
+	/*
+	 * the runtime copy in swcfg can be overloaded by IPC,
+	 * so maintain a copy to restore it after an update
+	 */
+	strlcpy(sw->globals.default_software_set, selector, sizeof(sw->globals.default_software_set));
 	strlcpy(sw->software_set, selector, sizeof(sw->software_set));
 	/* pos + 1 will either be NULL or valid text */
+	strlcpy(sw->globals.default_running_mode, pos + 1, sizeof(sw->globals.default_running_mode));
 	strlcpy(sw->running_mode, pos + 1, sizeof(sw->running_mode));
 
 	if (strlen(sw->software_set) == 0 || strlen(sw->running_mode) == 0)
@@ -986,7 +992,7 @@ int main(int argc, char **argv)
 			exit(EXIT_FAILURE);
 		}
 		fprintf(stderr, "software set: %s mode: %s\n",
-			swcfg.software_set, swcfg.running_mode);
+			swcfg.globals.default_software_set, swcfg.globals.default_running_mode);
 	}
 
 	/* Read sw-versions */
