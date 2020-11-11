@@ -588,7 +588,7 @@ int start_mongoose(const char *cfgfname, int argc, char *argv[])
 
 	nc = mg_bind_opt(&mgr, s_http_port, ev_handler, bind_opts);
 	if (nc == NULL) {
-		fprintf(stderr, "Failed to start Mongoose: %s\n", *bind_opts.error_string);
+		ERROR("Failed to start Mongoose: %s", *bind_opts.error_string);
 		exit(EXIT_FAILURE);
 	}
 
@@ -607,7 +607,7 @@ int start_mongoose(const char *cfgfname, int argc, char *argv[])
 	mg_start_thread(broadcast_message_thread, &mgr);
 	mg_start_thread(broadcast_progress_thread, &mgr);
 
-	printf("Mongoose web server version %s with pid %d started on port(s) %s with web root [%s]\n",
+	INFO("Mongoose web server version %s with pid %d started on port(s) %s with web root [%s]",
 		MG_VERSION, getpid(), s_http_port,
 		s_http_server_opts.document_root);
 
