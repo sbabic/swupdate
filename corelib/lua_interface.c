@@ -1114,8 +1114,20 @@ int lua_handlers_init(void)
 		if ((ret = luaL_dostring(gL, "require (\"swupdate_handlers\")")) != 0) {
 			INFO("No Lua handler(s) found.");
 			if (luaL_dostring(gL, "return package.path:gsub(';','\\n'):gsub('?','swupdate_handlers')") == 0) {
+				TRACE("Lua handler search path:");
 				lua_pop(gL, 1);
-				TRACE("Lua handler search path:\n%s", lua_tostring(gL, -1));
+				char *s = strdupa(lua_tostring(gL, -1));
+				char *s1 = s;
+				char *lf;
+
+				do {
+					lf = strchr(s1, '\n');
+					if (lf)
+						*lf = '\0';
+					TRACE("\t%s", s1);
+					if (lf)
+						s1 = ++lf;
+				} while (lf);
 				lua_pop(gL, 1);
 			}
 		} else {
