@@ -971,7 +971,7 @@ int main(int argc, char **argv)
 	lua_handlers_init();
 
 	if(!get_hw_revision(&swcfg.hw))
-		printf("Running on %s Revision %s\n", swcfg.hw.boardname, swcfg.hw.revision);
+		INFO("Running on %s Revision %s", swcfg.hw.boardname, swcfg.hw.revision);
 
 	print_registered_handlers();
 	if (swcfg.globals.syslog_enabled) {
