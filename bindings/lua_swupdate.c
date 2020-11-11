@@ -130,6 +130,7 @@ static luaL_Reg ctrl_methods[] = {
  */
 static int ctrl_connect(lua_State *L) {
 	struct ctrl_obj *p = (struct ctrl_obj *) auxiliar_checkclass(L, "swupdate_control", 1);
+	struct swupdate_request req;
 	if (p->socket != -1) {
 		lua_pop(L, 1);
 		lua_pushnil(L);
@@ -137,7 +138,9 @@ static int ctrl_connect(lua_State *L) {
 		return 2;
 	}
 
-	int connfd = ipc_inst_start_ext(SOURCE_LOCAL, NULL, 0);
+	swupdate_prepare_req(&req);
+	req.source = SOURCE_LOCAL;
+	int connfd = ipc_inst_start_ext(&req, sizeof(req));
 	if (connfd < 0) {
 		lua_pop(L, 1);
 		lua_pushnil(L);

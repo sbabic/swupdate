@@ -293,7 +293,7 @@ static void upload_handler(struct mg_connection *nc, int ev, void *p)
 		req.len = strlen(mp->file_name);
 		strncpy(req.info, mp->file_name, sizeof(req.info) - 1);
 		req.source = SOURCE_WEBSERVER;
-		fus->fd = ipc_inst_start_ext(SOURCE_WEBSERVER, &req, sizeof(req));
+		fus->fd = ipc_inst_start_ext(&req, sizeof(req));
 		if (fus->fd < 0) {
 			mg_http_send_error(nc, 500, "Failed to queue command");
 			free(fus);

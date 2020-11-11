@@ -1046,8 +1046,7 @@ channel_op_res_t channel_get_file(channel_t *this, void *data)
 			  sizeof(req.info) - 1 );
 	}
 	for (int retries = 3; retries >= 0; retries--) {
-		file_handle = ipc_inst_start_ext(channel_data->source,
-			&req, sizeof(struct swupdate_request));
+		file_handle = ipc_inst_start_ext( &req, sizeof(struct swupdate_request));
 		if (file_handle > 0)
 			break;
 		sleep(1);

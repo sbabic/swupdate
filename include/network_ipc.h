@@ -104,7 +104,7 @@ typedef struct {
 
 char *get_ctrl_socket(void);
 int ipc_inst_start(void);
-int ipc_inst_start_ext(sourcetype source, void *priv, ssize_t size);
+int ipc_inst_start_ext(void *priv, ssize_t size);
 int ipc_send_data(int connfd, char *buf, int size);
 void ipc_end(int connfd);
 int ipc_get_status(ipc_message *msg);

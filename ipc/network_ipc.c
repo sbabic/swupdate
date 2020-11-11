@@ -176,7 +176,7 @@ int ipc_get_status_timeout(ipc_message *msg, unsigned int timeout_ms)
 	return ret;
 }
 
-int ipc_inst_start_ext(sourcetype source, void *priv, ssize_t size)
+int ipc_inst_start_ext(void *priv, ssize_t size)
 {
 	int connfd;
 	ipc_message msg;
@@ -243,7 +243,7 @@ int ipc_inst_start_ext(sourcetype source, void *priv, ssize_t size)
  */
 int ipc_inst_start(void)
 {
-	return ipc_inst_start_ext(SOURCE_UNKNOWN, NULL, 0);
+	return ipc_inst_start_ext(NULL, 0);
 }
 
 /*

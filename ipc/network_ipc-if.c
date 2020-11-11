@@ -122,7 +122,7 @@ int swupdate_async_start(writedata wr_func, getstatus status_func,
 	rq->get = status_func;
 	rq->end = end_func;
 
-	connfd = ipc_inst_start_ext(SOURCE_UNKNOWN, priv, size);
+	connfd = ipc_inst_start_ext(priv, size);
 
 	if (connfd < 0)
 		return connfd;
