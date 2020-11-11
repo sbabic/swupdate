@@ -1000,8 +1000,8 @@ int main(int argc, char **argv)
 			fprintf(stderr, "Error: Incorrect select option format.\n");
 			exit(EXIT_FAILURE);
 		}
-		fprintf(stderr, "software set: %s mode: %s\n",
-			swcfg.globals.default_software_set, swcfg.globals.default_running_mode);
+		INFO("software set: %s mode: %s", swcfg.globals.default_software_set,
+		     swcfg.globals.default_running_mode);
 	}
 
 	/* Read sw-versions */
