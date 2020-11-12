@@ -58,6 +58,13 @@ will be ignored until a new REQ_INSTALL will be received.
 
 .. image:: images/API.png
 
+It is recommended to use the client library to communicate with SWUpdate. On the lower
+level with direct socket communication, it cannot be guaranteed that the structures
+will remain compatible in future. The client library was affected by this issue, too, and it is
+changed to accept an opaque interface that will survive to API changes. Compatibility
+layers could be added on bedarf in future due to API changes.
+
+
 Client Library
 ==============
 
@@ -71,7 +78,7 @@ The library consists of one function and several call-backs.
 ::
 
         int swupdate_async_start(writedata wr_func, getstatus status_func,
-                terminated end_func)
+                terminated end_func, void *req, ssize_t size)
         typedef int (*writedata)(char **buf, int *size);
         typedef int (*getstatus)(ipc_message *msg);
         typedef int (*terminated)(RECOVERY_STATUS status);
@@ -88,6 +95,50 @@ The terminated call-back is called when SWUpdate has finished with the result
 of the upgrade.
 
 Example about using this library is in the examples/client directory.
+
+The `req` structure is casted to void to ensure API compatibility. Am user
+should instantiate it as `struct swupdate_request`. This contains fields that can control
+the update process:
+
+::
+
+        struct swupdate_request {
+                unsigned int apiversion;
+                sourcetype source;
+                bool dry_run;
+                size_t len;
+                char info[512];
+                char software_set[256];
+                char running_mode[256];
+        };
+
+A user should first call `swupdate_prepare_req()`
+
+::
+
+        void swupdate_prepare_req(struct swupdate_request *req);
+
+This fills the request sturcture with default values. After that, the user can fill the
+other fields as:
+
+        - *sourcetype* : one of SOURCE_UNKNOWN, SOURCE_WEBSERVER,
+	  SOURCE_SURICATTA, SOURCE_DOWNLOADER, SOURCE_LOCAL
+        - *dry_run* : true if the update must run without installing on the hardware
+        - *info, len* : a variable length data that can be forwarded to the progress
+          interface. The installer in SWUpdate does not evaluate it.
+        - *software_set* and *running_mode* : this allows to set the `selection` fot the update.
+
+Functions to set AES keys
+-------------------------
+
+The key for decryption can be set with command line parameter (see `-K`), but it is possible
+to set it via IPC. In this way, each update could have a different key.
+
+::
+
+        int swupdate_set_aes(char *key, char *ivt)
+
+The key is for AES-256. The length for key and ivt are then defined by the algorithm amd they are passed as ASCII string, so the length *must* be 64 bytes for key and 32 bytes for IVT.
 
 Functions to control SWUpdate
 -----------------------------
