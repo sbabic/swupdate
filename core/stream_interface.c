@@ -618,6 +618,30 @@ void *network_initializer(void *data)
 }
 
 /*
+ * Accessors to get information about an update, they are the interface
+ * to the "inst" structure.
+ */
+
+void get_install_swset(char *buf, size_t len)
+{
+
+	if (!buf)
+		return;
+
+	strncpy(buf, inst.software->software_set, len - 1);
+
+}
+
+void get_install_running_mode(char *buf, size_t len)
+{
+
+	if (!buf)
+		return;
+
+	strncpy(buf, inst.software->running_mode, len - 1);
+}
+
+/*
  * Retrieve additional info sent by the source
  * The data is not locked because it is retrieve
  * at different times
