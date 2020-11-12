@@ -18,6 +18,7 @@ struct installer {
 	int	last_error;		/* error code if installation failed */
 	char	errormsg[64];		/* error message if installation failed */
 	struct swupdate_request req;
+	struct swupdate_cfg const *software;
 };
 
 #endif

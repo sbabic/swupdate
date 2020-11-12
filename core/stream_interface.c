@@ -482,6 +482,7 @@ void *network_initializer(void *data)
 	memset(&inst, 0, sizeof(inst));
 	inst.fd = -1;
 	inst.status = IDLE;
+	inst.software = software;
 
 	/* fork off the local dialogs and network service */
 	network_thread_id = start_thread(network_thread, &inst);
