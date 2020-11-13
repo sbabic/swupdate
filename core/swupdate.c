@@ -564,7 +564,7 @@ static int read_console_settings(void *elem, void __attribute__ ((__unused__)) *
 	char tmp[SWUPDATE_GENERAL_STRING_SIZE] = "";
 	int i;
 
-	for (i = ERRORLEVEL; i <= TRACELEVEL; i++) {
+	for (i = ERRORLEVEL; i <= LASTLOGLEVEL; i++) {
 		memset(tmp, 0, sizeof(tmp));
 		GET_FIELD_STRING(LIBCFG_PARSER, elem, loglevnames[i], tmp);
 		if (tmp[0] != '\0')
