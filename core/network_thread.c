@@ -56,6 +56,43 @@ static unsigned long nrmsgs = 0;
 
 static pthread_mutex_t msglock = PTHREAD_MUTEX_INITIALIZER;
 
+static bool is_selection_allowed(const char *software_set, char *running_mode,
+				 struct dict const *acceptedlist)
+{
+	char *swset = NULL;
+	struct dict_list *sets;
+	struct dict_list_elem *selection;
+	bool allowed = false;
+
+	/*
+	 * No attempt to change software set
+	 */
+	if (!strlen(software_set) || !strlen(running_mode))
+		return true;
+
+	if (ENOMEM_ASPRINTF ==
+		asprintf(&swset, "%s,%s", software_set, running_mode)) {
+			 ERROR("OOM generating selection string");
+			 return false;
+	}
+	sets = dict_get_list((struct dict *)acceptedlist, "accepted");
+	if (sets && swset) {
+		LIST_FOREACH(selection, sets, next) {
+			if (!strcmp(swset, selection->value)) {
+				allowed = true;
+			}
+		}
+		free(swset);
+	}
+
+	if (allowed) {
+		INFO("Accepted selection %s,%s", software_set, running_mode);
+	}else 
+		ERROR("Selection %s,%s is not allowed, rejected !",
+		      software_set, running_mode); 
+	return allowed;
+}
+
 static void clean_msg(char *msg, char drop)
 {
 	char *lfpos;
@@ -349,17 +386,22 @@ void *network_thread (void *data)
 				if (instp->status == IDLE) {
 					instp->fd = ctrlconnfd;
 					instp->req = msg.data.instmsg.req;
+					if (is_selection_allowed(instp->req.software_set,
+								 instp->req.running_mode,
+								 &instp->software->accepted_set)) {
+						/*
+						 * Prepare answer
+						 */
+						msg.type = ACK;
 
-					/*
-					 * Prepare answer
-					 */
-					msg.type = ACK;
+						/* Drop all old notification from last run */
+						cleanum_msg_list();
 
-					/* Drop all old notification from last run */
-					cleanum_msg_list();
+						/* Wake-up the installer */
+						pthread_cond_signal(&stream_wkup);
+					} else
+						msg.type = NACK;
 
-					/* Wake-up the installer */
-					pthread_cond_signal(&stream_wkup);
 				} else {
 					msg.type = NACK;
 					sprintf(msg.data.msg, "Installation in progress");

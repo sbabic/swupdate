@@ -442,6 +442,13 @@ Command line parameters
 |             |          | -e "stable, copy1"  ==> install on copy1   |
 |             |          | -e "stable, copy2"  ==> install on copy2   |
 +-------------+----------+--------------------------------------------+
+| --excluded  | string   | ``sel`` is in the format <software>,<mode>.|
+|  <sel>      |          | It sets a blacklist of selections that     |
+|             |          | cannot be used for an update.              |
+|             |          | Selections can be activated not only with  |
+|             |          | -e, but also via IPC.                      |
+|             |          | Multiple --excluded are allowed            |
++-------------+----------+--------------------------------------------+
 | -h          |    -     | Run usage with help.                       |
 +-------------+----------+--------------------------------------------+
 | -k <file>   | string   | Available if CONFIG_SIGNED is set.         |

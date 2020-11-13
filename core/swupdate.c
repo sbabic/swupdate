@@ -76,6 +76,7 @@ static struct option long_options[] = {
 	{"loglevel", required_argument, NULL, 'l'},
 	{"syslog", no_argument, NULL, 'L' },
 	{"select", required_argument, NULL, 'e'},
+	{"accepted-select", required_argument, NULL, 'q'},
 	{"output", required_argument, NULL, 'o'},
 	{"dry-run", no_argument, NULL, 'n'},
 	{"no-downgrading", required_argument, NULL, 'N'},
@@ -128,6 +129,11 @@ static void usage(char *programname)
 		" -P, --preupdate                : execute pre-update command\n"
 		" -e, --select <software>,<mode> : Select software images set and source\n"
 		"                                  Ex.: stable,main\n"
+		" --accepted-select\n"
+		"            <software>,<mode>   : List for software images set and source\n"
+		"                                  that are accepted via IPC\n"
+		"                                  Ex.: stable,main\n"
+		"                                  it can be set multiple times\n"
 		" -i, --image <filename>         : Software to be installed\n"
 		" -l, --loglevel <level>         : logging level\n"
 		" -L, --syslog                   : enable syslog logger\n"
@@ -661,7 +667,7 @@ int main(int argc, char **argv)
 #endif
 	memset(main_options, 0, sizeof(main_options));
 	memset(image_url, 0, sizeof(image_url));
-	strcpy(main_options, "vhni:e:l:Lcf:p:P:o:N:R:M");
+	strcpy(main_options, "vhni:e:q:l:Lcf:p:P:o:N:R:M");
 #ifdef CONFIG_MTD
 	strcat(main_options, "b:");
 #endif
@@ -857,6 +863,9 @@ int main(int argc, char **argv)
 		case 'H':
 			if (opt_to_hwrev(optarg, &swcfg.hw) < 0)
 				exit(EXIT_FAILURE);
+			break;
+		case 'q':
+			dict_insert_value(&swcfg.accepted_set, "accepted", optarg);
 			break;
 #ifdef CONFIG_SURICATTA
 		case 'u':

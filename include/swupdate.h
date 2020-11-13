@@ -158,6 +158,7 @@ struct swupdate_cfg {
 	struct imglist scripts;
 	struct imglist bootscripts;
 	struct dict bootloader;
+	struct dict accepted_set;
 	struct proclist extprocs;
 	void *dgst;	/* Structure for signed images */
 	struct swupdate_global_cfg globals;
