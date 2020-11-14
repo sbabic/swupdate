@@ -831,6 +831,20 @@ static int l_set_bootenv(lua_State *L) {
 	return 0;
 }
 
+static int l_get_selection(lua_State *L) {
+	char tmp[SWUPDATE_GENERAL_STRING_SIZE];
+
+	tmp[0] = '\0';
+	get_install_swset(tmp, sizeof(tmp));
+	lua_pushstring(L, tmp);
+	tmp[0] = '\0';
+	get_install_running_mode(tmp, sizeof(tmp));
+	lua_pushstring(L, tmp);
+
+	return 2;
+}
+
+
 #ifdef CONFIG_HANDLER_IN_LUA
 static int l_get_tmpdir(lua_State *L)
 {
@@ -870,6 +884,7 @@ static const luaL_Reg l_swupdate[] = {
 static const luaL_Reg l_swupdate_bootenv[] = {
         { "get_bootenv", l_get_bootenv },
         { "set_bootenv", l_set_bootenv },
+        { "get_selection", l_get_selection },
         { NULL, NULL }
 };
 
