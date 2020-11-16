@@ -733,8 +733,17 @@ server_op_res_t server_has_pending_action(int *action_id)
 	}
 	if (result == SERVER_UPDATE_CANCELED) {
 		DEBUG("Acknowledging cancelled update.");
-		(void)server_send_cancel_reply(server_hawkbit.channel, *action_id);
 		/* Inform the installer that a CANCEL was received */
+		(void)server_send_cancel_reply(server_hawkbit.channel, *action_id);
+
+		server_hawkbit.update_state = STATE_OK;
+		/*
+		 * Save the state
+		 */
+		if ((result = save_state((char *)STATE_KEY, STATE_OK)) != SERVER_OK) {
+			ERROR("Error while resetting update state on persistent "
+			"storage.\n");
+		}
 		return SERVER_OK;
 	}
 
