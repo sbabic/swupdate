@@ -1,0 +1,305 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>SWUpdate: API for external programs &mdash; Embedded Software Update Documentation 2009.04 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Getting information on running update" href="progress.html" />
+    <link rel="prev" title="Suricatta daemon mode" href="suricatta.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Embedded Software Update Documentation
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2019.04
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Software Management on embedded systems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="licensing.html">License</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="swupdate.html">SWUpdate: software update for embedded system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sw-description.html">SWUpdate: syntax and tags with the default parser</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed_images.html">Update images from verified source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="encrypted_images.html">Symmetrically Encrypted Update Images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="handlers.html">Handlers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mongoose.html">Mongoose daemon mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">SWUpdate: API for external programs</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#api-description">API Description</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#client-library">Client Library</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building-with-yocto.html">meta-swupdate: building with Yocto</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="client.html">client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hawkbitcfg.html">hawkbitcfg</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sendtohawkbit.html">sendtohawkbit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate_progress.html">progress</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="help_and_support.html">Help and support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to SWUpdate</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project’s road-map</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Embedded Software Update Documentation</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>SWUpdate: API for external programs</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/swupdate-ipc.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="swupdate-api-for-external-programs">
+<h1>SWUpdate: API for external programs<a class="headerlink" href="#swupdate-api-for-external-programs" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>SWUpdate contains an integrated web-server to allow remote updating.
+However, which protocols are involved during an update is project
+specific and differs significantly. Some projects can decide
+to use FTP to load an image from an external server, or using
+even a proprietary protocol.
+The integrated web-server uses this interface.</p>
+<p>SWUpdate has a simple interface to let external programs
+to communicate with the installer. Clients can start an upgrade
+and stream an image to the installer, querying then for the status
+and the final result. The API is at the moment very simple, but it can
+easy be extended in the future if new use cases will arise.</p>
+</div>
+<div class="section" id="api-description">
+<h2>API Description<a class="headerlink" href="#api-description" title="Permalink to this headline">¶</a></h2>
+<p>The communication runs via UDS (Unix Domain Socket). The socket is created
+at startup by SWUpdate in /tmp/sockinstctrl as per default configuration.
+This socket should, however, not be used directly but instead by the Client
+Library explained below.</p>
+<p>The exchanged packets are described in network_ipc.h</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">typedef</span> <span class="n">struct</span> <span class="p">{</span>
+        <span class="nb">int</span> <span class="n">magic</span><span class="p">;</span>
+        <span class="nb">int</span> <span class="nb">type</span><span class="p">;</span>
+        <span class="n">msgdata</span> <span class="n">data</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">ipc_message</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Where the fields have the meaning:</p>
+<ul class="simple">
+<li>magic : a magic number as simple proof of the packet</li>
+<li>type : one of REQ_INSTALL, ACK, NACK, GET_STATUS, POST_UPDATE</li>
+<li>msgdata : a buffer used by the client to send the image
+or by SWUpdate to report back notifications and status.</li>
+</ul>
+<p>The client sends a REQ_INSTALL packet and waits for an answer.
+SWUpdate sends back ACK or NACK, if for example an update is already in progress.</p>
+<p>After the ACK, the client sends the whole image as a stream. SWUpdate
+expects that all bytes after the ACK are part of the image to be installed.
+SWUpdate recognizes the size of the image from the CPIO header.
+Any error lets SWUpdate to leave the update state, and further packets
+will be ignored until a new REQ_INSTALL will be received.</p>
+<img alt="_images/API.png" src="_images/API.png" />
+</div>
+<div class="section" id="client-library">
+<h2>Client Library<a class="headerlink" href="#client-library" title="Permalink to this headline">¶</a></h2>
+<p>A library simplifies the usage of the IPC making available a way to
+start asynchronously an update.</p>
+<p>The library consists of one function and several call-backs.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">int</span> <span class="n">swupdate_async_start</span><span class="p">(</span><span class="n">writedata</span> <span class="n">wr_func</span><span class="p">,</span> <span class="n">getstatus</span> <span class="n">status_func</span><span class="p">,</span>
+        <span class="n">terminated</span> <span class="n">end_func</span><span class="p">)</span>
+<span class="n">typedef</span> <span class="nb">int</span> <span class="p">(</span><span class="o">*</span><span class="n">writedata</span><span class="p">)(</span><span class="n">char</span> <span class="o">**</span><span class="n">buf</span><span class="p">,</span> <span class="nb">int</span> <span class="o">*</span><span class="n">size</span><span class="p">);</span>
+<span class="n">typedef</span> <span class="nb">int</span> <span class="p">(</span><span class="o">*</span><span class="n">getstatus</span><span class="p">)(</span><span class="n">ipc_message</span> <span class="o">*</span><span class="n">msg</span><span class="p">);</span>
+<span class="n">typedef</span> <span class="nb">int</span> <span class="p">(</span><span class="o">*</span><span class="n">terminated</span><span class="p">)(</span><span class="n">RECOVERY_STATUS</span> <span class="n">status</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>swupdate_async_start creates a new thread and start the communication with SWUpdate,
+triggering for a new update. The wr_func is called to get the image to be installed.
+It is responsibility of the callback to provide the buffer and the size of
+the chunk of data.</p>
+<p>The getstatus call-back is called after the stream was downloaded to check
+how upgrade is going on. It can be omitted if only the result is required.</p>
+<p>The terminated call-back is called when SWUpdate has finished with the result
+of the upgrade.</p>
+<p>Example about using this library is in the examples/client directory.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="progress.html" class="btn btn-neutral float-right" title="Getting information on running update" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="suricatta.html" class="btn btn-neutral float-left" title="Suricatta daemon mode" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013-2019, Stefano Babic
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

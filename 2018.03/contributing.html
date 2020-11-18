@@ -1,0 +1,321 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Contributing to SWUpdate &mdash; Embedded Software Update Documentation 2018.03 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Project’s road-map" href="roadmap.html" />
+    <link rel="prev" title="Help and support" href="help_and_support.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Embedded Software Update Documentation
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2018.03
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Software Management on embedded systems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="licensing.html">License</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="swupdate.html">SWUpdate: software update for embedded system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sw-description.html">SWUpdate: syntax and tags with the default parser</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed_images.html">Update images from verified source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="encrypted_images.html">Symmetrically Encrypted Update Images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="handlers.html">Handlers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mongoose.html">Mongoose daemon mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">SWUpdate: API for external programs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building-with-yocto.html">meta-swupdate: building with Yocto</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="help_and_support.html">Help and support</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Contributing to SWUpdate</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#contribution-checklist">Contribution Checklist</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#developer-s-certificate-of-origin-1-1">Developer’s Certificate of Origin 1.1</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project’s road-map</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Embedded Software Update Documentation</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Contributing to SWUpdate</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/contributing.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="contributing-to-swupdate">
+<h1>Contributing to SWUpdate<a class="headerlink" href="#contributing-to-swupdate" title="Permalink to this headline">¶</a></h1>
+<p>Contributions are welcome ! Please follow the following guideline for contributions.</p>
+<div class="section" id="contribution-checklist">
+<h2>Contribution Checklist<a class="headerlink" href="#contribution-checklist" title="Permalink to this headline">¶</a></h2>
+<p>These are mostly general recommendations and are common practise in a lot of
+FOSS projects.</p>
+<ul class="simple">
+<li>use git to manage your changes [<em>recomended</em>]</li>
+<li>follow as much as possible kernel codestyle [<em>recomended</em>]
+Nevertheless, some rules are not so strict as in kernel. The maximum line length
+can be extended over 80 chars if this increase code readability.</li>
+<li>add the required copyright header to each new file introduced [<strong>required</strong>]</li>
+<li><dl class="first docutils">
+<dt>add signed-off to all patches [<strong>required</strong>]</dt>
+<dd><ul class="first last">
+<li>to certify the “Developer’s Certificate of Origin”, see below</li>
+<li>check with your employer when not working on your own!</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>add version number for your patches if follow-up versions are requested [<em>recomended</em>]</dt>
+<dd><ul class="first last">
+<li>Add a “Change from Vx” description under the commit message to take track
+of the history of the patch.</li>
+<li>It is suggested to use excellent “patman” tool to manage patches series.
+This is part of U-Boot’s project (tools/patman), but it can be used in other projects, too.</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li>check that your patches do not break build [<strong>required</strong>]<ul>
+<li>There is a set of configuration files in the <cite>configs/</cite> directory.
+Please run a build for all files in the directory to ensure that SWUpdate is
+still buildable from configurations different as yours.</li>
+</ul>
+</li>
+<li><dl class="first docutils">
+<dt>post patches to mailing list [<strong>required</strong>]</dt>
+<dd><ul class="first last">
+<li>use <cite>git format-patch</cite> to generate your patches.</li>
+<li>use <cite>git send-email</cite> if possible. This avoid corruptions due
+to the mailers</li>
+<li>add a prefix [meta-swupdate] if patches are intended to the Yocto’s meta layer.</li>
+<li>send patches inline, do not append them</li>
+<li>no HTML emails!</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li>do not use github Pull Request. github facilities are not used for this project.
+The review is done in a single place : the Mailing List. PR from github are ignored.</li>
+</ul>
+<p>Patches are tracked by patchwork (see <a class="reference external" href="http://jk.ozlabs.org/projects/patchwork/">http://jk.ozlabs.org/projects/patchwork/</a>).
+You can see the status of your patches at <a class="reference external" href="http://patchwork.ozlabs.org/project/swupdate/list">http://patchwork.ozlabs.org/project/swupdate/list</a>.</p>
+</div>
+<div class="section" id="developer-s-certificate-of-origin-1-1">
+<h2>Developer’s Certificate of Origin 1.1<a class="headerlink" href="#developer-s-certificate-of-origin-1-1" title="Permalink to this headline">¶</a></h2>
+<p>When signing-off a patch for this project like this</p>
+<blockquote>
+<div>Signed-off-by: Random J Developer &lt;<a class="reference external" href="mailto:random&#37;&#52;&#48;developer&#46;example&#46;org">random<span>&#64;</span>developer<span>&#46;</span>example<span>&#46;</span>org</a>&gt;</div></blockquote>
+<p>using your real name (no pseudonyms or anonymous contributions), you declare the
+following:</p>
+<blockquote>
+<div><p>By making a contribution to this project, I certify that:</p>
+<blockquote>
+<div><ol class="loweralpha simple">
+<li>The contribution was created in whole or in part by me and I
+have the right to submit it under the open source license
+indicated in the file; or</li>
+<li>The contribution is based upon previous work that, to the best
+of my knowledge, is covered under an appropriate open source
+license and I have the right under that license to submit that
+work with modifications, whether created in whole or in part
+by me, under the same open source license (unless I am
+permitted to submit under a different license), as indicated
+in the file; or</li>
+<li>The contribution was provided directly to me by some other
+person who certified (a), (b) or (c) and I have not modified
+it.</li>
+<li>I understand and agree that this project and the contribution
+are public and that a record of the contribution (including all
+personal information I submit with it, including my sign-off) is
+maintained indefinitely and may be redistributed consistent with
+this project or the open source license(s) involved.</li>
+</ol>
+</div></blockquote>
+</div></blockquote>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="roadmap.html" class="btn btn-neutral float-right" title="Project’s road-map" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="help_and_support.html" class="btn btn-neutral float-left" title="Help and support" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013-2018, Stefano Babic
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

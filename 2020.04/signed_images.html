@@ -1,0 +1,445 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Update images from verified source &mdash; Embedded Software Update Documentation 2020.04 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Symmetrically Encrypted Update Images" href="encrypted_images.html" />
+    <link rel="prev" title="SWUpdate: syntax and tags with the default parser" href="sw-description.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Embedded Software Update Documentation
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2020.04
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Software Management on embedded systems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="licensing.html">License</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="swupdate.html">SWUpdate: software update for embedded system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scenarios.html">Update strategy examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sw-description.html">SWUpdate: syntax and tags with the default parser</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Update images from verified source</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#signing-the-compound-image">Signing the compound image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#signing-the-sub-images">Signing the sub-images</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#combining-signing-sw-description-with-hash-verification">Combining signing sw-description with hash verification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#choice-of-algorithm">Choice of algorithm</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#tool-to-generate-keys-certificates">Tool to generate keys / certificates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#usage-with-rsa-pkcs-1-5-or-rsa-pss">Usage with RSA PKCS#1.5 or RSA PSS</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#generating-private-and-public-key">Generating private and public key</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#how-to-sign-with-rsa">How to sign with RSA</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#usage-with-certificates-and-cms">Usage with certificates and CMS</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#generating-self-signed-certificates">Generating self-signed certificates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#using-pki-issued-certificates">Using PKI issued certificates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#how-to-sign-with-cms">How to sign with CMS</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#building-a-signed-swu-image">Building a signed SWU image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#example-for-sw-description-with-signed-image">Example for sw-description with signed image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-swupdate-with-signed-images">Running SWUpdate with signed images</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="encrypted_images.html">Symmetrically Encrypted Update Images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="handlers.html">Handlers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mongoose.html">Mongoose daemon mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hawkbit-setup.html">Config for HawkBit under SSL/TLS using private CA / sub CA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">SWUpdate: API for external programs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bindings.html">Language Bindings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building-with-yocto.html">meta-swupdate: building with Yocto</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-client.html">swupdate-client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-hawkbitcfg.html">swupdate-hawkbitcfg</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-sendtohawkbit.html">swupdate-sendtohawkbit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-progress.html">swupdate-progress</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-sysrestart.html">swupdate-sysrestart</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="help_and_support.html">Help and support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to SWUpdate</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project’s road-map</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Embedded Software Update Documentation</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Update images from verified source</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/signed_images.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="update-images-from-verified-source">
+<h1>Update images from verified source<a class="headerlink" href="#update-images-from-verified-source" title="Permalink to this headline">¶</a></h1>
+<p>It is becoming very important that a device must not only be safely updated,
+but also that it can verify if the delivered image is coming
+from a known source and it was not corrupted introducing some malware.</p>
+<p>To achieve this goal, SWUpdate must verify the incoming images. There are several
+ways to do this. Should the compound image be signed ? Or some parts of it ?</p>
+<p>Advantages and disadvantages are described in the following chapter.</p>
+<div class="section" id="signing-the-compound-image">
+<h2>Signing the compound image<a class="headerlink" href="#signing-the-compound-image" title="Permalink to this headline">¶</a></h2>
+<p>It looks quite straightforward if the whole compound image is signed.
+However, this has some heavy drawbacks. It is not possible to know if the image
+is verified until the whole image is loaded. This means that verification can be
+done after installing the single images instead of doing it before touching the
+device.
+This leads to have some uninstall procedure if part of a not verified image is
+already installed, procedures that cannot be safe in case of power off letting
+some unwanted piece of software on the device.</p>
+</div>
+<div class="section" id="signing-the-sub-images">
+<h2>Signing the sub-images<a class="headerlink" href="#signing-the-sub-images" title="Permalink to this headline">¶</a></h2>
+<p>If each sub-image is signed, the verification is done before calling the
+corresponding hardware. Only signed images can be installed.
+Anyway, this remains unbound with the description of the release in
+sw-description. Even if sw-description is signed, an attacker can mix
+signed images together generating a new compound image that can be
+installed as well, because all sub-images are verified.</p>
+</div>
+<div class="section" id="combining-signing-sw-description-with-hash-verification">
+<h2>Combining signing sw-description with hash verification<a class="headerlink" href="#combining-signing-sw-description-with-hash-verification" title="Permalink to this headline">¶</a></h2>
+<p>To avoid the described drawbacks, SWUpdate combines signed sw-description
+with the verification of hashes for each single image. This means that
+only sw-description generated by a verified source can be accepted by
+the installer. sw-description contains hashes for each sub-image to
+verify that each delivered sub-image really belongs to the release.</p>
+</div>
+<div class="section" id="choice-of-algorithm">
+<h2>Choice of algorithm<a class="headerlink" href="#choice-of-algorithm" title="Permalink to this headline">¶</a></h2>
+<p>The algorithm chosen to sign and verify the sw-descrription file can be
+selected via menuconfig. Currently, the following mechanisms are implemented:</p>
+<ul class="simple">
+<li>RSA Public / private key. The private key belongs to the build system,
+while the public key must be installed on the target.</li>
+<li>CMS using certificates</li>
+</ul>
+<p>Key or certificate is passed to SWUpdate with the <cite>-k</cite> parameter.</p>
+</div>
+<div class="section" id="tool-to-generate-keys-certificates">
+<h2>Tool to generate keys / certificates<a class="headerlink" href="#tool-to-generate-keys-certificates" title="Permalink to this headline">¶</a></h2>
+<p>The <cite>openssl</cite> tool is used to generate the keys. This is part of the
+OpenSSL project. A complete documentation can be found at
+the <a class="reference external" href="https://www.openssl.org/docs/manmaster/man1/openssl.html">openSSL Website</a>.</p>
+</div>
+<div class="section" id="usage-with-rsa-pkcs-1-5-or-rsa-pss">
+<h2>Usage with RSA PKCS#1.5 or RSA PSS<a class="headerlink" href="#usage-with-rsa-pkcs-1-5-or-rsa-pss" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="generating-private-and-public-key">
+<h3>Generating private and public key<a class="headerlink" href="#generating-private-and-public-key" title="Permalink to this headline">¶</a></h3>
+<p>First, the private key must be created:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">openssl</span> <span class="n">genrsa</span> <span class="o">-</span><span class="n">aes256</span> <span class="o">-</span><span class="n">out</span> <span class="n">priv</span><span class="o">.</span><span class="n">pem</span>
+</pre></div>
+</div>
+<p>This asks for a passphrase. It is possible to retrieve
+the passphrase from a file - of course, this must be
+protected against intrusion.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">openssl</span> <span class="n">genrsa</span> <span class="o">-</span><span class="n">aes256</span> <span class="o">-</span><span class="n">passout</span> <span class="n">file</span><span class="p">:</span><span class="n">passout</span> <span class="o">-</span><span class="n">out</span> <span class="n">priv</span><span class="o">.</span><span class="n">pem</span>
+</pre></div>
+</div>
+<p>The private key is used to export the public key with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">openssl</span> <span class="n">rsa</span> <span class="o">-</span><span class="ow">in</span> <span class="n">priv</span><span class="o">.</span><span class="n">pem</span> <span class="o">-</span><span class="n">out</span> <span class="n">public</span><span class="o">.</span><span class="n">pem</span> <span class="o">-</span><span class="n">outform</span> <span class="n">PEM</span> <span class="o">-</span><span class="n">pubout</span>
+</pre></div>
+</div>
+<p>“public.pem” contains the key in a format suitable for swupdate. The file
+can be passed to swupdate at the command line with the -k parameter.</p>
+</div>
+<div class="section" id="how-to-sign-with-rsa">
+<h3>How to sign with RSA<a class="headerlink" href="#how-to-sign-with-rsa" title="Permalink to this headline">¶</a></h3>
+<p>Signing the image with rsa-pkcs#1.5 is very simple:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">openssl</span> <span class="n">dgst</span> <span class="o">-</span><span class="n">sha256</span> <span class="o">-</span><span class="n">sign</span> <span class="n">priv</span><span class="o">.</span><span class="n">pem</span> <span class="n">sw</span><span class="o">-</span><span class="n">description</span> <span class="o">&gt;</span> <span class="n">sw</span><span class="o">-</span><span class="n">description</span><span class="o">.</span><span class="n">sig</span>
+</pre></div>
+</div>
+<p>Signing the image with rsa-pss is also very simple:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">openssl</span> <span class="n">dgst</span> <span class="o">-</span><span class="n">sha256</span> <span class="o">-</span><span class="n">sign</span> <span class="n">priv</span><span class="o">.</span><span class="n">pem</span> <span class="o">-</span><span class="n">sigopt</span> <span class="n">rsa_padding_mode</span><span class="p">:</span><span class="n">pss</span> \
+    <span class="o">-</span><span class="n">sigopt</span> <span class="n">rsa_pss_saltlen</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span> <span class="n">sw</span><span class="o">-</span><span class="n">description</span> <span class="o">&gt;</span> <span class="n">sw</span><span class="o">-</span><span class="n">description</span><span class="o">.</span><span class="n">sig</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="usage-with-certificates-and-cms">
+<h2>Usage with certificates and CMS<a class="headerlink" href="#usage-with-certificates-and-cms" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="generating-self-signed-certificates">
+<h3>Generating self-signed certificates<a class="headerlink" href="#generating-self-signed-certificates" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">openssl</span> <span class="n">req</span> <span class="o">-</span><span class="n">x509</span> <span class="o">-</span><span class="n">newkey</span> <span class="n">rsa</span><span class="p">:</span><span class="mi">4096</span> <span class="o">-</span><span class="n">nodes</span> <span class="o">-</span><span class="n">keyout</span> <span class="n">mycert</span><span class="o">.</span><span class="n">key</span><span class="o">.</span><span class="n">pem</span> \
+    <span class="o">-</span><span class="n">out</span> <span class="n">mycert</span><span class="o">.</span><span class="n">cert</span><span class="o">.</span><span class="n">pem</span> <span class="o">-</span><span class="n">subj</span> <span class="s2">&quot;/O=SWUpdate /CN=target&quot;</span>
+</pre></div>
+</div>
+<p>Check the documentation for more information about parameters. The “mycert.key.pem” contains
+the private key and it is used for signing. It is <em>not</em> delivered on the target.</p>
+<p>The target must have “mycert.cert.pem” installed - this is used by SWUpdate for verification.</p>
+</div>
+<div class="section" id="using-pki-issued-certificates">
+<h3>Using PKI issued certificates<a class="headerlink" href="#using-pki-issued-certificates" title="Permalink to this headline">¶</a></h3>
+<p>It is also possible to use PKI issued code signing certificates. However,
+SWUpdate uses OpenSSL library for handling CMS signatures and the library
+requires the following attributes to be set on the signing certificate:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">keyUsage</span><span class="o">=</span><span class="n">digitalSignature</span>
+<span class="n">extendedKeyUsage</span><span class="o">=</span><span class="n">emailProtection</span>
+</pre></div>
+</div>
+<p>It is also possible to completely disable signing certificate key usage
+checking if this requirement cannot be satisfied. This is controlled by
+<cite>CONFIG_CMS_IGNORE_CERTIFICATE_PURPOSE</cite> configuration option.</p>
+</div>
+<div class="section" id="how-to-sign-with-cms">
+<h3>How to sign with CMS<a class="headerlink" href="#how-to-sign-with-cms" title="Permalink to this headline">¶</a></h3>
+<p>Signing the image is simple as in the previous case:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">openssl</span> <span class="n">cms</span> <span class="o">-</span><span class="n">sign</span> <span class="o">-</span><span class="ow">in</span>  <span class="n">sw</span><span class="o">-</span><span class="n">description</span> <span class="o">-</span><span class="n">out</span> <span class="n">sw</span><span class="o">-</span><span class="n">description</span><span class="o">.</span><span class="n">sig</span> <span class="o">-</span><span class="n">signer</span> <span class="n">mycert</span><span class="o">.</span><span class="n">cert</span><span class="o">.</span><span class="n">pem</span> \
+        <span class="o">-</span><span class="n">inkey</span> <span class="n">mycert</span><span class="o">.</span><span class="n">key</span><span class="o">.</span><span class="n">pem</span> <span class="o">-</span><span class="n">outform</span> <span class="n">DER</span> <span class="o">-</span><span class="n">nosmimecap</span> <span class="o">-</span><span class="n">binary</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="building-a-signed-swu-image">
+<h2>Building a signed SWU image<a class="headerlink" href="#building-a-signed-swu-image" title="Permalink to this headline">¶</a></h2>
+<p>There are two files, sw-description and its signature sw-description.sig.
+The signature file must always directly follow the description file.</p>
+<p>Each image inside sw-description must have the attribute “sha256”, with the
+SHA256 sum of the image. If an image does not have the sha256 attribute,
+the whole compound image results as not verified and SWUpdate stops
+with an error before starting to install.</p>
+<p>A simple script to create a signed image can be:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>#!/bin/bash
+
+MODE=&quot;RSA-PKCS-1.5&quot;
+PRODUCT_NAME=&quot;myproduct&quot;
+CONTAINER_VER=&quot;1.0&quot;
+IMAGES=&quot;rootfs kernel&quot;
+FILES=&quot;sw-description sw-description.sig $IMAGES&quot;
+
+#if you use RSA
+if [ x&quot;$MODE&quot; == &quot;xRSA-PKCS-1.5&quot; ]; then
+    openssl dgst -sha256 -sign priv.pem sw-description &gt; sw-description.sig
+elif if [ x&quot;$MODE&quot; == &quot;xRSA-PSS&quot; ]; then
+    openssl dgst -sha256 -sign priv.pem -sigopt rsa_padding_mode:pss \
+        -sigopt rsa_pss_saltlen:-2 sw-description &gt; sw-description.sig
+else
+    openssl cms -sign -in  sw-description -out sw-description.sig -signer mycert.cert.pem \
+        -inkey mycert.key.pem -outform DER -nosmimecap -binary
+fi
+for i in $FILES;do
+        echo $i;done | cpio -ov -H crc &gt;  ${PRODUCT_NAME}_${CONTAINER_VER}.swu
+</pre></div>
+</div>
+</div>
+<div class="section" id="example-for-sw-description-with-signed-image">
+<h2>Example for sw-description with signed image<a class="headerlink" href="#example-for-sw-description-with-signed-image" title="Permalink to this headline">¶</a></h2>
+<p>The example applies to a Beaglebone, installing Yocto images:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">software</span> <span class="o">=</span>
+<span class="p">{</span>
+        <span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;0.1.0&quot;</span><span class="p">;</span>
+
+        <span class="n">hardware</span><span class="o">-</span><span class="n">compatibility</span><span class="p">:</span> <span class="p">[</span> <span class="s2">&quot;revC&quot;</span><span class="p">];</span>
+
+        <span class="n">images</span><span class="p">:</span> <span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;core-image-full-cmdline-beaglebone.ext3&quot;</span><span class="p">;</span>
+                    <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;/dev/mmcblk0p2&quot;</span><span class="p">;</span>
+                    <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;raw&quot;</span><span class="p">;</span>
+                    <span class="n">sha256</span> <span class="o">=</span> <span class="s2">&quot;43cdedde429d1ee379a7d91e3e7c4b0b9ff952543a91a55bb2221e5c72cb342b&quot;</span><span class="p">;</span>
+                <span class="p">}</span>
+        <span class="p">);</span>
+        <span class="n">scripts</span><span class="p">:</span> <span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;test.lua&quot;</span><span class="p">;</span>
+                    <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;lua&quot;</span><span class="p">;</span>
+                    <span class="n">sha256</span> <span class="o">=</span> <span class="s2">&quot;f53e0b271af4c2896f56a6adffa79a1ffa3e373c9ac96e00c4cfc577b9bea5f1&quot;</span><span class="p">;</span>
+                 <span class="p">}</span>
+        <span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="running-swupdate-with-signed-images">
+<h2>Running SWUpdate with signed images<a class="headerlink" href="#running-swupdate-with-signed-images" title="Permalink to this headline">¶</a></h2>
+<p>Verification is activated by setting CONFIG_SIGNED_IMAGES in SWUpdate’s configuration.
+If activated, SWUpdate will always check the compound image. For security reasons,
+it is not possible to disable the check at runtime. The -k parameter (public key file)
+is mandatory and the program stops if the public key is not passed.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="encrypted_images.html" class="btn btn-neutral float-right" title="Symmetrically Encrypted Update Images" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="sw-description.html" class="btn btn-neutral float-left" title="SWUpdate: syntax and tags with the default parser" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013-2020, Stefano Babic
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

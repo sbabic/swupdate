@@ -1,0 +1,845 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Handlers &mdash; Embedded Software Update Documentation 2019.11 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Mongoose daemon mode" href="mongoose.html" />
+    <link rel="prev" title="Symmetrically Encrypted Update Images" href="encrypted_images.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Embedded Software Update Documentation
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2019.11
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Software Management on embedded systems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="licensing.html">License</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="swupdate.html">SWUpdate: software update for embedded system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scenarios.html">Update strategy examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sw-description.html">SWUpdate: syntax and tags with the default parser</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed_images.html">Update images from verified source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="encrypted_images.html">Symmetrically Encrypted Update Images</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Handlers</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#supplied-handlers">Supplied handlers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#creating-own-handlers">Creating own handlers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ubi-volume-handler">UBI Volume Handler</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#atomic-volume-renaming">atomic volume renaming</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#volume-auto-resize">volume auto resize</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#lua-handlers">Lua Handlers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#remote-handler">Remote handler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#swu-forwarder">SWU forwarder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#rdiff-handler">rdiff handler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ucfw-handler">ucfw handler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ssbl-handler">SSBL Handler</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mongoose.html">Mongoose daemon mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hawkbit-setup.html">Config for HawkBit under SSL/TLS using private CA / sub CA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">SWUpdate: API for external programs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building-with-yocto.html">meta-swupdate: building with Yocto</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-client.html">client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-hawkbitcfg.html">hawkbitcfg</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-sendtohawkbit.html">sendtohawkbit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-progress.html">progress</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-sysrestart.html">swupdate-sysrestart</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="help_and_support.html">Help and support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to SWUpdate</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project’s road-map</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Embedded Software Update Documentation</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Handlers</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/handlers.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="handlers">
+<h1>Handlers<a class="headerlink" href="#handlers" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>It is quite difficult to foresee all possible installation cases.
+Instead of trying to find all use cases, SWUpdate let the
+developer free to add his own installer (that is, a new <strong>handler</strong>),
+that must be responsible to install an image of a certain type.
+An image is marked to be of a defined type to be installed with
+a specific handler.</p>
+<p>The parser make the connection between ‘image type’ and ‘handler’.
+It fills a table containing the list of images to be installed
+with the required handler to execute the installation. Each image
+can have a different installer.</p>
+</div>
+<div class="section" id="supplied-handlers">
+<h2>Supplied handlers<a class="headerlink" href="#supplied-handlers" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>In mainline there are the handlers for the most common cases. They include:</dt>
+<dd><ul class="first last simple">
+<li>flash devices in raw mode (both NOR and NAND)</li>
+<li>UBI volumes</li>
+<li>raw devices, such as a SD Card partition</li>
+<li>bootloader (U-Boot, GRUB, EFI Boot Guard) environment</li>
+<li>Lua scripts</li>
+</ul>
+</dd>
+</dl>
+<p>For example, if an image is marked to be updated into a UBI volume,
+the parser must fill a supplied table setting “ubi” as required handler,
+and filling the other fields required for this handler: name of volume, size,
+and so on.</p>
+</div>
+<div class="section" id="creating-own-handlers">
+<h2>Creating own handlers<a class="headerlink" href="#creating-own-handlers" title="Permalink to this headline">¶</a></h2>
+<p>SWUpdate can be extended with new handlers. The user needs to register his own
+handler with the core and he must provide the callback that SWUpdate uses when
+an image required to be installed with the new handler.</p>
+<p>The prototype for the callback is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">int</span> <span class="n">my_handler</span><span class="p">(</span><span class="n">struct</span> <span class="n">img_type</span> <span class="o">*</span><span class="n">img</span><span class="p">,</span>
+        <span class="n">void</span> <span class="n">__attribute__</span> <span class="p">((</span><span class="n">__unused__</span><span class="p">))</span> <span class="o">*</span><span class="n">data</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The most important parameter is the pointer to a struct img_type. It describes
+a single image and inform the handler where the image must be installed. The
+file descriptor of the incoming stream set to the start of the image to be installed is also
+part of the structure.</p>
+<p>The structure <em>img_type</em> contains the file descriptor of the stream pointing to the first byte
+of the image to be installed. The handler must read the whole image, and when it returns
+back SWUpdate can go on with the next image in the stream.</p>
+<p>SWUpdate provides a general function to extract data from the stream and copy
+to somewhere else:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">int</span> <span class="n">copyfile</span><span class="p">(</span><span class="nb">int</span> <span class="n">fdin</span><span class="p">,</span> <span class="nb">int</span> <span class="n">fdout</span><span class="p">,</span> <span class="nb">int</span> <span class="n">nbytes</span><span class="p">,</span> <span class="n">unsigned</span> <span class="n">long</span> <span class="o">*</span><span class="n">offs</span><span class="p">,</span>
+        <span class="nb">int</span> <span class="n">skip_file</span><span class="p">,</span> <span class="nb">int</span> <span class="n">compressed</span><span class="p">,</span> <span class="n">uint32_t</span> <span class="o">*</span><span class="n">checksum</span><span class="p">,</span> <span class="n">unsigned</span> <span class="n">char</span> <span class="o">*</span><span class="nb">hash</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>fdin is the input stream, that is img-&gt;fdin from the callback. The <em>hash</em>, in case of
+signed images, is simply passed to copyfile() to perform the check, exactly as the <em>checksum</em>
+parameter. copyfile() will return an error if checksum or hash do not match. The handler
+does not need to bother with them.
+How the handler manages the copied data, is specific to the handler itself. See
+supplied handlers code for a better understanding.</p>
+<p>The handler’s developer registers his own handler with a call to:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">__attribute__</span><span class="p">((</span><span class="n">constructor</span><span class="p">))</span>
+<span class="n">void</span> <span class="n">my_handler_init</span><span class="p">(</span><span class="n">void</span><span class="p">)</span>
+<span class="p">{</span>
+        <span class="n">register_handler</span><span class="p">(</span><span class="s2">&quot;mytype&quot;</span><span class="p">,</span> <span class="n">my_handler</span><span class="p">,</span> <span class="n">my_mask</span><span class="p">,</span> <span class="n">data</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>SWUpdate uses the gcc constructors, and all supplied handlers are registered
+when SWUpdate is initialized.</p>
+<p>register_handler has the syntax:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">register_handler</span><span class="p">(</span><span class="n">my_image_type</span><span class="p">,</span> <span class="n">my_handler</span><span class="p">,</span> <span class="n">my_mask</span><span class="p">,</span> <span class="n">data</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Where:</p>
+<ul class="simple">
+<li>my_image_type : string identifying the own new image type.</li>
+<li>my_handler : pointer to the installer to be registered.</li>
+<li>my_mask : <code class="docutils literal notranslate"><span class="pre">HANDLER_MASK</span></code> enum value(s) specifying what
+input type(s) my_handler can process.</li>
+<li>data : an optional pointer to an own structure, that SWUpdate
+saves in the handlers’ list and pass to the handler when it will
+be executed.</li>
+</ul>
+</div>
+<div class="section" id="ubi-volume-handler">
+<h2>UBI Volume Handler<a class="headerlink" href="#ubi-volume-handler" title="Permalink to this headline">¶</a></h2>
+<p>The UBI volume handler will update UBI volumes without changing the
+layout on the storage. Therefore, volumes must be created/adjusted
+beforehand. This can be done using the <code class="docutils literal notranslate"><span class="pre">partitions</span></code> tag (see
+<a class="reference internal" href="sw-description.html#partitions-ubi-layout"><span class="std std-ref">partitions : UBI layout</span></a>).</p>
+<p>The UBI volume handler will search for volumes in all MTD devices
+(unless blacklisted, see UBIBLACKLIST) to find the volume into which
+the image shall be installed. For this reason, <strong>volume names must be
+unique</strong> within the system. Two volumes with the same name are not
+supported and will lead to unpredictable results (SWUpdate will
+install the image to the first volume with that name it finds, which
+may not be right one!).</p>
+<p>When updating volumes, it is guaranteed that erase counters are
+preserved and not lost. The behavior of updating is identical to that
+of the <code class="docutils literal notranslate"><span class="pre">ubiupdatevol(1)</span></code> tool from mtd-utils. In fact, the same
+library from mtd-utils (libubi) is reused by SWUpdate.</p>
+<div class="section" id="atomic-volume-renaming">
+<h3>atomic volume renaming<a class="headerlink" href="#atomic-volume-renaming" title="Permalink to this headline">¶</a></h3>
+<p>The UBI volume handler has basic support for carrying out atomic
+volume renames by defining the <code class="docutils literal notranslate"><span class="pre">replaces</span></code> property, which must
+contain a valid UBI volume name. After successfully updating the image
+to <code class="docutils literal notranslate"><span class="pre">volume</span></code>, an atomic swap of the names of <code class="docutils literal notranslate"><span class="pre">volume</span></code> and
+<code class="docutils literal notranslate"><span class="pre">replaces</span></code> is done. Consider the following example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+        <span class="n">filename</span> <span class="o">=</span><span class="s2">&quot;u-boot.img&quot;</span><span class="p">;</span>
+        <span class="n">volume</span> <span class="o">=</span><span class="s2">&quot;u-boot_r&quot;</span><span class="p">;</span>
+        <span class="n">properties</span><span class="p">:</span> <span class="p">{</span>
+                <span class="n">replaces</span> <span class="o">=</span> <span class="s2">&quot;u-boot&quot;</span><span class="p">;</span>
+        <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>After u-boot.img is successfully installed into the volume “u-boot_r”,
+the volume “u-boot_r” is renamed to “u-boot” and “u-boot” is renamed
+to “u-boot_r”.</p>
+<p>This mechanism allows to implement a simple double copy update
+approach without the need of shared state with the bootloader. For
+example, the U-Boot SPL can be configured to always load U-Boot from
+the volume <code class="docutils literal notranslate"><span class="pre">u-boot</span></code> without the need to access the environment. The
+volume replace functionality will ensure that this volume name always
+points to the currently valid volume.</p>
+<p>However, please note the following limitations:</p>
+<ul class="simple">
+<li>Currently the rename takes place after <em>each</em> image was installed
+successfully. Hence, it only makes sense to use this feature for
+images that are independent of the other installed images. A typical
+example is the bootloader. This behavior may be modified in the
+future to only carry out one atomic rename after all images were
+installed successfully.</li>
+<li>Atomic renames are only possible and permitted for volumes residing
+on the same UBI device.</li>
+</ul>
+<p>There is a handler ubiswap that allow to do an atomic swap for several
+ubi volume after all the images were flashed. This handler is a script
+for the point of view of swudate, so the node that provide it the data
+should be added in the section scripts.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">scripts</span><span class="p">:</span> <span class="p">(</span>
+        <span class="p">{</span>
+                <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;ubiswap&quot;</span><span class="p">;</span>
+                <span class="n">properties</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="n">swap</span><span class="o">-</span><span class="mi">0</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">&quot;boot&quot;</span> <span class="p">,</span> <span class="s2">&quot; boot_r&quot;</span> <span class="p">];</span>
+                        <span class="n">swap</span><span class="o">-</span><span class="mi">1</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">&quot;kernel&quot;</span> <span class="p">,</span> <span class="s2">&quot;kernel_r&quot;</span> <span class="p">];</span>
+                        <span class="n">swap</span><span class="o">-</span><span class="mi">2</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">&quot;rootfs&quot;</span> <span class="p">,</span> <span class="s2">&quot;rootfs_r&quot;</span> <span class="p">];</span>
+                <span class="p">},</span>
+        <span class="p">},</span>
+<span class="p">);</span>
+</pre></div>
+</div>
+<p>WARNING: if you use the property replaces on an ubi volume that is also
+used with the handler ubiswap, this ubi volume will be swapped twice.
+It’s probably not what you want …</p>
+</div>
+<div class="section" id="volume-auto-resize">
+<h3>volume auto resize<a class="headerlink" href="#volume-auto-resize" title="Permalink to this headline">¶</a></h3>
+<p>The UBI volume handler has support to auto resize before flashing an
+image with the property <code class="docutils literal notranslate"><span class="pre">auto-resize</span></code>. When this property is set
+on an image, the ubi volume is resized to fit exactly the image.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;u-boot.img&quot;</span><span class="p">;</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;mtd0&quot;</span><span class="p">;</span>
+        <span class="n">volume</span> <span class="o">=</span> <span class="s2">&quot;u-boot_r&quot;</span><span class="p">;</span>
+        <span class="n">properties</span><span class="p">:</span> <span class="p">{</span>
+                <span class="n">auto</span><span class="o">-</span><span class="n">resize</span> <span class="o">=</span> <span class="s2">&quot;true&quot;</span><span class="p">;</span>
+        <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>WARNING: when this property is used, the device must be defined.</p>
+</div>
+</div>
+<div class="section" id="lua-handlers">
+<h2>Lua Handlers<a class="headerlink" href="#lua-handlers" title="Permalink to this headline">¶</a></h2>
+<p>In addition to the handlers written in C, it is possible to extend
+SWUpdate with handlers written in Lua that get loaded at SWUpdate
+startup. The Lua handler source code file may either be embedded
+into the SWUpdate binary via the <code class="docutils literal notranslate"><span class="pre">CONFIG_EMBEDDED_LUA_HANDLER</span></code>
+config option or has to be installed on the target system in Lua’s
+search path as <code class="docutils literal notranslate"><span class="pre">swupdate_handlers.lua</span></code> so that it can be loaded
+by the embedded Lua interpreter at run-time.</p>
+<p>In analogy to C handlers, the prototype for a Lua handler is</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">function</span> <span class="n">lua_handler</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+    <span class="o">...</span>
+<span class="n">end</span>
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">image</span></code> is a Lua table (with attributes according to
+<a class="reference internal" href="sw-description.html#sw-description-attribute-reference"><span class="std std-ref">sw-description’s attribute reference</span></a>)
+that describes a single artifact to be processed by the handler.</p>
+<p>Note that dashes in the attributes’ names are replaced with
+underscores for the Lua domain to make them idiomatic, e.g.,
+<code class="docutils literal notranslate"><span class="pre">installed-directly</span></code> becomes <code class="docutils literal notranslate"><span class="pre">installed_directly</span></code> in the
+Lua domain.</p>
+<p>To register a Lua handler, the <code class="docutils literal notranslate"><span class="pre">swupdate</span></code> module provides the
+<code class="docutils literal notranslate"><span class="pre">swupdate.register_handler()</span></code> method that takes the handler’s
+name, the Lua handler function to be registered under that name,
+and, optionally, the types of artifacts for which the handler may
+be called. If the latter is not given, the Lua handler is registered
+for all types of artifacts. The following call registers the
+above function <code class="docutils literal notranslate"><span class="pre">lua_handler</span></code> as <em>my_handler</em> which may be
+called for images:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">swupdate</span><span class="o">.</span><span class="n">register_handler</span><span class="p">(</span><span class="s2">&quot;my_handler&quot;</span><span class="p">,</span> <span class="n">lua_handler</span><span class="p">,</span> <span class="n">swupdate</span><span class="o">.</span><span class="n">HANDLER_MASK</span><span class="o">.</span><span class="n">IMAGE_HANDLER</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>A Lua handler may call C handlers (“chaining”) via the
+<code class="docutils literal notranslate"><span class="pre">swupdate.call_handler()</span></code> method. The callable and registered
+C handlers are available (as keys) in the table
+<code class="docutils literal notranslate"><span class="pre">swupdate.handler</span></code>. The following Lua code is an example of
+a simple handler chain-calling the <code class="docutils literal notranslate"><span class="pre">rawfile</span></code> C handler:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">function</span> <span class="n">lua_handler</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">swupdate</span><span class="o">.</span><span class="n">handler</span><span class="p">[</span><span class="s2">&quot;rawfile&quot;</span><span class="p">]</span> <span class="n">then</span>
+        <span class="n">swupdate</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;rawfile handler not available&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mi">1</span>
+    <span class="n">end</span>
+    <span class="n">image</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="s2">&quot;/tmp/destination.path&quot;</span>
+    <span class="n">local</span> <span class="n">err</span><span class="p">,</span> <span class="n">msg</span> <span class="o">=</span> <span class="n">swupdate</span><span class="o">.</span><span class="n">call_handler</span><span class="p">(</span><span class="s2">&quot;rawfile&quot;</span><span class="p">,</span> <span class="n">image</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">err</span> <span class="o">~=</span> <span class="mi">0</span> <span class="n">then</span>
+        <span class="n">swupdate</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">string</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;Error chaining handlers: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">msg</span><span class="p">))</span>
+        <span class="k">return</span> <span class="mi">1</span>
+    <span class="n">end</span>
+    <span class="k">return</span> <span class="mi">0</span>
+<span class="n">end</span>
+</pre></div>
+</div>
+<p>Note that when chaining handlers and calling a C handler for
+a different type of artifact than the Lua handler is registered
+for, the <code class="docutils literal notranslate"><span class="pre">image</span></code> table’s values must satisfy the called
+C handler’s expectations: Consider the above Lua handler being
+registered for “images” (<code class="docutils literal notranslate"><span class="pre">swupdate.HANDLER_MASK.IMAGE_HANDLER</span></code>)
+via the <code class="docutils literal notranslate"><span class="pre">swupdate.register_handler()</span></code> call shown above. As per the
+<a class="reference internal" href="sw-description.html#sw-description-attribute-reference"><span class="std std-ref">sw-description’s attribute reference</span></a>,
+the “images” artifact type doesn’t have the <code class="docutils literal notranslate"><span class="pre">path</span></code> attribute
+but the “file” artifact type does. So, for calling the <code class="docutils literal notranslate"><span class="pre">rawfile</span></code>
+handler, <code class="docutils literal notranslate"><span class="pre">image.path</span></code> has to be set prior to chain-calling the
+<code class="docutils literal notranslate"><span class="pre">rawfile</span></code> handler, as done in the example above. Usually, however,
+no such adaptation is necessary if the Lua handler is registered for
+handling the type of artifact that <code class="docutils literal notranslate"><span class="pre">image</span></code> represents.</p>
+<p>In addition to calling C handlers, the <code class="docutils literal notranslate"><span class="pre">image</span></code> table passed as
+parameter to a Lua handler has a <code class="docutils literal notranslate"><span class="pre">image:copy2file()</span></code> method that
+implements the common use case of writing the input stream’s data
+to a file, which is passed as this method’s argument. On success,
+<code class="docutils literal notranslate"><span class="pre">image:copy2file()</span></code> returns <code class="docutils literal notranslate"><span class="pre">0</span></code> or <code class="docutils literal notranslate"><span class="pre">-1</span></code> plus an error
+message on failure. The following Lua code is an example of
+a simple handler calling <code class="docutils literal notranslate"><span class="pre">image:copy2file()</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">function</span> <span class="n">lua_handler</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+    <span class="n">local</span> <span class="n">err</span><span class="p">,</span> <span class="n">msg</span> <span class="o">=</span> <span class="n">image</span><span class="p">:</span><span class="n">copy2file</span><span class="p">(</span><span class="s2">&quot;/tmp/destination.path&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">err</span> <span class="o">~=</span> <span class="mi">0</span> <span class="n">then</span>
+        <span class="n">swupdate</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">string</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;Error calling copy2file: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">msg</span><span class="p">))</span>
+        <span class="k">return</span> <span class="mi">1</span>
+    <span class="n">end</span>
+    <span class="k">return</span> <span class="mi">0</span>
+<span class="n">end</span>
+</pre></div>
+</div>
+<p>Beyond using <code class="docutils literal notranslate"><span class="pre">image:copy2file()</span></code> or chain-calling C handlers,
+the <code class="docutils literal notranslate"><span class="pre">image</span></code> table passed as parameter to a Lua handler has
+a <code class="docutils literal notranslate"><span class="pre">image:read(&lt;callback()&gt;)</span></code> method that reads from the input
+stream and calls the Lua callback function <code class="docutils literal notranslate"><span class="pre">&lt;callback()&gt;</span></code> for
+every chunk read, passing this chunk as parameter. On success,
+<code class="docutils literal notranslate"><span class="pre">0</span></code> is returned by <code class="docutils literal notranslate"><span class="pre">image:read()</span></code>. On error, <code class="docutils literal notranslate"><span class="pre">-1</span></code> plus an
+error message is returned. The following Lua code is an example
+of a simple handler printing the artifact’s content:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">function</span> <span class="n">lua_handler</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+    <span class="n">err</span><span class="p">,</span> <span class="n">msg</span> <span class="o">=</span> <span class="n">image</span><span class="p">:</span><span class="n">read</span><span class="p">(</span><span class="n">function</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="nb">print</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="n">end</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">err</span> <span class="o">~=</span> <span class="mi">0</span> <span class="n">then</span>
+        <span class="n">swupdate</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">string</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;Error reading image: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">msg</span><span class="p">))</span>
+        <span class="k">return</span> <span class="mi">1</span>
+    <span class="n">end</span>
+    <span class="k">return</span> <span class="mi">0</span>
+<span class="n">end</span>
+</pre></div>
+</div>
+<p>Using the <code class="docutils literal notranslate"><span class="pre">image:read()</span></code> method, an artifact’s contents may be
+(post-)processed in and leveraging the power of Lua without relying
+on preexisting C handlers for the purpose intended.</p>
+<p>Just as C handlers, a Lua handler must consume the artifact
+described in its <code class="docutils literal notranslate"><span class="pre">image</span></code> parameter so that SWUpdate can
+continue with the next artifact in the stream after the Lua handler
+returns. Chaining handlers, calling <code class="docutils literal notranslate"><span class="pre">image:copy2file()</span></code>, or using
+<code class="docutils literal notranslate"><span class="pre">image:read()</span></code> satisfies this requirement.</p>
+<p>Note that although the dynamic nature of Lua handlers would
+technically allow to embed them into a to be processed <code class="docutils literal notranslate"><span class="pre">.swu</span></code>
+image, this is not implemented as it carries some security
+implications since the behavior of SWUpdate is changed
+dynamically.</p>
+</div>
+<div class="section" id="remote-handler">
+<h2>Remote handler<a class="headerlink" href="#remote-handler" title="Permalink to this headline">¶</a></h2>
+<p>Remote handlers are thought for binding legacy installers
+without having the necessity to rewrite them in Lua. The remote
+handler forward the image to be installed to another process,
+waiting for an acknowledge to be sure that the image is installed
+correctly.
+The remote handler makes use of the zeromq library - this is
+to simplify the IPC with Unix Domain Socket. The remote handler
+is quite general, describing in sw-description with the
+“data” attribute how to communicate with the external process.
+The remote handler always acts as client, and try a connect()
+using the socket identified by the “data” attribute. For example,
+a possible setup using a remote handler could be:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">images</span><span class="p">:</span> <span class="p">(</span>
+        <span class="p">{</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;myimage&quot;&quot;;</span>
+            <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;remote&quot;</span><span class="p">;</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="s2">&quot;test_remote&quot;</span><span class="p">;</span>
+         <span class="p">}</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>The connection is instantiated using the socket “/tmp/test_remote”. If
+connect() fails, the remote handler signals that the update is not successful.
+Each Zeromq Message from SWUpdate is a multi-part message split into two frames:</p>
+<blockquote>
+<div><ul class="simple">
+<li>first frame contains a string with a command.</li>
+<li>second frame contains data and can be of 0 bytes.</li>
+</ul>
+</div></blockquote>
+<p>There are currently just two possible commands: INIT and DATA. After
+a successful connect, SWUpdate sends the initialization string in the
+format:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">INIT</span><span class="p">:</span><span class="o">&lt;</span><span class="n">size</span> <span class="n">of</span> <span class="n">image</span> <span class="n">to</span> <span class="n">be</span> <span class="n">installed</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>The external installer is informed about the size of the image to be
+installed, and it can assign resources if it needs. It will answer
+with the string <em>ACK</em> or <em>NACK</em>. The first NACK received by SWUpdate
+will interrupt the update. After sending the INIT command, the remote
+handler will send a sequence of <em>DATA</em> commands, where the second
+frame in message will contain chunks of the image to be installed.
+It is duty of the external process to take care of the amount of
+data transferred and to release resources when the last chunk
+is received. For each DATA message, the external process answers with a
+<em>ACK</em> or <em>NACK</em> message.</p>
+</div>
+<div class="section" id="swu-forwarder">
+<h2>SWU forwarder<a class="headerlink" href="#swu-forwarder" title="Permalink to this headline">¶</a></h2>
+<p>The SWU forwarder handler can be used to update other systems where SWUpdate
+is running. It can be used in case of master / slaves systems, where the master
+is connected to the network and the “slaves” are hidden to the external world.
+The master is then the only interface to the world. A general SWU can contain
+embedded SWU images as single artifacts, and the SWU handler will forward it
+to the devices listed in the description of the artifact.
+The handler can have a single “url” properties entry with an array of urls. Each url
+is the address of a secondary board where SWUpdate is running with webserver activated.
+The SWU handler expects to talk with SWUpdate’s embedded webserver. This helps
+to update systems where an old version of SWUpdate is running, because the
+embedded webserver is a common feature present in all versions.
+The handler will send the embedded SWU to all URLs at the same time, and setting
+<code class="docutils literal notranslate"><span class="pre">installed-directly</span></code> is supported by this handler.</p>
+<img alt="_images/SWUGateway.png" src="_images/SWUGateway.png" />
+<p>The following example shows how to set a SWU as artifact and enables
+the SWU forwarder:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">images</span><span class="p">:</span> <span class="p">(</span>
+        <span class="p">{</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;image.swu&quot;</span><span class="p">;</span>
+                <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;swuforward&quot;</span><span class="p">;</span>
+
+                <span class="n">properties</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="n">url</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;http://192.168.178.41:8080&quot;</span><span class="p">,</span> <span class="s2">&quot;http://192.168.178.42:8080&quot;</span><span class="p">];</span>
+                <span class="p">};</span>
+        <span class="p">});</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="rdiff-handler">
+<h2>rdiff handler<a class="headerlink" href="#rdiff-handler" title="Permalink to this headline">¶</a></h2>
+<p>The rdiff handler adds support for applying binary delta patches generated by
+<a class="reference external" href="http://librsync.sourcefrog.net/">librsync’s</a> rdiff tool.</p>
+<p>Naturally, the smaller the difference between the diff’s source and target, the
+more effective is using this handler rather than shipping the full target, e.g.,
+via the image handler. Hence, the most prominent use case for the rdiff handler
+is when having a read-only root filesystem and applying a small update like
+security fixes or feature additions. If the sweet spot is crossed, an rdiff
+patch may even exceed the full target’s size due to necessary patch metadata.
+Also note that in order to be most effective, an image to be processed with
+rdiff should be built deterministic
+(see <a class="reference external" href="https://reproducible-builds.org">reproducible-builds.org</a>).</p>
+<p>The rdiff algorithm requires no resources whatsoever on the device as the patch
+is fully computed in the backend. Consequently, the backend has to have
+knowledge of the current software running on the device in order to compute
+a sensible patch. Alike, the patch has to be applied on the device to an
+unmodified source as used in the backend for patch computation. This property is
+in particular useful for resource-constrained devices as there’s no need for the
+device to, e.g., aid in the difference computation.</p>
+<p>First, create the signature of the original (base) file via
+<code class="docutils literal notranslate"><span class="pre">rdiff</span> <span class="pre">signature</span> <span class="pre">&lt;basefile&gt;</span> <span class="pre">&lt;signaturefile&gt;</span></code>.
+Then, create the delta file (i.e., patch) from the original base file to the target
+file via <code class="docutils literal notranslate"><span class="pre">rdiff</span> <span class="pre">delta</span> <span class="pre">&lt;signaturefile&gt;</span> <span class="pre">&lt;targetfile&gt;</span> <span class="pre">&lt;deltafile&gt;</span></code>.
+The <code class="docutils literal notranslate"><span class="pre">&lt;deltafile&gt;</span></code> is the artifact to be applied via this handler on the device.
+Essentially, it mimics running <code class="docutils literal notranslate"><span class="pre">rdiff</span> <span class="pre">patch</span> <span class="pre">&lt;basefile&gt;</span> <span class="pre">&lt;deltafile&gt;</span> <span class="pre">&lt;targetfile&gt;</span></code>
+on the device. Naturally for patches, the very same <code class="docutils literal notranslate"><span class="pre">&lt;basefile&gt;</span></code> has to be used
+for creating as well as for applying the patch to.</p>
+<p>This handler registers itself for handling files and images.
+An exemplary sw-description fragment for the files section is</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">files</span><span class="p">:</span> <span class="p">(</span>
+    <span class="p">{</span>
+        <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;rdiff_file&quot;</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;file.rdiff.delta&quot;</span><span class="p">;</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="s2">&quot;/usr/bin/file&quot;</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">);</span>
+</pre></div>
+</div>
+<p>Note that the file referenced to by <code class="docutils literal notranslate"><span class="pre">path</span></code> serves as <code class="docutils literal notranslate"><span class="pre">&lt;basefile&gt;</span></code> and
+gets replaced by a temporary file serving as <code class="docutils literal notranslate"><span class="pre">&lt;targetfile&gt;</span></code> while the rdiff
+patch processing.</p>
+<p>An exemplary sw-description fragment for the images section is</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">images</span><span class="p">:</span> <span class="p">(</span>
+    <span class="p">{</span>
+        <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;rdiff_image&quot;</span><span class="p">;</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;image.rdiff.delta&quot;</span><span class="p">;</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;/dev/mmcblk0p2&quot;</span><span class="p">;</span>
+        <span class="n">properties</span><span class="p">:</span> <span class="p">{</span>
+            <span class="n">rdiffbase</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;/dev/mmcblk0p1&quot;</span><span class="p">];</span>
+        <span class="p">};</span>
+    <span class="p">}</span>
+<span class="p">);</span>
+</pre></div>
+</div>
+<p>Here, the property <code class="docutils literal notranslate"><span class="pre">rdiffbase</span></code> qualifies the <code class="docutils literal notranslate"><span class="pre">&lt;basefile&gt;</span></code> while the <code class="docutils literal notranslate"><span class="pre">device</span></code>
+attribute designates the <code class="docutils literal notranslate"><span class="pre">&lt;targetfile&gt;</span></code>.
+Note that there’s no support for the optional <code class="docutils literal notranslate"><span class="pre">offset</span></code> attribute in the
+<code class="docutils literal notranslate"><span class="pre">rdiff_image</span></code> handler as there’s currently no apparent use case for it and
+skipping over unchanged content is handled well by the rdiff algorithm.</p>
+</div>
+<div class="section" id="ucfw-handler">
+<h2>ucfw handler<a class="headerlink" href="#ucfw-handler" title="Permalink to this headline">¶</a></h2>
+<p>This handler allows to update the firmware on a microcontroller connected to
+the main controller via UART.
+Parameters for setup are passed via sw-description file.  Its behavior can be
+extended to be more general.
+The protocol is ASCII based. There is a sequence to be done to put the microcontroller
+in programming mode, after that the handler sends the data and waits for an ACK from the
+microcontroller.</p>
+<p>The programming of the firmware shall be:</p>
+<ol class="arabic">
+<li><p class="first">Enter firmware update mode (bootloader)</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>Set “reset line” to logical “low”</li>
+<li>Set “update line” to logical “low”</li>
+<li>Set “reset line” to logical “high”</li>
+</ol>
+</div></blockquote>
+</li>
+<li><p class="first">Send programming message</p>
+</li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$PROG;&lt;&lt;CS&gt;&gt;&lt;CR&gt;&lt;LF&gt;
+</pre></div>
+</div>
+<p>to the microcontroller.  (microcontroller will remain in programming state)</p>
+<ol class="arabic simple" start="3">
+<li>microcontroller confirms with</li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$READY;&lt;&lt;CS&gt;&gt;&lt;CR&gt;&lt;LF&gt;
+</pre></div>
+</div>
+<ol class="arabic" start="4">
+<li><p class="first">Data transmissions package based from mainboard to microcontroller package definition:</p>
+<blockquote>
+<div><ul class="simple">
+<li>within a package the records are sent one after another without the end of line marker &lt;CR&gt;&lt;LF&gt;</li>
+<li>the package is completed with &lt;CR&gt;&lt;LF&gt;</li>
+</ul>
+</div></blockquote>
+</li>
+<li><p class="first">The microcontroller requests the next package with $READY;&lt;&lt;CS&gt;&gt;&lt;CR&gt;&lt;LF&gt;</p>
+</li>
+<li><p class="first">Repeat step 4 and 5 until the complete firmware is transmitted.</p>
+</li>
+<li><p class="first">The keypad confirms the firmware completion with $COMPLETED;&lt;&lt;CS&gt;&gt;&lt;CR&gt;&lt;LF&gt;</p>
+</li>
+<li><dl class="first docutils">
+<dt>Leave firmware update mode</dt>
+<dd><ol class="first last arabic simple">
+<li>Set “Update line” to logical “high”</li>
+<li>Perform a reset over the “reset line”</li>
+</ol>
+</dd>
+</dl>
+</li>
+</ol>
+<p>&lt;&lt;CS&gt;&gt; : checksum. The checksum is calculated as the two’s complement of
+the modulo-256 sum over all bytes of the message
+string except for the start marker “$”.
+The handler expects to get in the properties the setup for the reset
+and prog gpios. They should be in this format:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">properties</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">reset</span> <span class="o">=</span> <span class="s2">&quot;&lt;gpiodevice&gt;:&lt;gpionumber&gt;:&lt;activelow&gt;&quot;</span><span class="p">;</span>
+        <span class="n">prog</span> <span class="o">=</span> <span class="s2">&quot;&lt;gpiodevice&gt;:&lt;gpionumber&gt;:&lt;activelow&gt;&quot;</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">images</span><span class="p">:</span> <span class="p">(</span>
+    <span class="p">{</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;microcontroller-image&quot;</span><span class="p">;</span>
+        <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;ucfw&quot;</span><span class="p">;</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;/dev/ttymxc5&quot;</span><span class="p">;</span>
+
+        <span class="n">properties</span><span class="p">:</span> <span class="p">{</span>
+            <span class="n">reset</span> <span class="o">=</span>  <span class="s2">&quot;/dev/gpiochip0:38:false&quot;</span><span class="p">;</span>
+            <span class="n">prog</span> <span class="o">=</span>  <span class="s2">&quot;/dev/gpiochip0:39:false&quot;</span><span class="p">;</span>
+        <span class="p">};</span>
+    <span class="p">}</span>
+<span class="p">);</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="ssbl-handler">
+<h2>SSBL Handler<a class="headerlink" href="#ssbl-handler" title="Permalink to this headline">¶</a></h2>
+<p>This implements a way to switch two software sets using a duplicated structure saved on the
+flash (currently, only NOR flash is supported). Each of the two structures contains address
+and size of the image to be loaded by a first loader. A field contain the “age”, and it is
+incremented after each switch to show which is the active set.</p>
+<table border="1" class="docutils" id="id1">
+<caption><span class="caption-text">Structure of SSBL Admin</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="83%" />
+<col width="17%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>SSBL Magic Number (29 bit)Name</td>
+<td>Age (3 bit)</td>
+</tr>
+<tr class="row-even"><td colspan="2">Image Address Offset</td>
+</tr>
+<tr class="row-odd"><td colspan="2">Image Size</td>
+</tr>
+</tbody>
+</table>
+<p>The handler implements a post install script. First, it checks for consistency the two
+structures and find the active reading the first 32 bit value with a magic number and the age.
+It increments the age and saves the new structure in the inactive copy. After a reboot,
+the loader will check it and switch the software set.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">scripts</span><span class="p">:</span> <span class="p">(</span>
+        <span class="p">{</span>
+                <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;ssblswitch&quot;</span><span class="p">;</span>
+                <span class="n">properties</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="n">device</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;mtdX&quot;</span><span class="p">,</span> <span class="s2">&quot;mtdY&quot;</span><span class="p">];</span>
+                        <span class="n">offset</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="s2">&quot;0&quot;</span><span class="p">];</span>
+                        <span class="n">imageoffs</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;0x780000&quot;</span><span class="p">,</span>  <span class="s2">&quot;0xA40000&quot;</span><span class="p">];</span>
+                        <span class="n">imagesize</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;0x800000&quot;</span><span class="p">,</span> <span class="s2">&quot;0x800000&quot;</span><span class="p">];</span>
+                <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Properties in sw-description are all mandatory. They define where the SSBL Administration data
+are stored for both sets. Each properties is an array of two entries, containing values for each
+of the two SSBL administration.</p>
+<table border="1" class="docutils" id="id2">
+<caption><span class="caption-text">Properties for SSBL handler</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="17%" />
+<col width="13%" />
+<col width="69%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Name</th>
+<th class="head">Type</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>device</td>
+<td>string</td>
+<td>MTD device where the SSBL Admin Header is stored</td>
+</tr>
+<tr class="row-odd"><td>offset</td>
+<td>hex</td>
+<td>Offset of SSBL header inside the MTD device</td>
+</tr>
+<tr class="row-even"><td>imageoffset</td>
+<td>hex</td>
+<td>Offset of the image to be loaded by a bootloader
+when this SSBL is set.</td>
+</tr>
+<tr class="row-odd"><td>imagesize</td>
+<td>hex</td>
+<td>Size of the image to be loaded by a bootloader
+when this SSBL is set.</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="mongoose.html" class="btn btn-neutral float-right" title="Mongoose daemon mode" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="encrypted_images.html" class="btn btn-neutral float-left" title="Symmetrically Encrypted Update Images" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013-2019, Stefano Babic
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

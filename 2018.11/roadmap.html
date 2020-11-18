@@ -1,0 +1,400 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Project’s road-map &mdash; Embedded Software Update Documentation 2018.11 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Contributing to SWUpdate" href="contributing.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Embedded Software Update Documentation
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2018.11
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Software Management on embedded systems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="licensing.html">License</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="swupdate.html">SWUpdate: software update for embedded system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sw-description.html">SWUpdate: syntax and tags with the default parser</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed_images.html">Update images from verified source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="encrypted_images.html">Symmetrically Encrypted Update Images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="handlers.html">Handlers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mongoose.html">Mongoose daemon mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">SWUpdate: API for external programs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building-with-yocto.html">meta-swupdate: building with Yocto</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="help_and_support.html">Help and support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to SWUpdate</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Project’s road-map</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#main-goal">Main goal</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#swupdate-as-updater-gateway">SWUpdate as Updater Gateway</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#binary-delta-updates">Binary delta updates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#integration-in-linux-distro">Integration in Linux distro</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#handlers">Handlers:</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#new-handlers">New Handlers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#flash-handler">Flash handler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#handlers-installable-as-plugin-at-runtime">Handlers installable as plugin at runtime</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#support-for-evaluation-boards">Support for evaluation boards</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#backend-support-suricatta-mode">Backend support (suricatta mode)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#backend-hawkbit-offline-support">Backend: Hawkbit Offline support</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#backend-consolidate-general-server">Backend: Consolidate “general server”</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#backend-support-for-mender">Backend: support for Mender</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#support-for-multiple-servers-simultaneously">Support for multiple Servers simultaneously</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#swupdate-gui-for-rescue">SWUpdate GUI for rescue</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#test-and-continuos-integration">Test and Continuos Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#documentation">Documentation</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Embedded Software Update Documentation</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Project’s road-map</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/roadmap.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="project-s-road-map">
+<h1>Project’s road-map<a class="headerlink" href="#project-s-road-map" title="Permalink to this headline">¶</a></h1>
+<p>Please take into account that most of the items here are proposals.
+I get some ideas talking with customers, some ideas are my own thoughts.
+There is no plan when these features will be implemented - this depends
+if enough interest is raised and if there will be contribution to the project
+in terms of patches or financial contribution to develop a feature.</p>
+<p>Thanks again to all companies that have supported my work up now and to
+everybody who has contributed to the project, let me bring SWUpdate
+to the current status !</p>
+<div class="section" id="main-goal">
+<h2>Main goal<a class="headerlink" href="#main-goal" title="Permalink to this headline">¶</a></h2>
+<p>First goal is to reach a quite big audience, making
+SWUpdate suitable for a large number of products.
+This will help to build a community around the project
+itself.</p>
+</div>
+<div class="section" id="swupdate-as-updater-gateway">
+<h2>SWUpdate as Updater Gateway<a class="headerlink" href="#swupdate-as-updater-gateway" title="Permalink to this headline">¶</a></h2>
+<p>This feature was introduced with the “swuforward” handler. It is already
+possible to update a tree of devices if each of them runs SWUpdate. This
+feature is already implemented in SWUpdate for embedded linux.</p>
+<p>Anyway, a lot of embedded devices have small processors and maybe not a full
+blown OS. Ensuring security for all of them can be a risk, and it is
+easier to make sure on a single device. If the device running SWUpdate is
+acting as gateway, it can translate protocols from backend and send
+package updates to the connected small devices.</p>
+<p>One example could be if SWUpdate runs as MQTT-broker and takes updates
+from Hawkbit. SWUpdate should be able to run multiple instances of
+suricatta to do this.</p>
+<p>One other examples is using LWM2M. The gateway should be generic enough
+to allow to add further protocols in future.</p>
+</div>
+<div class="section" id="binary-delta-updates">
+<h2>Binary delta updates<a class="headerlink" href="#binary-delta-updates" title="Permalink to this headline">¶</a></h2>
+<p>A whole update could be very traffic intensive. Specially in case
+of low-bandwidth connections, it could be interesting to introduce
+a way for delta binary updates.
+There was already several discussions on the Mailing List about
+this. If introducing binary delta is high desired, on the other side
+it is strictly required to not reduce the reliability of the update
+and the feature should not introduce leaks and make the system
+more vulnerable. It is accepted that different technologies could be added,
+each of them solves a specific use case for a delta update.</p>
+</div>
+<div class="section" id="integration-in-linux-distro">
+<h2>Integration in Linux distro<a class="headerlink" href="#integration-in-linux-distro" title="Permalink to this headline">¶</a></h2>
+<p>To allow an easer leraning with SWUpdate and also for test purposes with the
+SWU forwarder handler, it makes sense to package SWUpdate for PC Linux distro.
+SWUpdate already supports debian package. Some help from community is asked to
+let the package merged into Debian distro.</p>
+</div>
+<div class="section" id="handlers">
+<h2>Handlers:<a class="headerlink" href="#handlers" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="new-handlers">
+<h3>New Handlers<a class="headerlink" href="#new-handlers" title="Permalink to this headline">¶</a></h3>
+<p>Users develop own custom handlers - I just enforce and encourage everyone
+to send them and discuss how to integrate custom handler in mainline.</p>
+<p>A handler to update a microntroller connected via UART is introduced.
+It could be enhanced to support other interfaces (SPI for example).</p>
+<dl class="docutils">
+<dt>Some ideas for new handlers:</dt>
+<dd><ul class="first last simple">
+<li>handlers to update microcontrollers</li>
+<li>FPGA updater for FPGA with Flash</li>
+<li>Package handler to install packages (ipk, deb)
+Packages can be inserted into the SWU and the atomicity is
+guaranteed by SWUpdate.</li>
+<li>Lua handlers should be added if possible to the project
+to show how to solve custom install.</li>
+</ul>
+</dd>
+</dl>
+</div>
+<div class="section" id="flash-handler">
+<h3>Flash handler<a class="headerlink" href="#flash-handler" title="Permalink to this headline">¶</a></h3>
+<p>The flash handler for raw-devices (mainly NOR flashes) does not allow to
+stream the image and an error is reported if “installed-directly” is set.
+The handler can be extended to stream images.</p>
+</div>
+<div class="section" id="handlers-installable-as-plugin-at-runtime">
+<h3>Handlers installable as plugin at runtime<a class="headerlink" href="#handlers-installable-as-plugin-at-runtime" title="Permalink to this headline">¶</a></h3>
+<p>The project supports Lua as script language for pre- and postinstall
+script. It will be easy to add a way for installing a handler at runtime
+written in Lua, allowing to expand SWUpdate to the cases not covered
+in the design phase of a product.</p>
+<p>Of course, this issue is related to the security features: it must be
+ensured that only verified handlers can be added to the system to avoid
+that malware can get the control of the target.</p>
+<p>Current release supports verified images. That means that a handler
+written in Lua could be now be part of the compound image, because
+a unauthenticated handler cannot run.</p>
+</div>
+</div>
+<div class="section" id="support-for-evaluation-boards">
+<h2>Support for evaluation boards<a class="headerlink" href="#support-for-evaluation-boards" title="Permalink to this headline">¶</a></h2>
+<p>New is meta-swupdate-boards - examples regarding evaluation boards are
+put there. Currently, there are examples for Beaglebone Black,
+Raspberri PI 3 and Wandboard. Maybe some more boards ? Patches welcome.</p>
+</div>
+<div class="section" id="backend-support-suricatta-mode">
+<h2>Backend support (suricatta mode)<a class="headerlink" href="#backend-support-suricatta-mode" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="backend-hawkbit-offline-support">
+<h3>Backend: Hawkbit Offline support<a class="headerlink" href="#backend-hawkbit-offline-support" title="Permalink to this headline">¶</a></h3>
+<p>There are several discussions on Hawkbit’s ML about how to synchronize
+an offline update (done locally or via the internal Webserver) with
+the Hawkbit’s server. Currently, Hawkbit thinks to be the only one
+deploying software. Hawkbit DDI API should be extended, and afterwards
+changes must be implemented in SWUpdate.</p>
+</div>
+<div class="section" id="backend-consolidate-general-server">
+<h3>Backend: Consolidate “general server”<a class="headerlink" href="#backend-consolidate-general-server" title="Permalink to this headline">¶</a></h3>
+<p>A second OTA server was introduced with 2018.11, but there is not
+an open source solution for a server. Anyway, the very simple interface
+of the “general server” can be used by anyone to introduce an own server
+instead of a more complicate solution with a backend like Hawkbit.</p>
+</div>
+<div class="section" id="backend-support-for-mender">
+<h3>Backend: support for Mender<a class="headerlink" href="#backend-support-for-mender" title="Permalink to this headline">¶</a></h3>
+<p>There was several discussion how to make a stronger collaboration between
+different update solution and a proposal discussed prevviously is to use SWUpdate as client
+to upgrade from a Mender server, see <a class="reference external" href="https://elinux.org/images/0/0c/BoF_secure_ota_linux.pdf">BOF at ELCE 2017</a></p>
+</div>
+<div class="section" id="support-for-multiple-servers-simultaneously">
+<h3>Support for multiple Servers simultaneously<a class="headerlink" href="#support-for-multiple-servers-simultaneously" title="Permalink to this headline">¶</a></h3>
+<p>Currently, suricatta’s server backends are a mutually exclusive
+compile-time choice. There is no interest to have multiple OTA at the same time.
+This feature won’t be implemented and I will remove this from roadmap if no
+interest will be waked up.</p>
+</div>
+</div>
+<div class="section" id="swupdate-gui-for-rescue">
+<h2>SWUpdate GUI for rescue<a class="headerlink" href="#swupdate-gui-for-rescue" title="Permalink to this headline">¶</a></h2>
+<p>In case of rescue for HMI devices, it is often required to have a small GUI
+for an operator to set some parameters (network,..) and start an update.
+A first version of SWUpdate-GUI was released with a base set of features. The goal of this simple GUI
+is to have a low footprint compared to GUI developed with state of art frameworks.
+This lets to still have a rescue that fits in small devices.</p>
+</div>
+<div class="section" id="test-and-continuos-integration">
+<h2>Test and Continuos Integration<a class="headerlink" href="#test-and-continuos-integration" title="Permalink to this headline">¶</a></h2>
+<p>The number of configurations and features in SWUpdate is steadily increasing and
+it becomes urgent to find a way to test all incoming patch to fix regression issues.
+One step in this direction is the support for Travis build - a set of configuration
+files is stored with the project and should help to find fast breakages in the build.
+More in this direction must be done to perform test on targets. A suitable test framework
+should be found. Scope is to have a “SWUpdate factory” where patches are fast integrated
+and tested on real hardware.</p>
+</div>
+<div class="section" id="documentation">
+<h2>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h2>
+<p>Documentation should be improved. There is just a little documentation for meta-swupdate
+how to set it up with different configurations.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="contributing.html" class="btn btn-neutral float-left" title="Contributing to SWUpdate" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013-2018, Stefano Babic
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

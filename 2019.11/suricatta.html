@@ -1,0 +1,508 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Suricatta daemon mode &mdash; Embedded Software Update Documentation 2019.11 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Config for HawkBit under SSL/TLS using private CA / sub CA" href="hawkbit-setup.html" />
+    <link rel="prev" title="Mongoose daemon mode" href="mongoose.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Embedded Software Update Documentation
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2019.11
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Software Management on embedded systems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="licensing.html">License</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="swupdate.html">SWUpdate: software update for embedded system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scenarios.html">Update strategy examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sw-description.html">SWUpdate: syntax and tags with the default parser</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed_images.html">Update images from verified source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="encrypted_images.html">Symmetrically Encrypted Update Images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="handlers.html">Handlers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mongoose.html">Mongoose daemon mode</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Suricatta daemon mode</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-suricatta">Running suricatta</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#supporting-different-servers">Supporting different Servers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#support-for-general-purpose-http-server">Support for general purpose HTTP server</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="hawkbit-setup.html">Config for HawkBit under SSL/TLS using private CA / sub CA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">SWUpdate: API for external programs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building-with-yocto.html">meta-swupdate: building with Yocto</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-client.html">client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-hawkbitcfg.html">hawkbitcfg</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-sendtohawkbit.html">sendtohawkbit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-progress.html">progress</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-sysrestart.html">swupdate-sysrestart</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="help_and_support.html">Help and support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to SWUpdate</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project’s road-map</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Embedded Software Update Documentation</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Suricatta daemon mode</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/suricatta.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="suricatta-daemon-mode">
+<h1>Suricatta daemon mode<a class="headerlink" href="#suricatta-daemon-mode" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>Suricatta is – like mongoose – a daemon mode of SWUpdate, hence the
+name suricatta (engl. meerkat) as it belongs to the mongoose family.</p>
+<p>Suricatta regularly polls a remote server for updates, downloads, and
+installs them. Thereafter, it reboots the system and reports the update
+status to the server, based on an update state variable currently stored
+in bootloader’s environment ensuring persistent storage across reboots. Some
+U-Boot script logics or U-Boot’s <code class="docutils literal notranslate"><span class="pre">bootcount</span></code> feature may be utilized
+to alter this update state variable, e.g., by setting it to reflect
+failure in case booting the newly flashed root file system has failed
+and a switchback had to be performed.</p>
+<p>Suricatta is designed to be extensible in terms of the servers supported
+as described in Section <a class="reference internal" href="#supporting-different-servers">Supporting different Servers</a>. Currently,
+support for the <a class="reference external" href="https://projects.eclipse.org/projects/iot.hawkbit">hawkBit</a> server is implemented via the <a class="reference external" href="http://sp.apps.bosch-iot-cloud.com/documentation/developerguide/apispecifications/directdeviceintegrationapi.html">hawkBit Direct
+Device Integration API</a>.</p>
+</div>
+<div class="section" id="running-suricatta">
+<h2>Running suricatta<a class="headerlink" href="#running-suricatta" title="Permalink to this headline">¶</a></h2>
+<p>After having configured and compiled SWUpdate with enabled suricatta
+support,</p>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">swupdate</span> <span class="o">--</span><span class="n">help</span>
+</pre></div>
+</div>
+<p>lists the mandatory and optional arguments to be provided to suricatta
+when using hawkBit as server. As an example,</p>
+<div class="code bash highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">swupdate</span> <span class="o">-</span><span class="n">l</span> <span class="mi">5</span> <span class="o">-</span><span class="n">u</span> <span class="s1">&#39;-t default -u http://10.0.0.2:8080 -i 25&#39;</span>
+</pre></div>
+</div>
+<p>runs SWUpdate in suricatta daemon mode with log-level <code class="docutils literal notranslate"><span class="pre">TRACE</span></code>, polling
+a hawkBit instance at <code class="docutils literal notranslate"><span class="pre">http://10.0.0.2:8080</span></code> with tenant <code class="docutils literal notranslate"><span class="pre">default</span></code>
+and device ID <code class="docutils literal notranslate"><span class="pre">25</span></code>.</p>
+<p>Note that on startup when having installed an update, suricatta
+tries to report the update status to its upstream server, e.g.,
+hawkBit, prior to entering the main loop awaiting further updates.
+If this initial report fails, e.g., because of a not (yet) configured
+network or a currently unavailable hawkBit server, SWUpdate may exit
+with an according error code. This behavior allows to, for example,
+try several upstream servers sequentially.
+If suricatta should keep retrying until the update status is reported
+to its upstream server irrespective of the error conditions, this has
+to be realized externally in terms of restarting SWUpdate on exit.</p>
+<p>After an update has been performed, an agent listening on the progress
+interface may execute post-update actions, e.g., a reboot, on receiving
+<code class="docutils literal notranslate"><span class="pre">DONE</span></code>.
+Additionally, a post-update command specified in the configuration file or
+given by the <code class="docutils literal notranslate"><span class="pre">-p</span></code> command line option can be executed.</p>
+<p>Note that at least a restart of SWUpdate has to be performed as post-update
+action since only then suricatta tries to report the update status to its
+upstream server. Otherwise, succinct update actions announced by the
+upstream server are skipped with an according message until a restart of
+SWUpdate has happened in order to not install the same update again.</p>
+</div>
+<div class="section" id="supporting-different-servers">
+<h2>Supporting different Servers<a class="headerlink" href="#supporting-different-servers" title="Permalink to this headline">¶</a></h2>
+<p>Support for servers other than hawkBit can be realized by implementing
+the “interfaces” described in <code class="docutils literal notranslate"><span class="pre">include/channel.h</span></code> and
+<code class="docutils literal notranslate"><span class="pre">include/suricatta/server.h</span></code>. The former abstracts a particular
+connection to the server, e.g., HTTP-based in case of hawkBit, while
+the latter implements the logics to poll and install updates.
+See <code class="docutils literal notranslate"><span class="pre">corelib/channel_curl.c</span></code>/<code class="docutils literal notranslate"><span class="pre">include/channel_curl.h</span></code> and
+<code class="docutils literal notranslate"><span class="pre">suricatta/server_hawkbit.{c,h}</span></code> for an example implementation
+targeted towards hawkBit.</p>
+<p><code class="docutils literal notranslate"><span class="pre">include/channel.h</span></code> describes the functionality a channel
+has to implement:</p>
+<div class="code c highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">typedef</span> <span class="n">struct</span> <span class="n">channel</span> <span class="n">channel_t</span><span class="p">;</span>
+<span class="n">struct</span> <span class="n">channel</span> <span class="p">{</span>
+    <span class="o">...</span>
+<span class="p">};</span>
+
+<span class="n">channel_t</span> <span class="o">*</span><span class="n">channel_new</span><span class="p">(</span><span class="n">void</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>which sets up and returns a <code class="docutils literal notranslate"><span class="pre">channel_t</span></code> struct with pointers to
+functions for opening, closing, fetching, and sending data over
+the channel.</p>
+<p><code class="docutils literal notranslate"><span class="pre">include/suricatta/server.h</span></code> describes the functionality a server has
+to implement:</p>
+<div class="code c highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">server_op_res_t</span> <span class="n">server_has_pending_action</span><span class="p">(</span><span class="nb">int</span> <span class="o">*</span><span class="n">action_id</span><span class="p">);</span>
+<span class="n">server_op_res_t</span> <span class="n">server_install_update</span><span class="p">(</span><span class="n">void</span><span class="p">);</span>
+<span class="n">server_op_res_t</span> <span class="n">server_send_target_data</span><span class="p">(</span><span class="n">void</span><span class="p">);</span>
+<span class="n">unsigned</span> <span class="nb">int</span> <span class="n">server_get_polling_interval</span><span class="p">(</span><span class="n">void</span><span class="p">);</span>
+<span class="n">server_op_res_t</span> <span class="n">server_start</span><span class="p">(</span><span class="n">const</span> <span class="n">char</span> <span class="o">*</span><span class="n">cfgfname</span><span class="p">,</span> <span class="nb">int</span> <span class="n">argc</span><span class="p">,</span> <span class="n">char</span> <span class="o">*</span><span class="n">argv</span><span class="p">[]);</span>
+<span class="n">server_op_res_t</span> <span class="n">server_stop</span><span class="p">(</span><span class="n">void</span><span class="p">);</span>
+<span class="n">server_op_res_t</span> <span class="n">server_ipc</span><span class="p">(</span><span class="nb">int</span> <span class="n">fd</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>The type <code class="docutils literal notranslate"><span class="pre">server_op_res_t</span></code> is defined in <code class="docutils literal notranslate"><span class="pre">include/suricatta/suricatta.h</span></code>.
+It represents the valid function return codes for a server’s implementation.</p>
+<p>In addition to implementing the particular channel and server, the
+<code class="docutils literal notranslate"><span class="pre">suricatta/Config.in</span></code> file has to be adapted to include a new option
+so that the new implementation becomes selectable in SWUpdate’s
+configuration. In the simplest case, adding an option like the following
+one for hawkBit into the <code class="docutils literal notranslate"><span class="pre">menu</span> <span class="pre">&quot;Server&quot;</span></code> section is sufficient.</p>
+<div class="code bash highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">config</span> <span class="n">SURICATTA_HAWKBIT</span>
+    <span class="nb">bool</span> <span class="s2">&quot;hawkBit support&quot;</span>
+    <span class="n">depends</span> <span class="n">on</span> <span class="n">HAVE_LIBCURL</span>
+    <span class="n">depends</span> <span class="n">on</span> <span class="n">HAVE_JSON_C</span>
+    <span class="n">select</span> <span class="n">JSON</span>
+    <span class="n">select</span> <span class="n">CURL</span>
+    <span class="n">help</span>
+      <span class="n">Support</span> <span class="k">for</span> <span class="n">hawkBit</span> <span class="n">server</span><span class="o">.</span>
+      <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">projects</span><span class="o">.</span><span class="n">eclipse</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">projects</span><span class="o">/</span><span class="n">iot</span><span class="o">.</span><span class="n">hawkbit</span>
+</pre></div>
+</div>
+<p>Having included the new server implementation into the configuration,
+edit <code class="docutils literal notranslate"><span class="pre">suricatta/Makefile</span></code> to specify the implementation’s linkage into
+the SWUpdate binary, e.g., for the hawkBit example implementation, the
+following lines add <code class="docutils literal notranslate"><span class="pre">server_hawkbit.o</span></code> to the resulting SWUpdate binary
+if <code class="docutils literal notranslate"><span class="pre">SURICATTA_HAWKBIT</span></code> was selected while configuring SWUpdate.</p>
+<div class="code bash highlight-default notranslate"><div class="highlight"><pre><span></span>ifneq ($(CONFIG_SURICATTA_HAWKBIT),)
+lib-$(CONFIG_SURICATTA) += server_hawkbit.o
+endif
+</pre></div>
+</div>
+</div>
+<div class="section" id="support-for-general-purpose-http-server">
+<h2>Support for general purpose HTTP server<a class="headerlink" href="#support-for-general-purpose-http-server" title="Permalink to this headline">¶</a></h2>
+<p>This is a very simple backend that uses standard HTTP response codes to signal if
+an update is available. There are closed source backends implementing this interface,
+but because the interface is very simple interface, this server type is also suitable
+for implementing an own backend server.</p>
+<p>The API consists of a GET with Query parameters to inform the server about the installed version.
+The query string has the format:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>http(s)://&lt;base URL&gt;?param1=val1&amp;param2=value2...
+</pre></div>
+</div>
+<p>As examples for parameters, the device can send its serial number, MAC address and the running version of the software.
+It is duty of the backend to interpret this - SWUpdate just takes them from the “identity” section of
+the configuration file and encodes the URL.</p>
+<p>The server answers with the following return codes:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="13%" />
+<col width="15%" />
+<col width="71%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">HTTP Code</th>
+<th class="head">Text</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>302</td>
+<td>Found</td>
+<td>A new software is available at URL in the Location header</td>
+</tr>
+<tr class="row-odd"><td>400</td>
+<td>Bad Request</td>
+<td>Some query parameters are missing or in wrong format</td>
+</tr>
+<tr class="row-even"><td>403</td>
+<td>Forbidden</td>
+<td>Client certificate not valid</td>
+</tr>
+<tr class="row-odd"><td>404</td>
+<td>Not found</td>
+<td>No update is available for this device</td>
+</tr>
+<tr class="row-even"><td>503</td>
+<td>Unavailable</td>
+<td>An update is available but server can’t handle another
+update process now.</td>
+</tr>
+</tbody>
+</table>
+<p>Server’s answer can contain the following headers:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="18%" />
+<col width="10%" />
+<col width="72%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Header’s name</th>
+<th class="head">Codes</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>Retry-after</td>
+<td>503</td>
+<td>Contains a number which tells the device how long to wait
+until ask the next time for updates. (Seconds)</td>
+</tr>
+<tr class="row-odd"><td>Content-MD5</td>
+<td>302</td>
+<td>Contains the checksum of the update file which is available
+under the url of location header</td>
+</tr>
+<tr class="row-even"><td>Location</td>
+<td>302</td>
+<td>URL where the update file can be downloaded.</td>
+</tr>
+</tbody>
+</table>
+<p>The device can send logging data to the server. Any information is transmitted in a HTTP
+PUT request with the data as plain string in the message body. The Content-Type Header
+need to be set to text/plain.</p>
+<p>The URL for the logging can be set as separate URL in the configuration file or via
+–logurl command line parameter:</p>
+<p>The device sends data in a CSV format (Comma Separated Values). The format is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">value1</span><span class="p">,</span><span class="n">value2</span><span class="p">,</span><span class="o">...</span>
+</pre></div>
+</div>
+<p>The format can be specified in the configuration file. A <em>format</em> For each <em>event</em> can be set.
+The supported events are:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="20%" />
+<col width="11%" />
+<col width="69%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Event</th>
+<th class="head" colspan="2">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>check</td>
+<td colspan="2">dummy. It could send an event each time the server is
+polled.</td>
+</tr>
+<tr class="row-odd"><td>started</td>
+<td colspan="2">A new software is found and SWUpdate starts to install it</td>
+</tr>
+<tr class="row-even"><td>success</td>
+<td colspan="2">A new software was successfully installed</td>
+</tr>
+<tr class="row-odd"><td>fail</td>
+<td colspan="2">Failure by installing the new software</td>
+</tr>
+</tbody>
+</table>
+<p>The <cite>general server</cite> has an own section inside the configuration file. As example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">gservice</span> <span class="o">=</span>
+<span class="p">{</span>
+        <span class="n">url</span>             <span class="o">=</span> <span class="o">....</span><span class="p">;</span>
+        <span class="n">logurl</span>          <span class="o">=</span> <span class="p">;</span>
+        <span class="n">logevent</span> <span class="p">:</span> <span class="p">(</span>
+                <span class="p">{</span><span class="n">event</span> <span class="o">=</span> <span class="s2">&quot;check&quot;</span><span class="p">;</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;#2,date,fw,hw,sp&quot;</span><span class="p">},</span>
+                <span class="p">{</span><span class="n">event</span> <span class="o">=</span> <span class="s2">&quot;started&quot;</span><span class="p">;</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;#12,date,fw,hw,sp&quot;</span><span class="p">},</span>
+                <span class="p">{</span><span class="n">event</span> <span class="o">=</span> <span class="s2">&quot;success&quot;</span><span class="p">;</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;#13,date,fw,hw,sp&quot;</span><span class="p">},</span>
+                <span class="p">{</span><span class="n">event</span> <span class="o">=</span> <span class="s2">&quot;fail&quot;</span><span class="p">;</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;#14,date,fw,hw,sp&quot;</span><span class="p">}</span>
+        <span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><cite>date</cite> is a special field and it is interpreted as localtime in RFC 2822 format. Each
+Comma Separated field is looked up inside the <cite>identify</cite> section in the configuration
+file, and if a match is found the substitution occurs. In case of no match, the field
+is sent as it is. For example, if the identify section has the following values:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">identify</span> <span class="p">:</span> <span class="p">(</span>
+        <span class="p">{</span> <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;sp&quot;</span><span class="p">;</span> <span class="n">value</span> <span class="o">=</span> <span class="s2">&quot;333&quot;</span><span class="p">;</span> <span class="p">},</span>
+        <span class="p">{</span> <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;hw&quot;</span><span class="p">;</span> <span class="n">value</span> <span class="o">=</span> <span class="s2">&quot;ipse&quot;</span><span class="p">;</span> <span class="p">},</span>
+        <span class="p">{</span> <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;fw&quot;</span><span class="p">;</span> <span class="n">value</span> <span class="o">=</span> <span class="s2">&quot;1.0&quot;</span><span class="p">;</span> <span class="p">}</span>
+<span class="p">);</span>
+</pre></div>
+</div>
+<p>with the events set as above, the formatted text in case of “success” will be:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Formatted</span> <span class="n">log</span><span class="p">:</span> <span class="c1">#13,Mon, 17 Sep 2018 10:55:18 CEST,1.0,ipse,333</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="hawkbit-setup.html" class="btn btn-neutral float-right" title="Config for HawkBit under SSL/TLS using private CA / sub CA" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="mongoose.html" class="btn btn-neutral float-left" title="Mongoose daemon mode" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013-2019, Stefano Babic
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

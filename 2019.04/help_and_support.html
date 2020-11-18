@@ -1,0 +1,309 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Help and support &mdash; Embedded Software Update Documentation 2009.04 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Contributing to SWUpdate" href="contributing.html" />
+    <link rel="prev" title="progress" href="swupdate_progress.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Embedded Software Update Documentation
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2019.04
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Software Management on embedded systems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="licensing.html">License</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="swupdate.html">SWUpdate: software update for embedded system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sw-description.html">SWUpdate: syntax and tags with the default parser</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed_images.html">Update images from verified source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="encrypted_images.html">Symmetrically Encrypted Update Images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="handlers.html">Handlers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mongoose.html">Mongoose daemon mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">SWUpdate: API for external programs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building-with-yocto.html">meta-swupdate: building with Yocto</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="client.html">client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hawkbitcfg.html">hawkbitcfg</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sendtohawkbit.html">sendtohawkbit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate_progress.html">progress</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Help and support</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#mailing-list">Mailing List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#swupdate-flyer">SWUpdate Flyer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#workshop-and-swupdate-integration-in-project">Workshop and SWUpdate integration in project</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#commercial-support-and-board-integration">Commercial support and board integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#talks-about-swupdate">Talks about SWUpdate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#useful-references">Useful references</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to SWUpdate</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project’s road-map</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Embedded Software Update Documentation</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Help and support</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/help_and_support.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="help-and-support">
+<h1>Help and support<a class="headerlink" href="#help-and-support" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="mailing-list">
+<h2>Mailing List<a class="headerlink" href="#mailing-list" title="Permalink to this headline">¶</a></h2>
+<p>There is a mailing list for this project:</p>
+<blockquote>
+<div><a class="reference external" href="mailto:swupdate&#37;&#52;&#48;googlegroups&#46;com">swupdate<span>&#64;</span>googlegroups<span>&#46;</span>com</a></div></blockquote>
+<p>Issue related to the project or to the documentation are discussed
+here.</p>
+</div>
+<div class="section" id="swupdate-flyer">
+<h2>SWUpdate Flyer<a class="headerlink" href="#swupdate-flyer" title="Permalink to this headline">¶</a></h2>
+<p>A short description about the project and the features (in English and German)
+can be found in the <a class="reference external" href="http://www.denx.de/en/pub/Software/WebHome/we-update.pdf">flyer</a></p>
+</div>
+<div class="section" id="workshop-and-swupdate-integration-in-project">
+<h2>Workshop and SWUpdate integration in project<a class="headerlink" href="#workshop-and-swupdate-integration-in-project" title="Permalink to this headline">¶</a></h2>
+<p>For quick integration of SWUpdate in your project, you could be interested in the <a class="reference external" href="http://www.denx.de/wiki/Training2/WebHome#WorkshopSWUpdate">Workshop</a></p>
+</div>
+<div class="section" id="commercial-support-and-board-integration">
+<h2>Commercial support and board integration<a class="headerlink" href="#commercial-support-and-board-integration" title="Permalink to this headline">¶</a></h2>
+<p>You can contact me at <a class="reference external" href="mailto:sbabic&#37;&#52;&#48;denx&#46;de">sbabic<span>&#64;</span>denx<span>&#46;</span>de</a> if you need professional support or you need help to get SWUpdate on your device.</p>
+</div>
+<div class="section" id="talks-about-swupdate">
+<h2>Talks about SWUpdate<a class="headerlink" href="#talks-about-swupdate" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><a class="reference external" href="http://events.linuxfoundation.org/sites/events/files/slides/SoftwareUpdateForEmbedded.pdf">Software Update in Embedded Systems by Stefano Babic</a></li>
+<li><a class="reference external" href="http://de.slideshare.net/chrissimmonds/linux-fieldupdate2015">Updating Embedded Linux devices in field by Chris Simmonds</a></li>
+<li><a class="reference external" href="http://events.linuxfoundation.org/sites/events/files/slides/oe_in_the_real_world_smurray_elc2016.pdf">OpenEmbedded in the Real World by Scott Murray</a></li>
+<li><a class="reference external" href="https://lists.linuxfoundation.org/pipermail/automotive-discussions/2016-May/002061.html">[RFC] Device-side support for software update in AGL by Matt Porter</a></li>
+<li><a class="reference external" href="http://events.linuxfoundation.org/sites/events/files/slides/Open%20Source%20secure%20software%20updates%20for%20Linux-based%20IVI%20systems.pdf">Open Source secure software updates for Linux-based IVI systems by Arthur Taylor</a></li>
+<li><a class="reference external" href="http://events.linuxfoundation.org/sites/events/files/slides/linuxcon-japan-2016-softwre-updates-sangorrin.pdf">How do you update your embedded Linux devices? by Daniel Sangorrin / Keijiro Yano</a></li>
+<li><a class="reference external" href="http://events.linuxfoundation.org/sites/events/files/slides/Comparison%20of%20Linux%20Software%20Update%20Technologies_0.pdf">Comparison of Linux Software Update Technologies by Matt Porter</a></li>
+<li>Software update for IoT: the current state of play by Chris Simmonds, ELCE 2016, <a class="reference external" href="http://de.slideshare.net/chrissimmonds/software-update-for-iot-the-current-state-of-play">Slides</a>,
+<a class="reference external" href="https://youtu.be/GZGnBK2NycI?list=PLbzoR-pLrL6pRFP6SOywVJWdEHlmQE51q">Video</a></li>
+<li>OSS Remote Firmware Updates for IoT-like Projects by Silvano Cirujano Cuesta, ELCE 2016,
+<a class="reference external" href="http://events.linuxfoundation.org/sites/events/files/slides/OSS_Remote_Firmware_Updates_for_IoT-like_Projects.pdf">Slides ELCE 2016</a>,
+<a class="reference external" href="https://youtu.be/vVS-ZRNE0Lc?list=PLbzoR-pLrL6pRFP6SOywVJWdEHlmQE51q">Video ELCE 2016</a></li>
+<li>System Upgrade with SWUpdate by Gabriel Huau, ELC 2017,
+<a class="reference external" href="http://events.linuxfoundation.org/sites/events/files/slides/ELC2017_SWUpdate.pdf">Slides ELC 2017</a>,
+<a class="reference external" href="https://www.youtube.com/watch?v=ePRTTfGJUI4&amp;t=16s">Video ELC 2017</a></li>
+<li><a class="reference external" href="https://elinux.org/images/0/0c/BoF_secure_ota_linux.pdf">BoF: Secure OTA Collaboration, by Ricardo Salveti and Alan Bennett, ELCE 2017</a></li>
+<li>Orchestrated Android-Style System Upgrades for Embedded Linux by Diego Rondini, ELCE 2017,
+<a class="reference external" href="http://events.linuxfoundation.org/sites/events/files/slides/UF%20-%20ELCE%202017%20Presentation.pdf">Slides Android-Style</a>,
+<a class="reference external" href="https://www.youtube.com/watch?v=Za21QFJGvJ0">Video Android-Style</a></li>
+<li>Updating an Embedded System with SWUpdate Framework by Stefano Babic, ELCE 2017,
+<a class="reference external" href="http://events.linuxfoundation.org/sites/events/files/slides/SWUpdateELCE2017.pdf">Slides ELCE 2017</a>,
+<a class="reference external" href="https://www.youtube.com/watch?v=6sKLH95g4Do">Video ELCE 2017</a></li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="useful-references">
+<h2>Useful references<a class="headerlink" href="#useful-references" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<div><ul class="simple">
+<li><a class="reference external" href="https://boundarydevices.com/using-swupdate-upgrade-system">Boundary Devices, Using SWUpdate to upgrade your system</a></li>
+<li><a class="reference external" href="http://www.linuxembedded.fr/2016/09/presentation-de-software-update">Présentation de Software Update (French)</a></li>
+<li><a class="reference external" href="http://warpx.io/blog/tutorial/easy-os-upgrades-swupdate">Easy OS upgrades with SWUpdate</a></li>
+<li><a class="reference external" href="https://3mdeb.com/app-dev/swupdate-for-feature-rich-iot-applications/">SWUpdate for feature-rich IoT applications</a></li>
+<li><a class="reference external" href="https://github.com/victronenergy/venus/issues/27">Implement swupdate - replacing opkg based updating, VictronEnergy</a></li>
+<li><a class="reference external" href="http://www.variwiki.com/index.php?title=SWUpdate_Guide">Variscite, SWUpdate</a></li>
+<li><a class="reference external" href="http://mkrak.org/2018/01/26/updating-embedded-linux-devices-part2/">Updating Embedded Linux Devices: SWUpdate</a></li>
+<li><a class="reference external" href="https://pelux.io/software-factory/PELUX-3.0/swf-blueprint/docs/articles/architecture/vert-config-SOTA.html">Approach to Software Update Management, Pelux</a></li>
+<li><a class="reference external" href="https://pelux.io/software-factory/PELUX-3.0/chapters/architecture/subsystems/SOTA/SOTA-system.html">SOTA System, Pelux</a></li>
+<li><a class="reference external" href="https://www.slideshare.net/linuxlab_conf/angelo-compagnucci-upgrading-buildroot-based-devices-with-swupdate">Upgrading buildroot based devices with SWUpdate</a></li>
+</ul>
+</div></blockquote>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="contributing.html" class="btn btn-neutral float-right" title="Contributing to SWUpdate" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="swupdate_progress.html" class="btn btn-neutral float-left" title="progress" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013-2019, Stefano Babic
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

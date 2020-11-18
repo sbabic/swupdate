@@ -1,0 +1,285 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Update strategy examples &mdash; Embedded Software Update Documentation 2020.11 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="SWUpdate: syntax and tags with the default parser" href="sw-description.html" />
+    <link rel="prev" title="SWUpdate: software update for embedded system" href="swupdate.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Embedded Software Update Documentation
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2020.11
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Software Management on embedded systems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="licensing.html">License</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="swupdate.html">SWUpdate: software update for embedded system</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Update strategy examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#single-copy-running-as-standalone-image">Single copy - running as standalone image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#double-copy-with-fall-back">Double copy with fall-back</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#combine-double-copy-with-rescue-system">Combine double-copy with rescue system</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#split-system-update-with-application-update">Split system update with application update</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration-update">Configuration update</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="sw-description.html">SWUpdate: syntax and tags with the default parser</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed_images.html">Update images from verified source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="encrypted_images.html">Symmetrically Encrypted Update Images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="handlers.html">Handlers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mongoose.html">Mongoose daemon mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hawkbit-setup.html">Config for hawkBit under SSL/TLS using private CA / sub CA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">SWUpdate: API for external programs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bindings.html">Language Bindings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building-with-yocto.html">meta-swupdate: building with Yocto</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-client.html">swupdate-client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-hawkbitcfg.html">swupdate-hawkbitcfg</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-sendtohawkbit.html">swupdate-sendtohawkbit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-progress.html">swupdate-progress</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-sysrestart.html">swupdate-sysrestart</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="help_and_support.html">Help and support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to SWUpdate</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project’s road-map</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Embedded Software Update Documentation</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Update strategy examples</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/scenarios.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="update-strategy-examples">
+<h1>Update strategy examples<a class="headerlink" href="#update-strategy-examples" title="Permalink to this headline">¶</a></h1>
+<p>SWUpdate is a building block and it allows one to design and implementing its own
+update strategy.
+Even if many projects have common ways for updating, it is possible to high customize
+the update for each project.
+The most common strategies (single-copy and dual-copy) were already described at the
+beginning of this documentation and of course are well supported in SWUpdate.</p>
+<div class="section" id="single-copy-running-as-standalone-image">
+<h2>Single copy - running as standalone image<a class="headerlink" href="#single-copy-running-as-standalone-image" title="Permalink to this headline">¶</a></h2>
+<p>See <a class="reference internal" href="overview.html#single-copy"><span class="std std-ref">Single copy - running as standalone image</span></a>.</p>
+</div>
+<div class="section" id="double-copy-with-fall-back">
+<h2>Double copy with fall-back<a class="headerlink" href="#double-copy-with-fall-back" title="Permalink to this headline">¶</a></h2>
+<p>See <a class="reference internal" href="overview.html#double-copy"><span class="std std-ref">Double copy with fall-back</span></a>.</p>
+</div>
+<div class="section" id="combine-double-copy-with-rescue-system">
+<h2>Combine double-copy with rescue system<a class="headerlink" href="#combine-double-copy-with-rescue-system" title="Permalink to this headline">¶</a></h2>
+<p>This provides a recovery procedure to cover update failure in severe cases when software is damaged.
+In case none of the copy can be started, the bootloader will start the rescue system (possibly stored
+on another storage as the main system) to try to rescue the board.</p>
+<img alt="_images/swupdate-rescue+double-copy.png" src="_images/swupdate-rescue+double-copy.png" />
+<p>The rescue system can be updated as well during a standard update.</p>
+</div>
+<div class="section" id="split-system-update-with-application-update">
+<h2>Split system update with application update<a class="headerlink" href="#split-system-update-with-application-update" title="Permalink to this headline">¶</a></h2>
+<p>Updating a whole image is quite straightforward, but this means to transfer bigger amount
+of data if just a few files are updated. It is possible to split theupdate in several smaller
+parts to reduce the transfer size. This requires a special care to take care of compatibility
+between system and application, that can be solved with customized Lua scripts in the sw-description file.
+SWUpdate supports versioning for each artefact, and anyone can add own rules to verify compatibility
+between components.</p>
+<img alt="_images/swupdate-application.png" src="_images/swupdate-application.png" />
+</div>
+<div class="section" id="configuration-update">
+<h2>Configuration update<a class="headerlink" href="#configuration-update" title="Permalink to this headline">¶</a></h2>
+<p>Thought to update the software, SWUpdate can be used to install configuration data as well.
+Build system can create configuration SWU with files / data for the configuration of the system.
+There is no requirements what these SWU should contains - it is duty of the integrator to build
+them and make them suitable for his own project. Again, configuration data can be updated as
+separate process using one of the above scenarios.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="sw-description.html" class="btn btn-neutral float-right" title="SWUpdate: syntax and tags with the default parser" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="swupdate.html" class="btn btn-neutral float-left" title="SWUpdate: software update for embedded system" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013-2020, Stefano Babic
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

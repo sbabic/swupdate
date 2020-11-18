@@ -1,0 +1,292 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Getting information on running update &mdash; Embedded Software Update Documentation 2009.04 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="meta-swupdate: building with Yocto" href="building-with-yocto.html" />
+    <link rel="prev" title="SWUpdate: API for external programs" href="swupdate-ipc.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Embedded Software Update Documentation
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2019.04
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Software Management on embedded systems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="licensing.html">License</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="swupdate.html">SWUpdate: software update for embedded system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sw-description.html">SWUpdate: syntax and tags with the default parser</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed_images.html">Update images from verified source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="encrypted_images.html">Symmetrically Encrypted Update Images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="handlers.html">Handlers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mongoose.html">Mongoose daemon mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">SWUpdate: API for external programs</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Getting information on running update</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#api-description">API Description</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="building-with-yocto.html">meta-swupdate: building with Yocto</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="client.html">client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hawkbitcfg.html">hawkbitcfg</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sendtohawkbit.html">sendtohawkbit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate_progress.html">progress</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="help_and_support.html">Help and support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to SWUpdate</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project’s road-map</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Embedded Software Update Documentation</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Getting information on running update</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/progress.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="getting-information-on-running-update">
+<h1>Getting information on running update<a class="headerlink" href="#getting-information-on-running-update" title="Permalink to this headline">¶</a></h1>
+<p>It is often required to inform the operator about the status of the running
+update and not just to return if the update was successful or not.
+For example, if the target has a display or a remote interface,
+it can be forwarded which is reached percentage of the update
+to let estimate how much the update will still run.
+SWUpdate has an interface for this (“progress API”). An external
+process can register itself with SWUpdate, and it will receive
+notifications when something in the update was changed. This is
+different from the IPC API, because the last one is mainly used to transfer
+the SWU image, and it is only possible to poll the interface to know
+if the update is still running.</p>
+<div class="section" id="api-description">
+<h2>API Description<a class="headerlink" href="#api-description" title="Permalink to this headline">¶</a></h2>
+<p>An external process registers itself to SWUpdate with a connect()
+request to the domain socket “/tmp/swupdateprog” as per default
+configuration of SWUpdate. There is no information to send, and
+SWUpdate simply inserts the new connection into the list of processes
+to be informed. SWUpdate will send a frame back after any change in
+the update process with the following data (see include/progress_ipc.h):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">struct</span> <span class="n">progress_msg</span> <span class="p">{</span>
+        <span class="n">unsigned</span> <span class="nb">int</span>    <span class="n">magic</span><span class="p">;</span>          <span class="o">/*</span> <span class="n">Magic</span> <span class="n">Number</span> <span class="o">*/</span>
+        <span class="n">unsigned</span> <span class="nb">int</span>    <span class="n">status</span><span class="p">;</span>         <span class="o">/*</span> <span class="n">Update</span> <span class="n">Status</span> <span class="p">(</span><span class="n">Running</span><span class="p">,</span> <span class="n">Failure</span><span class="p">)</span> <span class="o">*/</span>
+        <span class="n">unsigned</span> <span class="nb">int</span>    <span class="n">dwl_percent</span><span class="p">;</span>    <span class="o">/*</span> <span class="o">%</span> <span class="n">downloaded</span> <span class="n">data</span> <span class="o">*/</span>
+        <span class="n">unsigned</span> <span class="nb">int</span>    <span class="n">nsteps</span><span class="p">;</span>         <span class="o">/*</span> <span class="n">No</span><span class="o">.</span> <span class="n">total</span> <span class="n">of</span> <span class="n">steps</span> <span class="o">*/</span>
+        <span class="n">unsigned</span> <span class="nb">int</span>    <span class="n">cur_step</span><span class="p">;</span>       <span class="o">/*</span> <span class="n">Current</span> <span class="n">step</span> <span class="n">index</span> <span class="o">*/</span>
+        <span class="n">unsigned</span> <span class="nb">int</span>    <span class="n">cur_percent</span><span class="p">;</span>    <span class="o">/*</span> <span class="o">%</span> <span class="ow">in</span> <span class="n">current</span> <span class="n">step</span> <span class="o">*/</span>
+        <span class="n">char</span>            <span class="n">cur_image</span><span class="p">[</span><span class="mi">256</span><span class="p">];</span> <span class="o">/*</span> <span class="n">Name</span> <span class="n">of</span> <span class="n">image</span> <span class="n">to</span> <span class="n">be</span> <span class="n">installed</span> <span class="o">*/</span>
+        <span class="n">char</span>            <span class="n">hnd_name</span><span class="p">[</span><span class="mi">64</span><span class="p">];</span>   <span class="o">/*</span> <span class="n">Name</span> <span class="n">of</span> <span class="n">running</span> <span class="n">handler</span> <span class="o">*/</span>
+        <span class="n">sourcetype</span>      <span class="n">source</span><span class="p">;</span>         <span class="o">/*</span> <span class="n">Interface</span> <span class="n">that</span> <span class="n">triggered</span> <span class="n">the</span> <span class="n">update</span> <span class="o">*/</span>
+        <span class="n">unsigned</span> <span class="nb">int</span>    <span class="n">infolen</span><span class="p">;</span>        <span class="o">/*</span> <span class="n">Len</span> <span class="n">of</span> <span class="n">data</span> <span class="n">valid</span> <span class="ow">in</span> <span class="n">info</span> <span class="o">*/</span>
+        <span class="n">char</span>            <span class="n">info</span><span class="p">[</span><span class="mi">2048</span><span class="p">];</span>     <span class="o">/*</span> <span class="n">additional</span> <span class="n">information</span> <span class="n">about</span> <span class="n">install</span> <span class="o">*/</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+<p>The single fields have the following meaning:</p>
+<blockquote>
+<div><ul class="simple">
+<li><em>magic</em> is not yet used, it could be added for simply verification of the frame.</li>
+<li><em>status</em> is one of the values in swupdate_status.h (START, RUN, SUCCESS, FAILURE, DOWNLOAD, DONE).</li>
+<li><em>dwl_percent</em> is the percentage of downloaded data when status = DOWNLOAD.</li>
+<li><em>nsteps</em> is the total number of installers (handlers) to be run.</li>
+<li><em>cur_step</em> is the index of the running handler. cur_step is in the range 1..nsteps</li>
+<li><em>cur_percent</em> is the percentage of work done inside the current handler. This is useful
+when updating a slow interface, such as a slow flash, and signals which is the percentage
+of image already copied into the destination.</li>
+<li><em>cur_image</em> is the name of the image in sw-description that is currently being installed.</li>
+<li><em>hnd_name</em> reports the name of the running handler.</li>
+<li><em>source</em> is the interface that triggered the update.</li>
+<li><em>infolen</em> length of data in the following info field.</li>
+<li><em>info</em> additional information about installation.</li>
+</ul>
+</div></blockquote>
+<p>As an example for a progress client, <code class="docutils literal notranslate"><span class="pre">tools/progress.c</span></code> prints the status
+on the console and drives “psplash” to draw a progress bar on a display.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="building-with-yocto.html" class="btn btn-neutral float-right" title="meta-swupdate: building with Yocto" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="swupdate-ipc.html" class="btn btn-neutral float-left" title="SWUpdate: API for external programs" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013-2019, Stefano Babic
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

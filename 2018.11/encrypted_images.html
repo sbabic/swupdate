@@ -1,0 +1,319 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Symmetrically Encrypted Update Images &mdash; Embedded Software Update Documentation 2018.11 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Handlers" href="handlers.html" />
+    <link rel="prev" title="Update images from verified source" href="signed_images.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Embedded Software Update Documentation
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2018.11
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Software Management on embedded systems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="licensing.html">License</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="swupdate.html">SWUpdate: software update for embedded system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sw-description.html">SWUpdate: syntax and tags with the default parser</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed_images.html">Update images from verified source</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Symmetrically Encrypted Update Images</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#building-an-encrypted-swu-image">Building an Encrypted SWU Image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#encryption-of-ubi-volumes">Encryption of UBI volumes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#example-sw-description-with-encrypted-image">Example sw-description with Encrypted Image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-swupdate-with-encrypted-images">Running SWUpdate with Encrypted Images</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="handlers.html">Handlers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mongoose.html">Mongoose daemon mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">SWUpdate: API for external programs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building-with-yocto.html">meta-swupdate: building with Yocto</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="help_and_support.html">Help and support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to SWUpdate</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project’s road-map</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Embedded Software Update Documentation</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Symmetrically Encrypted Update Images</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/encrypted_images.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="symmetrically-encrypted-update-images">
+<h1>Symmetrically Encrypted Update Images<a class="headerlink" href="#symmetrically-encrypted-update-images" title="Permalink to this headline">¶</a></h1>
+<p>SWUpdate allows to symmetrically encrypt update images using the
+256 bit AES block cipher in CBC mode.</p>
+<div class="section" id="building-an-encrypted-swu-image">
+<h2>Building an Encrypted SWU Image<a class="headerlink" href="#building-an-encrypted-swu-image" title="Permalink to this headline">¶</a></h2>
+<p>First, create a key via <cite>openssl</cite> which is part of the OpenSSL project.
+A complete documentation can be found at the
+<a class="reference external" href="https://www.openssl.org/docs/manmaster/man1/openssl.html">OpenSSL Website</a>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">openssl</span> <span class="n">enc</span> <span class="o">-</span><span class="n">aes</span><span class="o">-</span><span class="mi">256</span><span class="o">-</span><span class="n">cbc</span> <span class="o">-</span><span class="n">k</span> <span class="o">&lt;</span><span class="n">PASSPHRASE</span><span class="o">&gt;</span> <span class="o">-</span><span class="n">P</span> <span class="o">-</span><span class="n">md</span> <span class="n">sha1</span>
+</pre></div>
+</div>
+<p>The key and initialization vector is generated based on the given <code class="docutils literal notranslate"><span class="pre">&lt;PASSPHRASE&gt;</span></code>.
+The output of the above command looks like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">salt</span><span class="o">=</span><span class="n">CE7B0488EFBF0D1B</span>
+<span class="n">key</span><span class="o">=</span><span class="n">B78CC67DD3DC13042A1B575184D4E16D6A09412C242CE253ACEE0F06B5AD68FC</span>
+<span class="n">iv</span> <span class="o">=</span><span class="mi">65</span><span class="n">D793B87B6724BB27954C7664F15FF3</span>
+</pre></div>
+</div>
+<p>Then, encrypt an image using this information via</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">openssl</span> <span class="n">enc</span> <span class="o">-</span><span class="n">aes</span><span class="o">-</span><span class="mi">256</span><span class="o">-</span><span class="n">cbc</span> <span class="o">-</span><span class="ow">in</span> <span class="o">&lt;</span><span class="n">INFILE</span><span class="o">&gt;</span> <span class="o">-</span><span class="n">out</span> <span class="o">&lt;</span><span class="n">OUTFILE</span><span class="o">&gt;</span> <span class="o">-</span><span class="n">K</span> <span class="o">&lt;</span><span class="n">KEY</span><span class="o">&gt;</span> <span class="o">-</span><span class="n">iv</span> <span class="o">&lt;</span><span class="n">IV</span><span class="o">&gt;</span> <span class="o">-</span><span class="n">S</span> <span class="o">&lt;</span><span class="n">SALT</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">&lt;INFILE&gt;</span></code> is the unencrypted source image file and <code class="docutils literal notranslate"><span class="pre">&lt;OUTFILE&gt;</span></code> is the
+encrypted output image file to be referenced in <code class="docutils literal notranslate"><span class="pre">sw-description</span></code>.
+<code class="docutils literal notranslate"><span class="pre">&lt;KEY&gt;</span></code> is the hex value part of the 2nd line of output from the key generation
+command above, <code class="docutils literal notranslate"><span class="pre">&lt;IV&gt;</span></code> is the hex value part of the 3rd line, and <code class="docutils literal notranslate"><span class="pre">&lt;SALT&gt;</span></code> is
+the hex value part of the 1st line.</p>
+<p>Then, create a key file to be supplied to SWUpdate via the <cite>-K</cite> switch by
+putting the key, initialization vector, and salt hex values on one line
+separated by whitespace, e.g., for above example values</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">B78CC67DD3DC13042A1B575184D4E16D6A09412C242CE253ACEE0F06B5AD68FC</span> <span class="mi">65</span><span class="n">D793B87B6724BB27954C7664F15FF3</span> <span class="n">CE7B0488EFBF0D1B</span>
+</pre></div>
+</div>
+<p>Note that, while not recommended and for backwards compatibility, OpenSSL may be
+used without salt. For disabling salt, add the <code class="docutils literal notranslate"><span class="pre">-nosalt</span></code> parameter to the key
+generation command above. Accordingly, drop the <code class="docutils literal notranslate"><span class="pre">-S</span> <span class="pre">&lt;SALT&gt;</span></code> parameter in the
+encryption command and omit the 3rd field of the key file to be supplied to
+SWUpdate being the salt.</p>
+</div>
+<div class="section" id="encryption-of-ubi-volumes">
+<h2>Encryption of UBI volumes<a class="headerlink" href="#encryption-of-ubi-volumes" title="Permalink to this headline">¶</a></h2>
+<p>Due to a limit in the Linux kernel api for UBI volumes, the size reserved to be
+written on disk should be declared before actually write anything.
+Unfortunately, the size of an encrypted image is not know until the complete
+decryption, thus preventing to correctly declare the size of the file to be
+written on disk.</p>
+<p>For this reason UBI images can declare the special property “decrypted-size” like
+this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">images</span><span class="p">:</span> <span class="p">(</span> <span class="p">{</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;rootfs.ubifs.enc&quot;</span><span class="p">;</span>
+                <span class="n">volume</span> <span class="o">=</span> <span class="s2">&quot;rootfs&quot;</span><span class="p">;</span>
+                <span class="n">encrypted</span> <span class="o">=</span> <span class="n">true</span><span class="p">;</span>
+                <span class="n">properties</span> <span class="o">=</span> <span class="p">{</span><span class="n">decrypted</span><span class="o">-</span><span class="n">size</span> <span class="o">=</span> <span class="s2">&quot;104857600&quot;</span><span class="p">;}</span>
+        <span class="p">}</span>
+<span class="p">);</span>
+</pre></div>
+</div>
+<p>The real size of the decrypted image should be calculated and written to the
+sw-description before assembling the cpio archive.
+In this example, 104857600 is the size of the rootfs after the decryption: the
+encrypted size is by the way larger.</p>
+</div>
+<div class="section" id="example-sw-description-with-encrypted-image">
+<h2>Example sw-description with Encrypted Image<a class="headerlink" href="#example-sw-description-with-encrypted-image" title="Permalink to this headline">¶</a></h2>
+<p>The following example is a (minimal) <code class="docutils literal notranslate"><span class="pre">sw-description</span></code> for installing
+a Yocto image onto a Beaglebone. Pay attention to the <code class="docutils literal notranslate"><span class="pre">encrypted</span> <span class="pre">=</span> <span class="pre">true;</span></code>
+setting.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">software</span> <span class="o">=</span>
+<span class="p">{</span>
+        <span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;0.0.1&quot;</span><span class="p">;</span>
+        <span class="n">images</span><span class="p">:</span> <span class="p">(</span> <span class="p">{</span>
+                        <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;core-image-full-cmdline-beaglebone.ext3.enc&quot;</span><span class="p">;</span>
+                        <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;/dev/mmcblk0p3&quot;</span><span class="p">;</span>
+                        <span class="n">encrypted</span> <span class="o">=</span> <span class="n">true</span><span class="p">;</span>
+                <span class="p">}</span>
+        <span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="running-swupdate-with-encrypted-images">
+<h2>Running SWUpdate with Encrypted Images<a class="headerlink" href="#running-swupdate-with-encrypted-images" title="Permalink to this headline">¶</a></h2>
+<p>Symmetric encryption support is activated by setting the <code class="docutils literal notranslate"><span class="pre">ENCRYPTED_IMAGES</span></code>
+option in SWUpdate’s configuration. Use the <cite>-K</cite> parameter to provide the
+symmetric key file generated above to SWUpdate.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="handlers.html" class="btn btn-neutral float-right" title="Handlers" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="signed_images.html" class="btn btn-neutral float-left" title="Update images from verified source" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013-2018, Stefano Babic
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
