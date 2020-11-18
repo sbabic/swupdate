@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Handlers &mdash; Embedded Software Update Documentation 2020.04 documentation</title>
+  <title>Handlers &mdash; Embedded Software Update Documentation 2020.11 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                2020.04
+                2020.11
               </div>
             
           
@@ -103,6 +103,8 @@
 <li class="toctree-l2"><a class="reference internal" href="#ubi-volume-handler">UBI Volume Handler</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#atomic-volume-renaming">atomic volume renaming</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#volume-auto-resize">volume auto resize</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#volume-always-remove">volume always remove</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#size-properties">size properties</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#lua-handlers">Lua Handlers</a></li>
@@ -113,11 +115,12 @@
 <li class="toctree-l2"><a class="reference internal" href="#ssbl-handler">SSBL Handler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#readback-handler">Readback Handler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#disk-partitioner">Disk partitioner</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#unique-uuid-handler">Unique UUID Handler</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="mongoose.html">Mongoose daemon mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hawkbit-setup.html">Config for HawkBit under SSL/TLS using private CA / sub CA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hawkbit-setup.html">Config for hawkBit under SSL/TLS using private CA / sub CA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">SWUpdate: API for external programs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
 <li class="toctree-l1"><a class="reference internal" href="bindings.html">Language Bindings</a></li>
@@ -136,6 +139,9 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project’s road-map</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="previous-releases.html">Documentation for previous releases</a></li>
 </ul>
 
             
@@ -222,11 +228,18 @@ can have a different installer.</p>
 <dd><ul class="first last simple">
 <li>flash devices in raw mode (both NOR and NAND)</li>
 <li>UBI volumes</li>
-<li>UBI volumus partitioner</li>
+<li>UBI volumes partitioner</li>
+<li>raw flashes handler (NAND, NOR, SPI-NOR, CFI interface)</li>
 <li>disk partitioner</li>
 <li>raw devices, such as a SD Card partition</li>
 <li>bootloader (U-Boot, GRUB, EFI Boot Guard) environment</li>
-<li>Lua scripts</li>
+<li>Lua scripts handler</li>
+<li>shell scripts handler</li>
+<li>rdiff handler</li>
+<li>readback handler</li>
+<li>archive (zo, tarballs) handler</li>
+<li>remote handler</li>
+<li>microcontroller update handler</li>
 </ul>
 </dd>
 </dl>
@@ -378,6 +391,59 @@ on an image, the ubi volume is resized to fit exactly the image.</p>
 </pre></div>
 </div>
 <p>WARNING: when this property is used, the device must be defined.</p>
+</div>
+<div class="section" id="volume-always-remove">
+<h3>volume always remove<a class="headerlink" href="#volume-always-remove" title="Permalink to this headline">¶</a></h3>
+<p>The UBI volume handler has support to always remove ubi volume
+before flashing with the property <code class="docutils literal notranslate"><span class="pre">always-remove</span></code>. When this property
+is set on an image, the ubi volume is always removed. This property
+should be used with property <code class="docutils literal notranslate"><span class="pre">auto-resize</span></code>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;u-boot.img&quot;</span><span class="p">;</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;mtd0&quot;</span><span class="p">;</span>
+        <span class="n">volume</span> <span class="o">=</span> <span class="s2">&quot;u-boot_r&quot;</span><span class="p">;</span>
+        <span class="n">properties</span><span class="p">:</span> <span class="p">{</span>
+                <span class="n">always</span><span class="o">-</span><span class="n">remove</span> <span class="o">=</span> <span class="s2">&quot;true&quot;</span><span class="p">;</span>
+                <span class="n">auto</span><span class="o">-</span><span class="n">resize</span> <span class="o">=</span> <span class="s2">&quot;true&quot;</span><span class="p">;</span>
+        <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="size-properties">
+<h3>size properties<a class="headerlink" href="#size-properties" title="Permalink to this headline">¶</a></h3>
+<p>Due to a limit in the Linux kernel API for UBI volumes, the size reserved to be
+written on disk should be declared before actually writing anything.
+Unfortunately, the size of an encrypted or compressed image is not known until
+the decryption or decompression finished. This prevents correct declaration of
+the file size to be written on disk.</p>
+<p>For this reason UBI images can declare the special properties “decrypted-size”
+or “decompressed-size” like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">images</span><span class="p">:</span> <span class="p">(</span> <span class="p">{</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;rootfs.ubifs.enc&quot;</span><span class="p">;</span>
+                <span class="n">volume</span> <span class="o">=</span> <span class="s2">&quot;rootfs&quot;</span><span class="p">;</span>
+                <span class="n">encrypted</span> <span class="o">=</span> <span class="n">true</span><span class="p">;</span>
+                <span class="n">properties</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="n">decrypted</span><span class="o">-</span><span class="n">size</span> <span class="o">=</span> <span class="s2">&quot;104857600&quot;</span><span class="p">;</span>
+                <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;homefs.ubifs.gz&quot;</span><span class="p">;</span>
+                <span class="n">volume</span> <span class="o">=</span> <span class="s2">&quot;homefs&quot;</span><span class="p">;</span>
+                <span class="n">compressed</span> <span class="o">=</span> <span class="s2">&quot;zlib&quot;</span><span class="p">;</span>
+                <span class="n">properties</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="n">decompressed</span><span class="o">-</span><span class="n">size</span> <span class="o">=</span> <span class="s2">&quot;420000000&quot;</span><span class="p">;</span>
+                <span class="p">}</span>
+        <span class="p">}</span>
+<span class="p">);</span>
+</pre></div>
+</div>
+<p>The real size of the image should be calculated and written to the
+sw-description before assembling the cpio archive.
+In this example, 104857600 is the size of the rootfs after the decryption: the
+encrypted size is by the way larger. The decompressed size is of the homefs is
+420000000.</p>
+<p>The sizes are bytes in decimal notation.</p>
 </div>
 </div>
 <div class="section" id="lua-handlers">
@@ -922,20 +988,61 @@ or it is the string identifier in case of GPT.</td>
 </tr>
 </tbody>
 </table>
-<p>Example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">properties</span><span class="p">:</span> <span class="p">{</span>
+<p>GPT example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">partitions</span><span class="p">:</span> <span class="p">(</span>
+<span class="p">{</span>
+   <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;diskpart&quot;</span><span class="p">;</span>
+   <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;/dev/sde&quot;</span><span class="p">;</span>
+   <span class="n">properties</span><span class="p">:</span> <span class="p">{</span>
         <span class="n">labeltype</span> <span class="o">=</span> <span class="s2">&quot;gpt&quot;</span><span class="p">;</span>
         <span class="n">partition</span><span class="o">-</span><span class="mi">1</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">&quot;size=64M&quot;</span><span class="p">,</span> <span class="s2">&quot;start=2048&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;name=bigrootfs&quot;</span><span class="p">,</span> <span class="s2">&quot;type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B&quot;</span><span class="p">];</span>
+            <span class="s2">&quot;name=bigrootfs&quot;</span><span class="p">,</span> <span class="s2">&quot;type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B&quot;</span><span class="p">];</span>
         <span class="n">partition</span><span class="o">-</span><span class="mi">2</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;size=256M&quot;</span><span class="p">,</span> <span class="s2">&quot;start=133120&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;name=ldata&quot;</span><span class="p">,</span> <span class="s2">&quot;type=EBD0A0A2-B9E5-4433-87C0-68B6B72699C7&quot;</span><span class="p">];</span>
+            <span class="s2">&quot;name=ldata&quot;</span><span class="p">,</span> <span class="s2">&quot;type=EBD0A0A2-B9E5-4433-87C0-68B6B72699C7&quot;</span><span class="p">];</span>
         <span class="n">partition</span><span class="o">-</span><span class="mi">3</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;size=512M&quot;</span><span class="p">,</span> <span class="s2">&quot;start=657408&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;name=log&quot;</span><span class="p">,</span> <span class="s2">&quot;type=0FC63DAF-8483-4772-8E79-3D69D8477DE4&quot;</span><span class="p">];</span>
+            <span class="s2">&quot;name=log&quot;</span><span class="p">,</span> <span class="s2">&quot;type=0FC63DAF-8483-4772-8E79-3D69D8477DE4&quot;</span><span class="p">];</span>
         <span class="n">partition</span><span class="o">-</span><span class="mi">4</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;size=4G&quot;</span><span class="p">,</span> <span class="s2">&quot;start=1705984&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;name=system&quot;</span><span class="p">,</span>  <span class="s2">&quot;type=0FC63DAF-8483-4772-8E79-3D69D8477DE4&quot;</span><span class="p">];</span>
+            <span class="s2">&quot;name=system&quot;</span><span class="p">,</span>  <span class="s2">&quot;type=0FC63DAF-8483-4772-8E79-3D69D8477DE4&quot;</span><span class="p">];</span>
         <span class="n">partition</span><span class="o">-</span><span class="mi">5</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;size=512M&quot;</span><span class="p">,</span> <span class="s2">&quot;start=10094592&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;name=part5&quot;</span><span class="p">,</span>  <span class="s2">&quot;type=0FC63DAF-8483-4772-8E79-3D69D8477DE4&quot;</span><span class="p">];</span>
+            <span class="s2">&quot;name=part5&quot;</span><span class="p">,</span>  <span class="s2">&quot;type=0FC63DAF-8483-4772-8E79-3D69D8477DE4&quot;</span><span class="p">];</span>
+   <span class="p">}</span>
 <span class="p">}</span>
+</pre></div>
+</div>
+<p>MBR Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">partitions</span><span class="p">:</span> <span class="p">(</span>
+<span class="p">{</span>
+   <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;diskpart&quot;</span><span class="p">;</span>
+   <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;/dev/sde&quot;</span><span class="p">;</span>
+   <span class="n">properties</span><span class="p">:</span> <span class="p">{</span>
+        <span class="n">labeltype</span> <span class="o">=</span> <span class="s2">&quot;dos&quot;</span><span class="p">;</span>
+        <span class="n">partition</span><span class="o">-</span><span class="mi">1</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">&quot;size=64M&quot;</span><span class="p">,</span> <span class="s2">&quot;start=2048&quot;</span><span class="p">,</span> <span class="s2">&quot;name=bigrootfs&quot;</span><span class="p">,</span> <span class="s2">&quot;type=0x83&quot;</span><span class="p">];</span>
+        <span class="n">partition</span><span class="o">-</span><span class="mi">2</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;size=256M&quot;</span><span class="p">,</span> <span class="s2">&quot;start=133120&quot;</span><span class="p">,</span> <span class="s2">&quot;name=ldata&quot;</span><span class="p">,</span> <span class="s2">&quot;type=0x83&quot;</span><span class="p">];</span>
+        <span class="n">partition</span><span class="o">-</span><span class="mi">3</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;size=256M&quot;</span><span class="p">,</span> <span class="s2">&quot;start=657408&quot;</span><span class="p">,</span> <span class="s2">&quot;name=log&quot;</span><span class="p">,</span> <span class="s2">&quot;type=0x83&quot;</span><span class="p">];</span>
+        <span class="n">partition</span><span class="o">-</span><span class="mi">4</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;size=6G&quot;</span><span class="p">,</span> <span class="s2">&quot;start=1181696&quot;</span><span class="p">,</span> <span class="s2">&quot;name=system&quot;</span><span class="p">,</span>  <span class="s2">&quot;type=0x5&quot;</span><span class="p">];</span>
+        <span class="n">partition</span><span class="o">-</span><span class="mi">5</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;size=512M&quot;</span><span class="p">,</span> <span class="s2">&quot;start=1183744&quot;</span><span class="p">,</span> <span class="s2">&quot;name=part5&quot;</span><span class="p">,</span>  <span class="s2">&quot;type=0x83&quot;</span><span class="p">];</span>
+        <span class="n">partition</span><span class="o">-</span><span class="mi">6</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;size=512M&quot;</span><span class="p">,</span> <span class="s2">&quot;start=2234368&quot;</span><span class="p">,</span> <span class="s2">&quot;name=part6&quot;</span><span class="p">,</span>  <span class="s2">&quot;type=0x83&quot;</span><span class="p">];</span>
+   <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="unique-uuid-handler">
+<h2>Unique UUID Handler<a class="headerlink" href="#unique-uuid-handler" title="Permalink to this headline">¶</a></h2>
+<p>This handler checks if the device already has a filesystems with a provide UUID. This is helpful
+in case the bootloader chooses the device to boot from the UUID and not from the partition number.
+One use case is with the GRUB bootloader when GRUB_DISABLE_LINUX_UUID is not set, as usual on
+Linux Distro as Debian or Ubuntu.</p>
+<p>The handler iterates all UUIDs given in sw-description and raises error if one of them is
+found on the device. It is a partition handler and it runs before any image is installed.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">partitions</span><span class="p">:</span> <span class="p">(</span>
+<span class="p">{</span>
+        <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;uniqueuuid&quot;</span><span class="p">;</span>
+        <span class="n">properties</span><span class="p">:</span> <span class="p">{</span>
+                <span class="n">fs</span><span class="o">-</span><span class="n">uuid</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;21f16cae-612f-4bc6-8ef5-e68cc9dc4380&quot;</span><span class="p">,</span>
+                           <span class="s2">&quot;18e12df1-d8e1-4283-8727-37727eb4261d&quot;</span><span class="p">];</span>
+        <span class="p">}</span>
+<span class="p">});</span>
 </pre></div>
 </div>
 </div>

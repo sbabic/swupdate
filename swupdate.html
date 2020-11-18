@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>SWUpdate: software update for embedded system &mdash; Embedded Software Update Documentation 2020.04 documentation</title>
+  <title>SWUpdate: software update for embedded system &mdash; Embedded Software Update Documentation 2020.11 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                2020.04
+                2020.11
               </div>
             
           
@@ -114,7 +114,11 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#running-swupdate">Running SWUpdate</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#what-is-expected-from-a-swupdate-run">What is expected from a SWUpdate run</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#command-line-parameters">Command line parameters</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#command-line-parameters">Command line parameters</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#downloader-command-line-parameters">Downloader command line parameters</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#suricatta-command-line-parameters">Suricatta command line parameters</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#systemd-integration">systemd Integration</a></li>
 </ul>
 </li>
@@ -132,7 +136,7 @@
 <li class="toctree-l1"><a class="reference internal" href="handlers.html">Handlers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mongoose.html">Mongoose daemon mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hawkbit-setup.html">Config for HawkBit under SSL/TLS using private CA / sub CA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hawkbit-setup.html">Config for hawkBit under SSL/TLS using private CA / sub CA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">SWUpdate: API for external programs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
 <li class="toctree-l1"><a class="reference internal" href="bindings.html">Language Bindings</a></li>
@@ -151,6 +155,9 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project’s road-map</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="previous-releases.html">Documentation for previous releases</a></li>
 </ul>
 
             
@@ -296,7 +303,7 @@ Web-server can be used.</li>
 <li>pulling from remote Server (HTTP, HTTPS, ..)</li>
 <li>using a Backend. SWUpdate is open to talk with back end
 servers for rolling out software updates.
-Current version supports the Hawkbit server, but other
+Current version supports the hawkBit server, but other
 backend can be added.</li>
 </ul>
 </dd>
@@ -392,13 +399,14 @@ in the description of the single image.</p>
 They are commonly not exported and not installed, but they are
 linked by SWUpdate to reuse the same functions for upgrading
 MTD and UBI volumes.</li>
-<li>openssl: required with the Webserver</li>
+<li>openssl / wolfssl / mbedtls (optional) for cryptographic operations</li>
+<li>p11-kit &amp; wolfssl (optional) for PKCS#11 support</li>
 <li>Lua: liblua and the development headers.</li>
-<li>libz, libcrypto are always linked.</li>
-<li>libconfig: it is used by the default parser.</li>
+<li>libz is always linked.</li>
+<li>libconfig (optional) for the default parser</li>
 <li>libarchive (optional) for archive handler</li>
 <li>librsync (optional) for support to apply rdiff patches</li>
-<li>libjson (optional) for JSON parser and Hawkbit</li>
+<li>libjson (optional) for JSON parser and hawkBit</li>
 <li>libubootenv (optional) if support for U-Boot is enabled</li>
 <li>libebgenv (optional) if support for EFI Boot Guard is enabled</li>
 <li>libcurl used to communicate with network</li>
@@ -531,7 +539,7 @@ an error is reported.</p>
 </pre></div>
 </div>
 <p>The embedded web server is taken from the Mongoose project.</p>
-<p>The whole list of options will be retrieved with:</p>
+<p>The list of available options (depending on activated features) is shown with:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">swupdate</span> <span class="o">-</span><span class="n">h</span>
 </pre></div>
 </div>
@@ -582,19 +590,21 @@ called like this:</p>
 <tbody valign="top">
 <tr class="row-even"><td>-f &lt;file&gt;</td>
 <td>string</td>
-<td>SWUpdate config file to use</td>
+<td>SWUpdate configuration file to use.
+See <code class="docutils literal notranslate"><span class="pre">examples/configuration/swupdate.cfg</span></code>
+in the source code for details.</td>
 </tr>
 <tr class="row-odd"><td>-b &lt;string&gt;</td>
 <td>string</td>
-<td>Active only if CONFIG_UBIATTACH is set
+<td>Available if CONFIG_UBIATTACH is set.
 It allows one to blacklist MTDs when
 SWUpdate searches for UBI volumes.
 Example: U-Boot and environment in MTD0-1:
-<strong>swupdate -b “0 1”</strong></td>
+<code class="docutils literal notranslate"><span class="pre">swupdate</span> <span class="pre">-b</span> <span class="pre">&quot;0</span> <span class="pre">1&quot;</span></code>.</td>
 </tr>
 <tr class="row-even"><td>-e &lt;sel&gt;</td>
 <td>string</td>
-<td>sel is in the format &lt;software&gt;,&lt;mode&gt;
+<td><code class="docutils literal notranslate"><span class="pre">sel</span></code> is in the format &lt;software&gt;,&lt;mode&gt;.
 It allows one to find a subset of rules in
 the sw-description file. With it,
 multiple rules are allowed.
@@ -603,84 +613,134 @@ copy approach. Example:
 -e “stable, copy1”  ==&gt; install on copy1
 -e “stable, copy2”  ==&gt; install on copy2</td>
 </tr>
-<tr class="row-odd"><td>-h</td>
+<tr class="row-odd"><td><table class="first last docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd><span class="option">--excluded</span></kbd></td>
+<td>&lt;sel&gt;</td></tr>
+</tbody>
+</table>
+</td>
+<td>string</td>
+<td><code class="docutils literal notranslate"><span class="pre">sel</span></code> is in the format &lt;software&gt;,&lt;mode&gt;.
+It sets a blacklist of selections that
+cannot be used for an update.
+Selections can be activated not only with
+-e, but also via IPC.
+Multiple –excluded are allowed</td>
+</tr>
+<tr class="row-even"><td>-h</td>
 <td><ul class="first last simple">
 <li></li>
 </ul>
 </td>
-<td>run usage with help</td>
+<td>Run usage with help.</td>
 </tr>
-<tr class="row-even"><td>-k</td>
+<tr class="row-odd"><td>-k &lt;file&gt;</td>
 <td>string</td>
-<td>Active if CONFIG_SIGNED is set
-Filename with the public key</td>
+<td>Available if CONFIG_SIGNED is set.
+Filename with the public key.</td>
 </tr>
-<tr class="row-odd"><td>-l &lt;level&gt;</td>
+<tr class="row-even"><td>-K &lt;file&gt;</td>
+<td>string</td>
+<td>Available on CONFIG_ENCRYPTED_IMAGES set.
+Filename with the symmetric key to be used
+for decryption.</td>
+</tr>
+<tr class="row-odd"><td>–cert-purpose
+&lt;purpose&gt;</td>
+<td>string</td>
+<td>Available if CONFIG_SIGNED_IMAGES is set.
+Set expected certificate purpose.</td>
+</tr>
+<tr class="row-even"><td>–forced-signer-name &lt;cn&gt;</td>
+<td>string</td>
+<td>Available if CONFIG_SIGNED_IMAGES is set.
+Set expected common name of signer
+certificate.</td>
+</tr>
+<tr class="row-odd"><td>–ca-path &lt;file&gt;</td>
+<td>string</td>
+<td>Available if CONFIG_SIGNED_IMAGES is set.
+Path to the Certificate Authority (PEM).</td>
+</tr>
+<tr class="row-even"><td>-l &lt;level&gt;</td>
 <td>int</td>
-<td>Set loglevel</td>
+<td>Set loglevel.</td>
 </tr>
-<tr class="row-even"><td>-L</td>
+<tr class="row-odd"><td>-L</td>
 <td><ul class="first last simple">
 <li></li>
 </ul>
 </td>
-<td>Send LOG output to syslog(local)</td>
+<td>Send LOG output to syslog (local).</td>
 </tr>
-<tr class="row-odd"><td>-i &lt;file&gt;</td>
+<tr class="row-even"><td>-i &lt;file&gt;</td>
 <td>string</td>
-<td>run SWUpdate with a local .swu file</td>
+<td>Run SWUpdate with a local .swu file.</td>
 </tr>
-<tr class="row-even"><td>-n</td>
+<tr class="row-odd"><td>-n</td>
 <td><ul class="first last simple">
 <li></li>
 </ul>
 </td>
-<td>run SWUpdate in dry-run mode.</td>
+<td>Run SWUpdate in dry-run mode.</td>
 </tr>
-<tr class="row-odd"><td>-N</td>
+<tr class="row-even"><td>-N &lt;version&gt;</td>
 <td>string</td>
-<td>passed the minimum required version of
-software. This will be checked with the
-version of new software and forbids
-downgrading.
-Version consists of 4 number:
-major.minor.rev.build
-each field is in the range 0..65535</td>
+<td>The minimum required version of software.
+This will be checked with the version of
+new software and forbids downgrading.
+Version consists of either 4 numbers
+(major.minor.rev.build with each field in
+the range 0..65535) or it is a semantic
+version.</td>
 </tr>
-<tr class="row-even"><td>-R</td>
+<tr class="row-odd"><td>-R &lt;version&gt;</td>
 <td>string</td>
-<td>passed the current installed version of
-software. This will be checked with the
-version of new software and forbids
-reinstalling.</td>
+<td>The current installed version of software.
+This will be checked with the version of
+new software and forbids reinstalling.</td>
 </tr>
-<tr class="row-odd"><td>-o &lt;file&gt;</td>
+<tr class="row-even"><td>-o &lt;file&gt;</td>
 <td>string</td>
-<td>saves the stream (SWU) on a file</td>
+<td>Save the stream (SWU) to a file.</td>
 </tr>
-<tr class="row-even"><td>-v</td>
+<tr class="row-odd"><td>-v</td>
 <td><ul class="first last simple">
 <li></li>
 </ul>
 </td>
-<td>activate verbose output</td>
+<td>Activate verbose output.</td>
+</tr>
+<tr class="row-even"><td>-M</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td>Disable setting the bootloader transaction
+marker.</td>
 </tr>
 <tr class="row-odd"><td>-w &lt;parms&gt;</td>
 <td>string</td>
-<td>start internal webserver and pass to it
+<td>Available if CONFIG_WEBSERVER is set.
+Start internal webserver and pass to it
 a command line string.</td>
 </tr>
 <tr class="row-even"><td>-d &lt;parms&gt;</td>
 <td>string</td>
-<td>Active only if CONFIG_DOWNLOAD is set
-start internal downloader client and pass
+<td>Available if CONFIG_DOWNLOAD is set.
+Start internal downloader client and pass
 to it a command line string.
 See below the internal command line
 arguments for the downloader.</td>
 </tr>
 <tr class="row-odd"><td>-u &lt;parms&gt;</td>
 <td>string</td>
-<td>start internal suricatta client daemon and
+<td>Available if CONFIG_SURICATTA is set.
+Start internal suricatta client daemon and
 pass to it a command line string.
 See below the internal command line
 arguments for suricatta.</td>
@@ -688,31 +748,32 @@ arguments for suricatta.</td>
 <tr class="row-even"><td>-H
 &lt;board:rev&gt;</td>
 <td>string</td>
-<td>set board name and Hardware revision</td>
+<td>Available on CONFIG_HW_COMPATIBILITY set.
+Set board name and hardware revision.</td>
 </tr>
 <tr class="row-odd"><td>-c</td>
 <td><ul class="first last simple">
 <li></li>
 </ul>
 </td>
-<td>This will check <code class="docutils literal notranslate"><span class="pre">*.swu</span></code> file against
-internal tests. It ensures that files
+<td>Check <code class="docutils literal notranslate"><span class="pre">*.swu</span></code> file. It ensures that files
 referenced in sw-description are present.
-Usage: swupdate -c -i &lt;file&gt;</td>
+Usage: <code class="docutils literal notranslate"><span class="pre">swupdate</span> <span class="pre">-c</span> <span class="pre">-i</span> <span class="pre">&lt;file&gt;</span></code></td>
 </tr>
-<tr class="row-even"><td>-P</td>
+<tr class="row-even"><td>-P &lt;cmd&gt;</td>
 <td>string</td>
 <td>Execute pre-update command.</td>
 </tr>
-<tr class="row-odd"><td>-p</td>
+<tr class="row-odd"><td>-p &lt;cmd&gt;</td>
 <td>string</td>
 <td>Execute post-update command.</td>
 </tr>
 </tbody>
 </table>
-<p>Parameters used for the downloader: -d, –download [OPTIONS]
-For example: -d “-u example.com”
-Mandatory arguments are marked with ‘*’:</p>
+<div class="section" id="downloader-command-line-parameters">
+<h4>Downloader command line parameters<a class="headerlink" href="#downloader-command-line-parameters" title="Permalink to this headline">¶</a></h4>
+<p>Example: <code class="docutils literal notranslate"><span class="pre">swupdate</span> <span class="pre">-d</span> <span class="pre">&quot;-u</span> <span class="pre">example.com&quot;</span></code></p>
+<p>Mandatory arguments are marked with ‘*’:</p>
 <table border="1" class="docutils">
 <colgroup>
 <col width="19%" />
@@ -728,11 +789,8 @@ Mandatory arguments are marked with ‘*’:</p>
 <tbody valign="top">
 <tr class="row-even"><td>-u &lt;url&gt;</td>
 <td>string</td>
-<td><ul class="first simple">
-<li>This is the URL where new software is</li>
-</ul>
-<p class="last">pulled. URL is a link to a valid .swu image</p>
-</td>
+<td>* This is the URL where new software is
+pulled. URL is a link to a valid .swu image</td>
 </tr>
 <tr class="row-odd"><td>-r &lt;retries&gt;</td>
 <td>integer</td>
@@ -752,14 +810,18 @@ downloader or Webserver</td>
 </tr>
 </tbody>
 </table>
-<p>Parameters used for suricatta: -u, –suricatta [OPTIONS]
-For example: -u “-t default -u localhost:8080 -i 1B7”
-Mandatory arguments are marked with ‘*’:</p>
+</div>
+<div class="section" id="suricatta-command-line-parameters">
+<h4>Suricatta command line parameters<a class="headerlink" href="#suricatta-command-line-parameters" title="Permalink to this headline">¶</a></h4>
+<p>Example: <code class="docutils literal notranslate"><span class="pre">swupdate</span> <span class="pre">-u</span> <span class="pre">&quot;-t</span> <span class="pre">default</span> <span class="pre">-u</span> <span class="pre">localhost:8080</span> <span class="pre">-i</span> <span class="pre">1B7&quot;</span></code></p>
+<p>Note that different suricatta modules may have different parameters.
+The below listed options are for SWUpdate’s hawkBit support.</p>
+<p>Mandatory arguments are marked with ‘*’:</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="26%" />
-<col width="14%" />
-<col width="60%" />
+<col width="32%" />
+<col width="13%" />
+<col width="56%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Parameter</th>
@@ -770,25 +832,16 @@ Mandatory arguments are marked with ‘*’:</p>
 <tbody valign="top">
 <tr class="row-even"><td>-t &lt;tenant&gt;</td>
 <td>string</td>
-<td><ul class="first last simple">
-<li>Set hawkBit tenant ID for this device.</li>
-</ul>
-</td>
+<td>* Set hawkBit tenant ID for this device.</td>
 </tr>
 <tr class="row-odd"><td>-u &lt;url&gt;</td>
 <td>string</td>
-<td><ul class="first simple">
-<li>Host and port of the hawkBit instance,</li>
-</ul>
-<p class="last">e.g., localhost:8080</p>
-</td>
+<td>* Host and port of the hawkBit instance,
+e.g., localhost:8080</td>
 </tr>
 <tr class="row-even"><td>-i &lt;id&gt;</td>
 <td>integer</td>
-<td><ul class="first last simple">
-<li>The device ID to communicate to hawkBit.</li>
-</ul>
-</td>
+<td>* The device ID to communicate to hawkBit.</td>
 </tr>
 <tr class="row-odd"><td>-c &lt;confirm&gt;</td>
 <td>integer</td>
@@ -833,10 +886,40 @@ else {http,all}_proxy env is tried.</td>
 <tr class="row-odd"><td>-f &lt;interface&gt;</td>
 <td>string</td>
 <td>Set the network interface to connect to
-Hawkbit.</td>
+hawkBit.</td>
+</tr>
+<tr class="row-even"><td>-e</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td>Daemon enabled at startup (default).</td>
+</tr>
+<tr class="row-odd"><td>-d</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td>Daemon disabled at startup.</td>
+</tr>
+<tr class="row-even"><td>–disable-token-for-dwl</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td>Do not send authentication header when
+downloading SWU.</td>
+</tr>
+<tr class="row-odd"><td>–cache-file</td>
+<td>string</td>
+<td>This allow to resume an update after a
+power cut. If the SWU is saved in a file,
+SWUpdate can reuse the file and download
+just the remaining part of the SWU.</td>
 </tr>
 </tbody>
 </table>
+</div>
 </div>
 <div class="section" id="systemd-integration">
 <h3>systemd Integration<a class="headerlink" href="#systemd-integration" title="Permalink to this headline">¶</a></h3>

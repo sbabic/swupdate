@@ -78,6 +78,15 @@ Roadmap
 
    roadmap.rst
 
+############################################
+Previous releases
+############################################
+
+.. toctree::
+   :maxdepth: 2
+
+   previous-releases.rst
+
 Indices and tables
 ==================
 

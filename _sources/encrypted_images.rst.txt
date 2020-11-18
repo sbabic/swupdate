@@ -2,7 +2,8 @@ Symmetrically Encrypted Update Images
 =====================================
 
 SWUpdate allows one to symmetrically encrypt update images using the
-256 bit AES block cipher in CBC mode.
+AES block cipher in CBC mode. The following shows encryption with 256
+bit key length but you may use other key lengths as well.
 
 
 Building an Encrypted SWU Image
@@ -49,32 +50,18 @@ For earlier versions of SWUpdate it was falsely noted that passing the SALT as a
 3rd parameter would increase security. Key and IV are enough for maximum security,
 salt doesn't add any value.
 
+You should change the IV with every encryption, see CWE-329_. The ``ivt``
+sw-description attribute overrides the key file's IV for one specific image.
+
+.. _CWE-329: http://cwe.mitre.org/data/definitions/329.html
+
 Encryption of UBI volumes
 -------------------------
 
-Due to a limit in the Linux kernel api for UBI volumes, the size reserved to be
-written on disk should be declared before actually write anything.
-Unfortunately, the size of an encrypted image is not know until the complete
-decryption, thus preventing to correctly declare the size of the file to be
-written on disk.
+Due to a limit in the Linux kernel API for UBI volumes, the size reserved to be
+written on disk should be declared before actually writing anything.
 
-For this reason UBI images can declare the special property "decrypted-size" like
-this:
-
-::
-
-	images: ( {
-			filename = "rootfs.ubifs.enc";
-			volume = "rootfs";
-			encrypted = true;
-			properties = {decrypted-size = "104857600";}
-		}
-	);
-
-The real size of the decrypted image should be calculated and written to the
-sw-description before assembling the cpio archive.
-In this example, 104857600 is the size of the rootfs after the decryption: the
-encrypted size is by the way larger.
+See the property "decrypted-size" in UBI Volume Handler's documentation.
 
 Example sw-description with Encrypted Image
 -------------------------------------------
@@ -92,6 +79,7 @@ setting.
         			filename = "core-image-full-cmdline-beaglebone.ext3.enc";
         			device = "/dev/mmcblk0p3";
         			encrypted = true;
+				ivt = "65D793B87B6724BB27954C7664F15FF3";
         		}
         	);
         }
@@ -103,3 +91,14 @@ Running SWUpdate with Encrypted Images
 Symmetric encryption support is activated by setting the ``ENCRYPTED_IMAGES``
 option in SWUpdate's configuration. Use the `-K` parameter to provide the
 symmetric key file generated above to SWUpdate.
+
+Decrypting with a PKCS#11 token
+-------------------------------
+
+PKCS#11 support is activated by setting the ``PKCS11`` option in SWUpdate's
+configuration. The key file has to have a PKCS#11 URL instead of the key then,
+containing at least the elements of this example:
+
+::
+
+        pkcs11:slot-id=42;id=%CA%FE%BA%BE?pin-value=1234&module-path=/usr/lib/libsofthsm2.so 65D793B87B6724BB27954C7664F15FF3

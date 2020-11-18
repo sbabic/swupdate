@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Config for HawkBit under SSL/TLS using private CA / sub CA &mdash; Embedded Software Update Documentation 2020.04 documentation</title>
+  <title>Config for hawkBit under SSL/TLS using private CA / sub CA &mdash; Embedded Software Update Documentation 2020.11 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                2020.04
+                2020.11
               </div>
             
           
@@ -99,7 +99,7 @@
 <li class="toctree-l1"><a class="reference internal" href="handlers.html">Handlers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mongoose.html">Mongoose daemon mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Config for HawkBit under SSL/TLS using private CA / sub CA</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Config for hawkBit under SSL/TLS using private CA / sub CA</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#purpose">Purpose</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#recipe">Recipe</a></li>
 </ul>
@@ -122,6 +122,9 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project’s road-map</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="previous-releases.html">Documentation for previous releases</a></li>
 </ul>
 
             
@@ -167,7 +170,7 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>Config for HawkBit under SSL/TLS using private CA / sub CA</li>
+      <li>Config for hawkBit under SSL/TLS using private CA / sub CA</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -187,11 +190,11 @@
            <div itemprop="articleBody">
             
   <div class="section" id="config-for-hawkbit-under-ssl-tls-using-private-ca-sub-ca">
-<h1>Config for HawkBit under SSL/TLS using private CA / sub CA<a class="headerlink" href="#config-for-hawkbit-under-ssl-tls-using-private-ca-sub-ca" title="Permalink to this headline">¶</a></h1>
-<p>A user-contributed recipe based on HawkBit (0.2.0-SNAPSHOT) + swupdate (v2018.03)</p>
+<h1>Config for hawkBit under SSL/TLS using private CA / sub CA<a class="headerlink" href="#config-for-hawkbit-under-ssl-tls-using-private-ca-sub-ca" title="Permalink to this headline">¶</a></h1>
+<p>A user-contributed recipe based on hawkBit (0.2.0-SNAPSHOT) + swupdate (v2018.03)</p>
 <div class="section" id="purpose">
 <h2>Purpose<a class="headerlink" href="#purpose" title="Permalink to this headline">¶</a></h2>
-<p>Use HTTPS on a HawkBit server to avoid server spoofing. Anonymous client connections are authorized.</p>
+<p>Use HTTPS on a hawkBit server to avoid server spoofing. Anonymous client connections are authorized.</p>
 </div>
 <div class="section" id="recipe">
 <h2>Recipe<a class="headerlink" href="#recipe" title="Permalink to this headline">¶</a></h2>
@@ -206,11 +209,11 @@
 </ul>
 </div></blockquote>
 <ol class="arabic simple" start="2">
-<li>On the HawkBit host:</li>
+<li>On the hawkBit host:</li>
 </ol>
 <blockquote>
 <div><ul class="simple">
-<li>HawkBit uses the Java KeyStore to access credentials, but a JKS is not designed apparently to hold CA certs, which is a problem for private CAs. The workaround is to make it gulp an entire pkcs#12 file.</li>
+<li>hawkBit uses the Java KeyStore to access credentials, but a JKS is not designed apparently to hold CA certs, which is a problem for private CAs. The workaround is to make it gulp an entire pkcs#12 file.</li>
 <li>It looks like a JKS like this cannot have a password different from the one protecting the <code class="docutils literal notranslate"><span class="pre">.p12</span></code>. Keytool also seems to have a little tendency to destruct the <code class="docutils literal notranslate"><span class="pre">.jks</span></code> if you change your mind and want to change the password… Basically do everything you need with openssl and use only keytool for generating the <code class="docutils literal notranslate"><span class="pre">.jks</span></code> file.</li>
 </ul>
 <p>The following command imports a <code class="docutils literal notranslate"><span class="pre">.p12</span></code> into a “pkcs12 Java keystore”, keeping the same password:</p>
@@ -219,9 +222,9 @@
         <span class="o">-</span><span class="n">alias</span> <span class="mi">1</span> <span class="o">-</span><span class="n">deststorepass</span> <span class="o">&lt;</span><span class="n">password_of_p12</span><span class="o">&gt;</span>
 </pre></div>
 </div>
-<p>Then you need to adapt <code class="docutils literal notranslate"><span class="pre">application.properties</span></code> of the HawkBit server to make use of the keystore.
-There are extra requirements to make HawkBit send artifacts via HTTPS.</p>
-<p>This is the relevant part of <code class="docutils literal notranslate"><span class="pre">&lt;HawkBit</span> <span class="pre">dir&gt;/hawkbit-runtime/hawkbit-update-server/src/main/resources/application.properties</span></code>:</p>
+<p>Then you need to adapt <code class="docutils literal notranslate"><span class="pre">application.properties</span></code> of the hawkBit server to make use of the keystore.
+There are extra requirements to make hawkBit send artifacts via HTTPS.</p>
+<p>This is the relevant part of <code class="docutils literal notranslate"><span class="pre">&lt;hawkBit</span> <span class="pre">dir&gt;/hawkbit-runtime/hawkbit-update-server/src/main/resources/application.properties</span></code>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># HTTPS mode working w/ swupdate</span>
 <span class="c1"># See also https://docs.spring.io/spring-boot/docs/1.4.7.RELEASE/reference/html/howto-embedded-servlet-containers.html#howto-configure-ssl</span>
 <span class="c1">#          https://github.com/eclipse/hawkbit/issues/618</span>

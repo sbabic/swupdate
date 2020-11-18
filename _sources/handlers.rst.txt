@@ -23,11 +23,18 @@ Supplied handlers
 In mainline there are the handlers for the most common cases. They include:
 	- flash devices in raw mode (both NOR and NAND)
 	- UBI volumes
-        - UBI volumus partitioner
+        - UBI volumes partitioner
+        - raw flashes handler (NAND, NOR, SPI-NOR, CFI interface)
         - disk partitioner
 	- raw devices, such as a SD Card partition
 	- bootloader (U-Boot, GRUB, EFI Boot Guard) environment
-	- Lua scripts
+	- Lua scripts handler
+        - shell scripts handler
+        - rdiff handler
+        - readback handler
+        - archive (zo, tarballs) handler
+        - remote handler
+        - microcontroller update handler
 
 For example, if an image is marked to be updated into a UBI volume,
 the parser must fill a supplied table setting "ubi" as required handler,
@@ -207,6 +214,65 @@ on an image, the ubi volume is resized to fit exactly the image.
 	}
 
 WARNING: when this property is used, the device must be defined.
+
+volume always remove
+....................
+
+The UBI volume handler has support to always remove ubi volume
+before flashing with the property ``always-remove``. When this property
+is set on an image, the ubi volume is always removed. This property
+should be used with property ``auto-resize``.
+
+::
+
+	{
+		filename = "u-boot.img";
+		device = "mtd0";
+		volume = "u-boot_r";
+		properties: {
+			always-remove = "true";
+			auto-resize = "true";
+		}
+	}
+
+size properties
+...............
+Due to a limit in the Linux kernel API for UBI volumes, the size reserved to be
+written on disk should be declared before actually writing anything.
+Unfortunately, the size of an encrypted or compressed image is not known until
+the decryption or decompression finished. This prevents correct declaration of
+the file size to be written on disk.
+
+For this reason UBI images can declare the special properties "decrypted-size"
+or "decompressed-size" like this:
+
+::
+
+	images: ( {
+			filename = "rootfs.ubifs.enc";
+			volume = "rootfs";
+			encrypted = true;
+			properties: {
+				decrypted-size = "104857600";
+			}
+		},
+		{
+			filename = "homefs.ubifs.gz";
+			volume = "homefs";
+			compressed = "zlib";
+			properties: {
+				decompressed-size = "420000000";
+			}
+		}
+	);
+
+The real size of the image should be calculated and written to the
+sw-description before assembling the cpio archive.
+In this example, 104857600 is the size of the rootfs after the decryption: the
+encrypted size is by the way larger. The decompressed size is of the homefs is
+420000000.
+
+The sizes are bytes in decimal notation.
 
 Lua Handlers
 ------------
@@ -727,20 +793,67 @@ supported:
 
 
 
-Example:
+GPT example:
 
 ::
 
-        properties: {
-		labeltype = "gpt";
-		partition-1 = [ "size=64M", "start=2048",
-                        "name=bigrootfs", "type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B"];
-		partition-2 = ["size=256M", "start=133120",
-                        "name=ldata", "type=EBD0A0A2-B9E5-4433-87C0-68B6B72699C7"];
-		partition-3 = ["size=512M", "start=657408",
-                        "name=log", "type=0FC63DAF-8483-4772-8E79-3D69D8477DE4"];
-		partition-4 = ["size=4G", "start=1705984",
-                        "name=system",  "type=0FC63DAF-8483-4772-8E79-3D69D8477DE4"];
-		partition-5 = ["size=512M", "start=10094592",
-                        "name=part5",  "type=0FC63DAF-8483-4772-8E79-3D69D8477DE4"];
+        partitions: (
+	{
+           type = "diskpart";
+	   device = "/dev/sde";
+           properties: {
+	        labeltype = "gpt";
+                partition-1 = [ "size=64M", "start=2048",
+                    "name=bigrootfs", "type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B"];
+                partition-2 = ["size=256M", "start=133120",
+                    "name=ldata", "type=EBD0A0A2-B9E5-4433-87C0-68B6B72699C7"];
+                partition-3 = ["size=512M", "start=657408",
+                    "name=log", "type=0FC63DAF-8483-4772-8E79-3D69D8477DE4"];
+                partition-4 = ["size=4G", "start=1705984",
+                    "name=system",  "type=0FC63DAF-8483-4772-8E79-3D69D8477DE4"];
+                partition-5 = ["size=512M", "start=10094592",
+                    "name=part5",  "type=0FC63DAF-8483-4772-8E79-3D69D8477DE4"];
+	   }
+        }
+
+
+MBR Example:
+
+::
+
+	partitions: (
+	{
+	   type = "diskpart";
+	   device = "/dev/sde";
+	   properties: {
+		labeltype = "dos";
+		partition-1 = [ "size=64M", "start=2048", "name=bigrootfs", "type=0x83"];
+		partition-2 = ["size=256M", "start=133120", "name=ldata", "type=0x83"];
+		partition-3 = ["size=256M", "start=657408", "name=log", "type=0x83"];
+		partition-4 = ["size=6G", "start=1181696", "name=system",  "type=0x5"];
+		partition-5 = ["size=512M", "start=1183744", "name=part5",  "type=0x83"];
+		partition-6 = ["size=512M", "start=2234368", "name=part6",  "type=0x83"];
+	   }
 	}
+
+Unique UUID Handler
+-------------------
+
+This handler checks if the device already has a filesystems with a provide UUID. This is helpful
+in case the bootloader chooses the device to boot from the UUID and not from the partition number.
+One use case is with the GRUB bootloader when GRUB_DISABLE_LINUX_UUID is not set, as usual on
+Linux Distro as Debian or Ubuntu.
+
+The handler iterates all UUIDs given in sw-description and raises error if one of them is
+found on the device. It is a partition handler and it runs before any image is installed.
+
+::
+
+	partitions: (
+	{
+		type = "uniqueuuid";
+		properties: {
+			fs-uuid = ["21f16cae-612f-4bc6-8ef5-e68cc9dc4380",
+                                   "18e12df1-d8e1-4283-8727-37727eb4261d"];
+		}
+	});

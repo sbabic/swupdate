@@ -20,7 +20,7 @@ and a switchback had to be performed.
 Suricatta is designed to be extensible in terms of the servers supported
 as described in Section `Supporting different Servers`_. Currently,
 support for the `hawkBit`_ server is implemented via the `hawkBit Direct
-Device Integration API`_.
+Device Integration API`_ alongside a simple general purpose HTTP server.
 
 .. _hawkBit Direct Device Integration API:  http://sp.apps.bosch-iot-cloud.com/documentation/developerguide/apispecifications/directdeviceintegrationapi.html
 .. _hawkBit:  https://projects.eclipse.org/projects/iot.hawkbit
@@ -164,7 +164,7 @@ The query string has the format:
         http(s)://<base URL>?param1=val1&param2=value2...
 
 As examples for parameters, the device can send its serial number, MAC address and the running version of the software.
-It is duty of the backend to interpret this - SWUpdate just takes them from the "identity" section of
+It is duty of the backend to interpret this - SWUpdate just takes them from the "identify" section of
 the configuration file and encodes the URL.
 
 The server answers with the following return codes:

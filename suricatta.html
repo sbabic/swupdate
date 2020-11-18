@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Suricatta daemon mode &mdash; Embedded Software Update Documentation 2020.04 documentation</title>
+  <title>Suricatta daemon mode &mdash; Embedded Software Update Documentation 2020.11 documentation</title>
   
 
   
@@ -37,7 +37,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Config for HawkBit under SSL/TLS using private CA / sub CA" href="hawkbit-setup.html" />
+    <link rel="next" title="Config for hawkBit under SSL/TLS using private CA / sub CA" href="hawkbit-setup.html" />
     <link rel="prev" title="Mongoose daemon mode" href="mongoose.html" /> 
 </head>
 
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                2020.04
+                2020.11
               </div>
             
           
@@ -105,7 +105,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#support-for-general-purpose-http-server">Support for general purpose HTTP server</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="hawkbit-setup.html">Config for HawkBit under SSL/TLS using private CA / sub CA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hawkbit-setup.html">Config for hawkBit under SSL/TLS using private CA / sub CA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">SWUpdate: API for external programs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
 <li class="toctree-l1"><a class="reference internal" href="bindings.html">Language Bindings</a></li>
@@ -124,6 +124,9 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project’s road-map</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="previous-releases.html">Documentation for previous releases</a></li>
 </ul>
 
             
@@ -205,7 +208,7 @@ and a switchback had to be performed.</p>
 <p>Suricatta is designed to be extensible in terms of the servers supported
 as described in Section <a class="reference internal" href="#supporting-different-servers">Supporting different Servers</a>. Currently,
 support for the <a class="reference external" href="https://projects.eclipse.org/projects/iot.hawkbit">hawkBit</a> server is implemented via the <a class="reference external" href="http://sp.apps.bosch-iot-cloud.com/documentation/developerguide/apispecifications/directdeviceintegrationapi.html">hawkBit Direct
-Device Integration API</a>.</p>
+Device Integration API</a> alongside a simple general purpose HTTP server.</p>
 </div>
 <div class="section" id="running-suricatta">
 <h2>Running suricatta<a class="headerlink" href="#running-suricatta" title="Permalink to this headline">¶</a></h2>
@@ -318,7 +321,7 @@ The query string has the format:</p>
 </pre></div>
 </div>
 <p>As examples for parameters, the device can send its serial number, MAC address and the running version of the software.
-It is duty of the backend to interpret this - SWUpdate just takes them from the “identity” section of
+It is duty of the backend to interpret this - SWUpdate just takes them from the “identify” section of
 the configuration file and encodes the URL.</p>
 <p>The server answers with the following return codes:</p>
 <table border="1" class="docutils">
@@ -465,7 +468,7 @@ is sent as it is. For example, if the identify section has the following values:
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="hawkbit-setup.html" class="btn btn-neutral float-right" title="Config for HawkBit under SSL/TLS using private CA / sub CA" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="hawkbit-setup.html" class="btn btn-neutral float-right" title="Config for hawkBit under SSL/TLS using private CA / sub CA" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="mongoose.html" class="btn btn-neutral float-left" title="Mongoose daemon mode" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

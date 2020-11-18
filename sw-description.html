@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>SWUpdate: syntax and tags with the default parser &mdash; Embedded Software Update Documentation 2020.04 documentation</title>
+  <title>SWUpdate: syntax and tags with the default parser &mdash; Embedded Software Update Documentation 2020.11 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                2020.04
+                2020.11
               </div>
             
           
@@ -124,7 +124,7 @@
 <li class="toctree-l1"><a class="reference internal" href="handlers.html">Handlers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mongoose.html">Mongoose daemon mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hawkbit-setup.html">Config for HawkBit under SSL/TLS using private CA / sub CA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hawkbit-setup.html">Config for hawkBit under SSL/TLS using private CA / sub CA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">SWUpdate: API for external programs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
 <li class="toctree-l1"><a class="reference internal" href="bindings.html">Language Bindings</a></li>
@@ -143,6 +143,9 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project’s road-map</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="previous-releases.html">Documentation for previous releases</a></li>
 </ul>
 
             
@@ -1148,20 +1151,33 @@ The file must contains pairs with the name of image and his version, as:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">name</span> <span class="n">of</span> <span class="n">component</span><span class="o">&gt;</span>     <span class="o">&lt;</span><span class="n">version</span><span class="o">&gt;</span>
 </pre></div>
 </div>
-<p>Version is a string and can have any value. For example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">bootloader</span>              <span class="mf">2015.01</span><span class="o">-</span><span class="n">rc3</span><span class="o">-</span><span class="mi">00456</span><span class="o">-</span><span class="n">gd4978d</span>
-<span class="n">kernel</span>                  <span class="mf">3.17</span><span class="o">.</span><span class="mi">0</span><span class="o">-</span><span class="mi">00215</span><span class="o">-</span><span class="n">g2e876af</span>
-</pre></div>
-</div>
 <p>In sw-description, the optional attributes “name”, “version” and
 “install-if-different” provide the connection. Name and version are then
 compared with the data in the versions file. install-if-different is a
 boolean that enables the check for this image. It is then possible to
 check the version just for a subset of the images to be installed.</p>
-<p>There is also an attribute “install-if-higher” that check if the version
+<p>If used with “install-if-different”, then version can be any string.
+For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">bootloader</span>              <span class="mf">2015.01</span><span class="o">-</span><span class="n">rc3</span><span class="o">-</span><span class="mi">00456</span><span class="o">-</span><span class="n">gd4978d</span>
+<span class="n">kernel</span>                  <span class="mf">3.17</span><span class="o">.</span><span class="mi">0</span><span class="o">-</span><span class="mi">00215</span><span class="o">-</span><span class="n">g2e876af</span>
+</pre></div>
+</div>
+<p>There is also an attribute “install-if-higher” that checks if the version
 of the new software is higher than the version of the installed software.
 If it’s false, the new software isn’t installed. The goal is to avoid
 installing an older version of software.</p>
+<p>In this case, version can be any of 2 formats. Either the version consists
+of <em>up to</em> 4 numbers separated by a dot, e.g. <cite>&lt;major&gt;.&lt;minor&gt;.&lt;rev&gt;.&lt;build&gt;</cite>,
+or it is a <a class="reference external" href="https://semver.org">semantic version</a>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">bootloader</span>              <span class="mf">2018.03</span><span class="o">.</span><span class="mi">01</span>
+<span class="n">kernel</span>                  <span class="mf">3.17</span><span class="o">.</span><span class="mi">0</span><span class="o">-</span><span class="n">pre1</span><span class="o">+</span><span class="n">g2e876af</span>
+<span class="n">rfs</span>                     <span class="mf">0.17</span><span class="o">-</span><span class="n">foo3</span><span class="o">.</span><span class="n">bar5</span><span class="o">+</span><span class="mf">2020.07</span><span class="o">.</span><span class="mi">01</span>
+<span class="n">app</span>                     <span class="mf">1.7</span>
+</pre></div>
+</div>
+<p>It is advised not to mix version formats! Semantic versions only support 3
+numbers (major, minor, patch) and the fourth number will be silently dropped
+if present.</p>
 </div>
 <div class="section" id="embedded-script">
 <h2>Embedded Script<a class="headerlink" href="#embedded-script" title="Permalink to this headline">¶</a></h2>

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Symmetrically Encrypted Update Images &mdash; Embedded Software Update Documentation 2020.04 documentation</title>
+  <title>Symmetrically Encrypted Update Images &mdash; Embedded Software Update Documentation 2020.11 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                2020.04
+                2020.11
               </div>
             
           
@@ -100,12 +100,13 @@
 <li class="toctree-l2"><a class="reference internal" href="#encryption-of-ubi-volumes">Encryption of UBI volumes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#example-sw-description-with-encrypted-image">Example sw-description with Encrypted Image</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#running-swupdate-with-encrypted-images">Running SWUpdate with Encrypted Images</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#decrypting-with-a-pkcs-11-token">Decrypting with a PKCS#11 token</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="handlers.html">Handlers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mongoose.html">Mongoose daemon mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hawkbit-setup.html">Config for HawkBit under SSL/TLS using private CA / sub CA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hawkbit-setup.html">Config for hawkBit under SSL/TLS using private CA / sub CA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">SWUpdate: API for external programs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
 <li class="toctree-l1"><a class="reference internal" href="bindings.html">Language Bindings</a></li>
@@ -124,6 +125,9 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project’s road-map</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="previous-releases.html">Documentation for previous releases</a></li>
 </ul>
 
             
@@ -191,7 +195,8 @@
   <div class="section" id="symmetrically-encrypted-update-images">
 <h1>Symmetrically Encrypted Update Images<a class="headerlink" href="#symmetrically-encrypted-update-images" title="Permalink to this headline">¶</a></h1>
 <p>SWUpdate allows one to symmetrically encrypt update images using the
-256 bit AES block cipher in CBC mode.</p>
+AES block cipher in CBC mode. The following shows encryption with 256
+bit key length but you may use other key lengths as well.</p>
 <div class="section" id="building-an-encrypted-swu-image">
 <h2>Building an Encrypted SWU Image<a class="headerlink" href="#building-an-encrypted-swu-image" title="Permalink to this headline">¶</a></h2>
 <p>First, create a key via <cite>openssl</cite> which is part of the OpenSSL project.
@@ -224,29 +229,14 @@ separated by whitespace, e.g., for above example values</p>
 <p>For earlier versions of SWUpdate it was falsely noted that passing the SALT as a
 3rd parameter would increase security. Key and IV are enough for maximum security,
 salt doesn’t add any value.</p>
+<p>You should change the IV with every encryption, see <a class="reference external" href="http://cwe.mitre.org/data/definitions/329.html">CWE-329</a>. The <code class="docutils literal notranslate"><span class="pre">ivt</span></code>
+sw-description attribute overrides the key file’s IV for one specific image.</p>
 </div>
 <div class="section" id="encryption-of-ubi-volumes">
 <h2>Encryption of UBI volumes<a class="headerlink" href="#encryption-of-ubi-volumes" title="Permalink to this headline">¶</a></h2>
-<p>Due to a limit in the Linux kernel api for UBI volumes, the size reserved to be
-written on disk should be declared before actually write anything.
-Unfortunately, the size of an encrypted image is not know until the complete
-decryption, thus preventing to correctly declare the size of the file to be
-written on disk.</p>
-<p>For this reason UBI images can declare the special property “decrypted-size” like
-this:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">images</span><span class="p">:</span> <span class="p">(</span> <span class="p">{</span>
-                <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;rootfs.ubifs.enc&quot;</span><span class="p">;</span>
-                <span class="n">volume</span> <span class="o">=</span> <span class="s2">&quot;rootfs&quot;</span><span class="p">;</span>
-                <span class="n">encrypted</span> <span class="o">=</span> <span class="n">true</span><span class="p">;</span>
-                <span class="n">properties</span> <span class="o">=</span> <span class="p">{</span><span class="n">decrypted</span><span class="o">-</span><span class="n">size</span> <span class="o">=</span> <span class="s2">&quot;104857600&quot;</span><span class="p">;}</span>
-        <span class="p">}</span>
-<span class="p">);</span>
-</pre></div>
-</div>
-<p>The real size of the decrypted image should be calculated and written to the
-sw-description before assembling the cpio archive.
-In this example, 104857600 is the size of the rootfs after the decryption: the
-encrypted size is by the way larger.</p>
+<p>Due to a limit in the Linux kernel API for UBI volumes, the size reserved to be
+written on disk should be declared before actually writing anything.</p>
+<p>See the property “decrypted-size” in UBI Volume Handler’s documentation.</p>
 </div>
 <div class="section" id="example-sw-description-with-encrypted-image">
 <h2>Example sw-description with Encrypted Image<a class="headerlink" href="#example-sw-description-with-encrypted-image" title="Permalink to this headline">¶</a></h2>
@@ -260,6 +250,7 @@ setting.</p>
                         <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;core-image-full-cmdline-beaglebone.ext3.enc&quot;</span><span class="p">;</span>
                         <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;/dev/mmcblk0p3&quot;</span><span class="p">;</span>
                         <span class="n">encrypted</span> <span class="o">=</span> <span class="n">true</span><span class="p">;</span>
+                        <span class="n">ivt</span> <span class="o">=</span> <span class="s2">&quot;65D793B87B6724BB27954C7664F15FF3&quot;</span><span class="p">;</span>
                 <span class="p">}</span>
         <span class="p">);</span>
 <span class="p">}</span>
@@ -271,6 +262,15 @@ setting.</p>
 <p>Symmetric encryption support is activated by setting the <code class="docutils literal notranslate"><span class="pre">ENCRYPTED_IMAGES</span></code>
 option in SWUpdate’s configuration. Use the <cite>-K</cite> parameter to provide the
 symmetric key file generated above to SWUpdate.</p>
+</div>
+<div class="section" id="decrypting-with-a-pkcs-11-token">
+<h2>Decrypting with a PKCS#11 token<a class="headerlink" href="#decrypting-with-a-pkcs-11-token" title="Permalink to this headline">¶</a></h2>
+<p>PKCS#11 support is activated by setting the <code class="docutils literal notranslate"><span class="pre">PKCS11</span></code> option in SWUpdate’s
+configuration. The key file has to have a PKCS#11 URL instead of the key then,
+containing at least the elements of this example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>pkcs11:slot-id=42;id=%CA%FE%BA%BE?pin-value=1234&amp;module-path=/usr/lib/libsofthsm2.so 65D793B87B6724BB27954C7664F15FF3
+</pre></div>
+</div>
 </div>
 </div>
 

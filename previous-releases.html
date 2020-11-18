@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>swupdate-progress &mdash; Embedded Software Update Documentation 2020.11 documentation</title>
+  <title>Documentation for previous releases &mdash; Embedded Software Update Documentation 2020.11 documentation</title>
   
 
   
@@ -37,8 +37,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="swupdate-sysrestart" href="swupdate-sysrestart.html" />
-    <link rel="prev" title="swupdate-sendtohawkbit" href="swupdate-sendtohawkbit.html" /> 
+    <link rel="prev" title="Project’s road-map" href="roadmap.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -105,15 +104,11 @@
 <li class="toctree-l1"><a class="reference internal" href="bindings.html">Language Bindings</a></li>
 <li class="toctree-l1"><a class="reference internal" href="building-with-yocto.html">meta-swupdate: building with Yocto</a></li>
 </ul>
-<ul class="current">
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="swupdate-client.html">swupdate-client</a></li>
 <li class="toctree-l1"><a class="reference internal" href="swupdate-hawkbitcfg.html">swupdate-hawkbitcfg</a></li>
 <li class="toctree-l1"><a class="reference internal" href="swupdate-sendtohawkbit.html">swupdate-sendtohawkbit</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">swupdate-progress</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#synopsis">SYNOPSIS</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#description">DESCRIPTION</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-progress.html">swupdate-progress</a></li>
 <li class="toctree-l1"><a class="reference internal" href="swupdate-sysrestart.html">swupdate-sysrestart</a></li>
 </ul>
 <ul>
@@ -123,8 +118,8 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project’s road-map</a></li>
 </ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="previous-releases.html">Documentation for previous releases</a></li>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Documentation for previous releases</a></li>
 </ul>
 
             
@@ -170,13 +165,13 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>swupdate-progress</li>
+      <li>Documentation for previous releases</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="_sources/swupdate-progress.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/previous-releases.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -189,48 +184,14 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="swupdate-progress">
-<h1>swupdate-progress<a class="headerlink" href="#swupdate-progress" title="Permalink to this headline">¶</a></h1>
-<p>swupdate-progress tries to connect to a running instance
-of SWUpdate to get the status of a running update.</p>
-<div class="section" id="synopsis">
-<h2>SYNOPSIS<a class="headerlink" href="#synopsis" title="Permalink to this headline">¶</a></h2>
-<p>swupdate-progress [option]</p>
-</div>
-<div class="section" id="description">
-<h2>DESCRIPTION<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
-<p>swupdate-progress is an example how to connect to SWUpdate via the progress interface.
-It shows on stdout a simple bar with the percent indication of the current update
-and reports the result of the update. It can optionally drive “psplash” or execute a script
-after an update.</p>
-<table class="docutils option-list" frame="void" rules="none">
-<col class="option" />
-<col class="description" />
-<tbody valign="top">
-<tr><td class="option-group">
-<kbd><span class="option">-c</span></kbd></td>
-<td>Use colors to show results on stdout</td></tr>
-<tr><td class="option-group">
-<kbd><span class="option">-e</span></kbd></td>
-<td>Command to be execute after an update</td></tr>
-<tr><td class="option-group">
-<kbd><span class="option">-p</span></kbd></td>
-<td>send percentage to psplash</td></tr>
-<tr><td class="option-group">
-<kbd><span class="option">-r</span></kbd></td>
-<td>optionally reboot the target after a successful update</td></tr>
-<tr><td class="option-group">
-<kbd><span class="option">-s</span></kbd></td>
-<td>path to progress IPC socket in case the default is not taken</td></tr>
-<tr><td class="option-group">
-<kbd><span class="option">-w</span></kbd></td>
-<td>waits for a SWUpdate connection instead of exit with error</td></tr>
-<tr><td class="option-group">
-<kbd><span class="option">-h</span></kbd></td>
-<td>print a help</td></tr>
-</tbody>
-</table>
-</div>
+  <div class="section" id="documentation-for-previous-releases">
+<h1>Documentation for previous releases<a class="headerlink" href="#documentation-for-previous-releases" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference external" href="./2020.04/index.html">2020.04</a></li>
+<li><a class="reference external" href="./2019.11/index.html">2019.11</a></li>
+<li><a class="reference external" href="./2019.04/index.html">2019.04</a></li>
+<li><a class="reference external" href="./2018.11/index.html">2018.11</a></li>
+</ul>
 </div>
 
 
@@ -241,10 +202,8 @@ after an update.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="swupdate-sysrestart.html" class="btn btn-neutral float-right" title="swupdate-sysrestart" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
-      
-        <a href="swupdate-sendtohawkbit.html" class="btn btn-neutral float-left" title="swupdate-sendtohawkbit" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="roadmap.html" class="btn btn-neutral float-left" title="Project’s road-map" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

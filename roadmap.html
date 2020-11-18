@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Project’s road-map &mdash; Embedded Software Update Documentation 2020.04 documentation</title>
+  <title>Project’s road-map &mdash; Embedded Software Update Documentation 2020.11 documentation</title>
   
 
   
@@ -37,6 +37,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Documentation for previous releases" href="previous-releases.html" />
     <link rel="prev" title="Contributing to SWUpdate" href="contributing.html" /> 
 </head>
 
@@ -61,7 +62,7 @@
             
             
               <div class="version">
-                2020.04
+                2020.11
               </div>
             
           
@@ -98,7 +99,7 @@
 <li class="toctree-l1"><a class="reference internal" href="handlers.html">Handlers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mongoose.html">Mongoose daemon mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hawkbit-setup.html">Config for HawkBit under SSL/TLS using private CA / sub CA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hawkbit-setup.html">Config for hawkBit under SSL/TLS using private CA / sub CA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">SWUpdate: API for external programs</a></li>
 <li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
 <li class="toctree-l1"><a class="reference internal" href="bindings.html">Language Bindings</a></li>
@@ -131,7 +132,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#support-for-evaluation-boards">Support for evaluation boards</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#back-end-support-suricatta-mode">Back-end support (suricatta mode)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#back-end-check-before-installing">Back-end: check before installing</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#back-end-hawkbit-offline-support">Back-end: Hawkbit Offline support</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#back-end-hawkbit-offline-support">Back-end: hawkBit Offline support</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#back-end-support-for-generic-down-loader">Back-end: support for generic down-loader</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#back-end-support-for-mender">Back-end: support for Mender</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#support-for-multiple-servers-simultaneously">Support for multiple Servers simultaneously</a></li>
@@ -142,6 +143,9 @@
 <li class="toctree-l2"><a class="reference internal" href="#documentation">Documentation</a></li>
 </ul>
 </li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="previous-releases.html">Documentation for previous releases</a></li>
 </ul>
 
             
@@ -320,11 +324,11 @@ If SWUpdate provides a way to inform a checker if an update can be accepted
 before downloading, a download is only done when it is really necessary.</p>
 </div>
 <div class="section" id="back-end-hawkbit-offline-support">
-<h3>Back-end: Hawkbit Offline support<a class="headerlink" href="#back-end-hawkbit-offline-support" title="Permalink to this headline">¶</a></h3>
-<p>There are several discussions on Hawkbit’s ML about how to synchronize
+<h3>Back-end: hawkBit Offline support<a class="headerlink" href="#back-end-hawkbit-offline-support" title="Permalink to this headline">¶</a></h3>
+<p>There are several discussions on hawkBit’s ML about how to synchronize
 an offline update (done locally or via the internal Web-server) with
-the Hawkbit’s server. Currently, Hawkbit thinks to be the only one
-deploying software. Hawkbit DDI API should be extended, and afterwards
+the hawkBit’s server. Currently, hawkBit thinks to be the only one
+deploying software. hawkBit DDI API should be extended, and afterwards
 changes must be implemented in SWUpdate.</p>
 </div>
 <div class="section" id="back-end-support-for-generic-down-loader">
@@ -380,6 +384,8 @@ and tested on real hardware.</p>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="previous-releases.html" class="btn btn-neutral float-right" title="Documentation for previous releases" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="contributing.html" class="btn btn-neutral float-left" title="Contributing to SWUpdate" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

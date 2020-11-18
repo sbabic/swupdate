@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>SWUpdate: API for external programs &mdash; Embedded Software Update Documentation 2020.04 documentation</title>
+  <title>SWUpdate: API for external programs &mdash; Embedded Software Update Documentation 2020.11 documentation</title>
   
 
   
@@ -38,7 +38,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Getting information on running update" href="progress.html" />
-    <link rel="prev" title="Config for HawkBit under SSL/TLS using private CA / sub CA" href="hawkbit-setup.html" /> 
+    <link rel="prev" title="Config for hawkBit under SSL/TLS using private CA / sub CA" href="hawkbit-setup.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                2020.04
+                2020.11
               </div>
             
           
@@ -99,16 +99,18 @@
 <li class="toctree-l1"><a class="reference internal" href="handlers.html">Handlers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mongoose.html">Mongoose daemon mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
-<li class="toctree-l1"><a class="reference internal" href="hawkbit-setup.html">Config for HawkBit under SSL/TLS using private CA / sub CA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hawkbit-setup.html">Config for hawkBit under SSL/TLS using private CA / sub CA</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">SWUpdate: API for external programs</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#api-description">API Description</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#client-library">Client Library</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#functions-to-start-an-update">Functions to start an update</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#functions-to-set-aes-keys">Functions to set AES keys</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#functions-to-control-swupdate">Functions to control SWUpdate</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#messages-for-suricatta">Messages for suricatta</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#setting-the-polling-time">Setting the polling time</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#enable-disable-suricatta-daemon">Enable / disable Suricatta daemon</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#trigger-a-check-on-the-server">Trigger a check on the server</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#activate-an-already-installed-software">Activate an already installed Software</a></li>
 </ul>
 </li>
@@ -144,6 +146,9 @@
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project’s road-map</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="previous-releases.html">Documentation for previous releases</a></li>
 </ul>
 
             
@@ -241,7 +246,8 @@ Library explained below.</p>
 <p>Where the fields have the meaning:</p>
 <ul class="simple">
 <li>magic : a magic number as simple proof of the packet</li>
-<li>type : one of REQ_INSTALL, ACK, NACK, GET_STATUS, POST_UPDATE, SWUPDATE_SUBPROCESS</li>
+<li>type : one of REQ_INSTALL, ACK, NACK,
+GET_STATUS, POST_UPDATE, SWUPDATE_SUBPROCESS, SET_AES_KEY</li>
 <li>msgdata : a buffer used by the client to send the image
 or by SWUpdate to report back notifications and status.</li>
 </ul>
@@ -253,6 +259,11 @@ SWUpdate recognizes the size of the image from the CPIO header.
 Any error lets SWUpdate to leave the update state, and further packets
 will be ignored until a new REQ_INSTALL will be received.</p>
 <img alt="_images/API.png" src="_images/API.png" />
+<p>It is recommended to use the client library to communicate with SWUpdate. On the lower
+level with direct socket communication, it cannot be guaranteed that the structures
+will remain compatible in future. The client library was affected by this issue, too, and it is
+changed to accept an opaque interface that will survive to API changes. Compatibility
+layers could be added on bedarf in future due to API changes.</p>
 </div>
 <div class="section" id="client-library">
 <h2>Client Library<a class="headerlink" href="#client-library" title="Permalink to this headline">¶</a></h2>
@@ -262,7 +273,7 @@ will be ignored until a new REQ_INSTALL will be received.</p>
 start asynchronously an update.</p>
 <p>The library consists of one function and several call-backs.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">int</span> <span class="n">swupdate_async_start</span><span class="p">(</span><span class="n">writedata</span> <span class="n">wr_func</span><span class="p">,</span> <span class="n">getstatus</span> <span class="n">status_func</span><span class="p">,</span>
-        <span class="n">terminated</span> <span class="n">end_func</span><span class="p">)</span>
+        <span class="n">terminated</span> <span class="n">end_func</span><span class="p">,</span> <span class="n">void</span> <span class="o">*</span><span class="n">req</span><span class="p">,</span> <span class="n">ssize_t</span> <span class="n">size</span><span class="p">)</span>
 <span class="n">typedef</span> <span class="nb">int</span> <span class="p">(</span><span class="o">*</span><span class="n">writedata</span><span class="p">)(</span><span class="n">char</span> <span class="o">**</span><span class="n">buf</span><span class="p">,</span> <span class="nb">int</span> <span class="o">*</span><span class="n">size</span><span class="p">);</span>
 <span class="n">typedef</span> <span class="nb">int</span> <span class="p">(</span><span class="o">*</span><span class="n">getstatus</span><span class="p">)(</span><span class="n">ipc_message</span> <span class="o">*</span><span class="n">msg</span><span class="p">);</span>
 <span class="n">typedef</span> <span class="nb">int</span> <span class="p">(</span><span class="o">*</span><span class="n">terminated</span><span class="p">)(</span><span class="n">RECOVERY_STATUS</span> <span class="n">status</span><span class="p">);</span>
@@ -277,6 +288,45 @@ how upgrade is going on. It can be omitted if only the result is required.</p>
 <p>The terminated call-back is called when SWUpdate has finished with the result
 of the upgrade.</p>
 <p>Example about using this library is in the examples/client directory.</p>
+<p>The <cite>req</cite> structure is casted to void to ensure API compatibility. Am user
+should instantiate it as <cite>struct swupdate_request</cite>. This contains fields that can control
+the update process:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">struct</span> <span class="n">swupdate_request</span> <span class="p">{</span>
+        <span class="n">unsigned</span> <span class="nb">int</span> <span class="n">apiversion</span><span class="p">;</span>
+        <span class="n">sourcetype</span> <span class="n">source</span><span class="p">;</span>
+        <span class="nb">bool</span> <span class="n">dry_run</span><span class="p">;</span>
+        <span class="n">size_t</span> <span class="nb">len</span><span class="p">;</span>
+        <span class="n">char</span> <span class="n">info</span><span class="p">[</span><span class="mi">512</span><span class="p">];</span>
+        <span class="n">char</span> <span class="n">software_set</span><span class="p">[</span><span class="mi">256</span><span class="p">];</span>
+        <span class="n">char</span> <span class="n">running_mode</span><span class="p">[</span><span class="mi">256</span><span class="p">];</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+<p>A user should first call <cite>swupdate_prepare_req()</cite></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">void</span> <span class="n">swupdate_prepare_req</span><span class="p">(</span><span class="n">struct</span> <span class="n">swupdate_request</span> <span class="o">*</span><span class="n">req</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>This fills the request sturcture with default values. After that, the user can fill the
+other fields as:</p>
+<blockquote>
+<div><ul class="simple">
+<li><em>sourcetype</em> : one of SOURCE_UNKNOWN, SOURCE_WEBSERVER,
+SOURCE_SURICATTA, SOURCE_DOWNLOADER, SOURCE_LOCAL</li>
+<li><em>dry_run</em> : true if the update must run without installing on the hardware</li>
+<li><em>info, len</em> : a variable length data that can be forwarded to the progress
+interface. The installer in SWUpdate does not evaluate it.</li>
+<li><em>software_set</em> and <em>running_mode</em> : this allows to set the <cite>selection</cite> fot the update.</li>
+</ul>
+</div></blockquote>
+</div>
+<div class="section" id="functions-to-set-aes-keys">
+<h3>Functions to set AES keys<a class="headerlink" href="#functions-to-set-aes-keys" title="Permalink to this headline">¶</a></h3>
+<p>The key for decryption can be set with command line parameter (see <cite>-K</cite>), but it is possible
+to set it via IPC. In this way, each update could have a different key.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">int</span> <span class="n">swupdate_set_aes</span><span class="p">(</span><span class="n">char</span> <span class="o">*</span><span class="n">key</span><span class="p">,</span> <span class="n">char</span> <span class="o">*</span><span class="n">ivt</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The key is for AES-256. The length for key and ivt are then defined by the algorithm amd they are passed as ASCII string, so the length <em>must</em> be 64 bytes for key and 32 bytes for IVT.</p>
 </div>
 <div class="section" id="functions-to-control-swupdate">
 <h3>Functions to control SWUpdate<a class="headerlink" href="#functions-to-control-swupdate" title="Permalink to this headline">¶</a></h3>
@@ -321,10 +371,21 @@ the message data.</p>
 </pre></div>
 </div>
 </div>
+<div class="section" id="trigger-a-check-on-the-server">
+<h4>Trigger a check on the server<a class="headerlink" href="#trigger-a-check-on-the-server" title="Permalink to this headline">¶</a></h4>
+<p>This is useful in case the device is mostly offline, and when it is online, it should check
+immediately if an update exists and run it. In fact, after enabling the suricatta daemon,
+the update follows the usual states, and the daemon waits for a polling time before
+loading the new software. This command forces an update (if available) without changing the
+polling time.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="s2">&quot;trigger&quot;</span> <span class="p">:</span> <span class="n">true</span> <span class="p">}</span>
+</pre></div>
+</div>
+</div>
 <div class="section" id="activate-an-already-installed-software">
 <h4>Activate an already installed Software<a class="headerlink" href="#activate-an-already-installed-software" title="Permalink to this headline">¶</a></h4>
 <p>After a software was installed, the new software boots and if everything runs fine,
-an acknowledge should be sent to the Hawkbit server. If this feature is used, for example
+an acknowledge should be sent to the hawkBit server. If this feature is used, for example
 to let the end user decide if the new software is accepted, the paramters used by the installation
 should be stored during the update process.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="o">&lt;</span><span class="n">action</span> <span class="nb">id</span><span class="o">&gt;</span><span class="p">,</span>
@@ -531,7 +592,7 @@ each change in the update process. The Webserver sends JSON formatted responses 
         <a href="progress.html" class="btn btn-neutral float-right" title="Getting information on running update" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="hawkbit-setup.html" class="btn btn-neutral float-left" title="Config for HawkBit under SSL/TLS using private CA / sub CA" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="hawkbit-setup.html" class="btn btn-neutral float-left" title="Config for hawkBit under SSL/TLS using private CA / sub CA" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
