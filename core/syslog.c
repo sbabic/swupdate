@@ -20,8 +20,6 @@ void syslog_notifier(RECOVERY_STATUS status, int error, int level, const char *m
 {
    const char* statusMsg;
 
-   openlog("swupdate", 0, LOG_USER);
-
    switch(status) {
       case IDLE: statusMsg = "IDLE"; break;
       case DOWNLOAD: statusMsg = "DOWNLOAD"; break;
@@ -30,8 +28,14 @@ void syslog_notifier(RECOVERY_STATUS status, int error, int level, const char *m
       case SUCCESS: statusMsg = "SUCCESS"; break;
       case FAILURE: statusMsg = "FAILURE"; break;
       case DONE: statusMsg = "DONE"; break;
-      default: statusMsg = "UNKNOWN"; break;
+      /*
+       * Unknown messages are maybe for other subsystems
+       * and not to the logger, so silently ignore them
+       */
+      default: return;
    }
+
+   openlog("swupdate", 0, LOG_USER);
 
    int logprio = LOG_INFO;
    switch (level) {
