@@ -21,12 +21,12 @@ can be found in the `flyer <http://www.denx.de/en/pub/Software/WebHome/we-update
 Workshop and SWUpdate integration in project
 ============================================
 
-For quick integration of SWUpdate in your project, you could be interested in the `Workshop <http://www.denx.de/wiki/Training2/WebHome#WorkshopSWUpdate>`_
+For quick integration of SWUpdate in your project, you could be interested in the `Training <https://swupdate.org/services>`_
 
 Commercial support and board integration
 ========================================
 
-You can contact me at sbabic@denx.de if you need professional support or you need help to get SWUpdate on your device.
+Please check for `services <https://swupdate.org/services>` if you need professional support or you need help to get SWUpdate on your device.
 
 Talks about SWUpdate
 ====================
