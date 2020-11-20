@@ -469,8 +469,12 @@ void cleanup_files(struct swupdate_cfg *software) {
 int preupdatecmd(struct swupdate_cfg *swcfg)
 {
 	if (swcfg) {
-		DEBUG("Running Pre-update command");
-		return run_system_cmd(swcfg->globals.preupdatecmd);
+		if (swcfg->globals.dry_run) {
+			DEBUG("Dry run, skipping Pre-update command");
+		} else {
+			DEBUG("Running Pre-update command");
+			return run_system_cmd(swcfg->globals.preupdatecmd);
+		}
 	}
 
 	return 0;
@@ -481,8 +485,13 @@ int postupdate(struct swupdate_cfg *swcfg, const char *info)
 	swupdate_progress_done(info);
 
 	if (swcfg) {
-		DEBUG("Running Post-update command");
-		return run_system_cmd(swcfg->globals.postupdatecmd);
+		if (swcfg->globals.dry_run) {
+			DEBUG("Dry run, skipping Post-update command");
+		} else {
+			DEBUG("Running Post-update command");
+			return run_system_cmd(swcfg->globals.postupdatecmd);
+		}
+
 	}
 
 	return 0;
