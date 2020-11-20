@@ -60,7 +60,13 @@ server_op_res_t save_state(char *key, update_state_t value)
 
 server_op_res_t save_state_string(char *key, update_state_t value)
 {
-	return do_save_state(key, get_state_string(value));
+	CHECK_STATE_VAR(key);
+	if (!value)
+		return -EINVAL;
+	if (value < STATE_OK || value > STATE_LAST)
+		return -EINVAL;
+	return bootloader_env_set(key, get_state_string(value)) == 0 ?
+		SERVER_OK : SERVER_EERR;
 }
 
 server_op_res_t read_state(char *key, update_state_t *value)
