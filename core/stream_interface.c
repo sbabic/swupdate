@@ -243,7 +243,7 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 				 * just once
 				 */
 				if (!installed_directly) {
-					if (software->bootloader_transaction_marker) {
+					if (!software->globals.dry_run && software->bootloader_transaction_marker) {
 						save_state_string((char*)BOOTVAR_TRANSACTION, STATE_IN_PROGRESS);
 					}
 					installed_directly = true;
@@ -572,19 +572,19 @@ void *network_initializer(void *data)
 			 * must be successful. Set we have
 			 * initiated an update
 			 */
-			if (software->bootloader_transaction_marker) {
+			if (!software->globals.dry_run && software->bootloader_transaction_marker) {
 				save_state_string((char*)BOOTVAR_TRANSACTION, STATE_IN_PROGRESS);
 			}
 
 			notify(RUN, RECOVERY_NO_ERROR, INFOLEVEL, "Installation in progress");
 			ret = install_images(software, 0, 0);
 			if (ret != 0) {
-				if (software->bootloader_transaction_marker) {
+				if (!software->globals.dry_run && software->bootloader_transaction_marker) {
 					save_state_string((char*)BOOTVAR_TRANSACTION, STATE_FAILED);
 				}
 				notify(FAILURE, RECOVERY_ERROR, ERRORLEVEL, "Installation failed !");
 				inst.last_install = FAILURE;
-				if (save_state((char *)STATE_KEY, STATE_FAILED) != SERVER_OK) {
+				if (!software->globals.dry_run && save_state((char *)STATE_KEY, STATE_FAILED) != SERVER_OK) {
 					WARN("Cannot persistently store FAILED update state.");
 				}
 			} else {
@@ -592,10 +592,10 @@ void *network_initializer(void *data)
 				 * Clear the recovery variable to indicate to bootloader
 				 * that it is not required to start recovery again
 				 */
-				if (software->bootloader_transaction_marker) {
+				if (!software->globals.dry_run && software->bootloader_transaction_marker) {
 					unset_state((char*)BOOTVAR_TRANSACTION);
 				}
-				if (save_state((char *)STATE_KEY, STATE_INSTALLED) != SERVER_OK) {
+				if (!software->globals.dry_run && save_state((char *)STATE_KEY, STATE_INSTALLED) != SERVER_OK) {
 					ERROR("Cannot persistently store INSTALLED update state.");
 					notify(FAILURE, RECOVERY_ERROR, ERRORLEVEL, "Installation failed !");
 					inst.last_install = FAILURE;

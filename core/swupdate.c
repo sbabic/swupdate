@@ -386,7 +386,7 @@ static int install_from_file(char *fname, int check)
 	/*
 	 * Set "recovery_status" as begin of the transaction"
 	 */
-	if (swcfg.bootloader_transaction_marker) {
+	if (!swcfg.globals.dry_run && swcfg.bootloader_transaction_marker) {
 		save_state_string((char*)BOOTVAR_TRANSACTION, STATE_IN_PROGRESS);
 	}
 
@@ -402,7 +402,7 @@ static int install_from_file(char *fname, int check)
 		return EXIT_FAILURE;
 	}
 
-	if (swcfg.bootloader_transaction_marker) {
+	if (!swcfg.globals.dry_run && swcfg.bootloader_transaction_marker) {
 		unset_state((char*)BOOTVAR_TRANSACTION);
 	}
 	fprintf(stdout, "Software updated successfully\n");
@@ -1069,7 +1069,7 @@ int main(int argc, char **argv)
 		result = install_from_file(fname, opt_c);
 		switch (result) {
 		case EXIT_FAILURE:
-			if (swcfg.bootloader_transaction_marker) {
+			if (!swcfg.globals.dry_run && swcfg.bootloader_transaction_marker) {
 				save_state_string((char*)BOOTVAR_TRANSACTION, STATE_FAILED);
 			}
 			break;
