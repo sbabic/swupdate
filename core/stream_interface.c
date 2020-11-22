@@ -504,10 +504,17 @@ void *network_initializer(void *data)
 		/*
 		 * Check if the dry run flag is overwritten
 		 */
-		if (req->dry_run)
+		switch (req->dry_run){
+		case RUN_DRYRUN:
 			software->globals.dry_run = 1;
-		else
+			break;
+		case RUN_INSTALL:
 			software->globals.dry_run = 0;
+			break;
+		case RUN_DEFAULT:
+		default:
+			software->globals.dry_run = software->globals.default_dry_run;
+		}
 
 		/*
 		 * Find the selection to be installed

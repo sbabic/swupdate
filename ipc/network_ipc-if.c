@@ -177,5 +177,6 @@ void swupdate_prepare_req(struct swupdate_request *req) {
 		return;
 	memset(req, 0, sizeof(struct swupdate_request));
 	req->apiversion = SWUPDATE_API_VERSION;
+	req->dry_run = RUN_DEFAULT;
 	return;
 }

@@ -390,6 +390,7 @@ static int install_from_file(char *fname, int check)
 		save_state_string((char*)BOOTVAR_TRANSACTION, STATE_IN_PROGRESS);
 	}
 
+	swcfg.globals.dry_run = swcfg.globals.default_dry_run;
 	ret = install_images(&swcfg, fdsw, 1);
 
 	swupdate_progress_end(ret == 0 ? SUCCESS : FAILURE);
@@ -799,7 +800,7 @@ int main(int argc, char **argv)
 			loglevel = strtoul(optarg, NULL, 10);
 			break;
 		case 'n':
-			swcfg.globals.dry_run = 1;
+			swcfg.globals.default_dry_run = 1;
 			break;
 		case 'L':
 			swcfg.globals.syslog_enabled = 1;

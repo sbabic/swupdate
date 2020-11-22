@@ -105,7 +105,7 @@ the update process:
         struct swupdate_request {
                 unsigned int apiversion;
                 sourcetype source;
-                bool dry_run;
+                int dry_run;
                 size_t len;
                 char info[512];
                 char software_set[256];
@@ -123,7 +123,7 @@ other fields as:
 
         - *sourcetype* : one of SOURCE_UNKNOWN, SOURCE_WEBSERVER,
 	  SOURCE_SURICATTA, SOURCE_DOWNLOADER, SOURCE_LOCAL
-        - *dry_run* : true if the update must run without installing on the hardware
+        - *dry_run* : one of RUN_DEFAULT (set from command line), RUN_DRYRUN, RUN_INSTALL.
         - *info, len* : a variable length data that can be forwarded to the progress
           interface. The installer in SWUpdate does not evaluate it.
         - *software_set* and *running_mode* : this allows to set the `selection` fot the update.

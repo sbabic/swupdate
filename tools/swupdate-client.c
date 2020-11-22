@@ -134,7 +134,8 @@ static int send_file(const char* filename) {
 
 	struct swupdate_request req;
 	swupdate_prepare_req(&req);
-	req.dry_run = dry_run;
+	if (dry_run)
+		req.dry_run = RUN_DRYRUN;
 	if (software_set && strlen(software_set)) {
 		strncpy(req.software_set, software_set, sizeof(req.software_set) - 1);
 		strncpy(req.running_mode, running_mode, sizeof(req.running_mode) - 1);

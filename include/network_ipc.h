@@ -48,6 +48,12 @@ enum {
 	CMD_ENABLE	/* Enable or disable suricatta mode */
 };
 
+enum run_type {
+	RUN_DEFAULT,
+	RUN_DRYRUN,
+	RUN_INSTALL
+};
+
 #define SWUPDATE_API_VERSION 	0x1
 /*
  * Install structure to be filled before calling
@@ -56,7 +62,7 @@ enum {
 struct swupdate_request {
 	unsigned int apiversion;
 	sourcetype source;
-	bool dry_run;
+	enum run_type dry_run;
 	size_t len;
 	char info[512];
 	char software_set[256];
