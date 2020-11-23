@@ -34,7 +34,7 @@ void get_value_libconfig(const config_setting_t *e, void *dest)
 		dest = (void *)config_setting_get_string(e);
 		break;
 	case CONFIG_TYPE_BOOL:
-		*(int *)dest = config_setting_get_bool(e);
+		*(bool *)dest = config_setting_get_bool(e);
 		break;
 	case CONFIG_TYPE_FLOAT:
 		*(double *)dest = config_setting_get_float(e);
