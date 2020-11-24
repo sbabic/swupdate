@@ -304,8 +304,11 @@ static int install_from_file(char *fname, int check)
 	int fdsw;
 	off_t pos;
 	int ret;
+	bool encrypted_sw_desc = false;
 
-
+#ifdef CONFIG_ENCRYPTED_SW_DESCRIPTION
+	encrypted_sw_desc = true;
+#endif
 	if (!strlen(fname)) {
 		ERROR("Image not found...please reboot");
 		exit(EXIT_FAILURE);
@@ -321,10 +324,10 @@ static int install_from_file(char *fname, int check)
 	}
 
 	pos = 0;
-	ret = extract_sw_description(fdsw, SW_DESCRIPTION_FILENAME, &pos);
+	ret = extract_sw_description(fdsw, SW_DESCRIPTION_FILENAME, &pos, encrypted_sw_desc);
 #ifdef CONFIG_SIGNED_IMAGES
 	ret |= extract_sw_description(fdsw, SW_DESCRIPTION_FILENAME ".sig",
-		&pos);
+		&pos, false);
 #endif
 	/*
 	 * Check if files could be extracted

@@ -466,6 +466,14 @@ config ENCRYPTED_IMAGES
 comment "Image encryption needs an SSL implementation"
 	depends on !SSL_IMPL_OPENSSL && !SSL_IMPL_WOLFSSL && !SSL_IMPL_MBEDTLS
 
+config ENCRYPTED_SW_DESCRIPTION
+	bool "Even sw-description is encrypted"
+	depends on ENCRYPTED_IMAGES
+	help
+	  sw-description is not encrypted as default, but it is encrypted
+	  if this is set. It is a compile time option, and mix of plain and
+	  encrypted sw-descriptions is not possible.
+
 config PKCS11
 	bool "Enable PKCS#11 cryptographic operations"
 	default n

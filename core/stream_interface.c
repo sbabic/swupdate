@@ -72,7 +72,7 @@ pthread_cond_t stream_wkup = PTHREAD_COND_INITIALIZER;
 
 static struct installer inst;
 
-static int extract_file_to_tmp(int fd, const char *fname, unsigned long *poffs)
+static int extract_file_to_tmp(int fd, const char *fname, unsigned long *poffs, bool encrypted)
 {
 	char output_file[MAX_IMAGE_FNAME];
 	struct filehdr fdh;
@@ -102,7 +102,8 @@ static int extract_file_to_tmp(int fd, const char *fname, unsigned long *poffs)
 	if (fdout < 0)
 		return -1;
 
-	if (copyfile(fd, &fdout, fdh.size, poffs, 0, 0, 0, &checksum, NULL, 0, NULL, NULL) < 0) {
+	if (copyfile(fd, &fdout, fdh.size, poffs, 0, 0, 0, &checksum, NULL,
+		     encrypted ? 1 : 0, NULL, NULL) < 0) {
 		close(fdout);
 		return -1;
 	}
@@ -127,6 +128,11 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 	char output_file[MAX_IMAGE_FNAME];
 	const char* TMPDIR = get_tmpdir();
 	bool installed_directly = false;
+	bool encrypted_sw_desc = false;
+
+#ifdef CONFIG_ENCRYPTED_SW_DESCRIPTION
+	encrypted_sw_desc = true;
+#endif
 
 	/* preset the info about the install parts */
 
@@ -141,7 +147,7 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 		switch (status) {
 		/* Waiting for the first Header */
 		case STREAM_WAIT_DESCRIPTION:
-			if (extract_file_to_tmp(fd, SW_DESCRIPTION_FILENAME, &offset) < 0 )
+			if (extract_file_to_tmp(fd, SW_DESCRIPTION_FILENAME, &offset, encrypted_sw_desc) < 0 )
 				return -1;
 
 			status = STREAM_WAIT_SIGNATURE;
@@ -150,7 +156,7 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 		case STREAM_WAIT_SIGNATURE:
 #ifdef CONFIG_SIGNED_IMAGES
 			snprintf(output_file, sizeof(output_file), "%s.sig", SW_DESCRIPTION_FILENAME);
-			if (extract_file_to_tmp(fd, output_file, &offset) < 0 )
+			if (extract_file_to_tmp(fd, output_file, &offset, false) < 0 )
 				return -1;
 #endif
 			snprintf(output_file, sizeof(output_file), "%s%s", TMPDIR, SW_DESCRIPTION_FILENAME);
@@ -356,7 +362,11 @@ static int save_stream(int fdin, struct swupdate_cfg *software)
 	unsigned long offset;
 	char output_file[MAX_IMAGE_FNAME];
 	const char* TMPDIR = get_tmpdir();
+	bool encrypted_sw_desc = false;
 
+#ifdef CONFIG_ENCRYPTED_SW_DESCRIPTION
+	encrypted_sw_desc = true;
+#endif
 	if (fdin < 0)
 		return -EINVAL;
 
@@ -417,14 +427,14 @@ static int save_stream(int fdin, struct swupdate_cfg *software)
 	lseek(tmpfd, 0, SEEK_SET);
 	offset = 0;
 
-	if (extract_file_to_tmp(tmpfd, SW_DESCRIPTION_FILENAME, &offset) < 0) {
+	if (extract_file_to_tmp(tmpfd, SW_DESCRIPTION_FILENAME, &offset, encrypted_sw_desc) < 0) {
 		ERROR("%s cannot be extracted", SW_DESCRIPTION_FILENAME);
 		ret = -EINVAL;
 		goto no_copy_output;
 	}
 #ifdef CONFIG_SIGNED_IMAGES
 	snprintf(output_file, sizeof(output_file), "%s.sig", SW_DESCRIPTION_FILENAME);
-	if (extract_file_to_tmp(tmpfd, output_file, &offset) < 0 ) {
+	if (extract_file_to_tmp(tmpfd, output_file, &offset, false) < 0 ) {
 		ERROR("Signature cannot be extracted:%s", output_file);
 		ret = -EINVAL;
 		goto no_copy_output;

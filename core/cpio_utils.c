@@ -677,7 +677,7 @@ int extract_cpio_header(int fd, struct filehdr *fhdr, unsigned long *offset)
 	return 0;
 }
 
-int extract_sw_description(int fd, const char *descfile, off_t *offs)
+int extract_sw_description(int fd, const char *descfile, off_t *offs, bool encrypted)
 {
 	struct filehdr fdh;
 	unsigned long offset = *offs;
@@ -713,7 +713,7 @@ int extract_sw_description(int fd, const char *descfile, off_t *offs)
 		close(fdout);
 		return -1;
 	}
-	if (copyfile(fd, &fdout, fdh.size, &offset, 0, 0, 0, &checksum, NULL, 0, NULL, NULL) < 0) {
+	if (copyfile(fd, &fdout, fdh.size, &offset, 0, 0, 0, &checksum, NULL, encrypted ? 1 : 0, NULL, NULL) < 0) {
 		ERROR("%s corrupted or not valid", descfile);
 		close(fdout);
 		return -1;
