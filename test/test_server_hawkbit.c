@@ -247,6 +247,7 @@ static void test_server_has_pending_action(void **state)
 		    json_tokener_parse(json_reply_cancel_data));
 	will_return(__wrap_channel_get, CHANNEL_OK);
 	will_return(__wrap_channel_put, CHANNEL_OK);
+	will_return(__wrap_save_state, SERVER_OK);
 	assert_int_equal(SERVER_OK, server_has_pending_action(&action_id));
 }
 
