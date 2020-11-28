@@ -120,11 +120,12 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Project’s road-map</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#main-goal">Main goal</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#support-for-further-compressors">Support for further compressors</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#more-efficient-delta-updates-most-feature-wanted">More efficient delta updates - most feature wanted !</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#more-efficient-delta-updates">More efficient delta updates</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#parser">Parser</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#self-contained-tool-to-generate-update-packages-swu">Self contained tool to generate Update Packages (SWU)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#software-software-compatibility">Software-Software compatibility</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#handlers">Handlers:</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#new-handlers">New Handlers</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#flash-handler">Flash handler</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#handlers-installable-as-plugin-at-runtime">Handlers installable as plugin at runtime</a></li>
 </ul>
 </li>
@@ -138,7 +139,6 @@
 <li class="toctree-l3"><a class="reference internal" href="#support-for-multiple-servers-simultaneously">Support for multiple Servers simultaneously</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#swupdate-gui-for-rescue">SWUpdate GUI for rescue</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#test-and-continuous-integration">Test and Continuous Integration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#documentation">Documentation</a></li>
 </ul>
@@ -235,8 +235,8 @@ To reduce bandwidth or for big images, a stronger compressor could help.
 Adding a new compressor must be careful done because it changes the core of
 handling an image.</p>
 </div>
-<div class="section" id="more-efficient-delta-updates-most-feature-wanted">
-<h2>More efficient delta updates - most feature wanted !<a class="headerlink" href="#more-efficient-delta-updates-most-feature-wanted" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="more-efficient-delta-updates">
+<h2>More efficient delta updates<a class="headerlink" href="#more-efficient-delta-updates" title="Permalink to this headline">¶</a></h2>
 <p>A whole update could be very traffic intensive. Specially in case
 of low-bandwidth connections, it could be interesting to introduce
 a way for delta binary updates.
@@ -258,6 +258,24 @@ a delta upgrade from any release.</p>
 be used to convert from one format to the other one. Currently, due to some specialties
 in libconfig, a manual conversion is still required.</p>
 </div>
+<div class="section" id="self-contained-tool-to-generate-update-packages-swu">
+<h2>Self contained tool to generate Update Packages (SWU)<a class="headerlink" href="#self-contained-tool-to-generate-update-packages-swu" title="Permalink to this headline">¶</a></h2>
+<p>Generation of SWUs is fully supported inside OE via meta-swupdate, but there is no
+support at all with other buildsystems (Buildroot, Debian). The user have a not preordered
+bunch of programs and scripts to generate the SWU, and mostly they are not generic enough.
+It will be interesting to create a <cite>buildswu</cite> tool, running on host system, that can create
+form a configuration a SWU. The tool must support all features, that means it should be able
+to pack artfact, generate sw-description from templates, sign the SWU, encrypt the artifact,
+etc.</p>
+</div>
+<div class="section" id="software-software-compatibility">
+<h2>Software-Software compatibility<a class="headerlink" href="#software-software-compatibility" title="Permalink to this headline">¶</a></h2>
+<p>SWUpdate has from the early stage a hardware to software compatibility check. In case
+software is split in several components (like OS and application), it is desirable to have
+a sort of software compatibility check. For example, SWUpdate verifies if a component
+(like an application) is compatible with a runningOS and reject the update in case of
+mismatch.</p>
+</div>
 <div class="section" id="handlers">
 <h2>Handlers:<a class="headerlink" href="#handlers" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="new-handlers">
@@ -277,15 +295,6 @@ to show how to solve custom install.</li>
 </dd>
 </dl>
 </div>
-<div class="section" id="flash-handler">
-<h3>Flash handler<a class="headerlink" href="#flash-handler" title="Permalink to this headline">¶</a></h3>
-<p>The flash handler for NAND devices in raw mode (without UBI) does n
-ot allow one to stream the image and an error is reported
-if “installed-directly” is set.
-The handler can be extended to stream images.  Anyway, because data on NAND
-should be always put in am UBI container, there are just a few cases
-where this is needed.</p>
-</div>
 <div class="section" id="handlers-installable-as-plugin-at-runtime">
 <h3>Handlers installable as plugin at runtime<a class="headerlink" href="#handlers-installable-as-plugin-at-runtime" title="Permalink to this headline">¶</a></h3>
 <p>The project supports Lua as script language for pre- and postinstall
@@ -304,7 +313,7 @@ a unauthenticated handler cannot run.</p>
 <h2>Security<a class="headerlink" href="#security" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li>add support for asymmetryc encryption</li>
-<li>add a way to share symmetric keys (similar as done in TLS)</li>
+<li>add support to encrypted sw-description</li>
 </ul>
 </div>
 <div class="section" id="support-for-evaluation-boards">
@@ -350,16 +359,6 @@ compile-time choice. There is no interest to have multiple OTA at the same time.
 This feature won’t be implemented and I will remove this from roadmap if no
 interest will be waked up.</p>
 </div>
-</div>
-<div class="section" id="swupdate-gui-for-rescue">
-<h2>SWUpdate GUI for rescue<a class="headerlink" href="#swupdate-gui-for-rescue" title="Permalink to this headline">¶</a></h2>
-<p>In case of rescue for HMI devices, it is often required to have a small GUI
-for an operator to set some parameters (network,..) and start an update.
-The goal of this simple GUI is to have a low footprint compared to GUI
-developed with state of art frameworks.
-This lets to still have a rescue that fits in small devices.
-SWUpdate-GUI is already production-ready and delivered into final products. New
-features could be developed on demand.</p>
 </div>
 <div class="section" id="test-and-continuous-integration">
 <h2>Test and Continuous Integration<a class="headerlink" href="#test-and-continuous-integration" title="Permalink to this headline">¶</a></h2>

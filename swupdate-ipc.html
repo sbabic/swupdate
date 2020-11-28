@@ -294,7 +294,7 @@ the update process:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">struct</span> <span class="n">swupdate_request</span> <span class="p">{</span>
         <span class="n">unsigned</span> <span class="nb">int</span> <span class="n">apiversion</span><span class="p">;</span>
         <span class="n">sourcetype</span> <span class="n">source</span><span class="p">;</span>
-        <span class="nb">bool</span> <span class="n">dry_run</span><span class="p">;</span>
+        <span class="nb">int</span> <span class="n">dry_run</span><span class="p">;</span>
         <span class="n">size_t</span> <span class="nb">len</span><span class="p">;</span>
         <span class="n">char</span> <span class="n">info</span><span class="p">[</span><span class="mi">512</span><span class="p">];</span>
         <span class="n">char</span> <span class="n">software_set</span><span class="p">[</span><span class="mi">256</span><span class="p">];</span>
@@ -312,7 +312,7 @@ other fields as:</p>
 <div><ul class="simple">
 <li><em>sourcetype</em> : one of SOURCE_UNKNOWN, SOURCE_WEBSERVER,
 SOURCE_SURICATTA, SOURCE_DOWNLOADER, SOURCE_LOCAL</li>
-<li><em>dry_run</em> : true if the update must run without installing on the hardware</li>
+<li><em>dry_run</em> : one of RUN_DEFAULT (set from command line), RUN_DRYRUN, RUN_INSTALL.</li>
 <li><em>info, len</em> : a variable length data that can be forwarded to the progress
 interface. The installer in SWUpdate does not evaluate it.</li>
 <li><em>software_set</em> and <em>running_mode</em> : this allows to set the <cite>selection</cite> fot the update.</li>

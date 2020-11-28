@@ -29,8 +29,8 @@ To reduce bandwidth or for big images, a stronger compressor could help.
 Adding a new compressor must be careful done because it changes the core of
 handling an image.
 
-More efficient delta updates - most feature wanted !
-====================================================
+More efficient delta updates
+============================
 
 A whole update could be very traffic intensive. Specially in case
 of low-bandwidth connections, it could be interesting to introduce
@@ -55,6 +55,26 @@ SWUpdate supports two parsers : libconfig and JSON. It would be nice if tools ca
 be used to convert from one format to the other one. Currently, due to some specialties
 in libconfig, a manual conversion is still required.
 
+Self contained tool to generate Update Packages (SWU)
+=====================================================
+
+Generation of SWUs is fully supported inside OE via meta-swupdate, but there is no
+support at all with other buildsystems (Buildroot, Debian). The user have a not preordered
+bunch of programs and scripts to generate the SWU, and mostly they are not generic enough.
+It will be interesting to create a `buildswu` tool, running on host system, that can create
+form a configuration a SWU. The tool must support all features, that means it should be able
+to pack artfact, generate sw-description from templates, sign the SWU, encrypt the artifact,
+etc.
+
+Software-Software compatibility
+===============================
+
+SWUpdate has from the early stage a hardware to software compatibility check. In case
+software is split in several components (like OS and application), it is desirable to have
+a sort of software compatibility check. For example, SWUpdate verifies if a component
+(like an application) is compatible with a runningOS and reject the update in case of
+mismatch.
+
 Handlers:
 =========
 
@@ -71,16 +91,6 @@ Some ideas for new handlers:
           guaranteed by SWUpdate.
         - Lua handlers should be added if possible to the project
           to show how to solve custom install.
-
-Flash handler
--------------
-
-The flash handler for NAND devices in raw mode (without UBI) does n
-ot allow one to stream the image and an error is reported
-if "installed-directly" is set.
-The handler can be extended to stream images.  Anyway, because data on NAND
-should be always put in am UBI container, there are just a few cases
-where this is needed.
 
 Handlers installable as plugin at runtime
 ------------------------------------------
@@ -102,7 +112,7 @@ Security
 ========
 
 - add support for asymmetryc encryption
-- add a way to share symmetric keys (similar as done in TLS)
+- add support to encrypted sw-description
 
 Support for evaluation boards
 =============================
@@ -153,17 +163,6 @@ Currently, suricatta's server backends are a mutually exclusive
 compile-time choice. There is no interest to have multiple OTA at the same time.
 This feature won't be implemented and I will remove this from roadmap if no
 interest will be waked up.
-
-SWUpdate GUI for rescue
-=======================
-
-In case of rescue for HMI devices, it is often required to have a small GUI
-for an operator to set some parameters (network,..) and start an update.
-The goal of this simple GUI is to have a low footprint compared to GUI
-developed with state of art frameworks. 
-This lets to still have a rescue that fits in small devices.
-SWUpdate-GUI is already production-ready and delivered into final products. New
-features could be developed on demand.
 
 Test and Continuous Integration
 ===============================
