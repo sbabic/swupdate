@@ -547,7 +547,7 @@ clean: $(clean-dirs)
 		\( -name '*.[oas]' -o -name '.*.cmd' \
 		-o -name '.*.d' -o -name '.*.tmp' -o -name '*.mod.c' \
 		-o -name modules.builtin -o -name '.tmp_*.o.*' \
-		-o -name '*.gcno' \) -type f -print | xargs rm -f
+		-o -name '*.o.tmp' \) -type f -print | xargs rm -f
 	@pwd
 	$(Q)$(MAKE) -f $(srctree)/doc/Makefile BUILDDIR=$(CURDIR)/doc/build clean
 
