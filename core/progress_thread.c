@@ -196,7 +196,7 @@ void swupdate_progress_info(RECOVERY_STATUS status, int cause, const char *info)
 {
 	struct swupdate_progress *pprog = &progress;
 	pthread_mutex_lock(&pprog->lock);
-	snprintf(pprog->msg.info, sizeof(pprog->msg.info), "{'%d': %s}",
+	snprintf(pprog->msg.info, sizeof(pprog->msg.info), "{\"%d\": %s}",
 			cause, info);
 	pprog->msg.infolen = strlen(pprog->msg.info);
 	pprog->msg.status = status;
