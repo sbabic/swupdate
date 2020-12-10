@@ -12,8 +12,8 @@
 
 static struct dict environment;
 
-int bootloader_env_set(const char __attribute__ ((__unused__)) *name,
-			const char __attribute__ ((__unused__)) *value)
+int bootloader_env_set(const char *name,
+			const char  *value)
 {
 	dict_set_value(&environment, name, value);
 
@@ -27,7 +27,7 @@ int bootloader_env_unset(const char *name)
 	return 0;
 }
 
-char *bootloader_env_get(const char __attribute__ ((__unused__)) *name)
+char *bootloader_env_get(const char  *name)
 {
 	char *value = NULL, *var;
 
