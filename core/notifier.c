@@ -281,7 +281,7 @@ static void console_notifier (RECOVERY_STATUS status, int error, int level, cons
 	if (console_ansi_colors)
 		set_console_color(level, color, sizeof(color));
 	else
-		color[0] = '0';
+		color[0] = '\0';
 
 	switch (level) {
 	case ERRORLEVEL:
