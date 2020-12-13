@@ -142,6 +142,8 @@ int swupdate_DECRYPT_update(struct swupdate_digest *dgst, unsigned char *buf,
 	// Remember the last decrypted block which might contain padding
 	memcpy(dgst->last_decr, &pad_buf[one_off_sz], AES_BLK_SIZE);
 
+	wc_AesSetIV(&dgst->ctxdec, &cryptbuf[one_off_sz]);
+
 	return 0;
 }
 
