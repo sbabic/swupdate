@@ -114,7 +114,8 @@ err_free:
 int swupdate_DECRYPT_update(struct swupdate_digest *dgst, unsigned char *buf,
 				int *outlen, const unsigned char *cryptbuf, int inlen)
 {
-	unsigned char pad_buf[inlen];
+	// precondition: len(buf) >= inlen + AES_BLK_SIZE
+	unsigned char *pad_buf = &buf[AES_BLK_SIZE];
 	const char *msg;
 	int err;
 	int one_off_sz = inlen - AES_BLK_SIZE;
@@ -122,22 +123,21 @@ int swupdate_DECRYPT_update(struct swupdate_digest *dgst, unsigned char *buf,
 	if (inlen < AES_BLK_SIZE)
 		return -EFAULT;
 
+	if (dgst->last_decr[AES_BLK_SIZE]) {
+		// This is for the first decryption operation
+		pad_buf = buf;
+		dgst->last_decr[AES_BLK_SIZE] = 0;
+		*outlen = one_off_sz;
+	} else {
+		memcpy(buf, dgst->last_decr, AES_BLK_SIZE);
+		*outlen = inlen;
+	}
+
 	err = wc_AesCbcDecrypt(&dgst->ctxdec, pad_buf, cryptbuf, inlen);
 	if (err) {
 		msg = wc_GetErrorString(err);
 		ERROR("PKCS#11 AES decryption failed: %s", msg);
 		return -EFAULT;
-	}
-
-	if (dgst->last_decr[AES_BLK_SIZE]) {
-		// This is for the first decryption operation
-		memcpy(buf, pad_buf, one_off_sz);
-		dgst->last_decr[AES_BLK_SIZE] = 0;
-		*outlen = one_off_sz;
-	} else {
-		memcpy(buf, dgst->last_decr, AES_BLK_SIZE);
-		memcpy(buf[AES_BLK_SIZE], pad_buf, one_off_sz);
-		*outlen = inlen;
 	}
 	// Remember the last decrypted block which might contain padding
 	memcpy(dgst->last_decr, &pad_buf[one_off_sz], AES_BLK_SIZE);
