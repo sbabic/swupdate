@@ -370,12 +370,14 @@ static int install_remote_swu(struct img_type *img,
 
 	if (initialize_backchannel(&priv)) {
 		ERROR("Cannot initialize back connection");
+		ret = FAILURE;
 		goto handler_exit;
 	}
 
 	ret = copyimage(&priv, img, swu_forward_data);
 	if (ret) {
 		ERROR("Transferring SWU image was not successful");
+		ret = FAILURE;
 		goto handler_exit;
 	}
 
