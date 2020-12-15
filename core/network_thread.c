@@ -514,6 +514,10 @@ void *network_thread (void *data)
 					       ? ACK
 					       : NACK;
 				break;
+			case GET_UPDATE_STATE:
+				msg.data.msg[0] = get_state();
+				msg.type = ACK;
+				break;
 			default:
 				msg.type = NACK;
 			}

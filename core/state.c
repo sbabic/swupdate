@@ -30,19 +30,19 @@
 	} \
 } while(0)
 
-static server_op_res_t do_save_state(char *key, char* value)
+static int do_save_state(char *key, char* value)
 {
-	char c;
 	CHECK_STATE_VAR(key);
 	if (!value)
 		return -EINVAL;
-	c = *value;
+	char c = *value;
 	if (c < STATE_OK || c > STATE_LAST)
 		return -EINVAL;
-	return bootloader_env_set(key, value) == 0 ? SERVER_OK : SERVER_EERR;
+
+	return bootloader_env_set(key, value);
 }
 
-server_op_res_t save_state(char *key, update_state_t value)
+int save_state(char *key, update_state_t value)
 {
 	char value_str[2] = {value, '\0'};
 	ipc_message msg;
@@ -52,64 +52,81 @@ server_op_res_t save_state(char *key, update_state_t value)
 		msg.type = SET_UPDATE_STATE;
 		msg.data.msg[0] = (char)value;
 		return (ipc_send_cmd(&msg));
-	} else { /* Main process */
+	} else {
+		/* Main process */
 		return do_save_state(key, value_str);
 	}
 }
 
 
-server_op_res_t save_state_string(char *key, update_state_t value)
+int save_state_string(char *key, update_state_t value)
 {
 	CHECK_STATE_VAR(key);
 	if (!value)
 		return -EINVAL;
 	if (value < STATE_OK || value > STATE_LAST)
 		return -EINVAL;
-	return bootloader_env_set(key, get_state_string(value)) == 0 ?
-		SERVER_OK : SERVER_EERR;
+	return bootloader_env_set(key, get_state_string(value));
 }
 
-server_op_res_t read_state(char *key, update_state_t *value)
+static update_state_t read_state(char *key)
 {
-	char *envval;
 	CHECK_STATE_VAR(key);
 
-	envval = bootloader_env_get(key);
+	char *envval = bootloader_env_get(key);
 	if (envval == NULL) {
 		INFO("Key '%s' not found in Bootloader's environment.", key);
-		*value = STATE_NOT_AVAILABLE;
-		return SERVER_OK;
+		return STATE_NOT_AVAILABLE;
 	}
 	/* TODO It's a bit whacky just to cast this but as we're the only */
 	/*      ones touching the variable, it's maybe OK for a PoC now. */
-	*value = (update_state_t)*envval;
 
+	update_state_t val = (update_state_t)*envval;
 	/* bootloader get env allocates space for the value */
 	free(envval);
 
-	return SERVER_OK;
+	return val;
 }
-server_op_res_t unset_state(char *key)
-{
-	int ret;
 
+int unset_state(char *key)
+{
 	CHECK_STATE_VAR(key);
-	ret = bootloader_env_unset(key);
-	return ret == 0 ? SERVER_OK : SERVER_EERR;
+	return bootloader_env_unset(key);
+}
+
+static update_state_t do_get_state(void) {
+	update_state_t state = read_state((char *)STATE_KEY);
+
+	if (state == STATE_NOT_AVAILABLE) {
+		ERROR("Cannot read stored update state.");
+		return STATE_NOT_AVAILABLE;
+	}
+
+	if (is_valid_state(state)) {
+		TRACE("Read state=%c from persistent storage.", state);
+		return state;
+	}
+
+	ERROR("Unknown update state=%c", state);
+	return STATE_NOT_AVAILABLE;
 }
 
 update_state_t get_state(void) {
-	update_state_t state;
+	if (pid == getpid())
+	{
+		ipc_message msg;
+		memset(&msg, 0, sizeof(msg));
 
-	if (read_state((char *)STATE_KEY, &state) != SERVER_OK) {
-		ERROR("Cannot read stored update state.");
-		return STATE_ERROR;
-	}
-	TRACE("Read state=%c from persistent storage.", state);
+		msg.type = GET_UPDATE_STATE;
 
-	if (is_valid_state(state)) {
-		return state;
+		if (ipc_send_cmd(&msg) || msg.type == NACK) {
+			ERROR("Failed to get current bootloader update state.");
+			return STATE_NOT_AVAILABLE;
+		}
+
+		return (update_state_t)msg.data.msg[0];
+	} else {
+		// Main process
+		return do_get_state();
 	}
-	ERROR("Unknown update state=%c", state);
-	return STATE_ERROR;
 }

@@ -115,22 +115,20 @@ channel_op_res_t __wrap_channel_get(channel_t *this, void *data)
 	return mock_type(channel_op_res_t);
 }
 
-extern server_op_res_t __real_save_state(char *key, update_state_t value);
-server_op_res_t __wrap_save_state(char *key, update_state_t *value);
-server_op_res_t __wrap_save_state(char *key, update_state_t *value)
+extern int __real_save_state(char *key, update_state_t value);
+int __wrap_save_state(char *key, update_state_t *value);
+int __wrap_save_state(char *key, update_state_t *value)
 {
 	(void)key;
 	(void)value;
-	return mock_type(server_op_res_t);
+	return mock_type(int);
 }
 
-extern server_op_res_t __real_read_state(char *key, update_state_t *value);
-server_op_res_t __wrap_read_state(char *key, update_state_t *value);
-server_op_res_t __wrap_read_state(char *key, update_state_t *value)
+extern update_state_t __real_get_state(void);
+update_state_t __wrap_get_state(void);
+update_state_t __wrap_get_state(void)
 {
-	(void)key;
-	*value = mock_type(update_state_t);
-	return mock_type(server_op_res_t);
+	return mock_type(update_state_t);
 }
 
 extern server_op_res_t server_has_pending_action(int *action_id);
@@ -218,14 +216,10 @@ static void test_server_has_pending_action(void **state)
 	will_return(__wrap_channel_get,
 		    json_tokener_parse(json_reply_update_data));
 	will_return(__wrap_channel_get, CHANNEL_OK);
-#if 0
-	will_return(__wrap_read_state, STATE_NOT_AVAILABLE);
-	will_return(__wrap_read_state, SERVER_OK);
-#endif
+	will_return(__wrap_get_state, STATE_NOT_AVAILABLE);
 	assert_int_equal(SERVER_UPDATE_AVAILABLE,
 			 server_has_pending_action(&action_id));
 
-#if 0
 	/* Test Case: Update Action available && STATE_INSTALLED. */
 	will_return(__wrap_channel_get,
 		    json_tokener_parse(json_reply_update_available));
@@ -233,11 +227,9 @@ static void test_server_has_pending_action(void **state)
 	will_return(__wrap_channel_get,
 		    json_tokener_parse(json_reply_update_data));
 	will_return(__wrap_channel_get, CHANNEL_OK);
-	will_return(__wrap_read_state, STATE_INSTALLED);
-	will_return(__wrap_read_state, SERVER_OK);
+	will_return(__wrap_get_state, STATE_INSTALLED);
 	assert_int_equal(SERVER_NO_UPDATE_AVAILABLE,
 			 server_has_pending_action(&action_id));
-#endif
 
 	/* Test Case: Cancel Action available. */
 	will_return(__wrap_channel_get,
@@ -247,7 +239,7 @@ static void test_server_has_pending_action(void **state)
 		    json_tokener_parse(json_reply_cancel_data));
 	will_return(__wrap_channel_get, CHANNEL_OK);
 	will_return(__wrap_channel_put, CHANNEL_OK);
-	will_return(__wrap_save_state, SERVER_OK);
+	will_return(__wrap_save_state, 0);
 	assert_int_equal(SERVER_OK, server_has_pending_action(&action_id));
 }
 

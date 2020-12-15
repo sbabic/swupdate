@@ -35,6 +35,7 @@ typedef enum {
 	SWUPDATE_SUBPROCESS,
 	SET_AES_KEY,
 	SET_UPDATE_STATE,	/* set bootloader ustate */
+	GET_UPDATE_STATE,
 	REQ_INSTALL_EXT
 } msgtype;
 
