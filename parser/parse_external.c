@@ -82,7 +82,7 @@ static void sw_append_stream(struct img_type *img, const char *key,
 	if (!strcmp(key, "sha256"))
 		ascii_to_hash(img->sha256, value);
 	if (!strcmp(key, "encrypted"))
-		img->is_encrypted = 1;
+		img->is_encrypted = true;
 	if (!strcmp(key, "compressed")) {
 		if (value != NULL) {
 			if (!strcmp(value, "zlib")) {

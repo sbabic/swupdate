@@ -103,7 +103,7 @@ static int extract_file_to_tmp(int fd, const char *fname, unsigned long *poffs, 
 		return -1;
 
 	if (copyfile(fd, &fdout, fdh.size, poffs, 0, 0, 0, &checksum, NULL,
-		     encrypted ? 1 : 0, NULL, NULL) < 0) {
+		     encrypted, NULL, NULL) < 0) {
 		close(fdout);
 		return -1;
 	}
@@ -221,7 +221,7 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 				fdout = openfileoutput(img->extract_file);
 				if (fdout < 0)
 					return -1;
-				if (copyfile(fd, &fdout, fdh.size, &offset, 0, 0, 0, &checksum, img->sha256, 0, NULL, NULL) < 0) {
+				if (copyfile(fd, &fdout, fdh.size, &offset, 0, 0, 0, &checksum, img->sha256, false, NULL, NULL) < 0) {
 					close(fdout);
 					return -1;
 				}
@@ -233,7 +233,7 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 				break;
 
 			case SKIP_FILE:
-				if (copyfile(fd, &fdout, fdh.size, &offset, 0, skip, 0, &checksum, NULL, 0, NULL, NULL) < 0) {
+				if (copyfile(fd, &fdout, fdh.size, &offset, 0, skip, 0, &checksum, NULL, false, NULL, NULL) < 0) {
 					return -1;
 				}
 				if (!swupdate_verify_chksum(checksum, fdh.chksum)) {

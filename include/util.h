@@ -189,7 +189,7 @@ strlcpy(char *dst, const char * src, size_t size);
 int copyfile(int fdin, void *out, unsigned int nbytes, unsigned long *offs,
 	unsigned long long seek,
 	int skip_file, int compressed, uint32_t *checksum,
-	unsigned char *hash, int encrypted, const char *imgivt, writeimage callback);
+	unsigned char *hash, bool encrypted, const char *imgivt, writeimage callback);
 int copyimage(void *out, struct img_type *img, writeimage callback);
 int extract_sw_description(int fd, const char *descfile, off_t *offs, bool encrypted);
 off_t extract_next_file(int fd, int fdout, off_t start, int compressed,

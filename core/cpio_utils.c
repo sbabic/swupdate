@@ -381,7 +381,7 @@ static int zstd_step(void* state, void* buffer, size_t size)
 
 int copyfile(int fdin, void *out, unsigned int nbytes, unsigned long *offs, unsigned long long seek,
 	int skip_file, int __attribute__ ((__unused__)) compressed,
-	uint32_t *checksum, unsigned char *hash, int encrypted, const char *imgivt, writeimage callback)
+	uint32_t *checksum, unsigned char *hash, bool encrypted, const char *imgivt, writeimage callback)
 {
 	unsigned int percent, prevpercent = 0;
 	int ret = 0;
@@ -713,7 +713,7 @@ int extract_sw_description(int fd, const char *descfile, off_t *offs, bool encry
 		close(fdout);
 		return -1;
 	}
-	if (copyfile(fd, &fdout, fdh.size, &offset, 0, 0, 0, &checksum, NULL, encrypted ? 1 : 0, NULL, NULL) < 0) {
+	if (copyfile(fd, &fdout, fdh.size, &offset, 0, 0, 0, &checksum, NULL, encrypted, NULL, NULL) < 0) {
 		ERROR("%s corrupted or not valid", descfile);
 		close(fdout);
 		return -1;
@@ -839,7 +839,7 @@ int cpio_scan(int fd, struct swupdate_cfg *cfg, off_t start)
 		 * we do not have to provide fdout
 		 */
 		if (copyfile(fd, NULL, fdh.size, &offset, 0, 1, 0, &checksum, img ? img->sha256 : NULL,
-				0, NULL, NULL) != 0) {
+				false, NULL, NULL) != 0) {
 			ERROR("invalid archive");
 			return -1;
 		}
