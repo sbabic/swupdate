@@ -328,29 +328,51 @@ Running SWUpdate
 What is expected from a SWUpdate run
 ------------------------------------
 
+The whole update process can be seen as a set of pipelines. The incoming stream
+(the SWU file) is processed by each pipe and passed to the next step.
+First, the SWU is streamed from one of the interfaces : local (USB, filesystem), Webserver,
+suricatta (one of the backend), etc. The incoming SWU is forwarded to the installer to be examined
+and installed.
 A run of SWUpdate consists mainly of the following steps:
 
-- check for media (USB-pen)
-- check for an image file. The extension must be .swu
-- extracts sw-description from the image and verifies it
+- extracts sw-description from the stream and verifies it
   It parses sw-description creating a raw description in RAM
   about the activities that must be performed.
-- Reads the cpio archive and proofs the checksum of each single file
-  SWUpdate stops if the archive is not complete verified
+- if Signed Images is activated, extracts sw-description.sig and
+  validate sw-description.
 - check for hardware-software compatibility, if any,
   reading hardware revision from hardware and matching
   with the table in sw-description.
+- Parse sw-description to determine which artefacts in the incoming SWU
+  are required. Not required artifacts are simply skipped.
+  The meta file sw-description is declarative and executive. If "hooks"
+  are defined in sw-description, they are executed at parse time. Hooks
+  are executed before any artefact is evaluated and they are the best
+  way to implement pre install functions.
+  At the end of the parsing, SWUpdate builds an internal mapping for each artifact
+  to recognize which handler should be called for each of them.
+- Reads the cpio archive and proofs the CPIO checksum of each single file
+  (this can be disabled in the configuration) and computes the sha256 sum if foreseen or if Signed Images
+  are activated.  SWUpdate stops if the archive is not complete verified.
 - check that all components described in sw-description are
   really in the cpio archive.
-- modify partitions, if required. This consists in a resize
-  of UBI volumes, not a resize of MTD partition.
-- runs pre-install scripts
-- iterates through all images and call the corresponding
+- run the partitions handlers, if required.
+- runs pre-install scripts, if any. Please note: if artifacts are streamed, a preinstall script cannot be
+  executed because it depends on the order the artifact (including the script) are packed into the CPIO archive.
+  In this case, please use the "embedded-script" feature in sw-description to execute functions before any
+  installation takes place.
+- if an artifact is found in SWU and it is marked with "installed-directly", proceed with installation,
+  else extract it temporarily into TMPDIR.
+- iterates through all `images` and call the corresponding
   handler for installing on target.
-- runs post-install scripts
-- update bootloader environment, if changes are specified
-  in sw-description.
-- reports the status to the operator (stdout)
+- iterates through all `files` and call the corresponding
+  handler for installing on target.
+- iterates through all `scripts` and call the corresponding
+  handler for post-install scripts
+- iterates through all `bootenv` and updates the bootloader environment.
+- reports the status to the operator through the notification interface
+  (logging, traces) and through the progress interface.
+- if a postinstall command is foreseen (for example to reboot the device), call it.
 
 The first step that fails, stops the entire procedure and
 an error is reported.
