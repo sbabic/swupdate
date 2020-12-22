@@ -96,6 +96,7 @@ static void _swupdate_download_update(unsigned int perc, unsigned long long tota
 	struct swupdate_progress *pprog = &progress;
 	pthread_mutex_lock(&pprog->lock);
 	if (perc != pprog->msg.dwl_percent) {
+		pprog->msg.status = DOWNLOAD;
 		pprog->msg.dwl_percent = perc;
 		pprog->msg.dwl_bytes = totalbytes;
 		send_progress_msg();
@@ -124,6 +125,7 @@ void swupdate_progress_update(unsigned int perc)
 	struct swupdate_progress *pprog = &progress;
 	pthread_mutex_lock(&pprog->lock);
 	if (perc != pprog->msg.cur_percent && pprog->step_running) {
+		pprog->msg.status = PROGRESS;
 		pprog->msg.cur_percent = perc;
 		send_progress_msg();
 	}
