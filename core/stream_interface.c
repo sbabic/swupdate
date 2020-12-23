@@ -456,8 +456,16 @@ static int save_stream(int fdin, struct swupdate_cfg *software)
 	lseek(tmpfd, 0, SEEK_SET);
 
 	fdout = openfileoutput(software->output);
-	if (fdout < 0)
-		return -1;
+	/*
+	 * Try to create directory if file cannot be opened
+	 */
+	if (fdout < 0) {
+		if (mkpath(software->output, 0755))
+			return -1;
+		fdout = openfileoutput(software->output);
+		if (fdout < 0)
+			return -1;
+	}
 
 	ret = cpfiles(tmpfd, fdout, 0);
 	if (ret < 0)
