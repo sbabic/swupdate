@@ -58,17 +58,6 @@ int save_state(char *key, update_state_t value)
 	}
 }
 
-
-int save_state_string(char *key, update_state_t value)
-{
-	CHECK_STATE_VAR(key);
-	if (!value)
-		return -EINVAL;
-	if (value < STATE_OK || value > STATE_LAST)
-		return -EINVAL;
-	return bootloader_env_set(key, get_state_string(value));
-}
-
 static update_state_t read_state(char *key)
 {
 	CHECK_STATE_VAR(key);
@@ -86,12 +75,6 @@ static update_state_t read_state(char *key)
 	free(envval);
 
 	return val;
-}
-
-int unset_state(char *key)
-{
-	CHECK_STATE_VAR(key);
-	return bootloader_env_unset(key);
 }
 
 static update_state_t do_get_state(void) {

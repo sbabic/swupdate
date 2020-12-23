@@ -47,6 +47,7 @@
 #include "swupdate_settings.h"
 #include "pctl.h"
 #include "state.h"
+#include "bootloader.h"
 
 #ifdef CONFIG_SYSTEMD
 #include <systemd/sd-daemon.h>
@@ -868,7 +869,7 @@ int main(int argc, char **argv)
 		switch (result) {
 		case EXIT_FAILURE:
 			if (!swcfg.globals.dry_run && swcfg.bootloader_transaction_marker) {
-				save_state_string((char*)BOOTVAR_TRANSACTION, STATE_FAILED);
+				bootloader_env_set(BOOTVAR_TRANSACTION, get_state_string(STATE_FAILED));
 			}
 			break;
 		case EXIT_SUCCESS:
