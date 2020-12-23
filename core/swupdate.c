@@ -178,23 +178,6 @@ static void usage(char *programname)
 #endif
 }
 
-static int check_provided(struct imglist *list)
-{
-	int ret = 0;
-	struct img_type *p;
-
-	for (p = list->lh_first; p != NULL;
-		p = p->next.le_next) {
-		if (!p->provided && !(get_handler_mask(p) & NO_DATA_HANDLER)) {
-			ERROR("Requested file not found in image: %s", \
-				p->fname);
-			ret = -1;
-		}
-	}
-
-	return ret;
-}
-
 struct swupdate_cfg *get_swupdate_cfg(void) {
 	return &swcfg;
 }
@@ -227,191 +210,6 @@ static int opt_to_hwrev(char *param, struct hw_type *hw)
 		return -EINVAL;
 
 	return 0;
-}
-
-static int searching_for_image(char *name)
-{
-	char *dir, *dirc, *basec;
-	char *fpattern;
-	DIR *path;
-	struct dirent *dp;
-	int fd = -1;
-	int found;
-	char fname[MAX_IMAGE_FNAME];
-	char *buf;
-	char hex[4];
-
-	dirc = strdup(name);
-	basec = strdup(name);
-	dir = dirname(dirc);
-	fpattern = basename(basec);
-	path = opendir(dir);
-
-	TRACE("Searching image: check %s into %s",
-			basec, dirc);
-	if (!path) {
-		free(dirc);
-		free(basec);
-		return -EBADF;
-	}
-
-	dp = readdir(path);
-	do {
-		if (!dp)
-			break;
-		if (!strcmp(dp->d_name, ".") ||
-				!strcmp(dp->d_name, "..") ||
-				!strlen(dp->d_name))
-			continue;
-		found = !fnmatch(fpattern, dp->d_name, FNM_CASEFOLD);
-
-		if (found) {
-			TRACE("File found: %s :", dp->d_name);
-			/* Buffer for hexa output */
-			buf = (char *)malloc(3 * strlen(dp->d_name) + 1);
-			if (buf) {
-				for (size_t i = 0; i < strlen(dp->d_name); i++) {
-					snprintf(hex, sizeof(hex), "%x ", dp->d_name[i]);
-					memcpy(&buf[3 * i], hex, 3);
-				}
-				buf[3 * strlen(dp->d_name)] = '\0';
-				TRACE("\nFile name (hex): %s", buf);
-			}
-			/* Take the first one as image */
-			if (fd < 0) {
-				if (snprintf(fname, sizeof(fname), "%s/%s",
-					     dirc, dp->d_name) >= (int)sizeof(fname)) {
-					ERROR("Path too long: %s/%s", dirc, dp->d_name);
-				}
-				fd = open(fname, O_RDONLY);
-				if (fd > 0)
-					TRACE("\t\t**Used for upgrade");
-			}
-			free(buf);
-		}
-
-	} while ((dp = readdir(path)) !=NULL);
-
-	free(dirc);
-	free(basec);
-	closedir(path);
-
-	return fd;
-}
-
-static int install_from_file(char *fname, int check)
-{
-	int fdsw;
-	off_t pos;
-	int ret;
-	bool encrypted_sw_desc = false;
-
-#ifdef CONFIG_ENCRYPTED_SW_DESCRIPTION
-	encrypted_sw_desc = true;
-#endif
-	if (!strlen(fname)) {
-		ERROR("Image not found...please reboot");
-		exit(EXIT_FAILURE);
-	}
-
-	fdsw = open(fname, O_RDONLY);
-	if (fdsw < 0) {
-		fdsw = searching_for_image(fname);
-		if (fdsw < 0) {
-			ERROR("Image Software cannot be read...exiting !");
-			exit(EXIT_FAILURE);
-		}
-	}
-
-	pos = 0;
-	ret = extract_sw_description(fdsw, SW_DESCRIPTION_FILENAME, &pos, encrypted_sw_desc);
-#ifdef CONFIG_SIGNED_IMAGES
-	ret |= extract_sw_description(fdsw, SW_DESCRIPTION_FILENAME ".sig",
-		&pos, false);
-#endif
-	/*
-	 * Check if files could be extracted
-	 */
-	if (ret) {
-		ERROR("Failed to extract meta information");
-		exit(EXIT_FAILURE);
-	}
-
-	char* swdescfilename = alloca(strlen(get_tmpdir())+strlen(SW_DESCRIPTION_FILENAME)+1);
-	sprintf(swdescfilename, "%s%s", get_tmpdir(), SW_DESCRIPTION_FILENAME);
-	ret = parse(&swcfg, swdescfilename);
-	if (ret) {
-		ERROR("failed to parse " SW_DESCRIPTION_FILENAME "!");
-		exit(EXIT_FAILURE);
-	}
-
-	if (check_hw_compatibility(&swcfg)) {
-		ERROR("SW not compatible with hardware");
-		exit(EXIT_FAILURE);
-	}
-
-	if (cpio_scan(fdsw, &swcfg, pos) < 0) {
-		ERROR("failed to scan for pos '%lld'!", (long long)pos);
-		close(fdsw);
-		exit(EXIT_FAILURE);
-	}
-
-	/*
-	 * Check if all files described in sw-description
-	 * are in the image
-	 */
-	ret = check_provided(&swcfg.images);
-	if (ret) {
-		ERROR("failed to check images!");
-		exit(EXIT_FAILURE);
-	}
-	ret = check_provided(&swcfg.scripts);
-	if (ret) {
-		ERROR("failed to check scripts!");
-		exit(EXIT_FAILURE);
-	}
-
-	if (check) {
-		fprintf(stdout, "successfully checked '%s'\n", fname);
-		exit(EXIT_SUCCESS);
-	}
-
-	ret = preupdatecmd(&swcfg);
-	if (ret) {
-		ERROR("Failed pre-update command!");
-		exit(EXIT_FAILURE);
-	}
-
-#ifdef CONFIG_MTD
-		mtd_cleanup();
-		scan_mtd_devices();
-#endif
-	/*
-	 * Set "recovery_status" as begin of the transaction"
-	 */
-	if (!swcfg.globals.dry_run && swcfg.bootloader_transaction_marker) {
-		save_state_string((char*)BOOTVAR_TRANSACTION, STATE_IN_PROGRESS);
-	}
-
-	swcfg.globals.dry_run = swcfg.globals.default_dry_run;
-	ret = install_images(&swcfg, fdsw, 1);
-
-	swupdate_progress_end(ret == 0 ? SUCCESS : FAILURE);
-
-	close(fdsw);
-
-	if (ret) {
-		fprintf(stdout, "Software update failed\n");
-		return EXIT_FAILURE;
-	}
-
-	if (!swcfg.globals.dry_run && swcfg.bootloader_transaction_marker) {
-		unset_state((char*)BOOTVAR_TRANSACTION);
-	}
-	fprintf(stdout, "Software updated successfully\n");
-	fprintf(stdout, "Please reboot the device to start the new software\n");
-
-	return EXIT_SUCCESS;
 }
 
 static int parse_image_selector(const char *selector, struct swupdate_cfg *sw)
@@ -641,7 +439,7 @@ int main(int argc, char **argv)
 	const char *software_select = NULL;
 	int opt_i = 0;
 	int opt_e = 0;
-	int opt_c = 0;
+	bool opt_c = false;
 	char image_url[MAX_URL];
 	char main_options[256];
 	unsigned int public_key_mandatory = 0;
@@ -896,7 +694,7 @@ int main(int argc, char **argv)
 			break;
 #endif
 		case 'c':
-			opt_c = 1;
+			opt_c = true;
 			break;
 		case 'p':
 			strlcpy(swcfg.globals.postupdatecmd, optarg,
@@ -1012,63 +810,60 @@ int main(int argc, char **argv)
 	get_sw_versions(cfgfname, &swcfg);
 
 	/*
-	 *  Do not start daemon if just a check is required
+	 *  Start daemon if just a check is required
 	 *  SWUpdate will exit after the check
 	 */
-	if (!opt_c) {
-		network_daemon = start_thread(network_initializer, &swcfg);
+	network_daemon = start_thread(network_initializer, &swcfg);
 
-		start_thread(progress_bar_thread, NULL);
+	start_thread(progress_bar_thread, NULL);
 
-		/* Start embedded web server */
+	/* Start embedded web server */
 #if defined(CONFIG_MONGOOSE)
-		if (opt_w) {
-			start_subprocess(SOURCE_WEBSERVER, "webserver",
-					 cfgfname, ac, av,
-					 start_mongoose);
-			freeargs(av);
-		}
+	if (opt_w) {
+		start_subprocess(SOURCE_WEBSERVER, "webserver",
+				 cfgfname, ac, av,
+				 start_mongoose);
+		freeargs(av);
+	}
 #endif
 
 #if defined(CONFIG_SURICATTA)
-		if (opt_u) {
-			start_subprocess(SOURCE_SURICATTA, "suricatta",
-					 cfgfname, argcount,
-					 argvalues, start_suricatta);
+	if (opt_u) {
+		start_subprocess(SOURCE_SURICATTA, "suricatta",
+				 cfgfname, argcount,
+				 argvalues, start_suricatta);
 
-			freeargs(argvalues);
-		}
+		freeargs(argvalues);
+	}
 #endif
 
 #ifdef CONFIG_DOWNLOAD
-		if (opt_d) {
-			start_subprocess(SOURCE_DOWNLOADER, "download",
-					 cfgfname, dwlac,
-					 dwlav, start_download);
-			freeargs(dwlav);
-		}
+	if (opt_d) {
+		start_subprocess(SOURCE_DOWNLOADER, "download",
+				 cfgfname, dwlac,
+				 dwlav, start_download);
+		freeargs(dwlav);
+	}
 #endif
 
-		/*
-		 * Start all processes added in the config file
-		 */
-		struct extproc *proc;
+	/*
+	 * Start all processes added in the config file
+	 */
+	struct extproc *proc;
 
-		LIST_FOREACH(proc, &swcfg.extprocs, next) {
-			dwlav = splitargs(proc->exec, &dwlac);
+	LIST_FOREACH(proc, &swcfg.extprocs, next) {
+		dwlav = splitargs(proc->exec, &dwlac);
 
-			dwlav[dwlac] = NULL;
+		dwlav[dwlac] = NULL;
 
-			start_subprocess_from_file(SOURCE_UNKNOWN, proc->name,
-						   cfgfname, dwlac,
-						   dwlav, dwlav[0]);
+		start_subprocess_from_file(SOURCE_UNKNOWN, proc->name,
+					   cfgfname, dwlac,
+					   dwlav, dwlav[0]);
 
-			freeargs(dwlav);
-		}
+		freeargs(dwlav);
 	}
 
 	if (opt_i) {
-
 		result = install_from_file(fname, opt_c);
 		switch (result) {
 		case EXIT_FAILURE:

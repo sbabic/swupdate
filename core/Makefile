@@ -12,6 +12,7 @@ obj-y += swupdate.o \
 	 cpio_utils.o \
 	 notifier.o \
 	 handler.o \
+	 install_from_file.o \
 	 util.o \
 	 parser.o \
 	 pctl.o \

@@ -587,7 +587,7 @@ void *network_initializer(void *data)
 			}
 
 			notify(RUN, RECOVERY_NO_ERROR, INFOLEVEL, "Installation in progress");
-			ret = install_images(software, 0, 0);
+			ret = install_images(software);
 			if (ret != 0) {
 				if (!software->globals.dry_run && software->bootloader_transaction_marker) {
 					save_state_string((char*)BOOTVAR_TRANSACTION, STATE_FAILED);

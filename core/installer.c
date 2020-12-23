@@ -92,7 +92,7 @@ int check_if_required(struct imglist *list, struct filehdr *pfdh,
  * Extract all scripts from a list from the image
  * and save them on the filesystem to be executed later
  */
-static int extract_scripts(int fd, struct imglist *head, int fromfile)
+static int extract_scripts(struct imglist *head)
 {
 	struct img_type *script;
 	int fdout;
@@ -100,6 +100,11 @@ static int extract_scripts(int fd, struct imglist *head, int fromfile)
 	const char* tmpdir_scripts = get_tmpdirscripts();
 
 	LIST_FOREACH(script, head, next) {
+		int fdin;
+		char *tmpfile;
+		unsigned long offset = 0;
+		uint32_t checksum;
+
 		if (!script->fname[0] && (script->provided == 0)) {
 			TRACE("No script provided for script of type %s",
 				script->type);
@@ -118,40 +123,31 @@ static int extract_scripts(int fd, struct imglist *head, int fromfile)
 		if (fdout < 0)
 			return fdout;
 
-		if (fromfile)
-			ret = extract_next_file(fd, fdout, script->offset, 0,
-						script->is_encrypted, script->ivt_ascii, script->sha256);
-		else {
-			int fdin;
-			char *tmpfile;
-			unsigned long offset = 0;
-			uint32_t checksum;
 
-			if (asprintf(&tmpfile, "%s%s", get_tmpdir(), script->fname) ==
-				ENOMEM_ASPRINTF) {
-				ERROR("Path too long: %s%s", get_tmpdir(), script->fname);
-				close(fdout);
-				return -ENOMEM;
-			}
-
-			fdin = open(tmpfile, O_RDONLY);
-			free(tmpfile);
-			if (fdin < 0) {
-				ERROR("Extracted script not found in %s: %s %d",
-					get_tmpdir(), script->extract_file, errno);
-				close(fdout);
-				return -ENOENT;
-			}
-
-			ret = copyfile(fdin, &fdout, script->size, &offset, 0, 0,
-					script->compressed,
-					&checksum,
-					script->sha256,
-					script->is_encrypted,
-					script->ivt_ascii,
-					NULL);
-			close(fdin);
+		if (asprintf(&tmpfile, "%s%s", get_tmpdir(), script->fname) ==
+			ENOMEM_ASPRINTF) {
+			ERROR("Path too long: %s%s", get_tmpdir(), script->fname);
+			close(fdout);
+			return -ENOMEM;
 		}
+
+		fdin = open(tmpfile, O_RDONLY);
+		free(tmpfile);
+		if (fdin < 0) {
+			ERROR("Extracted script not found in %s: %s %d",
+				get_tmpdir(), script->extract_file, errno);
+			close(fdout);
+			return -ENOENT;
+		}
+
+		ret = copyfile(fdin, &fdout, script->size, &offset, 0, 0,
+				script->compressed,
+				&checksum,
+				script->sha256,
+				script->is_encrypted,
+				script->ivt_ascii,
+				NULL);
+		close(fdin);
 		close(fdout);
 
 		if (ret < 0)
@@ -252,12 +248,11 @@ int install_single_image(struct img_type *img, int dry_run)
  * extract : boolean, true to enable extraction
  */
 
-int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
+int install_images(struct swupdate_cfg *sw)
 {
 	int ret;
 	struct img_type *img, *tmp;
 	char *filename;
-	struct filehdr fdh;
 	struct stat buf;
 	const char* TMPDIR = get_tmpdir();
 	int dry_run = sw->globals.dry_run;
@@ -265,8 +260,8 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 
 	/* Extract all scripts, preinstall scripts must be run now */
 	const char* tmpdir_scripts = get_tmpdirscripts();
-	ret = extract_scripts(fdsw, &sw->scripts, fromfile);
-	ret |= extract_scripts(fdsw, &sw->bootscripts, fromfile);
+	ret = extract_scripts(&sw->scripts);
+	ret |= extract_scripts(&sw->bootscripts);
 	if (ret) {
 		ERROR("extracting script to %s failed", tmpdir_scripts);
 		return ret;
@@ -292,37 +287,28 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 		 *  This does not make sense when installed from file,
 		 *  because images are seekd (no streaming)
 		 */
-		if (!fromfile && img->install_directly)
+		if (img->install_directly)
 			continue;
 
-		if (!fromfile) {
-		    if (asprintf(&filename, "%s%s", TMPDIR, img->fname) ==
+		if (asprintf(&filename, "%s%s", TMPDIR, img->fname) ==
 				ENOMEM_ASPRINTF) {
 				ERROR("Path too long: %s%s", TMPDIR, img->fname);
 				return -1;
-			}
+		}
 
-			ret = stat(filename, &buf);
-			if (ret) {
-				TRACE("%s not found or wrong", filename);
-				free(filename);
-				return -1;
-			}
-			img->size = buf.st_size;
-
-			img->fdin = open(filename, O_RDONLY);
+		ret = stat(filename, &buf);
+		if (ret) {
+			TRACE("%s not found or wrong", filename);
 			free(filename);
-			if (img->fdin < 0) {
-				ERROR("Image %s cannot be opened",
-				img->fname);
-				return -1;
-			}
-		} else {
-			if (extract_img_from_cpio(fdsw, img->offset, &fdh) < 0)
-				return -1;
-			img->size = fdh.size;
-			img->checksum = fdh.chksum;
-			img->fdin = fdsw;
+			return -1;
+		}
+		img->size = buf.st_size;
+		img->fdin = open(filename, O_RDONLY);
+		free(filename);
+		if (img->fdin < 0) {
+			ERROR("Image %s cannot be opened",
+			img->fname);
+			return -1;
 		}
 
 		if ((strlen(img->path) > 0) &&
@@ -345,8 +331,7 @@ int install_images(struct swupdate_cfg *sw, int fdsw, int fromfile)
 			ret = install_single_image(img, dry_run);
 		}
 
-		if (!fromfile)
-			close(img->fdin);
+		close(img->fdin);
 
 		if (dropimg)
 			free_image(img);
