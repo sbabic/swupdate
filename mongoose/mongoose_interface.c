@@ -37,11 +37,6 @@
 /* in seconds. If no packet is received with this timeout, connection is broken */
 #define MG_TIMEOUT	120
 
-enum MONGOOSE_API_VERSION {
-	MONGOOSE_API_V1 = 1,
-	MONGOOSE_API_V2
-};
-
 struct mongoose_options {
 	char *root;
 	bool listing;
@@ -52,7 +47,6 @@ struct mongoose_options {
 	char *ssl_cert;
 	char *ssl_key;
 #endif
-	enum MONGOOSE_API_VERSION api_version;
 };
 
 struct file_upload_state {
@@ -430,17 +424,6 @@ static int mongoose_settings(void *elem, void  __attribute__ ((__unused__)) *dat
 		opts->ssl_key = strdup(tmp);
 	}
 #endif
-	/*
-	 * Get API Version
-	 */
-	get_field(LIBCFG_PARSER, elem, "api", &opts->api_version);
-	switch(opts->api_version) {
-	case MONGOOSE_API_V1:
-	case MONGOOSE_API_V2:
-		break;
-	default:
-		opts->api_version = MONGOOSE_API_V2;
-	}
 
 	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "global-auth-file", tmp);
 	if (strlen(tmp)) {
@@ -467,7 +450,6 @@ static struct option long_options[] = {
 	{"ssl-key", required_argument, NULL, 'K'},
 #endif
 	{"document-root", required_argument, NULL, 'r'},
-	{"api-version", required_argument, NULL, 'a'},
 	{"timeout", required_argument, NULL, 't'},
 	{"auth-domain", required_argument, NULL, '0'},
 	{"global-auth-file", required_argument, NULL, '1'},
@@ -507,8 +489,6 @@ int start_mongoose(const char *cfgfname, int argc, char *argv[])
 	int choice = 0;
 
 	memset(&opts, 0, sizeof(opts));
-	/* Set default API version */
-	opts.api_version = MONGOOSE_API_V2;
 
 	/* No listing directory as default */
 	opts.listing = false;
