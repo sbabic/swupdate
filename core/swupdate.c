@@ -866,19 +866,6 @@ int main(int argc, char **argv)
 
 	if (opt_i) {
 		result = install_from_file(fname, opt_c);
-		switch (result) {
-		case EXIT_FAILURE:
-			if (!swcfg.globals.dry_run && swcfg.bootloader_transaction_marker) {
-				bootloader_env_set(BOOTVAR_TRANSACTION, get_state_string(STATE_FAILED));
-			}
-			break;
-		case EXIT_SUCCESS:
-			notify(SUCCESS, 0, INFOLEVEL, NULL);
-			if (postupdate(&swcfg, NULL) != 0) {
-				ERROR("Post-update command execution failed.");
-			}
-			break;
-		}
 		cleanup_files(&swcfg);
 	}
 
