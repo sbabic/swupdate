@@ -276,7 +276,7 @@ int mkpath(char *dir, mode_t mode)
 	if (strlen(dir) == 1 && dir[0] == '/')
 		return 0;
 
-	mkpath(dirname(strdupa(dir)), mode);
+	(void) mkpath(dirname(strdupa(dir)), mode);
 
 	if (mkdir(dir, mode) == -1) {
 		if (errno != EEXIST)
