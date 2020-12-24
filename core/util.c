@@ -499,7 +499,7 @@ int IsValidHash(const unsigned char *hash)
 
 	for (i = 0; i < SHA256_HASH_LENGTH; i++) {
 		if (hash[i] != 0)
-			return 1;		
+			return 1;
 	}
 
 	return 0;
@@ -875,5 +875,3 @@ size_t snescape(char *dst, size_t n, const char *src)
 
 	return len;
 }
-
-
