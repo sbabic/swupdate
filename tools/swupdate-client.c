@@ -56,7 +56,8 @@ bool run_postupdate = false;
 int end_status = EXIT_SUCCESS;
 char *software_set = NULL, *running_mode = NULL;
 
-pthread_mutex_t mymutex;
+static pthread_mutex_t mymutex;
+static pthread_cond_t cv_end = PTHREAD_COND_INITIALIZER;
 
 /*
  * this is the callback to get a new chunk of the
@@ -110,6 +111,8 @@ static int end(RECOVERY_STATUS status)
 			fprintf(stderr, "Running post-update failed!\n");
 	}
 
+	pthread_mutex_lock(&mymutex);
+	pthread_cond_signal(&cv_end);
 	pthread_mutex_unlock(&mymutex);
 
 	return 0;
@@ -124,10 +127,6 @@ static int send_file(const char* filename) {
 		fprintf(stderr, "Unable to open %s\n", filename);
 		return EXIT_FAILURE;
 	}
-
-	/* synchronize with a mutex */
-	pthread_mutex_lock(&mymutex);
-
 
 	/* May be set non-zero by end() function on failure */
 	end_status = EXIT_SUCCESS;
@@ -151,10 +150,9 @@ static int send_file(const char* filename) {
 		return EXIT_FAILURE;
 	}
 
-	/* Now block */
-	pthread_mutex_lock(&mymutex);
-
 	/* End called, unlock and exit */
+	pthread_mutex_lock(&mymutex);
+	pthread_cond_wait(&cv_end, &mymutex);
 	pthread_mutex_unlock(&mymutex);
 
 	if (filename)
