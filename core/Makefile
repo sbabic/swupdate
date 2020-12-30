@@ -25,4 +25,5 @@ obj-y += swupdate.o \
 	 parsing_library.o \
 	 artifacts_versions.o \
 	 swupdate_dict.o \
-	 semver.o
+	 semver.o \
+	 strlcpy.o
