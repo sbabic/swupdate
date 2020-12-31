@@ -23,6 +23,7 @@ static pthread_mutex_t mymutex;
 static char buf[16 * 1024];
 static int fd = STDIN_FILENO;
 static int end_status = EXIT_SUCCESS;
+static pthread_cond_t cv_end = PTHREAD_COND_INITIALIZER;
 /*
  * this is the callback to get a new chunk of the
  * image.
@@ -54,6 +55,8 @@ static int endupdate(RECOVERY_STATUS status)
 		status == FAILURE ? "*failed* !" :
 			"was successful !");
 
+	pthread_mutex_lock(&mymutex);
+	pthread_cond_signal(&cv_end);
 	pthread_mutex_unlock(&mymutex);
 
 	return 0;
@@ -68,12 +71,6 @@ int install_from_file(const char *filename, bool check)
 		fprintf(stderr, "Unable to open %s\n", filename);
 		return EXIT_FAILURE;
 	}
-
-	pthread_mutex_init(&mymutex, NULL);
-
-	/* synchronize with a mutex */
-	pthread_mutex_lock(&mymutex);
-
 
 	/* May be set non-zero by end() function on failure */
 	end_status = EXIT_SUCCESS;
@@ -95,15 +92,15 @@ int install_from_file(const char *filename, bool check)
 	/* return if we've hit an error scenario */
 	if (rc < 0) {
 		ERROR ("swupdate_async_start returns %d\n", rc);
-		pthread_mutex_unlock(&mymutex);
 		close(fd);
 		return EXIT_FAILURE;
 	}
 
+	pthread_mutex_init(&mymutex, NULL);
+
 	/* Now block */
 	pthread_mutex_lock(&mymutex);
-
-	/* End called, unlock and exit */
+	pthread_cond_wait(&cv_end, &mymutex);
 	pthread_mutex_unlock(&mymutex);
 
 	if (filename)
