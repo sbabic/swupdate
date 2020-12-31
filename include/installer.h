@@ -14,7 +14,7 @@
 #include "handler.h"
 #include "cpiohdr.h"
 
-int check_if_required(struct imglist *list, struct filehdr *pfdh,
+swupdate_file_t check_if_required(struct imglist *list, struct filehdr *pfdh,
 				const char *destdir,
 				struct img_type **pimg);
 int install_images(struct swupdate_cfg *sw);

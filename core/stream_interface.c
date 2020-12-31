@@ -122,7 +122,7 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 	int status = STREAM_WAIT_DESCRIPTION;
 	unsigned long offset;
 	struct filehdr fdh;
-	int skip;
+	swupdate_file_t skip;
 	uint32_t checksum;
 	int fdout;
 	struct img_type *img, *part;

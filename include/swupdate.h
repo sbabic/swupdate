@@ -35,11 +35,11 @@ typedef enum {
  * in the .swu image is required for the
  * device, or can be skipped
  */
-enum {
+typedef enum {
 	COPY_FILE,
 	SKIP_FILE,
 	INSTALL_FROM_STREAM
-};
+} swupdate_file_t;
 
 typedef enum {
 	SKIP_NONE=0,

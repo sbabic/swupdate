@@ -41,11 +41,11 @@
  * 2 = install directly (stream to the handler)
  * -1= error found
  */
-int check_if_required(struct imglist *list, struct filehdr *pfdh,
+swupdate_file_t check_if_required(struct imglist *list, struct filehdr *pfdh,
 				const char *destdir,
 				struct img_type **pimg)
 {
-	int skip = SKIP_FILE;
+	swupdate_file_t skip = SKIP_FILE;
 	struct img_type *img;
 
 	/*
