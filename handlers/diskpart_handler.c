@@ -126,11 +126,11 @@ static bool diskpart_partition_cmp(const char *lbtype, struct fdisk_partition *f
 			fdisk_parttype_get_code(fdisk_partition_get_type(firstpa)) !=
 			fdisk_parttype_get_code(fdisk_partition_get_type(secondpa))) ||
 		fdisk_partition_get_size(firstpa) != fdisk_partition_get_size(secondpa))) {
-		TRACE("Partition differ : %s(%lu) <--> %s(%lu)",
+		TRACE("Partition differ : %s(%llu) <--> %s(%llu)",
 			fdisk_partition_get_name (firstpa) ? fdisk_partition_get_name(firstpa) : "",
-			fdisk_partition_get_size(firstpa),
+			(long long unsigned)fdisk_partition_get_size(firstpa),
 			fdisk_partition_get_name(secondpa) ? fdisk_partition_get_name(secondpa) : "",
-			fdisk_partition_get_size(secondpa));
+			(long long unsigned)fdisk_partition_get_size(secondpa));
 		return true;
 	}
 	return false;
@@ -330,7 +330,8 @@ static int diskpart(struct img_type *img,
 		size_t numpartondisk = fdisk_table_get_nents(oldtb);
 
 		if (numpartondisk != i) {
-			TRACE("Number of partitions differs on disk: %lu <--> requested: %lu", numpartondisk, i);
+			TRACE("Number of partitions differs on disk: %lu <--> requested: %lu",
+				(long unsigned int)numpartondisk, i);
 			createtable = true;
 		} else {
 			struct fdisk_partition *pa, *newpa;
