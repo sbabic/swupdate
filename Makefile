@@ -476,6 +476,7 @@ install: all
 	if [ $(HAVE_LUA) = y ]; then \
 		install -d ${DESTDIR}/${LIBDIR}/lua/$(LUAVER); \
 		install -m 0755 ${lua_swupdate} $(DESTDIR)/${LIBDIR}/lua/$(LUAVER); \
+		ln -sf ${lua_swupdate} $(DESTDIR)/${LIBDIR}/lua/$(LUAVER)/lua_swupdate.so; \
 	fi
 
 PHONY += tests
