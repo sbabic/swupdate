@@ -38,6 +38,7 @@ void raw_copyimage_handler(void);
  */
 static int blkprotect(struct img_type *img, bool on)
 {
+	char abs_path[PATH_MAX];
 	const char c_sys_path[] = "/sys/class/block/%s/force_ro";
 	const char c_unprot_char = '0';
 	const char c_prot_char = '1';
@@ -53,7 +54,7 @@ static int blkprotect(struct img_type *img, bool on)
 		return ret;
 	}
 
-	if (lstat(img->device, &sb) == -1) {
+	if (stat(img->device, &sb) == -1) {
 		TRACE("stat for device %s failed: %s", img->device, strerror(errno));
 		return ret;
 	}
@@ -61,7 +62,13 @@ static int blkprotect(struct img_type *img, bool on)
 		return ret;
 	}
 
-	ret_int = asprintf(&sysfs_path, c_sys_path, img->device + 5);  // remove "/dev/" from device path
+	/* If given, traverse symlink and convert to absolute path */
+	if (realpath(img->device, abs_path) == NULL) {
+		ret = -errno;
+		goto blkprotect_out;
+	}
+
+	ret_int = asprintf(&sysfs_path, c_sys_path, abs_path + 5);  /* remove "/dev/" from device path */
 	if(ret_int < 0) {
 		ret = -ENOMEM;
 		goto blkprotect_out;
