@@ -40,25 +40,21 @@ char *get_ctrl_socket(void) {
 }
 
 static int prepare_ipc(void) {
-
 	int connfd;
-	int ret;
-
 	struct sockaddr_un servaddr;
 
 	connfd = socket(AF_LOCAL, SOCK_STREAM, 0);
-	if (connfd < 0) {
-		return connfd;
-	}
+	if (connfd < 0)
+		return -1;
+
 	bzero(&servaddr, sizeof(servaddr));
 	servaddr.sun_family = AF_LOCAL;
 
 	strncpy(servaddr.sun_path, get_ctrl_socket(), sizeof(servaddr.sun_path) - 1);
 
-	ret = connect(connfd, (struct sockaddr *) &servaddr, sizeof(servaddr));
-	if (ret < 0) {
+	if (connect(connfd, (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0) {
 		close(connfd);
-		return ret;
+		return -1;
 	}
 
 	return connfd;
@@ -66,11 +62,9 @@ static int prepare_ipc(void) {
 
 int ipc_postupdate(ipc_message *msg) {
 	int connfd = prepare_ipc();
-	if (connfd < 0) {
+	if (connfd < 0)
 		return -1;
-	}
 
-	ssize_t ret;
 	char* tmpbuf = NULL;
 	if (msg->data.procmsg.len > 0) {
 		if ((tmpbuf = strndupa(msg->data.procmsg.buf,
@@ -81,6 +75,7 @@ int ipc_postupdate(ipc_message *msg) {
 			return -1;
 		}
 	}
+
 	memset(msg, 0, sizeof(*msg));
 	if (tmpbuf != NULL) {
 		msg->data.procmsg.buf[sizeof(msg->data.procmsg.buf) - 1] = '\0';
@@ -89,37 +84,27 @@ int ipc_postupdate(ipc_message *msg) {
 	}
 	msg->magic = IPC_MAGIC;
 	msg->type = POST_UPDATE;
-	ret = write(connfd, msg, sizeof(*msg));
-	if (ret != sizeof(*msg)) {
-		close(connfd);
-		return -1;
-	}
-	ret = read(connfd, msg, sizeof(*msg));
-	if (ret <= 0) {
-		close(connfd);
-		return -1;
-	}
+
+	int result = write(connfd, msg, sizeof(*msg)) != sizeof(*msg) ||
+		read(connfd, msg, sizeof(*msg)) != sizeof(*msg);
 
 	close(connfd);
-	return 0;
+	return -result;
 }
 
 static int __ipc_get_status(int connfd, ipc_message *msg, unsigned int timeout_ms)
 {
-	ssize_t ret;
 	fd_set fds;
 	struct timeval tv;
 
 	memset(msg, 0, sizeof(*msg));
 	msg->magic = IPC_MAGIC;
 	msg->type = GET_STATUS;
-	ret = write(connfd, msg, sizeof(*msg));
-	if (ret != sizeof(*msg))
+
+	if (write(connfd, msg, sizeof(*msg)) != sizeof(*msg))
 		return -1;
 
-	if (!timeout_ms) {
-		ret = read(connfd, msg, sizeof(*msg));
-	} else {
+	if (timeout_ms) {
 		FD_ZERO(&fds);
 		FD_SET(connfd, &fds);
 
@@ -131,12 +116,12 @@ static int __ipc_get_status(int connfd, ipc_message *msg, unsigned int timeout_m
 
 		tv.tv_sec = 0;
 		tv.tv_usec = timeout_ms * 1000;
-		ret = select(connfd + 1, &fds, NULL, NULL, &tv);
-		if (ret <= 0 || !FD_ISSET(connfd, &fds))
-			return 0;
-		ret = read(connfd, msg, sizeof(*msg));
+		if ((select(connfd + 1, &fds, NULL, NULL, &tv) <= 0) ||
+			!FD_ISSET(connfd, &fds))
+			return -ETIMEDOUT;
 	}
-	return ret;
+
+	return -(read(connfd, msg, sizeof(*msg)) != sizeof(*msg));
 }
 
 int ipc_get_status(ipc_message *msg)
@@ -145,19 +130,17 @@ int ipc_get_status(ipc_message *msg)
 	int connfd;
 
 	connfd = prepare_ipc();
-	if (connfd < 0) {
+	if (connfd < 0)
 		return -1;
-	}
+
 	ret = __ipc_get_status(connfd, msg, 0);
 	close(connfd);
 
-	if (ret > 0)
-		return 0;
-	return -1;
+	return ret;
 }
 
 /*
- * @return : 0 = TIMEOUT
+ * @return : 0  : TIMEOUT
  *           -1 : error
  *           else data read
  */
@@ -167,23 +150,25 @@ int ipc_get_status_timeout(ipc_message *msg, unsigned int timeout_ms)
 	int connfd;
 
 	connfd = prepare_ipc();
-	if (connfd < 0) {
+	if (connfd < 0)
 		return -1;
-	}
+
 	ret = __ipc_get_status(connfd, msg, timeout_ms);
 	close(connfd);
 
-	return ret;
+	/* Not very nice, but necessary in order to keep the API consistent. */
+	if (timeout_ms && ret == -ETIMEDOUT)
+		return 0;
+
+	return ret == 0 ? sizeof(*msg) : -1;
 }
 
 int ipc_inst_start_ext(void *priv, ssize_t size)
 {
 	int connfd;
 	ipc_message msg;
-	ssize_t ret;
 	struct swupdate_request *req;
 	struct swupdate_request localreq;
-
 
 	if (priv) {
 		/*
@@ -217,24 +202,16 @@ int ipc_inst_start_ext(void *priv, ssize_t size)
 	msg.type = REQ_INSTALL;
 
 	msg.data.instmsg.req = *req;
-	ret = write(connfd, &msg, sizeof(msg));
-	if (ret != sizeof(msg)) {
-		close(connfd);
-		return -1;
-	}
-
-	ret = read(connfd, &msg, sizeof(msg));
-	if (ret <= 0) {
-		close(connfd);
-		return -1;
-	}
-
-	if (msg.type != ACK) {
-		close(connfd);
-		return -1;
-	}
+	if (write(connfd, &msg, sizeof(msg)) != sizeof(msg) ||
+		read(connfd, &msg, sizeof(msg)) != sizeof(msg) ||
+		msg.type != ACK)
+		goto cleanup;
 
 	return connfd;
+
+cleanup:
+	close(connfd);
+	return -1;
 }
 
 /*
@@ -252,14 +229,8 @@ int ipc_inst_start(void)
  */
 int ipc_send_data(int connfd, char *buf, int size)
 {
-	ssize_t ret;
-
-	ret = write(connfd, buf, (size_t)size);
-	if (ret != size) {
-		return -1;
-	}
-
-	return (int)ret;
+	ssize_t ret = write(connfd, buf, (size_t)size);
+	return ret != size ? -1 : (int)ret;
 }
 
 void ipc_end(int connfd)
@@ -281,10 +252,9 @@ int ipc_wait_for_complete(getstatus callback)
 		if (fd < 0)
 			break;
 		ret = __ipc_get_status(fd, &message, 0);
-		ipc_end(fd);
+		close(fd);
 
 		if (ret < 0) {
-			printf("__ipc_get_status returned %d\n", ret);
 			message.data.status.last_result = FAILURE;
 			break;
 		}
@@ -305,25 +275,16 @@ int ipc_wait_for_complete(getstatus callback)
 int ipc_send_cmd(ipc_message *msg)
 {
 	int connfd = prepare_ipc();
-	int ret;
-
-	if (connfd < 0) {
+	if (connfd < 0)
 		return -1;
-	}
 
 	/* TODO: Check source type */
 	msg->magic = IPC_MAGIC;
-	ret = write(connfd, msg, sizeof(*msg));
-	if (ret != sizeof(*msg)) {
-		close(connfd);
-		return -1;
-	}
-	ret = read(connfd, msg, sizeof(*msg));
-	if (ret <= 0) {
-		close(connfd);
-		return -1;
-	}
+
+	int ret = write(connfd, msg, sizeof(*msg)) != sizeof(*msg) ||
+		read(connfd, msg, sizeof(*msg))  != sizeof(*msg);
+
 	close(connfd);
 
-	return 0;
+	return -ret;
 }
