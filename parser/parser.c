@@ -47,20 +47,17 @@ static bool path_append(const char **nodes, const char *field)
 	return true;
 }
 
-static void *find_node(parsertype p, void *root, const char *field,
-			struct swupdate_cfg *swcfg)
+static void *find_node_and_path(parsertype p, void *root, const char *field,
+			struct swupdate_cfg *swcfg, const char **nodes)
 {
-
 	struct hw_type *hardware;
-	const char **nodes;
+	void *node = NULL;
 	int i;
 
 	if (!field)
 		return NULL;
 
 	hardware = &swcfg->hw;
-
-	nodes = (const char **)calloc(MAX_PARSED_NODES, sizeof(*nodes));
 
 	for (i = 0; i < 4; i++) {
 		nodes[0] = NULL;
@@ -113,21 +110,36 @@ static void *find_node(parsertype p, void *root, const char *field,
 		 * to search for element
 		 */
 		if (find_root(p, root, nodes)) {
-			void *node = NULL;
 			if (!path_append(nodes, field))
 				return NULL;
 			node = find_root(p, root, nodes);
 
 			if (node) {
-				free(nodes);
 				return node;
 			}
 		}
 	}
 
+	return NULL;
+}
+
+static void *find_node(parsertype p, void *root, const char *field,
+			struct swupdate_cfg *swcfg)
+{
+	const char **nodes;
+	void *node = NULL;
+
+	if (!field)
+		return NULL;
+
+	nodes = (const char **)calloc(MAX_PARSED_NODES, sizeof(*nodes));
+	if (!nodes)
+		return NULL;
+
+	node = find_node_and_path(p, root, field, swcfg, nodes);
 	free(nodes);
 
-	return NULL;
+	return node;
 }
 
 static bool get_common_fields(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
