@@ -434,7 +434,7 @@ static int parse_common_attributes(parsertype p, void *elem, struct img_type *im
 static int _parse_partitions(parsertype p, void *cfg, void *setting, const char **nodes, struct swupdate_cfg *swcfg, lua_State *L)
 {
 	void *elem;
-	int count, i, err;
+	int count, i, skip, err;
 	struct img_type *partition;
 
 	if (setting == NULL)
@@ -486,6 +486,11 @@ static int _parse_partitions(parsertype p, void *cfg, void *setting, const char 
 
 		add_properties(p, elem, partition);
 
+		skip = run_embscript(p, elem, partition, L, swcfg->embscript);
+		if (skip < 0) {
+			free_image(partition);
+			return -1;
+		}
 		TRACE("Partition: %s new size %lld bytes",
 			!strcmp(partition->type, "ubipartition") ? partition->volname : partition->device,
 			partition->partsize);
