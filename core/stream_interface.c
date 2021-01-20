@@ -552,7 +552,7 @@ void *network_initializer(void *data)
 		/*
 		 * Check if the stream should be saved
 		 */
-		if (strlen(software->output)) {
+		if (!req->disable_store_swu  && strlen(software->output)) {
 			ret = save_stream(inst.fd, software);
 			if (ret < 0) {
 				notify(FAILURE, RECOVERY_ERROR, ERRORLEVEL,

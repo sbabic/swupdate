@@ -68,6 +68,7 @@ struct swupdate_request {
 	char info[512];
 	char software_set[256];
 	char running_mode[256];
+	bool disable_store_swu;
 };
 
 typedef union {
