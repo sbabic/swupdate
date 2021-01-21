@@ -55,6 +55,11 @@ typedef struct {
 	output_data_t *outdata;
 } write_callback_t;
 
+typedef struct {
+	curl_off_t total_download_size;
+	uint8_t percent;
+} download_callback_data_t;
+
 
 /* Prototypes for "internal" functions */
 /* Note that they're not `static` so that they're callable from unit tests. */
@@ -414,25 +419,31 @@ static int channel_callback_xferinfo(void *p, curl_off_t dltotal, curl_off_t dln
 				     curl_off_t __attribute__((__unused__)) ultotal,
 				     curl_off_t __attribute__((__unused__)) ulnow)
 {
-	if ((dltotal <= 0) || (dlnow > dltotal)) {
+	if ((dltotal <= 0) || (dlnow > dltotal))
 		return 0;
-	}
-	double percent = 100.0 * (dlnow/1024.0) / (dltotal/1024.0);
-	double *last_percent = (double*)p;
-	if ((int)*last_percent == (int)percent) {
+
+	uint8_t percent = 100.0 * ((double)dlnow / dltotal);
+	download_callback_data_t *data = (download_callback_data_t*)p;
+
+	if (data->percent >= percent)
 		return 0;
-	}
-	*last_percent = percent;
+	else
+		data->percent = percent;
+
+	DEBUG("Downloaded %d%% (%lu of %lu kB).", percent, dlnow / 1024, dltotal / 1024);
 	swupdate_download_update(percent, dltotal);
+
 	return 0;
 }
 
+#if LIBCURL_VERSION_NUM < 0x072000
 static int channel_callback_xferinfo_legacy(void *p, double dltotal, double dlnow,
 					    double ultotal, double ulnow)
 {
 	return channel_callback_xferinfo(p, (curl_off_t)dltotal, (curl_off_t)dlnow,
 					 (curl_off_t)ultotal, (curl_off_t)ulnow);
 }
+#endif
 
 static size_t channel_callback_headers(char *buffer, size_t size, size_t nitems, void *userdata)
 {
@@ -562,28 +573,6 @@ channel_op_res_t channel_set_options(channel_t *this, channel_data_t *channel_da
 	if ((!channel_data->nofollow) &&
 	    (curl_easy_setopt(channel_curl->handle, CURLOPT_FOLLOWLOCATION, 1) !=
 	     CURLE_OK)) {
-		result = CHANNEL_EINIT;
-		goto cleanup;
-	}
-
-	double percent = -INFINITY;
-	if ((curl_easy_setopt(channel_curl->handle, CURLOPT_PROGRESSFUNCTION,
-			      channel_callback_xferinfo_legacy) != CURLE_OK) ||
-	    (curl_easy_setopt(channel_curl->handle, CURLOPT_PROGRESSDATA,
-				  &percent) != CURLE_OK)) {
-		result = CHANNEL_EINIT;
-		goto cleanup;
-	}
-#if LIBCURL_VERSION_NUM >= 0x072000
-	if ((curl_easy_setopt(channel_curl->handle, CURLOPT_XFERINFOFUNCTION,
-			      channel_callback_xferinfo) != CURLE_OK) ||
-	    (curl_easy_setopt(channel_curl->handle, CURLOPT_XFERINFODATA,
-				  &percent) != CURLE_OK)) {
-		result = CHANNEL_EINIT;
-		goto cleanup;
-	}
-#endif
-	if (curl_easy_setopt(channel_curl->handle, CURLOPT_NOPROGRESS, 0L) != CURLE_OK) {
 		result = CHANNEL_EINIT;
 		goto cleanup;
 	}
@@ -727,6 +716,73 @@ channel_op_res_t channel_set_options(channel_t *this, channel_data_t *channel_da
 		}
 	}
 
+cleanup:
+	return result;
+}
+
+static curl_off_t channel_get_total_download_size(channel_curl_t *this,
+		const char *url)
+{
+	assert(this != NULL);
+	assert(url  != NULL);
+
+	curl_off_t size = -1;
+	if (curl_easy_setopt(this->handle, CURLOPT_URL, url) != CURLE_OK ||
+		curl_easy_setopt(this->handle, CURLOPT_NOBODY, 1L) != CURLE_OK ||
+		curl_easy_perform(this->handle) != CURLE_OK)
+		goto cleanup;
+
+	if (curl_easy_getinfo(this->handle, CURLINFO_CONTENT_LENGTH_DOWNLOAD_T,
+			&size) != CURLE_OK)
+		goto cleanup;
+
+cleanup:
+	if (curl_easy_setopt(this->handle, CURLOPT_NOBODY, 0L) != CURLE_OK) {
+		ERROR("Failed to properly clean-up handle.");
+		size = -1;
+	}
+
+	return size;
+}
+
+static channel_op_res_t channel_enable_download_progress_tracking(
+		channel_curl_t *this,
+		const char *url,
+		download_callback_data_t *download_data)
+{
+	assert(url != NULL);
+	assert(download_data != NULL);
+
+	download_data->percent = 0;
+
+	channel_op_res_t result = CHANNEL_OK;
+	if ((download_data->total_download_size = channel_get_total_download_size(
+				this, url)) <= 0) {
+		result = CHANNEL_EINIT;
+		goto cleanup;
+	}
+
+#if LIBCURL_VERSION_NUM >= 0x072000
+	if ((curl_easy_setopt(this->handle, CURLOPT_XFERINFOFUNCTION,
+			      channel_callback_xferinfo) != CURLE_OK) ||
+	    (curl_easy_setopt(this->handle, CURLOPT_XFERINFODATA,
+				  download_data) != CURLE_OK)) {
+		result = CHANNEL_EINIT;
+		goto cleanup;
+	}
+#else
+	if ((curl_easy_setopt(this->handle, CURLOPT_PROGRESSFUNCTION,
+			      channel_callback_xferinfo_legacy) != CURLE_OK) ||
+	    (curl_easy_setopt(this->handle, CURLOPT_PROGRESSDATA,
+				  download_data) != CURLE_OK)) {
+		result = CHANNEL_EINIT;
+		goto cleanup;
+	}
+#endif
+	if (curl_easy_setopt(this->handle, CURLOPT_NOPROGRESS, 0L) != CURLE_OK) {
+		result = CHANNEL_EINIT;
+		goto cleanup;
+	}
 cleanup:
 	return result;
 }
@@ -1029,6 +1085,16 @@ channel_op_res_t channel_get_file(channel_t *this, void *data)
 		ERROR("Set channel option failed.");
 		goto cleanup_header;
 	}
+
+	download_callback_data_t download_data;
+	if (channel_enable_download_progress_tracking(channel_curl,
+				channel_data->url,
+				&download_data) == CHANNEL_EINIT) {
+		WARN("Failed to get total download size for URL %s.",
+				channel_data->url);
+	} else
+		INFO("Total download size is %lu kB.",
+				download_data.total_download_size / 1024);
 
 	if (curl_easy_setopt(channel_curl->handle, CURLOPT_CUSTOMREQUEST, "GET") !=
 	    CURLE_OK) {
