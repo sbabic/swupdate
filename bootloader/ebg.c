@@ -18,9 +18,6 @@
 #include <state.h>
 #include "bootloader.h"
 
-#define RCS_KEY   "recovery_status"
-#define RCS_VALUE "in_progress"
-
 static ebgenv_t ebgenv = {0};
 
 int bootloader_env_set(const char *name, const char *value)
@@ -37,8 +34,9 @@ int bootloader_env_set(const char *name, const char *value)
 		return ret;
 	}
 
-	if (strncmp(name, RCS_KEY, strlen(name) + 1) == 0 &&
-	    strncmp(value, RCS_VALUE, strlen(RCS_VALUE) + 1) == 0) {
+	if (strncmp(name, BOOTVAR_TRANSACTION, strlen(name) + 1) == 0 &&
+	    strncmp(value, get_state_string(STATE_IN_PROGRESS),
+		    strlen(get_state_string(STATE_IN_PROGRESS)) + 1) == 0) {
 		/* Open or create a new environment to reflect
 		 * EFI Boot Guard's representation of SWUpdate's
 		 * recovery_status=in_progress. */
@@ -81,10 +79,10 @@ int bootloader_env_unset(const char *name)
 		return ret;
 	}
 
-	if (strncmp(name, RCS_KEY, strlen(name) + 1) == 0) {
+	if (strncmp(name, BOOTVAR_TRANSACTION, strlen(name) + 1) == 0) {
 		ret = ebg_env_finalize_update(&ebgenv);
 		if (ret) {
-			ERROR("Cannot unset %s in bootloader environment: %s.", RCS_KEY, strerror(ret));
+			ERROR("Cannot unset %s in bootloader environment: %s.", BOOTVAR_TRANSACTION, strerror(ret));
 		}
 	} else if (strncmp(name, (char *)STATE_KEY, strlen((char *)STATE_KEY) + 1) == 0) {
 		/* Unsetting STATE_KEY is semantically equivalent to setting it to STATE_OK. */
