@@ -86,6 +86,11 @@ int bootloader_env_unset(const char *name)
 		if (ret) {
 			ERROR("Cannot unset %s in bootloader environment: %s.", RCS_KEY, strerror(ret));
 		}
+	} else if (strncmp(name, (char *)STATE_KEY, strlen((char *)STATE_KEY) + 1) == 0) {
+		/* Unsetting STATE_KEY is semantically equivalent to setting it to STATE_OK. */
+		if ((ret = ebg_env_setglobalstate(&ebgenv, STATE_OK - '0')) != 0) {
+			ERROR("Cannot unset %s in bootloader environment.", STATE_KEY);
+		}
 	} else {
 		ret = ebg_env_set_ex(&ebgenv, (char *)name, USERVAR_TYPE_DELETED, (uint8_t *)"", 1);
 	}
