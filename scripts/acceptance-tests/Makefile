@@ -15,6 +15,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc.
 
+.NOTPARALLEL:
+
 SWU_CLEAN = rm -f /tmp/sw-description
 
 include $(srctree)/scripts/acceptance-tests/CheckImage.mk
