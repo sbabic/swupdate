@@ -19,17 +19,12 @@
 
 /* (Persistent) Update State Management Functions.
  *
- * Suricatta may persistently store the update status to communicate it to the
- * server instance after, e.g., a successful reboot into the new firmware. The
- * `{save,read,reset}_state()` functions are called by a server implementation
- * to persistently manage the update state via, e.g., U-Boot's environment.
+ * The SWUpdate core or a module such as suricatta may want to persistently
+ * store the update status to communicate it to the server instance after,
+ * e.g., a successful reboot into the new firmware.
+ * The `{save,get}_state()` functions are called to manage the update status
+ * via, e.g., U-Boot's environment.
  *
- * Besides suricatta, this mechanism is also used by SWUpdate's core for
- * setting an update transaction marker, i.e., the bootloader environment
- * variable BOOTVAR_TRANSACTION (default: "recovery_status") is set to
- * "in_progress" prior to an update operation and either unset or set to
- * "failed" after the update operation, depending on whether an sw-description's
- * "bootloader_transaction_marker" property is true which is the default.
  */
 
 typedef enum {
