@@ -518,6 +518,9 @@ Command line parameters
 | -M          |    -     | Disable setting the bootloader transaction |
 |             |          | marker.                                    |
 +-------------+----------+--------------------------------------------+
+| -m          |    -     | Disable setting the update state in the    |
+|             |          | bootloader.                                |
++-------------+----------+--------------------------------------------+
 | -w <parms>  | string   | Available if CONFIG_WEBSERVER is set.      |
 |             |          | Start internal webserver and pass to it    |
 |             |          | a command line string.                     |

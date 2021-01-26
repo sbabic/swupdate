@@ -131,6 +131,7 @@ struct swupdate_global_cfg {
 	int no_downgrading;
 	int no_reinstalling;
 	int no_transaction_marker;
+	int no_state_marker;
 	char publickeyfname[SWUPDATE_GENERAL_STRING_SIZE];
 	char aeskeyfname[SWUPDATE_GENERAL_STRING_SIZE];
 	char postupdatecmd[SWUPDATE_GENERAL_STRING_SIZE];
@@ -149,6 +150,7 @@ struct swupdate_cfg {
 	char description[SWUPDATE_UPDATE_DESCRIPTION_STRING_SIZE];
 	char version[SWUPDATE_GENERAL_STRING_SIZE];
 	bool bootloader_transaction_marker;
+	bool bootloader_state_marker;
 	char software_set[SWUPDATE_GENERAL_STRING_SIZE];
 	char running_mode[SWUPDATE_GENERAL_STRING_SIZE];
 	char output[SWUPDATE_GENERAL_STRING_SIZE];

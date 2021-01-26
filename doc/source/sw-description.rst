@@ -832,8 +832,8 @@ SWUpdate scans for all scripts and calls them after installing the images.
 If the data attribute is defined, its value is passed as the last argument(s)
 to the script.
 
-Update Transaction Marker
--------------------------
+Update Transaction and Status Marker
+------------------------------------
 
 By default, SWUpdate sets the bootloader environment variable "recovery_status"
 to "in_progress" prior to an update operation and either unsets it or sets it to
@@ -861,7 +861,14 @@ transaction marker:
 
 It is also possible to disable setting of the transaction marker
 entirely (and independently of the setting in `sw-description`) by
-starting swupdate with the `-M` option.
+starting SWUpdate with the `-M` option.
+
+
+The same applies to setting the update state in the bootloader via its
+environment variable "ustate" (default) to `STATE_INSTALLED=1` or
+`STATE_FAILED=3` after an installation. This behavior can be turned off
+globally via the `-m` option to SWUpdate or per `sw-description` via the
+boolean switch "bootloader_state_marker".
 
 bootloader
 ----------
