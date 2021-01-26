@@ -740,7 +740,7 @@ server_op_res_t server_has_pending_action(int *action_id)
 		/*
 		 * Save the state
 		 */
-		if ((result = save_state((char *)STATE_KEY, STATE_OK)) != SERVER_OK) {
+		if ((result = save_state(STATE_OK)) != SERVER_OK) {
 			ERROR("Error while resetting update state on persistent "
 			"storage.\n");
 		}
@@ -891,7 +891,7 @@ server_op_res_t server_handle_initial_state(update_state_t stateovrrd)
 	/* NOTE (Re-)setting STATE_KEY=STATE_OK == '0' instead of deleting it
 	 *      as it may be required for the switchback/recovery U-Boot logics.
 	 */
-	if ((result = save_state((char *)STATE_KEY, STATE_OK)) != SERVER_OK) {
+	if ((result = save_state(STATE_OK)) != SERVER_OK) {
 		ERROR("Error while resetting update state on persistent "
 		      "storage.\n");
 		return result;
@@ -1947,7 +1947,7 @@ static server_op_res_t server_activation_ipc(ipc_message *msg)
 		/*
 		 * Save the state
 		 */
-		if ((result = save_state((char *)STATE_KEY, STATE_OK)) != SERVER_OK) {
+		if ((result = save_state(STATE_OK)) != SERVER_OK) {
 			ERROR("Error while resetting update state on persistent "
 			"storage.\n");
 		}

@@ -115,11 +115,10 @@ channel_op_res_t __wrap_channel_get(channel_t *this, void *data)
 	return mock_type(channel_op_res_t);
 }
 
-extern int __real_save_state(char *key, update_state_t value);
-int __wrap_save_state(char *key, update_state_t *value);
-int __wrap_save_state(char *key, update_state_t *value)
+extern int __real_save_state(update_state_t value);
+int __wrap_save_state(update_state_t *value);
+int __wrap_save_state(update_state_t *value)
 {
-	(void)key;
 	(void)value;
 	return mock_type(int);
 }

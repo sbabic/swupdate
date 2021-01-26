@@ -42,7 +42,7 @@ static int do_save_state(char *key, char* value)
 	return bootloader_env_set(key, value);
 }
 
-int save_state(char *key, update_state_t value)
+int save_state(update_state_t value)
 {
 	char value_str[2] = {value, '\0'};
 	ipc_message msg;
@@ -54,7 +54,7 @@ int save_state(char *key, update_state_t value)
 		return (ipc_send_cmd(&msg));
 	} else {
 		/* Main process */
-		return do_save_state(key, value_str);
+		return do_save_state((char *)STATE_KEY, value_str);
 	}
 }
 

@@ -516,7 +516,7 @@ void *network_thread (void *data)
 			case SET_UPDATE_STATE:
 				value = *(update_state_t *)msg.data.msg;
 				msg.type = (is_valid_state(value) &&
-					    save_state((char *)STATE_KEY, value) == SERVER_OK)
+					    save_state(value) == SERVER_OK)
 					       ? ACK
 					       : NACK;
 				break;
