@@ -163,9 +163,13 @@ static void *curl_transfer_thread(void *p)
 
 	 /* Fill in the filename field */
 	field = curl_mime_addpart(conn->form);
-	curl_mime_name(field, "swupdate-package");
-	curl_mime_type(field, "application/octet-stream");
-	curl_mime_filename(field, "swupdate.swu");
+	if ((curl_mime_name(field, "swupdate-package") != CURLE_OK) ||
+	    (curl_mime_type(field, "application/octet-stream") != CURLE_OK) ||
+	    (curl_mime_filename(field, "swupdate.swu") != CURLE_OK)) {
+		ERROR("curl set MIME was not successful");
+		conn->exitval = FAILURE;
+		goto curl_thread_exit;
+	}
 
 	if ((curl_easy_setopt(conn->curl_handle, CURLOPT_POST, 1L) != CURLE_OK) ||
 	   (curl_mime_data_cb(field, conn->total_bytes, curl_read_data,
