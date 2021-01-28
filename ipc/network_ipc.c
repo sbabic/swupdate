@@ -273,6 +273,8 @@ int ipc_wait_for_complete(getstatus callback)
 	RECOVERY_STATUS status = IDLE;
 	ipc_message message;
 	int ret;
+	
+	message.data.status.last_result = FAILURE;
 
 	do {
 		fd = prepare_ipc();
