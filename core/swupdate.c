@@ -365,6 +365,13 @@ static int read_globals_settings(void *elem, void *data)
 	GET_FIELD_STRING(LIBCFG_PARSER, elem, "forced-signer-name",
 				sw->globals.forced_signer_name);
 
+	char software_select[SWUPDATE_GENERAL_STRING_SIZE] = "";
+	GET_FIELD_STRING(LIBCFG_PARSER, elem, "select", software_select);
+	if (software_select[0] != '\0') {
+		/* by convention, errors in a configuration section are ignored */
+		(void)parse_image_selector(software_select, sw);
+	}
+
 	return 0;
 }
 
@@ -815,8 +822,12 @@ int main(int argc, char **argv)
 			fprintf(stderr, "Error: Incorrect select option format.\n");
 			exit(EXIT_FAILURE);
 		}
+	}
+
+	/* check if software_set or running_mode was parsed and log both values */
+	if (swcfg.globals.default_software_set[0] != '\0' || swcfg.globals.default_running_mode[0] != '\0') {
 		INFO("software set: %s mode: %s", swcfg.globals.default_software_set,
-		     swcfg.globals.default_running_mode);
+			swcfg.globals.default_running_mode);
 	}
 
 	/* Read sw-versions */
