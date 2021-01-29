@@ -518,6 +518,12 @@ int main(int argc, char **argv)
 		case 'f':
 			cfgfname = sdup(optarg);
 			break;
+		case 'l':
+			loglevel = strtoul(optarg, NULL, 10);
+			break;
+		case 'v':
+			loglevel = TRACELEVEL;
+			break;
 		case '0':
 			printf("%s", BANNER);
 			exit(EXIT_SUCCESS);
