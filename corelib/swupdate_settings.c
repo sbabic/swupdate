@@ -53,6 +53,7 @@ static int read_settings_file(config_t *cfg, const char *filename)
 {
 	int ret;
 
+	DEBUG("Reading config file %s", filename);
 	ret = config_read_file(cfg, filename);
 	if (ret != CONFIG_TRUE) {
 		fprintf(stderr, "%s ", config_error_file(cfg));
@@ -86,10 +87,12 @@ int read_module_settings(const char *filename, const char *module, settings_call
 	elem = find_settings_node(&cfg, module);
 
 	if (!elem) {
+		DEBUG("No config settings found for module %s", module);
 		config_destroy(&cfg);
 		return -ENODATA;
 	}
 
+	DEBUG("Reading config settings for module %s", module);
 	fcn(elem, data);
 
 	config_destroy(&cfg);

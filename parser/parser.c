@@ -965,6 +965,7 @@ int parse_cfg (struct swupdate_cfg *swcfg, const char *filename)
 	config_init(&cfg);
 
 	/* Read the file. If there is an error, report it and exit. */
+	DEBUG("Parsing config file %s", filename);
 	if(config_read_file(&cfg, filename) != CONFIG_TRUE) {
 		printf("%s ", config_error_file(&cfg));
 		printf("%d ", config_error_line(&cfg));
@@ -1004,6 +1005,7 @@ int parse_json(struct swupdate_cfg *swcfg, const char *filename)
 	json_object *cfg;
 	parsertype p = JSON_PARSER;
 
+	DEBUG("Parsing config file %s", filename);
 	/* Read the file. If there is an error, report it and exit. */
 	ret = stat(filename, &stbuf);
 
