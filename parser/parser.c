@@ -346,8 +346,8 @@ static int is_image_higher(struct swver *sw_ver_list,
          * or equal.
          */
         if (!strncmp(img->id.name, swver->name, sizeof(img->id.name)) &&
-            (compare_versions(proposed_version, current_version) < 0)) {
-            TRACE("%s(%s) has a higher version installed, skipping...",
+            (compare_versions(proposed_version, current_version) <= 0)) {
+            TRACE("%s(%s) has a higher or same version installed, skipping...",
                   img->id.name,
                   img->id.version);
 
