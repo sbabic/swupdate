@@ -131,21 +131,12 @@ static int versions_settings(void *setting, void *data)
 
 void get_sw_versions(char *cfgname, struct swupdate_cfg *sw)
 {
-	int ret = -EINVAL;
-
-	/*
-	 * Try to read versions from configuration file
-	 * If not found, fall back to a legacy file
-	 * in the format "<image name> <version>"
-	 */
-	if (cfgname)
-		ret = read_module_settings(cfgname, "versions",
-						versions_settings,
-						sw);
-
-	if (ret)
-		ret = read_sw_version_file(sw);
-
+	/* Try to read versions from configuration file */
+	if (cfgname && read_module_settings(cfgname, "versions", versions_settings, sw) == 0) {
+		return;
+	}
+	/* If not found, fall back to a legacy file in the format "<image name> <version>" */
+	read_sw_version_file(sw);
 }
 #else
 
