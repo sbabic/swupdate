@@ -65,6 +65,9 @@ Talks about SWUpdate
        - Secure Boot and Over-the-Air Updates - That's simple, no ? by Jan Kiszka (Siemens AG), ELC 2020,
          `Slides Secure OTA ELC 2020 <https://static.sched.com/hosted_files/ossna2020/17/Secure-OTA-Updates_elc-na-2020.pdf>`_,
          `Video Secure OTA <https://www.youtube.com/watch?v=vfYSP4qIJP0&t=1647s>`_
+       - Diving into SWUpdate: adding new platform support with Yocto/OE! by Pierre-Jean Texier, LiveEmbedded 2020,
+         `Slides Diving into SWUpdate <https://de.slideshare.net/PierrejeanTexier/diving-into-swupdate-adding-new-platform-support-in-30minutes-with-yoctooe>`_,
+         `Video Diving into SWUpdate <https://www.youtube.com/watch?v=TK10pNb_mzw>`_
 
 Useful references
 =================
