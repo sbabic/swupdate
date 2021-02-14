@@ -358,15 +358,15 @@ static int read_globals_settings(void *elem, void *data)
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
 				"no-downgrading", sw->globals.minimum_version);
 	if (strlen(sw->globals.minimum_version))
-		sw->globals.no_downgrading = 1;
+		sw->globals.no_downgrading = true;
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
 				"max-version", sw->globals.maximum_version);
 	if (strlen(sw->globals.maximum_version))
-		sw->globals.check_max_version = 1;
+		sw->globals.check_max_version = true;
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
 				"no-reinstalling", sw->globals.current_version);
 	if (strlen(sw->globals.current_version))
-		sw->globals.no_reinstalling = 1;
+		sw->globals.no_reinstalling = true;
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
 				"cert-purpose", tmp);
 	if (tmp[0] != '\0')
@@ -632,7 +632,7 @@ int main(int argc, char **argv)
 			swcfg.globals.default_dry_run = true;
 			break;
 		case 'L':
-			swcfg.globals.syslog_enabled = 1;
+			swcfg.globals.syslog_enabled = true;
 			break;
 		case 'k':
 			strlcpy(swcfg.globals.publickeyfname,
@@ -647,7 +647,7 @@ int main(int argc, char **argv)
 				sizeof(swcfg.globals.forced_signer_name));
 			break;
 		case '3':
-			swcfg.globals.check_max_version = 1;
+			swcfg.globals.check_max_version = true;
 			strlcpy(swcfg.globals.maximum_version, optarg,
 				sizeof(swcfg.globals.maximum_version));
 			break;
@@ -659,21 +659,21 @@ int main(int argc, char **argv)
 			break;
 #endif
 		case 'N':
-			swcfg.globals.no_downgrading = 1;
+			swcfg.globals.no_downgrading = true;
 			strlcpy(swcfg.globals.minimum_version, optarg,
 				sizeof(swcfg.globals.minimum_version));
 			break;
 		case 'R':
-			swcfg.globals.no_reinstalling = 1;
+			swcfg.globals.no_reinstalling = true;
 			strlcpy(swcfg.globals.current_version, optarg,
 				sizeof(swcfg.globals.current_version));
 			break;
 		case 'M':
-			swcfg.globals.no_transaction_marker = 1;
+			swcfg.globals.no_transaction_marker = true;
 			TRACE("transaction_marker globally disabled");
 			break;
 		case 'm':
-			swcfg.globals.no_state_marker = 1;
+			swcfg.globals.no_state_marker = true;
 			TRACE("state_marker globally disabled");
 			break;
 		case 'e':
