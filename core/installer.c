@@ -458,7 +458,7 @@ int preupdatecmd(struct swupdate_cfg *swcfg)
 			DEBUG("Dry run, skipping Pre-update command");
 		} else {
 			DEBUG("Running Pre-update command");
-			return run_system_cmd(swcfg->globals.preupdatecmd);
+			return run_system_cmd(swcfg->preupdatecmd);
 		}
 	}
 
@@ -474,7 +474,7 @@ int postupdate(struct swupdate_cfg *swcfg, const char *info)
 			DEBUG("Dry run, skipping Post-update command");
 		} else {
 			DEBUG("Running Post-update command");
-			return run_system_cmd(swcfg->globals.postupdatecmd);
+			return run_system_cmd(swcfg->postupdatecmd);
 		}
 
 	}

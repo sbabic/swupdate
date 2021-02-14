@@ -166,7 +166,7 @@ int swupdate_dgst_init(struct swupdate_cfg *sw, const char *keyfile)
 		}
 	}
 
-	if (!X509_STORE_set_purpose(dgst->certs, sw->globals.cert_purpose)) {
+	if (!X509_STORE_set_purpose(dgst->certs, sw->cert_purpose)) {
 		ERROR("failed to set purpose");
 		ret = -EINVAL;
 		goto dgst_init_error;

@@ -496,6 +496,7 @@ void *network_initializer(void *data)
 	int ret;
 	struct swupdate_cfg *software = data;
 	struct swupdate_request *req;
+	struct swupdate_parms parms;
 
 	/* No installation in progress */
 	memset(&inst, 0, sizeof(inst));
@@ -521,6 +522,11 @@ void *network_initializer(void *data)
 		req = &inst.req;
 
 		/*
+		 * Save default values, they can be changed by a
+		 * install request
+		 */
+		parms = software->globals;
+		/*
 		 * Check if the dry run flag is overwritten
 		 */
 		switch (req->dry_run){
@@ -531,8 +537,7 @@ void *network_initializer(void *data)
 			software->globals.dry_run = false;
 			break;
 		case RUN_DEFAULT:
-		default:
-			software->globals.dry_run = software->globals.default_dry_run;
+			break;
 		}
 
 		/*
@@ -540,13 +545,8 @@ void *network_initializer(void *data)
 		 */
 		if ((strnlen(req->software_set, sizeof(req->software_set)) > 0) &&
 				(strnlen(req->running_mode, sizeof(req->running_mode)) > 0)) {
-			strlcpy(software->software_set, req->software_set, sizeof(software->software_set) - 1);
-			strlcpy(software->running_mode, req->running_mode, sizeof(software->running_mode) - 1);
-		} else {
-			strlcpy(software->software_set, software->globals.default_software_set,
-				sizeof(software->software_set) - 1);
-			strlcpy(software->running_mode, software->globals.default_running_mode,
-				sizeof(software->running_mode) - 1);
+			strlcpy(software->globals.software_set, req->software_set, sizeof(software->globals.software_set) - 1);
+			strlcpy(software->globals.running_mode, req->running_mode, sizeof(software->globals.running_mode) - 1);
 		}
 
 		/*
@@ -634,6 +634,11 @@ void *network_initializer(void *data)
 
 		swupdate_progress_end(inst.last_install);
 
+		/*
+		 * Reload default values for update
+		 */
+		software->globals = parms;
+
 		pthread_mutex_lock(&stream_mutex);
 		inst.status = IDLE;
 		pthread_mutex_unlock(&stream_mutex);
@@ -658,7 +663,7 @@ void get_install_swset(char *buf, size_t len)
 	if (!buf)
 		return;
 
-	strncpy(buf, inst.software->software_set, len - 1);
+	strncpy(buf, inst.software->globals.software_set, len - 1);
 
 }
 
@@ -668,7 +673,7 @@ void get_install_running_mode(char *buf, size_t len)
 	if (!buf)
 		return;
 
-	strncpy(buf, inst.software->running_mode, len - 1);
+	strncpy(buf, inst.software->globals.running_mode, len - 1);
 }
 
 /*

@@ -234,13 +234,11 @@ static int parse_image_selector(const char *selector, struct swupdate_cfg *sw)
 	 * the runtime copy in swcfg can be overloaded by IPC,
 	 * so maintain a copy to restore it after an update
 	 */
-	strlcpy(sw->globals.default_software_set, selector, sizeof(sw->globals.default_software_set));
-	strlcpy(sw->software_set, selector, sizeof(sw->software_set));
+	strlcpy(sw->globals.software_set, selector, sizeof(sw->globals.software_set));
 	/* pos + 1 will either be NULL or valid text */
-	strlcpy(sw->globals.default_running_mode, pos + 1, sizeof(sw->globals.default_running_mode));
-	strlcpy(sw->running_mode, pos + 1, sizeof(sw->running_mode));
+	strlcpy(sw->globals.running_mode, pos + 1, sizeof(sw->globals.running_mode));
 
-	if (strlen(sw->software_set) == 0 || strlen(sw->running_mode) == 0)
+	if (strlen(sw->globals.software_set) == 0 || strlen(sw->globals.running_mode) == 0)
 		return -EINVAL;
 
 	return 0;
@@ -303,7 +301,7 @@ static void swupdate_init(struct swupdate_cfg *sw)
 	LIST_INIT(&sw->bootscripts);
 	LIST_INIT(&sw->bootloader);
 	LIST_INIT(&sw->extprocs);
-	sw->globals.cert_purpose = SSL_PURPOSE_DEFAULT;
+	sw->cert_purpose = SSL_PURPOSE_DEFAULT;
 
 
 	/* Create directories for scripts */
@@ -341,38 +339,38 @@ static int read_globals_settings(void *elem, void *data)
 	struct swupdate_cfg *sw = (struct swupdate_cfg *)data;
 
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
-				"public-key-file", sw->globals.publickeyfname);
+				"public-key-file", sw->publickeyfname);
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
-				"ca-path", sw->globals.publickeyfname);
+				"ca-path", sw->publickeyfname);
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
-				"aes-key-file", sw->globals.aeskeyfname);
+				"aes-key-file", sw->aeskeyfname);
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
-				"mtd-blacklist", sw->globals.mtdblacklist);
+				"mtd-blacklist", sw->mtdblacklist);
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
-				"postupdatecmd", sw->globals.postupdatecmd);
+				"postupdatecmd", sw->postupdatecmd);
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
-				"preupdatecmd", sw->globals.preupdatecmd);
-	get_field(LIBCFG_PARSER, elem, "verbose", &sw->globals.verbose);
-	get_field(LIBCFG_PARSER, elem, "loglevel", &sw->globals.loglevel);
-	get_field(LIBCFG_PARSER, elem, "syslog", &sw->globals.syslog_enabled);
+				"preupdatecmd", sw->preupdatecmd);
+	get_field(LIBCFG_PARSER, elem, "verbose", &sw->verbose);
+	get_field(LIBCFG_PARSER, elem, "loglevel", &sw->loglevel);
+	get_field(LIBCFG_PARSER, elem, "syslog", &sw->syslog_enabled);
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
-				"no-downgrading", sw->globals.minimum_version);
-	if (strlen(sw->globals.minimum_version))
-		sw->globals.no_downgrading = true;
+				"no-downgrading", sw->minimum_version);
+	if (strlen(sw->minimum_version))
+		sw->no_downgrading = true;
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
-				"max-version", sw->globals.maximum_version);
-	if (strlen(sw->globals.maximum_version))
-		sw->globals.check_max_version = true;
+				"max-version", sw->maximum_version);
+	if (strlen(sw->maximum_version))
+		sw->check_max_version = true;
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
-				"no-reinstalling", sw->globals.current_version);
-	if (strlen(sw->globals.current_version))
-		sw->globals.no_reinstalling = true;
+				"no-reinstalling", sw->current_version);
+	if (strlen(sw->current_version))
+		sw->no_reinstalling = true;
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
 				"cert-purpose", tmp);
 	if (tmp[0] != '\0')
-		sw->globals.cert_purpose = parse_cert_purpose(tmp);
+		sw->cert_purpose = parse_cert_purpose(tmp);
 	GET_FIELD_STRING(LIBCFG_PARSER, elem, "forced-signer-name",
-				sw->globals.forced_signer_name);
+				sw->forced_signer_name);
 
 	char software_select[SWUPDATE_GENERAL_STRING_SIZE] = "";
 	GET_FIELD_STRING(LIBCFG_PARSER, elem, "select", software_select);
@@ -580,7 +578,7 @@ int main(int argc, char **argv)
 			exit(EXIT_FAILURE);
 		}
 
-		loglevel = swcfg.globals.verbose ? TRACELEVEL : swcfg.globals.loglevel;
+		loglevel = swcfg.verbose ? TRACELEVEL : swcfg.loglevel;
 
 		/*
 		 * The following sections are optional, hence -ENODATA error code is
@@ -629,51 +627,51 @@ int main(int argc, char **argv)
 			loglevel = strtoul(optarg, NULL, 10);
 			break;
 		case 'n':
-			swcfg.globals.default_dry_run = true;
+			swcfg.globals.dry_run = true;
 			break;
 		case 'L':
-			swcfg.globals.syslog_enabled = true;
+			swcfg.syslog_enabled = true;
 			break;
 		case 'k':
-			strlcpy(swcfg.globals.publickeyfname,
+			strlcpy(swcfg.publickeyfname,
 				optarg,
-			       	sizeof(swcfg.globals.publickeyfname));
+			       	sizeof(swcfg.publickeyfname));
 			break;
 		case '1':
-			swcfg.globals.cert_purpose = parse_cert_purpose(optarg);
+			swcfg.cert_purpose = parse_cert_purpose(optarg);
 			break;
 		case '2':
-			strlcpy(swcfg.globals.forced_signer_name, optarg,
-				sizeof(swcfg.globals.forced_signer_name));
+			strlcpy(swcfg.forced_signer_name, optarg,
+				sizeof(swcfg.forced_signer_name));
 			break;
 		case '3':
-			swcfg.globals.check_max_version = true;
-			strlcpy(swcfg.globals.maximum_version, optarg,
-				sizeof(swcfg.globals.maximum_version));
+			swcfg.check_max_version = true;
+			strlcpy(swcfg.maximum_version, optarg,
+				sizeof(swcfg.maximum_version));
 			break;
 #ifdef CONFIG_ENCRYPTED_IMAGES
 		case 'K':
-			strlcpy(swcfg.globals.aeskeyfname,
+			strlcpy(swcfg.aeskeyfname,
 				optarg,
-			       	sizeof(swcfg.globals.aeskeyfname));
+			       	sizeof(swcfg.aeskeyfname));
 			break;
 #endif
 		case 'N':
-			swcfg.globals.no_downgrading = true;
-			strlcpy(swcfg.globals.minimum_version, optarg,
-				sizeof(swcfg.globals.minimum_version));
+			swcfg.no_downgrading = true;
+			strlcpy(swcfg.minimum_version, optarg,
+				sizeof(swcfg.minimum_version));
 			break;
 		case 'R':
-			swcfg.globals.no_reinstalling = true;
-			strlcpy(swcfg.globals.current_version, optarg,
-				sizeof(swcfg.globals.current_version));
+			swcfg.no_reinstalling = true;
+			strlcpy(swcfg.current_version, optarg,
+				sizeof(swcfg.current_version));
 			break;
 		case 'M':
-			swcfg.globals.no_transaction_marker = true;
+			swcfg.no_transaction_marker = true;
 			TRACE("transaction_marker globally disabled");
 			break;
 		case 'm':
-			swcfg.globals.no_state_marker = true;
+			swcfg.no_state_marker = true;
 			TRACE("state_marker globally disabled");
 			break;
 		case 'e':
@@ -734,12 +732,12 @@ int main(int argc, char **argv)
 			opt_c = true;
 			break;
 		case 'p':
-			strlcpy(swcfg.globals.postupdatecmd, optarg,
-				sizeof(swcfg.globals.postupdatecmd));
+			strlcpy(swcfg.postupdatecmd, optarg,
+				sizeof(swcfg.postupdatecmd));
 			break;
 		case 'P':
-			strlcpy(swcfg.globals.preupdatecmd, optarg,
-				sizeof(swcfg.globals.preupdatecmd));
+			strlcpy(swcfg.preupdatecmd, optarg,
+				sizeof(swcfg.preupdatecmd));
 			break;
 		default:
 			fprintf(stdout, "Try %s -h for usage\n", argv[0]);
@@ -759,7 +757,7 @@ int main(int argc, char **argv)
 	 * Parameters are parsed: now performs plausibility
 	 * tests before starting processes and threads
 	 */
-	if (public_key_mandatory && !strlen(swcfg.globals.publickeyfname)) {
+	if (public_key_mandatory && !strlen(swcfg.publickeyfname)) {
 		fprintf(stderr,
 			 "Error: SWUpdate is built for signed images, provide a public key file.\n");
 		exit(EXIT_FAILURE);
@@ -786,8 +784,8 @@ int main(int argc, char **argv)
 
 	swupdate_crypto_init();
 
-	if (strlen(swcfg.globals.publickeyfname)) {
-		if (swupdate_dgst_init(&swcfg, swcfg.globals.publickeyfname)) {
+	if (strlen(swcfg.publickeyfname)) {
+		if (swupdate_dgst_init(&swcfg, swcfg.publickeyfname)) {
 			fprintf(stderr,
 				 "Error: Crypto cannot be initialized.\n");
 			exit(EXIT_FAILURE);
@@ -806,16 +804,16 @@ int main(int argc, char **argv)
 	sa.sa_handler = sigchld_handler;
 	sigaction(SIGCHLD, &sa, NULL);
 #ifdef CONFIG_UBIATTACH
-	if (strlen(swcfg.globals.mtdblacklist))
-		mtd_set_ubiblacklist(swcfg.globals.mtdblacklist);
+	if (strlen(swcfg.mtdblacklist))
+		mtd_set_ubiblacklist(swcfg.mtdblacklist);
 #endif
 
 	/*
 	 * If an AES key is passed, load it to allow
 	 * to decrypt images
 	 */
-	if (strlen(swcfg.globals.aeskeyfname)) {
-		if (load_decryption_key(swcfg.globals.aeskeyfname)) {
+	if (strlen(swcfg.aeskeyfname)) {
+		if (load_decryption_key(swcfg.aeskeyfname)) {
 			fprintf(stderr,
 				"Error: Key file does not contain a valid AES key.\n");
 			exit(EXIT_FAILURE);
@@ -828,7 +826,7 @@ int main(int argc, char **argv)
 		INFO("Running on %s Revision %s", swcfg.hw.boardname, swcfg.hw.revision);
 
 	print_registered_handlers();
-	if (swcfg.globals.syslog_enabled) {
+	if (swcfg.syslog_enabled) {
 		if (syslog_init()) {
 			ERROR("failed to initialize syslog notifier");
 		}
@@ -842,9 +840,9 @@ int main(int argc, char **argv)
 	}
 
 	/* check if software_set or running_mode was parsed and log both values */
-	if (swcfg.globals.default_software_set[0] != '\0' || swcfg.globals.default_running_mode[0] != '\0') {
-		INFO("software set: %s mode: %s", swcfg.globals.default_software_set,
-			swcfg.globals.default_running_mode);
+	if (swcfg.globals.software_set[0] != '\0' || swcfg.globals.running_mode[0] != '\0') {
+		INFO("software set: %s mode: %s", swcfg.globals.software_set,
+			swcfg.globals.running_mode);
 	}
 
 	/* Read sw-versions */

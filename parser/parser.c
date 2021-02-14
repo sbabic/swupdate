@@ -67,21 +67,21 @@ static void *find_node_and_path(parsertype p, void *root, const char *field,
 		nodes[0] = NULL;
 		switch(i) {
 		case 0:
-	        	if (strlen(swcfg->running_mode) && strlen(swcfg->software_set) &&
+			if (strlen(swcfg->globals.running_mode) && strlen(swcfg->globals.software_set) &&
 		        		strlen(hardware->boardname)) {
 				nodes[0] = NODEROOT;
 				nodes[1] = hardware->boardname;
-				nodes[2] = swcfg->software_set;
-				nodes[3] = swcfg->running_mode;
+				nodes[2] = swcfg->globals.software_set;
+				nodes[3] = swcfg->globals.running_mode;
 				nodes[4] = NULL;
 			}
 			break;
 		case 1:
 			/* try with software set and mode */
-			if (strlen(swcfg->running_mode) && strlen(swcfg->software_set)) {
+			if (strlen(swcfg->globals.running_mode) && strlen(swcfg->globals.software_set)) {
 				nodes[0] = NODEROOT;
-				nodes[1] = swcfg->software_set;
-				nodes[2] = swcfg->running_mode;
+				nodes[1] = swcfg->globals.software_set;
+				nodes[2] = swcfg->globals.running_mode;
 				nodes[3] = NULL;
 			}
 			break;
@@ -196,7 +196,7 @@ static bool get_common_fields(parsertype p, void *cfg, struct swupdate_cfg *swcf
 		TRACE("Description %s", swcfg->description);
 	}
 
-	if(swcfg->globals.no_state_marker) {
+	if(swcfg->no_state_marker) {
 		swcfg->bootloader_state_marker = false;
 	} else {
 		swcfg->bootloader_state_marker = true;
@@ -207,7 +207,7 @@ static bool get_common_fields(parsertype p, void *cfg, struct swupdate_cfg *swcf
 		}
 	}
 
-	if(swcfg->globals.no_transaction_marker) {
+	if(swcfg->no_transaction_marker) {
 		swcfg->bootloader_transaction_marker = false;
 	} else {
 		swcfg->bootloader_transaction_marker = true;

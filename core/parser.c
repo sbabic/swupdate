@@ -144,7 +144,7 @@ int parse(struct swupdate_cfg *sw, const char *descfile)
 	strcat(sigfile, ".sig");
 
 	ret = swupdate_verify_file(sw->dgst, sigfile, descfile,
-				   sw->globals.forced_signer_name);
+				   sw->forced_signer_name);
 	free(sigfile);
 
 	if (ret)
@@ -211,10 +211,10 @@ int parse(struct swupdate_cfg *sw, const char *descfile)
 	 * versions in numbers to be compared and check to get a
 	 * newer version
 	 */
-	if (sw->globals.no_downgrading) {
-		if (compare_versions(sw->version, sw->globals.minimum_version) < 0) {
+	if (sw->no_downgrading) {
+		if (compare_versions(sw->version, sw->minimum_version) < 0) {
 			ERROR("No downgrading allowed: new version %s <= installed %s",
-				sw->version, sw->globals.minimum_version);
+				sw->version, sw->minimum_version);
 			return -EPERM;
 		}
 	}
@@ -224,10 +224,10 @@ int parse(struct swupdate_cfg *sw, const char *descfile)
 	 * versions in numbers to be compared and check to get a
 	 * newer version
 	 */
-	if (sw->globals.check_max_version) {
-		if (compare_versions(sw->version, sw->globals.maximum_version) > 0) {
+	if (sw->check_max_version) {
+		if (compare_versions(sw->version, sw->maximum_version) > 0) {
 			ERROR("Max version set: new version %s >= max allowed %s",
-				sw->version, sw->globals.maximum_version);
+				sw->version, sw->maximum_version);
 			return -EPERM;
 		}
 	}
@@ -236,11 +236,11 @@ int parse(struct swupdate_cfg *sw, const char *descfile)
 	 * If reinstalling is not allowed, compare
 	 * version strings
 	 */
-	if (sw->globals.no_reinstalling) {
+	if (sw->no_reinstalling) {
 
-		if (strcmp(sw->version, sw->globals.current_version) == 0) {
+		if (strcmp(sw->version, sw->current_version) == 0) {
 			ERROR("No reinstalling allowed: new version %s == installed %s",
-				sw->version, sw->globals.current_version);
+				sw->version, sw->current_version);
 			return -EPERM;
 		}
 	}

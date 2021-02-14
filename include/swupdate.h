@@ -122,29 +122,10 @@ enum {
 	SCRIPT_POSTINSTALL
 };
 
-struct swupdate_global_cfg {
-	int verbose;
-	char mtdblacklist[SWUPDATE_GENERAL_STRING_SIZE];
-	int loglevel;
-	bool syslog_enabled;
+struct swupdate_parms {
 	bool dry_run;
-	bool no_downgrading;
-	bool no_reinstalling;
-	bool no_transaction_marker;
-	bool no_state_marker;
-	bool check_max_version;
-	char publickeyfname[SWUPDATE_GENERAL_STRING_SIZE];
-	char aeskeyfname[SWUPDATE_GENERAL_STRING_SIZE];
-	char postupdatecmd[SWUPDATE_GENERAL_STRING_SIZE];
-	char preupdatecmd[SWUPDATE_GENERAL_STRING_SIZE];
-	char default_software_set[SWUPDATE_GENERAL_STRING_SIZE];
-	char default_running_mode[SWUPDATE_GENERAL_STRING_SIZE];
-	bool default_dry_run;
-	char minimum_version[SWUPDATE_GENERAL_STRING_SIZE];
-	char maximum_version[SWUPDATE_GENERAL_STRING_SIZE];
-	char current_version[SWUPDATE_GENERAL_STRING_SIZE];
-	int cert_purpose;
-	char forced_signer_name[SWUPDATE_GENERAL_STRING_SIZE];
+	char software_set[SWUPDATE_GENERAL_STRING_SIZE];
+	char running_mode[SWUPDATE_GENERAL_STRING_SIZE];
 };
 
 struct swupdate_cfg {
@@ -153,9 +134,25 @@ struct swupdate_cfg {
 	char version[SWUPDATE_GENERAL_STRING_SIZE];
 	bool bootloader_transaction_marker;
 	bool bootloader_state_marker;
-	char software_set[SWUPDATE_GENERAL_STRING_SIZE];
-	char running_mode[SWUPDATE_GENERAL_STRING_SIZE];
 	char output[SWUPDATE_GENERAL_STRING_SIZE];
+	char publickeyfname[SWUPDATE_GENERAL_STRING_SIZE];
+	char aeskeyfname[SWUPDATE_GENERAL_STRING_SIZE];
+	char postupdatecmd[SWUPDATE_GENERAL_STRING_SIZE];
+	char preupdatecmd[SWUPDATE_GENERAL_STRING_SIZE];
+	char minimum_version[SWUPDATE_GENERAL_STRING_SIZE];
+	char maximum_version[SWUPDATE_GENERAL_STRING_SIZE];
+	char current_version[SWUPDATE_GENERAL_STRING_SIZE];
+	char mtdblacklist[SWUPDATE_GENERAL_STRING_SIZE];
+	char forced_signer_name[SWUPDATE_GENERAL_STRING_SIZE];
+	bool syslog_enabled;
+	bool no_downgrading;
+	bool no_reinstalling;
+	bool no_transaction_marker;
+	bool no_state_marker;
+	bool check_max_version;
+	int verbose;
+	int loglevel;
+	int cert_purpose;
 	struct hw_type hw;
 	struct hwlist hardware;
 	struct swver installed_sw_list;
@@ -166,7 +163,7 @@ struct swupdate_cfg {
 	struct dict accepted_set;
 	struct proclist extprocs;
 	void *dgst;	/* Structure for signed images */
-	struct swupdate_global_cfg globals;
+	struct swupdate_parms globals;
 	const char *embscript;
 };
 
