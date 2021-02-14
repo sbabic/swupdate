@@ -234,11 +234,11 @@ static int parse_image_selector(const char *selector, struct swupdate_cfg *sw)
 	 * the runtime copy in swcfg can be overloaded by IPC,
 	 * so maintain a copy to restore it after an update
 	 */
-	strlcpy(sw->globals.software_set, selector, sizeof(sw->globals.software_set));
+	strlcpy(sw->parms.software_set, selector, sizeof(sw->parms.software_set));
 	/* pos + 1 will either be NULL or valid text */
-	strlcpy(sw->globals.running_mode, pos + 1, sizeof(sw->globals.running_mode));
+	strlcpy(sw->parms.running_mode, pos + 1, sizeof(sw->parms.running_mode));
 
-	if (strlen(sw->globals.software_set) == 0 || strlen(sw->globals.running_mode) == 0)
+	if (strlen(sw->parms.software_set) == 0 || strlen(sw->parms.running_mode) == 0)
 		return -EINVAL;
 
 	return 0;
@@ -627,7 +627,7 @@ int main(int argc, char **argv)
 			loglevel = strtoul(optarg, NULL, 10);
 			break;
 		case 'n':
-			swcfg.globals.dry_run = true;
+			swcfg.parms.dry_run = true;
 			break;
 		case 'L':
 			swcfg.syslog_enabled = true;
@@ -840,9 +840,9 @@ int main(int argc, char **argv)
 	}
 
 	/* check if software_set or running_mode was parsed and log both values */
-	if (swcfg.globals.software_set[0] != '\0' || swcfg.globals.running_mode[0] != '\0') {
-		INFO("software set: %s mode: %s", swcfg.globals.software_set,
-			swcfg.globals.running_mode);
+	if (swcfg.parms.software_set[0] != '\0' || swcfg.parms.running_mode[0] != '\0') {
+		INFO("software set: %s mode: %s", swcfg.parms.software_set,
+			swcfg.parms.running_mode);
 	}
 
 	/* Read sw-versions */

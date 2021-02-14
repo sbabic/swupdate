@@ -255,7 +255,7 @@ int install_images(struct swupdate_cfg *sw)
 	char *filename;
 	struct stat buf;
 	const char* TMPDIR = get_tmpdir();
-	bool dry_run = sw->globals.dry_run;
+	bool dry_run = sw->parms.dry_run;
 	bool dropimg;
 
 	/* Extract all scripts, preinstall scripts must be run now */
@@ -454,7 +454,7 @@ void cleanup_files(struct swupdate_cfg *software) {
 int preupdatecmd(struct swupdate_cfg *swcfg)
 {
 	if (swcfg) {
-		if (swcfg->globals.dry_run) {
+		if (swcfg->parms.dry_run) {
 			DEBUG("Dry run, skipping Pre-update command");
 		} else {
 			DEBUG("Running Pre-update command");
@@ -470,7 +470,7 @@ int postupdate(struct swupdate_cfg *swcfg, const char *info)
 	swupdate_progress_done(info);
 
 	if (swcfg) {
-		if (swcfg->globals.dry_run) {
+		if (swcfg->parms.dry_run) {
 			DEBUG("Dry run, skipping Post-update command");
 		} else {
 			DEBUG("Running Post-update command");

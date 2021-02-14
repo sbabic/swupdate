@@ -163,7 +163,7 @@ struct swupdate_cfg {
 	struct dict accepted_set;
 	struct proclist extprocs;
 	void *dgst;	/* Structure for signed images */
-	struct swupdate_parms globals;
+	struct swupdate_parms parms;
 	const char *embscript;
 };
 
