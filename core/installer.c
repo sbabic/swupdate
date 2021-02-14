@@ -209,7 +209,7 @@ static int run_prepost_scripts(struct imglist *list, script_fn type)
 	return 0;
 }
 
-int install_single_image(struct img_type *img, int dry_run)
+int install_single_image(struct img_type *img, bool dry_run)
 {
 	struct installer_handler *hnd;
 	int ret;
@@ -255,7 +255,7 @@ int install_images(struct swupdate_cfg *sw)
 	char *filename;
 	struct stat buf;
 	const char* TMPDIR = get_tmpdir();
-	int dry_run = sw->globals.dry_run;
+	bool dry_run = sw->globals.dry_run;
 	bool dropimg;
 
 	/* Extract all scripts, preinstall scripts must be run now */

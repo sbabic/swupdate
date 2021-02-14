@@ -629,7 +629,7 @@ int main(int argc, char **argv)
 			loglevel = strtoul(optarg, NULL, 10);
 			break;
 		case 'n':
-			swcfg.globals.default_dry_run = 1;
+			swcfg.globals.default_dry_run = true;
 			break;
 		case 'L':
 			swcfg.globals.syslog_enabled = 1;

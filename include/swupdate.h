@@ -127,7 +127,7 @@ struct swupdate_global_cfg {
 	char mtdblacklist[SWUPDATE_GENERAL_STRING_SIZE];
 	int loglevel;
 	int syslog_enabled;
-	int dry_run;
+	bool dry_run;
 	int no_downgrading;
 	int no_reinstalling;
 	int no_transaction_marker;
@@ -139,7 +139,7 @@ struct swupdate_global_cfg {
 	char preupdatecmd[SWUPDATE_GENERAL_STRING_SIZE];
 	char default_software_set[SWUPDATE_GENERAL_STRING_SIZE];
 	char default_running_mode[SWUPDATE_GENERAL_STRING_SIZE];
-	int  default_dry_run;
+	bool default_dry_run;
 	char minimum_version[SWUPDATE_GENERAL_STRING_SIZE];
 	char maximum_version[SWUPDATE_GENERAL_STRING_SIZE];
 	char current_version[SWUPDATE_GENERAL_STRING_SIZE];

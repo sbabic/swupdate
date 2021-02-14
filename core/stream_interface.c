@@ -525,10 +525,10 @@ void *network_initializer(void *data)
 		 */
 		switch (req->dry_run){
 		case RUN_DRYRUN:
-			software->globals.dry_run = 1;
+			software->globals.dry_run = true;
 			break;
 		case RUN_INSTALL:
-			software->globals.dry_run = 0;
+			software->globals.dry_run = false;
 			break;
 		case RUN_DEFAULT:
 		default:
