@@ -513,6 +513,12 @@ void *network_thread (void *data)
 #endif
 					msg.type = NACK;
 				break;
+			case SET_VERSIONS_RANGE:
+				msg.type = ACK;
+				set_version_range(msg.data.versions.minimum_version,
+						  msg.data.versions.maximum_version,
+						  msg.data.versions.current_version);
+				break;
 			case SET_UPDATE_STATE:
 				value = *(update_state_t *)msg.data.msg;
 				msg.type = (is_valid_state(value) &&

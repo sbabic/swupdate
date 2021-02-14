@@ -36,7 +36,8 @@ typedef enum {
 	SET_AES_KEY,
 	SET_UPDATE_STATE,	/* set bootloader ustate */
 	GET_UPDATE_STATE,
-	REQ_INSTALL_EXT
+	REQ_INSTALL_EXT,
+	SET_VERSIONS_RANGE
 } msgtype;
 
 /*
@@ -101,6 +102,11 @@ typedef union {
 		char key_ascii[65]; /* Key size in ASCII (256 bit, 32 bytes bin) + termination */
 		char ivt_ascii[33]; /* Key size in ASCII (16 bytes bin) + termination */
 	} aeskeymsg;
+	struct {
+		char minimum_version[256];
+		char maximum_version[256];
+		char current_version[256];
+	} versions;
 } msgdata;
 	
 typedef struct {
@@ -129,7 +135,9 @@ int swupdate_async_start(writedata wr_func, getstatus status_func,
 				terminated end_func,
 				void *priv, ssize_t size);
 int swupdate_set_aes(char *key, char *ivt);
-
+int swupdate_set_version_range(const char *minversion,
+				const char *maxversion,
+				const char *currentversion);
 #ifdef __cplusplus
 }   // extern "C"
 #endif

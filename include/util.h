@@ -230,6 +230,11 @@ int get_install_info(sourcetype *source, char *buf, size_t len);
 void get_install_swset(char *buf, size_t len);
 void get_install_running_mode(char *buf, size_t len);
 
+/* Setting global information */
+void set_version_range(const char *minversion,
+			const char *maxversion,
+			const char *current);
+
 unsigned long long ustrtoull(const char *cp, unsigned int base);
 
 const char* get_tmpdir(void);

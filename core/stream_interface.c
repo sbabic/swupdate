@@ -689,3 +689,23 @@ int get_install_info(sourcetype *source, char *buf, size_t len)
 
 	return len;
 }
+
+void set_version_range(const char *minversion,
+		const char *maxversion, const char *current)
+{
+	if (minversion && strnlen(minversion, SWUPDATE_GENERAL_STRING_SIZE)) {
+		strlcpy(inst.software->minimum_version, minversion,
+			sizeof(inst.software->minimum_version));
+		inst.software->no_downgrading = true;
+	}
+	if (maxversion && strnlen(maxversion, SWUPDATE_GENERAL_STRING_SIZE)) {
+		strlcpy(inst.software->maximum_version, maxversion,
+			sizeof(inst.software->maximum_version));
+		inst.software->check_max_version = true;
+	}
+	if (current && strnlen(current, SWUPDATE_GENERAL_STRING_SIZE)) {
+		strlcpy(inst.software->current_version, current,
+			sizeof(inst.software->current_version));
+		inst.software->no_reinstalling = true;
+	}
+}
