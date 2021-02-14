@@ -132,6 +132,7 @@ struct swupdate_global_cfg {
 	int no_reinstalling;
 	int no_transaction_marker;
 	int no_state_marker;
+	int check_max_version;
 	char publickeyfname[SWUPDATE_GENERAL_STRING_SIZE];
 	char aeskeyfname[SWUPDATE_GENERAL_STRING_SIZE];
 	char postupdatecmd[SWUPDATE_GENERAL_STRING_SIZE];
@@ -140,6 +141,7 @@ struct swupdate_global_cfg {
 	char default_running_mode[SWUPDATE_GENERAL_STRING_SIZE];
 	int  default_dry_run;
 	char minimum_version[SWUPDATE_GENERAL_STRING_SIZE];
+	char maximum_version[SWUPDATE_GENERAL_STRING_SIZE];
 	char current_version[SWUPDATE_GENERAL_STRING_SIZE];
 	int cert_purpose;
 	char forced_signer_name[SWUPDATE_GENERAL_STRING_SIZE];

@@ -507,6 +507,14 @@ Command line parameters
 |             |          | the range 0..65535) or it is a semantic    |
 |             |          | version.                                   |
 +-------------+----------+--------------------------------------------+
+| -max-version| string   | The maximum required version of software.  |
+|   <version> |          | This will be checked with the version of   |
+|             |          | new software.                              |
+|             |          | Version consists of either 4 numbers       |
+|             |          | (major.minor.rev.build with each field in  |
+|             |          | the range 0..65535) or it is a semantic    |
+|             |          | version.                                   |
++-------------+----------+--------------------------------------------+
 | -R <version>| string   | The current installed version of software. |
 |             |          | This will be checked with the version of   |
 |             |          | new software and forbids reinstalling.     |

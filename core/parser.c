@@ -220,6 +220,19 @@ int parse(struct swupdate_cfg *sw, const char *descfile)
 	}
 
 	/*
+	 * Check if update is allowed until a chosen version, convert
+	 * versions in numbers to be compared and check to get a
+	 * newer version
+	 */
+	if (sw->globals.check_max_version) {
+		if (compare_versions(sw->version, sw->globals.maximum_version) > 0) {
+			ERROR("Max version set: new version %s >= max allowed %s",
+				sw->version, sw->globals.maximum_version);
+			return -EPERM;
+		}
+	}
+
+	/*
 	 * If reinstalling is not allowed, compare
 	 * version strings
 	 */

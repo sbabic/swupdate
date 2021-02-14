@@ -82,6 +82,7 @@ static struct option long_options[] = {
 	{"dry-run", no_argument, NULL, 'n'},
 	{"no-downgrading", required_argument, NULL, 'N'},
 	{"no-reinstalling", required_argument, NULL, 'R'},
+	{"max-version", required_argument, NULL, '3'},
 	{"no-transaction-marker", no_argument, NULL, 'M'},
 	{"no-state-marker", no_argument, NULL, 'm'},
 #ifdef CONFIG_SIGNED_IMAGES
@@ -153,6 +154,7 @@ static void usage(char *programname)
 		" -n, --dry-run                  : run SWUpdate without installing the software\n"
 		" -N, --no-downgrading <version> : not install a release older as <version>\n"
 		" -R, --no-reinstalling <version>: not install a release same as <version>\n"
+		"     --max-version     <version>: not install a release bigger as <version>\n"
 		" -M, --no-transaction-marker    : disable setting bootloader transaction marker\n"
 		" -m, --no-state-marker          : disable setting update state in bootloader\n"
 		" -o, --output <filename>        : saves the incoming stream\n"
@@ -357,6 +359,10 @@ static int read_globals_settings(void *elem, void *data)
 				"no-downgrading", sw->globals.minimum_version);
 	if (strlen(sw->globals.minimum_version))
 		sw->globals.no_downgrading = 1;
+	GET_FIELD_STRING(LIBCFG_PARSER, elem,
+				"max-version", sw->globals.maximum_version);
+	if (strlen(sw->globals.maximum_version))
+		sw->globals.check_max_version = 1;
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
 				"no-reinstalling", sw->globals.current_version);
 	if (strlen(sw->globals.current_version))
@@ -639,6 +645,11 @@ int main(int argc, char **argv)
 		case '2':
 			strlcpy(swcfg.globals.forced_signer_name, optarg,
 				sizeof(swcfg.globals.forced_signer_name));
+			break;
+		case '3':
+			swcfg.globals.check_max_version = 1;
+			strlcpy(swcfg.globals.maximum_version, optarg,
+				sizeof(swcfg.globals.maximum_version));
 			break;
 #ifdef CONFIG_ENCRYPTED_IMAGES
 		case 'K':
