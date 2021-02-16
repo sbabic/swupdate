@@ -328,6 +328,8 @@ static void lua_bool_to_img(struct img_type *img, const char *key,
 		img->is_partitioner = (bool)val;
 	if (!strcmp(key, "script"))
 		img->is_script = (bool)val;
+	if (!strcmp(key, "preserve_attributes"))
+		img->preserve_attributes = (bool)val;
 }
 
 static void lua_number_to_img(struct img_type *img, const char *key,
@@ -493,6 +495,7 @@ static void update_table(lua_State* L, struct img_type *img)
 		LUA_PUSH_IMG_BOOL(img, "encrypted", is_encrypted);
 		LUA_PUSH_IMG_BOOL(img, "partition", is_partitioner);
 		LUA_PUSH_IMG_BOOL(img, "script", is_script);
+		LUA_PUSH_IMG_BOOL(img, "preserve_attributes", preserve_attributes);
 
 		LUA_PUSH_IMG_NUMBER(img, "offset", seek);
 		LUA_PUSH_IMG_NUMBER(img, "size", size);
