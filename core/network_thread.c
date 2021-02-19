@@ -100,9 +100,9 @@ static bool is_selection_allowed(const char *software_set, char *running_mode,
 
 	if (allowed) {
 		INFO("Accepted selection %s,%s", software_set, running_mode);
-	}else 
+	}else
 		ERROR("Selection %s,%s is not allowed, rejected !",
-		      software_set, running_mode); 
+		      software_set, running_mode);
 	return allowed;
 }
 
@@ -369,6 +369,7 @@ void *network_thread (void *data)
 	int ret;
 	update_state_t value;
 	struct subprocess_msg_elem *subprocess_msg;
+	bool should_close_socket;
 
 	if (!instp) {
 		TRACE("Fatal error: Network thread aborting...");
@@ -415,6 +416,7 @@ void *network_thread (void *data)
 		TRACE("request header: magic[0x%08X] type[0x%08X]", msg.magic, msg.type);
 #endif
 
+		should_close_socket = true;
 		pthread_mutex_lock(&stream_mutex);
 		if (msg.magic == IPC_MAGIC)  {
 			switch (msg.type) {
@@ -437,6 +439,7 @@ void *network_thread (void *data)
 					break;
 				}
 
+				should_close_socket = false;
 				subprocess_msg->client = ctrlconnfd;
 				subprocess_msg->message = msg;
 
@@ -445,8 +448,10 @@ void *network_thread (void *data)
 				pthread_cond_signal(&subprocess_wkup);
 				pthread_mutex_unlock(&subprocess_msg_lock);
 				/*
-				 * ACK/NACK was inserted by the called SUBPROCESS
-				 * It should not be touched here
+				 * ACK/NACK will be inserted by the called SUBPROCESS
+				 * It should not be touched here.
+				 * We leave the type as is and delegate the socket to a
+				 * dedicated processing thread.
 				 */
 
 				break;
@@ -462,6 +467,7 @@ void *network_thread (void *data)
 						 * Prepare answer
 						 */
 						msg.type = ACK;
+						should_close_socket = false;
 
 						/* Drop all old notification from last run */
 						cleanum_msg_list();
@@ -477,7 +483,7 @@ void *network_thread (void *data)
 				}
 				break;
 			case GET_STATUS:
-				msg.type = GET_STATUS;
+				msg.type = ACK;
 				memset(msg.data.msg, 0, sizeof(msg.data.msg));
 				msg.data.status.current = instp->status;
 				msg.data.status.last_result = instp->last_install;
@@ -527,12 +533,12 @@ void *network_thread (void *data)
 			sprintf(msg.data.msg, "Wrong request: aborting");
 		}
 
-		if (msg.type == ACK || msg.type == NACK || msg.type == GET_STATUS) {
+		if (msg.type == ACK || msg.type == NACK) {
 			ret = write(ctrlconnfd, &msg, sizeof(msg));
 			if (ret < 0)
 				ERROR("Error write on socket ctrl");
 
-			if (msg.type != ACK)
+			if (should_close_socket == true)
 				close(ctrlconnfd);
 		}
 		pthread_mutex_unlock(&stream_mutex);
