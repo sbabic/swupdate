@@ -108,7 +108,12 @@ static channel_data_t channel_options = {
 int start_download(const char *fname, int argc, char *argv[])
 {
 	if (fname) {
-		read_module_settings(fname, "download", download_settings, &channel_options);
+		swupdate_cfg_handle handle;
+		swupdate_cfg_init(&handle);
+		if (swupdate_cfg_read_file(&handle, fname) == 0) {
+			read_module_settings(&handle, "download", download_settings, &channel_options);
+		}
+		swupdate_cfg_destroy(&handle);
 	}
 
 	/* reset to optind=1 to parse download's argument vector */

@@ -165,19 +165,16 @@ static int spawn_process(struct swupdate_task *task,
 	}
 }
 
-static void start_swupdate_subprocess(sourcetype type,
-			const char *name, const char *cfgfile,
+static void start_swupdate_subprocess(sourcetype type, const char *name,
+			uid_t run_as_userid, gid_t run_as_groupid,
+			const char* cfgfile,
 			int argc, char **argv,
 			swupdate_process start,
 			const char *cmdline)
 {
-	uid_t uid;
-	gid_t gid;
-
-	read_settings_user_id(cfgfile, name, &uid, &gid);
 	procs[nprocs].name = name;
 	procs[nprocs].type = type;
-	if (spawn_process(&procs[nprocs], uid, gid, cfgfile, argc, argv, start, cmdline) < 0) {
+	if (spawn_process(&procs[nprocs], run_as_userid, run_as_groupid, cfgfile, argc, argv, start, cmdline) < 0) {
 		ERROR("Spawning %s failed, exiting process...", name);
 		exit(1);
 	}
@@ -188,19 +185,22 @@ static void start_swupdate_subprocess(sourcetype type,
 
 
 void start_subprocess_from_file(sourcetype type, const char *name,
+			uid_t run_as_userid, gid_t run_as_groupid,
 			const char *cfgfile,
 			int argc, char **argv,
 			const char *cmdline)
 {
-	start_swupdate_subprocess(type, name, cfgfile, argc, argv, NULL, cmdline);
+	start_swupdate_subprocess(type, name, run_as_userid, run_as_groupid, cfgfile, argc, argv, NULL, cmdline);
 }
 
-void start_subprocess(sourcetype type, const char *name, const char *cfgfile,
+void start_subprocess(sourcetype type, const char *name,
+			uid_t run_as_userid, gid_t run_as_groupid,
+			const char *cfgfile,
 			int argc, char **argv,
 			swupdate_process start)
 {
 
-	start_swupdate_subprocess(type, name, cfgfile, argc, argv, start, NULL);
+	start_swupdate_subprocess(type, name, run_as_userid, run_as_groupid, cfgfile, argc, argv, start, NULL);
 }
 
 /*

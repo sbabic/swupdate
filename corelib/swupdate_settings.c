@@ -10,6 +10,7 @@
  * starting swupdate with a long list of parameters.
  */
 
+#include <libconfig.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -53,6 +54,9 @@ static int read_settings_file(config_t *cfg, const char *filename)
 {
 	int ret;
 
+	if (!filename)
+		return -EINVAL;
+
 	DEBUG("Reading config file %s", filename);
 	ret = config_read_file(cfg, filename);
 	if (ret != CONFIG_TRUE) {
@@ -67,35 +71,22 @@ static int read_settings_file(config_t *cfg, const char *filename)
 	return ret;
 }
 
-int read_module_settings(const char *filename, const char *module, settings_callback fcn, void *data)
+int read_module_settings(swupdate_cfg_handle *handle, const char *module, settings_callback fcn, void *data)
 {
-	config_t cfg;
 	config_setting_t *elem;
 
-	if (!fcn || !filename)
+	if (handle == NULL || !fcn)
 		return -EINVAL;
 
-	memset(&cfg, 0, sizeof(cfg));
-	config_init(&cfg);
-
-	if (read_settings_file(&cfg, filename) != CONFIG_TRUE) {
-		config_destroy(&cfg);
-		ERROR("Error reading configuration file, skipping....");
-		return -EINVAL;
-	}
-
-	elem = find_settings_node(&cfg, module);
+	elem = find_settings_node(&handle->cfg, module);
 
 	if (!elem) {
 		DEBUG("No config settings found for module %s", module);
-		config_destroy(&cfg);
 		return -ENODATA;
 	}
 
 	DEBUG("Reading config settings for module %s", module);
 	fcn(elem, data);
-
-	config_destroy(&cfg);
 
 	return 0;
 }
@@ -110,7 +101,7 @@ static int get_run_as(void *elem, void *data)
 	return 0;
 }
 
-int read_settings_user_id(const char *filename, const char *module, uid_t *userid, gid_t *groupid)
+int read_settings_user_id(swupdate_cfg_handle *handle, const char *module, uid_t *userid, gid_t *groupid)
 {
 	struct run_as ids;
 	int ret;
@@ -118,7 +109,7 @@ int read_settings_user_id(const char *filename, const char *module, uid_t *useri
 	*userid = ids.userid = getuid();
 	*groupid = ids.groupid = getgid();
 
-	ret = read_module_settings(filename, module, get_run_as, &ids);
+	ret = read_module_settings(handle, module, get_run_as, &ids);
 	if (ret)
 		return -EINVAL;
 
@@ -161,4 +152,33 @@ int settings_into_dict(void *settings, void *data)
 	}
 
 	return 0;
+}
+
+/*
+ * Initialize handle with the settings found in filename.
+ * This allocates memory which needs to be released by calling swupdate_cfg_destroy().
+ */
+void swupdate_cfg_init(swupdate_cfg_handle *handle)
+{
+	config_init(&handle->cfg);
+}
+
+/*
+ * Read all settings from filename.
+ */
+int swupdate_cfg_read_file(swupdate_cfg_handle *handle, const char *filename)
+{
+	if (read_settings_file(&handle->cfg, filename) != CONFIG_TRUE) {
+		ERROR("Error reading configuration file %s", filename);
+		return -EINVAL;
+	}
+	return 0;
+}
+
+/*
+ * This releases (internally) allocated memory by handle.
+ */
+void swupdate_cfg_destroy(swupdate_cfg_handle *handle)
+{
+	config_destroy(&handle->cfg);
 }

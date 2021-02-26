@@ -551,12 +551,17 @@ int main(int argc, char **argv)
 	}
 
 	/* Load configuration file */
+	swupdate_cfg_handle handle;
+	swupdate_cfg_init(&handle);
 	if (cfgfname != NULL) {
+		int ret = swupdate_cfg_read_file(&handle, cfgfname);
+
 		/*
 		 * 'globals' section is mandatory if configuration file is specified.
 		 */
-		int ret = read_module_settings(cfgfname, "globals",
-					       read_globals_settings, &swcfg);
+		if (ret == 0) {
+			ret = read_module_settings(&handle, "globals", read_globals_settings, &swcfg);
+		}
 		if (ret != 0) {
 			/*
 			 * Exit on -ENODATA or -EINVAL errors.
@@ -565,6 +570,7 @@ int main(int argc, char **argv)
 			    "Error parsing configuration file: %s, exiting.\n",
 			    ret == -ENODATA ? "'globals' section missing"
 					    : "cannot read");
+			swupdate_cfg_destroy(&handle);
 			exit(EXIT_FAILURE);
 		}
 
@@ -574,11 +580,8 @@ int main(int argc, char **argv)
 		 * The following sections are optional, hence -ENODATA error code is
 		 * ignored if the section is not found. -EINVAL will not happen here.
 		 */
-		(void)read_module_settings(cfgfname, "logcolors",
-					   read_console_settings, &swcfg);
-
-		(void)read_module_settings(cfgfname, "processes",
-					   read_processes_settings, &swcfg);
+		(void)read_module_settings(&handle, "logcolors", read_console_settings, &swcfg);
+		(void)read_module_settings(&handle, "processes", read_processes_settings, &swcfg);
 	}
 
 	/*
@@ -834,7 +837,7 @@ int main(int argc, char **argv)
 	}
 
 	/* Read sw-versions */
-	get_sw_versions(cfgfname, &swcfg);
+	get_sw_versions(&handle, &swcfg);
 
 	/*
 	 *  Start daemon if just a check is required
@@ -847,7 +850,10 @@ int main(int argc, char **argv)
 	/* Start embedded web server */
 #if defined(CONFIG_MONGOOSE)
 	if (opt_w) {
-		start_subprocess(SOURCE_WEBSERVER, "webserver",
+		uid_t uid;
+		gid_t gid;
+		read_settings_user_id(&handle, "webserver", &uid, &gid);
+		start_subprocess(SOURCE_WEBSERVER, "webserver", uid, gid,
 				 cfgfname, ac, av,
 				 start_mongoose);
 		freeargs(av);
@@ -856,7 +862,10 @@ int main(int argc, char **argv)
 
 #if defined(CONFIG_SURICATTA)
 	if (opt_u) {
-		start_subprocess(SOURCE_SURICATTA, "suricatta",
+		uid_t uid;
+		gid_t gid;
+		read_settings_user_id(&handle, "suricatta", &uid, &gid);
+		start_subprocess(SOURCE_SURICATTA, "suricatta", uid, gid,
 				 cfgfname, argcount,
 				 argvalues, start_suricatta);
 
@@ -866,7 +875,10 @@ int main(int argc, char **argv)
 
 #ifdef CONFIG_DOWNLOAD
 	if (opt_d) {
-		start_subprocess(SOURCE_DOWNLOADER, "download",
+		uid_t uid;
+		gid_t gid;
+		read_settings_user_id(&handle, "download", &uid, &gid);
+		start_subprocess(SOURCE_DOWNLOADER, "download", uid, gid,
 				 cfgfname, dwlac,
 				 dwlav, start_download);
 		freeargs(dwlav);
@@ -883,7 +895,10 @@ int main(int argc, char **argv)
 
 		dwlav[dwlac] = NULL;
 
-		start_subprocess_from_file(SOURCE_UNKNOWN, proc->name,
+		uid_t uid;
+		gid_t gid;
+		read_settings_user_id(&handle, proc->name, &uid, &gid);
+		start_subprocess_from_file(SOURCE_UNKNOWN, proc->name, uid, gid,
 					   cfgfname, dwlac,
 					   dwlav, dwlav[0]);
 
@@ -909,6 +924,8 @@ int main(int argc, char **argv)
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = sigterm_handler;
 	sigaction(SIGTERM, &sa, NULL);
+
+	swupdate_cfg_destroy(&handle);
 
 	/*
 	 * Go into supervisor loop

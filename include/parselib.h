@@ -85,8 +85,6 @@ void *get_node_json(json_object *root, const char **nodes);
 #define get_node_json(root, nodes)	(NULL)
 #endif
 
-typedef int (*settings_callback)(void *elem, void *data);
-
 const char *get_field_string(parsertype p, void *e, const char *path);
 void get_field_string_with_size(parsertype p, void *e, const char *path,
 				char *d, size_t n);

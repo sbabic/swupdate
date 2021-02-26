@@ -604,11 +604,13 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 	LIST_INIT(&server_general.configdata);
 
 	if (fname) {
-
-		read_module_settings(fname, "gservice", server_general_settings,
-					NULL);
-		read_module_settings(fname, "identify", settings_into_dict,
-					&server_general.configdata);
+		swupdate_cfg_handle handle;
+		swupdate_cfg_init(&handle);
+		if (swupdate_cfg_read_file(&handle, fname) == 0) {
+			read_module_settings(&handle, "gservice", server_general_settings, NULL);
+			read_module_settings(&handle, "identify", settings_into_dict, &server_general.configdata);
+		}
+		swupdate_cfg_destroy(&handle);
 	}
 
 	if (loglevel >= DEBUGLEVEL) {

@@ -1650,19 +1650,21 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 	LIST_INIT(&server_hawkbit.configdata);
 
 	if (fname) {
-		/*
-		 * Search "suricatta" section to be compatible with past
-		 */
-		read_module_settings(fname, "suricatta", server_hawkbit_settings,
-					NULL);
-		/*
-		 * Then try "hawkBit" because each server has its own
-		 * section
-		 */
-		read_module_settings(fname, "hawkbit", server_hawkbit_settings,
-					NULL);
-		read_module_settings(fname, "identify", settings_into_dict,
-					&server_hawkbit.configdata);
+		swupdate_cfg_handle handle;
+		swupdate_cfg_init(&handle);
+		if (swupdate_cfg_read_file(&handle, fname) == 0) {
+			/*
+			 * Search "suricatta" section to be compatible with past
+			 */
+			read_module_settings(&handle, "suricatta", server_hawkbit_settings, NULL);
+			/*
+			 * Then try "hawkBit" because each server has its own
+			 * section
+			 */
+			read_module_settings(&handle, "hawkbit", server_hawkbit_settings, NULL);
+			read_module_settings(&handle, "identify", settings_into_dict, &server_hawkbit.configdata);
+		}
+		swupdate_cfg_destroy(&handle);
 	}
 
 	if (loglevel >= DEBUGLEVEL) {

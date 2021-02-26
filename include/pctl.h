@@ -9,6 +9,7 @@
 #define _SWUPDATE_PCTL_H
 
 #include <swupdate_status.h>
+#include <sys/types.h>
 
 extern int pid;
 extern int sw_sockfd;
@@ -28,11 +29,15 @@ pthread_t start_thread(void *(* start_routine) (void *), void *arg);
 
 typedef int (*swupdate_process)(const char *cfgname, int argc, char **argv);
 
-void start_subprocess(sourcetype type, const char *name, const char *cfgfile,
+void start_subprocess(sourcetype type, const char *name,
+			uid_t run_as_userid, gid_t run_as_groupid,
+			const char *cfgfile,
 			int argc, char **argv,
 			swupdate_process start);
 
-void start_subprocess_from_file(sourcetype type, const char *name, const char *cfgfile,
+void start_subprocess_from_file(sourcetype type, const char *name,
+			uid_t run_as_userid, gid_t run_as_groupid,
+			const char *cfgfile,
 			int argc, char **argv,
 			const char *cmd);
 

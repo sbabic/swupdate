@@ -504,7 +504,12 @@ int start_mongoose(const char *cfgfname, int argc, char *argv[])
 	watchdog_conn = 0;
 
 	if (cfgfname) {
-		read_module_settings(cfgfname, "webserver", mongoose_settings, &opts);
+		swupdate_cfg_handle handle;
+		swupdate_cfg_init(&handle);
+		if (swupdate_cfg_read_file(&handle, cfgfname) == 0) {
+			read_module_settings(&handle, "webserver", mongoose_settings, &opts);
+		}
+		swupdate_cfg_destroy(&handle);
 	}
 
 	optind = 1;

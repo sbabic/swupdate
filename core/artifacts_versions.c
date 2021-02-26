@@ -129,10 +129,10 @@ static int versions_settings(void *setting, void *data)
 	return 0;
 }
 
-void get_sw_versions(char *cfgname, struct swupdate_cfg *sw)
+void get_sw_versions(swupdate_cfg_handle *handle, struct swupdate_cfg *sw)
 {
 	/* Try to read versions from configuration file */
-	if (cfgname && read_module_settings(cfgname, "versions", versions_settings, sw) == 0) {
+	if (handle != NULL && read_module_settings(handle, "versions", versions_settings, sw) == 0) {
 		return;
 	}
 	/* If not found, fall back to a legacy file in the format "<image name> <version>" */
@@ -140,7 +140,7 @@ void get_sw_versions(char *cfgname, struct swupdate_cfg *sw)
 }
 #else
 
-void get_sw_versions(char __attribute__ ((__unused__)) *cfgname,
+void get_sw_versions(swupdate_cfg_handle  __attribute__ ((__unused__))*handle,
 			struct swupdate_cfg *sw)
 {
 	read_sw_version_file(sw);

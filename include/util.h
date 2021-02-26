@@ -17,6 +17,7 @@
 #endif
 #include "swupdate.h"
 #include "swupdate_status.h"
+#include "swupdate_settings.h"
 #include "compat.h"
 
 #define NOTIFY_BUF_SIZE 	2048
@@ -208,7 +209,7 @@ char *substring(const char *src, int first, int len);
 size_t snescape(char *dst, size_t n, const char *src);
 void freeargs (char **argv);
 int get_hw_revision(struct hw_type *hw);
-void get_sw_versions(char *cfgfname, struct swupdate_cfg *sw);
+void get_sw_versions(swupdate_cfg_handle *handle, struct swupdate_cfg *sw);
 int compare_versions(const char* left_version, const char* right_version);
 int hwid_match(const char* rev, const char* hwrev);
 int check_hw_compatibility(struct swupdate_cfg *cfg);
