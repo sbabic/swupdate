@@ -265,9 +265,15 @@ static void *server_progress_thread (void *data)
 		pthread_exit((void *)SERVER_EINIT);
 	}
 
-	if(prog->fname)
-		read_module_settings(prog->fname, "gservice.logevent", server_logevent_settings,
+	if(prog->fname) {
+		swupdate_cfg_handle handle;
+		swupdate_cfg_init(&handle);
+		if (swupdate_cfg_read_file(&handle, prog->fname) == 0) {
+			read_module_settings(&handle, "gservice.logevent", server_logevent_settings,
 					&fmtevents);
+		}
+		swupdate_cfg_destroy(&handle);
+	}
 
 	/*
 	 * The URL to send log is fixed and part of the configuration
