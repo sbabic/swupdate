@@ -172,14 +172,14 @@ changes must be implemented in SWUpdate.
 Back-end: support for generic down-loader 
 -----------------------------------------
 
-SWUpdate in down-loader mode works as one-shot: it simply try to download a SWU
+SWUpdate in down-loader mode works as one-shot: it simply tries to download a SWU
 from a URL. For simple applications, it could be moved into `suricatta` to detect
 if a new version is available before downloading and installing.
 
 Back-end: support for Mender
 ----------------------------
 
-There was several discussion how to make a stronger collaboration between
+There were several discussions how to make a stronger collaboration between
 different update solution and a proposal discussed previously is to use SWUpdate as client
 to upgrade from a Mender server, see `BOF at ELCE 2017 <https://elinux.org/images/0/0c/BoF_secure_ota_linux.pdf>`_
 
