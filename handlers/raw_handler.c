@@ -157,7 +157,7 @@ static int copy_raw_image(struct img_type *img,
 	proplist = dict_get_list(&img->properties, "copyfrom");
 
 	if (!proplist || !(entry = LIST_FIRST(proplist))) {
-		ERROR("MIssing source device, no copyfrom property");
+		ERROR("Missing source device, no copyfrom property");
 		return -EINVAL;
 	}
 	fdin = open(entry->value, O_RDONLY);
