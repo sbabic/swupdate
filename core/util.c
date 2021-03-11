@@ -896,7 +896,11 @@ static char *get_root_from_cmdline(void)
 		fclose(fp);
 		return NULL;
 	}
-	ret = fread(buf, 1, MAX_CMDLINE_LENGTH, fp);
+	/*
+	 * buf must be zero terminated, so let the last one
+	 * for the NULL termination
+	 */
+	ret = fread(buf, 1, MAX_CMDLINE_LENGTH - 1, fp);
 
 	/*
 	 * this is just to drop coverity issue, but

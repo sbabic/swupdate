@@ -15,6 +15,13 @@
 #include "lualib.h"
 #include "util.h"
 
+typedef enum {
+	ROOT_DEV_PATH,
+	ROOT_DEV_UUID,
+	ROOT_DEV_PARTUUID,
+	ROOT_DEV_PARTLABEL
+} root_dev_type;
+
 void LUAstackDump (lua_State *L);
 int run_lua_script(const char *script, const char *function, char *parms);
 lua_State *lua_parser_init(const char *buf, struct dict *bootenv);
