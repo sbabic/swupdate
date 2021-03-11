@@ -23,6 +23,7 @@
 #include <time.h>
 #include <libgen.h>
 #include <regex.h>
+#include <string.h>
 
 #include "swupdate.h"
 #include "util.h"
@@ -841,4 +842,92 @@ size_t snescape(char *dst, size_t n, const char *src)
 	}
 
 	return len;
+}
+
+/*
+ * This returns the device name where rootfs is mounted
+ */
+static char *get_root_from_partitions(void)
+{
+	struct stat info;
+	FILE *fp;
+	char *devname = NULL;
+	unsigned long major, minor, nblocks;
+	char buf[256];
+	int ret;
+
+	if (stat("/", &info) < 0)
+		return NULL;
+
+	fp = fopen("/proc/partitions", "r");
+	if (!fp)
+		return NULL;
+
+	while (fgets(buf, sizeof(buf), fp)) {
+		ret = sscanf(buf, "%ld %ld %ld %ms",
+			     &major, &minor, &nblocks, &devname);
+		if (ret != 4)
+			continue;
+		if ((major == info.st_dev / 256) && (minor == info.st_dev % 256)) {
+			fclose(fp);
+			return devname;
+		}
+		free(devname);
+	}
+
+	fclose(fp);
+	return NULL;
+}
+
+#define MAX_CMDLINE_LENGTH 4096
+static char *get_root_from_cmdline(void)
+{
+	char *buf;
+	FILE *fp;
+	char *root = NULL;
+	int ret;
+	char **parms = NULL;
+
+	fp = fopen("/proc/cmdline", "r");
+	if (!fp)
+		return NULL;
+	buf = (char *)calloc(1, MAX_CMDLINE_LENGTH);
+	if (!buf) {
+		fclose(fp);
+		return NULL;
+	}
+	ret = fread(buf, 1, MAX_CMDLINE_LENGTH, fp);
+
+	/*
+	 * this is just to drop coverity issue, but
+	 * the buffer is already initialized by calloc to zeroes
+	 */
+	buf[MAX_CMDLINE_LENGTH - 1] = '\0';
+
+	if (ret > 0) {
+		parms = string_split(buf, ' ');
+		int nparms = count_string_array((const char **)parms);
+		for (unsigned int index = 0; index < nparms; index++) {
+			if (!strncmp(parms[index], "root=", strlen("root="))) {
+				const char *value = parms[index] + strlen("root=");
+				root = strdup(value);
+				break;
+			}
+		}
+	}
+	fclose(fp);
+	free_string_array(parms);
+	free(buf);
+	return root;
+}
+
+char *get_root_device(void)
+{
+	char *root = NULL;
+
+	root = get_root_from_partitions();
+	if (!root)
+		root = get_root_from_cmdline();
+
+	return root;
 }

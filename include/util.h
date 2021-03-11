@@ -229,6 +229,7 @@ int set_aes_ivt(const char *ivt);
 int get_install_info(sourcetype *source, char *buf, size_t len);
 void get_install_swset(char *buf, size_t len);
 void get_install_running_mode(char *buf, size_t len);
+char *get_root_device(void);
 
 /* Setting global information */
 void set_version_range(const char *minversion,
