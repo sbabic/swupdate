@@ -264,12 +264,23 @@ int run_system_cmd(const char *cmd)
 	} else {
 		int fds[2];
 		pid_t w;
+		char buf[2][SWUPDATE_GENERAL_STRING_SIZE];
+		int cindex[2] = {0, 0}; /* this is the first free char inside buffer */
+		LOGLEVEL levels[2] = { TRACELEVEL, ERRORLEVEL };
 
 		close(stdoutpipe[PIPE_WRITE]);
 		close(stderrpipe[PIPE_WRITE]);
 
 		fds[0] = stdoutpipe[PIPE_READ];
 		fds[1] = stderrpipe[PIPE_READ];
+
+		/*
+		 * Use buffers (for stdout and stdin) to collect data from
+		 * the cmd. Data can contain multiple lines or just a part
+		 * of a line and must be parsed
+		 */
+		memset(buf[0], 0, SWUPDATE_GENERAL_STRING_SIZE);
+		memset(buf[1], 0, SWUPDATE_GENERAL_STRING_SIZE);
 
 		/*
 		 * Now waits until the child process exits and checks
@@ -281,9 +292,6 @@ int run_system_cmd(const char *cmd)
 			struct timeval tv;
 			fd_set readfds;
 			int n, i;
-			char buf[2][SWUPDATE_GENERAL_STRING_SIZE];
-			char *pbuf;
-			int cindex[2] = {0, 0}; /* this is the first free char inside buffer */
 
 			w = waitpid(process_id, &wstatus, WNOHANG | WUNTRACED | WCONTINUED);
 			if (w == -1) {
@@ -292,14 +300,6 @@ int run_system_cmd(const char *cmd)
 				close(stderrpipe[PIPE_READ]);
 				return -EFAULT;
 			}
-
-			/*
-			 * Use buffers (for stdout and stdin) to collect data from
-			 * the cmd. Data can contain multiple lines or just a part
-			 * of a line and must be parsed
-			 */
-			memset(buf[0], 0, SWUPDATE_GENERAL_STRING_SIZE);
-			memset(buf[1], 0, SWUPDATE_GENERAL_STRING_SIZE);
 
 			tv.tv_sec = 1;
 			tv.tv_usec = 0;
@@ -316,64 +316,34 @@ int run_system_cmd(const char *cmd)
 					break;
 
 				for (i = 0; i < 2 ; i++) {
-					pbuf = buf[i];
-					int c = cindex[i];
+					char *pbuf = buf[i];
+					int *c = &cindex[i];
+					LOGLEVEL level = levels[i];
 
 					if (FD_ISSET(fds[i], &readfds)) {
-						int last;
-
-						n = read(fds[i], &pbuf[c], SWUPDATE_GENERAL_STRING_SIZE - c);
+						n = read_lines_notify(fds[i], pbuf, SWUPDATE_GENERAL_STRING_SIZE,
+								      c, level);
 						if (n < 0)
 							continue;
-						n += c;	/* add previous data, if any */
 						n1 += n;
-						if (n > 0) {
-
-							/* check if just a part of a line was sent. In that
-							 * case, search for the last line and then copy the rest
-							 * to the begin of the buffer for next read
-							 */
-							last = n - 1;
-							while (last > 0 && pbuf[last] != '\0' && pbuf[last] != '\n')
-									last--;
-							pbuf[last] = '\0';
-							/*
-							 * compute the truncate line that should be
-							 * parsed next time when the rest is received
-							 */
-							int left = n - 1 - last;
-							char **lines = string_split(pbuf, '\n');
-							int nlines = count_string_array((const char **)lines);
-
-							if (last < SWUPDATE_GENERAL_STRING_SIZE - 1) {
-								last++;
-								memcpy(pbuf, &pbuf[last], left);
-								if (last + left < SWUPDATE_GENERAL_STRING_SIZE) {
-									memset(&pbuf[left], 0, SWUPDATE_GENERAL_STRING_SIZE - left);
-								}
-								cindex[i] = left;
-							} else { /* no need to copy, reuse all buffer */
-								memset(pbuf, 0, SWUPDATE_GENERAL_STRING_SIZE);
-								cindex[i] = 0;
-							}
-
-							for (unsigned int index = 0; index < nlines; index++) {
-								switch (i) {
-								case 0:
-									TRACE("%s", lines[index]);
-									break;
-								case 1:
-									ERROR("%s", lines[index]);
-									break;
-								}
-							}
-
-							free_string_array(lines);
-						}
 					}
 				}
 			} while (ret > 0 && n1 > 0);
 		} while (w != process_id);
+
+		/* print any unfinished line */
+		for (int i = 0; i < 2; i++) {
+			if (cindex[i]) {
+				switch(i) {
+				case 0:
+					TRACE("%s", buf[i]);
+					break;
+				case 1:
+					ERROR("%s", buf[i]);
+					break;
+				}
+			}
+		}
 
 		close(stdoutpipe[PIPE_READ]);
 		close(stderrpipe[PIPE_READ]);

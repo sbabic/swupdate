@@ -216,6 +216,8 @@ int check_hw_compatibility(struct swupdate_cfg *cfg);
 int count_elem_list(struct imglist *list);
 unsigned int count_string_array(const char **nodes);
 void free_string_array(char **nodes);
+int read_lines_notify(int fd, char *buf, int buf_size, int *buf_offset,
+		      LOGLEVEL level);
 
 /* Decryption key functions */
 int load_decryption_key(char *fname);
