@@ -988,40 +988,46 @@ int read_lines_notify(int fd, char *buf, int buf_size, int *buf_offset,
 	return n;
 }
 
-long long get_output_size(struct img_type *img)
+long long get_output_size(struct img_type *img, bool strict)
 {
 	char *output_size_str = NULL;
 	long long bytes = img->size;
 
 	if (img->compressed) {
 		output_size_str = dict_get_value(&img->properties, "decompressed-size");
+		if (!output_size_str) {
+			if (!strict)
+				return bytes;
+
+			ERROR("image is compressed but 'decompressed-size' property was not found");
+			return -ENOENT;
+		}
 
 		bytes = ustrtoull(output_size_str, 0);
-		if (errno) {
-			ERROR("decompressed-size argument: ustrtoull failed");
+		if (errno || bytes <= 0) {
+			ERROR("decompressed-size argument %s: ustrtoull failed",
+			      output_size_str);
 			return -1;
 		}
 
-		if (bytes == 0) {
-			ERROR("UBIFS to be decompressed, but decompressed-size not valid");
-			return -1;
-		}
 		TRACE("Image is compressed, decompressed size %lld bytes", bytes);
 
 	} else if (img->is_encrypted) {
-
 		output_size_str = dict_get_value(&img->properties, "decrypted-size");
+		if (!output_size_str) {
+			if (!strict)
+				return bytes;
+			ERROR("image is encrypted but 'decrypted-size' property was not found");
+			return -ENOENT;
+		}
 
 		bytes = ustrtoull(output_size_str, 0);
-		if (errno){
-			ERROR("decrypted-size argument: ustrtoull failed");
+		if (errno || bytes <= 0) {
+			ERROR("decrypted-size argument %s: ustrtoull failed",
+			      output_size_str);
 			return -1;
 		}
 
-		if (bytes < AES_BLK_SIZE) {
-			ERROR("Encrypted image size (%lld) too small", bytes);
-			return -1;
-		}
 		TRACE("Image is crypted, decrypted size %lld bytes", bytes);
 	}
 

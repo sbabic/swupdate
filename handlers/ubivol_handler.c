@@ -157,7 +157,7 @@ static int update_volume(libubi_t libubi, struct img_type *img,
 	char sbuf[128];
 	struct ubi_vol_info *repl_vol;
 
-	bytes = get_output_size(img);
+	bytes = get_output_size(img, true);
 	if (bytes <= 0)
 		return -1;
 
@@ -411,7 +411,7 @@ static int install_ubivol_image(struct img_type *img,
 	int ret;
 
 	if (check_ubi_autoresize(img)) {
-		long long bytes = get_output_size(img);
+		long long bytes = get_output_size(img, true);
 		if (bytes <= 0)
 			return -1;
 
