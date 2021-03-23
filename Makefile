@@ -392,8 +392,7 @@ bindings-dirs	:= $(bindings-y)
 bindings-libs	:= $(patsubst %,%/built-in.o, $(bindings-y))
 bindings-all	:= $(bindings-libs)
 
-PHONY += cfg-sanity-check
-cfg-sanity-check:
+.cfg-sanity-check: .config
 	@if [ "x$(CONFIG_SETSWDESCRIPTION)" = "xy" -a -z "$(patsubst "%",%,$(strip $(CONFIG_SWDESCRIPTION)))" ]; then \
 		echo "ERROR: CONFIG_SETSWDESCRIPTION set but not CONFIG_SWDESCRIPTION"; \
 		exit 1; \
@@ -402,6 +401,7 @@ cfg-sanity-check:
 		echo "ERROR: CONFIG_SETEXTPARSERNAME set but not CONFIG_EXTPARSERNAME"; \
 		exit 1; \
 	fi
+	@touch .cfg-sanity-check
 
 all: swupdate ${tools-bins} ${lua_swupdate}
 
@@ -417,7 +417,7 @@ quiet_cmd_swupdate = LD      $@
       "$(swupdate-libs)" \
 	  "$(LDLIBS)"
 
-swupdate_unstripped: ${swupdate-ipc-lib} $(swupdate-all) FORCE
+swupdate_unstripped: ${swupdate-ipc-lib} $(swupdate-all)
 	$(call if_changed,swupdate)
 
 quiet_cmd_addon = LD      $@
@@ -441,10 +441,10 @@ quiet_cmd_shared = LD      $@
 	  "" \
 	  "$(LDLIBS)"
 
-lua_swupdate.so.0.1: $(bindings-libs) ${swupdate-ipc-lib} FORCE
+lua_swupdate.so.0.1: $(bindings-libs) ${swupdate-ipc-lib}
 	$(call if_changed,shared,$(bindings-libs) $(ipc-lib))
 
-${swupdate-ipc-lib}: $(ipc-lib) FORCE
+${swupdate-ipc-lib}: $(ipc-lib)
 	$(call if_changed,shared,$(ipc-lib))
 
 ifeq ($(SKIP_STRIP),y)
@@ -456,10 +456,14 @@ cmd_strip = $(STRIP) -s --remove-section=.note --remove-section=.comment \
                $@_unstripped -o $@; chmod a+x $@
 endif
 
-swupdate: cfg-sanity-check swupdate_unstripped
+swupdate: .cfg-sanity-check swupdate_unstripped
 	$(call cmd,strip)
 
-${tools-bins}: ${swupdate-ipc-lib} ${tools-objs} ${swupdate-libs} FORCE
+.tools-built-in: tools/built-in.o
+	@touch tools/built-in.o
+	@touch .tools-built-in
+
+${tools-bins}: ${swupdate-ipc-lib} ${tools-objs} ${swupdate-libs} .tools-built-in
 	$(call if_changed,addon,$@.o)
 	@mv $@ $@_unstripped
 	$(call cmd,strip)

@@ -20,7 +20,7 @@ endif
 KBUILD_CPPFLAGS += $(call cc-option,-std=gnu99,)
 
 KBUILD_CPPFLAGS += -D_GNU_SOURCE -DNDEBUG \
-		   -D"SWU_VER=KBUILD_STR($(SWU_VER))"
+		   -D"SWU_VER=\"$(SWU_VER)\""
 
 KBUILD_CFLAGS += $(call cc-option,-Wall,)
 KBUILD_CFLAGS += $(call cc-option,-Wshadow,)
