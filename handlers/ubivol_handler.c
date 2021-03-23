@@ -147,46 +147,6 @@ static int check_ubi_alwaysremove(struct img_type *img)
 	return ret;
 }
 
-static long long get_output_size(struct img_type *img)
-{
-	char *output_size_str = NULL;
-	long long bytes = img->size;
-
-	if (img->compressed) {
-		output_size_str = dict_get_value(&img->properties, "decompressed-size");
-
-		bytes = ustrtoull(output_size_str, 0);
-		if (errno) {
-			ERROR("decompressed-size argument: ustrtoull failed");
-			return -1;
-		}
-
-		if (bytes == 0) {
-			ERROR("UBIFS to be decompressed, but decompressed-size not valid");
-			return -1;
-		}
-		TRACE("Image is compressed, decompressed size %lld bytes", bytes);
-
-	} else if (img->is_encrypted) {
-
-		output_size_str = dict_get_value(&img->properties, "decrypted-size");
-
-		bytes = ustrtoull(output_size_str, 0);
-		if (errno){
-			ERROR("decrypted-size argument: ustrtoull failed");
-			return -1;
-		}
-
-		if (bytes < AES_BLK_SIZE) {
-			ERROR("Encrypted image size (%lld) too small", bytes);
-			return -1;
-		}
-		TRACE("Image is crypted, decrypted size %lld bytes", bytes);
-	}
-
-	return bytes;
-}
-
 static int update_volume(libubi_t libubi, struct img_type *img,
 	struct ubi_vol_info *vol)
 {
