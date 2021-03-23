@@ -25,6 +25,10 @@
 #include <regex.h>
 #include <string.h>
 
+#if defined(__linux__)
+#include <sys/statvfs.h>
+#endif
+
 #include "swupdate.h"
 #include "util.h"
 #include "generated/autoconf.h"
@@ -1032,4 +1036,45 @@ long long get_output_size(struct img_type *img, bool strict)
 	}
 
 	return bytes;
+}
+
+static bool check_free_space(int fd, long long size, char *fname)
+{
+	/* This needs OS-specific implementation because linux's statfs
+	 * f_bsize is optimal IO size vs. statvfs f_bsize fs block size,
+	 * and freeBSD is the opposite...
+	 * As everything else is the same down to field names work around
+	 * this by just defining an alias
+	 */
+#if defined(__FreeBSD__)
+#define statvfs statfs
+#define fstatvfs fstatfs
+#endif
+	struct statvfs statvfs;
+
+	if (fstatvfs(fd, &statvfs)) {
+		ERROR("Statfs failed on %s, skipping free space check", fname);
+		return true;
+	}
+
+	if (statvfs.f_bfree * statvfs.f_bsize < size) {
+		ERROR("Not enough free space to extract %s (needed %llu, got %lu)",
+		       fname, size, statvfs.f_bfree * statvfs.f_bsize);
+		return false;
+	}
+
+	return true;
+}
+
+bool img_check_free_space(struct img_type *img, int fd)
+{
+	long long size;
+
+	size = get_output_size(img, false);
+
+	if (size <= 0)
+		/* Skip check if no size found */
+		return true;
+
+	return check_free_space(fd, size, img->fname);
 }

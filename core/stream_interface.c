@@ -222,6 +222,8 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 				fdout = openfileoutput(img->extract_file);
 				if (fdout < 0)
 					return -1;
+				if (!img_check_free_space(img, fdout))
+					return -1;
 				if (copyfile(fd, &fdout, fdh.size, &offset, 0, 0, 0, &checksum, img->sha256, false, NULL, NULL) < 0) {
 					close(fdout);
 					return -1;
