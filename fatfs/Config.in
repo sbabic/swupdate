@@ -1,0 +1,6 @@
+config FAT_FILESYSTEM
+	bool "FAT file system creation support"
+	depends on DISKFORMAT
+	default n
+	help
+	  Enable support for creating FAT file systems.

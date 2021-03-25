@@ -21,37 +21,44 @@
 
 #define SECTOR_SIZE	512
 
-static int file_descriptor;
-static char device_name[MAX_VOLNAME];
-static bool init_status;
-
-int fatfs_init(char *device);
-void fatfs_release(void);
+static int file_descriptor = -1;
 
 
+/*
+ * Extension to FatFs library: fatfs_init associates the fatfs library with
+ * a disk device file. It has to be called before using any FatFs API function.
+ */
 int fatfs_init(char *device)
 {
-	if (strnlen(device_name, MAX_VOLNAME)) {
+	if (file_descriptor >= 0) {
 		ERROR("Called fatfs_init second time without fatfs_release");
 		return -1;
 	}
 
-	strncpy(device_name, device, sizeof(device_name));
-	file_descriptor = open(device_name, O_RDWR);
+	if (!device) {
+		ERROR("Device name is NULL pointer");
+		return -1;
+	}
+
+	file_descriptor = open(device, O_RDWR);
 
 	if (file_descriptor < 0) {
-		ERROR("Device %s cannot be opened: %s", device_name, strerror(errno));
-		return -ENODEV;
+		ERROR("Device %s cannot be opened: %s", device, strerror(errno));
+		return -1;
 	}
 
 	return 0;
 }
 
+/*
+ * Extension to FatFs libary: fatfs_release closes a disk device.
+ */
 void fatfs_release(void)
 {
-	(void)close(file_descriptor);
-	memset(device_name, 0, MAX_VOLNAME);
-	init_status = false;
+	if (file_descriptor >= 0) {
+		(void)close(file_descriptor);
+		file_descriptor = -1;
+	}
 }
 
 DSTATUS disk_status(BYTE pdrv)
@@ -59,10 +66,7 @@ DSTATUS disk_status(BYTE pdrv)
 	DSTATUS status = 0;
 	(void)pdrv;
 
-	if (!strnlen(device_name, MAX_VOLNAME))
-		status |= STA_NODISK;
-
-	if (!init_status)
+	if (file_descriptor < 0)
 		status |= STA_NOINIT;
 
 	return status;
@@ -70,8 +74,6 @@ DSTATUS disk_status(BYTE pdrv)
 
 DSTATUS disk_initialize(BYTE pdrv)
 {
-	init_status = true;
-
 	return disk_status(pdrv);
 }
 
@@ -128,14 +130,14 @@ DRESULT disk_ioctl(BYTE pdrv, BYTE cmd, void *buff)
 		if (!buff)
 			return RES_PARERR;
 
-		*(LBA_t*)buff = size;
+		*(LBA_t *)buff = size;
 		break;
 	}
 	case GET_SECTOR_SIZE:
 		if (!buff)
 			return RES_PARERR;
 
-		*(WORD*)buff = SECTOR_SIZE;
+		*(WORD *)buff = SECTOR_SIZE;
 		break;
 	case GET_BLOCK_SIZE:
 		/* Get erase block size of flash memories, return 1 if not a
@@ -144,7 +146,7 @@ DRESULT disk_ioctl(BYTE pdrv, BYTE cmd, void *buff)
 		if (!buff)
 			return RES_PARERR;
 
-		*(WORD*)buff = 1;
+		*(WORD *)buff = 1;
 		break;
 	default:
 		ERROR("cmd %d not implemented", cmd);
