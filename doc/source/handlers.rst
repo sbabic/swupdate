@@ -760,6 +760,8 @@ Disk partitioner
 This handler creates or modifies partitions using the library libfdisk. Handler must be put into
 the `partitions` section of sw-description. Setup for each partition is put into the `properties` field
 of sw-description.
+After writing the partition table it may create a file system on selected partitions.
+(Availlable only if CONFIG_DISKFORMAT is set.)
 
 .. table:: Properties for diskpart handler
 
@@ -790,6 +792,11 @@ supported:
    |             |          | It is the hex code for DOS (MBR) partition table   |
    |             |          | or it is the string identifier in case of GPT.     |
    +-------------+----------+----------------------------------------------------+
+   | fstype      | string   | Optional filesystem type to be created on the      |
+   |             |          | partition. If no fstype key is given, no file      |
+   |             |          | will be created on the corresponding partition.    |
+   |             |          | (currently only `vfat` file system is supported)   |
+   +-------------+----------+----------------------------------------------------+
 
 
 
@@ -806,7 +813,8 @@ GPT example:
                 partition-1 = [ "size=64M", "start=2048",
                     "name=bigrootfs", "type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B"];
                 partition-2 = ["size=256M", "start=133120",
-                    "name=ldata", "type=EBD0A0A2-B9E5-4433-87C0-68B6B72699C7"];
+                    "name=ldata", "type=EBD0A0A2-B9E5-4433-87C0-68B6B72699C7",
+		    "fstype=vfat"];
                 partition-3 = ["size=512M", "start=657408",
                     "name=log", "type=0FC63DAF-8483-4772-8E79-3D69D8477DE4"];
                 partition-4 = ["size=4G", "start=1705984",
@@ -833,6 +841,8 @@ MBR Example:
 		partition-4 = ["size=6G", "start=1181696", "name=system",  "type=0x5"];
 		partition-5 = ["size=512M", "start=1183744", "name=part5",  "type=0x83"];
 		partition-6 = ["size=512M", "start=2234368", "name=part6",  "type=0x83"];
+		partition-7 = ["size=16M", "start=3284992", "name=part7", "type=0x6",
+		    "fstype=vfat"];
 	   }
 	}
 
