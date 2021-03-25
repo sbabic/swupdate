@@ -102,6 +102,24 @@ config DISKPART
 comment "diskpart support needs libfdisk"
 	depends on !HAVE_LIBFDISK
 
+if DISKPART
+
+menuconfig DISKFORMAT
+        bool "diskpart extension for creating file systems"
+	depends on DISKPART
+	default n
+	help
+	  This extension of the diskpart handler allows creating filesystems
+	  on empty partitions.
+
+if DISKFORMAT
+
+source fatfs/Config.in
+
+endif
+
+endif
+
 config UNIQUEUUID
 	bool "uniqueuuid"
 	depends on HAVE_LIBBLKID

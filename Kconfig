@@ -498,4 +498,3 @@ config ZSTD
 
 source parser/Config.in
 source handlers/Config.in
-source fatfs/Config.in

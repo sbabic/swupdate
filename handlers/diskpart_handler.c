@@ -18,6 +18,7 @@
 #include "swupdate.h"
 #include "handler.h"
 #include "util.h"
+#include "fatfs_interface.h"
 
 void diskpart_handler(void);
 
@@ -37,14 +38,16 @@ enum partfield {
 	PART_SIZE = 0,
 	PART_START,
 	PART_TYPE,
-	PART_NAME
+	PART_NAME,
+	PART_FSTYPE
 };
 
 const char *fields[] = {
 	[PART_SIZE] = "size",
 	[PART_START] = "start",
 	[PART_TYPE] = "type",
-	[PART_NAME] = "name"
+	[PART_NAME] = "name",
+	[PART_FSTYPE] = "fstype"
 };
 
 struct partition_data {
@@ -53,6 +56,7 @@ struct partition_data {
 	size_t start;
 	char type[SWUPDATE_GENERAL_STRING_SIZE];
 	char name[SWUPDATE_GENERAL_STRING_SIZE];
+	char fstype[SWUPDATE_GENERAL_STRING_SIZE];
 	LIST_ENTRY(partition_data) next;
 };
 LIST_HEAD(listparts, partition_data);
@@ -219,6 +223,9 @@ static int diskpart(struct img_type *img,
 					case PART_NAME:
 						strncpy(part->name, equal, sizeof(part->name)); 
 						break;
+					case PART_FSTYPE:
+						strncpy(part->fstype, equal, sizeof(part->fstype));
+						break;
 					}
 				}
 			}
@@ -380,6 +387,35 @@ static int diskpart(struct img_type *img,
 		ret = 0;
 		TRACE("Same partition table on disk, do not touch partition table !");
 	}
+
+#ifdef CONFIG_DISKFORMAT
+	/* Create filesystems */
+	LIST_FOREACH(part, &priv.listparts, next) {
+		/*
+		 * priv.listparts counts partitions starting with 0,
+		 * but fdisk_partname expects the first partition having
+		 * the number 1.
+		 */
+		size_t partno = part->partno + 1;
+
+		if (!strlen(part->fstype))
+			continue;  /* Don't touch partitions without fstype */
+
+#ifdef CONFIG_FAT_FILESYSTEM
+		if (!strcmp(part->fstype, "vfat")) {
+			char *device = NULL;
+			device = fdisk_partname(img->device, partno);
+			TRACE("Creating vfat file system on partition-%lu, device %s", partno, device);
+			ret = fat_mkfs(device);
+			if (ret)
+				ERROR("creating vfat file system failed. %d", ret);
+			free(device);
+			continue;
+		}
+#endif
+		ERROR("partition-%lu %s filesystem type not supported.", partno, part->fstype);
+	}
+#endif
 
 handler_exit:
 	if (tb)
