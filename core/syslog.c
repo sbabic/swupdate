@@ -2,7 +2,7 @@
  * (C) Copyright 2016
  * Denis Osterland, Diehl Connectivity Solutions GmbH, Denis.Osterland@diehl.com.
  *
- * SPDX-License-Identifier:     GPL-2.0-or-later
+ * SPDX-License-Identifier:     GPL-2.0-only
  */
 #include <syslog.h>
 #include <stdio.h>

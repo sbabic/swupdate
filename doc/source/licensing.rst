@@ -18,7 +18,7 @@ replaced by a single line:
 
 ::
 
-	SPDX-License-Identifier:	GPL-2.0+
+	SPDX-License-Identifier:	GPL-2.0-only
 
 Ideally, the license terms of all files in the source tree should be
 defined by such License Identifiers; in no case a file can contain
@@ -30,9 +30,9 @@ used under the terms of either of these licenses, i. e. with
 
 ::
 
-	SPDX-License-Identifier:	GPL-2.0+	BSD-3-Clause
+	SPDX-License-Identifier:	GPL-2.0-only OR BSD-3-Clause
 
-you can choose between GPL-2.0+ and BSD-3-Clause licensing.
+you can choose between GPL-2.0-only and BSD-3-Clause licensing.
 
 We use the SPDX_ Unique License Identifiers (SPDX-Identifiers_)
 
@@ -45,8 +45,6 @@ We use the SPDX_ Unique License Identifiers (SPDX-Identifiers_)
    | Full name                                       |  SPDX Identifier | OSI Approved |
    +=================================================+==================+==============+
    | GNU General Public License v2.0_ only           | GPL-2.0-only     |    Y         |
-   +-------------------------------------------------+------------------+--------------+
-   | GNU General Public License v2.0_ or later       | GPL-2.0-or-later |    Y         |
    +-------------------------------------------------+------------------+--------------+
    | GNU Lesser General Public License v2.1_ or later| LGPL-2.1-or-later|    Y         |
    +-------------------------------------------------+------------------+--------------+

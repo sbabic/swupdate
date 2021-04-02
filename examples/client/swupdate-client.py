@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # Copyright (c) 2018 Stefano Babic <sbabic@denx.de>
 #
-# SPDX-License-Identifier:     GPL-2.0-or-later
+# SPDX-License-Identifier:     GPL-2.0-only
 #
 
 import asyncio

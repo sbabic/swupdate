@@ -2,7 +2,7 @@
  * (C) Copyright 2017-2019
  * Stefano Babic, DENX Software Engineering, sbabic@denx.de.
  *
- * SPDX-License-Identifier:     GPL-2.0-or-later
+ * SPDX-License-Identifier:     GPL-2.0-only
  */
 
 #ifndef _SWUFORWARD_HANDLER_H

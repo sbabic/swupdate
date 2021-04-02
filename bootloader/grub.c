@@ -2,7 +2,7 @@
  * Author: Maciej Pijanowski maciej.pijanowski@3mdeb.com
  * Copyright (C) 2017, 3mdeb
  *
- * SPDX-License-Identifier:     GPL-2.0-or-later
+ * SPDX-License-Identifier:     GPL-2.0-only
  */
 
 #include "bootloader.h"

@@ -2,7 +2,7 @@
  * (C) Copyright 2020, Linutronix GmbH
  * Author: Bastian Germann
  *
- * SPDX-License-Identifier:     GPL-2.0-or-later
+ * SPDX-License-Identifier:     GPL-2.0-only
  */
 
 #include <errno.h>

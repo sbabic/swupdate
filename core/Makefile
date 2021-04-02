@@ -6,7 +6,7 @@
 #
 # Copyright (C) 1999-2005 by Erik Andersen <andersen@codepoet.org>
 #
-# SPDX-License-Identifier:     GPL-2.0-or-later
+# SPDX-License-Identifier:     GPL-2.0-only
 
 obj-y += swupdate.o \
 	 cpio_utils.o \

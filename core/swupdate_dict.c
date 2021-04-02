@@ -5,7 +5,7 @@
  * Copyright (C) 2018 Weidmüller Interface GmbH & Co. KG
  * Stefan Herbrechtsmeier <stefan.herbrechtsmeier@weidmueller.com>
  *
- * SPDX-License-Identifier:     GPL-2.0-or-later
+ * SPDX-License-Identifier:     GPL-2.0-only
  */
 
 #include <stdio.h>

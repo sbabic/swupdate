@@ -7,7 +7,7 @@
  *
  * Copyright (c) 2004-2013 Sergey Lyubka
  *
- * SPDX-License-Identifier: MIT AND GPL-2.0-or-later
+ * SPDX-License-Identifier: MIT AND GPL-2.0-only
  */
 
 #define _XOPEN_SOURCE 600  // For PATH_MAX on linux

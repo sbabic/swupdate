@@ -2,7 +2,7 @@
  * Author: Christian Storm
  * Copyright (C) 2016, Siemens AG
  *
- * SPDX-License-Identifier:     GPL-2.0-or-later
+ * SPDX-License-Identifier:     GPL-2.0-only
  */
 
 #include <stdio.h>

@@ -2,7 +2,7 @@
  * Copyright (C) 2021 Weidmueller Interface GmbH & Co. KG
  * Roland Gaudig <roland.gaudig@weidmueller.com>
  *
- * SPDX-License-Identifier:     GPL-2.0-or-later
+ * SPDX-License-Identifier:     GPL-2.0-only
  */
 
 #ifndef _FATFS_INTERFACE_H

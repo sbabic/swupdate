@@ -3,7 +3,7 @@
  * Copyright (c) 2013-2020 Cesanta Software Limited
  * All rights reserved
  *
- * SPDX-License-Identifier: GPL-2.0
+ * SPDX-License-Identifier: GPL-2.0-only
  *
  * This software is dual-licensed: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as

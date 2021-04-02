@@ -3,7 +3,7 @@
  * Author: Andreas Reichel
  * Copyright (C) 2018, Siemens AG
  *
- * SPDX-License-Identifier:     GPL-2.0-or-later
+ * SPDX-License-Identifier:     GPL-2.0-only
  */
 
 #include <unistd.h>
