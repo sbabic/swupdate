@@ -48,15 +48,18 @@ We use the SPDX_ Unique License Identifiers (SPDX-Identifiers_)
    +-------------------------------------------------+------------------+--------------+
    | GNU Lesser General Public License v2.1_ or later| LGPL-2.1-or-later|    Y         |
    +-------------------------------------------------+------------------+--------------+
+   | BSD 1-Clause_ License                           | BSD-1-Clause     |    Y         |
+   +-------------------------------------------------+------------------+--------------+
    | BSD 2-Clause_ License                           | BSD-2-Clause     |    Y         |
    +-------------------------------------------------+------------------+--------------+
-   | BSD 3-clause_ "New" or "Revised" License        | BSD-3-Clause     |    Y         |
+   | BSD 3-Clause_ "New" or "Revised" License        | BSD-3-Clause     |    Y         |
    +-------------------------------------------------+------------------+--------------+
    | MIT_ License                                    | MIT              |    Y         |
    +-------------------------------------------------+------------------+--------------+
 
 .. _v2.0: http://www.gnu.org/licenses/gpl-2.0.txt
 .. _v2.1: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt
+.. _1-Clause: http://spdx.org/licenses/BSD-1-Clause
 .. _2-Clause: http://spdx.org/licenses/BSD-2-Clause
-.. _3-Clause: http://spdx.org/licenses/BSD-3-Clause#licenseText
+.. _3-Clause: http://spdx.org/licenses/BSD-3-Clause
 .. _MIT: https://spdx.org/licenses/MIT.html
