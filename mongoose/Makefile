@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2013 Stefano Babic <sbabic@denx.de>
+#
+# SPDX-License-Identifier: GPL-2.0-only
+
 ifneq ($(CONFIG_WEBSERVER),)
 ifneq ($(CONFIG_MONGOOSE),)
 KBUILD_CFLAGS += -DMG_ENABLE_HTTP_STREAMING_MULTIPART=1

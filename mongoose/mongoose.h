@@ -3,6 +3,8 @@
  * Copyright (c) 2013-2020 Cesanta Software Limited
  * All rights reserved
  *
+ * SPDX-License-Identifier: GPL-2.0-only
+ *
  * This software is dual-licensed: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation. For the terms of this
@@ -15,8 +17,6 @@
  *
  * Alternatively, you can license this software under a commercial
  * license, as set out in <https://www.cesanta.com/license>.
- *
- * SPDX-License-Identifier: GPL-2.0
  */
 
 #ifdef MG_MODULE_LINES
