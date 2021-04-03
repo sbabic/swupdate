@@ -1,3 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: Copyright (c) 1991, 1993 The Regents of the University of California.  All rights reserved.
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
 /*	$NetBSD: queue.h,v 1.68 2014/11/19 08:10:01 uebayasi Exp $	*/
 
 /*
