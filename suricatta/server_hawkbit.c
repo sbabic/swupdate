@@ -1961,6 +1961,19 @@ cleanup:
 	return result;
 }
 
+static void server_set_additional_device_attributes_ipc(json_object* json_data)
+{
+	for (int i = 0; i < json_object_array_length(json_data); ++i) {
+		json_object* attr_obj = json_object_array_get_idx(json_data, i);
+		json_object* attr_key_data = json_get_path_key(attr_obj, (const char *[]){"name", NULL});
+		json_object* attr_value_data = json_get_path_key(attr_obj, (const char *[]){"value", NULL});
+
+		const char* key = json_object_get_string(attr_key_data);
+		const char* value = json_object_get_string(attr_value_data);
+		dict_set_value(&server_hawkbit.configdata, key, value);
+	}
+}
+
 static server_op_res_t server_configuration_ipc(ipc_message *msg)
 {
 	struct json_object *json_root;
@@ -1981,6 +1994,14 @@ static server_op_res_t server_configuration_ipc(ipc_message *msg)
 			server_hawkbit.polling_interval = polling;
 		} else
 			server_hawkbit.polling_interval_from_server = true;
+	}
+
+	json_data = json_get_path_key(
+		json_root, (const char*[]){"identify", NULL});
+
+	if (json_data) {
+		server_set_additional_device_attributes_ipc(json_data);
+		server_hawkbit.has_to_send_configData = true;
 	}
 
 	return SERVER_OK;

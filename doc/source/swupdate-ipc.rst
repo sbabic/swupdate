@@ -192,6 +192,26 @@ Enable / disable Suricatta daemon
         { "enable" : true }
         { "enable" : false }
 
+Set custom device attributes for Suricatta (for Hawkbit implementation)
+.......................................................................
+
+::
+
+        { "identify" : [
+            {
+                "name"  : "customizableAttributeOne",
+                "value" : "valueOne"
+            },
+            {
+                "name"  : "customizableAttributeTwo",
+                "value" : "valueTwo"
+            }
+        ]}
+
+New attributes can be added at runtime, and existing attributes can be modified in the same
+way. Changes will be reflected on the server in the next poll iteration.
+
+
 Trigger a check on the server
 .............................
 
@@ -393,5 +413,3 @@ Example:
 		"name": "rootfs.ext4.gz",
 		"percent": "18"
 	}
-			
-
