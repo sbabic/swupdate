@@ -480,7 +480,7 @@ install: all
 	fi
 
 PHONY += tests
-tests: acceptance-tests
+tests: acceptance-tests test
 
 PHONY += acceptance-tests
 acceptance-tests: FORCE
