@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2021 Christian Storm <christian.storm@siemens.com>
+# SPDX-License-Identifier: CC0-1.0
 CONFIG_SYSTEMD=y
 CONFIG_HW_COMPATIBILITY=y
 # CONFIG_MTD is not set

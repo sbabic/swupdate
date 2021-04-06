@@ -1,3 +1,5 @@
+# SPDX-FileCopyrightText: 2021 Pierre-Jean Texier <pjtexier@koncepto.io>
+# SPDX-License-Identifier: CC0-1.0
 CONFIG_HW_COMPATIBILITY=y
 # CONFIG_MTD is not set
 CONFIG_LUAPKG="lua5.2"
