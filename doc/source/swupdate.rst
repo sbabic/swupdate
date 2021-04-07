@@ -637,6 +637,13 @@ Mandatory arguments are marked with '\*':
 |                         |          | SWUpdate can reuse the file and download   |
 |                         |          | just the remaining part of the SWU.        |
 +-------------------------+----------+--------------------------------------------+
+| -m <seconds>            | integer  | Delay in seconds between re-trying to send |
+|                         |          | initial feedback specified with "-c"       |
+|                         |          | option. Default value is 10 seconds. If    |
+|                         |          | Suricatta is started with initial state of |
+|                         |          | STATE_WAIT ("-c 6"), this value is ignored.|
++-------------------------+----------+--------------------------------------------+
+
 
 systemd Integration
 -------------------

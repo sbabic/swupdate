@@ -50,6 +50,7 @@ static struct option long_options[] = {
     {"interface", required_argument, NULL, 'f'},
     {"disable-token-for-dwl", no_argument, NULL, '1'},
     {"cache", required_argument, NULL, '2'},
+    {"initial-report-resend-period", required_argument, NULL, 'm'},
     {NULL, 0, NULL, 0}};
 
 static unsigned short mandatory_argument_count = 0;
@@ -1596,9 +1597,12 @@ void server_print_help(void)
 	    "\t  -g, --gatewaytoken  Set gateway token.\n"
 	    "\t  -f, --interface     Set the network interface to connect to hawkBit.\n"
 	    "\t  --disable-token-for-dwl Do not send authentication header when downlloading SWU.\n"
-	    "\t  --cache <file>      Use cache file as starting SWU\n",
+	    "\t  --cache <file>      Use cache file as starting SWU\n"
+		"\t  -m, --initial-report-resend-period <seconds> Time to wait prior to retry "
+		"sending initial state with '-c' option (default: %ds).\n",
 	    CHANNEL_DEFAULT_POLLING_INTERVAL, CHANNEL_DEFAULT_RESUME_TRIES,
-	    CHANNEL_DEFAULT_RESUME_DELAY);
+	    CHANNEL_DEFAULT_RESUME_DELAY,
+	    INITIAL_STATUS_REPORT_WAIT_DELAY);
 }
 
 static int server_hawkbit_settings(void *elem, void  __attribute__ ((__unused__)) *data)
@@ -1623,6 +1627,9 @@ static int server_hawkbit_settings(void *elem, void  __attribute__ ((__unused__)
 
 	get_field(LIBCFG_PARSER, elem, "polldelay",
 		&server_hawkbit.polling_interval);
+
+	get_field(LIBCFG_PARSER, elem, "initial-report-resend-period",
+		&server_hawkbit.initial_report_resend_period);
 
 	suricatta_channel_settings(elem, &channel_data_defaults);
 
@@ -1649,6 +1656,7 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 
 	LIST_INIT(&server_hawkbit.configdata);
 
+	server_hawkbit.initial_report_resend_period = INITIAL_STATUS_REPORT_WAIT_DELAY;
 	if (fname) {
 		swupdate_cfg_handle handle;
 		swupdate_cfg_init(&handle);
@@ -1675,7 +1683,7 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 	/* reset to optind=1 to parse suricatta's argument vector */
 	optind = 1;
 	opterr = 0;
-	while ((choice = getopt_long(argc, argv, "t:i:c:u:p:xr:y::w:k:g:f:2:",
+	while ((choice = getopt_long(argc, argv, "t:i:c:u:p:xr:y::w:k:g:f:2:m:",
 				     long_options, NULL)) != -1) {
 		switch (choice) {
 		case 't':
@@ -1760,6 +1768,10 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 		case '2':
 			SETSTRING(server_hawkbit.cached_file, optarg);
 			break;
+		case 'm':
+			server_hawkbit.initial_report_resend_period =
+				(unsigned int)strtoul(optarg, NULL, 10);
+			break;
 		/* Ignore not recognized options, they can be already parsed by the caller */
 		case '?':
 			break;
@@ -1806,11 +1818,9 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 	}
 	/* If an update was performed, report its status to the hawkBit server
 	 * prior to entering the main loop. May run indefinitely if server is
-	 * unavailable. In case of an error, the error is returned to the main
-	 * loop, thereby exiting suricatta. */
-	server_op_res_t state_handled;
+	 * unavailable.
+	 */
 	server_hawkbit.update_state = update_state;
-
 
 	/*
 	 * After a successful startup, a configData is always sent
@@ -1823,15 +1833,10 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 	 * by an external process and we have to wait for it
 	 */
 	if (update_state != STATE_WAIT) {
-		while ((state_handled = server_handle_initial_state(update_state)) !=
-		       SERVER_OK) {
-			if (state_handled == SERVER_EAGAIN) {
-				INFO("Sleeping for %ds until retrying...",
-				     INITIAL_STATUS_REPORT_WAIT_DELAY);
-				sleep(INITIAL_STATUS_REPORT_WAIT_DELAY);
-				continue;
-			}
-			return state_handled; /* Report error to main loop, exiting. */
+		while (server_handle_initial_state(update_state) != SERVER_OK) {
+			INFO("Sleeping for %ds until retrying...",
+				server_hawkbit.initial_report_resend_period);
+			sleep(server_hawkbit.initial_report_resend_period);
 		}
 	}
 

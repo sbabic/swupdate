@@ -43,6 +43,7 @@ typedef struct {
 	char *gatewaytoken;
 	char *cached_file;
 	bool usetokentodwl;
+	unsigned int initial_report_resend_period;
 } server_hawkbit_t;
 
 extern server_hawkbit_t server_hawkbit;
