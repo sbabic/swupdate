@@ -24,7 +24,7 @@ help:
 	@echo
 	@echo 'Development:'
 	@echo '  randconfig		- generate a random configuration'
+	@echo '  tests			- build and run tests for current configuration'
 	@echo
 	@echo 'Documentation:'
 	@$(MAKE) -f $(srctree)/doc/Makefile help
-
