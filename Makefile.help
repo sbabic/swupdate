@@ -17,10 +17,6 @@ help:
 	@echo '  config		- text based configurator (of last resort)'
 	@echo '  menuconfig		- interactive curses-based configurator'
 	@echo '  oldconfig		- resolve any unresolved symbols in .config'
-	@$(if $(boards), \
-		$(foreach b, $(boards), \
-		printf "  %-21s - Build for %s\\n" $(b) $(subst _defconfig,,$(b));) \
-		echo '')
 	@echo
 	@echo 'Development:'
 	@echo '  randconfig		- generate a random configuration'
