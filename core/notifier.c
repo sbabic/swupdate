@@ -368,7 +368,7 @@ static void unlink_socket(void)
 
 static void setup_socket_cleanup(struct sockaddr_un *addr)
 {
-	socket_path = strndupa(addr->sun_path, sizeof(addr->sun_path));
+	socket_path = strndup(addr->sun_path, sizeof(addr->sun_path));
 	if (atexit(unlink_socket) != 0) {
 		TRACE("Cannot setup socket cleanup on exit, %s won't be unlinked.", socket_path);
 	}
