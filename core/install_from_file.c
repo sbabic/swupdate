@@ -55,6 +55,14 @@ static int endupdate(RECOVERY_STATUS status)
 		status == FAILURE ? "*failed* !" :
 			"was successful !");
 
+	if (status == SUCCESS) {
+		ipc_message msg;
+		msg.data.procmsg.len = 0;
+		if (ipc_postupdate(&msg) != 0 || msg.type != ACK) {
+			end_status = EXIT_FAILURE;
+		}
+	}
+
 	pthread_mutex_lock(&mymutex);
 	pthread_cond_signal(&cv_end);
 	pthread_mutex_unlock(&mymutex);
