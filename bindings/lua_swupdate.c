@@ -240,7 +240,8 @@ static int ctrl_close(lua_State *L) {
 	}
 
 	ipc_message msg;
-	if (ipc_postupdate(&msg) != 0) {
+	msg.data.procmsg.len = 0;
+	if (ipc_postupdate(&msg) != 0 || msg.type != ACK) {
 		lua_pushnil(L);
 		lua_pushstring(L, "SWUpdate succeeded but post-update action failed.");
 		return 2;

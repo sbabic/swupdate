@@ -112,7 +112,7 @@ static void restart_handler(struct mg_connection *nc, int ev, void *ev_data)
 		}
 
 		int ret = ipc_postupdate(&msg);
-		if (ret) {
+		if (ret || msg.type != ACK) {
 			mg_http_send_error(nc, 500, "Failed to queue command");
 			return;
 		}

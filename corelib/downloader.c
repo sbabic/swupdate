@@ -150,10 +150,9 @@ int start_download(const char *fname, int argc, char *argv[])
 	RECOVERY_STATUS result = download_from_url(&channel_options);
 	if (result != FAILURE) {
 		ipc_message msg;
-		if (ipc_postupdate(&msg) != 0) {
+		msg.data.procmsg.len = 0;
+		if (ipc_postupdate(&msg) != 0 || msg.type != ACK) {
 			result = FAILURE;
-		} else {
-			result = msg.type == ACK ? result : FAILURE;
 		}
 	}
 
