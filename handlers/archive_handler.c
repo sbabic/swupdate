@@ -208,7 +208,7 @@ static int install_archive_image(struct img_type *img,
 	char *FIFO = NULL;
 
 	if (strlen(img->path) == 0) {
-		TRACE("Missing path attribute");
+		ERROR("Missing path attribute");
 		return -EINVAL;
 	}
 
