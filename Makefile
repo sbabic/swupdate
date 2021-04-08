@@ -483,7 +483,7 @@ PHONY += tests
 tests: acceptance-tests test
 
 PHONY += acceptance-tests
-acceptance-tests: FORCE
+acceptance-tests: swupdate ${tools-bins} FORCE
 	$(Q)$(MAKE) $(build)=scripts/acceptance-tests tests
 
 PHONY += test
