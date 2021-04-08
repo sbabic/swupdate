@@ -80,7 +80,13 @@ General Overview
 
 - Support for setting / erasing `EFI Boot Guard`_ variables
 
-- Support for preinstall scripts. They run before updating the images
+- Support for pre and post update commands run before the update starts
+  processing data and after the update has finished successfully.
+
+- Support for lua hooks, executed before any handler runs.
+
+- Support for preinstall scripts. They run after streamed handlers have
+  handled their data, and before regular handlers.
 
 - Support for postinstall scripts. They run after updating the images.
 
@@ -345,24 +351,27 @@ A run of SWUpdate consists mainly of the following steps:
   with the table in sw-description.
 - Parse sw-description to determine which artefacts in the incoming SWU
   are required. Not required artifacts are simply skipped.
-  The meta file sw-description is declarative and executive. If "hooks"
-  are defined in sw-description, they are executed at parse time. Hooks
-  are executed before any artefact is evaluated and they are the best
-  way to implement pre install functions.
+  If an "embedded-script" is defined, it is executed at this point
+  before parsing files.
+  If "hooks" are defined, they are executed as each file is parsed,
+  even if they will be skipped.
   At the end of the parsing, SWUpdate builds an internal mapping for each artifact
   to recognize which handler should be called for each of them.
-- Reads the cpio archive and proofs the CPIO checksum of each single file
-  (this can be disabled in the configuration) and computes the sha256 sum if foreseen or if Signed Images
-  are activated.  SWUpdate stops if the archive is not complete verified.
-- check that all components described in sw-description are
-  really in the cpio archive.
-- run the partitions handlers, if required.
-- runs pre-install scripts, if any. Please note: if artifacts are streamed, a preinstall script cannot be
-  executed because it depends on the order the artifact (including the script) are packed into the CPIO archive.
-  In this case, please use the "embedded-script" feature in sw-description to execute functions before any
-  installation takes place.
-- if an artifact is found in SWU and it is marked with "installed-directly", proceed with installation,
-  else extract it temporarily into TMPDIR.
+- runs the pre update command, if set
+- runs partition handlers, if required.
+- reads through the cpio archive one file at a time and either:
+  * execute handlers for each file marked as "installed-directly".
+    checksum is checked while the data is streamed to handler, and copy will
+    be marked as having failed if checksum was not correct failing the rest
+    of the install.
+  * copy other files to a temporary location while checking checksums,
+    stopping if there was a mismatch.
+- iterates through all `scripts` and call the corresponding
+  handler for pre-install scripts.
+  Please note: if artifacts are streamed, they will be extracted
+  before this runs. If earlier execution is required, please use
+  the "embedded-script" or hooks features to ensure code is run
+  before installation takes place.
 - iterates through all `images` and call the corresponding
   handler for installing on target.
 - iterates through all `files` and call the corresponding
@@ -372,7 +381,7 @@ A run of SWUpdate consists mainly of the following steps:
 - iterates through all `bootenv` and updates the bootloader environment.
 - reports the status to the operator through the notification interface
   (logging, traces) and through the progress interface.
-- if a postinstall command is foreseen (for example to reboot the device), call it.
+- runs the post update command, if set.
 
 The first step that fails, stops the entire procedure and
 an error is reported.
