@@ -253,6 +253,10 @@ static int install_raw_file(struct img_type *img,
 	}
 
 	fdout = openfileoutput(path);
+	if (!img_check_free_space(img, fdout)) {
+		return -ENOSPC;
+	}
+
 	ret = copyimage(&fdout, img, NULL);
 	if (ret< 0) {
 		ERROR("Error copying extracted file");
