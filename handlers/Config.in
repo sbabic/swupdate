@@ -118,7 +118,7 @@ menuconfig DISKFORMAT
 
 if DISKFORMAT
 
-source fatfs/Config.in
+source fs/Config.in
 
 endif
 
