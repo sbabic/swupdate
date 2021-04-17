@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2016 Christian Storm <christian.storm@tngtech.com>
+#
+# SPDX-License-Identifier: GPL-2.0-only
+
 menuconfig SURICATTA
 	bool "Suricatta"
 	depends on HAVE_LIBCURL
