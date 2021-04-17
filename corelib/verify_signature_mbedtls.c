@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2019 Laszlo Ashin <laszlo@ashin.hu>
+//
+// SPDX-License-Identifier: GPL-2.0-only
+
 #include <ctype.h>
 #include <errno.h>
 #include <stdlib.h>
