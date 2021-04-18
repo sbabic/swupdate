@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
 /*
  * Author: Christian Storm
  * Copyright (C) 2017, Siemens AG
