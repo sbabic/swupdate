@@ -185,6 +185,10 @@ ifeq ($(CONFIG_DISKPART),y)
 LDLIBS += fdisk
 endif
 
+ifeq ($(CONFIG_EXT_FILESYSTEM),y)
+LDLIBS += ext2fs uuid blkid
+endif
+
 ifeq ($(CONFIG_UNIQUEUUID),y)
 LDLIBS += blkid
 endif

@@ -8,3 +8,10 @@ config FAT_FILESYSTEM
 	default n
 	help
 	  Enable support for creating FAT file systems.
+
+config EXT_FILESYSTEM
+	bool "EXT2 / EXT3 / EXT4 file system creation support"
+	depends on DISKFORMAT
+	default n
+	help
+	  Enable support for creating EXT file systems.
