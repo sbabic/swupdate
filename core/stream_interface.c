@@ -509,10 +509,11 @@ void *network_initializer(void *data)
 	/* fork off the local dialogs and network service */
 	network_thread_id = start_thread(network_thread, &inst);
 
+	TRACE("Main loop daemon");
+	thread_ready();
 	/* handle installation requests (from either source) */
 	while (1) {
 		ret = 0;
-		TRACE("Main loop Daemon");
 
 		/* wait for someone to issue an install request */
 		pthread_mutex_lock(&stream_mutex);
@@ -520,6 +521,7 @@ void *network_initializer(void *data)
 		inst.status = RUN;
 		pthread_mutex_unlock(&stream_mutex);
 		notify(START, RECOVERY_NO_ERROR, INFOLEVEL, "Software Update started !");
+		TRACE("Software update started");
 
 		req = &inst.req;
 

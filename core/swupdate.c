@@ -856,6 +856,9 @@ int main(int argc, char **argv)
 
 	start_thread(progress_bar_thread, NULL);
 
+	/* wait for threads to be done before starting children */
+	wait_threads_ready();
+
 	/* Start embedded web server */
 #if defined(CONFIG_MONGOOSE)
 	if (opt_w) {

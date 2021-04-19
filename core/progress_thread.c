@@ -260,6 +260,7 @@ void *progress_bar_thread (void __attribute__ ((__unused__)) *data)
 			get_prog_socket());
 	}
 
+	thread_ready();
 	do {
 		clilen = sizeof(cliaddr);
 		if ( (connfd = accept(listen, (struct sockaddr *) &cliaddr, &clilen)) < 0) {

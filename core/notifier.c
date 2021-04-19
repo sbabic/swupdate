@@ -448,6 +448,7 @@ static void *notifier_thread (void __attribute__ ((__unused__)) *data)
 			break;
 	} while (1);
 
+	thread_ready();
 	do {
 		len =  recvfrom(serverfd, &msg, sizeof(msg), 0, NULL, NULL);
 		/*

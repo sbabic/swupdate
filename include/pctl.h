@@ -27,6 +27,9 @@ struct swupdate_task {
 
 pthread_t start_thread(void *(* start_routine) (void *), void *arg);
 
+void thread_ready(void);
+void wait_threads_ready(void);
+
 typedef int (*swupdate_process)(const char *cfgname, int argc, char **argv);
 
 void start_subprocess(sourcetype type, const char *name,
