@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2019 Adrian Freihofer <adrian.freihofer@siemens.com>
+#
+# SPDX-License-Identifier: CC0-1.0
+
 # top-most EditorConfig file
 root = true
 
