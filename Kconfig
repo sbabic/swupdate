@@ -195,13 +195,6 @@ config SOCKET_PROGRESS_PATH
 	help
 	  Path to the socket progress information is sent to.
 
-config SOCKET_REMOTE_HANDLER_DIRECTORY
-	string "SWUpdate remote handler socket directory"
-	default "/tmp/"
-	help
-	  Directory where sockets to remote handler processes
-	  are expected to be found.
-
 config SOCKET_NOTIFIER_DIRECTORY
 	string "SWUpdate notifier socket directory"
 	depends on HAVE_FREEBSD

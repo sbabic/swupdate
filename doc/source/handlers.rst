@@ -436,9 +436,12 @@ a possible setup using a remote handler could be:
         )
 
 
-The connection is instantiated using the socket "/tmp/test_remote". If
-connect() fails, the remote handler signals that the update is not successful.
-Each Zeromq Message from SWUpdate is a multi-part message split into two frames:
+The connection is instantiated using the socket ``test_remote`` (according
+to the "data" field's value) in the directory pointed to by the environment
+variable ``TMPDIR`` with ``/tmp`` as fall-back if ``TMPDIR`` is not set.
+If ``connect()`` fails, the  remote handler signals that the update is not
+successful. Each zeromq message  from SWUpdate is a multi-part message split
+into two frames:
 
         - first frame contains a string with a command.
         - second frame contains data and can be of 0 bytes.
