@@ -383,6 +383,7 @@ static int diskpart(struct img_type *img,
 			ERROR("Partition table cannot be written on disk");
 		if (fdisk_reread_partition_table(cxt))
 			WARN("Table cannot be reread from the disk, be careful !");
+		sleep(2);
 	} else {
 		ret = 0;
 		TRACE("Same partition table on disk, do not touch partition table !");
@@ -432,6 +433,14 @@ handler_release:
 	}
 
 	fdisk_unref_context(cxt);
+
+	/*
+	 * Kernel rereads the partition table and add just a delay to be sure
+	 * that SWUpdate does not try to access the partitions before the kernel is
+	 * ready
+	 */
+
+	sleep(2);
 
 	return ret;
 }
