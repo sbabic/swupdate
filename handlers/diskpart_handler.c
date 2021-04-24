@@ -30,6 +30,27 @@ void diskpart_handler(void);
 /* Linux native partition type */
  #define GPT_DEFAULT_ENTRY_TYPE "0FC63DAF-8483-4772-8E79-3D69D8477DE4"
 
+#if defined (CONFIG_EXT_FILESYSTEM)
+static inline int ext_mkfs_short(const char *device_name, const char *fstype) {
+	return ext_mkfs(device_name,fstype, 0, NULL);
+}
+#endif
+
+struct supported_filesystems {
+	const char *fstype;
+	int	(*mkfs) (const char *device_name, const char *fstype);
+};
+
+static struct supported_filesystems fs[] = {
+#if defined(CONFIG_FAT_FILESYSTEM)
+	{"vfat", fat_mkfs},
+#endif
+#if defined (CONFIG_EXT_FILESYSTEM)
+	{"ext2", ext_mkfs_short},
+	{"ext3", ext_mkfs_short},
+	{"ext4", ext_mkfs_short},
+#endif
+};
 
 /**
  * Keys for the properties field in sw-description
@@ -119,7 +140,7 @@ static bool diskpart_partition_cmp(const char *lbtype, struct fdisk_partition *f
 		return true;
 
 	if (firstpa && secondpa && (fdisk_partition_cmp_partno(firstpa, secondpa) ||
-		(!fdisk_partition_start_is_default(firstpa) && !fdisk_partition_start_is_default(secondpa) && 
+		(!fdisk_partition_start_is_default(firstpa) && !fdisk_partition_start_is_default(secondpa) &&
 		fdisk_partition_cmp_start(firstpa, secondpa)) ||
 		(!strcmp(lbtype, "gpt") &&
 			(strcmp(fdisk_parttype_get_string(fdisk_partition_get_type(firstpa)),
@@ -221,7 +242,7 @@ static int diskpart(struct img_type *img,
 						strncpy(part->type, equal, sizeof(part->type));
 						break;
 					case PART_NAME:
-						strncpy(part->name, equal, sizeof(part->name)); 
+						strncpy(part->name, equal, sizeof(part->name));
 						break;
 					case PART_FSTYPE:
 						strncpy(part->fstype, equal, sizeof(part->fstype));
@@ -310,9 +331,9 @@ static int diskpart(struct img_type *img,
 	 	 * GPT uses strings instead of hex code for partition type
 	 	*/
 		if (fdisk_is_label(cxt, GPT)) {
-			parttype = fdisk_label_get_parttype_from_string(lb, part->type); 
+			parttype = fdisk_label_get_parttype_from_string(lb, part->type);
 			if (!parttype)
-				parttype = fdisk_label_get_parttype_from_string(lb, GPT_DEFAULT_ENTRY_TYPE); 
+				parttype = fdisk_label_get_parttype_from_string(lb, GPT_DEFAULT_ENTRY_TYPE);
 		} else {
 			parttype = fdisk_label_get_parttype_from_code(lb, ustrtoull(part->type, 16));
 		}
@@ -383,40 +404,10 @@ static int diskpart(struct img_type *img,
 			ERROR("Partition table cannot be written on disk");
 		if (fdisk_reread_partition_table(cxt))
 			WARN("Table cannot be reread from the disk, be careful !");
-		sleep(2);
 	} else {
 		ret = 0;
 		TRACE("Same partition table on disk, do not touch partition table !");
 	}
-
-#ifdef CONFIG_DISKFORMAT
-	/* Create filesystems */
-	LIST_FOREACH(part, &priv.listparts, next) {
-		/*
-		 * priv.listparts counts partitions starting with 0,
-		 * but fdisk_partname expects the first partition having
-		 * the number 1.
-		 */
-		size_t partno = part->partno + 1;
-
-		if (!strlen(part->fstype))
-			continue;  /* Don't touch partitions without fstype */
-
-#ifdef CONFIG_FAT_FILESYSTEM
-		if (!strcmp(part->fstype, "vfat")) {
-			char *device = NULL;
-			device = fdisk_partname(img->device, partno);
-			TRACE("Creating vfat file system on partition-%lu, device %s", partno, device);
-			ret = fat_mkfs(device);
-			if (ret)
-				ERROR("creating vfat file system failed. %d", ret);
-			free(device);
-			continue;
-		}
-#endif
-		ERROR("partition-%lu %s filesystem type not supported.", partno, part->fstype);
-	}
-#endif
 
 handler_exit:
 	if (tb)
@@ -427,11 +418,6 @@ handler_exit:
 		WARN("Error deassign device %s", img->device);
 
 handler_release:
-	LIST_FOREACH_SAFE(part, &priv.listparts, next, tmp) {
-		LIST_REMOVE(part, next);
-		free(part);
-	}
-
 	fdisk_unref_context(cxt);
 
 	/*
@@ -441,6 +427,47 @@ handler_release:
 	 */
 
 	sleep(2);
+
+#ifdef CONFIG_DISKFORMAT
+	/* Create filesystems */
+	if (!ret) {
+		LIST_FOREACH(part, &priv.listparts, next) {
+			int index;
+			/*
+			 * priv.listparts counts partitions starting with 0,
+			 * but fdisk_partname expects the first partition having
+			 * the number 1.
+			 */
+			size_t partno = part->partno + 1;
+
+			if (!strlen(part->fstype))
+				continue;  /* Don't touch partitions without fstype */
+			for (index = 0; index < ARRAY_SIZE(fs); index++) {
+				if (!strcmp(fs[index].fstype, part->fstype))
+					break;
+			}
+			if (index >= ARRAY_SIZE(fs)) {
+				ERROR("partition-%lu %s filesystem type not supported.", partno, part->fstype);
+				break;
+			}
+
+			char *device = NULL;
+			device = fdisk_partname(img->device, partno);
+			TRACE("Creating %s file system on partition-%lu, device %s", part->fstype, partno, device);
+			ret = fs[index].mkfs(device, part->fstype);
+			free(device);
+			if (ret) {
+				ERROR("creating %s file system failed. %d", part->fstype, ret);
+				break;
+			}
+		}
+	}
+#endif
+
+	LIST_FOREACH_SAFE(part, &priv.listparts, next, tmp) {
+		LIST_REMOVE(part, next);
+		free(part);
+	}
 
 	return ret;
 }
