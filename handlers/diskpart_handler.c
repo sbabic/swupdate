@@ -18,7 +18,7 @@
 #include "swupdate.h"
 #include "handler.h"
 #include "util.h"
-#include "fatfs_interface.h"
+#include "fs_interface.h"
 
 void diskpart_handler(void);
 
