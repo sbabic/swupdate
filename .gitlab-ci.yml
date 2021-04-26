@@ -1,0 +1,10 @@
+
+ubuntu-focal:
+  image: ubuntu:focal
+  stage: build
+  before_script:
+    - ./ci/setup.sh
+    - ./ci/install-src-deps.sh
+  script:
+    - ./ci/test-configs.sh
+

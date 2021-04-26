@@ -122,3 +122,6 @@ web-app/dist/
 web-app/node_modules/
 web-app/package-lock.json
 web-app/swupdate-www.tar.gz
+
+# ci
+!.gitlab-ci.yml
