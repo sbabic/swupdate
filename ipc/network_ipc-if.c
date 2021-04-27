@@ -58,7 +58,6 @@ static void *swupdate_async_thread(void *data)
 	} while(size > 0);
 
 	ipc_end(rq->connfd);
-	printf("Now getting status\n");
 
 	/*
 	 * Everything sent, ask for status
