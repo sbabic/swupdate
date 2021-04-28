@@ -39,6 +39,7 @@ $_SUDO apt-get install -y \
     check \
     librsync2 \
     librsync-dev \
+    libext2fs-dev \
     liburiparser-dev \
     doxygen \
     graphviz \
