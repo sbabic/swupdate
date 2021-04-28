@@ -378,7 +378,7 @@ int ff_del_syncobj (FF_SYNC_t sobj);	/* Delete a sync object */
 #endif
 
 /* Function for assigning UNIX devices to FatFs library. */
-extern int fatfs_init(char *device);
+extern int fatfs_init(const char *device);
 extern void fatfs_release(void);
 
 /*--------------------------------------------------------------*/

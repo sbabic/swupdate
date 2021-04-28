@@ -28,7 +28,7 @@ static int file_descriptor = -1;
  * Extension to FatFs library: fatfs_init associates the fatfs library with
  * a disk device file. It has to be called before using any FatFs API function.
  */
-int fatfs_init(char *device)
+int fatfs_init(const char *device)
 {
 	if (file_descriptor >= 0) {
 		ERROR("Called fatfs_init second time without fatfs_release");
