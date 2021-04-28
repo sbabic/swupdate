@@ -798,7 +798,7 @@ supported:
    | fstype      | string   | Optional filesystem type to be created on the      |
    |             |          | partition. If no fstype key is given, no file      |
    |             |          | will be created on the corresponding partition.    |
-   |             |          | (currently only `vfat` file system is supported)   |
+   |             |          | vfat / ext2 / ext3 /ext4 file system is supported  |
    +-------------+----------+----------------------------------------------------+
 
 
@@ -819,7 +819,7 @@ GPT example:
                     "name=ldata", "type=EBD0A0A2-B9E5-4433-87C0-68B6B72699C7",
 		    "fstype=vfat"];
                 partition-3 = ["size=512M", "start=657408",
-                    "name=log", "type=0FC63DAF-8483-4772-8E79-3D69D8477DE4"];
+                    "name=log", "fstype =ext4", 63DAF-8483-4772-8E79-3D69D8477DE4"];
                 partition-4 = ["size=4G", "start=1705984",
                     "name=system",  "type=0FC63DAF-8483-4772-8E79-3D69D8477DE4"];
                 partition-5 = ["size=512M", "start=10094592",
