@@ -25,9 +25,19 @@ static unsigned long handler_index = ULONG_MAX;
 int register_handler(const char *desc,
 		handler installer, HANDLER_MASK mask, void *data)
 {
+	int i;
 
-	if (nr_installers > MAX_INSTALLER_HANDLER - 1)
+	if ((nr_installers > MAX_INSTALLER_HANDLER - 1) || !desc)
 		return -1;
+
+	/*
+	 * Do not register the same handler twice
+	 */
+	for (i = 0; i < nr_installers; i++) {
+		if ((strlen(desc) == strlen(supported_types[i].desc)) &&
+			strcmp(desc, supported_types[i].desc) == 0)
+			return -1;
+	}
 
 	strlcpy(supported_types[nr_installers].desc, desc,
 		      sizeof(supported_types[nr_installers].desc));
