@@ -51,6 +51,7 @@ static struct option long_options[] = {
     {"disable-token-for-dwl", no_argument, NULL, '1'},
     {"cache", required_argument, NULL, '2'},
     {"initial-report-resend-period", required_argument, NULL, 'm'},
+	{"connection-timeout", required_argument, NULL, 's'},
     {NULL, 0, NULL, 0}};
 
 static unsigned short mandatory_argument_count = 0;
@@ -130,7 +131,8 @@ static channel_data_t channel_data_defaults = {.debug = false,
 					       .format = CHANNEL_PARSE_JSON,
 					       .nocheckanswer = false,
 					       .nofollow = false,
-					       .strictssl = true
+					       .strictssl = true,
+						   .connection_timeout = 0
 						};
 
 static struct timeval server_time;
@@ -1599,7 +1601,8 @@ void server_print_help(void)
 	    "\t  --disable-token-for-dwl Do not send authentication header when downlloading SWU.\n"
 	    "\t  --cache <file>      Use cache file as starting SWU\n"
 		"\t  -m, --initial-report-resend-period <seconds> Time to wait prior to retry "
-		"sending initial state with '-c' option (default: %ds).\n",
+		"sending initial state with '-c' option (default: %ds).\n"
+		"\t  -s, --connection-timeout Set the server connection timeout (default: 300s).\n",
 	    CHANNEL_DEFAULT_POLLING_INTERVAL, CHANNEL_DEFAULT_RESUME_TRIES,
 	    CHANNEL_DEFAULT_RESUME_DELAY,
 	    INITIAL_STATUS_REPORT_WAIT_DELAY);
@@ -1635,6 +1638,9 @@ static int server_hawkbit_settings(void *elem, void  __attribute__ ((__unused__)
 
 	get_field(LIBCFG_PARSER, elem, "usetokentodwl",
 		&server_hawkbit.usetokentodwl);
+
+	get_field(LIBCFG_PARSER, elem, "connection-timeout",
+		&channel_data_defaults.connection_timeout);
 
 	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "targettoken", tmp);
 	if (strlen(tmp))
@@ -1683,7 +1689,7 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 	/* reset to optind=1 to parse suricatta's argument vector */
 	optind = 1;
 	opterr = 0;
-	while ((choice = getopt_long(argc, argv, "t:i:c:u:p:xr:y::w:k:g:f:2:m:",
+	while ((choice = getopt_long(argc, argv, "t:i:c:u:p:xr:y::w:k:g:f:2:m:s:",
 				     long_options, NULL)) != -1) {
 		switch (choice) {
 		case 't':
@@ -1770,6 +1776,10 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 			break;
 		case 'm':
 			server_hawkbit.initial_report_resend_period =
+				(unsigned int)strtoul(optarg, NULL, 10);
+			break;
+		case 's':
+			channel_data_defaults.connection_timeout =
 				(unsigned int)strtoul(optarg, NULL, 10);
 			break;
 		/* Ignore not recognized options, they can be already parsed by the caller */

@@ -534,6 +534,7 @@ channel_op_res_t channel_set_options(channel_t *this, channel_data_t *channel_da
 			  "this is most probably not what you want. "
 			  "Adapted it to %us instead.\n", SPEED_LOW_TIME_SEC);
 	}
+
 	channel_curl_t *channel_curl = this->priv;
 	channel_op_res_t result = CHANNEL_OK;
 	if ((curl_easy_setopt(channel_curl->handle, CURLOPT_URL,
@@ -562,6 +563,13 @@ channel_op_res_t channel_set_options(channel_t *this, channel_data_t *channel_da
         (curl_easy_setopt(channel_curl->handle,
                   CURLOPT_POSTREDIR,
                   CURL_REDIR_POST_ALL) != CURLE_OK)) {
+		result = CHANNEL_EINIT;
+		goto cleanup;
+	}
+
+	if (channel_data->connection_timeout > 0 &&
+		(curl_easy_setopt(channel_curl->handle, CURLOPT_CONNECTTIMEOUT,
+		 channel_data->connection_timeout) != CURLE_OK)) {
 		result = CHANNEL_EINIT;
 		goto cleanup;
 	}

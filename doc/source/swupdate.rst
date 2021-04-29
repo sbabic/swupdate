@@ -643,6 +643,15 @@ Mandatory arguments are marked with '\*':
 |                         |          | Suricatta is started with initial state of |
 |                         |          | STATE_WAIT ("-c 6"), this value is ignored.|
 +-------------------------+----------+--------------------------------------------+
+| -s <seconds>            | integer  | Connection timeout to use in seconds.      |
+|                         |          | If user doesn't set this option, default   |
+|                         |          | libcurl connection timeout value of 300    |
+|                         |          | seconds is used.                           |
+|                         |          | NOTE: it is not possible for Suricatta to  |
+|                         |          | respond to external program API requests   |
+|                         |          | during this period - adapt this value to   |
+|                         |          | your use case!                             |
++-------------------------+----------+--------------------------------------------+
 
 
 systemd Integration

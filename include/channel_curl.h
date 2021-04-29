@@ -60,6 +60,7 @@ typedef struct {
 	unsigned int method;
 	unsigned int retries;
 	unsigned int low_speed_timeout;
+	unsigned int connection_timeout;
 	channel_body_t format;
 	bool debug;
 	bool usessl;
