@@ -364,7 +364,8 @@ static int zstd_step(void* state, void* buffer, size_t size)
 			decompress_ret = ZSTD_decompressStream(s->dctx, &output, &s->input_view);
 
 			if (ZSTD_isError(decompress_ret)) {
-				ERROR("ZSTD_decompressStream failed (returned %zu)", decompress_ret);
+				ERROR("ZSTD_decompressStream failed: %s",
+				      ZSTD_getErrorName(decompress_ret));
 				return -1;
 			}
 
