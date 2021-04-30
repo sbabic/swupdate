@@ -448,6 +448,7 @@ handler_release:
 			}
 			if (index >= ARRAY_SIZE(fs)) {
 				ERROR("partition-%lu %s filesystem type not supported.", partno, part->fstype);
+				ret = -EINVAL;
 				break;
 			}
 
