@@ -1,7 +1,7 @@
 /*
- * Arnaldo Carvalho de Melo <acme@conectiva.com.br>, 2005
+ * (C) Copyright Arnaldo Carvalho de Melo <acme@conectiva.com.br>, 2005
  *
- * Released under the terms of the GNU GPL v2.0
+ * SPDX-License-Identifier:     GPL-2.0-only
  */
 
 #include <stdlib.h>

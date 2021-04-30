@@ -1,11 +1,12 @@
 /*
  * Copyright (C) 2002 Roman Zippel <zippel@linux-m68k.org>
- * Released under the terms of the GNU GPL v2.0.
  *
  * Introduced single menu mode (show all sub-menus in one large tree).
- * 2002-11-06 Petr Baudis <pasky@ucw.cz>
+ * Copyright (C) 2002-11-06 Petr Baudis <pasky@ucw.cz>
  *
- * i18n, 2005, Arnaldo Carvalho de Melo <acme@conectiva.com.br>
+ * Copyright (C) 2005, Arnaldo Carvalho de Melo <acme@conectiva.com.br>
+ *
+ * SPDX-License-Identifier:     GPL-2.0-only
  */
 
 #include <ctype.h>

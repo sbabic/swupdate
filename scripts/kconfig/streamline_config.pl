@@ -1,7 +1,8 @@
 #!/usr/bin/perl -w
 #
 # Copyright 2005-2009 - Steven Rostedt
-# Licensed under the terms of the GNU GPL License version 2
+#
+#  SPDX-License-Identifier:     GPL-2.0-only
 #
 #  It's simple enough to figure out how this works.
 #  If not, then you can ask me at stripconfig@goodmis.org

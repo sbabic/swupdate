@@ -5,7 +5,8 @@
 %{
 /*
  * Copyright (C) 2002 Roman Zippel <zippel@linux-m68k.org>
- * Released under the terms of the GNU GPL v2.0.
+ *
+ * SPDX-License-Identifier:     GPL-2.0-only
  */
 
 #include <limits.h>
