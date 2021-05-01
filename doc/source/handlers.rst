@@ -764,7 +764,7 @@ This handler creates or modifies partitions using the library libfdisk. Handler 
 the `partitions` section of sw-description. Setup for each partition is put into the `properties` field
 of sw-description.
 After writing the partition table it may create a file system on selected partitions.
-(Availlable only if CONFIG_DISKFORMAT is set.)
+(Available only if CONFIG_DISKFORMAT is set.)
 
 .. table:: Properties for diskpart handler
 

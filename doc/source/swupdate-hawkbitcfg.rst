@@ -15,7 +15,7 @@ DESCRIPTION
 -h
         help
 -p
-        allows to set the polling time (in seconds)
+        allows one to set the polling time (in seconds)
 -e
         enable suricatta mode
 -d

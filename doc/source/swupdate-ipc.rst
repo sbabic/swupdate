@@ -118,7 +118,7 @@ A user should first call `swupdate_prepare_req()`
 
         void swupdate_prepare_req(struct swupdate_request *req);
 
-This fills the request sturcture with default values. After that, the user can fill the
+This fills the request structure with default values. After that, the user can fill the
 other fields as:
 
         - *sourcetype* : one of SOURCE_UNKNOWN, SOURCE_WEBSERVER,
@@ -126,7 +126,7 @@ other fields as:
         - *dry_run* : one of RUN_DEFAULT (set from command line), RUN_DRYRUN, RUN_INSTALL.
         - *info, len* : a variable length data that can be forwarded to the progress
           interface. The installer in SWUpdate does not evaluate it.
-        - *software_set* and *running_mode* : this allows to set the `selection` fot the update.
+        - *software_set* and *running_mode* : this allows one to set the `selection` for the update.
 
 Functions to set AES keys
 -------------------------
@@ -231,7 +231,7 @@ Activate an already installed Software
 
 After a software was installed, the new software boots and if everything runs fine,
 an acknowledge should be sent to the hawkBit server. If this feature is used, for example
-to let the end user decide if the new software is accepted, the paramters used by the installation
+to let the end user decide if the new software is accepted, the parameters used by the installation
 should be stored during the update process.
 
 ::
