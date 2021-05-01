@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2021 Siemens AG
+#
+# SPDX-License-Identifier: MIT
 
 ubuntu-focal:
   image: ubuntu:focal
@@ -7,4 +10,3 @@ ubuntu-focal:
     - ./ci/install-src-deps.sh
   script:
     - ./ci/test-configs.sh
-
