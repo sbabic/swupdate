@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Handlers &mdash; Embedded Software Update Documentation 2020.11 documentation</title>
+  <title>Handlers &mdash; Embedded Software Update Documentation 2021.04 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                2020.11
+                2021.04
               </div>
             
           
@@ -584,9 +584,12 @@ a possible setup using a remote handler could be:</p>
 <span class="p">)</span>
 </pre></div>
 </div>
-<p>The connection is instantiated using the socket “/tmp/test_remote”. If
-connect() fails, the remote handler signals that the update is not successful.
-Each Zeromq Message from SWUpdate is a multi-part message split into two frames:</p>
+<p>The connection is instantiated using the socket <code class="docutils literal notranslate"><span class="pre">test_remote</span></code> (according
+to the “data” field’s value) in the directory pointed to by the environment
+variable <code class="docutils literal notranslate"><span class="pre">TMPDIR</span></code> with <code class="docutils literal notranslate"><span class="pre">/tmp</span></code> as fall-back if <code class="docutils literal notranslate"><span class="pre">TMPDIR</span></code> is not set.
+If <code class="docutils literal notranslate"><span class="pre">connect()</span></code> fails, the  remote handler signals that the update is not
+successful. Each zeromq message  from SWUpdate is a multi-part message split
+into two frames:</p>
 <blockquote>
 <div><ul class="simple">
 <li>first frame contains a string with a command.</li>
@@ -926,7 +929,9 @@ If not set, default value 0 will be used.</td>
 <h2>Disk partitioner<a class="headerlink" href="#disk-partitioner" title="Permalink to this headline">¶</a></h2>
 <p>This handler creates or modifies partitions using the library libfdisk. Handler must be put into
 the <cite>partitions</cite> section of sw-description. Setup for each partition is put into the <cite>properties</cite> field
-of sw-description.</p>
+of sw-description.
+After writing the partition table it may create a file system on selected partitions.
+(Availlable only if CONFIG_DISKFORMAT is set.)</p>
 <table border="1" class="docutils" id="id4">
 <caption><span class="caption-text">Properties for diskpart handler</span><a class="headerlink" href="#id4" title="Permalink to this table">¶</a></caption>
 <colgroup>
@@ -986,6 +991,13 @@ Kilobytes, Megabytes and Gigabytes.</td>
 It is the hex code for DOS (MBR) partition table
 or it is the string identifier in case of GPT.</td>
 </tr>
+<tr class="row-even"><td>fstype</td>
+<td>string</td>
+<td>Optional filesystem type to be created on the
+partition. If no fstype key is given, no file
+will be created on the corresponding partition.
+vfat / ext2 / ext3 /ext4 file system is supported</td>
+</tr>
 </tbody>
 </table>
 <p>GPT example:</p>
@@ -998,9 +1010,10 @@ or it is the string identifier in case of GPT.</td>
         <span class="n">partition</span><span class="o">-</span><span class="mi">1</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">&quot;size=64M&quot;</span><span class="p">,</span> <span class="s2">&quot;start=2048&quot;</span><span class="p">,</span>
             <span class="s2">&quot;name=bigrootfs&quot;</span><span class="p">,</span> <span class="s2">&quot;type=C12A7328-F81F-11D2-BA4B-00A0C93EC93B&quot;</span><span class="p">];</span>
         <span class="n">partition</span><span class="o">-</span><span class="mi">2</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;size=256M&quot;</span><span class="p">,</span> <span class="s2">&quot;start=133120&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;name=ldata&quot;</span><span class="p">,</span> <span class="s2">&quot;type=EBD0A0A2-B9E5-4433-87C0-68B6B72699C7&quot;</span><span class="p">];</span>
+            <span class="s2">&quot;name=ldata&quot;</span><span class="p">,</span> <span class="s2">&quot;type=EBD0A0A2-B9E5-4433-87C0-68B6B72699C7&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;fstype=vfat&quot;</span><span class="p">];</span>
         <span class="n">partition</span><span class="o">-</span><span class="mi">3</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;size=512M&quot;</span><span class="p">,</span> <span class="s2">&quot;start=657408&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;name=log&quot;</span><span class="p">,</span> <span class="s2">&quot;type=0FC63DAF-8483-4772-8E79-3D69D8477DE4&quot;</span><span class="p">];</span>
+            <span class="s2">&quot;name=log&quot;</span><span class="p">,</span> <span class="s2">&quot;fstype =ext4&quot;</span><span class="p">,</span> <span class="mi">63</span><span class="n">DAF</span><span class="o">-</span><span class="mi">8483</span><span class="o">-</span><span class="mi">4772</span><span class="o">-</span><span class="mf">8E79</span><span class="o">-</span><span class="mi">3</span><span class="n">D69D8477DE4</span><span class="s2">&quot;];</span>
         <span class="n">partition</span><span class="o">-</span><span class="mi">4</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;size=4G&quot;</span><span class="p">,</span> <span class="s2">&quot;start=1705984&quot;</span><span class="p">,</span>
             <span class="s2">&quot;name=system&quot;</span><span class="p">,</span>  <span class="s2">&quot;type=0FC63DAF-8483-4772-8E79-3D69D8477DE4&quot;</span><span class="p">];</span>
         <span class="n">partition</span><span class="o">-</span><span class="mi">5</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;size=512M&quot;</span><span class="p">,</span> <span class="s2">&quot;start=10094592&quot;</span><span class="p">,</span>
@@ -1022,6 +1035,8 @@ or it is the string identifier in case of GPT.</td>
         <span class="n">partition</span><span class="o">-</span><span class="mi">4</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;size=6G&quot;</span><span class="p">,</span> <span class="s2">&quot;start=1181696&quot;</span><span class="p">,</span> <span class="s2">&quot;name=system&quot;</span><span class="p">,</span>  <span class="s2">&quot;type=0x5&quot;</span><span class="p">];</span>
         <span class="n">partition</span><span class="o">-</span><span class="mi">5</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;size=512M&quot;</span><span class="p">,</span> <span class="s2">&quot;start=1183744&quot;</span><span class="p">,</span> <span class="s2">&quot;name=part5&quot;</span><span class="p">,</span>  <span class="s2">&quot;type=0x83&quot;</span><span class="p">];</span>
         <span class="n">partition</span><span class="o">-</span><span class="mi">6</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;size=512M&quot;</span><span class="p">,</span> <span class="s2">&quot;start=2234368&quot;</span><span class="p">,</span> <span class="s2">&quot;name=part6&quot;</span><span class="p">,</span>  <span class="s2">&quot;type=0x83&quot;</span><span class="p">];</span>
+        <span class="n">partition</span><span class="o">-</span><span class="mi">7</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;size=16M&quot;</span><span class="p">,</span> <span class="s2">&quot;start=3284992&quot;</span><span class="p">,</span> <span class="s2">&quot;name=part7&quot;</span><span class="p">,</span> <span class="s2">&quot;type=0x6&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;fstype=vfat&quot;</span><span class="p">];</span>
    <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
@@ -1068,7 +1083,7 @@ found on the device. It is a partition handler and it runs before any image is i
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2013-2020, Stefano Babic
+        &copy; Copyright 2013-2021, Stefano Babic
 
     </p>
   </div>

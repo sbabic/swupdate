@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>SWUpdate: syntax and tags with the default parser &mdash; Embedded Software Update Documentation 2020.11 documentation</title>
+  <title>SWUpdate: syntax and tags with the default parser &mdash; Embedded Software Update Documentation 2021.04 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                2020.11
+                2021.04
               </div>
             
           
@@ -110,7 +110,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#postinstall">postinstall</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#update-transaction-marker">Update Transaction Marker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#update-transaction-and-status-marker">Update Transaction and Status Marker</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#bootloader">bootloader</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#board-specific-settings">Board specific settings</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#software-collections-and-operation-modes">Software collections and operation modes</a></li>
@@ -953,8 +953,8 @@ If the data attribute is defined, its value is passed as the last argument(s)
 to the script.</p>
 </div>
 </div>
-<div class="section" id="update-transaction-marker">
-<h2>Update Transaction Marker<a class="headerlink" href="#update-transaction-marker" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="update-transaction-and-status-marker">
+<h2>Update Transaction and Status Marker<a class="headerlink" href="#update-transaction-and-status-marker" title="Permalink to this headline">¶</a></h2>
 <p>By default, SWUpdate sets the bootloader environment variable “recovery_status”
 to “in_progress” prior to an update operation and either unsets it or sets it to
 “failed” after the update operation. This is an interface for SWUpdate-external
@@ -977,7 +977,12 @@ transaction marker:</p>
 </div>
 <p>It is also possible to disable setting of the transaction marker
 entirely (and independently of the setting in <cite>sw-description</cite>) by
-starting swupdate with the <cite>-M</cite> option.</p>
+starting SWUpdate with the <cite>-M</cite> option.</p>
+<p>The same applies to setting the update state in the bootloader via its
+environment variable “ustate” (default) to <cite>STATE_INSTALLED=1</cite> or
+<cite>STATE_FAILED=3</cite> after an installation. This behavior can be turned off
+globally via the <cite>-m</cite> option to SWUpdate or per <cite>sw-description</cite> via the
+boolean switch “bootloader_state_marker”.</p>
 </div>
 <div class="section" id="bootloader">
 <h2>bootloader<a class="headerlink" href="#bootloader" title="Permalink to this headline">¶</a></h2>
@@ -1527,7 +1532,7 @@ specifying the devicenode</td>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2013-2020, Stefano Babic
+        &copy; Copyright 2013-2021, Stefano Babic
 
     </p>
   </div>

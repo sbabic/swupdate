@@ -2,6 +2,7 @@
 Documentation for previous releases
 ===================================
 
+- `2020.11 <./2020.11/index.html>`_
 - `2020.04 <./2020.04/index.html>`_
 - `2019.11 <./2019.11/index.html>`_
 - `2019.04 <./2019.04/index.html>`_

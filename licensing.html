@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>License &mdash; Embedded Software Update Documentation 2020.11 documentation</title>
+  <title>License &mdash; Embedded Software Update Documentation 2021.04 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                2020.11
+                2021.04
               </div>
             
           
@@ -199,7 +199,7 @@ replaced with a single line reference to Unique License Identifiers
 as defined by the Linux Foundation’s SPDX project [1].  For example,
 in a source file the full “GPL v2.0 or later” header text will be
 replaced by a single line:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">SPDX</span><span class="o">-</span><span class="n">License</span><span class="o">-</span><span class="n">Identifier</span><span class="p">:</span>        <span class="n">GPL</span><span class="o">-</span><span class="mf">2.0</span><span class="o">+</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">SPDX</span><span class="o">-</span><span class="n">License</span><span class="o">-</span><span class="n">Identifier</span><span class="p">:</span>        <span class="n">GPL</span><span class="o">-</span><span class="mf">2.0</span><span class="o">-</span><span class="n">only</span>
 </pre></div>
 </div>
 <p>Ideally, the license terms of all files in the source tree should be
@@ -208,13 +208,13 @@ more than one such License Identifier list.</p>
 <p>If a “SPDX-License-Identifier:” line references more than one Unique
 License Identifier, then this means that the respective file can be
 used under the terms of either of these licenses, i. e. with</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">SPDX</span><span class="o">-</span><span class="n">License</span><span class="o">-</span><span class="n">Identifier</span><span class="p">:</span>        <span class="n">GPL</span><span class="o">-</span><span class="mf">2.0</span><span class="o">+</span>        <span class="n">BSD</span><span class="o">-</span><span class="mi">3</span><span class="o">-</span><span class="n">Clause</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">SPDX</span><span class="o">-</span><span class="n">License</span><span class="o">-</span><span class="n">Identifier</span><span class="p">:</span>        <span class="n">GPL</span><span class="o">-</span><span class="mf">2.0</span><span class="o">-</span><span class="n">only</span> <span class="n">OR</span> <span class="n">BSD</span><span class="o">-</span><span class="mi">3</span><span class="o">-</span><span class="n">Clause</span>
 </pre></div>
 </div>
-<p>you can choose between GPL-2.0+ and BSD-3-Clause licensing.</p>
+<p>you can choose between GPL-2.0-only and BSD-3-Clause licensing.</p>
 <p>We use the <a class="reference external" href="http://spdx.org/">SPDX</a> Unique License Identifiers (<a class="reference external" href="http://spdx.org/licenses/">SPDX-Identifiers</a>)</p>
-<table border="1" class="docutils" id="id2">
-<caption><span class="caption-text">Licenses</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
+<table border="1" class="docutils" id="id3">
+<caption><span class="caption-text">Licenses</span><a class="headerlink" href="#id3" title="Permalink to this table">¶</a></caption>
 <colgroup>
 <col width="60%" />
 <col width="22%" />
@@ -231,19 +231,19 @@ used under the terms of either of these licenses, i. e. with</p>
 <td>GPL-2.0-only</td>
 <td>Y</td>
 </tr>
-<tr class="row-odd"><td>GNU General Public License <a class="reference external" href="http://www.gnu.org/licenses/gpl-2.0.txt">v2.0</a> or later</td>
-<td>GPL-2.0-or-later</td>
+<tr class="row-odd"><td>GNU Lesser General Public License <a class="reference external" href="http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt">v2.1</a> or later</td>
+<td>LGPL-2.1-or-later</td>
 <td>Y</td>
 </tr>
-<tr class="row-even"><td>GNU Lesser General Public License <a class="reference external" href="http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt">v2.1</a> or later</td>
-<td>LGPL-2.1-or-later</td>
+<tr class="row-even"><td>BSD <a class="reference external" href="http://spdx.org/licenses/BSD-1-Clause">1-Clause</a> License</td>
+<td>BSD-1-Clause</td>
 <td>Y</td>
 </tr>
 <tr class="row-odd"><td>BSD <a class="reference external" href="http://spdx.org/licenses/BSD-2-Clause">2-Clause</a> License</td>
 <td>BSD-2-Clause</td>
 <td>Y</td>
 </tr>
-<tr class="row-even"><td>BSD <a class="reference external" href="http://spdx.org/licenses/BSD-3-Clause#licenseText">3-clause</a> “New” or “Revised” License</td>
+<tr class="row-even"><td>BSD <a class="reference external" href="http://spdx.org/licenses/BSD-3-Clause">3-Clause</a> “New” or “Revised” License</td>
 <td>BSD-3-Clause</td>
 <td>Y</td>
 </tr>
@@ -275,7 +275,7 @@ used under the terms of either of these licenses, i. e. with</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2013-2020, Stefano Babic
+        &copy; Copyright 2013-2021, Stefano Babic
 
     </p>
   </div>

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>SWUpdate: API for external programs &mdash; Embedded Software Update Documentation 2020.11 documentation</title>
+  <title>SWUpdate: API for external programs &mdash; Embedded Software Update Documentation 2021.04 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                2020.11
+                2021.04
               </div>
             
           
@@ -110,6 +110,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#messages-for-suricatta">Messages for suricatta</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#setting-the-polling-time">Setting the polling time</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#enable-disable-suricatta-daemon">Enable / disable Suricatta daemon</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#set-custom-device-attributes-for-suricatta-for-hawkbit-implementation">Set custom device attributes for Suricatta (for Hawkbit implementation)</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#trigger-a-check-on-the-server">Trigger a check on the server</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#activate-an-already-installed-software">Activate an already installed Software</a></li>
 </ul>
@@ -261,9 +262,9 @@ will be ignored until a new REQ_INSTALL will be received.</p>
 <img alt="_images/API.png" src="_images/API.png" />
 <p>It is recommended to use the client library to communicate with SWUpdate. On the lower
 level with direct socket communication, it cannot be guaranteed that the structures
-will remain compatible in future. The client library was affected by this issue, too, and it is
-changed to accept an opaque interface that will survive to API changes. Compatibility
-layers could be added on bedarf in future due to API changes.</p>
+will remain compatible in the future. The client library was affected by this issue, too, and it is
+changed to accept an opaque interface that will survive API changes. Compatibility
+layers could be added on-demand in the future due to API changes.</p>
 </div>
 <div class="section" id="client-library">
 <h2>Client Library<a class="headerlink" href="#client-library" title="Permalink to this headline">¶</a></h2>
@@ -370,6 +371,23 @@ the message data.</p>
 <span class="p">{</span> <span class="s2">&quot;enable&quot;</span> <span class="p">:</span> <span class="n">false</span> <span class="p">}</span>
 </pre></div>
 </div>
+</div>
+<div class="section" id="set-custom-device-attributes-for-suricatta-for-hawkbit-implementation">
+<h4>Set custom device attributes for Suricatta (for Hawkbit implementation)<a class="headerlink" href="#set-custom-device-attributes-for-suricatta-for-hawkbit-implementation" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="s2">&quot;identify&quot;</span> <span class="p">:</span> <span class="p">[</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span>  <span class="p">:</span> <span class="s2">&quot;customizableAttributeOne&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;value&quot;</span> <span class="p">:</span> <span class="s2">&quot;valueOne&quot;</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span>  <span class="p">:</span> <span class="s2">&quot;customizableAttributeTwo&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;value&quot;</span> <span class="p">:</span> <span class="s2">&quot;valueTwo&quot;</span>
+    <span class="p">}</span>
+<span class="p">]}</span>
+</pre></div>
+</div>
+<p>New attributes can be added at runtime, and existing attributes can be modified in the same
+way. Changes will be reflected on the server in the next poll iteration.</p>
 </div>
 <div class="section" id="trigger-a-check-on-the-server">
 <h4>Trigger a check on the server<a class="headerlink" href="#trigger-a-check-on-the-server" title="Permalink to this headline">¶</a></h4>
@@ -601,7 +619,7 @@ each change in the update process. The Webserver sends JSON formatted responses 
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2013-2020, Stefano Babic
+        &copy; Copyright 2013-2021, Stefano Babic
 
     </p>
   </div>

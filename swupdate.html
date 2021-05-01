@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>SWUpdate: software update for embedded system &mdash; Embedded Software Update Documentation 2020.11 documentation</title>
+  <title>SWUpdate: software update for embedded system &mdash; Embedded Software Update Documentation 2021.04 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                2020.11
+                2021.04
               </div>
             
           
@@ -500,29 +500,51 @@ debhelper tools, it is possible to generate a debian package.</p>
 <h2>Running SWUpdate<a class="headerlink" href="#running-swupdate" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="what-is-expected-from-a-swupdate-run">
 <h3>What is expected from a SWUpdate run<a class="headerlink" href="#what-is-expected-from-a-swupdate-run" title="Permalink to this headline">¶</a></h3>
-<p>A run of SWUpdate consists mainly of the following steps:</p>
+<p>The whole update process can be seen as a set of pipelines. The incoming stream
+(the SWU file) is processed by each pipe and passed to the next step.
+First, the SWU is streamed from one of the interfaces : local (USB, filesystem), Webserver,
+suricatta (one of the backend), etc. The incoming SWU is forwarded to the installer to be examined
+and installed.
+A run of SWUpdate consists mainly of the following steps:</p>
 <ul class="simple">
-<li>check for media (USB-pen)</li>
-<li>check for an image file. The extension must be .swu</li>
-<li>extracts sw-description from the image and verifies it
+<li>extracts sw-description from the stream and verifies it
 It parses sw-description creating a raw description in RAM
 about the activities that must be performed.</li>
-<li>Reads the cpio archive and proofs the checksum of each single file
-SWUpdate stops if the archive is not complete verified</li>
+<li>if Signed Images is activated, extracts sw-description.sig and
+validate sw-description.</li>
 <li>check for hardware-software compatibility, if any,
 reading hardware revision from hardware and matching
 with the table in sw-description.</li>
+<li>Parse sw-description to determine which artefacts in the incoming SWU
+are required. Not required artifacts are simply skipped.
+The meta file sw-description is declarative and executive. If “hooks”
+are defined in sw-description, they are executed at parse time. Hooks
+are executed before any artefact is evaluated and they are the best
+way to implement pre install functions.
+At the end of the parsing, SWUpdate builds an internal mapping for each artifact
+to recognize which handler should be called for each of them.</li>
+<li>Reads the cpio archive and proofs the CPIO checksum of each single file
+(this can be disabled in the configuration) and computes the sha256 sum if foreseen or if Signed Images
+are activated.  SWUpdate stops if the archive is not complete verified.</li>
 <li>check that all components described in sw-description are
 really in the cpio archive.</li>
-<li>modify partitions, if required. This consists in a resize
-of UBI volumes, not a resize of MTD partition.</li>
-<li>runs pre-install scripts</li>
-<li>iterates through all images and call the corresponding
+<li>run the partitions handlers, if required.</li>
+<li>runs pre-install scripts, if any. Please note: if artifacts are streamed, a preinstall script cannot be
+executed because it depends on the order the artifact (including the script) are packed into the CPIO archive.
+In this case, please use the “embedded-script” feature in sw-description to execute functions before any
+installation takes place.</li>
+<li>if an artifact is found in SWU and it is marked with “installed-directly”, proceed with installation,
+else extract it temporarily into TMPDIR.</li>
+<li>iterates through all <cite>images</cite> and call the corresponding
 handler for installing on target.</li>
-<li>runs post-install scripts</li>
-<li>update bootloader environment, if changes are specified
-in sw-description.</li>
-<li>reports the status to the operator (stdout)</li>
+<li>iterates through all <cite>files</cite> and call the corresponding
+handler for installing on target.</li>
+<li>iterates through all <cite>scripts</cite> and call the corresponding
+handler for post-install scripts</li>
+<li>iterates through all <cite>bootenv</cite> and updates the bootloader environment.</li>
+<li>reports the status to the operator through the notification interface
+(logging, traces) and through the progress interface.</li>
+<li>if a postinstall command is foreseen (for example to reboot the device), call it.</li>
 </ul>
 <p>The first step that fails, stops the entire procedure and
 an error is reported.</p>
@@ -698,30 +720,57 @@ Version consists of either 4 numbers
 the range 0..65535) or it is a semantic
 version.</td>
 </tr>
-<tr class="row-odd"><td>-R &lt;version&gt;</td>
+<tr class="row-odd"><td><table class="first last docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd><span class="option">-m<var>ax-version</var></span></kbd></td>
+<td>&lt;version&gt;</td></tr>
+</tbody>
+</table>
+</td>
+<td>string</td>
+<td>The maximum required version of software.
+This will be checked with the version of
+new software.
+Version consists of either 4 numbers
+(major.minor.rev.build with each field in
+the range 0..65535) or it is a semantic
+version.</td>
+</tr>
+<tr class="row-even"><td>-R &lt;version&gt;</td>
 <td>string</td>
 <td>The current installed version of software.
 This will be checked with the version of
 new software and forbids reinstalling.</td>
 </tr>
-<tr class="row-even"><td>-o &lt;file&gt;</td>
+<tr class="row-odd"><td>-o &lt;file&gt;</td>
 <td>string</td>
 <td>Save the stream (SWU) to a file.</td>
 </tr>
-<tr class="row-odd"><td>-v</td>
+<tr class="row-even"><td>-v</td>
 <td><ul class="first last simple">
 <li></li>
 </ul>
 </td>
 <td>Activate verbose output.</td>
 </tr>
-<tr class="row-even"><td>-M</td>
+<tr class="row-odd"><td>-M</td>
 <td><ul class="first last simple">
 <li></li>
 </ul>
 </td>
 <td>Disable setting the bootloader transaction
 marker.</td>
+</tr>
+<tr class="row-even"><td>-m</td>
+<td><ul class="first last simple">
+<li></li>
+</ul>
+</td>
+<td>Disable setting the update state in the
+bootloader.</td>
 </tr>
 <tr class="row-odd"><td>-w &lt;parms&gt;</td>
 <td>string</td>
@@ -917,6 +966,25 @@ power cut. If the SWU is saved in a file,
 SWUpdate can reuse the file and download
 just the remaining part of the SWU.</td>
 </tr>
+<tr class="row-even"><td>-m &lt;seconds&gt;</td>
+<td>integer</td>
+<td>Delay in seconds between re-trying to send
+initial feedback specified with “-c”
+option. Default value is 10 seconds. If
+Suricatta is started with initial state of
+STATE_WAIT (“-c 6”), this value is ignored.</td>
+</tr>
+<tr class="row-odd"><td>-s &lt;seconds&gt;</td>
+<td>integer</td>
+<td>Connection timeout to use in seconds.
+If user doesn’t set this option, default
+libcurl connection timeout value of 300
+seconds is used.
+NOTE: it is not possible for Suricatta to
+respond to external program API requests
+during this period - adapt this value to
+your use case!</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -1051,7 +1119,7 @@ should inherit it, and add your own sw-description file to generate the image.</
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2013-2020, Stefano Babic
+        &copy; Copyright 2013-2021, Stefano Babic
 
     </p>
   </div>

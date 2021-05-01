@@ -60,9 +60,9 @@ will be ignored until a new REQ_INSTALL will be received.
 
 It is recommended to use the client library to communicate with SWUpdate. On the lower
 level with direct socket communication, it cannot be guaranteed that the structures
-will remain compatible in future. The client library was affected by this issue, too, and it is
-changed to accept an opaque interface that will survive to API changes. Compatibility
-layers could be added on bedarf in future due to API changes.
+will remain compatible in the future. The client library was affected by this issue, too, and it is
+changed to accept an opaque interface that will survive API changes. Compatibility
+layers could be added on-demand in the future due to API changes.
 
 
 Client Library
@@ -191,6 +191,26 @@ Enable / disable Suricatta daemon
 
         { "enable" : true }
         { "enable" : false }
+
+Set custom device attributes for Suricatta (for Hawkbit implementation)
+.......................................................................
+
+::
+
+        { "identify" : [
+            {
+                "name"  : "customizableAttributeOne",
+                "value" : "valueOne"
+            },
+            {
+                "name"  : "customizableAttributeTwo",
+                "value" : "valueTwo"
+            }
+        ]}
+
+New attributes can be added at runtime, and existing attributes can be modified in the same
+way. Changes will be reflected on the server in the next poll iteration.
+
 
 Trigger a check on the server
 .............................
@@ -393,5 +413,3 @@ Example:
 		"name": "rootfs.ext4.gz",
 		"percent": "18"
 	}
-			
-
