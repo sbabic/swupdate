@@ -14,5 +14,5 @@ for i in configs/*; do
     echo "*** Testing config: $i"
     make "$(basename $i)"
     make -j8
-    make test
+    make tests
 done

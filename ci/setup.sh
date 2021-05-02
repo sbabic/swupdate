@@ -51,6 +51,8 @@ $_SUDO apt-get install -y \
     libwebsockets-dev \
     libgpiod-dev \
     libcurl4-openssl-dev \
-    gawk
+    gawk \
+    cpio \
+    wget
 
 $_SUDO ln -sf /usr/lib/x86_64-linux-gnu/pkgconfig/lua5.2.pc /usr/lib/x86_64-linux-gnu/pkgconfig/lua.pc
