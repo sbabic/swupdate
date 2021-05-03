@@ -10,8 +10,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include "semver.h"
+#include "globals.h"
 
-#define SLICE_SIZE   50
+#define SLICE_SIZE   SWUPDATE_GENERAL_STRING_SIZE
 #define DELIMITER    "."
 #define PR_DELIMITER "-"
 #define MT_DELIMITER "+"
