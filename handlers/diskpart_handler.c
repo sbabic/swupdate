@@ -430,7 +430,7 @@ handler_release:
 
 #ifdef CONFIG_DISKFORMAT
 	/* Create filesystems */
-	if (!ret) {
+	if (!ret && createtable) {
 		LIST_FOREACH(part, &priv.listparts, next) {
 			int index;
 			/*
