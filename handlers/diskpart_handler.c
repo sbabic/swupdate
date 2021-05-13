@@ -297,7 +297,11 @@ static int diskpart(struct img_type *img,
 	if (!fdisk_has_label(cxt)) {
 		WARN("%s does not contain a recognized partition table",
 		     img->device);
-		fdisk_create_disklabel(cxt, lbtype);
+		ret = fdisk_create_disklabel(cxt, lbtype);
+		if (ret) {
+			ERROR("Failed to create disk label");
+			goto handler_release;
+		}
 		createtable = true;
 	} else if (lbtype) {
 		if (!strcmp(lbtype, "gpt"))
@@ -308,7 +312,11 @@ static int diskpart(struct img_type *img,
 		if (!fdisk_is_labeltype(cxt, priv.labeltype)) {
 			WARN("Partition table of different type, setting to %s, all data lost !",
 				lbtype);
-			fdisk_create_disklabel(cxt, lbtype);
+			ret = fdisk_create_disklabel(cxt, lbtype);
+			if (ret) {
+				ERROR("Failed to create disk label");
+				goto handler_release;
+			}
 			createtable = true;
 		}
 	}
