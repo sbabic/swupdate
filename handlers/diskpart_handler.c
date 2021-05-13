@@ -194,6 +194,16 @@ static int diskpart(struct img_type *img,
 		return -ENOMEM;
 	}
 
+	/*
+	 * The library uses dialog driven partitioning by default.
+	 * Disable as we don't support interactive dialogs.
+	 */
+	ret = fdisk_disable_dialogs(cxt, 1);
+	if (ret) {
+		ERROR("Failed to disable dialogs");
+		goto handler_release;
+	}
+
 	ret = fdisk_assign_device(cxt, img->device, 0);
 	if (ret == -EACCES) {
 		ERROR("no access to %s", img->device);
