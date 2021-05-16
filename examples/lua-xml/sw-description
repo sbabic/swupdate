@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- SPDX-FileCopyrightText: 2014-2021 Stefano Babic <sbabic@denx.de> -->
+<!-- SPDX-License-Identifier: CC0-1.0 -->
 <software version="1.0">
         <name>Update Image</name>
         <version>1.0.0</version>

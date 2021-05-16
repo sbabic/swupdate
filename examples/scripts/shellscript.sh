@@ -1,4 +1,7 @@
 #!/bin/sh
+# SPDX-FileCopyrightText: 2021 Stefano Babic <sbabic@denx.de>
+# SPDX-License-Identifier: CC0-1.0
+
 #example type = "shellscript";
 
 do_preinst()

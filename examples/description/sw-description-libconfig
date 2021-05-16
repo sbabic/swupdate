@@ -1,3 +1,7 @@
+/*
+ * SPDX-FileCopyrightText: 2014-2021 Stefano Babic <sbabic@denx.de>
+ * SPDX-License-Identifier: CC0-1.0
+ */
 software =
 {
 	version = "0.1.0";

@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: 2014-2021 Stefano Babic <sbabic@denx.de>
+--
+-- SPDX-License-Identifier: CC0-1.0
+--
 function os.capture(cmd, raw)
 	local f = assert(io.popen(cmd, 'r'))
 	local s = assert(f:read('*a'))
