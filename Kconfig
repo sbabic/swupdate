@@ -454,6 +454,10 @@ config CMS_IGNORE_EXPIRED_CERTIFICATE
 config CMS_IGNORE_CERTIFICATE_PURPOSE
 	bool "Ignore X.509 certificate purpose"
 	depends on SIGALG_CMS
+
+config CMS_SKIP_UNKNOWN_SIGNERS
+	bool "Ignore unverifiable signatures if known signer verifies"
+	depends on SIGALG_CMS
 endmenu
 
 

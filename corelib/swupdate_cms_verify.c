@@ -16,6 +16,12 @@
 #include "util.h"
 #include "swupdate_verify_private.h"
 
+#if defined(CONFIG_CMS_SKIP_UNKNOWN_SIGNERS)
+#define VERIFY_UNKNOWN_SIGNER_FLAGS (CMS_NO_SIGNER_CERT_VERIFY)
+#else
+#define VERIFY_UNKNOWN_SIGNER_FLAGS (0)
+#endif
+
 int check_code_sign(const X509_PURPOSE *xp, const X509 *crt, int ca)
 {
 	X509 *x = (X509 *)crt;
@@ -182,6 +188,47 @@ static int check_signer_name(CMS_ContentInfo *cms, const char *name)
 	return ret;
 }
 
+#if defined(CONFIG_CMS_SKIP_UNKNOWN_SIGNERS)
+static int check_verified_signer(CMS_ContentInfo* cms, X509_STORE* store)
+{
+	int i, ret = 1;
+
+	X509_STORE_CTX *ctx = X509_STORE_CTX_new();
+	STACK_OF(CMS_SignerInfo) *infos = CMS_get0_SignerInfos(cms);
+	STACK_OF(X509)* cms_certs = CMS_get1_certs(cms);
+
+	if (!ctx) {
+		ERROR("Failed to allocate verification context");
+		return ret;
+	}
+
+	for (i = 0; i < sk_CMS_SignerInfo_num(infos) && ret != 0; ++i) {
+		CMS_SignerInfo *si = sk_CMS_SignerInfo_value(infos, i);
+		X509 *signer = NULL;
+
+		CMS_SignerInfo_get0_algs(si, NULL, &signer, NULL, NULL);
+		if (!X509_STORE_CTX_init(ctx, store, signer, cms_certs)) {
+			ERROR("Failed to initialize signer verification operation");
+			break;
+		}
+
+		X509_STORE_CTX_set_default(ctx, "smime_sign");
+		if (X509_verify_cert(ctx) > 0) {
+			TRACE("Verified signature %d in signer sequence", i);
+			ret = 0;
+		} else {
+			TRACE("Failed to verify certificate %d in signer sequence", i);
+		}
+
+		X509_STORE_CTX_cleanup(ctx);
+	}
+
+	X509_STORE_CTX_free(ctx);
+
+	return ret;
+}
+#endif
+
 int swupdate_verify_file(struct swupdate_digest *dgst, const char *sigfile,
 		const char *file, const char *signer_name)
 {
@@ -221,12 +268,21 @@ int swupdate_verify_file(struct swupdate_digest *dgst, const char *sigfile,
 
 	/* Then try to verify signature */
 	if (!CMS_verify(cms, NULL, dgst->certs, content_bio,
-			NULL, CMS_BINARY)) {
+			NULL, CMS_BINARY | VERIFY_UNKNOWN_SIGNER_FLAGS)) {
 		ERR_print_errors_fp(stderr);
 		ERROR("Signature verification failed");
 		status = -EBADMSG;
 		goto out;
 	}
+
+#if defined(CONFIG_CMS_SKIP_UNKNOWN_SIGNERS)
+	/* Verify at least one signer authenticates */
+	if (check_verified_signer(cms, dgst->certs)) {
+		ERROR("Authentication of all signatures failed");
+		status = -EBADMSG;
+		goto out;
+	}
+#endif
 
 	TRACE("Verified OK");
 
