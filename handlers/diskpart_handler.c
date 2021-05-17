@@ -161,6 +161,29 @@ static bool diskpart_partition_cmp(const char *lbtype, struct fdisk_partition *f
 	return false;
 }
 
+static int diskpart_reload_table(struct fdisk_context *cxt, struct fdisk_table *tb)
+{
+	int ret = 0;
+
+	ret = fdisk_delete_all_partitions(cxt);
+	if (ret) {
+		ERROR("Partition table cannot be deleted: %d", ret);
+		return ret;
+	}
+	ret = fdisk_apply_table(cxt, tb);
+	if (ret) {
+		ERROR("Partition table cannot be applied: %d", ret);
+		return ret;
+	}
+	fdisk_reset_table(tb);
+	ret = fdisk_get_partitions(cxt, &tb);
+	if (ret) {
+		ERROR("Error loading applied table %d:", ret);
+		return ret;
+	}
+	return ret;
+}
+
 static int diskpart(struct img_type *img,
 	void __attribute__ ((__unused__)) *data)
 {
@@ -369,6 +392,14 @@ static int diskpart(struct img_type *img,
 	}
 
 	/*
+	 * Reload new table against the context to populate default values
+	 * so that we can compare partitions properly.
+	 */
+	ret = diskpart_reload_table(cxt, tb);
+	if (ret)
+		goto handler_exit;
+
+	/*
 	 * A partiton table was found on disk, now compares the two tables
 	 * to check if they differ.
 	 */
@@ -407,12 +438,6 @@ static int diskpart(struct img_type *img,
 
 	if (createtable) {
 		TRACE("Partitions on disk differ, write to disk;");
-		fdisk_delete_all_partitions(cxt);
-		ret = fdisk_apply_table(cxt, tb);
-		if (ret) {
-			ERROR("Partition table cannot be applied !");
-			goto handler_exit;
-		}
 
 		/*
 		 * Everything done, write into disk
