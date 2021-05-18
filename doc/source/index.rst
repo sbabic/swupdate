@@ -45,6 +45,7 @@ SWUpdate Documentation
    progress.rst
    bindings.rst
    building-with-yocto.rst
+   swupdate-best-practise.rst
 
 ############################################
 Utilities and tools
