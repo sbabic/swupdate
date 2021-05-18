@@ -134,10 +134,22 @@ static int diskpart_set_partition(struct fdisk_partition *pa,
 /*
  * Return true if partition differs
  */
-static bool diskpart_partition_cmp(const char *lbtype, struct fdisk_partition *firstpa, struct fdisk_partition *secondpa)
+static bool diskpart_partition_cmp(struct fdisk_partition *firstpa, struct fdisk_partition *secondpa)
 {
+	struct fdisk_parttype *type;
+	const char *lbtype;
+
 	if (!firstpa || !secondpa)
 		return true;
+
+	type = fdisk_partition_get_type(firstpa);
+	if (!type)
+		return true;
+
+	if (fdisk_parttype_get_string(type))
+		lbtype = "gpt";
+	else
+		lbtype = "dos";
 
 	if (firstpa && secondpa && (fdisk_partition_cmp_partno(firstpa, secondpa) ||
 		(!fdisk_partition_start_is_default(firstpa) && !fdisk_partition_start_is_default(secondpa) &&
@@ -201,6 +213,47 @@ static int diskpart_fill_table(struct fdisk_context *cxt, struct fdisk_table *tb
 		fdisk_unref_partition(newpa);
 		if (ret)
 			return ret;
+	}
+	return ret;
+}
+
+/*
+ * Return 1 if table differs, 0 if table is the same, negative on error
+ */
+static int diskpart_table_cmp(struct fdisk_table *tb, struct fdisk_table *oldtb)
+{
+	size_t numnewparts = fdisk_table_get_nents(tb);
+	size_t numpartondisk = fdisk_table_get_nents(oldtb);
+	unsigned long i;
+	int ret = 0;
+
+	if (numpartondisk != numnewparts) {
+		TRACE("Number of partitions differs on disk: %lu <--> requested: %lu",
+			  (long unsigned int)numpartondisk, (long unsigned int)numnewparts);
+		ret = 1;
+	} else {
+		struct fdisk_partition *pa, *newpa;
+		struct fdisk_iter *itr	 = fdisk_new_iter(FDISK_ITER_FORWARD);
+		struct fdisk_iter *olditr = fdisk_new_iter(FDISK_ITER_FORWARD);
+
+		i = 0;
+		while (i < numpartondisk && !ret) {
+			newpa=NULL;
+			pa = NULL;
+			if (fdisk_table_next_partition (tb, itr, &newpa) ||
+				fdisk_table_next_partition (oldtb, olditr, &pa)) {
+				TRACE("Partition not found, something went wrong %lu !", i);
+				ret = -EFAULT;
+			} else if (diskpart_partition_cmp(pa, newpa)) {
+				ret = 1;
+			}
+
+			fdisk_unref_partition(newpa);
+			fdisk_unref_partition(pa);
+			i++;
+		}
+		fdisk_free_iter(itr);
+		fdisk_free_iter(olditr);
 	}
 	return ret;
 }
@@ -422,37 +475,11 @@ static int diskpart(struct img_type *img,
 	 * to check if they differ.
 	 */
 	if (!createtable) {
-		size_t numnewparts = fdisk_table_get_nents(tb);
-		size_t numpartondisk = fdisk_table_get_nents(oldtb);
-
-		if (numpartondisk != numnewparts) {
-			TRACE("Number of partitions differs on disk: %lu <--> requested: %lu",
-				(long unsigned int)numpartondisk, (long unsigned int)numnewparts);
-			createtable = true;
-		} else {
-			struct fdisk_partition *pa, *newpa;
-			struct fdisk_iter *itr	 = fdisk_new_iter(FDISK_ITER_FORWARD);
-			struct fdisk_iter *olditr = fdisk_new_iter(FDISK_ITER_FORWARD);
-
-			i = 0;
-			while (i < numpartondisk && !createtable) {
-				newpa=NULL;
-				pa = NULL;
-				if (fdisk_table_next_partition (tb, itr, &newpa) ||
-					fdisk_table_next_partition (oldtb, olditr, &pa)) {
-					TRACE("Partition not found, something went wrong %lu !", i);
-					ret = -EFAULT;
-					goto handler_exit;
-				}
-				if (diskpart_partition_cmp(lbtype, pa, newpa)) {
-					createtable = true;
-				}
-
-				fdisk_unref_partition(newpa);
-				fdisk_unref_partition(pa);
-				i++;
-			}
-		}
+		ret = diskpart_table_cmp(tb, oldtb);
+		if (ret < 0)
+			goto handler_exit;
+		else if (ret)
+ 			createtable = true;
 	}
 
 	if (createtable) {
