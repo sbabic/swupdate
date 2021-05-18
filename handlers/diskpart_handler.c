@@ -161,6 +161,50 @@ static bool diskpart_partition_cmp(const char *lbtype, struct fdisk_partition *f
 	return false;
 }
 
+static int diskpart_fill_table(struct fdisk_context *cxt, struct fdisk_table *tb,
+		struct partition_data *part, struct hnd_priv priv)
+{
+	struct fdisk_parttype *parttype;
+	struct fdisk_label *lb;
+	unsigned long sector_size;
+	int ret = 0;
+
+	lb = fdisk_get_label(cxt, NULL);
+	if (!lb) {
+		ERROR("Failed to load label");
+		return -EINVAL;
+	}
+
+	sector_size = fdisk_get_sector_size(cxt);
+
+	LIST_FOREACH(part, &priv.listparts, next) {
+		struct fdisk_partition *newpa;
+
+		newpa = fdisk_new_partition();
+		/*
+		 * GPT uses strings instead of hex code for partition type
+		 */
+		if (fdisk_is_label(cxt, GPT)) {
+			parttype = fdisk_label_get_parttype_from_string(lb, part->type);
+			if (!parttype)
+				parttype = fdisk_label_get_parttype_from_string(lb, GPT_DEFAULT_ENTRY_TYPE);
+		} else {
+			parttype = fdisk_label_get_parttype_from_code(lb, ustrtoull(part->type, 16));
+		}
+		ret = diskpart_set_partition(newpa, part, sector_size, parttype);
+		if (ret) {
+			WARN("I cannot set all partition's parameters");
+		}
+		if ((ret = fdisk_table_add_partition(tb, newpa)) < 0) {
+			ERROR("I cannot add partition %zu(%s): %d", part->partno, part->name, ret);
+		}
+		fdisk_unref_partition(newpa);
+		if (ret)
+			return ret;
+	}
+	return ret;
+}
+
 static int diskpart_reload_table(struct fdisk_context *cxt, struct fdisk_table *tb)
 {
 	int ret = 0;
@@ -195,7 +239,6 @@ static int diskpart(struct img_type *img,
 	struct partition_data *tmp;
 	struct fdisk_table *tb = NULL;
 	struct fdisk_table *oldtb = NULL;
-	struct fdisk_parttype *parttype = NULL;
 	int ret = 0;
 	unsigned long i;
 	struct hnd_priv priv =  {FDISK_DISKLABEL_DOS};
@@ -344,11 +387,8 @@ static int diskpart(struct img_type *img,
 		}
 	}
 
-	struct fdisk_label *lb = fdisk_get_label(cxt, NULL);
-	unsigned long sector_size = fdisk_get_sector_size(cxt);
-
 	/*
-	 * Create a new in-memory partition taböe to be compared
+	 * Create a new in-memory partition table to be compared
 	 * with the table on the disk, and applied if differs
 	 */
 	tb = fdisk_new_table();
@@ -362,34 +402,12 @@ static int diskpart(struct img_type *img,
 		goto handler_exit;
 	}
 
-	i = 0;
-
-	LIST_FOREACH(part, &priv.listparts, next) {
-		struct fdisk_partition *newpa;
-
-		newpa = fdisk_new_partition();
-		/*
-	 	 * GPT uses strings instead of hex code for partition type
-	 	*/
-		if (fdisk_is_label(cxt, GPT)) {
-			parttype = fdisk_label_get_parttype_from_string(lb, part->type);
-			if (!parttype)
-				parttype = fdisk_label_get_parttype_from_string(lb, GPT_DEFAULT_ENTRY_TYPE);
-		} else {
-			parttype = fdisk_label_get_parttype_from_code(lb, ustrtoull(part->type, 16));
-		}
-		ret = diskpart_set_partition(newpa, part, sector_size, parttype);
-		if (ret) {
-			WARN("I cannot set all partition's parameters");
-		}
-		if ((ret = fdisk_table_add_partition(tb, newpa)) < 0) {
-			ERROR("I cannot add partition %zu(%s): %d", part->partno, part->name, ret);
-		}
-		fdisk_unref_partition(newpa);
-		if (ret < 0)
-			goto handler_exit;
-		i++;
-	}
+	/*
+	 * Fill the new in-memory partition table from the partition list.
+	 */
+	ret = diskpart_fill_table(cxt, tb, part, priv);
+	if (ret)
+		goto handler_exit;
 
 	/*
 	 * Reload new table against the context to populate default values
@@ -404,11 +422,12 @@ static int diskpart(struct img_type *img,
 	 * to check if they differ.
 	 */
 	if (!createtable) {
+		size_t numnewparts = fdisk_table_get_nents(tb);
 		size_t numpartondisk = fdisk_table_get_nents(oldtb);
 
-		if (numpartondisk != i) {
+		if (numpartondisk != numnewparts) {
 			TRACE("Number of partitions differs on disk: %lu <--> requested: %lu",
-				(long unsigned int)numpartondisk, i);
+				(long unsigned int)numpartondisk, (long unsigned int)numnewparts);
 			createtable = true;
 		} else {
 			struct fdisk_partition *pa, *newpa;
