@@ -173,6 +173,32 @@ For example, to automatically set the version tag:
 
         version = "@@DISTRO_VERSION@@";
 
+Automatic versions in sw-description
+------------------------------------
+
+By setting the version tag in the update file to `@SWU_AUTO_VERSION` it is
+automatically replaced with `PV` from BitBake's package-data-file for the package
+matching the name of the provided filename tag.
+For example, to set the version tag to `PV` of package `u-boot`:
+
+::
+
+        filename = "u-boot";
+        ...
+        version = "@SWU_AUTO_VERSION";
+
+Since the filename can differ from package name (deployed with another name or
+the file is a container for the real package) you can append the correct package
+name to the tag: `@SWU_AUTO_VERSION:<package-name>`.
+For example, to set the version tag of the file `packed-bootloader` to `PV` of
+package `u-boot`:
+
+::
+
+        filename = "packed-bootloader";
+        ...
+        version = "@SWU_AUTO_VERSION:u-boot";
+
 Template for recipe using the class
 -----------------------------------
 
