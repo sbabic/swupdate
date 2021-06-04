@@ -203,3 +203,16 @@ Template for recipe using the class
         inherit swupdate
 
 
+Embedding a swupdate image inside another image
+-----------------------------------------------
+
+A use case for this is when you need an image that can program your device the first time.
+
+The only difference, is that your `swupdate-image` can't use `IMAGE_DEPENDS` 
+because your are going to pull the sysroot of your image and you might have 
+conflicts between dependency. (i.e. libgcc and libgcc-initial install the same files)
+
+You need to use intertask dependency explicitly  instead of the `IMAGE_DEPENDS` variable.
+
+::
+      do_swuimage[depends] = "core-image-full-cmdline:do_image_complete virtual/kernel:do_deploy"
