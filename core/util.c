@@ -883,6 +883,32 @@ static char *get_root_from_partitions(void)
 	return NULL;
 }
 
+/*
+ * Return the rootfs's device name from /proc/self/mountinfo.
+ * Needed for filesystems having synthetic stat(2) st_dev
+ * values such as BTRFS.
+ */
+static char *get_root_from_mountinfo(void)
+{
+	char *mnt_point, *device = NULL;
+	FILE *fp = fopen("/proc/self/mountinfo", "r");
+	while (fp && !feof(fp)){
+		/* format: https://www.kernel.org/doc/Documentation/filesystems/proc.txt */
+		if (fscanf(fp, "%*s %*s %*u:%*u %*s %ms %*s %*[-] %*s %ms %*s",
+			   &mnt_point, &device) == 2) {
+			if ( (!strcmp(mnt_point, "/")) && (strcmp(device, "none")) ) {
+				free(mnt_point);
+				break;
+			}
+			free(mnt_point);
+			free(device);
+		}
+		device = NULL;
+	}
+	(void)fclose(fp);
+	return device;
+}
+
 #define MAX_CMDLINE_LENGTH 4096
 static char *get_root_from_cmdline(void)
 {
@@ -936,6 +962,8 @@ char *get_root_device(void)
 	root = get_root_from_partitions();
 	if (!root)
 		root = get_root_from_cmdline();
+	if (!root)
+		root = get_root_from_mountinfo();
 
 	return root;
 }
