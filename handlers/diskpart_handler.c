@@ -36,6 +36,16 @@ static inline int ext_mkfs_short(const char *device_name, const char *fstype) {
 }
 #endif
 
+/*
+ * We will only have a parent in hybrid mode.
+ */
+#define IS_HYBRID(cxt) fdisk_get_parent(cxt)
+
+/*
+ * Get the parent if it exists, otherwise context is already the parent.
+ */
+#define PARENT(cxt) fdisk_get_parent(cxt) ? fdisk_get_parent(cxt) : cxt
+
 struct supported_filesystems {
 	const char *fstype;
 	int	(*mkfs) (const char *device_name, const char *fstype);
@@ -60,7 +70,8 @@ enum partfield {
 	PART_START,
 	PART_TYPE,
 	PART_NAME,
-	PART_FSTYPE
+	PART_FSTYPE,
+	PART_DOSTYPE
 };
 
 const char *fields[] = {
@@ -68,7 +79,8 @@ const char *fields[] = {
 	[PART_START] = "start",
 	[PART_TYPE] = "type",
 	[PART_NAME] = "name",
-	[PART_FSTYPE] = "fstype"
+	[PART_FSTYPE] = "fstype",
+	[PART_DOSTYPE] = "dostype"
 };
 
 struct partition_data {
@@ -78,6 +90,7 @@ struct partition_data {
 	char type[SWUPDATE_GENERAL_STRING_SIZE];
 	char name[SWUPDATE_GENERAL_STRING_SIZE];
 	char fstype[SWUPDATE_GENERAL_STRING_SIZE];
+	char dostype[SWUPDATE_GENERAL_STRING_SIZE];
 	LIST_ENTRY(partition_data) next;
 };
 LIST_HEAD(listparts, partition_data);
@@ -90,23 +103,200 @@ struct hnd_priv {
 	struct listparts listparts;	/* list of partitions */
 };
 
-/**
- * diskpart_set_partition - set values in a fdisk_partition
- * @cxt: libfdisk context
- * @pa: pointer to fdisk_partition to be changed
- * @part: structure with values to be set, read from sw-description
- *
- * return 0 if ok
- */
+struct create_table {
+	bool parent;
+	bool child;
+};
+
+struct diskpart_table {
+	struct fdisk_table *parent;
+	struct fdisk_table *child;
+};
+
+static char *diskpart_get_lbtype(struct img_type *img)
+{
+	return dict_get_value(&img->properties, "labeltype");
+}
+
+static int diskpart_assign_label(struct fdisk_context *cxt, struct img_type *img,
+		struct hnd_priv priv, struct create_table *createtable, unsigned long hybrid)
+{
+	char *lbtype = diskpart_get_lbtype(img);
+	int ret = 0;
+
+	/*
+	 * Check partition table
+	 */
+	if (!fdisk_has_label(cxt)) {
+		WARN("%s does not contain a recognized partition table",
+			 img->device);
+		ret = fdisk_create_disklabel(cxt, lbtype);
+		if (ret) {
+			ERROR("Failed to create disk label");
+			return ret;
+		}
+		createtable->parent = true;
+		if (hybrid)
+			createtable->child = true;
+	} else if (lbtype) {
+		if (!strcmp(lbtype, "gpt")) {
+			priv.labeltype = FDISK_DISKLABEL_GPT;
+		} else {
+			priv.labeltype = FDISK_DISKLABEL_DOS;
+		}
+
+		if (!fdisk_is_labeltype(cxt, priv.labeltype)) {
+			WARN("Partition table of different type, setting to %s, all data lost !",
+				 lbtype);
+			ret = fdisk_create_disklabel(cxt, lbtype);
+			if (ret) {
+				ERROR("Failed to create disk label");
+				return ret;
+			}
+			createtable->parent = true;
+			if (hybrid)
+				createtable->child = true;
+		}
+	}
+
+	return ret;
+}
+
+static int diskpart_assign_context(struct fdisk_context **cxt,struct img_type *img,
+		struct hnd_priv priv, unsigned long hybrid, struct create_table *createtable)
+{
+	struct fdisk_context *parent;
+	int ret = 0;
+
+	/*
+	 * Parent context, accessed through the child context when
+	 * used in hybrid mode.
+	 */
+	parent = fdisk_new_context();
+	if (!parent) {
+		ERROR("Failed to allocate libfdisk context");
+		return -ENOMEM;
+	}
+
+	/*
+	 * The library uses dialog driven partitioning by default.
+	 * Disable as we don't support interactive dialogs.
+	 */
+	ret = fdisk_disable_dialogs(parent, 1);
+	if (ret) {
+		ERROR("Failed to disable dialogs");
+		return ret;
+	}
+
+	/*
+	 * fdisk_new_nested_context requires the device to be assigned.
+	 */
+	ret = fdisk_assign_device(parent, img->device, 0);
+	if (ret == -EACCES) {
+		ERROR("no access to %s", img->device);
+		return ret;
+	}
+
+	/*
+	 * fdisk_new_nested_context requires the parent label to be set.
+	 */
+	ret = diskpart_assign_label(parent, img, priv, createtable, hybrid);
+	if (ret)
+		return ret;
+
+	if (hybrid) {
+		/*
+		 * Child context which we will use for the hybrid dos
+		 * table in GPT mode.
+		 *
+		 * This also lets us access the parent context.
+		 */
+		*cxt = fdisk_new_nested_context(parent, "dos");
+		if (!cxt) {
+			ERROR("Failed to allocate libfdisk nested context");
+			return -ENOMEM;
+		}
+
+		/*
+		 * The library uses dialog driven partitioning by default.
+		 * Disable as we don't support interactive dialogs.
+		 */
+		ret = fdisk_disable_dialogs(*cxt, 1);
+		if (ret) {
+			ERROR("Failed to disable nested dialogs");
+			return ret;
+		}
+	} else {
+		/*
+		 * Use the parent context directly when not in hybrid mode.
+		 */
+		*cxt = parent;
+	}
+
+	return ret;
+}
+
+static struct diskpart_table *diskpart_new_table(struct fdisk_context *cxt)
+{
+	struct diskpart_table *tb = NULL;
+
+	tb = calloc(1, sizeof(*tb));
+	if (!tb)
+		return NULL;
+
+	tb->parent = fdisk_new_table();
+	if (!tb->parent) {
+		free(tb);
+		return NULL;
+	}
+
+	if (IS_HYBRID(cxt)) {
+		tb->child = fdisk_new_table();
+		if (!tb->child) {
+			fdisk_unref_table(tb->parent);
+			free(tb);
+			return NULL;
+		}
+	}
+
+	return tb;
+}
+
+static void diskpart_unref_table(struct diskpart_table *tb)
+{
+	if (!tb)
+		return;
+
+	if (tb->child)
+		fdisk_unref_table(tb->child);
+
+	if (tb->parent)
+		fdisk_unref_table(tb->parent);
+
+	free(tb);
+}
+
+static int diskpart_get_partitions(struct fdisk_context *cxt, struct diskpart_table *tb,
+		struct create_table *createtable)
+{
+	int ret = 0;
+
+	if (fdisk_get_partitions(PARENT(cxt), &tb->parent))
+		createtable->parent = true;
+
+	if (IS_HYBRID(cxt) && fdisk_get_partitions(cxt, &tb->child))
+		createtable->child = true;
+
+	return ret;
+}
+
 static int diskpart_set_partition(struct fdisk_partition *pa,
 				  struct partition_data *part,
 				  unsigned long sector_size,
 				  struct fdisk_parttype *parttype)
 {
-	int ret = 0;
+	int ret;
 
-	if (!sector_size)
-		sector_size = 1;
 	fdisk_partition_unset_partno(pa);
 	fdisk_partition_unset_size(pa);
 	fdisk_partition_unset_start(pa);
@@ -117,7 +307,7 @@ static int diskpart_set_partition(struct fdisk_partition *pa,
 	if (part->partno != LIBFDISK_INIT_UNDEF(part->partno))
 		ret |= fdisk_partition_set_partno(pa, part->partno);
 	else
-		ret |= fdisk_partition_partno_follow_default(pa, 1);
+		ret |= -EINVAL;
 	if (strlen(part->name))
 	      ret |= fdisk_partition_set_name(pa, part->name);
 	if (part->size != LIBFDISK_INIT_UNDEF(part->size))
@@ -127,6 +317,85 @@ static int diskpart_set_partition(struct fdisk_partition *pa,
 
 	if (parttype)
 		ret |= fdisk_partition_set_type(pa, parttype);
+
+	return ret;
+}
+
+static int diskpart_set_hybrid_partition(struct fdisk_partition *pa,
+								  struct partition_data *part,
+								  struct fdisk_parttype *parttype,
+								  struct fdisk_table *tb)
+{
+	/*
+	 * Lookup the parent partition by partition number so that we
+	 * can align the nested/hybrid partition entries properly.
+	 */
+	struct fdisk_partition *parent = fdisk_table_get_partition_by_partno(tb, part->partno);
+	int ret = 0;
+
+	if (!parent) {
+		ERROR("I cannot find parent for hybrid partition %zu(%s)", part->partno, part->name);
+		return -EINVAL;
+	};
+
+	fdisk_partition_unset_partno(pa);
+	fdisk_partition_unset_size(pa);
+	fdisk_partition_unset_start(pa);
+	fdisk_partition_size_explicit(pa, 1);
+	if (fdisk_partition_has_start(parent))
+		ret = fdisk_partition_set_start(pa, fdisk_partition_get_start(parent));
+	else
+		ret = -EINVAL;
+	ret |= fdisk_partition_partno_follow_default(pa, 1);
+	if (strlen(part->name))
+		ret |= fdisk_partition_set_name(pa, part->name);
+	if (fdisk_partition_has_size(parent))
+		ret |= fdisk_partition_set_size(pa, fdisk_partition_get_size(parent));
+	else
+		ret |= -EINVAL;
+
+	if (parttype)
+		ret |= fdisk_partition_set_type(pa, parttype);
+
+	return ret;
+}
+
+static int diskpart_append_hybrid_pmbr(struct fdisk_label *lb, struct fdisk_table *tb)
+{
+	struct fdisk_partition *pa;
+	struct fdisk_parttype *parttype;
+	int ret = 0;
+
+	pa = fdisk_new_partition();
+	fdisk_partition_unset_partno(pa);
+	fdisk_partition_unset_size(pa);
+	fdisk_partition_unset_start(pa);
+	fdisk_partition_size_explicit(pa, 1);
+
+	/*
+	 * Place the hybrid PMBR over the GPT header
+	 */
+	ret = fdisk_partition_set_start(pa, 1);
+	ret |= fdisk_partition_set_size(pa, 33);
+
+	/*
+	 * Set type to 0xEE(Intel EFI GUID Partition Table) for hybrid PMBR
+	 */
+	parttype = fdisk_label_get_parttype_from_code(lb, 0xee);
+	ret |= fdisk_partition_set_type(pa, parttype);
+
+	/*
+	 * Just append the hybrid PMBR entry at the end since Linux will
+	 * run in GPT mode if any primary DOS entry is 0xEE.
+	 */
+	ret |= fdisk_partition_partno_follow_default(pa, 1);
+	if (ret)
+		return ret;
+
+	if ((ret = fdisk_table_add_partition(tb, pa)) < 0) {
+		ERROR("Failed to append hybrid PMBR to table");
+	}
+	fdisk_unref_partition(pa);
 
 	return ret;
 }
@@ -173,7 +442,30 @@ static bool diskpart_partition_cmp(struct fdisk_partition *firstpa, struct fdisk
 	return false;
 }
 
-static int diskpart_fill_table(struct fdisk_context *cxt, struct fdisk_table *tb,
+static int diskpart_reload_table(struct fdisk_context *cxt, struct fdisk_table *tb)
+{
+	int ret = 0;
+
+	ret = fdisk_delete_all_partitions(cxt);
+	if (ret) {
+		ERROR("Partition table cannot be deleted: %d", ret);
+		return ret;
+	}
+	ret = fdisk_apply_table(cxt, tb);
+	if (ret) {
+		ERROR("Partition table cannot be applied: %d", ret);
+		return ret;
+	}
+	fdisk_reset_table(tb);
+	ret = fdisk_get_partitions(cxt, &tb);
+	if (ret) {
+		ERROR("Error loading applied table %d:", ret);
+		return ret;
+	}
+	return ret;
+}
+
+static int diskpart_fill_table(struct fdisk_context *cxt, struct diskpart_table *tb,
 		struct partition_data *part, struct hnd_priv priv)
 {
 	struct fdisk_parttype *parttype;
@@ -181,13 +473,15 @@ static int diskpart_fill_table(struct fdisk_context *cxt, struct fdisk_table *tb
 	unsigned long sector_size;
 	int ret = 0;
 
-	lb = fdisk_get_label(cxt, NULL);
+	lb = fdisk_get_label(PARENT(cxt), NULL);
 	if (!lb) {
 		ERROR("Failed to load label");
 		return -EINVAL;
 	}
 
-	sector_size = fdisk_get_sector_size(cxt);
+	sector_size = fdisk_get_sector_size(PARENT(cxt));
+	if (!sector_size)
+		sector_size = 1;
 
 	LIST_FOREACH(part, &priv.listparts, next) {
 		struct fdisk_partition *newpa;
@@ -196,7 +490,7 @@ static int diskpart_fill_table(struct fdisk_context *cxt, struct fdisk_table *tb
 		/*
 		 * GPT uses strings instead of hex code for partition type
 		 */
-		if (fdisk_is_label(cxt, GPT)) {
+		if (fdisk_is_label(PARENT(cxt), GPT)) {
 			parttype = fdisk_label_get_parttype_from_string(lb, part->type);
 			if (!parttype)
 				parttype = fdisk_label_get_parttype_from_string(lb, GPT_DEFAULT_ENTRY_TYPE);
@@ -207,10 +501,62 @@ static int diskpart_fill_table(struct fdisk_context *cxt, struct fdisk_table *tb
 		if (ret) {
 			WARN("I cannot set all partition's parameters");
 		}
-		if ((ret = fdisk_table_add_partition(tb, newpa)) < 0) {
+		if ((ret = fdisk_table_add_partition(tb->parent, newpa)) < 0) {
 			ERROR("I cannot add partition %zu(%s): %d", part->partno, part->name, ret);
 		}
 		fdisk_unref_partition(newpa);
+		if (ret)
+			return ret;
+	}
+
+	/*
+	 * Reload parent table against the context to populate default values.
+	 * We must do this before adding hybrid entries so we can derive nested values.
+	 */
+	ret = diskpart_reload_table(PARENT(cxt), tb->parent);
+	if (ret)
+		return ret;
+
+	if (IS_HYBRID(cxt)) {
+		lb = fdisk_get_label(cxt, "dos");
+		if (!lb) {
+			ERROR("Failed to load hybrid label");
+			return -EINVAL;
+		}
+
+		LIST_FOREACH(part, &priv.listparts, next) {
+			if (strlen(part->dostype)) {
+				struct fdisk_partition *newpa;
+
+				newpa = fdisk_new_partition();
+
+				parttype = fdisk_label_get_parttype_from_code(lb, ustrtoull(part->dostype, 16));
+				if (!parttype) {
+					ERROR("I cannot add hybrid partition %zu(%s) invalid dostype: %s",
+						part->partno, part->name, part->dostype);
+				}
+				ret = diskpart_set_hybrid_partition(newpa, part, parttype, tb->parent);
+				if (ret) {
+					WARN("I cannot set all hybrid partition's parameters");
+				}
+				if ((ret = fdisk_table_add_partition(tb->child, newpa)) < 0) {
+					ERROR("I cannot add hybrid partition %zu(%s): %d", part->partno, part->name, ret);
+				}
+				fdisk_unref_partition(newpa);
+				if (ret)
+					return ret;
+			}
+		}
+		/*
+		 * Add PMBR after other entries since bootloaders should not care about its position.
+		 */
+		ret = diskpart_append_hybrid_pmbr(lb, tb->child);
+		if (ret)
+			return ret;
+		/*
+		 * Reload child table against the context to fully populate remaining values.
+		 */
+		ret = diskpart_reload_table(cxt, tb->child);
 		if (ret)
 			return ret;
 	}
@@ -258,44 +604,94 @@ static int diskpart_table_cmp(struct fdisk_table *tb, struct fdisk_table *oldtb)
 	return ret;
 }
 
-static int diskpart_reload_table(struct fdisk_context *cxt, struct fdisk_table *tb)
+static int diskpart_compare_tables(struct diskpart_table *tb, struct diskpart_table *oldtb,
+		struct create_table *createtable)
 {
 	int ret = 0;
 
-	ret = fdisk_delete_all_partitions(cxt);
-	if (ret) {
-		ERROR("Partition table cannot be deleted: %d", ret);
-		return ret;
+	/*
+	 * A partiton table was found on disk, now compares the two tables
+	 * to check if they differ.
+	 */
+	if (!createtable->parent) {
+		ret = diskpart_table_cmp(tb->parent, oldtb->parent);
+		if (ret < 0)
+			return ret;
+		else if (ret)
+			createtable->parent = true;
 	}
-	ret = fdisk_apply_table(cxt, tb);
-	if (ret) {
-		ERROR("Partition table cannot be applied: %d", ret);
-		return ret;
+
+	if (tb->child && !createtable->child) {
+		ret = diskpart_table_cmp(tb->child, oldtb->child);
+		if (ret < 0)
+			return ret;
+		else if (ret)
+			createtable->child = true;
 	}
-	fdisk_reset_table(tb);
-	ret = fdisk_get_partitions(cxt, &tb);
-	if (ret) {
-		ERROR("Error loading applied table %d:", ret);
-		return ret;
+
+	ret = 0;
+
+	return ret;
+}
+
+static int diskpart_write_table(struct fdisk_context *cxt, struct create_table *createtable)
+{
+	int ret = 0;
+
+	if (createtable->parent || createtable->child)
+		TRACE("Partitions on disk differ, write to disk;");
+	else
+		TRACE("Same partition table on disk, do not touch partition table !");
+
+	if (createtable->child) {
+		if (!IS_HYBRID(cxt)) {
+			ERROR("Internal fault, tried to create nested table but disk is not hybrid.");
+			return -EINVAL;
+		}
+		/*
+		 * Everything done, write into disk
+		 */
+		ret = fdisk_write_disklabel(cxt);
+		if (ret)
+			ERROR("Nested partition table cannot be written on disk");
+		if (fdisk_reread_partition_table(cxt))
+			WARN("Nested partition table cannot be reread from the disk, be careful !");
+		if (ret)
+			return ret;
 	}
+
+	if (createtable->parent) {
+		/*
+		 * Everything done, write into disk
+		 */
+		ret = fdisk_write_disklabel(PARENT(cxt));
+		if (ret)
+			ERROR("Partition table cannot be written on disk");
+		if (fdisk_reread_partition_table(PARENT(cxt)))
+			WARN("Table cannot be reread from the disk, be careful !");
+		if (ret)
+			return ret;
+	}
+
 	return ret;
 }
 
 static int diskpart(struct img_type *img,
 	void __attribute__ ((__unused__)) *data)
 {
-	char *lbtype = dict_get_value(&img->properties, "labeltype");
+	char *lbtype = diskpart_get_lbtype(img);
 	struct dict_list *parts;
 	struct dict_list_elem *elem;
-	struct fdisk_context *cxt;
+	struct fdisk_context *cxt = NULL;
 	struct partition_data *part;
 	struct partition_data *tmp;
-	struct fdisk_table *tb = NULL;
-	struct fdisk_table *oldtb = NULL;
+	struct diskpart_table *tb = NULL;
+	struct diskpart_table *oldtb = NULL;
 	int ret = 0;
 	unsigned long i;
+	unsigned long hybrid = 0;
 	struct hnd_priv priv =  {FDISK_DISKLABEL_DOS};
-	bool createtable = false;
+	struct create_table *createtable = (struct create_table *)calloc(1, sizeof(struct create_table));
 
 	if (!lbtype || (strcmp(lbtype, "gpt") && strcmp(lbtype, "dos"))) {
 		ERROR("Just GPT or DOS partition table are supported");
@@ -305,28 +701,6 @@ static int diskpart(struct img_type *img,
 	if (!strlen(img->device)) {
 		ERROR("Partition handler without setting the device");
 		return -EINVAL;
-	}
-
-	cxt = fdisk_new_context();
-	if (!cxt) {
-		ERROR("Failed to allocate libfdisk context");
-		return -ENOMEM;
-	}
-
-	/*
-	 * The library uses dialog driven partitioning by default.
-	 * Disable as we don't support interactive dialogs.
-	 */
-	ret = fdisk_disable_dialogs(cxt, 1);
-	if (ret) {
-		ERROR("Failed to disable dialogs");
-		goto handler_release;
-	}
-
-	ret = fdisk_assign_device(cxt, img->device, 0);
-	if (ret == -EACCES) {
-		ERROR("no access to %s", img->device);
-		goto handler_release;
 	}
 
 	struct dict_entry *entry;
@@ -376,10 +750,27 @@ static int diskpart(struct img_type *img,
 					case PART_FSTYPE:
 						strncpy(part->fstype, equal, sizeof(part->fstype));
 						break;
+					case PART_DOSTYPE:
+						strncpy(part->dostype, equal, sizeof(part->dostype));
+						hybrid++;
+						break;
 					}
 				}
 			}
 			elem = LIST_NEXT(elem, next);
+		}
+
+		/*
+		 * Hybrid entries must use the primary DOS/MBR partition table,
+		 * this has a maximum of four partitions, however we must reserve
+		 * one for the hybrid PMBR entry so that GPT aware software will
+		 * read the GPT table properly.
+		 */
+		if (hybrid > 3) {
+			ERROR("I cannot add hybrid partition %zu(%s): hybrid dos partition limit of 3 exceeded",
+				  part->partno, strlen(part->name) ? part->name : "UNDEF NAME");
+			ret = -EINVAL;
+			goto handler_exit;
 		}
 
 		TRACE("partition-%zu:%s size %" PRIu64 " start %zu type %s",
@@ -410,50 +801,41 @@ static int diskpart(struct img_type *img,
 		}
 	}
 
-	/*
-	 * Check partition table
-	 */
-	if (!fdisk_has_label(cxt)) {
-		WARN("%s does not contain a recognized partition table",
-		     img->device);
-		ret = fdisk_create_disklabel(cxt, lbtype);
-		if (ret) {
-			ERROR("Failed to create disk label");
-			goto handler_release;
-		}
-		createtable = true;
-	} else if (lbtype) {
-		if (!strcmp(lbtype, "gpt"))
-			priv.labeltype = FDISK_DISKLABEL_GPT;
-		else
-			priv.labeltype = FDISK_DISKLABEL_DOS;
-
-		if (!fdisk_is_labeltype(cxt, priv.labeltype)) {
-			WARN("Partition table of different type, setting to %s, all data lost !",
-				lbtype);
-			ret = fdisk_create_disklabel(cxt, lbtype);
-			if (ret) {
-				ERROR("Failed to create disk label");
-				goto handler_release;
-			}
-			createtable = true;
-		}
+	if (hybrid && (!lbtype || strcmp(lbtype, "gpt"))) {
+		ERROR("Partitions have hybrid(dostype) entries but labeltype is not gpt !");
+		ret = -EINVAL;
+		goto handler_release;
 	}
+
+	ret = diskpart_assign_context(&cxt, img, priv, hybrid, createtable);
+	if (ret == -EACCES)
+		goto handler_release;
+	else if (ret)
+		goto handler_exit;
 
 	/*
 	 * Create a new in-memory partition table to be compared
 	 * with the table on the disk, and applied if differs
 	 */
-	tb = fdisk_new_table();
-
-	if (fdisk_get_partitions(cxt, &oldtb))
-		createtable = true;
-
+	tb = diskpart_new_table(cxt);
 	if (!tb) {
 		ERROR("OOM creating new table !");
 		ret = -ENOMEM;
 		goto handler_exit;
 	}
+
+	oldtb = calloc(1, sizeof(*oldtb));
+	if (!oldtb) {
+		ERROR("OOM loading partitions !");
+		return -ENOMEM;
+	}
+
+	/*
+	 * Fill the old in-memory partition table from the disk.
+	 */
+	ret = diskpart_get_partitions(cxt, oldtb, createtable);
+	if (ret)
+		goto handler_exit;
 
 	/*
 	 * Fill the new in-memory partition table from the partition list.
@@ -462,49 +844,20 @@ static int diskpart(struct img_type *img,
 	if (ret)
 		goto handler_exit;
 
-	/*
-	 * Reload new table against the context to populate default values
-	 * so that we can compare partitions properly.
-	 */
-	ret = diskpart_reload_table(cxt, tb);
+	ret = diskpart_compare_tables(tb, oldtb, createtable);
 	if (ret)
 		goto handler_exit;
 
-	/*
-	 * A partiton table was found on disk, now compares the two tables
-	 * to check if they differ.
-	 */
-	if (!createtable) {
-		ret = diskpart_table_cmp(tb, oldtb);
-		if (ret < 0)
-			goto handler_exit;
-		else if (ret)
- 			createtable = true;
-	}
-
-	if (createtable) {
-		TRACE("Partitions on disk differ, write to disk;");
-
-		/*
-		 * Everything done, write into disk
-		 */
-		ret = fdisk_write_disklabel(cxt);
-		if (ret)
-			ERROR("Partition table cannot be written on disk");
-		if (fdisk_reread_partition_table(cxt))
-			WARN("Table cannot be reread from the disk, be careful !");
-	} else {
-		ret = 0;
-		TRACE("Same partition table on disk, do not touch partition table !");
-	}
+	ret = diskpart_write_table(cxt, createtable);
 
 handler_exit:
 	if (tb)
-		fdisk_unref_table(tb);
+		diskpart_unref_table(tb);
 	if (oldtb)
-		fdisk_unref_table(oldtb);
-	if (fdisk_deassign_device(cxt, 0))
-		WARN("Error deassign device %s", img->device);
+		diskpart_unref_table(oldtb);
+	if (cxt && fdisk_get_devfd(cxt) >= 0)
+		if (fdisk_deassign_device(cxt, 0))
+			WARN("Error deassign device %s", img->device);
 
 handler_release:
 	fdisk_unref_context(cxt);
@@ -519,7 +872,7 @@ handler_release:
 
 #ifdef CONFIG_DISKFORMAT
 	/* Create filesystems */
-	if (!ret && createtable) {
+	if (!ret && createtable->parent) {
 		LIST_FOREACH(part, &priv.listparts, next) {
 			int index;
 			/*

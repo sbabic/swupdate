@@ -795,6 +795,18 @@ supported:
    |             |          | It is the hex code for DOS (MBR) partition table   |
    |             |          | or it is the string identifier in case of GPT.     |
    +-------------+----------+----------------------------------------------------+
+   | dostype     | string   | Type of DOS (MBR) partition entry when using a     |
+   |             |          | table with a "gpt" labeltype.                      |
+   |             |          | Using this option will create a hybrid MBR table.  |
+   |             |          | It is the hex code for DOS (MBR) partition table.  |
+   |             |          | This would typically be used when one wants to use |
+   |             |          | a GPT formatted disk with a board that requires a  |
+   |             |          | dos table entry for initial bootstrapping.         |
+   |             |          | Note: A maximum of 3 partitions can have a dostype |
+   |             |          | specified, this limit only applies to dos table    |
+   |             |          | entries and does not affect partitions without a   |
+   |             |          | dostype specified.                                 |
+   +-------------+----------+----------------------------------------------------+
    | fstype      | string   | Optional filesystem type to be created on the      |
    |             |          | partition. If no fstype key is given, no file      |
    |             |          | will be created on the corresponding partition.    |
