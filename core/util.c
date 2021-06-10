@@ -24,6 +24,7 @@
 #include <libgen.h>
 #include <regex.h>
 #include <string.h>
+#include <dirent.h>
 
 #if defined(__linux__)
 #include <sys/statvfs.h>
@@ -851,6 +852,10 @@ size_t snescape(char *dst, size_t n, const char *src)
 /*
  * This returns the device name where rootfs is mounted
  */
+
+static int filter_slave(const struct dirent *ent) {
+	return (strcmp(ent->d_name, ".") && strcmp(ent->d_name, ".."));
+}
 static char *get_root_from_partitions(void)
 {
 	struct stat info;
@@ -858,10 +863,27 @@ static char *get_root_from_partitions(void)
 	char *devname = NULL;
 	unsigned long major, minor, nblocks;
 	char buf[256];
-	int ret;
+	int ret, dev_major, dev_minor, n;
+	struct dirent **devlist = NULL;
 
 	if (stat("/", &info) < 0)
 		return NULL;
+
+	dev_major = info.st_dev / 256;
+	dev_minor = info.st_dev % 256;
+
+	/*
+	 * Check if this is just a container, for example in case of LUKS
+	 * Search if the device has slaves pointing to another device
+	 */
+	snprintf(buf, sizeof(buf) - 1, "/sys/dev/block/%d:%d/slaves", dev_major, dev_minor);
+	n = scandir(buf, &devlist, filter_slave, NULL);
+	if (n == 1) {
+		devname = strdup(devlist[0]->d_name);
+		free(devlist);
+		return devname;
+	}
+	free(devlist);
 
 	fp = fopen("/proc/partitions", "r");
 	if (!fp)
@@ -872,7 +894,7 @@ static char *get_root_from_partitions(void)
 			     &major, &minor, &nblocks, &devname);
 		if (ret != 4)
 			continue;
-		if ((major == info.st_dev / 256) && (minor == info.st_dev % 256)) {
+		if ((major == dev_major) && (minor == dev_minor)) {
 			fclose(fp);
 			return devname;
 		}
