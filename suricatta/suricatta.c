@@ -226,7 +226,6 @@ int start_suricatta(const char *cfgfname, int argc, char *argv[])
 			case SERVER_ID_REQUESTED:
 				server.send_target_data();
 				trigger = true;
-				continue;
 				break;
 			case SERVER_EINIT:
 				break;
