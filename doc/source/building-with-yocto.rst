@@ -199,6 +199,25 @@ package `u-boot`:
         ...
         version = "@SWU_AUTO_VERSION:u-boot";
 
+To automatically insert the value of a variable from BitBake's package-data-file
+different to `PV` (e.g. `PKGV`) you can append the variable name to the tag:
+`@SWU_AUTO_VERSION@<package-data-variable>`.
+For example, to set the version tag to `PKGV` of package `u-boot`:
+
+::
+
+        filename = "u-boot";
+        ...
+        version = "@SWU_AUTO_VERSION@PKGV";
+
+Or combined with a different package name:
+
+::
+
+        filename = "packed-bootloader";
+        ...
+        version = "@SWU_AUTO_VERSION:u-boot@PKGV";
+
 Template for recipe using the class
 -----------------------------------
 
