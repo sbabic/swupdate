@@ -1001,6 +1001,12 @@ int read_lines_notify(int fd, char *buf, int buf_size, int *buf_offset,
 	if (n <= 0)
 		return -errno;
 
+	/* replace zeroes with @ signs */
+	for (unsigned int index = 0; index < n; index++) {
+		if (!buf[offset+index])
+			buf[offset+index] = '@';
+	}
+
 	n += offset;
 	buf[n] = '\0';
 
