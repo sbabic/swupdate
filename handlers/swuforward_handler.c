@@ -211,6 +211,7 @@ static void *curl_transfer_thread(void *p)
 		ERROR("SWU transfer to %s failed (%d) : '%s'", conn->url, curlrc,
 		      curl_easy_strerror(curlrc));
 		conn->exitval = FAILURE;
+		goto curl_thread_exit;
 	}
 
 	conn->exitval = SUCCESS;
