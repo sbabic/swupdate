@@ -24,6 +24,7 @@ $_SUDO apt-get install -y \
     build-essential \
     automake \
     cmake \
+    curl \
     libzmq3-dev \
     liblua5.2-dev \
     libconfig-dev \
