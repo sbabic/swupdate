@@ -212,7 +212,7 @@ static int diskpart_assign_context(struct fdisk_context **cxt,struct img_type *i
 		 * This also lets us access the parent context.
 		 */
 		*cxt = fdisk_new_nested_context(parent, "dos");
-		if (!cxt) {
+		if (!*cxt) {
 			ERROR("Failed to allocate libfdisk nested context");
 			return -ENOMEM;
 		}
@@ -691,7 +691,7 @@ static int diskpart(struct img_type *img,
 	unsigned long i;
 	unsigned long hybrid = 0;
 	struct hnd_priv priv =  {FDISK_DISKLABEL_DOS};
-	struct create_table *createtable = (struct create_table *)calloc(1, sizeof(struct create_table));
+	struct create_table *createtable = NULL;
 
 	if (!lbtype || (strcmp(lbtype, "gpt") && strcmp(lbtype, "dos"))) {
 		ERROR("Just GPT or DOS partition table are supported");
@@ -701,6 +701,12 @@ static int diskpart(struct img_type *img,
 	if (!strlen(img->device)) {
 		ERROR("Partition handler without setting the device");
 		return -EINVAL;
+	}
+
+	createtable = calloc(1, sizeof(*createtable));
+	if (!createtable) {
+		ERROR("OOM allocating createtable !");
+		return -ENOMEM;
 	}
 
 	struct dict_entry *entry;
@@ -827,7 +833,8 @@ static int diskpart(struct img_type *img,
 	oldtb = calloc(1, sizeof(*oldtb));
 	if (!oldtb) {
 		ERROR("OOM loading partitions !");
-		return -ENOMEM;
+		ret = -ENOMEM;
+		goto handler_exit;
 	}
 
 	/*
@@ -911,6 +918,9 @@ handler_release:
 		LIST_REMOVE(part, next);
 		free(part);
 	}
+
+	if (createtable)
+		free(createtable);
 
 	return ret;
 }
