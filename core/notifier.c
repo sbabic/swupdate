@@ -199,6 +199,8 @@ int register_notifier(notifier client)
 		return -1;
 
 	newclient = (struct notify_elem *)calloc(1, sizeof(struct notify_elem));
+	if (!newclient)
+		return -ENOMEM;
 	newclient->client = client;
 
 	STAILQ_INSERT_TAIL(&clients, newclient, next);
