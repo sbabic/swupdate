@@ -425,6 +425,10 @@ static int read_processes_settings(void *settings, void *data)
 			continue;
 
 		proc = (struct extproc *)calloc(1, sizeof(struct extproc));
+		if (!proc) {
+			ERROR("OOM reading process settings, exiting...");
+			exit(EXIT_FAILURE);
+		}
 
 		GET_FIELD_STRING(LIBCFG_PARSER, elem, "name", proc->name);
 		GET_FIELD_STRING(LIBCFG_PARSER, elem, "exec", proc->exec);
