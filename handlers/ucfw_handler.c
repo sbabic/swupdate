@@ -533,7 +533,12 @@ static int install_uc_firmware_image(struct img_type *img,
 
 		gpio = (cnt == 0) ? &hnd_data.reset : &hnd_data.prog;
 
-		get_gpio_from_property(properties, gpio);
+		ret = get_gpio_from_property(properties, gpio) < 0;
+		if (ret < 0) {
+			ERROR("Cannot extract GPIO from properties");
+			return ret;
+		}
+
 		DEBUG("line %s : device %s, num = %d, active_low = %s",
 			properties_list[cnt],
 			gpio->gpiodev,
