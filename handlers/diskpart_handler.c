@@ -13,6 +13,7 @@
 #include <string.h>
 #include <errno.h>
 #include <ctype.h>
+#include <sys/file.h>
 #include <sys/types.h>
 #include <libfdisk/libfdisk.h>
 #include "swupdate.h"
@@ -664,14 +665,44 @@ static int diskpart_compare_tables(struct fdisk_context *cxt, struct diskpart_ta
 	return ret;
 }
 
+static int diskpart_blkdev_lock(struct fdisk_context *cxt)
+{
+	int oper = LOCK_EX;
+	int ret = 0;
+
+	if (fdisk_device_is_used(cxt)) {
+		ERROR("%s: device is in use", fdisk_get_devname(cxt));
+		return -EBUSY;
+	}
+
+	if (!fdisk_is_readonly(cxt)) {
+		ret = flock(fdisk_get_devfd(cxt), oper);
+		if (ret) {
+			switch (errno) {
+				case EWOULDBLOCK:
+					ERROR("%s: device already locked", fdisk_get_devname(cxt));
+					break;
+				default:
+					ERROR("%s: failed to get lock", fdisk_get_devname(cxt));
+			}
+			return -EBUSY;
+		}
+	}
+	return ret;
+}
+
 static int diskpart_write_table(struct fdisk_context *cxt, struct create_table *createtable)
 {
 	int ret = 0;
 
-	if (createtable->parent || createtable->child)
+	if (createtable->parent || createtable->child) {
 		TRACE("Partitions on disk differ, write to disk;");
-	else
+		ret = diskpart_blkdev_lock(PARENT(cxt));
+		if (ret)
+			return ret;
+	} else {
 		TRACE("Same partition table on disk, do not touch partition table !");
+	}
 
 	if (createtable->child) {
 		if (!IS_HYBRID(cxt)) {
