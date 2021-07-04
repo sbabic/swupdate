@@ -150,10 +150,14 @@ config RAW
 
 config RDIFFHANDLER
 	bool "rdiff"
+	depends on HAVE_LIBRSYNC
 	default n
 	help
 	  Add support for applying librsync's rdiff patches,
 	  see http://librsync.sourcefrog.net/
+
+comment "rdiff support needs librsync"
+	depends on !HAVE_LIBRSYNC
 
 config READBACKHANDLER
 	bool "readback"

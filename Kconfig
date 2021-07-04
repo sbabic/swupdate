@@ -101,6 +101,10 @@ config HAVE_LIBWEBSOCKETS
 	bool
 	option env="HAVE_LIBWEBSOCKETS"
 
+config HAVE_LIBRSYNC
+	bool
+	option env="HAVE_LIBRSYNC"
+
 config HAVE_URIPARSER
 	bool
 	option env="HAVE_URIPARSER"

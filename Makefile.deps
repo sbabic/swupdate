@@ -90,6 +90,10 @@ ifeq ($(HAVE_LIBWEBSOCKETS),)
 export HAVE_LIBWEBSOCKETS = y
 endif
 
+ifeq ($(HAVE_LIBRSYNC),)
+export HAVE_LIBRSYNC = y
+endif
+
 ifeq ($(HAVE_URIPARSER),)
 export HAVE_URIPARSER = y
 endif
