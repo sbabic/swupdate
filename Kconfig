@@ -61,6 +61,10 @@ config HAVE_LIBEBGENV
 	bool
 	option env="HAVE_LIBEBGENV"
 
+config HAVE_LIBEXT2FS
+	bool
+	option env="HAVE_LIBEXT2FS"
+
 config HAVE_LIBZEROMQ
 	bool
 	option env="HAVE_LIBZEROMQ"

@@ -12,6 +12,11 @@ config FAT_FILESYSTEM
 config EXT_FILESYSTEM
 	bool "EXT2 / EXT3 / EXT4 file system creation support"
 	depends on DISKFORMAT
+	depends on HAVE_LIBEXT2FS
 	default n
 	help
 	  Enable support for creating EXT file systems.
+
+comment "EXT2 / EXT3 / EXT4 file system creation support needs libext2fs"
+	depends on DISKFORMAT
+	depends on !HAVE_LIBEXT2FS
