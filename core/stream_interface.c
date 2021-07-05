@@ -570,6 +570,10 @@ void *network_initializer(void *data)
 			if (!(inst.fd < 0))
 				close(inst.fd);
 			inst.fd = open(software->output, O_RDONLY,  S_IRUSR);
+			if (inst.fd < 0) {
+				ERROR("%s cannot be opened", software->output);
+				ret = -ENODEV;
+			}
 		}
 
 		if (!ret) {
