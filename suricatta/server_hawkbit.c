@@ -1485,6 +1485,10 @@ server_op_res_t server_send_target_data(void)
 	}
 
 	char *configData = (char *)(malloc(len + 16));
+	if (!configData) {
+		ERROR("OOM when sending ID data to server");
+		return SERVER_EERR;
+	}
 	memset(configData, 0, len + 16);
 
 	static const char* const config_data = STRINGIFY(
