@@ -81,6 +81,10 @@ config HAVE_LIBSSL
 	bool
 	option env="HAVE_LIBSSL"
 
+config HAVE_LIBSYSTEMD
+	bool
+	option env="HAVE_LIBSYSTEMD"
+
 config HAVE_LIBCRYPTO
 	bool
 	option env="HAVE_LIBCRYPTO"
@@ -128,10 +132,14 @@ config CURL_SSL
 config SYSTEMD
 	bool "enable systemd support"
 	depends on HAVE_LINUX
+	depends on HAVE_LIBSYSTEMD
 	default n
 	help
 	  Enable support for systemd's start-up completion
 	  notification and socket-based activation features.
+
+comment "systemd support needs libsystemd"
+	depends on !HAVE_LIBSYSTEMD && HAVE_LINUX
 
 config DEFAULT_CONFIG_FILE
 	string "File with default settings"

@@ -70,6 +70,14 @@ ifeq ($(HAVE_LIBSSL),)
 export HAVE_LIBSSL = y
 endif
 
+ifeq ($(HAVE_LIBSYSTEMD),)
+ifeq ($(HAVE_LINUX),y)
+export HAVE_LIBSYSTEMD = y
+else
+export HAVE_LIBSYSTEMD = n
+endif
+endif
+
 ifeq ($(HAVE_LIBCRYPTO),)
 export HAVE_LIBCRYPTO = y
 endif
