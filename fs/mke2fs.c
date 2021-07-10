@@ -485,8 +485,6 @@ static int mkfs_prepare(const char *device_name, struct ext2_super_block *pfs_pa
 	use_bsize = sys_page_size;
 	if (lsector_size && use_bsize < lsector_size)
 		use_bsize = lsector_size;
-	if ((blocksize < 0) && (use_bsize < (-blocksize)))
-		use_bsize = -blocksize;
 	blocksize = use_bsize;
 	fs_blocks_count /= (blocksize / 1024);
 
