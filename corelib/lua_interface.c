@@ -793,8 +793,10 @@ static int l_umount(lua_State *L) {
 	}
 
 	if (rmdir(target) == -1) {
-		TRACE("Unable to remove directory %s: %s", target, strerror(errno));
-		goto l_umount_exit;
+		if (errno != EROFS) {
+			TRACE("Unable to remove directory %s: %s", target, strerror(errno));
+			goto l_umount_exit;
+		}
 	}
 
 	lua_pop(L, 1);
