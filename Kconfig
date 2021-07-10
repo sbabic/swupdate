@@ -224,6 +224,7 @@ endmenu
 config MTD
 	bool "MTD support"
 	default y
+	depends on HAVE_LINUX
 	depends on HAVE_LIBMTD
 	help
 	  Enable MTD support.
