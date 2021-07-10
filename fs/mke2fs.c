@@ -733,7 +733,7 @@ static int mkfs_prepare(const char *device_name, struct ext2_super_block *pfs_pa
 		(ext2fs_blocks_count(pfs_param) * blocksize) / inode_ratio;
 
 	if ((((unsigned long long)pfs_param->s_inodes_count) *
-	     (inode_size ? inode_size : EXT2_GOOD_OLD_INODE_SIZE)) >=
+	     inode_size) >=
 	    ((ext2fs_blocks_count(pfs_param)) *
 	     EXT2_BLOCK_SIZE(pfs_param))) {
 		ERROR("inode_size (%u) * inodes_count "
