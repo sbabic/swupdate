@@ -49,6 +49,7 @@ SWUpdate Documentation
    bindings.rst
    building-with-yocto.rst
    swupdate-best-practise.rst
+   delta-update.rst
 
 ############################################
 Utilities and tools
