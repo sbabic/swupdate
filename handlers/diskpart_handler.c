@@ -400,10 +400,42 @@ static int diskpart_append_hybrid_pmbr(struct fdisk_label *lb, struct fdisk_tabl
 	return ret;
 }
 
+static void diskpart_partition_info(struct fdisk_context *cxt, const char *name, struct fdisk_partition *pa)
+{
+	struct fdisk_label *lb;
+	int *ids = NULL;
+	size_t nids = 0;
+	size_t i;
+	lb = fdisk_get_label(cxt, NULL);
+	fdisk_label_get_fields_ids_all(lb, cxt, &ids, &nids);
+	if (ids && lb) {
+		TRACE("%s:", name);
+		for (i = 0; i < nids; i++) {
+			const struct fdisk_field *field =
+					fdisk_label_get_field(lb, ids[i]);
+			char *data = NULL;
+			if (!field)
+				continue;
+			if (fdisk_partition_to_string(pa, cxt, ids[i], &data))
+				continue;
+			TRACE("\t%s: %s", fdisk_field_get_name(field), data);
+			free(data);
+		}
+	} else {
+		if (!ids)
+			ERROR("Failed to load field ids");
+		if (!lb)
+			ERROR("Failed to load label");
+	}
+	if (ids)
+		free(ids);
+}
+
 /*
  * Return true if partition differs
  */
-static bool diskpart_partition_cmp(struct fdisk_partition *firstpa, struct fdisk_partition *secondpa)
+static bool diskpart_partition_cmp(struct fdisk_context *cxt, struct fdisk_partition *firstpa,
+		struct fdisk_partition *secondpa)
 {
 	struct fdisk_parttype *type;
 	const char *lbtype;
@@ -432,11 +464,9 @@ static bool diskpart_partition_cmp(struct fdisk_partition *firstpa, struct fdisk
 			fdisk_parttype_get_code(fdisk_partition_get_type(firstpa)) !=
 			fdisk_parttype_get_code(fdisk_partition_get_type(secondpa))) ||
 		fdisk_partition_get_size(firstpa) != fdisk_partition_get_size(secondpa))) {
-		TRACE("Partition differ : %s(%llu) <--> %s(%llu)",
-			fdisk_partition_get_name (firstpa) ? fdisk_partition_get_name(firstpa) : "",
-			(long long unsigned)fdisk_partition_get_size(firstpa),
-			fdisk_partition_get_name(secondpa) ? fdisk_partition_get_name(secondpa) : "",
-			(long long unsigned)fdisk_partition_get_size(secondpa));
+		TRACE("Partition differ:");
+		diskpart_partition_info(cxt, "Original", firstpa);
+		diskpart_partition_info(cxt, "New", secondpa);
 		return true;
 	}
 	return false;
@@ -566,7 +596,7 @@ static int diskpart_fill_table(struct fdisk_context *cxt, struct diskpart_table 
 /*
  * Return 1 if table differs, 0 if table is the same, negative on error
  */
-static int diskpart_table_cmp(struct fdisk_table *tb, struct fdisk_table *oldtb)
+static int diskpart_table_cmp(struct fdisk_context *cxt, struct fdisk_table *tb, struct fdisk_table *oldtb)
 {
 	size_t numnewparts = fdisk_table_get_nents(tb);
 	size_t numpartondisk = fdisk_table_get_nents(oldtb);
@@ -590,7 +620,7 @@ static int diskpart_table_cmp(struct fdisk_table *tb, struct fdisk_table *oldtb)
 				fdisk_table_next_partition (oldtb, olditr, &pa)) {
 				TRACE("Partition not found, something went wrong %lu !", i);
 				ret = -EFAULT;
-			} else if (diskpart_partition_cmp(pa, newpa)) {
+			} else if (diskpart_partition_cmp(cxt, pa, newpa)) {
 				ret = 1;
 			}
 
@@ -604,8 +634,8 @@ static int diskpart_table_cmp(struct fdisk_table *tb, struct fdisk_table *oldtb)
 	return ret;
 }
 
-static int diskpart_compare_tables(struct diskpart_table *tb, struct diskpart_table *oldtb,
-		struct create_table *createtable)
+static int diskpart_compare_tables(struct fdisk_context *cxt, struct diskpart_table *tb,
+		struct diskpart_table *oldtb, struct create_table *createtable)
 {
 	int ret = 0;
 
@@ -614,7 +644,7 @@ static int diskpart_compare_tables(struct diskpart_table *tb, struct diskpart_ta
 	 * to check if they differ.
 	 */
 	if (!createtable->parent) {
-		ret = diskpart_table_cmp(tb->parent, oldtb->parent);
+		ret = diskpart_table_cmp(PARENT(cxt), tb->parent, oldtb->parent);
 		if (ret < 0)
 			return ret;
 		else if (ret)
@@ -622,7 +652,7 @@ static int diskpart_compare_tables(struct diskpart_table *tb, struct diskpart_ta
 	}
 
 	if (tb->child && !createtable->child) {
-		ret = diskpart_table_cmp(tb->child, oldtb->child);
+		ret = diskpart_table_cmp(cxt, tb->child, oldtb->child);
 		if (ret < 0)
 			return ret;
 		else if (ret)
@@ -851,7 +881,7 @@ static int diskpart(struct img_type *img,
 	if (ret)
 		goto handler_exit;
 
-	ret = diskpart_compare_tables(tb, oldtb, createtable);
+	ret = diskpart_compare_tables(cxt, tb, oldtb, createtable);
 	if (ret)
 		goto handler_exit;
 
