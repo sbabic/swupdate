@@ -138,12 +138,17 @@ extract(void *p)
 	}
 	for (;;) {
 		r = archive_read_next_header(a, &entry);
-		if (r == ARCHIVE_EOF)
-			break;
 		if (r != ARCHIVE_OK) {
-			ERROR("archive_read_next_header(): %s %d",
-			    archive_error_string(a), 1);
-			goto out;
+			if (r == ARCHIVE_EOF)
+				break;
+			if (r == ARCHIVE_WARN ) {
+				WARN("archive_read_next_header(): %s '%s'",
+				    archive_error_string(a), archive_entry_pathname(entry));
+			} else {
+				ERROR("archive_read_next_header(): %s",
+				    archive_error_string(a));
+				goto out;
+			}
 		}
 
 		if (debug)
