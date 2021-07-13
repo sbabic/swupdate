@@ -80,6 +80,10 @@ struct swupdate_digest *swupdate_DECRYPT_init(unsigned char *uri,
 	if (err)
 		goto err_msg;
 
+	err = wc_Pkcs11Token_Open(&dgst->pktoken, 0);
+	if (err)
+		goto err_msg;
+
 	err = wc_CryptoCb_RegisterDevice(dev_id, wc_Pkcs11_CryptoDevCb, &dgst->pktoken);
 	if (err)
 		goto err_msg;
