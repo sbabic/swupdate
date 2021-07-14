@@ -335,7 +335,7 @@ the section with `-e stable,<rev number>`.
 		myboard = {
 	            stable = {
 
-			hardware-compatibility: ["1.0", "1.2", "2.0", "1.§, "3.0", "3.1"];
+			hardware-compatibility: ["1.0", "1.2", "2.0", "1.3", "3.0", "3.1"];
 			rev-1.0: {
 				images: (
 					...
