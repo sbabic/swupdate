@@ -200,6 +200,9 @@ static void *broadcast_progress_thread(void *data)
 		if (ret != sizeof(msg))
 			return NULL;
 
+		if (msg.status == PROGRESS)
+			continue;
+
 		if (msg.status != status || msg.status == FAILURE) {
 			status = msg.status;
 
