@@ -962,7 +962,7 @@ static int luaopen_swupdate(lua_State *L)
 	lua_push_enum(L, "DOWNLOAD", DOWNLOAD);
 	lua_push_enum(L, "DONE", DONE);
 	lua_push_enum(L, "SUBPROCESS", SUBPROCESS);
-	lua_push_enum(L, "PROGRESS", SUBPROCESS);
+	lua_push_enum(L, "PROGRESS", PROGRESS);
 	lua_settable(L, -3);
 
 	/* export the root device type */
