@@ -183,6 +183,7 @@ static void *broadcast_progress_thread(void *data)
 		struct mg_mgr *mgr = (struct mg_mgr *) data;
 		struct progress_msg msg;
 		char str[512];
+		char escaped[512];
 		int ret;
 
 		if (fd < 0)
@@ -202,12 +203,14 @@ static void *broadcast_progress_thread(void *data)
 		if (msg.status != status || msg.status == FAILURE) {
 			status = msg.status;
 
+			snescape(escaped, sizeof(escaped), get_status_string(msg.status));
+
 			snprintf(str, sizeof(str),
 				"{\r\n"
 				"\t\"type\": \"status\",\r\n"
 				"\t\"status\": \"%s\"\r\n"
 				"}\r\n",
-				get_status_string(msg.status));
+				escaped);
 			broadcast(mgr, str);
 		}
 
@@ -230,12 +233,14 @@ static void *broadcast_progress_thread(void *data)
 		}
 
 		if (msg.infolen) {
+			snescape(escaped, sizeof(escaped), msg.info);
+
 			snprintf(str, sizeof(str),
 				"{\r\n"
 				"\t\"type\": \"info\",\r\n"
 				"\t\"source\": \"%s\"\r\n"
 				"}\r\n",
-				msg.info);
+				escaped);
 			broadcast(mgr, str);
 		}
 
@@ -243,6 +248,8 @@ static void *broadcast_progress_thread(void *data)
 				msg.cur_step) {
 			step = msg.cur_step;
 			percent = msg.cur_percent;
+
+			snescape(escaped, sizeof(escaped), msg.cur_step ? msg.cur_image: "");
 
 			snprintf(str, sizeof(str),
 				"{\r\n"
@@ -254,7 +261,7 @@ static void *broadcast_progress_thread(void *data)
 				"}\r\n",
 				msg.nsteps,
 				msg.cur_step,
-				msg.cur_step ? msg.cur_image: "",
+				escaped,
 				msg.cur_percent);
 			broadcast(mgr, str);
 		}
