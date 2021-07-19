@@ -288,5 +288,5 @@ __attribute__((constructor))
 void raw_copyimage_handler(void)
 {
 	register_handler("rawcopy", copy_raw_image,
-				IMAGE_HANDLER | NO_DATA_HANDLER, NULL);
+				SCRIPT_HANDLER | NO_DATA_HANDLER, NULL);
 }
