@@ -52,6 +52,7 @@ void mtd_cleanup (void);
 int get_mtd_from_device(char *s);
 int get_mtd_from_name(const char *s);
 int flash_erase(int mtdnum);
+int flash_erase_sector(int mtdnum, off_t start, size_t size);
 
 struct flash_description *get_flash_info(void);
 #define isNand(flash, index) \
