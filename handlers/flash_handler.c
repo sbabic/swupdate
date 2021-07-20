@@ -119,6 +119,12 @@ static int flash_write_nand(int mtdnum, struct img_type *img)
 		return -EINVAL;
 	}
 
+	if(flash_erase_sector(mtdnum, img->offset, img->size)) {
+		ERROR("I cannot erasing %s",
+			img->device);
+		return -1;
+	}
+
 	if ((fd = open(mtd_device, O_RDWR)) < 0) {
 		ERROR( "%s: %s: %s", __func__, mtd_device, strerror(errno));
 		return -ENODEV;
@@ -295,6 +301,12 @@ static int flash_write_nor(int mtdnum, struct img_type *img)
 		return -ENODEV;
 	}
 
+	if(flash_erase_sector(mtdnum, img->offset, img->size)) {
+		ERROR("I cannot erasing %s",
+			img->device);
+		return -1;
+	}
+
 	snprintf(mtd_device, sizeof(mtd_device), "/dev/mtd%d", mtdnum);
 	if ((fdout = open(mtd_device, O_RDWR)) < 0) {
 		ERROR( "%s: %s: %s", __func__, mtd_device, strerror(errno));
@@ -337,11 +349,6 @@ static int install_flash_image(struct img_type *img,
 		return -1;
 	}
 
-	if(flash_erase(mtdnum)) {
-		ERROR("I cannot erasing %s",
-			img->device);
-		return -1;
-	}
 	TRACE("Copying %s into /dev/mtd%d", img->fname, mtdnum);
 	if (flash_write_image(mtdnum, img)) {
 		ERROR("I cannot copy %s into %s partition",
