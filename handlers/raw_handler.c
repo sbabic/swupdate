@@ -253,6 +253,8 @@ static int install_raw_file(struct img_type *img,
 	}
 
 	fdout = openfileoutput(path);
+	if (fdout < 0)
+		return fdout;
 	if (!img_check_free_space(img, fdout)) {
 		return -ENOSPC;
 	}
