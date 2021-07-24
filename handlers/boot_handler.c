@@ -48,6 +48,8 @@ static int install_boot_environment(struct img_type *img,
 	ret = stat(filename, &statbuf);
 	if (ret) {
 		fdout = openfileoutput(filename);
+		if (fdout < 0)
+			return fdout;
 		ret = copyimage(&fdout, img, NULL);
 		close(fdout);
 	}
