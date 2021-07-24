@@ -1114,7 +1114,7 @@ static bool check_free_space(int fd, long long size, char *fname)
 	}
 
 	if (statvfs.f_bfree * statvfs.f_bsize < size) {
-		ERROR("Not enough free space to extract %s (needed %llu, got %lu)",
+		ERROR("Not enough free space to extract %s (needed %llu, got %llu)",
 		       fname, size, statvfs.f_bfree * statvfs.f_bsize);
 		return false;
 	}
