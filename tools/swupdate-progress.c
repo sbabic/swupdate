@@ -337,8 +337,6 @@ int main(int argc, char **argv)
 
 				if (psplash_ok && ((msg.cur_step != curstep) || (msg.cur_percent != percent))) {
 					psplash_progress(psplash_pipe_path, &msg);
-					curstep = msg.cur_step;
-					percent = msg.cur_percent;
 				}
 				curstep = msg.cur_step;
 				percent = msg.cur_percent;

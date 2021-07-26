@@ -87,9 +87,9 @@ int main(int argc, char *argv[]) {
 	}
 
 	if (i > 5)
-		written = snprintf(buf, size, "]}");
+		(void)snprintf(buf, size, "]}");
 	else
-		written = snprintf(buf, size, "}");
+		(void)snprintf(buf, size, "}");
 
 	fprintf(stdout, "Sending: '%s'", msg.data.procmsg.buf);
 	msg.data.procmsg.len = strnlen(msg.data.procmsg.buf, sizeof(msg.data.procmsg.buf));
