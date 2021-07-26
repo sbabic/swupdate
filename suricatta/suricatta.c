@@ -168,7 +168,7 @@ int start_suricatta(const char *cfgfname, int argc, char *argv[])
 	 * to pass unchanged to the server instance.
 	 * getopt() will change them when called here
 	 */
-	serverargv = (char **)malloc(argc * sizeof(char **));
+	serverargv = (char **)malloc(argc * sizeof(char *));
 	if (!serverargv) {
 		ERROR("OOM starting suricatta, exiting !");
 		exit(EXIT_FAILURE);
