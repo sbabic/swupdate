@@ -2,11 +2,11 @@
 Software Management on embedded systems
 =======================================
 
-Embedded Systems become more and more complex,
-and their software reflects the augmented complexity.
-New features and fixes let much more as desirable that
-the software on an embedded system can be updated
-in an absolutely reliable way.
+As Embedded Systems become more and more complex,
+their software reflects the augmented complexity.
+It is vital that the software on an embedded system
+can be updated in an absolutely reliable way, as
+new features and fixes are added.
 
 On a Linux-based system, we can find in most cases
 the following elements:
