@@ -336,16 +336,20 @@ static void upload_handler(struct mg_connection *nc, int ev, void *p)
 		 * IPC seems to block, wait for a while
 		 */
 		if (written != mp->data.len) {
-			if (errno != EAGAIN && errno != EWOULDBLOCK) {
-				if (!fus->error_report) {
-					ERROR("Writing to IPC fails due to %s", strerror(errno));
-					fus->error_report = true;
-				}
+			if (written < 0) {
+				if (errno != EAGAIN && errno != EWOULDBLOCK) {
+					if (!fus->error_report) {
+						ERROR("Writing to IPC fails due to %s", strerror(errno));
+						fus->error_report = true;
+					}
+					/*
+					 * Simply consumes the data to unblock the sender
+					 */
+					written = mp->data.len;
+				} else
+					written = 0;
 			}
 			usleep(100);
-
-			if (written < 0)
-				written = 0;
 		}
 
 		mp->num_data_consumed = written;
