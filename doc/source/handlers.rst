@@ -861,6 +861,28 @@ MBR Example:
 	   }
 	}
 
+Diskformat Handler
+------------------
+
+This handler checks if the device already has a file system of the specified
+type. (Available only if CONFIG_DISKFORMAT is set.)
+If the file system does not yet exist, it will be created.
+In case an existing file system shall be overwitten, this can be achieved
+by setting the property ``force`` to ``true``.
+
+::
+
+	partitions: (
+	{
+		type = "diskformat";
+		device = "/dev/loop0p1";
+
+		properties: {
+			fstype = "vfat";
+			force = "true";
+		}
+	})
+
 Unique UUID Handler
 -------------------
 
