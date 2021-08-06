@@ -7,6 +7,8 @@
 #ifndef _FS_INTERFACE_H
 #define _FS_INTERFACE_H
 
+int diskformat_mkfs(char *device, char *fstype);
+
 #if defined(CONFIG_FAT_FILESYSTEM)
 extern int fat_mkfs(const char *device_name, const char *fstype);
 #endif

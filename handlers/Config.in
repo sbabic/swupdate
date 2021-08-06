@@ -106,21 +106,23 @@ config DISKPART
 comment "diskpart support needs libfdisk"
 	depends on !HAVE_LIBFDISK
 
-if DISKPART
-
-menuconfig DISKFORMAT
-        bool "diskpart extension for creating file systems"
+config DISKFORMAT
+	bool "diskpart extension for creating file systems"
 	depends on DISKPART
+	help
+	  This extension allows formatting newly created partitions.
+
+config DISKFORMAT_HANDLER
+	bool "diskformat handler for creating file systems"
+	select DISKFORMAT
 	default n
 	help
-	  This extension of the diskpart handler allows creating filesystems
-	  on empty partitions.
+	  The diskformat handler allows creating filesystems on empty
+	  partitions.
 
 if DISKFORMAT
 
 source fs/Config.in
-
-endif
 
 endif
 

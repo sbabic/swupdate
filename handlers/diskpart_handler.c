@@ -16,10 +16,10 @@
 #include <sys/file.h>
 #include <sys/types.h>
 #include <libfdisk/libfdisk.h>
+#include <fs_interface.h>
 #include "swupdate.h"
 #include "handler.h"
 #include "util.h"
-#include "fs_interface.h"
 
 void diskpart_handler(void);
 
@@ -31,12 +31,6 @@ void diskpart_handler(void);
 /* Linux native partition type */
  #define GPT_DEFAULT_ENTRY_TYPE "0FC63DAF-8483-4772-8E79-3D69D8477DE4"
 
-#if defined (CONFIG_EXT_FILESYSTEM)
-static inline int ext_mkfs_short(const char *device_name, const char *fstype) {
-	return ext_mkfs(device_name,fstype, 0, NULL);
-}
-#endif
-
 /*
  * We will only have a parent in hybrid mode.
  */
@@ -46,22 +40,6 @@ static inline int ext_mkfs_short(const char *device_name, const char *fstype) {
  * Get the parent if it exists, otherwise context is already the parent.
  */
 #define PARENT(cxt) fdisk_get_parent(cxt) ? fdisk_get_parent(cxt) : cxt
-
-struct supported_filesystems {
-	const char *fstype;
-	int	(*mkfs) (const char *device_name, const char *fstype);
-};
-
-static struct supported_filesystems fs[] = {
-#if defined(CONFIG_FAT_FILESYSTEM)
-	{"vfat", fat_mkfs},
-#endif
-#if defined (CONFIG_EXT_FILESYSTEM)
-	{"ext2", ext_mkfs_short},
-	{"ext3", ext_mkfs_short},
-	{"ext4", ext_mkfs_short},
-#endif
-};
 
 /**
  * Keys for the properties field in sw-description
@@ -942,7 +920,6 @@ handler_release:
 	/* Create filesystems */
 	if (!ret && createtable->parent) {
 		LIST_FOREACH(part, &priv.listparts, next) {
-			int index;
 			/*
 			 * priv.listparts counts partitions starting with 0,
 			 * but fdisk_partname expects the first partition having
@@ -952,25 +929,14 @@ handler_release:
 
 			if (!strlen(part->fstype))
 				continue;  /* Don't touch partitions without fstype */
-			for (index = 0; index < ARRAY_SIZE(fs); index++) {
-				if (!strcmp(fs[index].fstype, part->fstype))
-					break;
-			}
-			if (index >= ARRAY_SIZE(fs)) {
-				ERROR("partition-%lu %s filesystem type not supported.", partno, part->fstype);
-				ret = -EINVAL;
-				break;
-			}
 
 			char *device = NULL;
+
 			device = fdisk_partname(img->device, partno);
-			TRACE("Creating %s file system on partition-%lu, device %s", part->fstype, partno, device);
-			ret = fs[index].mkfs(device, part->fstype);
+			ret = diskformat_mkfs(device, part->fstype);
 			free(device);
-			if (ret) {
-				ERROR("creating %s file system failed. %d", part->fstype, ret);
+			if (ret)
 				break;
-			}
 		}
 	}
 #endif
