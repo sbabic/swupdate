@@ -409,8 +409,8 @@ void *network_thread (void *data)
 		nread = read(ctrlconnfd, (void *)&msg, sizeof(msg));
 
 		if (nread != sizeof(msg)) {
-			TRACE("IPC message too short: fragmentation not supported (read %d bytes)",
-				nread);
+			TRACE("IPC message too short: fragmentation not supported (read %d bytes, expected %zu bytes)",
+				nread, sizeof(msg));
 			close(ctrlconnfd);
 			continue;
 		}
