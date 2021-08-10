@@ -715,6 +715,13 @@ unsigned long long ustrtoull(const char *cp, unsigned int base)
 	return result;
 }
 
+bool strtobool(const char *s)
+{
+	if (s && (!strcmp(s, "true") || !strcmp(s, "TRUE")))
+		return true;
+	return false;
+}
+
 int swupdate_mount(const char *device, const char *dir, const char *fstype)
 {
 #if defined(__linux__)

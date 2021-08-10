@@ -171,6 +171,7 @@ int IsValidHash(const unsigned char *hash);
 		_a < _b ? _a : _b; })
 
 char *sdup(const char *str);
+bool strtobool(const char *s);
 
 /*
  * Function to extract / copy images
