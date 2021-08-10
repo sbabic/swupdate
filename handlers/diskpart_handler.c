@@ -79,6 +79,8 @@ LIST_HEAD(listparts, partition_data);
  */
 struct hnd_priv {
 	enum fdisk_labeltype labeltype;
+	bool nolock;
+	bool noinuse;
 	struct listparts listparts;	/* list of partitions */
 };
 
@@ -643,14 +645,19 @@ static int diskpart_compare_tables(struct fdisk_context *cxt, struct diskpart_ta
 	return ret;
 }
 
-static int diskpart_blkdev_lock(struct fdisk_context *cxt)
+static int diskpart_blkdev_lock(struct fdisk_context *cxt, bool nolock, bool noinuse)
 {
 	int oper = LOCK_EX;
 	int ret = 0;
 
 	if (fdisk_device_is_used(cxt)) {
-		ERROR("%s: device is in use", fdisk_get_devname(cxt));
-		return -EBUSY;
+		if (noinuse) {
+			WARN("%s: device is in use, force set", fdisk_get_devname(cxt));
+
+		} else {
+			ERROR("%s: device is in use", fdisk_get_devname(cxt));
+			return -EBUSY;
+		}
 	}
 
 	if (!fdisk_is_readonly(cxt)) {
@@ -658,24 +665,32 @@ static int diskpart_blkdev_lock(struct fdisk_context *cxt)
 		if (ret) {
 			switch (errno) {
 				case EWOULDBLOCK:
-					ERROR("%s: device already locked", fdisk_get_devname(cxt));
+					if (!nolock)
+						ERROR("%s: device already locked", fdisk_get_devname(cxt));
+					else
+						WARN("%s: device already locked, nolock set", fdisk_get_devname(cxt));
 					break;
 				default:
-					ERROR("%s: failed to get lock", fdisk_get_devname(cxt));
+					if (!nolock)
+						ERROR("%s: failed to get lock", fdisk_get_devname(cxt));
+					else
+						WARN("%s: failed to get lock, nolock set", fdisk_get_devname(cxt));
 			}
-			return -EBUSY;
+			if (!nolock)
+				return -EBUSY;
 		}
 	}
-	return ret;
+
+	return 0;
 }
 
-static int diskpart_write_table(struct fdisk_context *cxt, struct create_table *createtable)
+static int diskpart_write_table(struct fdisk_context *cxt, struct create_table *createtable, bool nolock, bool noinuse)
 {
 	int ret = 0;
 
 	if (createtable->parent || createtable->child) {
 		TRACE("Partitions on disk differ, write to disk;");
-		ret = diskpart_blkdev_lock(PARENT(cxt));
+		ret = diskpart_blkdev_lock(PARENT(cxt), nolock, noinuse);
 		if (ret)
 			return ret;
 	} else {
@@ -729,7 +744,7 @@ static int diskpart(struct img_type *img,
 	int ret = 0;
 	unsigned long i;
 	unsigned long hybrid = 0;
-	struct hnd_priv priv =  {FDISK_DISKLABEL_DOS};
+	struct hnd_priv priv =  {FDISK_DISKLABEL_DOS, false, false};
 	struct create_table *createtable = NULL;
 
 	if (!lbtype || (strcmp(lbtype, "gpt") && strcmp(lbtype, "dos"))) {
@@ -748,6 +763,15 @@ static int diskpart(struct img_type *img,
 		return -ENOMEM;
 	}
 
+	/*
+	 * Reads flags: nolock and noinuse
+	 */
+	priv.nolock = strtobool(dict_get_value(&img->properties, "nolock"));
+	priv.noinuse = strtobool(dict_get_value(&img->properties, "noinuse"));
+
+	/*
+	 * Parse partitions
+	 */
 	struct dict_entry *entry;
 	LIST_FOREACH(entry, &img->properties, next) {
 		parts = &entry->list;
@@ -894,7 +918,7 @@ static int diskpart(struct img_type *img,
 	if (ret)
 		goto handler_exit;
 
-	ret = diskpart_write_table(cxt, createtable);
+	ret = diskpart_write_table(cxt, createtable, priv.nolock, priv.noinuse);
 
 handler_exit:
 	if (tb)
