@@ -134,17 +134,9 @@ static int swap_volnames(libubi_t libubi,
  *
  * Return: 1 if the property always-remove is true, otherwise 0.
  */
-static int check_ubi_alwaysremove(struct img_type *img)
+static bool check_ubi_alwaysremove(struct img_type *img)
 {
-	char *always;
-	int ret = 0;
-
-	always = dict_get_value(&img->properties, "always-remove");
-
-	if (always && !strcmp(always, "true"))
-		ret = 1;
-
-	return ret;
+	return strtobool(dict_get_value(&img->properties, "always-remove"));
 }
 
 static int update_volume(libubi_t libubi, struct img_type *img,
@@ -358,17 +350,9 @@ static int resize_volume(struct img_type *cfg, long long size)
  *
  * Return: 1 if the property auto-resize is true, otherwise 0.
  */
-static int check_ubi_autoresize(struct img_type *img)
+static bool check_ubi_autoresize(struct img_type *img)
 {
-	char *resize;
-	int ret = 0;
-
-	resize = dict_get_value(&img->properties, "auto-resize");
-
-	if (resize && !strcmp(resize, "true"))
-		ret = 1;
-
-	return ret;
+	return strtobool(dict_get_value(&img->properties, "auto-resize"));
 }
 
 static int wait_volume(struct img_type *img)

@@ -268,9 +268,7 @@ static int install_archive_image(struct img_type *img,
 	/*
 	 * Check if path must be created
 	 */
-	char* make_path;
-	make_path = dict_get_value(&img->properties, "create-destination");
-	if (make_path != NULL && strcmp(make_path, "true") == 0) {
+	if (strtobool(dict_get_value(&img->properties, "create-destination"))) {
 		ret = mkpath(path, 0755);
 		if (ret < 0) {
 			ERROR("I cannot create path %s: %s", path, strerror(errno));

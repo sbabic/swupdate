@@ -295,8 +295,7 @@ static int apply_rdiff_patch(struct img_type *img,
 			sprintf(base_file_filename, "%s%s", mountpoint, img->path);
 		}
 
-		char* make_path = dict_get_value(&img->properties, "create-destination");
-		if (make_path != NULL && strcmp(make_path, "true") == 0) {
+		if (strtobool(dict_get_value(&img->properties, "create-destination"))) {
 			TRACE("Creating path %s", dirname(base_file_filename));
 			if (mkpath(dirname(strdupa(base_file_filename)), 0755) < 0) {
 				ERROR("Cannot create path %s: %s", dirname(base_file_filename),
