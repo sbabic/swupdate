@@ -940,7 +940,7 @@ handler_release:
 
 	sleep(2);
 
-#ifdef CONFIG_DISKFORMAT
+#ifdef CONFIG_DISKPART_FORMAT
 	/* Create filesystems */
 	if (!ret && createtable->parent) {
 		LIST_FOREACH(part, &priv.listparts, next) {

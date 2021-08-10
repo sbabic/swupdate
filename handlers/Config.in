@@ -106,9 +106,11 @@ config DISKPART
 comment "diskpart support needs libfdisk"
 	depends on !HAVE_LIBFDISK
 
-config DISKFORMAT
+config DISKPART_FORMAT
 	bool "diskpart extension for creating file systems"
 	depends on DISKPART
+	select DISKFORMAT
+	default n
 	help
 	  This extension allows formatting newly created partitions.
 
@@ -120,11 +122,7 @@ config DISKFORMAT_HANDLER
 	  The diskformat handler allows creating filesystems on empty
 	  partitions.
 
-if DISKFORMAT
-
 source fs/Config.in
-
-endif
 
 config UNIQUEUUID
 	bool "uniqueuuid"

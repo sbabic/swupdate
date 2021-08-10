@@ -129,6 +129,10 @@ config CURL_SSL
 	bool
 	default n
 
+config DISKFORMAT
+	bool
+	default n
+
 config SYSTEMD
 	bool "enable systemd support"
 	depends on HAVE_LINUX
