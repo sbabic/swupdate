@@ -52,6 +52,8 @@ static int install_boot_environment(struct img_type *img,
 			return fdout;
 		ret = copyimage(&fdout, img, NULL);
 		close(fdout);
+		if (ret < 0)
+			return ret;
 	}
 
 	/*
