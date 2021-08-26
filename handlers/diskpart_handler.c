@@ -954,9 +954,14 @@ handler_release:
 			if (!strlen(part->fstype))
 				continue;  /* Don't touch partitions without fstype */
 
+			char *path = NULL;
 			char *device = NULL;
 
-			device = fdisk_partname(img->device, partno);
+			path = realpath(img->device, NULL);
+			if (!path)
+				path = strdup(img->device);
+			device = fdisk_partname(path, partno);
+			free(path);
 			ret = diskformat_mkfs(device, part->fstype);
 			free(device);
 			if (ret)
