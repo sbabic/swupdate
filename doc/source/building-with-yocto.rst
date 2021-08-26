@@ -246,3 +246,24 @@ Template for recipe using the class
         SWUPDATE_IMAGES_FSTYPES[uImage] = ".bin"
 
         inherit swupdate
+
+Simplified version for just image
+---------------------------------
+
+In many cases there is a single image in the SWU. This is for example when
+just rootfs is updated. The generic case described above required an additional
+recipe that must be written and maintained. For this reason, a simplified version
+of the class is introduced that allowed to build the SWU from the image recipe.
+
+Users just need to import the `swupdate-image` class. This already sets some variables.
+A sw-description must still be added into a `files` directory, that is automatically searched by the class.
+User still needs to set SWUPDATE_IMAGE_FSTYPES[`your image`] to the fstype that should be packed
+into the SWU - an error is raised if the flag is not set.
+
+In the simple way, your recipe looks like
+
+::
+        <your original recipe code>
+
+        SWUPDATE_IMAGES_FSTYPES[<name of your image>] = <fstype to be put into SWU>
+        inherit swupdate-image
