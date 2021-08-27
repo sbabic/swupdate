@@ -23,7 +23,6 @@
 #include <pthread.h>
 #include <signal.h>
 #include <sys/wait.h>
-#include <ftw.h>
 
 #include "bsdqueue.h"
 #include "cpiohdr.h"
@@ -244,53 +243,6 @@ static int parse_image_selector(const char *selector, struct swupdate_cfg *sw)
 	return 0;
 }
 
-static void create_directory(const char* path) {
-	char* dpath;
-	if (asprintf(&dpath, "%s%s", get_tmpdir(), path) ==
-		ENOMEM_ASPRINTF) {
-		ERROR("OOM: Directory %s not created", path);
-		return;
-	}
-	if (mkdir(dpath, 0777)) {
-		WARN("Directory %s cannot be created due to : %s",
-		     path, strerror(errno));
-	}
-	free(dpath);
-}
-
-#ifndef CONFIG_NOCLEANUP
-static int _remove_directory_cb(const char *fpath, const struct stat *sb,
-                                int typeflag, struct FTW *ftwbuf)
-{
-	(void)sb;
-	(void)typeflag;
-	(void)ftwbuf;
-	return remove(fpath);
-}
-
-static int remove_directory(const char* path)
-{
-	char* dpath;
-	int ret;
-	if (asprintf(&dpath, "%s%s", get_tmpdir(), path) ==
-		ENOMEM_ASPRINTF) {
-		ERROR("OOM: Directory %s not removed", path);
-		return -ENOMEM;
-	}
-	ret = nftw(dpath, _remove_directory_cb, 64, FTW_DEPTH | FTW_PHYS);
-	free(dpath);
-	return ret;
-}
-#endif
-
-static void swupdate_cleanup(void)
-{
-#ifndef CONFIG_NOCLEANUP
-	remove_directory(SCRIPTS_DIR_SUFFIX);
-	remove_directory(DATADST_DIR_SUFFIX);
-#endif
-}
-
 static void swupdate_init(struct swupdate_cfg *sw)
 {
 	/* Initialize internal tree to store configuration */
@@ -302,15 +254,6 @@ static void swupdate_init(struct swupdate_cfg *sw)
 	LIST_INIT(&sw->bootloader);
 	LIST_INIT(&sw->extprocs);
 	sw->cert_purpose = SSL_PURPOSE_DEFAULT;
-
-
-	/* Create directories for scripts */
-	create_directory(SCRIPTS_DIR_SUFFIX);
-	create_directory(DATADST_DIR_SUFFIX);
-
-	if (atexit(swupdate_cleanup) != 0) {
-		TRACE("Cannot setup SWUpdate cleanup on exit");
-	}
 
 #ifdef CONFIG_MTD
 	mtd_init();

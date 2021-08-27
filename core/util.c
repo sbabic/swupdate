@@ -12,6 +12,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <ftw.h>
 #include <sys/file.h>
 #include <sys/stat.h>
 #include <sys/param.h>
@@ -145,6 +146,45 @@ const char* get_tmpdirscripts(void)
 	}
 	return TMPDIRSCRIPT;
 }
+
+void swupdate_create_directory(const char* path) {
+	char* dpath;
+	if (asprintf(&dpath, "%s%s", get_tmpdir(), path) ==
+		ENOMEM_ASPRINTF) {
+		ERROR("OOM: Directory %s not created", path);
+		return;
+	}
+	if (mkdir(dpath, 0777)) {
+		WARN("Directory %s cannot be created due to : %s",
+			 path, strerror(errno));
+	}
+	free(dpath);
+}
+
+#ifndef CONFIG_NOCLEANUP
+static int _remove_directory_cb(const char *fpath, const struct stat *sb,
+								int typeflag, struct FTW *ftwbuf)
+{
+	(void)sb;
+	(void)typeflag;
+	(void)ftwbuf;
+	return remove(fpath);
+}
+
+int swupdate_remove_directory(const char* path)
+{
+	char* dpath;
+	int ret;
+	if (asprintf(&dpath, "%s%s", get_tmpdir(), path) ==
+		ENOMEM_ASPRINTF) {
+		ERROR("OOM: Directory %s not removed", path);
+		return -ENOMEM;
+	}
+	ret = nftw(dpath, _remove_directory_cb, 64, FTW_DEPTH | FTW_PHYS);
+	free(dpath);
+	return ret;
+}
+#endif
 
 char **splitargs(char *args, int *argc)
 {

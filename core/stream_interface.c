@@ -525,6 +525,10 @@ void *network_initializer(void *data)
 		notify(START, RECOVERY_NO_ERROR, INFOLEVEL, "Software Update started !");
 		TRACE("Software update started");
 
+		/* Create directories for scripts/datadst */
+		swupdate_create_directory(SCRIPTS_DIR_SUFFIX);
+		swupdate_create_directory(DATADST_DIR_SUFFIX);
+
 		req = &inst.req;
 
 		/*
@@ -657,6 +661,11 @@ void *network_initializer(void *data)
 
 		/* release temp files we may have created */
 		cleanup_files(software);
+
+#ifndef CONFIG_NOCLEANUP
+		swupdate_remove_directory(SCRIPTS_DIR_SUFFIX);
+		swupdate_remove_directory(DATADST_DIR_SUFFIX);
+#endif
 	}
 
 	pthread_exit((void *)0);
