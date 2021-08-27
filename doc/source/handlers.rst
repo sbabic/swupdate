@@ -773,13 +773,13 @@ After writing the partition table it may create a file system on selected partit
    +=============+==========+====================================================+
    | labeltype   | string   | "gpt" or "dos"                                     |
    +-------------+----------+----------------------------------------------------+
-   | nolock      | string   | "true" or "false" (default=true)                   |
-   |             |          | This is like a force. If it is set, it does not    |
-   |             |          | try to lock the device.                            |
+   | nolock      | string   | "true" or "false" (default=false)                  |
+   |             |          | This is like a force. If it is set, a lock failure |
+   |             |          | will be ignored(lock will still be attempted).     |
    +-------------+----------+----------------------------------------------------+
-   | noinuse     | string   | "true" or "false" (default=true)                   |
-   |             |          | If set, it does not check if the device is not     |
-   |             |          | used (mounted, etc.)                               |
+   | noinuse     | string   | "true" or "false" (default=false)                  |
+   |             |          | If set, it does not require the device to be not   |
+   |             |          | in use (mounted, etc.)                             |
    +-------------+----------+----------------------------------------------------+
    | partition-X | array    | Array of values belonging to the partition number X|
    +-------------+----------+----------------------------------------------------+
