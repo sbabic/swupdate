@@ -854,7 +854,7 @@ static int l_get_bootenv(lua_State *L) {
 }
 
 static int l_set_bootenv(lua_State *L) {
-	struct dict *bootenv = (struct dict *)lua_touserdata(L, lua_upvalueindex(1));
+	struct dict *bootenv = *(struct dict**)lua_touserdata(L, lua_upvalueindex(1));
 	const char *name = luaL_checkstring(L, 1);
 	const char *value = luaL_checkstring(L, 2);
 
@@ -1036,7 +1036,8 @@ static int l_handler_wrapper(struct img_type *img, void *data) {
 			ERROR("Lua stack corrupted.");
 			return -1;
 		}
-		lua_pushlightuserdata(gL, (void *)img->bootloader);
+		struct dict **udbootenv = lua_newuserdata(gL, sizeof(struct dict*));
+		*udbootenv = img->bootloader;
 		luaL_setfuncs(gL, l_swupdate_bootenv, 1);
 		lua_pop(gL, 1);
 	}
@@ -1206,7 +1207,8 @@ lua_State *lua_parser_init(const char *buf, struct dict *bootenv)
 	lua_setglobal(L, "SWUPDATE_LUA_TYPE"); /* prime L as LUA_TYPE_PEMBSCR */
 	luaL_openlibs(L); /* opens the standard libraries */
 	luaL_requiref(L, "swupdate", luaopen_swupdate, 1 );
-	lua_pushlightuserdata(L, (void *)bootenv);
+	struct dict **udbootenv = lua_newuserdata(L, sizeof(struct dict*));
+	*udbootenv = bootenv;
 	luaL_setfuncs(L, l_swupdate_bootenv, 1);
 	lua_pop(L, 1); /* remove unused copy left on stack */
 
