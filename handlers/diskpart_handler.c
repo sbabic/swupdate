@@ -147,6 +147,7 @@ static int diskpart_assign_context(struct fdisk_context **cxt,struct img_type *i
 		struct hnd_priv priv, unsigned long hybrid, struct create_table *createtable)
 {
 	struct fdisk_context *parent;
+	char *path = NULL;
 	int ret = 0;
 
 	/*
@@ -170,9 +171,17 @@ static int diskpart_assign_context(struct fdisk_context **cxt,struct img_type *i
 	}
 
 	/*
+	 * Resolve device path symlink.
+	 */
+	path = realpath(img->device, NULL);
+	if (!path)
+		path = strdup(img->device);
+
+	/*
 	 * fdisk_new_nested_context requires the device to be assigned.
 	 */
-	ret = fdisk_assign_device(parent, img->device, 0);
+	ret = fdisk_assign_device(parent, path, 0);
+	free(path);
 	if (ret == -EACCES) {
 		ERROR("no access to %s", img->device);
 		return ret;
