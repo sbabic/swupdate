@@ -9,6 +9,211 @@
 
 menu "Image Handlers"
 
+config ARCHIVE
+	bool "archive"
+	depends on HAVE_LIBARCHIVE
+	default n
+	help
+	  Handler using the libarchive to extract tarballs
+	  into a filesystem.
+
+comment "archive support needs libarchive"
+	depends on !HAVE_LIBARCHIVE
+
+config LOCALE
+	bool "Locale support for filenames"
+	depends on ARCHIVE
+	default y
+	help
+	  Option to remove attempts to use locale in systems
+	  without locale support in toolchain.
+
+config BOOTLOADERHANDLER
+	bool "bootloader"
+	default n
+	help
+	  Enable it to change bootloader environment
+	  during the installation process.
+
+config CFI
+	bool "cfi"
+	depends on MTD
+	default n
+	help
+	  Handler to store images in flash in raw mode,
+	  without UBI
+
+config CFIHAMMING1
+	bool "NAND in raw mode with 1bit Hamming OOB (TI)"
+	depends on MTD
+	default n
+	help
+	  On certain TI's omaps (for example, DM3730 or AM3517),
+	  the first bootloader (MLO or SPL) must be saved with one bit
+	  Hamming correction because this is requested by the SOC's ROM.
+	  However, the Linux driver must use for the rest of the NAND a more
+	  powerful algorithm to make data reliable, and this causes that
+	  it is not possible to update SPL by letting the driver to handle
+	  the OOB area. This handler raws the NAND in raw mode, computing
+	  the ECC with 1 bit Hamming Code and saving it into OOB
+	  (assumes sector size of 512 and page size of 2048).
+
+	  You do not need this if you do not have an OMAP SoC.
+
+config DISKPART
+	bool "diskpart"
+	depends on HAVE_LIBFDISK
+	default n
+	help
+	  Handler to partition a disk, eMMC or SD
+
+comment "diskpart support needs libfdisk"
+	depends on !HAVE_LIBFDISK
+
+config DISKPART_FORMAT
+	bool "diskpart extension for creating file systems"
+	depends on DISKPART
+	select DISKFORMAT
+	default n
+	help
+	  This extension allows formatting newly created partitions.
+
+config DISKFORMAT_HANDLER
+	bool "diskformat handler for creating file systems"
+	select DISKFORMAT
+	default n
+	help
+	  The diskformat handler allows creating filesystems on empty
+	  partitions.
+
+source fs/Config.in
+
+config LUASCRIPTHANDLER
+	bool "Lua Script"
+	depends on LUA
+	default n
+	help
+	  Handler to be called for pre- and post scripts
+	  written in Lua.
+
+config HANDLER_IN_LUA
+	bool "Handlers in Lua"
+	depends on LUASCRIPTHANDLER
+	default n
+	help
+	  Allow to write own handlers in Lua.
+	  They are loaded at the start-up.
+
+config EMBEDDED_LUA_HANDLER
+	bool "Embed Lua handler in SWUpdate binary"
+	depends on HANDLER_IN_LUA
+	default n
+	help
+	  Embed the Lua handler source code file into the
+	  SWUpdate binary.
+
+	  If enabled, a swupdate_handlers.lua will *not*
+	  be loaded from disk at SWUpdate startup.
+
+	  Note: Exactly one Lua source code file is embedded
+	  into the binary, i.e., possible dependencies either
+	  have to be deployed on the target system or put into
+	  the one embedded Lua source code file.
+
+config EMBEDDED_LUA_HANDLER_SOURCE
+	string "Lua handler file"
+	depends on EMBEDDED_LUA_HANDLER
+	default "swupdate_handlers.lua"
+	help
+	  Path to the Lua handler source code file to be
+	  embedded into the SWUpdate binary.
+
+config RAW
+	bool "raw"
+	default n
+	help
+	  This is a simple handler that simply copies
+	  into the destination.
+
+config RDIFFHANDLER
+	bool "rdiff"
+	depends on HAVE_LIBRSYNC
+	default n
+	help
+	  Add support for applying librsync's rdiff patches,
+	  see http://librsync.sourcefrog.net/
+
+comment "rdiff support needs librsync"
+	depends on !HAVE_LIBRSYNC
+
+config READBACKHANDLER
+	bool "readback"
+	depends on HASH_VERIFY
+	default n
+	help
+	  To verify that an image was written properly, this readback handler
+	  calculates the sha256 hash of a partition (or part of it) and compares
+	  it against a given hash value.
+
+	  This is a post-install handler running at the same time as
+	  post-install scripts.
+
+config REMOTE_HANDLER
+	bool "Remote handler"
+	depends on HAVE_LIBZEROMQ
+	default n
+	help
+	  Sometimes the update process should be done
+	  by another process, where code is already
+	  provided. The remote handler let communicate
+	  an external process with SWUpdate, sending
+	  the image to be updated with the help of the
+	  zeromq library.
+
+comment "remote handler needs zeromq"
+	depends on !HAVE_LIBZEROMQ
+
+config SHELLSCRIPTHANDLER
+	bool "shellscript"
+	default n
+	help
+	  Handler to be called for pre- and post scripts
+	  written as shell scripts. The default shell /bin/sh
+	  is called.
+
+config SWUFORWARDER_HANDLER
+	bool "SWU forwarder"
+	depends on HAVE_LIBCURL
+	depends on HAVE_JSON_C
+	depends on HAVE_LIBWEBSOCKETS
+	depends on HAVE_URIPARSER
+	select CHANNEL_CURL
+	select JSON
+	default n
+	help
+	  This allows to build a chain of updater. A
+	  SWU can contains other SWUs for other systems.
+	  The handler takes a list of URLs and forward the
+	  embedded SWU to the other devices using the
+	  Webserver REST API.
+
+comment "swuforward handler needs json-c and libcurl"
+	depends on !HAVE_JSON_C || !HAVE_LIBCURL
+
+comment "swuforward handler needs websockets and uriparser"
+	depends on !HAVE_LIBWEBSOCKETS || !HAVE_URIPARSER
+
+config SSBLSWITCH
+	bool "Second Stage Switcher"
+	depends on MTD
+	default n
+	help
+	  This handler allows to switch between two software set
+	  based on an administration block stored in flash (CFI interface).
+	  It works like the switch of UBI and allow to switch in an atomic
+	  way between two software set. It can be used to reliable update
+	  a second stage bootloader.
+
 config UBIVOL
 	bool "ubivol"
 	default n
@@ -71,58 +276,16 @@ config UBIVIDOFFSET
 	  if your NAND driver incorrectly reports that it can handle
 	  sub-page accesses when it should not.
 
-config CFI
-	bool "cfi"
-	depends on MTD
+config UCFWHANDLER
+	bool "microcontroller firmware update"
+	depends on HAVE_LIBGPIOD
 	default n
 	help
-	  Handler to store images in flash in raw mode,
-	  without UBI
+	  Simple protocol to upgrade a microcontroller
+	  via UART.
 
-config CFIHAMMING1
-	bool "NAND in raw mode with 1bit Hamming OOB (TI)"
-	depends on MTD
-	default n
-	help
-	  On certain TI's omaps (for example, DM3730 or AM3517),
-	  the first bootloader (MLO or SPL) must be saved with one bit
-	  Hamming correction because this is requested by the SOC's ROM.
-	  However, the Linux driver must use for the rest of the NAND a more
-	  powerful algorithm to make data reliable, and this causes that
-	  it is not possible to update SPL by letting the driver to handle
-	  the OOB area. This handler raws the NAND in raw mode, computing
-	  the ECC with 1 bit Hamming Code and saving it into OOB
-	  (assumes sector size of 512 and page size of 2048).
-
-	  You do not need this if you do not have an OMAP SoC.
-
-config DISKPART
-	bool "diskpart"
-	depends on HAVE_LIBFDISK
-	default n
-	help
-	  Handler to partition a disk, eMMC or SD
-
-comment "diskpart support needs libfdisk"
-	depends on !HAVE_LIBFDISK
-
-config DISKPART_FORMAT
-	bool "diskpart extension for creating file systems"
-	depends on DISKPART
-	select DISKFORMAT
-	default n
-	help
-	  This extension allows formatting newly created partitions.
-
-config DISKFORMAT_HANDLER
-	bool "diskformat handler for creating file systems"
-	select DISKFORMAT
-	default n
-	help
-	  The diskformat handler allows creating filesystems on empty
-	  partitions.
-
-source fs/Config.in
+comment "Microcontroller handler depends on libgpiod"
+	depends on !HAVE_LIBGPIOD
 
 config UNIQUEUUID
 	bool "uniqueuuid"
@@ -140,168 +303,5 @@ config UNIQUEUUID
 
 comment "uniqueuuid support needs libblkid"
 	depends on !HAVE_LIBBLKID
-
-config RAW
-	bool "raw"
-	default n
-	help
-	  This is a simple handler that simply copies
-	  into the destination.
-
-config RDIFFHANDLER
-	bool "rdiff"
-	depends on HAVE_LIBRSYNC
-	default n
-	help
-	  Add support for applying librsync's rdiff patches,
-	  see http://librsync.sourcefrog.net/
-
-comment "rdiff support needs librsync"
-	depends on !HAVE_LIBRSYNC
-
-config READBACKHANDLER
-	bool "readback"
-	depends on HASH_VERIFY
-	default n
-	help
-	  To verify that an image was written properly, this readback handler
-	  calculates the sha256 hash of a partition (or part of it) and compares
-	  it against a given hash value.
-
-	  This is a post-install handler running at the same time as
-	  post-install scripts.
-
-config LUASCRIPTHANDLER
-	bool "Lua Script"
-	depends on LUA
-	default n
-	help
-	  Handler to be called for pre- and post scripts
-	  written in Lua.
-
-config SHELLSCRIPTHANDLER
-	bool "shellscript"
-	default n
-	help
-	  Handler to be called for pre- and post scripts
-	  written as shell scripts. The default shell /bin/sh
-	  is called.
-
-config HANDLER_IN_LUA
-	bool "Handlers in Lua"
-	depends on LUASCRIPTHANDLER
-	default n
-	help
-	  Allow to write own handlers in Lua.
-	  They are loaded at the start-up.
-
-config EMBEDDED_LUA_HANDLER
-	bool "Embed Lua handler in SWUpdate binary"
-	depends on HANDLER_IN_LUA
-	default n
-	help
-	  Embed the Lua handler source code file into the
-	  SWUpdate binary.
-
-	  If enabled, a swupdate_handlers.lua will *not*
-	  be loaded from disk at SWUpdate startup.
-
-	  Note: Exactly one Lua source code file is embedded
-	  into the binary, i.e., possible dependencies either
-	  have to be deployed on the target system or put into
-	  the one embedded Lua source code file.
-
-config EMBEDDED_LUA_HANDLER_SOURCE
-	string "Lua handler file"
-	depends on EMBEDDED_LUA_HANDLER
-	default "swupdate_handlers.lua"
-	help
-	  Path to the Lua handler source code file to be
-	  embedded into the SWUpdate binary.
-
-config ARCHIVE
-	bool "archive"
-	depends on HAVE_LIBARCHIVE
-	default n
-	help
-	  Handler using the libarchive to extract tarballs
-	  into a filesystem.
-
-comment "archive support needs libarchive"
-	depends on !HAVE_LIBARCHIVE
-
-config LOCALE
-	bool "Locale support for filenames"
-	depends on ARCHIVE
-	default y
-	help
-	  Option to remove attempts to use locale in systems
-	  without locale support in toolchain.
-
-config REMOTE_HANDLER
-	bool "Remote handler"
-	depends on HAVE_LIBZEROMQ
-	default n
-	help
-	  Sometimes the update process should be done
-	  by another process, where code is already
-	  provided. The remote handler let communicate
-	  an external process with SWUpdate, sending
-	  the image to be updated with the help of the
-	  zeromq library.
-
-comment "remote handler needs zeromq"
-	depends on !HAVE_LIBZEROMQ
-
-config SWUFORWARDER_HANDLER
-	bool "SWU forwarder"
-	depends on HAVE_LIBCURL
-	depends on HAVE_JSON_C
-	depends on HAVE_LIBWEBSOCKETS
-	depends on HAVE_URIPARSER
-	select CHANNEL_CURL
-	select JSON
-	default n
-	help
-	  This allows to build a chain of updater. A
-	  SWU can contains other SWUs for other systems.
-	  The handler takes a list of URLs and forward the
-	  embedded SWU to the other devices using the
-	  Webserver REST API.
-
-comment "swuforward handler needs json-c and libcurl"
-	depends on !HAVE_JSON_C || !HAVE_LIBCURL
-
-comment "swuforward handler needs websockets and uriparser"
-	depends on !HAVE_LIBWEBSOCKETS || !HAVE_URIPARSER
-
-config BOOTLOADERHANDLER
-	bool "bootloader"
-	default n
-	help
-	  Enable it to change bootloader environment
-	  during the installation process.
-
-config SSBLSWITCH
-	bool "Second Stage Switcher"
-	depends on MTD
-	default n
-	help
-	  This handler allows to switch between two software set
-	  based on an administration block stored in flash (CFI interface).
-	  It works like the switch of UBI and allow to switch in an atomic
-	  way between two software set. It can be used to reliable update
-	  a second stage bootloader.
-
-config UCFWHANDLER
-	bool "microcontroller firmware update"
-	depends on HAVE_LIBGPIOD
-	default n
-	help
-	  Simple protocol to upgrade a microcontroller
-	  via UART.
-
-comment "Microcontroller handler depends on libgpiod"
-	depends on !HAVE_LIBGPIOD
 
 endmenu
