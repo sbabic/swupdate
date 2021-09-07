@@ -401,7 +401,7 @@ static int save_stream(int fdin, struct swupdate_cfg *software)
 		ret = -EFAULT;
 		goto no_copy_output;
 	}
-	if (get_cpiohdr(buf, &fdh.size, &fdh.namesize, &fdh.chksum) < 0) {
+	if (get_cpiohdr(buf, &fdh) < 0) {
 		ERROR("CPIO Header corrupted, cannot be parsed");
 		ret = -EINVAL;
 		goto no_copy_output;

@@ -29,12 +29,11 @@
 
 #define NPAD_BYTES(o) ((4 - (o % 4)) % 4)
 
-int get_cpiohdr(unsigned char *buf, unsigned long *size,
-			unsigned long *namesize, unsigned long *chksum)
+int get_cpiohdr(unsigned char *buf, struct filehdr *fhdr)
 {
 	struct new_ascii_header *cpiohdr;
 
-	if (!buf)
+	if (!buf || !fhdr)
 		return -EINVAL;
 
 	cpiohdr = (struct new_ascii_header *)buf;
@@ -45,9 +44,9 @@ int get_cpiohdr(unsigned char *buf, unsigned long *size,
 		ERROR("CPIO Format not recognized: magic not found");
 			return -EINVAL;
 	}
-	*size = FROM_HEX(cpiohdr->c_filesize);
-	*namesize = FROM_HEX(cpiohdr->c_namesize);
-	*chksum =  FROM_HEX(cpiohdr->c_chksum);
+	fhdr->size = FROM_HEX(cpiohdr->c_filesize);
+	fhdr->namesize = FROM_HEX(cpiohdr->c_namesize);
+	fhdr->chksum = FROM_HEX(cpiohdr->c_chksum);
 
 	return 0;
 }
@@ -654,7 +653,7 @@ int extract_cpio_header(int fd, struct filehdr *fhdr, unsigned long *offset)
 	unsigned char buf[sizeof(fhdr->filename)];
 	if (fill_buffer(fd, buf, sizeof(struct new_ascii_header), offset, NULL, NULL) < 0)
 		return -EINVAL;
-	if (get_cpiohdr(buf, &fhdr->size, &fhdr->namesize, &fhdr->chksum) < 0) {
+	if (get_cpiohdr(buf, fhdr) < 0) {
 		ERROR("CPIO Header corrupted, cannot be parsed");
 		return -EINVAL;
 	}
