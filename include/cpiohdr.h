@@ -15,7 +15,10 @@
 #define _CPIOHDR_SWUPD_H
 
 /* Global swupdate defines */
+#include <stdbool.h>
+#include <sys/types.h>
 #include "globals.h"
+#include <stdint.h>
 
 /*
  * cpio header - swupdate does not
@@ -23,6 +26,9 @@
  * Just the new format as described in cpio
  * documentation is supported.
  */
+
+#define CPIO_NEWASCII 070701
+#define CPIO_CRCASCII 070702
 
 struct new_ascii_header
 {
@@ -43,6 +49,7 @@ struct new_ascii_header
 };
 
 struct filehdr {
+	unsigned long format;
 	unsigned long size;
 	unsigned long namesize;
 	unsigned long chksum;
@@ -53,5 +60,6 @@ int get_cpiohdr(unsigned char *buf, struct filehdr *fhdr);
 int extract_cpio_header(int fd, struct filehdr *fhdr, unsigned long *offset);
 int extract_img_from_cpio(int fd, unsigned long offset, struct filehdr *fdh);
 void extract_padding(int fd, unsigned long *offset);
+bool swupdate_verify_chksum(const uint32_t chk1, struct filehdr *fhdr);
 
 #endif

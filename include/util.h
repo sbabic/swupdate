@@ -134,22 +134,6 @@ void notifier_set_color(int level, char *col);
 
 #define LG_16 4
 #define FROM_HEX(f) from_ascii (f, sizeof f, LG_16)
-#if !defined(CONFIG_DISABLE_CPIO_CRC)
-static inline bool swupdate_verify_chksum(const uint32_t chk1, const uint32_t chk2) {
-	bool ret = (chk1 == chk2);
-	if (!ret) {
-		ERROR("Checksum WRONG ! Computed 0x%ux, it should be 0x%ux",
-			chk1, chk2);
-	}
-	return ret;
-}
-#else
-static inline bool swupdate_verify_chksum(
-		const uint32_t  __attribute__ ((__unused__))chk1,
-		const uint32_t  __attribute__ ((__unused__))chk2) {
-	return true;
-}
-#endif
 uintmax_t
 from_ascii (char const *where, size_t digs, unsigned logbase);
 int ascii_to_hash(unsigned char *hash, const char *s);

@@ -37,12 +37,13 @@ int get_cpiohdr(unsigned char *buf, struct filehdr *fhdr)
 		return -EINVAL;
 
 	cpiohdr = (struct new_ascii_header *)buf;
-#ifdef CONFIG_DISABLE_CPIO_CRC
-	if (strncmp(cpiohdr->c_magic, "070701", 6) != 0)
-#endif
-	if (strncmp(cpiohdr->c_magic, "070702", 6) != 0) {
+	if (!strncmp(cpiohdr->c_magic, "070701", 6))
+		fhdr->format = CPIO_NEWASCII;
+	else if (!strncmp(cpiohdr->c_magic, "070702", 6))
+		fhdr->format = CPIO_CRCASCII;
+	else {
 		ERROR("CPIO Format not recognized: magic not found");
-			return -EINVAL;
+		return -EINVAL;
 	}
 	fhdr->size = FROM_HEX(cpiohdr->c_filesize);
 	fhdr->namesize = FROM_HEX(cpiohdr->c_namesize);
@@ -736,7 +737,7 @@ off_t extract_next_file(int fd, int fdout, off_t start, int compressed,
 		(unsigned long)checksum,
 		(checksum == fdh.chksum) ? "VERIFIED" : "WRONG");
 
-	if (!swupdate_verify_chksum(checksum, fdh.chksum)) {
+	if (!swupdate_verify_chksum(checksum, &fdh)) {
 		return -EINVAL;
 	}
 
@@ -780,7 +781,7 @@ int cpio_scan(int fd, struct swupdate_cfg *cfg, off_t start)
 			return -1;
 		}
 
-		if (!swupdate_verify_chksum(fdh.chksum, checksum)) {
+		if (!swupdate_verify_chksum(checksum, &fdh)) {
 			return -1;
 		}
 
@@ -793,4 +794,15 @@ int cpio_scan(int fd, struct swupdate_cfg *cfg, off_t start)
 	}
 
 	return 0;
+}
+
+bool swupdate_verify_chksum(const uint32_t chk1, struct filehdr *fhdr) {
+	bool ret = (chk1 == fhdr->chksum);
+	if (fhdr->format == CPIO_NEWASCII)
+		return true;
+	if (!ret) {
+		ERROR("Checksum WRONG ! Computed 0x%ux, it should be 0x%ux",
+			chk1, (uint32_t)fhdr->chksum);
+	}
+	return ret;
 }

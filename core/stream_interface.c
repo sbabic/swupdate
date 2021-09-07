@@ -108,7 +108,7 @@ static int extract_file_to_tmp(int fd, const char *fname, unsigned long *poffs, 
 		close(fdout);
 		return -1;
 	}
-	if (!swupdate_verify_chksum(checksum, fdh.chksum)) {
+	if (!swupdate_verify_chksum(checksum, &fdh)) {
 		close(fdout);
 		return -1;
 	}
@@ -230,7 +230,7 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 					close(fdout);
 					return -1;
 				}
-				if (!swupdate_verify_chksum(checksum, fdh.chksum)) {
+				if (!swupdate_verify_chksum(checksum, &fdh)) {
 					close(fdout);
 					return -1;
 				}
@@ -241,7 +241,7 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 				if (copyfile(fd, &fdout, fdh.size, &offset, 0, skip, 0, &checksum, NULL, false, NULL, NULL) < 0) {
 					return -1;
 				}
-				if (!swupdate_verify_chksum(checksum, fdh.chksum)) {
+				if (!swupdate_verify_chksum(checksum, &fdh)) {
 					return -1;
 				}
 				break;
