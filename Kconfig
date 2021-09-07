@@ -117,6 +117,10 @@ config HAVE_URIPARSER
 	bool
 	option env="HAVE_URIPARSER"
 
+config HAVE_ZCK
+	bool
+	option env="HAVE_ZCK"
+
 menu "Swupdate Settings"
 
 menu "General Configuration"

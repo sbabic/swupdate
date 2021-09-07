@@ -109,3 +109,7 @@ endif
 ifeq ($(HAVE_URIPARSER),)
 export HAVE_URIPARSER = y
 endif
+
+ifeq ($(HAVE_ZCK),)
+export HAVE_ZCK = y
+endif

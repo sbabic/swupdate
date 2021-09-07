@@ -60,6 +60,18 @@ config CFIHAMMING1
 
 	  You do not need this if you do not have an OMAP SoC.
 
+config DELTA
+	bool "delta"
+	depends on HAVE_LIBCURL
+	depends on HAVE_ZSTD
+	depends on HAVE_ZCK
+	select CHANNEL_CURL
+	default n
+	help
+	  Handler to enable delta images. The handler computes the differences
+	  and download the missing parts, and pass the resulting image to the
+	  next handler.
+
 config DISKPART
 	bool "diskpart"
 	depends on HAVE_LIBFDISK
