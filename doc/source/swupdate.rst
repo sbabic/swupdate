@@ -190,7 +190,7 @@ Images fully streamed
 ---------------------
 
 In case of remote update, SWUpdate extracts relevant images from the stream
-and copies them into the directory pointed to by the environment variable 
+and copies them into the directory pointed to by the environment variable
 ``TMPDIR`` (if unset, to ``/tmp``) before calling the handlers.
 This guarantee that an update is initiated only if all parts are present and
 correct. However, on some systems with less resources, the amount of RAM
@@ -661,6 +661,10 @@ Mandatory arguments are marked with '\*':
 |                         |          | during this period - adapt this value to   |
 |                         |          | your use case!                             |
 +-------------------------+----------+--------------------------------------------+
+| -a <name> <value>       | strings  | Custom HTTP header with given name and     |
+|                         |          | value to be sent with every HTTP request   |
+|                         |          | made.                                      |
++-------------------------+----------+--------------------------------------------+
 
 
 systemd Integration
@@ -715,7 +719,7 @@ files are also handed over on a "regular" start of SWUpdate via
 ``systemctl start swupdate.service``.
 
 Note that the socket paths in the two ``ListenStream=`` directives
-have to match the socket paths ``CONFIG_SOCKET_CTRL_PATH`` and 
+have to match the socket paths ``CONFIG_SOCKET_CTRL_PATH`` and
 ``CONFIG_SOCKET_PROGRESS_PATH`` in SWUpdate's configuration.
 Here, the default socket path configuration is depicted.
 

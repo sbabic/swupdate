@@ -52,6 +52,7 @@ static struct option long_options[] = {
     {"cache", required_argument, NULL, '2'},
     {"initial-report-resend-period", required_argument, NULL, 'm'},
 	{"connection-timeout", required_argument, NULL, 's'},
+	{"custom-http-header", required_argument, NULL, 'a'},
     {NULL, 0, NULL, 0}};
 
 static unsigned short mandatory_argument_count = 0;
@@ -132,7 +133,9 @@ static channel_data_t channel_data_defaults = {.debug = false,
 					       .nocheckanswer = false,
 					       .nofollow = false,
 					       .strictssl = true,
-						   .connection_timeout = 0
+						   .connection_timeout = 0,
+						   .headers_to_send = NULL,
+						   .received_headers = NULL
 						};
 
 static struct timeval server_time;
@@ -1604,9 +1607,11 @@ void server_print_help(void)
 	    "\t  -f, --interface     Set the network interface to connect to hawkBit.\n"
 	    "\t  --disable-token-for-dwl Do not send authentication header when downlloading SWU.\n"
 	    "\t  --cache <file>      Use cache file as starting SWU\n"
-		"\t  -m, --initial-report-resend-period <seconds> Time to wait prior to retry "
-		"sending initial state with '-c' option (default: %ds).\n"
-		"\t  -s, --connection-timeout Set the server connection timeout (default: 300s).\n",
+	    "\t  -m, --initial-report-resend-period <seconds> Time to wait prior to retry "
+	    "sending initial state with '-c' option (default: %ds).\n"
+	    "\t  -s, --connection-timeout Set the server connection timeout (default: 300s).\n"
+	    "\t  -a, --custom-http-header <name> <value> Set custom HTTP header, "
+	    "appended to every HTTP request being sent.",
 	    CHANNEL_DEFAULT_POLLING_INTERVAL, CHANNEL_DEFAULT_RESUME_TRIES,
 	    CHANNEL_DEFAULT_RESUME_DELAY,
 	    INITIAL_STATUS_REPORT_WAIT_DELAY);
@@ -1665,6 +1670,7 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 	mandatory_argument_count = 0;
 
 	LIST_INIT(&server_hawkbit.configdata);
+	LIST_INIT(&server_hawkbit.httpheaders);
 
 	server_hawkbit.initial_report_resend_period = INITIAL_STATUS_REPORT_WAIT_DELAY;
 	if (fname) {
@@ -1681,6 +1687,9 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 			 */
 			read_module_settings(&handle, "hawkbit", server_hawkbit_settings, NULL);
 			read_module_settings(&handle, "identify", settings_into_dict, &server_hawkbit.configdata);
+
+			read_module_settings(&handle, "custom-http-headers",
+					settings_into_dict, &server_hawkbit.httpheaders);
 		}
 		swupdate_cfg_destroy(&handle);
 	}
@@ -1693,7 +1702,7 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 	/* reset to optind=1 to parse suricatta's argument vector */
 	optind = 1;
 	opterr = 0;
-	while ((choice = getopt_long(argc, argv, "t:i:c:u:p:xr:y::w:k:g:f:2:m:s:",
+	while ((choice = getopt_long(argc, argv, "t:i:c:u:p:xr:y::w:k:g:f:2:m:s:a:",
 				     long_options, NULL)) != -1) {
 		switch (choice) {
 		case 't':
@@ -1786,6 +1795,16 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 			channel_data_defaults.connection_timeout =
 				(unsigned int)strtoul(optarg, NULL, 10);
 			break;
+		case 'a':
+			if (optind >= argc)
+				return SERVER_EINIT;
+
+			if (dict_insert_value(&server_hawkbit.httpheaders,
+						optarg,
+						argv[optind++]) < 0)
+				return SERVER_EINIT;
+
+			break;
 		/* Ignore not recognized options, they can be already parsed by the caller */
 		case '?':
 			break;
@@ -1802,6 +1821,8 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 		suricatta_print_help();
 		return SERVER_EINIT;
 	}
+
+	channel_data_defaults.headers_to_send = &server_hawkbit.httpheaders;
 
 	if (channel_curl_init() != CHANNEL_OK)
 		return SERVER_EINIT;

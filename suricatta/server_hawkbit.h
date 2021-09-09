@@ -29,6 +29,7 @@ typedef struct {
 	bool polling_interval_from_server;
 	bool debug;
 	struct dict configdata;
+	struct dict httpheaders;
 	bool has_to_send_configData;
 	char *configData_url;
 	char *cancel_url;

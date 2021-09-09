@@ -23,7 +23,8 @@ typedef struct {
 	bool debug;
 	char *cached_file;
 	struct dict configdata;
-	struct dict httpheaders;
+	struct dict received_httpheaders;
+	struct dict httpheaders_to_send;
 	update_state_t update_state;
 	channel_t *channel;
 } server_general_t;

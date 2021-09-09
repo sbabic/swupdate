@@ -593,7 +593,7 @@ channel_op_res_t channel_set_options(channel_t *this, channel_data_t *channel_da
 		goto cleanup;
 	}
 
-	if (channel_data->headers) {
+	if (channel_data->received_headers) {
 		/*
 		 * Setup supply request and receive reply HTTP headers.
 		 * A LIST_INIT()'d dictionary is expected at channel_data->headers.
@@ -604,14 +604,16 @@ channel_op_res_t channel_set_options(channel_t *this, channel_data_t *channel_da
 			      CURLOPT_HEADERFUNCTION,
 			      channel_callback_headers) != CURLE_OK) ||
 		    (curl_easy_setopt(channel_curl->handle, CURLOPT_HEADERDATA,
-			      channel_data->headers) != CURLE_OK)) {
+			      channel_data->received_headers) != CURLE_OK)) {
 			result = CHANNEL_EINIT;
 			goto cleanup;
 		}
+	}
 
+	if (channel_data->headers_to_send) {
 		struct dict_entry *entry;
 		char *header;
-		LIST_FOREACH(entry, channel_data->headers, next)
+		LIST_FOREACH(entry, channel_data->headers_to_send, next)
 		{
 			if (ENOMEM_ASPRINTF ==
 			    asprintf(&header, "%s: %s",

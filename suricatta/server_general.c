@@ -453,8 +453,9 @@ static server_op_res_t server_get_deployment_info(channel_t *channel, channel_da
 	 */
 	channel_data->url= server_prepare_query(server_general.url, &server_general.configdata);
 
-	LIST_INIT(&server_general.httpheaders);
-	channel_data->headers = &server_general.httpheaders;
+	LIST_INIT(&server_general.received_httpheaders);
+	LIST_INIT(&server_general.httpheaders_to_send);
+	channel_data->received_headers = &server_general.received_httpheaders;
 
 	result = map_http_retcode(channel->get(channel, (void *)channel_data));
 
@@ -462,12 +463,12 @@ static server_op_res_t server_get_deployment_info(channel_t *channel, channel_da
 		free(channel_data->url);
 	}
 
-	pollstring = dict_get_value(&server_general.httpheaders, "Retry-After");
+	pollstring = dict_get_value(&server_general.received_httpheaders, "Retry-After");
 	if (pollstring) {
 		server_set_polling_interval(pollstring);
 	}
 
-	dict_drop_db(&server_general.httpheaders);
+	dict_drop_db(&server_general.received_httpheaders);
 
 	return result;
 }
@@ -522,7 +523,9 @@ void server_print_help(void)
 	    "\t  -w, --retrywait     Time to wait prior to retry and "
 	    "resume a download (default: %ds).\n"
 	    "\t  -y, --proxy         Use proxy. Either give proxy URL, else "
-	    "{http,all}_proxy env is tried.\n",
+	    "{http,all}_proxy env is tried.\n"
+	    "\t  -a, --custom-http-header <name> <value> Set custom HTTP header, "
+	    "appended to every HTTP request being sent.",
 	    CHANNEL_DEFAULT_POLLING_INTERVAL, CHANNEL_DEFAULT_RESUME_TRIES,
 	    CHANNEL_DEFAULT_RESUME_DELAY);
 }
@@ -608,6 +611,7 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 	int choice = 0;
 
 	LIST_INIT(&server_general.configdata);
+	LIST_INIT(&server_general.httpheaders_to_send);
 
 	if (fname) {
 		swupdate_cfg_handle handle;
@@ -626,7 +630,7 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 	/* reset to optind=1 to parse suricatta's argument vector */
 	optind = 1;
 	opterr = 0;
-	while ((choice = getopt_long(argc, argv, "u:l:r:w:p:2:",
+	while ((choice = getopt_long(argc, argv, "u:l:r:w:p:2:a:",
 				     long_options, NULL)) != -1) {
 		switch (choice) {
 		case 'u':
@@ -651,8 +655,18 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 		case '2':
 			SETSTRING(server_general.cached_file, optarg);
 			break;
-		/* Ignore not recognized options, they can be already parsed by the caller */
+		case 'a':
+			if (optind >= argc)
+				return SERVER_EINIT;
+
+			if (dict_insert_value(&server_general.httpheaders_to_send,
+						optarg,
+						argv[optind++]) < 0)
+				return SERVER_EINIT;
+
+			break;
 		case '?':
+		/* Ignore not recognized options, they can be already parsed by the caller */
 		default:
 			break;
 		}
@@ -663,6 +677,8 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 		suricatta_print_help();
 		return SERVER_EINIT;
 	}
+
+	channel_data_defaults.headers_to_send = &server_general.httpheaders_to_send;
 
 	if (channel_curl_init() != CHANNEL_OK)
 		return SERVER_EINIT;
