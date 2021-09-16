@@ -37,7 +37,8 @@ typedef enum {
 	SET_UPDATE_STATE,	/* set bootloader ustate */
 	GET_UPDATE_STATE,
 	REQ_INSTALL_EXT,
-	SET_VERSIONS_RANGE
+	SET_VERSIONS_RANGE,
+	NOTIFY_STREAM
 } msgtype;
 
 /*
@@ -81,6 +82,12 @@ typedef union {
 		char desc[2048];
 	} status;
 	struct {
+		int status;
+		int error;
+		int level;
+		char msg[2048];
+	} notify;
+	struct {
 		struct swupdate_request req;
 		unsigned int len;    /* Len of data valid in buf */
 		char	buf[2048];   /*
@@ -122,6 +129,8 @@ int ipc_send_data(int connfd, char *buf, int size);
 void ipc_end(int connfd);
 int ipc_get_status(ipc_message *msg);
 int ipc_get_status_timeout(ipc_message *msg, unsigned int timeout_ms);
+int ipc_notify_connect(void);
+int ipc_notify_receive(int *connfd, ipc_message *msg);
 int ipc_postupdate(ipc_message *msg);
 int ipc_send_cmd(ipc_message *msg);
 
