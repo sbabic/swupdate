@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier:     GPL-2.0-only
 
+lib-y				+= multipart_parser.o
 lib-$(CONFIG_DOWNLOAD)		+= downloader.o
 lib-$(CONFIG_MTD)		+= mtd-interface.o
 lib-$(CONFIG_LUA)		+= lua_interface.o lua_compat.o
