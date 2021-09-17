@@ -524,6 +524,17 @@ static channel_op_res_t channel_set_content_type(channel_t *this,
 			result = CHANNEL_EINIT;
 		}
 	}
+	/*
+	 * Add default charset for application content
+	 */
+	if ((!strcmp(content, "application/json") || !strcmp(content, "application/text")) &&
+             (result == CHANNEL_OK)) {
+		if ((channel_curl->header = curl_slist_append(
+			channel_curl->header, "charsets: utf-8")) == NULL) {
+			ERROR("Set channel charset header failed.");
+			result = CHANNEL_EINIT;
+		}
+	}
 
 	return result;
 }
