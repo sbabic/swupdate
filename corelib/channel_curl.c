@@ -1315,7 +1315,7 @@ channel_op_res_t channel_get(channel_t *this, void *data)
 {
 	channel_curl_t *channel_curl = this->priv;
 	assert(data != NULL);
-	assert(channel_curl.handle != NULL);
+	assert(channel_curl->handle != NULL);
 
 	channel_op_res_t result = CHANNEL_OK;
 	channel_data_t *channel_data = (channel_data_t *)data;
