@@ -75,12 +75,12 @@ char *channel_get_redirect_url(channel_t *this);
 static void channel_log_effective_url(channel_t *this);
 
 /* Prototypes for "public" functions */
+static channel_op_res_t channel_close(channel_t *this);
+static channel_op_res_t channel_open(channel_t *this, void *cfg);
+static channel_op_res_t channel_get(channel_t *this, void *data);
+static channel_op_res_t channel_get_file(channel_t *this, void *data);
+static channel_op_res_t channel_put(channel_t *this, void *data);
 channel_op_res_t channel_curl_init(void);
-channel_op_res_t channel_close(channel_t *this);
-channel_op_res_t channel_open(channel_t *this, void *cfg);
-channel_op_res_t channel_get(channel_t *this, void *data);
-channel_op_res_t channel_get_file(channel_t *this, void *data);
-channel_op_res_t channel_put(channel_t *this, void *data);
 channel_t *channel_new(void);
 
 
