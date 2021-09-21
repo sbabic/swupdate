@@ -523,6 +523,8 @@ static int sysrestart(cmd_t  __attribute__((__unused__)) *cmd, int argc, char *a
 			case SOURCE_LOCAL:
 				fprintf(stdout, "LOCAL\n\n");
 				break;
+			default:
+				break;
 			}
 		}
 

@@ -290,6 +290,9 @@ int main(int argc, char **argv)
 				case SOURCE_DOWNLOADER:
 					fprintf(stdout, "DOWNLOADER\n\n");
 					break;
+				case SOURCE_CHUNKS_DOWNLOADER:
+					fprintf(stdout, "CHUNKS DOWNLOADER\n\n");
+					break;
 				case SOURCE_LOCAL:
 					fprintf(stdout, "LOCAL\n\n");
 					break;
