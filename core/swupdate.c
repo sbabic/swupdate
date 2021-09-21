@@ -41,6 +41,7 @@
 #include "network_ipc.h"
 #include "sslapi.h"
 #include "suricatta/suricatta.h"
+#include "delta_process.h"
 #include "progress.h"
 #include "parselib.h"
 #include "swupdate_settings.h"
@@ -853,6 +854,17 @@ int main(int argc, char **argv)
 		freeargs(dwlav);
 	}
 #endif
+#if defined(CONFIG_DELTA)
+	{
+		uid_t uid;
+		gid_t gid;
+		read_settings_user_id(&handle, "download", &uid, &gid);
+		start_subprocess(SOURCE_CHUNKS_DOWNLOADER, "chunks_downloader", uid, gid,
+				cfgfname, ac, av,
+				start_delta_downloader);
+	}
+#endif
+
 
 	/*
 	 * Start all processes added in the config file
