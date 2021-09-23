@@ -35,6 +35,43 @@ static struct supported_filesystems fs[] = {
 #endif
 };
 
+/*
+ * Checks if file system fstype already exists on device.
+ * return 0 if not exists, 1 if exists, negative values on failure
+ */
+int diskformat_fs_exists(char *device, char *fstype)
+{
+	char buf[10];
+	const char *value = buf;
+	size_t len;
+	blkid_probe pr;
+	int ret = 0;
+
+	pr = blkid_new_probe_from_filename(device);
+
+	if (!pr) {
+		ERROR("%s: failed to create libblkid probe",
+			  device);
+		return -EFAULT;
+	}
+
+	while (blkid_do_probe(pr) == 0) {
+		if (blkid_probe_lookup_value(pr, "TYPE", &value, &len)) {
+			ERROR("blkid_probe_lookup_value failed");
+			ret = -EFAULT;
+			break;
+		}
+
+		if (!strncmp(value, fstype, sizeof(buf))) {
+			ret = 1;
+			break;
+		}
+	}
+	blkid_free_probe(pr);
+
+	return ret;
+}
+
 int diskformat_mkfs(char *device, char *fstype)
 {
 	int index;

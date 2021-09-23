@@ -14,43 +14,6 @@
 
 void diskformat_handler(void);
 
-/*
- * Checks if file system fstype already exists on device.
- * return 0 if not exists, 1 if exists, negative values on failure
- */
-static int fs_exists(char *device, char *fstype)
-{
-	char buf[10];
-	const char *value = buf;
-	size_t len;
-	blkid_probe pr;
-	int ret = 0;
-
-	pr = blkid_new_probe_from_filename(device);
-
-	if (!pr) {
-		ERROR("%s: failed to create libblkid probe",
-		      device);
-		return -EFAULT;
-	}
-
-	while (blkid_do_probe(pr) == 0) {
-		if (blkid_probe_lookup_value(pr, "TYPE", &value, &len)) {
-			ERROR("blkid_probe_lookup_value failed");
-			ret = -EFAULT;
-			break;
-		}
-
-		if (!strncmp(value, fstype, sizeof(buf))) {
-			ret = 1;
-			break;
-		}
-	}
-	blkid_free_probe(pr);
-
-	return ret;
-}
-
 static int diskformat(struct img_type *img,
 		      void __attribute__ ((__unused__)) *data)
 {
@@ -74,7 +37,7 @@ static int diskformat(struct img_type *img,
 		; /* Skip file system exists check */
 	} else {
 		/* Check if file system exists */
-		ret = fs_exists(img->device, fstype);
+		ret = diskformat_fs_exists(img->device, fstype);
 
 		if (ret < 0)
 			return ret;

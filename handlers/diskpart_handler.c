@@ -957,7 +957,7 @@ handler_release:
 
 #ifdef CONFIG_DISKPART_FORMAT
 	/* Create filesystems */
-	if (!ret && createtable->parent) {
+	if (!ret) {
 		LIST_FOREACH(part, &priv.listparts, next) {
 			/*
 			 * priv.listparts counts partitions starting with 0,
@@ -977,6 +977,25 @@ handler_release:
 				path = strdup(img->device);
 			device = fdisk_partname(path, partno);
 			free(path);
+
+			if (!createtable->parent) {
+				/* Check if file system exists */
+				ret = diskformat_fs_exists(device, part->fstype);
+
+				if (ret < 0) {
+					free(device);
+					break;
+				}
+
+				if (ret) {
+					TRACE("Found %s file system on %s, skip mkfs",
+						  part->fstype, device);
+					ret = 0;
+					free(device);
+					continue;
+				}
+			}
+
 			ret = diskformat_mkfs(device, part->fstype);
 			free(device);
 			if (ret)
