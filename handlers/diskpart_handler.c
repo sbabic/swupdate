@@ -826,8 +826,14 @@ static int diskpart(struct img_type *img,
 						strncpy(part->name, equal, sizeof(part->name));
 						break;
 					case PART_FSTYPE:
+#ifdef CONFIG_DISKPART_FORMAT
 						strncpy(part->fstype, equal, sizeof(part->fstype));
 						break;
+#else
+						ERROR("Partitions have fstype entries but diskpart format support is missing !");
+						ret = -EINVAL;
+						goto handler_exit;
+#endif
 					case PART_DOSTYPE:
 						strncpy(part->dostype, equal, sizeof(part->dostype));
 						hybrid++;
