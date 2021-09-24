@@ -452,7 +452,8 @@ static int channel_callback_xferinfo_legacy(void *p, double dltotal, double dlno
 
 static size_t channel_callback_headers(char *buffer, size_t size, size_t nitems, void *userdata)
 {
-	struct dict *dict = (struct dict *)userdata;
+	channel_data_t *channel_data = (channel_data_t *)userdata;
+	struct dict *dict = channel_data->received_headers;
 	char *info = malloc(size * nitems + 1);
 	char *p, *key, *val;
 
