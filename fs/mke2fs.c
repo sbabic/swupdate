@@ -617,14 +617,6 @@ static int mkfs_prepare(const char *device_name, struct ext2_super_block *pfs_pa
 			(unsigned long long) fs_blocks_count);
 	}
 
-	if (ext2fs_has_feature_casefold(pfs_param) &&
-	    ext2fs_has_feature_encrypt(pfs_param)) {
-		ERROR("The encrypt and casefold features are not "
-			  "compatible.\nThey can not be both enabled "
-			  "simultaneously.");
-		return -EINVAL;
-	}
-
 	/* Don't allow user to set both metadata_csum and uninit_bg bits. */
 	if (ext2fs_has_feature_metadata_csum(pfs_param) &&
 	    ext2fs_has_feature_gdt_csum(pfs_param))
