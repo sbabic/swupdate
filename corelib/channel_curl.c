@@ -185,6 +185,9 @@ size_t channel_callback_ipc(void *streamdata, size_t size, size_t nmemb,
 		}
 	}
 
+	if (!data->channel_data->http_response_code)
+		channel_map_http_code(data->this, &data->channel_data->http_response_code);
+
 	if (!data->channel_data->noipc &&
 		ipc_send_data(data->output, streamdata, (int)(size * nmemb)) <
 	    0) {
