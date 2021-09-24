@@ -135,10 +135,13 @@ static channel_data_t channel_data_defaults = {.debug = false,
 					       .nocheckanswer = false,
 					       .nofollow = false,
 					       .strictssl = true,
-						   .connection_timeout = 0,
-						   .headers_to_send = NULL,
-						   .received_headers = NULL,
-						   .max_download_speed = 0 // No download speed limit is default.
+					       .max_download_speed = 0, // No download speed limit is default.
+					       .noipc = false,
+					       .range = NULL,
+					       .connection_timeout = 0,
+					       .headers = NULL,
+					       .headers_to_send = NULL,
+					       .received_headers = NULL
 						};
 
 static struct timeval server_time;

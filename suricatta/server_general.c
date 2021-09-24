@@ -109,7 +109,10 @@ static channel_data_t channel_data_defaults = {.debug = false,
 #ifdef CONFIG_SURICATTA_SSL
 					       .usessl = true,
 #endif
+					       .noipc = false,
+					       .headers = NULL,
 					       .format = CHANNEL_PARSE_NONE,
+					       .range = NULL,
 					       .nocheckanswer = true,
 					       .nofollow = true,
 					       .strictssl = true};

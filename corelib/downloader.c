@@ -106,7 +106,10 @@ static channel_data_t channel_options = {
 	.retries = DL_DEFAULT_RETRIES,
 	.low_speed_timeout = DL_LOWSPEED_TIME,
 	.headers_to_send = NULL,
-	.max_download_speed = 0 // Unlimited download speed is default.
+	.max_download_speed = 0, /* Unlimited download speed is default. */
+	.noipc = false,
+	.range = NULL,
+	.headers = NULL,
 };
 
 int start_download(const char *fname, int argc, char *argv[])
