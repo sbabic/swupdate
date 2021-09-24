@@ -53,6 +53,7 @@ typedef struct {
 	channel_data_t *channel_data;
 	int output;
 	output_data_t *outdata;
+	channel_t *this;
 } write_callback_t;
 
 typedef struct {
@@ -936,7 +937,7 @@ static channel_op_res_t channel_post_method(channel_t *this, void *data, int met
 	channel_op_res_t result = CHANNEL_OK;
 	channel_data_t *channel_data = (channel_data_t *)data;
 	output_data_t outdata = {};
-	write_callback_t wrdata = { .channel_data = channel_data, .outdata = &outdata };
+	write_callback_t wrdata = { .this = this, .channel_data = channel_data, .outdata = &outdata };
 
 	if ((result = channel_set_content_type(this, channel_data)) !=
 	    CHANNEL_OK) {
@@ -1149,7 +1150,7 @@ channel_op_res_t channel_get_file(channel_t *this, void *data)
 		goto cleanup_header;
 	}
 
-	write_callback_t wrdata;
+	write_callback_t wrdata = { .this = this };
 	wrdata.channel_data = channel_data;
 	if (!channel_data->noipc) {
 		swupdate_prepare_req(&req);
@@ -1346,7 +1347,7 @@ channel_op_res_t channel_get(channel_t *this, void *data)
 	channel_data_t *channel_data = (channel_data_t *)data;
 	channel_data->http_response_code = 0;
 	output_data_t outdata = {};
-	write_callback_t wrdata = { .channel_data = channel_data, .outdata = &outdata };
+	write_callback_t wrdata = { .this = this, .channel_data = channel_data, .outdata = &outdata };
 
 	if ((result = channel_set_content_type(this, channel_data)) !=
 	    CHANNEL_OK) {
