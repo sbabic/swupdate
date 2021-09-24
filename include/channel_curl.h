@@ -71,6 +71,8 @@ typedef struct {
 	bool nofollow;
 	size_t (*dwlwrdata)(char *streamdata, size_t size, size_t nmemb,
 				   void *data);
+	size_t (*headers)(char *streamdata, size_t size, size_t nmemb,
+				   void *data);
 	struct swupdate_digest *dgst;
 	char sha1hash[SWUPDATE_SHA_DIGEST_LENGTH * 2 + 1];
 	sourcetype source;

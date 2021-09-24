@@ -454,36 +454,43 @@ static size_t channel_callback_headers(char *buffer, size_t size, size_t nitems,
 {
 	channel_data_t *channel_data = (channel_data_t *)userdata;
 	struct dict *dict = channel_data->received_headers;
-	char *info = malloc(size * nitems + 1);
+	char *info;
 	char *p, *key, *val;
 
-	if (!info) {
-		ERROR("No memory allocated for headers, headers not collected !!");
-		return nitems * size;
-	}
-	/*
-	 * Work on a local copy because the buffer is not
-	 * '\0' terminated
-	 */
-	memcpy(info, buffer, size * nitems);
-	info[size * nitems] = '\0';
-	p = memchr(info, ':', size * nitems);
-	if (p) {
-		*p = '\0';
-		key = info;
-		val = p + 1; /* Next char after ':' */
-		while(isspace((unsigned char)*val)) val++;
-		/* Remove '\n', '\r', and '\r\n' from header's value. */
-		*strchrnul(val, '\r') = '\0';
-		*strchrnul(val, '\n') = '\0';
-		/* For multiple same-key headers, only the last is saved. */
-		dict_set_value(dict, key, val);
-		TRACE("Header processed: %s : %s", key, val);
-	} else {
-		TRACE("Header not processed: '%s'", info);
+	if (dict) {
+		info = malloc(size * nitems + 1);
+		if (!info) {
+			ERROR("No memory allocated for headers, headers not collected !!");
+			return nitems * size;
+		}
+		/*
+		 * Work on a local copy because the buffer is not
+		 * '\0' terminated
+		 */
+		memcpy(info, buffer, size * nitems);
+		info[size * nitems] = '\0';
+		p = memchr(info, ':', size * nitems);
+		if (p) {
+			*p = '\0';
+			key = info;
+			val = p + 1; /* Next char after ':' */
+			while(isspace((unsigned char)*val)) val++;
+			/* Remove '\n', '\r', and '\r\n' from header's value. */
+			*strchrnul(val, '\r') = '\0';
+			*strchrnul(val, '\n') = '\0';
+			/* For multiple same-key headers, only the last is saved. */
+			dict_set_value(dict, key, val);
+			TRACE("Header processed: %s : %s", key, val);
+		} else {
+			TRACE("Header not processed: '%s'", info);
+		}
+
+		free(info);
 	}
 
-	free(info);
+	if (channel_data->headers)
+		return channel_data->headers(buffer, size, nitems, userdata);
+
 	return nitems * size;
 }
 
@@ -610,12 +617,12 @@ channel_op_res_t channel_set_options(channel_t *this, channel_data_t *channel_da
 		goto cleanup;
 	}
 
-	if (channel_data->received_headers) {
+	if (channel_data->received_headers || channel_data->headers) {
 		if ((curl_easy_setopt(channel_curl->handle,
 			      CURLOPT_HEADERFUNCTION,
 			      channel_callback_headers) != CURLE_OK) ||
 		    (curl_easy_setopt(channel_curl->handle, CURLOPT_HEADERDATA,
-			      channel_data->received_headers) != CURLE_OK)) {
+			      channel_data) != CURLE_OK)) {
 			result = CHANNEL_EINIT;
 			goto cleanup;
 		}
