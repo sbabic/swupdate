@@ -545,7 +545,7 @@ server_op_res_t server_install_update(void)
 
 	channel_data.nofollow = false;
 	channel_data.nocheckanswer = false;
-	channel_data.checkdwl = NULL;
+	channel_data.dwlwrdata = NULL;
 
 	channel_data.url = strdup(url);
 

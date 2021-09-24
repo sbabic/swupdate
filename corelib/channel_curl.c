@@ -191,8 +191,10 @@ size_t channel_callback_ipc(void *streamdata, size_t size, size_t nmemb,
 		return 0;
 	}
 
-	if (data->channel_data->checkdwl && data->channel_data->checkdwl())
-		return 0;
+	if (data->channel_data->dwlwrdata) {
+		return data->channel_data->dwlwrdata(streamdata, size, nmemb, data->channel_data);
+	}
+
 	/*
 	 * Now check if there is a callback from the server
 	 * during the download

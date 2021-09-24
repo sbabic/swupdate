@@ -666,12 +666,15 @@ cleanup:
 	return result;
 }
 
-static int server_check_during_dwl(void)
+static size_t server_check_during_dwl(char  __attribute__ ((__unused__)) *streamdata,
+                                      size_t size,
+                                      size_t nmemb,
+                                      void  __attribute__ ((__unused__)) *data)
 {
 	struct timeval now;
 	channel_data_t channel_data = channel_data_defaults;
 	int action_id;
-	int ret = 0;
+	int ret = size * nmemb;
 	const char *update_action;
 
 	server_get_current_time(&now);
@@ -683,7 +686,7 @@ static int server_check_during_dwl(void)
 	 * was requested
 	 */
 	if ((now.tv_sec - server_time.tv_sec) < ((int)server_get_polling_interval()))
-		return 0;
+		return ret;
 
 	/* Update current server time */
 	server_time = now;
@@ -700,7 +703,7 @@ static int server_check_during_dwl(void)
 		 * go on downloading
 		 */
 		free(channel);
-		return 0;
+		return ret;
 	}
 
 	/*
@@ -711,13 +714,13 @@ static int server_check_during_dwl(void)
 	if (result == SERVER_UPDATE_CANCELED) {
 		/* Mark that an update was cancelled by the server */
 		server_hawkbit.cancelDuringUpdate = true;
-		ret = -1;
+		ret = 0;
 	}
 	update_action = json_get_deployment_update_action(channel_data.json_reply);
 
 	/* if the deployment is skipped then stop downloading */
 	if (update_action == deployment_update_action.skip)
-		ret = -1;
+		ret = 0;
 
 	check_action_changed(action_id, update_action);
 
@@ -1161,7 +1164,7 @@ server_op_res_t server_process_update_artifact(int action_id,
 			goto cleanup_loop;
 		}
 
-		channel_data.checkdwl = server_check_during_dwl;
+		channel_data.dwlwrdata = server_check_during_dwl;
 
 		/*
 		 * There is no authorizytion token when file is loaded, because SWU
