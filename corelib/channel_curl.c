@@ -1143,14 +1143,20 @@ channel_op_res_t channel_get_file(channel_t *this, void *data)
 	}
 
 	download_callback_data_t download_data;
-	if (channel_enable_download_progress_tracking(channel_curl,
-				channel_data->url,
-				&download_data) == CHANNEL_EINIT) {
-		WARN("Failed to get total download size for URL %s.",
+	/*
+	 * In case of range do not ask the server for file size
+	 */
+	if (!channel_data->range)  {
+		if (channel_enable_download_progress_tracking(channel_curl,
+								channel_data->url,
+								&download_data) == CHANNEL_EINIT) {
+			WARN("Failed to get total download size for URL %s.",
 				channel_data->url);
 	} else
 		INFO("Total download size is %lu kB.",
-				download_data.total_download_size / 1024);
+			download_data.total_download_size / 1024);
+
+	}
 
 	if (curl_easy_setopt(channel_curl->handle, CURLOPT_CUSTOMREQUEST, "GET") !=
 	    CURLE_OK) {
