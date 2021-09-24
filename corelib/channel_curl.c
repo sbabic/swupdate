@@ -753,6 +753,15 @@ channel_op_res_t channel_set_options(channel_t *this, channel_data_t *channel_da
 		}
 	}
 
+	if (channel_data->range) {
+		if (curl_easy_setopt(channel_curl->handle, CURLOPT_RANGE,
+				     channel_data->range) != CURLE_OK) {
+			ERROR("Bytes Range could not be set.");
+			result = CHANNEL_EINIT;
+			goto cleanup;
+		}
+	}
+
 cleanup:
 	return result;
 }
