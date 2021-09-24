@@ -184,7 +184,8 @@ size_t channel_callback_ipc(void *streamdata, size_t size, size_t nmemb,
 		}
 	}
 
-	if (ipc_send_data(data->output, streamdata, (int)(size * nmemb)) <
+	if (!data->channel_data->noipc &&
+		ipc_send_data(data->output, streamdata, (int)(size * nmemb)) <
 	    0) {
 		ERROR("Writing into SWUpdate IPC stream failed.");
 		result_channel_callback_ipc = CHANNEL_EIO;
@@ -1079,7 +1080,8 @@ channel_op_res_t channel_put(channel_t *this, void *data)
 channel_op_res_t channel_get_file(channel_t *this, void *data)
 {
 	channel_curl_t *channel_curl = this->priv;
-	int file_handle;
+	int file_handle = -1;
+	struct swupdate_request req;
 	assert(data != NULL);
 	assert(channel_curl->handle != NULL);
 
@@ -1139,30 +1141,32 @@ channel_op_res_t channel_get_file(channel_t *this, void *data)
 		goto cleanup_header;
 	}
 
-	struct swupdate_request req;
-	swupdate_prepare_req(&req);
-	req.dry_run = channel_data->dry_run;
-	req.source = channel_data->source;
-	if (channel_data->info) {
-		strncpy(req.info, channel_data->info,
-			  sizeof(req.info) - 1 );
-	}
-	for (int retries = 3; retries >= 0; retries--) {
-		file_handle = ipc_inst_start_ext( &req, sizeof(struct swupdate_request));
-		if (file_handle > 0)
-			break;
-		sleep(1);
-	}
-	if (file_handle < 0) {
-		ERROR("Cannot open SWUpdate IPC stream: %s", strerror(errno));
-		result = CHANNEL_EIO;
-		goto cleanup_header;
-	}
-
 	write_callback_t wrdata;
 	wrdata.channel_data = channel_data;
+	if (!channel_data->noipc) {
+		swupdate_prepare_req(&req);
+		req.dry_run = channel_data->dry_run;
+		req.source = channel_data->source;
+		if (channel_data->info) {
+			strncpy(req.info, channel_data->info,
+				sizeof(req.info) - 1 );
+		}
+		for (int retries = 3; retries >= 0; retries--) {
+			file_handle = ipc_inst_start_ext( &req, sizeof(struct swupdate_request));
+			if (file_handle > 0)
+				break;
+			sleep(1);
+		}
+		if (file_handle < 0) {
+			ERROR("Cannot open SWUpdate IPC stream: %s", strerror(errno));
+			result = CHANNEL_EIO;
+			goto cleanup_header;
+		}
+	}
+
 	wrdata.output = file_handle;
 	result_channel_callback_ipc = CHANNEL_OK;
+
 	if ((curl_easy_setopt(channel_curl->handle, CURLOPT_WRITEFUNCTION,
 			      channel_callback_ipc) != CURLE_OK) ||
 	    (curl_easy_setopt(channel_curl->handle, CURLOPT_WRITEDATA,
@@ -1308,7 +1312,7 @@ cleanup_file:
 	 *      so use close() here directly to issue an error in case.
 	 *      Also, for a given file handle, calling ipc_end() would make
 	 *      no semantic sense. */
-	if (close(file_handle) != 0) {
+	if (file_handle >= 0 && close(file_handle) != 0) {
 		ERROR("Channel error while closing download target handle: '%s'",
 		      strerror(errno));
 	}

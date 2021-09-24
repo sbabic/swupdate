@@ -66,6 +66,7 @@ typedef struct {
 	bool usessl;
 	bool strictssl;
 	bool nocheckanswer;
+	bool noipc;	/* do not send to SWUpdate IPC if set */
 	long http_response_code;
 	bool nofollow;
 	size_t (*dwlwrdata)(char *streamdata, size_t size, size_t nmemb,
