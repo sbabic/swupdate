@@ -665,6 +665,14 @@ Mandatory arguments are marked with '\*':
 |                         |          | value to be sent with every HTTP request   |
 |                         |          | made.                                      |
 +-------------------------+----------+--------------------------------------------+
+| -n <value>              | string   | Maximum download speed to be used.         |
+|                         |          | Value be specified in kB/s, B/s, MB/s      |
+|                         |          | or GB/s. Examples:                         |
+|                         |          | -n 100k : Set limit to 100 kB/s.           |
+|                         |          | -n 500  : Set limit to 500 B/s.            |
+|                         |          | -n 2M   : Set limit to 1 M/s.              |
+|                         |          | -n 1G   : Set limit to 1 G/s.              |
++-------------------------+----------+--------------------------------------------+
 
 
 systemd Integration

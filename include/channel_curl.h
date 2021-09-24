@@ -74,4 +74,5 @@ typedef struct {
 	sourcetype source;
 	struct dict *headers_to_send;
 	struct dict *received_headers;
+	unsigned int max_download_speed;
 } channel_data_t;

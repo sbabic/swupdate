@@ -53,6 +53,7 @@ static struct option long_options[] = {
     {"initial-report-resend-period", required_argument, NULL, 'm'},
 	{"connection-timeout", required_argument, NULL, 's'},
 	{"custom-http-header", required_argument, NULL, 'a'},
+	{"max-download-speed", required_argument, NULL, 'l'},
     {NULL, 0, NULL, 0}};
 
 static unsigned short mandatory_argument_count = 0;
@@ -135,7 +136,8 @@ static channel_data_t channel_data_defaults = {.debug = false,
 					       .strictssl = true,
 						   .connection_timeout = 0,
 						   .headers_to_send = NULL,
-						   .received_headers = NULL
+						   .received_headers = NULL,
+						   .max_download_speed = 0 // No download speed limit is default.
 						};
 
 static struct timeval server_time;
@@ -1611,7 +1613,9 @@ void server_print_help(void)
 	    "sending initial state with '-c' option (default: %ds).\n"
 	    "\t  -s, --connection-timeout Set the server connection timeout (default: 300s).\n"
 	    "\t  -a, --custom-http-header <name> <value> Set custom HTTP header, "
-	    "appended to every HTTP request being sent.",
+	    "appended to every HTTP request being sent.\n"
+	    "\t  -n, --max-download-speed <limit>	Set download speed limit.\n"
+		"Example: -n 100k; -n 1M; -n 100; -n 1G\n",
 	    CHANNEL_DEFAULT_POLLING_INTERVAL, CHANNEL_DEFAULT_RESUME_TRIES,
 	    CHANNEL_DEFAULT_RESUME_DELAY,
 	    INITIAL_STATUS_REPORT_WAIT_DELAY);
@@ -1702,7 +1706,7 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 	/* reset to optind=1 to parse suricatta's argument vector */
 	optind = 1;
 	opterr = 0;
-	while ((choice = getopt_long(argc, argv, "t:i:c:u:p:xr:y::w:k:g:f:2:m:s:a:",
+	while ((choice = getopt_long(argc, argv, "t:i:c:u:p:xr:y::w:k:g:f:2:m:s:a:n:",
 				     long_options, NULL)) != -1) {
 		switch (choice) {
 		case 't':
@@ -1803,7 +1807,10 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 						optarg,
 						argv[optind++]) < 0)
 				return SERVER_EINIT;
-
+			break;
+		case 'n':
+			channel_data_defaults.max_download_speed =
+				(unsigned int)ustrtoull(optarg, 10);
 			break;
 		/* Ignore not recognized options, they can be already parsed by the caller */
 		case '?':

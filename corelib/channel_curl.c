@@ -1104,6 +1104,15 @@ channel_op_res_t channel_get_file(channel_t *this, void *data)
 		goto cleanup_header;
 	}
 
+	if (channel_data->max_download_speed &&
+			curl_easy_setopt(channel_curl->handle,
+				CURLOPT_MAX_RECV_SPEED_LARGE,
+				channel_data->max_download_speed) != CURLE_OK) {
+		ERROR("Set channel download speed limit failed.");
+		result = CHANNEL_EINIT;
+		goto cleanup_header;
+	}
+
 	download_callback_data_t download_data;
 	if (channel_enable_download_progress_tracking(channel_curl,
 				channel_data->url,

@@ -65,6 +65,7 @@ static struct option long_options[] = {
     {"retry", required_argument, NULL, 'r'},
     {"retrywait", required_argument, NULL, 'w'},
     {"cache", required_argument, NULL, '2'},
+    {"max-download-speed", required_argument, NULL, 'n'},
     {NULL, 0, NULL, 0}};
 
 static unsigned short mandatory_argument_count = 0;
@@ -525,7 +526,9 @@ void server_print_help(void)
 	    "\t  -y, --proxy         Use proxy. Either give proxy URL, else "
 	    "{http,all}_proxy env is tried.\n"
 	    "\t  -a, --custom-http-header <name> <value> Set custom HTTP header, "
-	    "appended to every HTTP request being sent.",
+	    "appended to every HTTP request being sent."
+	    "\t  -n, --max-download-speed <limit>	Set download speed limit."
+		"Example: -n 100k; -n 1M; -n 100; -n 1G",
 	    CHANNEL_DEFAULT_POLLING_INTERVAL, CHANNEL_DEFAULT_RESUME_TRIES,
 	    CHANNEL_DEFAULT_RESUME_DELAY);
 }
@@ -630,7 +633,7 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 	/* reset to optind=1 to parse suricatta's argument vector */
 	optind = 1;
 	opterr = 0;
-	while ((choice = getopt_long(argc, argv, "u:l:r:w:p:2:a:",
+	while ((choice = getopt_long(argc, argv, "u:l:r:w:p:2:a:n",
 				     long_options, NULL)) != -1) {
 		switch (choice) {
 		case 'u':
@@ -665,6 +668,11 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 				return SERVER_EINIT;
 
 			break;
+		case 'n':
+			channel_data_defaults.max_download_speed =
+				(unsigned int)ustrtoull(optarg, 10);
+			break;
+
 		case '?':
 		/* Ignore not recognized options, they can be already parsed by the caller */
 		default:
