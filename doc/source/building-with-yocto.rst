@@ -218,6 +218,24 @@ Or combined with a different package name:
         ...
         version = "@SWU_AUTO_VERSION:u-boot@PKGV";
 
+Using checksum for version
+--------------------------
+
+It is possible to use the hash of an artifact as the version in order to use
+"install-if-different".  This allows versionless artifacts to be skipped if the
+artifact in the update matches the currently installed artifact.
+
+In order to use the hash as the version, the sha256 hash file placeholder
+described above in Automatic sha256 in sw-description must be used for version.
+
+Each artifact must have the attribute:
+
+::
+
+        version = "@artifact-file-name"
+
+The name of the file must be the same as in deploy directory.
+
 Template for recipe using the class
 -----------------------------------
 
