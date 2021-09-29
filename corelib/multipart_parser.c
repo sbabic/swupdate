@@ -8,7 +8,7 @@
 #include <stdarg.h>
 #include <string.h>
 
-static void multipart_log(const char * format, ...)
+static void multipart_log(const char __attribute__ ((__unused__)) *format, ...)
 {
 #ifdef DEBUG_MULTIPART
     va_list args;
