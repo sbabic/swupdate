@@ -191,6 +191,7 @@ char **splitargs(char *args, int *argc);
 char *mstrcat(const char **nodes, const char *delim);
 char** string_split(const char* a_str, const char a_delim);
 char *substring(const char *src, int first, int len);
+char *string_tolower(char *s);
 size_t snescape(char *dst, size_t n, const char *src);
 void freeargs (char **argv);
 int get_hw_revision(struct hw_type *hw);

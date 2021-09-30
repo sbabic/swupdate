@@ -281,6 +281,18 @@ char *substring(const char *src, int first, int len) {
 	return s;
 }
 
+/*
+ * Convert all chars of a string to lower,
+ * there is no ready to use function
+ */
+
+char *string_tolower(char *s)
+{
+	char *p = s;
+	for ( ; *p; ++p) *p = tolower(*p);
+	return s;
+}
+
 int openfileoutput(const char *filename)
 {
 	int fdout;
