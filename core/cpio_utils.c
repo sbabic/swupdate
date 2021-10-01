@@ -29,6 +29,11 @@
 
 #define NPAD_BYTES(o) ((4 - (o % 4)) % 4)
 
+typedef enum {
+	INPUT_FROM_FD,
+	INPUT_FROM_MEMORY
+} input_type_t;
+
 int get_cpiohdr(unsigned char *buf, struct filehdr *fhdr)
 {
 	struct new_ascii_header *cpiohdr;
@@ -120,8 +125,10 @@ int copy_write(void *out, const void *buf, unsigned int len)
 	int ret;
 	int fd;
 
-	if (!out)
+	if (!out) {
+		ERROR("Output file descriptor invalid !");
 		return -1;
+	}
 
 	fd = *(int *)out;
 
@@ -187,6 +194,9 @@ typedef int (*PipelineStep)(void *state, void *buffer, size_t size);
 struct InputState
 {
 	int fdin;
+	input_type_t source;
+	unsigned char *inbuf;
+	size_t pos;
 	unsigned int nbytes;
 	unsigned long *offs;
 	void *dgst;	/* use a private context for HASH */
@@ -196,12 +206,26 @@ struct InputState
 static int input_step(void *state, void *buffer, size_t size)
 {
 	struct InputState *s = (struct InputState *)state;
+	int ret = 0;
 	if (size >= s->nbytes) {
 		size = s->nbytes;
 	}
-	int ret = fill_buffer(s->fdin, buffer, size, s->offs, &s->checksum, s->dgst);
-	if (ret < 0) {
-		return ret;
+	switch (s->source) {
+	case INPUT_FROM_FD:
+		ret = fill_buffer(s->fdin, buffer, size, s->offs, &s->checksum, s->dgst);
+		if (ret < 0) {
+			return ret;
+		}
+		break;
+	case INPUT_FROM_MEMORY:
+		memcpy(buffer, &s->inbuf[s->pos], size);
+		if (s->dgst) {
+			if (swupdate_HASH_update(s->dgst, &s->inbuf[s->pos], size) < 0)
+				return -EFAULT;
+		}
+		ret = size;
+		s->pos += size;
+		break;
 	}
 	s->nbytes -= ret;
 	return ret;
@@ -380,7 +404,7 @@ static int zstd_step(void* state, void* buffer, size_t size)
 
 #endif
 
-static int __swupdate_copy(int fdin, void *out, unsigned int nbytes, unsigned long *offs, unsigned long long seek,
+static int __swupdate_copy(int fdin, unsigned char *inbuf, void *out, unsigned int nbytes, unsigned long *offs, unsigned long long seek,
 	int skip_file, int __attribute__ ((__unused__)) compressed,
 	uint32_t *checksum, unsigned char *hash, bool encrypted, const char *imgivt, writeimage callback)
 {
@@ -398,6 +422,9 @@ static int __swupdate_copy(int fdin, void *out, unsigned int nbytes, unsigned lo
 
 	struct InputState input_state = {
 		.fdin = fdin,
+		.source = INPUT_FROM_FD,
+		.inbuf = NULL,
+		.pos = 0,
 		.nbytes = nbytes,
 		.offs = offs,
 		.dgst = NULL,
@@ -434,6 +461,14 @@ static int __swupdate_copy(int fdin, void *out, unsigned int nbytes, unsigned lo
 	};
 #endif
 #endif
+
+	/*
+	 * If inbuf is set, read from buffer instead of from file
+	 */
+	if (inbuf) {
+		input_state.inbuf = inbuf;
+		input_state.source = INPUT_FROM_MEMORY;
+	}
 
 	PipelineStep step = NULL;
 	void *state = NULL;
@@ -604,7 +639,11 @@ static int __swupdate_copy(int fdin, void *out, unsigned int nbytes, unsigned lo
 		}
 	}
 
-	fill_buffer(fdin, buffer, NPAD_BYTES(*offs), offs, checksum, NULL);
+	if (!inbuf) {
+		ret = fill_buffer(fdin, buffer, NPAD_BYTES(*offs), offs, checksum, NULL);
+		if (ret < 0)
+			DEBUG("Padding bytes are not read, ignoring");
+	}
 
 	if (checksum != NULL) {
 		*checksum = input_state.checksum;
@@ -638,6 +677,7 @@ int copyfile(int fdin, void *out, unsigned int nbytes, unsigned long *offs, unsi
 	uint32_t *checksum, unsigned char *hash, bool encrypted, const char *imgivt, writeimage callback)
 {
 	return __swupdate_copy(fdin,
+				NULL,
 				out,
 				nbytes,
 				offs,
@@ -645,6 +685,24 @@ int copyfile(int fdin, void *out, unsigned int nbytes, unsigned long *offs, unsi
 				skip_file,
 				compressed,
 				checksum,
+				hash,
+				encrypted,
+				imgivt,
+				callback);
+}
+
+int copybuffer(unsigned char *inbuf, void *out, unsigned int nbytes, int __attribute__ ((__unused__)) compressed,
+	unsigned char *hash, bool encrypted, const char *imgivt, writeimage callback)
+{
+	return __swupdate_copy(-1,
+				inbuf,
+				out,
+				nbytes,
+				NULL,
+				0,
+				0,
+				compressed,
+				NULL,
 				hash,
 				encrypted,
 				imgivt,
