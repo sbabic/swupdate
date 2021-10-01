@@ -380,7 +380,7 @@ static int zstd_step(void* state, void* buffer, size_t size)
 
 #endif
 
-int copyfile(int fdin, void *out, unsigned int nbytes, unsigned long *offs, unsigned long long seek,
+static int __swupdate_copy(int fdin, void *out, unsigned int nbytes, unsigned long *offs, unsigned long long seek,
 	int skip_file, int __attribute__ ((__unused__)) compressed,
 	uint32_t *checksum, unsigned char *hash, bool encrypted, const char *imgivt, writeimage callback)
 {
@@ -631,6 +631,24 @@ copyfile_exit:
 #endif
 
 	return ret;
+}
+
+int copyfile(int fdin, void *out, unsigned int nbytes, unsigned long *offs, unsigned long long seek,
+	int skip_file, int __attribute__ ((__unused__)) compressed,
+	uint32_t *checksum, unsigned char *hash, bool encrypted, const char *imgivt, writeimage callback)
+{
+	return __swupdate_copy(fdin,
+				out,
+				nbytes,
+				offs,
+				seek,
+				skip_file,
+				compressed,
+				checksum,
+				hash,
+				encrypted,
+				imgivt,
+				callback);
 }
 
 int copyimage(void *out, struct img_type *img, writeimage callback)
