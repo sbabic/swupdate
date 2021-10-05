@@ -59,6 +59,8 @@ Talks about SWUpdate
        - Evolution of (OTA) Update in the IoT world by Stefano Babic, ELC 2019,
          `Slides ELC 2019 <https://www.slideshare.net/StefanoBabic/evolution-of-otaupdateintheiotworld>`_,
          `Video ELC 2019 <https://www.youtube.com/watch?v=WZHO18EhD7Y>`_,
+       - Introduction of CIP Software Updates Working Group by Akihiro Suzuki, CIP Mini Summit 2019,
+         `Slides CIP 2019 <https://wiki.linuxfoundation.org/_media/civilinfrastructureplatform/cipconferences/sw_updates_wg_mini-summit.pdf>`_,
        - There is No Store For Self-Driving Car Parts by Stephen Segal and Matt Fornero (Cruise LLC), ELC 2020,
          `Slides Cruise ELC 2020 <https://static.sched.com/hosted_files/ossna2020/56/No_Store_for_AV_Parts_ELC_NA_2020.pdf>`_,
          `Video Cruise <https://www.youtube.com/watch?v=PSq13Kv4Qk4>`_
