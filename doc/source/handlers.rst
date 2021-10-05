@@ -936,3 +936,83 @@ found on the device. It is a partition handler and it runs before any image is i
                                    "18e12df1-d8e1-4283-8727-37727eb4261d"];
 		}
 	});
+
+Delta Update Handler
+--------------------
+
+The handler processes a ZCHUNK header and finds which chunks should be downloaded
+after generating the corresponding header of the running artifact to be updated.
+The handler uses just a couple of attributes from the main setup, and gets more information
+from the properties. The attributes are then passed to a secondary handler that
+will install the artefact after the delta handler has assembled it.
+The handler requires ZST because this is the compression format for Zchunk.
+
+The SWU must just contain the ZCK's header, while the ZCK file is put as it is on the server.
+The utilities in Zchunk project are used to build the zck file.
+
+::
+
+        zck -u -h sha256 <artifact>
+
+This will generates a file <arifact>.zck. To extract the header, use the `zck_read_header`
+utility:
+
+::
+
+        HSIZE=`zck_read_header -v <artifact>.zck | grep "Header size" | cut -d':' -f2`
+        dd if=<artifact>.zck of=<artifact>.header bs=1 count=$((HSIZE))
+
+The resulting header file must be packed inside the SWU.
+
+.. table:: Properties for delta update handler
+
+   +-------------+-------------+----------------------------------------------------+
+   |  Name       |  Type       |  Description                                       |
+   +=============+=============+====================================================+
+   | url         | string      | This is the URL from where the handler will        |
+   |             |             | download the missing chunks.                       |
+   |             |             | The server must support byte range header.         |
+   +-------------+-------------+----------------------------------------------------+
+   | source      | string      | name of the device or file to be used for          |
+   |             |             | the comparison.                                    |
+   +-------------+-------------+----------------------------------------------------+
+   | chain       | string      | this is the name (type) of the handler             |
+   |             |             | that is called after reassembling                  |
+   |             |             | the artifact.                                      |
+   +-------------+-------------+----------------------------------------------------+
+   | max-ranges  | string      | Max number of ranges that a server can             |
+   |             |             | accept. Default value (150) should be ok           |
+   |             |             | for most servers.                                  |
+   +-------------+-------------+----------------------------------------------------+
+   | zckloglevel | string      | this sets the log level of the zcklib.             |
+   |             |             | Logs are intercepted by SWupdate and               |
+   |             |             | appear in SWUpdate's log.                          |
+   |             |             | Value is one of debug,info                         |
+   |             |             | warn,error,none                                    |
+   +-------------+-------------+----------------------------------------------------+
+   | debug-chunks| string      | "true", default is not set.                        |
+   |             |             | This activates more verbose debugging              |
+   |             |             | output and the list of all chunks is               |
+   |             |             | printed, and it reports if a chunk                 |
+   |             |             | is downloaded  or copied from the source.          |
+   +-------------+-------------+----------------------------------------------------+
+
+
+Example:
+
+::
+
+        {
+                filename = "software.header";
+                type = "delta";
+
+                device = "/dev/mmcblk0p2";
+                properties: {
+                        url = "http://examples.com/software.zck";
+                        chain = "raw";
+                        source = "/dev/mmcblk0p3";
+                        zckloglevel = "error";
+                        /* debug-chunks = "true"; */
+                };
+        }
+
