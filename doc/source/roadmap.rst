@@ -32,25 +32,6 @@ To reduce bandwidth or for big images, a stronger compressor could help.
 Adding a new compressor must be careful done because it changes the core of
 handling an image.
 
-More efficient delta updates
-============================
-
-A whole update could be very traffic intensive. Specially in case
-of low-bandwidth connections, it could be interesting to introduce
-a way for delta binary updates.
-There was already several discussions on the Mailing List about
-this. If introducing binary delta is high desired, on the other side
-it is strictly required to not reduce the reliability of the update
-and the feature should not introduce leaks and make the system
-more vulnerable. It is accepted that different technologies could be added,
-each of them solves a specific use case for a delta update.
-
-SWUpdate is already able to perform delta updates based on librsync library. This is
-currently a good compromise to reduce complexity. Anyway, this helps in case of
-small changes, and it is not a general solution between two generic releases.
-A general approach could be to integrate SWUpdate with a storage to allow one
-a delta upgrade from any release. 
-
 Support for OpenWRT
 ===================
 
