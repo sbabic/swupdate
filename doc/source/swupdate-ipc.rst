@@ -259,7 +259,10 @@ Install API
         POST /upload
 
 This initiates an update: the initiator sends the request and start to stream the SWU in the same
-way as described in :ref:`install_api`.
+way as described in :ref:`install_api`. The SWU file must be sent with a ``Content-Type`` of
+``multipart/form-data`` and **must not** be sent with chunked Transfer-Encoding.
+Complete examples are available in both Go and python in the examples directory included
+with the source code.
 
 Restart API
 -----------
