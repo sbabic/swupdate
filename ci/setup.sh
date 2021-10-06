@@ -52,6 +52,7 @@ $_SUDO apt-get install -y \
     libwebsockets-dev \
     libgpiod-dev \
     libcurl4-openssl-dev \
+    libpci-dev \
     gawk \
     cpio \
     wget
