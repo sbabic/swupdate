@@ -594,12 +594,6 @@ channel_op_res_t channel_set_options(channel_t *this, channel_data_t *channel_da
 	}
 
 	if (channel_data->received_headers) {
-		/*
-		 * Setup supply request and receive reply HTTP headers.
-		 * A LIST_INIT()'d dictionary is expected at channel_data->headers.
-		 * The dictionary is modified in-place with the received headers,
-		 * if any, by channel_callback_headers().
-		 */
 		if ((curl_easy_setopt(channel_curl->handle,
 			      CURLOPT_HEADERFUNCTION,
 			      channel_callback_headers) != CURLE_OK) ||
