@@ -21,6 +21,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#include <sys/statvfs.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <ctype.h>
@@ -35,6 +36,7 @@
 #include <util.h>
 #include <pctl.h>
 #include <pthread.h>
+#include <fs_interface.h>
 #include "delta_handler.h"
 #include "multipart_parser.h"
 #include "installer.h"
@@ -90,6 +92,8 @@ struct hnd_priv {
 	char *srcdev;			/* device as source for comparison */
 	char *chainhandler;		/* Handler to pass the decompressed image */
 	zck_log_type zckloglevel;	/* if found, set log level for ZCK to this */
+	bool detectsrcsize;		/* if set, try to compute size of filesystem in srcdev */
+	size_t srcsize;			/* Size of source */
 	unsigned long max_ranges;	/* Max allowed ranges (configured via sw-description) */
 	/* Data to be transferred to chain handler */
 	struct img_type img;
@@ -319,6 +323,15 @@ static int delta_retrieve_attributes(struct img_type *img, struct hnd_priv *priv
 	if (errno || priv->max_ranges == 0)
 		priv->max_ranges = DEFAULT_MAX_RANGES;
 
+	char *srcsize;
+	srcsize = dict_get_value(&img->properties, "source-size");
+	if (srcsize) {
+		if (!strcmp(srcsize, "detect"))
+			priv->detectsrcsize = true;
+		else
+			priv->srcsize = ustrtoull(srcsize, 10);
+	}
+
 	char *zckloglevel = dict_get_value(&img->properties, "zckloglevel");
 	if (!zckloglevel)
 		return 0;
@@ -457,7 +470,7 @@ static void zck_log_toswupdate(const char *function, zck_log_type lt,
 /*
  * Create a zck Index from a file
  */
-static bool create_zckindex(zckCtx *zck, int fd)
+static bool create_zckindex(zckCtx *zck, int fd, size_t maxbytes)
 {
 	const size_t bufsize = 16384;
 	char *buf = malloc(bufsize);
@@ -475,6 +488,8 @@ static bool create_zckindex(zckCtx *zck, int fd)
 			free(buf);
 			return false;
 		}
+		if (maxbytes && n > maxbytes)
+			break;
 	}
 
 	free(buf);
@@ -928,6 +943,31 @@ static int install_delta(struct img_type *img,
 		ERROR("/dev/null not present or cannot be opened, aborting...");
 		goto cleanup;
 	}
+
+	if (priv->detectsrcsize) {
+#if defined(CONFIG_DISKFORMAT)
+		char *filesystem = diskformat_fs_detect(priv->srcdev);
+		if (filesystem) {
+			char* DATADST_DIR;
+			if (asprintf(&DATADST_DIR, "%s%s", get_tmpdir(), DATADST_DIR_SUFFIX) != -1)  {
+				if (!swupdate_mount(priv->srcdev, DATADST_DIR, filesystem)) {
+					struct statvfs vfs;
+					if (!statvfs(DATADST_DIR, &vfs)) {
+						TRACE("Detected filesystem %s, block size : %lu, %lu blocks =  %lu size",
+						       filesystem, vfs.f_frsize, vfs.f_blocks, vfs.f_frsize * vfs.f_blocks);
+						priv->srcsize = vfs.f_frsize * vfs.f_blocks;
+					}
+					swupdate_umount(DATADST_DIR);
+				}
+				free(DATADST_DIR);
+			}
+			free(filesystem);
+		}
+#else
+		WARN("SWUPdate not compiled with DISKFORMAT, skipping size detection..");
+#endif
+	}
+
 	in_fd = open(priv->srcdev, O_RDONLY);
 	if(in_fd < 0) {
 		ERROR("Unable to open Source : %s for reading", priv->srcdev);
@@ -994,7 +1034,7 @@ static int install_delta(struct img_type *img,
 		goto cleanup;
 	}
 
-	if (!create_zckindex(zckSrc, in_fd)) {
+	if (!create_zckindex(zckSrc, in_fd, priv->srcsize)) {
 		WARN("ZCK Header form %s cannot be created, fallback to full download",
 			priv->srcdev);
 	} else {
@@ -1062,8 +1102,8 @@ static int install_delta(struct img_type *img,
 cleanup:
 	if (zckSrc) zck_free(&zckSrc);
 	if (zckDst) zck_free(&zckDst);
-	if (dst_fd > 0) close(dst_fd);
-	if (in_fd > 0) close(in_fd);
+	close(dst_fd);
+	close(in_fd);
 	if (FIFO) {
 		unlink(FIFO);
 		free(FIFO);

@@ -996,6 +996,12 @@ The resulting header file must be packed inside the SWU.
    |             |             | printed, and it reports if a chunk                 |
    |             |             | is downloaded  or copied from the source.          |
    +-------------+-------------+----------------------------------------------------+
+   | source-size | string      | This limits the index of the source                |
+   |             |             | It is helpful in case of filesystem in much        |
+   |             |             | bigger partition. It has the value for the size    |
+   |             |             | or it can be set to "detect" and the handler       |
+   |             |             | will try to find the effective size of fs.         |
+   +-------------+-------------+----------------------------------------------------+
 
 
 Example:
