@@ -35,7 +35,7 @@ int flash_erase_sector(int mtdnum, off_t start, size_t size)
 	struct mtd_dev_info *mtd;
 	int noskipbad = 0;
 	int ret = 0;
-	unsigned int eb, eb_start, eb_cnt, i;
+	unsigned int eb, eb_start, i, eb_end, end;
 	uint8_t *buf;
 	struct flash_description *flash = get_flash_info();
 
@@ -48,14 +48,14 @@ int flash_erase_sector(int mtdnum, off_t start, size_t size)
 
 	eb_start = start;
 	size = size ? size : mtd->size;
-	if (eb_start > size)
-		return -EINVAL;
 	if (!mtd->eb_size)
 		return -EINVAL;
-	eb_cnt = (size - eb_start) / mtd->eb_size;
-	if (!eb_cnt)
-		return -EINVAL;
+
+	end = start + size;
 	eb_start /= mtd->eb_size;
+	eb_end = end / mtd->eb_size;
+	if (end % mtd->eb_size)
+		eb_end++;
 
 	if ((fd = open(mtd_device, O_RDWR)) < 0) {
 		ERROR( "%s: %s: %s", __func__, mtd_device, strerror(errno));
@@ -73,7 +73,7 @@ int flash_erase_sector(int mtdnum, off_t start, size_t size)
 		return -ENOMEM;
 	}
 
-	for (eb = 0; eb < eb_start + eb_cnt; eb++) {
+	for (eb = eb_start; eb < eb_end; eb++) {
 
 		/* Always skip bad sectors */
 		if (!noskipbad) {
