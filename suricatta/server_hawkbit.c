@@ -1614,8 +1614,8 @@ void server_print_help(void)
 	    "\t  -s, --connection-timeout Set the server connection timeout (default: 300s).\n"
 	    "\t  -a, --custom-http-header <name> <value> Set custom HTTP header, "
 	    "appended to every HTTP request being sent.\n"
-	    "\t  -n, --max-download-speed <limit>	Set download speed limit.\n"
-		"Example: -n 100k; -n 1M; -n 100; -n 1G\n",
+	    "\t  -n, --max-download-speed <limit>  Set download speed limit.\n"
+	    "\t                                    Example: -n 100k; -n 1M; -n 100; -n 1G\n",
 	    CHANNEL_DEFAULT_POLLING_INTERVAL, CHANNEL_DEFAULT_RESUME_TRIES,
 	    CHANNEL_DEFAULT_RESUME_DELAY,
 	    INITIAL_STATUS_REPORT_WAIT_DELAY);
