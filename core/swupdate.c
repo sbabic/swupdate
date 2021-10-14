@@ -69,21 +69,21 @@ struct flash_description *get_flash_info(void) {
 #endif
 
 static struct option long_options[] = {
-	{"verbose", no_argument, NULL, 'v'},
-	{"version", no_argument, NULL, '0'},
-	{"image", required_argument, NULL, 'i'},
-	{"file", required_argument, NULL, 'f'},
-	{"loglevel", required_argument, NULL, 'l'},
-	{"syslog", no_argument, NULL, 'L' },
-	{"select", required_argument, NULL, 'e'},
 	{"accepted-select", required_argument, NULL, 'q'},
-	{"output", required_argument, NULL, 'o'},
+#ifdef CONFIG_UBIATTACH
+	{"blacklist", required_argument, NULL, 'b'},
+#endif
+	{"check", no_argument, NULL, 'c'},
+#ifdef CONFIG_DOWNLOAD
+	{"download", required_argument, NULL, 'd'},
+#endif
 	{"dry-run", no_argument, NULL, 'n'},
-	{"no-downgrading", required_argument, NULL, 'N'},
-	{"no-reinstalling", required_argument, NULL, 'R'},
-	{"max-version", required_argument, NULL, '3'},
-	{"no-transaction-marker", no_argument, NULL, 'M'},
-	{"no-state-marker", no_argument, NULL, 'm'},
+	{"file", required_argument, NULL, 'f'},
+	{"help", no_argument, NULL, 'h'},
+#ifdef CONFIG_HW_COMPATIBILITY
+	{"hwrevision", required_argument, NULL, 'H'},
+#endif
+	{"image", required_argument, NULL, 'i'},
 #ifdef CONFIG_SIGNED_IMAGES
 	{"key", required_argument, NULL, 'k'},
 	{"ca-path", required_argument, NULL, 'k'},
@@ -93,25 +93,25 @@ static struct option long_options[] = {
 #ifdef CONFIG_ENCRYPTED_IMAGES
 	{"key-aes", required_argument, NULL, 'K'},
 #endif
-#ifdef CONFIG_UBIATTACH
-	{"blacklist", required_argument, NULL, 'b'},
-#endif
-	{"help", no_argument, NULL, 'h'},
-#ifdef CONFIG_HW_COMPATIBILITY
-	{"hwrevision", required_argument, NULL, 'H'},
-#endif
-#ifdef CONFIG_DOWNLOAD
-	{"download", required_argument, NULL, 'd'},
-#endif
+	{"loglevel", required_argument, NULL, 'l'},
+	{"max-version", required_argument, NULL, '3'},
+	{"no-downgrading", required_argument, NULL, 'N'},
+	{"no-reinstalling", required_argument, NULL, 'R'},
+	{"no-state-marker", no_argument, NULL, 'm'},
+	{"no-transaction-marker", no_argument, NULL, 'M'},
+	{"output", required_argument, NULL, 'o'},
+	{"preupdate", required_argument, NULL, 'P'},
+	{"postupdate", required_argument, NULL, 'p'},
+	{"select", required_argument, NULL, 'e'},
 #ifdef CONFIG_SURICATTA
 	{"suricatta", required_argument, NULL, 'u'},
 #endif
+	{"syslog", no_argument, NULL, 'L' },
+	{"verbose", no_argument, NULL, 'v'},
+	{"version", no_argument, NULL, '0'},
 #ifdef CONFIG_WEBSERVER
 	{"webserver", required_argument, NULL, 'w'},
 #endif
-	{"check", no_argument, NULL, 'c'},
-	{"postupdate", required_argument, NULL, 'p'},
-	{"preupdate", required_argument, NULL, 'P'},
 	{NULL, 0, NULL, 0}
 };
 
