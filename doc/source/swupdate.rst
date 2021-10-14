@@ -503,6 +503,8 @@ Command line parameters
 | --ca-\      | string   | Available if CONFIG_SIGNED_IMAGES is set.  |
 | path <file> |          | Path to the Certificate Authority (PEM).   |
 +-------------+----------+--------------------------------------------+
+| --get-root  |          | Detect and print the root device and exit  |
++-------------+----------+--------------------------------------------+
 | -l <level>  | int      | Set loglevel.                              |
 +-------------+----------+--------------------------------------------+
 | -L          |    -     | Send LOG output to syslog (local).         |

@@ -79,6 +79,7 @@ static struct option long_options[] = {
 #endif
 	{"dry-run", no_argument, NULL, 'n'},
 	{"file", required_argument, NULL, 'f'},
+	{"get-root", no_argument, NULL, 'g'},
 	{"help", no_argument, NULL, 'h'},
 #ifdef CONFIG_HW_COMPATIBILITY
 	{"hwrevision", required_argument, NULL, 'H'},
@@ -433,7 +434,7 @@ int main(int argc, char **argv)
 #endif
 	memset(main_options, 0, sizeof(main_options));
 	memset(image_url, 0, sizeof(image_url));
-	strcpy(main_options, "vhni:e:q:l:Lcf:p:P:o:N:R:Mm");
+	strcpy(main_options, "vhni:e:gq:l:Lcf:p:P:o:N:R:Mm");
 #ifdef CONFIG_MTD
 	strcat(main_options, "b:");
 #endif
@@ -476,8 +477,17 @@ int main(int argc, char **argv)
 	while ((c = getopt_long(argc, argv, main_options,
 				long_options, NULL)) != EOF) {
 		switch (c) {
+		char *root;
 		case 'f':
 			cfgfname = sdup(optarg);
+			break;
+		case 'g':
+			root = get_root_device();
+			if (root) {
+				printf("%s\n", root);
+				free(root);
+			}
+			exit(EXIT_SUCCESS);
 			break;
 		case 'l':
 			loglevel = strtoul(optarg, NULL, 10);
