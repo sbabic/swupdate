@@ -58,6 +58,11 @@ We use the SPDX_ Unique License Identifiers (SPDX-Identifiers_)
    +-------------------------------------------------+------------------+--------------+
    | Creative Commons Zero 1.0 Universal (CC0_)      | CC0-1.0          |    N         |
    +-------------------------------------------------+------------------+--------------+
+   | Creative Commons Attribution Share Alike 4.0_   | CC-BY-SA-4.0     |    Y         |
+   +-------------------------------------------------+------------------+--------------+
+   | ISC License (ISC_)                              | ISC              |    Y         |
+   +-------------------------------------------------+------------------+--------------+
+
 
 .. _v2.0: http://www.gnu.org/licenses/gpl-2.0.txt
 .. _v2.1: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt
@@ -66,3 +71,5 @@ We use the SPDX_ Unique License Identifiers (SPDX-Identifiers_)
 .. _3-Clause: http://spdx.org/licenses/BSD-3-Clause
 .. _MIT: https://spdx.org/licenses/MIT.html
 .. _CC0: https://spdx.org/licenses/CC0-1.0.html
+.. _4.0: https://spdx.org/licenses/CC-BY-SA-4.0.html
+.. _ISC: https://spdx.org/licenses/ISC.html
