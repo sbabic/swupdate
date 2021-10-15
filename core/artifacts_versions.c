@@ -236,41 +236,39 @@ int compare_versions(const char* left_version, const char* right_version)
 		else
 			return 0;
 	}
-	else
-	{
-		semver_t left_sem = {};
-		semver_t right_sem = {};
-		int comparison;
 
-		/*
-		 * Check if semantic version is possible
-		 */
-		if (!semver_parse(left_version, &left_sem) && !semver_parse(right_version, &right_sem)) {
-			DEBUG("Comparing semantic versions '%s' <-> '%s'", left_version, right_version);
-			if (loglevel >= TRACELEVEL)
-			{
-				char left_rendered[SWUPDATE_GENERAL_STRING_SIZE];
-				char right_rendered[SWUPDATE_GENERAL_STRING_SIZE];
+	semver_t left_sem = {};
+	semver_t right_sem = {};
+	int comparison;
 
-				left_rendered[0] = right_rendered[0] = '\0';
+	/*
+	 * Check if semantic version is possible
+	 */
+	if (!semver_parse(left_version, &left_sem) && !semver_parse(right_version, &right_sem)) {
+		DEBUG("Comparing semantic versions '%s' <-> '%s'", left_version, right_version);
+		if (loglevel >= TRACELEVEL)
+		{
+			char left_rendered[SWUPDATE_GENERAL_STRING_SIZE];
+			char right_rendered[SWUPDATE_GENERAL_STRING_SIZE];
 
-				semver_render(&left_sem, left_rendered);
-				semver_render(&right_sem, right_rendered);
-				TRACE("Parsed: '%s' <-> '%s'", left_rendered, right_rendered);
-			}
+			left_rendered[0] = right_rendered[0] = '\0';
 
-			comparison = semver_compare(left_sem, right_sem);
-			semver_free(&left_sem);
-			semver_free(&right_sem);
-			return comparison;
+			semver_render(&left_sem, left_rendered);
+			semver_render(&right_sem, right_rendered);
+			TRACE("Parsed: '%s' <-> '%s'", left_rendered, right_rendered);
 		}
+
+		comparison = semver_compare(left_sem, right_sem);
 		semver_free(&left_sem);
 		semver_free(&right_sem);
-
-		/*
-		 * Last attempt: just compare the two strings
-		 */
-		DEBUG("Comparing lexicographically '%s' <-> '%s'", left_version, right_version);
-		return strcmp(left_version, right_version);
+		return comparison;
 	}
+	semver_free(&left_sem);
+	semver_free(&right_sem);
+
+	/*
+	 * Last attempt: just compare the two strings
+	 */
+	DEBUG("Comparing lexicographically '%s' <-> '%s'", left_version, right_version);
+	return strcmp(left_version, right_version);
 }
