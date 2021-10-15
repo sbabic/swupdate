@@ -360,12 +360,12 @@ A run of SWUpdate consists mainly of the following steps:
 - runs the pre update command, if set
 - runs partition handlers, if required.
 - reads through the cpio archive one file at a time and either:
-  * execute handlers for each file marked as "installed-directly".
-    checksum is checked while the data is streamed to handler, and copy will
-    be marked as having failed if checksum was not correct failing the rest
-    of the install.
-  * copy other files to a temporary location while checking checksums,
-    stopping if there was a mismatch.
+        * execute handlers for each file marked as "installed-directly".
+          checksum is checked while the data is streamed to handler, and copy will
+          be marked as having failed if checksum was not correct failing the rest
+          of the install.
+        * copy other files to a temporary location while checking checksums,
+          stopping if there was a mismatch.
 - iterates through all `scripts` and call the corresponding
   handler for pre-install scripts.
   Please note: if artifacts are streamed, they will be extracted
