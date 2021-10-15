@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2013-2021 Stefano Babic <sbabic@denx.de>
+#
+# SPDX-License-Identifier: GPL-2.0-only
+
 # Makefile for Sphinx documentation
 #
 
