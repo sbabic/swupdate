@@ -1046,6 +1046,56 @@ collection: `/dev/mmcblk0p1` and `/dev/mmcblk0p2` for `main` mode and
 This feature can be used to implement a dual copy strategy by
 specifying the collection and mode explicitly.
 
+Versioning schemas in SWUpdate
+------------------------------
+
+SWUpdate can perform version comparisons for the whole Software by checking
+the `version` attribute in the common part of sw-description and / or
+for single artifacts. SWUpdate supports two different version schemas,
+and they must be followed if version comparison is requested.
+
+Numbering schema (default)
+..........................
+
+SWUpdate supports a version based on the schema:
+
+::
+
+        <major>.<minor>.<revision>.<build>
+
+where each field is a plain number (no alphanumeric) in the range 0..65535.
+User can add further fields using the dot separator, but they are not
+considered for version comparison. SWUpdate will check if a version
+number is set according to this rule, and fallback to semantic version
+if fails. The version is converted in a 64 bit number (each field is 16 bit)
+and compare with the running version of the same artifact.
+
+Please consider that, because additional fields are descriptive only, for the
+comparison they are not considered. This example contains version numbers
+that are interpreted as the same version number by SWUpdate:
+
+::
+
+        1.2.3.4
+        1.2.3.4.5
+        1.2.3.4.5.6
+
+But the following is different:
+
+::
+
+        1.2.3.4-alpha
+
+And it is treated as semantic version
+
+Semantic version
+----------------
+
+SWUpdate supports semantic_ version. See official documentation
+for more details.
+
+.. _semantic: https://semver.org/
+
 Checking version of installed software
 --------------------------------------
 
