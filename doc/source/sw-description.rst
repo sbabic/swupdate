@@ -1142,7 +1142,8 @@ If it's false, the new software isn't installed. The goal is to avoid
 installing an older version of software.
 
 In this case, version can be any of 2 formats. Either the version consists
-of *up to* 4 numbers separated by a dot, e.g. `<major>.<minor>.<rev>.<build>`,
+of *up to* 4 numbers in the range 0..65535 separated by a dot,
+e.g. `<major>.<minor>.<rev>.<build>`,
 or it is a `semantic version <https://semver.org>`_.
 
 ::
