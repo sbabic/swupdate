@@ -674,6 +674,40 @@ Mandatory arguments are marked with '\*':
 |                         |          | -n 1G   : Set limit to 1 G/s.              |
 +-------------------------+----------+--------------------------------------------+
 
+Webserver command line parameters
+.................................
+
+Example: ``swupdate -w "-r /www -p 8080"``
+
+Mandatory arguments are marked with '\*':
+
++-------------------------+----------+--------------------------------------------+
+|  Parameter              | Type     | Description                                |
++=========================+==========+============================================+
+| -r <document root>      | string   | \* Path where the web app is stored.       |
++-------------------------+----------+--------------------------------------------+
+| -p <port>               | integer  | \* TCP port to be listened                 |
+|                         |          | if not set, 8080 is used                   |
++-------------------------+----------+--------------------------------------------+
+| -s <ssl>                |          | \* Enable SSL support. Note: it must be    |
+|                         |          | configured with CONFIG_MONGOOSESSL         |
++-------------------------+----------+--------------------------------------------+
+| --ssl-cert <cert>       | string   | Path to the certificate to present to      |
+|                         |          | clients                                    |
++-------------------------+----------+--------------------------------------------+
+| -K <key>                | string   | Path to key corresponding to ssl           |
+|                         |          | certificate                                |
++-------------------------+----------+--------------------------------------------+
+| -t <timeout>            | integer  | Timeout to consider a connection lost if   |
+|                         |          | clients stops to send data. If hit, an     |
+|                         |          | update is aborted. Default=0 (unlimited)   |
++-------------------------+----------+--------------------------------------------+
+| --auth-domain <string>  | string   | Set authentication domain                  |
+|                         |          | Default: none                              |
++-------------------------+----------+--------------------------------------------+
+| --global-auth-file      | string   | Set authentication file if any             |
+|  <string>               |          | Default: none                              |
++-------------------------+----------+--------------------------------------------+
 
 systemd Integration
 -------------------
