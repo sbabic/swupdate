@@ -40,7 +40,7 @@ struct extract_data {
 };
 
 static int
-copy_data(struct archive *ar, struct archive *aw)
+copy_data(struct archive *ar, struct archive *aw, struct archive_entry *entry)
 {
 	int r;
 	const void *buff;
@@ -55,12 +55,20 @@ copy_data(struct archive *ar, struct archive *aw)
 		r = archive_read_data_block(ar, &buff, &size, &offset);
 		if (r == ARCHIVE_EOF)
 			return (ARCHIVE_OK);
-		if (r != ARCHIVE_OK)
-			return (r);
+		if (r != ARCHIVE_OK) {
+			if (r == ARCHIVE_WARN) {
+				WARN("archive_read_next_header(): %s for '%s'",
+				     archive_error_string(ar), archive_entry_pathname(entry));
+			} else {
+				ERROR("archive_read_data_block(): %s for '%s'",
+				      archive_error_string(ar), archive_entry_pathname(entry));
+				return (r);
+			}
+		}
 		r = archive_write_data_block(aw, buff, size, offset);
 		if (r != ARCHIVE_OK) {
-			TRACE("archive_write_data_block(): %s",
-			    archive_error_string(aw));
+			ERROR("archive_write_data_block(): %s for '%s'",
+			      archive_error_string(aw), archive_entry_pathname(entry));
 			return (r);
 		}
 	}
@@ -141,8 +149,8 @@ extract(void *p)
 		if (r != ARCHIVE_OK) {
 			if (r == ARCHIVE_EOF)
 				break;
-			if (r == ARCHIVE_WARN ) {
-				WARN("archive_read_next_header(): %s '%s'",
+			if (r == ARCHIVE_WARN) {
+				WARN("archive_read_next_header(): %s for '%s'",
 				    archive_error_string(a), archive_entry_pathname(entry));
 			} else {
 				ERROR("archive_read_next_header(): %s",
@@ -155,17 +163,21 @@ extract(void *p)
 			TRACE("Extracting %s", archive_entry_pathname(entry));
 
 		r = archive_write_header(ext, entry);
+		if (r != ARCHIVE_OK) {
+			ERROR("archive_write_header(): %s",
+			      archive_error_string(ext));
+			goto out;
+		}
+
+		r = copy_data(a, ext, entry);
 		if (r != ARCHIVE_OK)
-			TRACE("archive_write_header(): %s",
-			    archive_error_string(ext));
-		else {
-			copy_data(a, ext);
-			r = archive_write_finish_entry(ext);
-			if (r != ARCHIVE_OK)  {
-				ERROR("archive_write_finish_entry(): %s",
-				    archive_error_string(ext));
-				goto out;
-			}
+			goto out; /* warning already printed in copy_data() */
+
+		r = archive_write_finish_entry(ext);
+		if (r != ARCHIVE_OK)  {
+			ERROR("archive_write_finish_entry(): %s for '%s'",
+			    archive_error_string(ext), archive_entry_pathname(entry));
+			goto out;
 		}
 
 	}
