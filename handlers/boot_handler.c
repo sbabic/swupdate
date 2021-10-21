@@ -115,7 +115,7 @@ static int install_boot_environment(struct img_type *img,
 				}
 			}
 		}
-		free(pair);
+		free_string_array(pair);
 	}
 	/*
 	 * this handler does not use copyfile()
