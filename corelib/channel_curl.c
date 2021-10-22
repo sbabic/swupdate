@@ -1230,7 +1230,14 @@ channel_op_res_t channel_get_file(channel_t *this, void *data)
 
 		curlrc = curl_easy_perform(channel_curl->handle);
 		result = channel_map_curl_error(curlrc);
-		if ((result != CHANNEL_OK) && (result != CHANNEL_EAGAIN)) {
+		if (result == CHANNEL_ENONET) {
+			WARN("Lost connection. Retrying after %d seconds.",
+					channel_data->retry_sleep);
+			if (sleep(channel_data->retry_sleep) > 0) {
+				TRACE("Channel's sleep got interrupted, "
+					"retrying nonetheless now.");
+			}
+		} else if ((result != CHANNEL_OK) && (result != CHANNEL_EAGAIN)) {
 			ERROR("Channel operation returned error (%d): '%s'",
 			      curlrc, curl_easy_strerror(curlrc));
 			goto cleanup_file;
