@@ -27,6 +27,7 @@ static struct option long_options[] = {
 	{"polling-time", required_argument, NULL, 'p'},
 	{"enable", no_argument, NULL, 'e'},
 	{"disable", no_argument, NULL, 'd'},
+	{"trigger", no_argument, NULL, 't'},
 	{NULL, 0, NULL, 0}
 };
 
@@ -39,6 +40,7 @@ static void usage(char *programname)
 		" -p, --polling-time      : Set polling time (0=from server) to ask the backend server\n"
 		" -e, --enable            : Enable polling of backend server\n"
 		" -d, --disable           : Disable polling of backend server\n"
+		" -t, --trigger           : Poll backend server immediately\n"
 		" -h, --help              : print this help and exit\n"
 		);
 }
@@ -73,6 +75,7 @@ int main(int argc, char *argv[]) {
 	bool enable = false;
 	int opt_e = 0;
 	int opt_p = 0;
+	int opt_t = 0;
 
 	if (argc < 2) {
 		usage(argv[0]);
@@ -101,6 +104,10 @@ int main(int argc, char *argv[]) {
 			opt_e = 1;
 			enable = (c == 'e');
 			break;
+		case 't':
+			msg.data.procmsg.cmd = CMD_ENABLE;
+			opt_t = 1;
+			break;
 		case 'h':
 			usage(argv[0]);
 			exit(0);
@@ -126,6 +133,11 @@ int main(int argc, char *argv[]) {
 	}
 	if (opt_e) {
 		snprintf(buf, size, "{ \"enable\" : %s}", enable ? "true" : "false");
+		msg.data.procmsg.len = strnlen(buf, size);
+		send_msg(&msg);
+	}
+	if (opt_t) {
+		snprintf(buf, size, "{ \"trigger\" : true}");
 		msg.data.procmsg.len = strnlen(buf, size);
 		send_msg(&msg);
 	}
