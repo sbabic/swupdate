@@ -41,6 +41,7 @@ swupdate_unstripped*
 lua_swupdate.so*
 tools/*_unstripped
 tools/swupdate-client
+tools/swupdate-gethawkbitstatus
 tools/swupdate-progress
 tools/swupdate-sendtohawkbit
 tools/swupdate-hawkbitcfg
