@@ -58,6 +58,7 @@ static struct option long_options[] = {
 
 static unsigned short mandatory_argument_count = 0;
 static pthread_mutex_t notifylock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t ipc_lock = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
 
 /*
  * See hawkBit's API for an explanation
@@ -521,13 +522,23 @@ server_op_res_t server_set_config_data(json_object *json_root)
 	tmp = json_get_data_url(json_root, "configData");
 
 	if (tmp != NULL) {
+		pthread_mutex_lock(&ipc_lock);
 		if (server_hawkbit.configData_url)
 			free(server_hawkbit.configData_url);
 		server_hawkbit.configData_url = tmp;
 		server_hawkbit.has_to_send_configData = (get_target_data_length() > 0) ? true : false;
 		TRACE("ConfigData: %s", server_hawkbit.configData_url);
+		pthread_mutex_unlock(&ipc_lock);
 	}
 	return SERVER_OK;
+}
+
+static void report_server_status(int server_status)
+{
+	pthread_mutex_lock(&ipc_lock);
+	server_hawkbit.server_status = server_status;
+	server_hawkbit.server_status_time = time(NULL);
+	pthread_mutex_unlock(&ipc_lock);
 }
 
 static server_op_res_t server_get_device_info(channel_t *channel, channel_data_t *channel_data)
@@ -551,8 +562,7 @@ static server_op_res_t server_get_device_info(channel_t *channel, channel_data_t
 
 	channel_op_res_t ch_response = channel->get(channel, (void *)channel_data);
 
-	server_hawkbit.server_status = ch_response;
-	server_hawkbit.server_status_time = time(NULL);
+	report_server_status(ch_response);
 	if ((result = map_channel_retcode(ch_response)) !=
 	    SERVER_OK) {
 		goto cleanup;
@@ -1466,12 +1476,14 @@ int get_target_data_length(void)
 	int len = 0;
 	struct dict_entry *entry;
 
+	pthread_mutex_lock(&ipc_lock);
 	LIST_FOREACH(entry, &server_hawkbit.configdata, next) {
 		char *key = dict_entry_get_key(entry);
 		char *value = dict_entry_get_value(entry);
 
 		len += strlen(key) + strlen(value) + strlen (" : ") + 6;
 	}
+	pthread_mutex_unlock(&ipc_lock);
 
 	return len;
 }
@@ -1506,6 +1518,7 @@ server_op_res_t server_send_target_data(void)
 	);
 
 	char *keyvalue = NULL;
+	pthread_mutex_lock(&ipc_lock);
 	LIST_FOREACH(entry, &server_hawkbit.configdata, next) {
 		char *key = dict_entry_get_key(entry);
 		char *value = dict_entry_get_value(entry);
@@ -1517,6 +1530,7 @@ server_op_res_t server_send_target_data(void)
 				value)) {
 			ERROR("hawkBit server reply cannot be sent because of OOM.");
 			result = SERVER_EINIT;
+			pthread_mutex_unlock(&ipc_lock);
 			goto cleanup;
 		}
 		first = false;
@@ -1525,6 +1539,7 @@ server_op_res_t server_send_target_data(void)
 		free(keyvalue);
 
 	}
+	pthread_mutex_unlock(&ipc_lock);
 
 	TRACE("CONFIGDATA=%s", configData);
 
@@ -1678,6 +1693,7 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 
 	mandatory_argument_count = 0;
 
+	pthread_mutex_lock(&ipc_lock);
 	LIST_INIT(&server_hawkbit.configdata);
 	LIST_INIT(&server_hawkbit.httpheaders);
 
@@ -1702,6 +1718,7 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 		}
 		swupdate_cfg_destroy(&handle);
 	}
+	pthread_mutex_unlock(&ipc_lock);
 
 	if (loglevel >= DEBUGLEVEL) {
 		server_hawkbit.debug = true;
@@ -1876,6 +1893,13 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 	server_hawkbit.has_to_send_configData = true;
 
 	/*
+	 * The following loop might block for a long time, if server does
+	 * not respond immediately. Therefore, report pending request on
+	 * server status IPC.
+	 */
+	report_server_status(CHANNEL_REQUEST_PENDING);
+
+	/*
 	 * If in WAIT state, the updated was finished
 	 * by an external process and we have to wait for it
 	 */
@@ -2039,6 +2063,7 @@ static server_op_res_t server_configuration_ipc(ipc_message *msg)
 
 	json_data = json_get_path_key(
 	    json_root, (const char *[]){"polling", NULL});
+	pthread_mutex_lock(&ipc_lock);
 	if (json_data) {
 		polling = json_object_get_int(json_data);
 		if (polling > 0) {
@@ -2056,6 +2081,7 @@ static server_op_res_t server_configuration_ipc(ipc_message *msg)
 		server_hawkbit.has_to_send_configData = true;
 	}
 
+	pthread_mutex_unlock(&ipc_lock);
 	return SERVER_OK;
 }
 
@@ -2066,11 +2092,13 @@ static server_op_res_t server_status_ipc(ipc_message *msg)
 		.tv_usec = 0
 	};
 
+	pthread_mutex_lock(&ipc_lock);
 	sprintf(msg->data.procmsg.buf,
 		"{\"server\":{\"status\":%d,\"time\":\"%s\"}}",
 		server_hawkbit.server_status,
 		swupdate_time_iso8601(&tv));
 	msg->data.procmsg.len = strlen(msg->data.procmsg.buf);
+	pthread_mutex_unlock(&ipc_lock);
 
 	return SERVER_OK;
 }

@@ -11,7 +11,9 @@
 #include <stdio.h>
 #include <util.h>
 #include <errno.h>
+#include <semaphore.h>
 #include <signal.h>
+#include <time.h>
 #include <sys/select.h>
 #include <getopt.h>
 #include <json-c/json.h>
@@ -29,6 +31,7 @@ static struct option long_options[] = {
     {"enable", no_argument, NULL, 'e'},
     {"disable", no_argument, NULL, 'd'},
     {NULL, 0, NULL, 0}};
+static sem_t suricatta_enable_sema;
 
 void suricatta_print_help(void)
 {
@@ -58,6 +61,8 @@ static server_op_res_t suricatta_enable(ipc_message *msg)
 	    json_root, (const char *[]){"enable", NULL});
 	if (json_data) {
 		enable = json_object_get_boolean(json_data);
+		if (sem_post(&suricatta_enable_sema))
+			ERROR("sem_post enable failled");
 		TRACE ("suricatta mode %sabled", enable ? "en" : "dis");
 	}
 	else {
@@ -72,6 +77,8 @@ static server_op_res_t suricatta_enable(ipc_message *msg)
 	      json_root, (const char *[]){"trigger", NULL});
 	  if (json_data) {
 	    trigger = json_object_get_boolean(json_data);
+	    if (sem_post(&suricatta_enable_sema))
+		    ERROR("sem_post trigger failled");
 	    TRACE ("suricatta polling trigger received, checking on server");
 	  }
 
@@ -82,7 +89,7 @@ static server_op_res_t suricatta_enable(ipc_message *msg)
 	return SERVER_OK;
 }
 
-static server_op_res_t suricatta_ipc(int fd, time_t *seconds)
+static server_op_res_t suricatta_ipc(int fd)
 {
 	ipc_message msg;
 	server_op_res_t result = SERVER_OK;
@@ -91,18 +98,9 @@ static server_op_res_t suricatta_ipc(int fd, time_t *seconds)
 	ret = read(fd, &msg, sizeof(msg));
 	if (ret != sizeof(msg))
 		return SERVER_EERR;
-
 	switch (msg.data.procmsg.cmd) {
 	case CMD_ENABLE:
 		result = suricatta_enable(&msg);
-		/*
-		 * Note: enable works as trigger, too.
-		 * After enable is set, suricatta will try to contact
-		 * the server to check for pending action
-		 * This is done by resetting the number of seconds to
-		 * wait for.
-		 */
-		*seconds = 0;
 		break;
 	default:
 		result = server.ipc(&msg);
@@ -127,28 +125,65 @@ static int suricatta_settings(void *elem, void  __attribute__ ((__unused__)) *da
 
 int suricatta_wait(int seconds)
 {
+	struct timespec tp;
+	int retval;
+	int enable_entry = enable;
+
+	clock_gettime(CLOCK_REALTIME, &tp);
+	int t_entry = tp.tv_sec;
+
+	tp.tv_sec += seconds;
+	DEBUG("Sleeping for %d seconds.", seconds);
+	retval = sem_timedwait(&suricatta_enable_sema, &tp);
+
+	if (retval) {
+		if (errno != ETIMEDOUT) {
+			TRACE("Suricatta awakened because of: %s", strerror(errno));
+			return 0;
+		}
+		/* else: Suricatta awakened because timeout expired */
+	} else {
+		/* suricatta_enable_sema unlocked */
+		time_t t_wake = time(NULL);
+
+		TRACE("Suricatta woke up for IPC at %ld seconds", t_wake - t_entry);
+		/*
+		 * Note: enable works as trigger, too.
+		 * After enable is set, suricatta will try to contact
+		 * the server to check for pending action
+		 * This is done by resetting the number of seconds to
+		 * wait for.
+		 */
+		if (trigger || (enable && !enable_entry))
+			return 0;
+		else
+			return seconds - (t_wake - t_entry);
+	}
+
+	return 0;
+}
+
+static void *ipc_thread(void __attribute__ ((__unused__)) *data)
+{
 	fd_set readfds;
-	struct timeval tv;
 	int retval;
 
-	tv.tv_sec = seconds;
-	tv.tv_usec = 0;
-	FD_ZERO(&readfds);
-	FD_SET(sw_sockfd, &readfds);
-	DEBUG("Sleeping for %ld seconds.", tv.tv_sec);
-	retval = select(sw_sockfd + 1, &readfds, NULL, NULL, &tv);
-	if (retval < 0) {
-		TRACE("Suricatta awakened because of: %s", strerror(errno));
-		return 0;
-	}
-	if (retval && FD_ISSET(sw_sockfd, &readfds)) {
-		TRACE("Suricatta woke up for IPC at %ld seconds", tv.tv_sec);
-		if (suricatta_ipc(sw_sockfd, &tv.tv_sec) != SERVER_OK){
-			DEBUG("Handling IPC failed!");
+	while (1) {
+		FD_ZERO(&readfds);
+		FD_SET(sw_sockfd, &readfds);
+		retval = select(sw_sockfd + 1, &readfds, NULL, NULL, NULL);
+
+		if (retval < 0) {
+			TRACE("Suricatta IPC awakened because of: %s", strerror(errno));
+			return 0;
 		}
-		return (int)tv.tv_sec;
+
+		if (retval && FD_ISSET(sw_sockfd, &readfds)) {
+			if (suricatta_ipc(sw_sockfd) != SERVER_OK) {
+				DEBUG("Handling IPC failed!");
+			}
+		}
 	}
-	return 0;
 }
 
 int start_suricatta(const char *cfgfname, int argc, char *argv[])
@@ -205,6 +240,16 @@ int start_suricatta(const char *cfgfname, int argc, char *argv[])
 			break;
 		}
 	}
+
+	if (sem_init(&suricatta_enable_sema, 0, 0)) {
+		ERROR("Initialising suricatta enable semaphore failed");
+		exit(EXIT_FAILURE);
+	}
+
+	/*
+	 * Start ipc thread here, because the following server.start might block
+	 */
+	start_thread(ipc_thread, NULL);
 
 	/*
 	 * Now start a specific implementation of the server

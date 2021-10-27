@@ -58,6 +58,7 @@ server_op_res_t map_channel_retcode(channel_op_res_t response)
 	case CHANNEL_EAGAIN:
 	case CHANNEL_ESSLCERT:
 	case CHANNEL_ESSLCONNECT:
+	case CHANNEL_REQUEST_PENDING:
 		return SERVER_EAGAIN;
 	case CHANNEL_EACCES:
 		return SERVER_EACCES;
