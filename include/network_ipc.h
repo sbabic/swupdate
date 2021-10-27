@@ -48,7 +48,8 @@ typedef enum {
 enum {
 	CMD_ACTIVATION,	/* this returns the answer if a SW can be activated */
 	CMD_CONFIG,
-	CMD_ENABLE	/* Enable or disable suricatta mode */
+	CMD_ENABLE,	/* Enable or disable suricatta mode */
+	CMD_GET_STATUS
 };
 
 enum run_type {

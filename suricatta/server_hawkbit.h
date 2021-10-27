@@ -45,6 +45,8 @@ typedef struct {
 	char *cached_file;
 	bool usetokentodwl;
 	unsigned int initial_report_resend_period;
+	int server_status;
+	time_t server_status_time;
 } server_hawkbit_t;
 
 extern server_hawkbit_t server_hawkbit;

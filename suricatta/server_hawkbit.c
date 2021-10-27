@@ -548,7 +548,12 @@ static server_op_res_t server_get_device_info(channel_t *channel, channel_data_t
 		result = SERVER_EINIT;
 		goto cleanup;
 	}
-	if ((result = map_channel_retcode(channel->get(channel, (void *)channel_data))) !=
+
+	channel_op_res_t ch_response = channel->get(channel, (void *)channel_data);
+
+	server_hawkbit.server_status = ch_response;
+	server_hawkbit.server_status_time = time(NULL);
+	if ((result = map_channel_retcode(ch_response)) !=
 	    SERVER_OK) {
 		goto cleanup;
 	}
@@ -2054,6 +2059,22 @@ static server_op_res_t server_configuration_ipc(ipc_message *msg)
 	return SERVER_OK;
 }
 
+static server_op_res_t server_status_ipc(ipc_message *msg)
+{
+	struct timeval tv = {
+		.tv_sec = server_hawkbit.server_status_time,
+		.tv_usec = 0
+	};
+
+	sprintf(msg->data.procmsg.buf,
+		"{\"server\":{\"status\":%d,\"time\":\"%s\"}}",
+		server_hawkbit.server_status,
+		swupdate_time_iso8601(&tv));
+	msg->data.procmsg.len = strlen(msg->data.procmsg.buf);
+
+	return SERVER_OK;
+}
+
 server_op_res_t server_ipc(ipc_message *msg)
 {
 	server_op_res_t result = SERVER_OK;
@@ -2064,6 +2085,9 @@ server_op_res_t server_ipc(ipc_message *msg)
 		break;
 	case CMD_CONFIG:
 		result = server_configuration_ipc(msg);
+		break;
+	case CMD_GET_STATUS:
+		result = server_status_ipc(msg);
 		break;
 	default:
 		result = SERVER_EERR;
