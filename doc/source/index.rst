@@ -44,7 +44,7 @@ SWUpdate Documentation
    mongoose.rst
    suricatta.rst
    hawkbit-setup.rst
-   swupdate-ipc.rst
+   swupdate-ipc-interface.rst
    progress.rst
    bindings.rst
    building-with-yocto.rst
@@ -62,6 +62,7 @@ Utilities and tools
    swupdate-sendtohawkbit.rst
    swupdate-progress.rst
    swupdate-sysrestart.rst
+   swupdate-ipc.rst
 
 ############################################
 Help and support
