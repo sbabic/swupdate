@@ -10,6 +10,7 @@
 
 lib-y += \
 	 swupdate-client.o \
+	 swupdate-gethawkbitstatus.o \
 	 swupdate-progress.o \
 	 swupdate-hawkbitcfg.o \
 	 swupdate-sendtohawkbit.o \
