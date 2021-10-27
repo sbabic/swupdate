@@ -238,5 +238,5 @@ int swupdate_mount(const char *device, const char *dir, const char *fstype);
 int swupdate_umount(const char *dir);
 
 /* Date / Time utilities */
-char *swupdate_time_iso8601(void);
+char *swupdate_time_iso8601(struct timeval *tv);
 #endif

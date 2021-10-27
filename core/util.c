@@ -817,7 +817,7 @@ int swupdate_umount(const char *dir)
  * Date time in SWUpdate
  * @return : date in ISO8601 (it must be freed by caller)
  */
-char *swupdate_time_iso8601(void)
+char *swupdate_time_iso8601(struct timeval *tv)
 {
 	#define DATE_SIZE_ISO8601	128
 	struct timeval now;
@@ -830,7 +830,12 @@ char *swupdate_time_iso8601(void)
 	if (!buf)
 		return NULL;
 
-	gettimeofday(&now, NULL);
+	if (tv == NULL)
+		gettimeofday(&now, NULL);
+	else {
+		now.tv_sec = tv->tv_sec;
+		now.tv_usec = tv->tv_usec;
+	}
 	ms = now.tv_usec / 1000;
 
 	(void)strftime(buf, DATE_SIZE_ISO8601, "%Y-%m-%dT%T.***%z", localtime(&now.tv_sec));

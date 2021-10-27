@@ -197,7 +197,7 @@ static char *server_format_log(const char *event, struct dict *fmtevents,
 	fmt = strdup(tmp);
 	token = strtok_r(fmt, ",", &saveptr);
 
-	fdate = swupdate_time_iso8601();
+	fdate = swupdate_time_iso8601(NULL);
 
 	while (token) {
 		char *field;
