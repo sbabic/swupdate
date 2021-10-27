@@ -56,6 +56,8 @@ server_op_res_t map_channel_retcode(channel_op_res_t response)
 	switch (response) {
 	case CHANNEL_ENONET:
 	case CHANNEL_EAGAIN:
+	case CHANNEL_ESSLCERT:
+	case CHANNEL_ESSLCONNECT:
 		return SERVER_EAGAIN;
 	case CHANNEL_EACCES:
 		return SERVER_EACCES;
