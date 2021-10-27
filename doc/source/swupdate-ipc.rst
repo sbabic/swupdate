@@ -245,6 +245,29 @@ should be stored during the update process.
           "details" : [ ]
         }
 
+Get hawkBit Server Status
+.........................
+
+To provide the hawkBit server status to other processes, it can be requested by
+sending an empty message with message type CMD_GET_STATUS.
+
+The response is a JSON object containing the hawkBit server status <status>.
+<status> is a number representing the value of the channel_op_res_t enum from
+channel_op_res.h. As the hawkBit server is polled, its status can only be
+updated when it has been polled. Therefore the response also contains the
+time <time>, when the hawkBit server has been polled the last time. It is
+provided as ISO 8601 date and time string. (2021-10-14T13:42:37.000+00)
+
+::
+
+        { "server" : {
+	                "status" : <status>
+			"time" : <time>
+                     }
+        }
+
+An example application can be found under tools/swupdate-gethawkbitstatus.c
+
 API to the integrated Webserver
 ===============================
 
