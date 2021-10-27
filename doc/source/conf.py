@@ -238,11 +238,9 @@ latex_use_parts = False
 # (source start file, name, description, authors, manual section).
 man_pages = [
         ('index', 'swupdate', u'Swupdate Documentation', [u'Stefano Babic'], 1),
-        ('swupdate-sendtohawkbit', 'sendtohawkbit', u'swupdate-sendtohawkbit tool', '', 1),
+        ('swupdate-ipc', 'ipc', u'SWUpdate IPC tool', '', 1),
         ('swupdate-client', 'client', u'SWUpdate client tool', '', 1),
-        ('swupdate-hawkbitcfg', 'hawkbitcfg', u'SWUpdate hawkBit Configuration tool', '', 1),
         ('swupdate-progress', 'progress', u'SWUpdate progress tool', '', 1),
-        ('swupdate-sysrestart', 'sysrestart', u'SWUpdate sysrestart tool', '', 1),
         ]
 
 

@@ -58,10 +58,7 @@ Utilities and tools
    :maxdepth: 2
 
    swupdate-client.rst
-   swupdate-hawkbitcfg.rst
-   swupdate-sendtohawkbit.rst
    swupdate-progress.rst
-   swupdate-sysrestart.rst
    swupdate-ipc.rst
 
 ############################################
