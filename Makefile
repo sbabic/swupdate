@@ -379,7 +379,7 @@ swupdate-libs	:= $(patsubst %,%/lib.a, $(libs-y))
 swupdate-all	:= $(swupdate-objs) $(swupdate-libs)
 
 tools-dirs	:= $(tools-y)
-tools-objs	:= $(patsubst %,%/built-in.o, $(tools-y))
+tools-objs	:= $(patsubst %,%/lib.a, $(tools-y))
 tools-bins	:= $(patsubst $(srctree)/$(tools-y)/%.c,$(tools-y)/%,$(wildcard $(srctree)/$(tools-y)/*.c))
 tools-bins-unstr:= $(patsubst %,%_unstripped,$(tools-bins))
 tools-all	:= $(tools-objs)
@@ -459,8 +459,7 @@ endif
 swupdate: .cfg-sanity-check swupdate_unstripped
 	$(call cmd,strip)
 
-.tools-built-in: tools/built-in.o
-	@touch tools/built-in.o
+.tools-built-in: tools/lib.a
 	@touch .tools-built-in
 
 ${tools-bins}: ${swupdate-ipc-lib} ${tools-objs} ${swupdate-libs} .tools-built-in
