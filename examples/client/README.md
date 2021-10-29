@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: 2021 Blueye Robotics AS
+
+SPDX-License-Identifier: GPL-2.0-only
+-->
+
 ## Install dependencies
 
 ### apt

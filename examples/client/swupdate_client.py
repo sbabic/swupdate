@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-# Copyright (c) 2018 Stefano Babic <sbabic@denx.de>
+# SPDX-FileCopyrightText: 2018 Stefano Babic <sbabic@denx.de>
+# SPDX-FileCopyrightText: 2021 Blueye Robotics AS
 #
 # SPDX-License-Identifier:     GPL-2.0-only
 #
