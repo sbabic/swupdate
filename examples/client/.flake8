@@ -1,0 +1,6 @@
+# SPDX-FileCopyrightText: 2021 Blueye Robotics AS
+#
+# SPDX-License-Identifier: GPL-2.0-only
+[flake8]
+max-line-length = 88
+extend-ignore = E203
