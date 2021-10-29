@@ -739,6 +739,13 @@ static int diskpart_write_table(struct fdisk_context *cxt, struct create_table *
 	return ret;
 }
 
+static void diskpart_unref_context(struct fdisk_context *cxt)
+{
+	if (IS_HYBRID(cxt))
+		fdisk_unref_context(PARENT(cxt));
+	fdisk_unref_context(cxt);
+}
+
 static int diskpart(struct img_type *img,
 	void __attribute__ ((__unused__)) *data)
 {
@@ -945,7 +952,7 @@ handler_exit:
 			WARN("Error deassign device %s", img->device);
 
 handler_release:
-	fdisk_unref_context(cxt);
+	diskpart_unref_context(cxt);
 
 	/*
 	 * Kernel rereads the partition table and add just a delay to be sure
