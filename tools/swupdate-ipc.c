@@ -449,6 +449,7 @@ static int sysrestart(cmd_t  __attribute__((__unused__)) *cmd, int argc, char *a
 	int c;
 	int ret;
 	int ndevs = 0;
+	char *socket_path = NULL;
 
 	RECOVERY_STATUS	status = IDLE;		/* Update Status (Running, Failure) */
 
@@ -460,7 +461,7 @@ static int sysrestart(cmd_t  __attribute__((__unused__)) *cmd, int argc, char *a
 			opt_w = 1;
 			break;
 		case 's':
-			SOCKET_PROGRESS_PATH = strdup(optarg);
+			socket_path = strdup(optarg);
 			break;
 		case 'h':
 			usage(argv[0]);
@@ -483,7 +484,10 @@ static int sysrestart(cmd_t  __attribute__((__unused__)) *cmd, int argc, char *a
 	connfd = -1;
 	while (1) {
 		if (connfd < 0) {
-			connfd = progress_ipc_connect(opt_w);
+			if (!socket_path)
+				connfd = progress_ipc_connect(opt_w);
+			else
+				connfd = progress_ipc_connect_with_path(socket_path, opt_w);
 		}
 
 		/*
@@ -521,7 +525,6 @@ static int sysrestart(cmd_t  __attribute__((__unused__)) *cmd, int argc, char *a
 				fprintf(stdout, "LOCAL\n\n");
 				break;
 			}
-
 		}
 
 		if (msg.infolen > 0) {
@@ -568,7 +571,6 @@ static int sysrestart(cmd_t  __attribute__((__unused__)) *cmd, int argc, char *a
 		default:
 			break;
 		}
-
 		status = msg.status;
 	}
 }
