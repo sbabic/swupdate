@@ -41,11 +41,8 @@ swupdate_unstripped*
 lua_swupdate.so*
 tools/*_unstripped
 tools/swupdate-client
-tools/swupdate-gethawkbitstatus
 tools/swupdate-progress
-tools/swupdate-sendtohawkbit
-tools/swupdate-hawkbitcfg
-tools/swupdate-sysrestart
+tools/swupdate-ipc
 tools/*.map
 tools/*.out
 
