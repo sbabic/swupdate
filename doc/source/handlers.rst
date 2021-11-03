@@ -760,6 +760,27 @@ Properties ``size`` and ``offset`` are optional, all the other properties are ma
     |             |          | If not set, default value 0 will be used.          |
     +-------------+----------+----------------------------------------------------+
 
+
+Rawcopy handler
+---------------
+
+The rawcopy handler copies one source to a destination. It can be used to copy configuration data,
+or parts that should be taken by the current installation. It requires just one property (`copyfrom`), while
+device contains the destination path. The handler performs a byte copy, and it does not matter which is
+the source - it can be a file or a partition.
+
+
+::
+
+        scripts : (
+                {
+                device = "/dev/mmcblk2p1";
+                type = "rawcopy";
+                properties : {
+                        copyfrom = "/dev/mmcblk2p2";
+                }
+        }
+
 Disk partitioner
 ----------------
 
