@@ -121,6 +121,22 @@ static void restart_handler(struct mg_connection *nc, int ev, void *ev_data)
 	}
 }
 
+static int level_to_rfc_5424(int level)
+{
+	switch(level) {
+		case ERRORLEVEL:
+			return 3;
+		case WARNLEVEL:
+			return 4;
+		case INFOLEVEL:
+			return 6;
+		case TRACELEVEL:
+		case DEBUGLEVEL:
+		default:
+			return 7;
+	}
+}
+
 static void broadcast_callback(struct mg_connection *nc, int ev, void *ev_data)
 {
 	char *buf = (char *) ev_data;
@@ -174,7 +190,7 @@ static void *broadcast_message_thread(void *data)
 					 "\t\"level\": \"%d\",\r\n"
 					 "\t\"text\": \"%s\"\r\n"
 					 "}\r\n",
-					 msg.data.notify.level, /* RFC 5424 */
+					 level_to_rfc_5424(msg.data.notify.level), /* RFC 5424 */
 					 text);
 
 			broadcast(mgr, str);
