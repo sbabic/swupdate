@@ -844,6 +844,9 @@ supported:
    |             |          | will be created on the corresponding partition.    |
    |             |          | vfat / ext2 / ext3 /ext4 file system is supported  |
    +-------------+----------+----------------------------------------------------+
+   | partuuid    | string   | The partition UUID (GPT only). If omitted, a UUID  |
+   |             |          | will be generated automatically.			 |
+   +-------------+----------+----------------------------------------------------+
 
 
 

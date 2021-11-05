@@ -17,6 +17,7 @@
 #include <sys/types.h>
 #include <libfdisk/libfdisk.h>
 #include <fs_interface.h>
+#include <uuid/uuid.h>
 #include "swupdate.h"
 #include "handler.h"
 #include "util.h"
@@ -50,7 +51,8 @@ enum partfield {
 	PART_TYPE,
 	PART_NAME,
 	PART_FSTYPE,
-	PART_DOSTYPE
+	PART_DOSTYPE,
+	PART_UUID,
 };
 
 const char *fields[] = {
@@ -59,7 +61,8 @@ const char *fields[] = {
 	[PART_TYPE] = "type",
 	[PART_NAME] = "name",
 	[PART_FSTYPE] = "fstype",
-	[PART_DOSTYPE] = "dostype"
+	[PART_DOSTYPE] = "dostype",
+	[PART_UUID] = "partuuid",
 };
 
 struct partition_data {
@@ -70,6 +73,7 @@ struct partition_data {
 	char name[SWUPDATE_GENERAL_STRING_SIZE];
 	char fstype[SWUPDATE_GENERAL_STRING_SIZE];
 	char dostype[SWUPDATE_GENERAL_STRING_SIZE];
+	char partuuid[UUID_STR_LEN];
 	LIST_ENTRY(partition_data) next;
 };
 LIST_HEAD(listparts, partition_data);
@@ -308,6 +312,9 @@ static int diskpart_set_partition(struct fdisk_partition *pa,
 	if (parttype)
 		ret |= fdisk_partition_set_type(pa, parttype);
 
+	if (strlen(part->partuuid))
+	      ret |= fdisk_partition_set_uuid(pa, part->partuuid);
+
 	return ret;
 }
 
@@ -424,41 +431,44 @@ static void diskpart_partition_info(struct fdisk_context *cxt, const char *name,
 /*
  * Return true if partition differs
  */
-static bool diskpart_partition_cmp(struct fdisk_context *cxt, struct fdisk_partition *firstpa,
-		struct fdisk_partition *secondpa)
+static bool diskpart_partition_cmp(struct fdisk_partition *firstpa, struct fdisk_partition *secondpa)
 {
-	struct fdisk_parttype *type;
-	const char *lbtype;
-
 	if (!firstpa || !secondpa)
 		return true;
 
-	type = fdisk_partition_get_type(firstpa);
-	if (!type)
-		return true;
-
-	if (fdisk_parttype_get_string(type))
-		lbtype = "gpt";
-	else
-		lbtype = "dos";
-
-	if (firstpa && secondpa && (fdisk_partition_cmp_partno(firstpa, secondpa) ||
+	if (fdisk_partition_cmp_partno(firstpa, secondpa) ||
 		(!fdisk_partition_start_is_default(firstpa) && !fdisk_partition_start_is_default(secondpa) &&
-		fdisk_partition_cmp_start(firstpa, secondpa)) ||
-		(!strcmp(lbtype, "gpt") &&
-			(strcmp(fdisk_parttype_get_string(fdisk_partition_get_type(firstpa)),
-				fdisk_parttype_get_string(fdisk_partition_get_type(secondpa))) ||
-			strcmp(fdisk_partition_get_name(firstpa) ? fdisk_partition_get_name(firstpa) : "",
-		       		fdisk_partition_get_name(secondpa) ? fdisk_partition_get_name(secondpa) : ""))) ||
-		(!strcmp(lbtype, "dos") &&
-			fdisk_parttype_get_code(fdisk_partition_get_type(firstpa)) !=
-			fdisk_parttype_get_code(fdisk_partition_get_type(secondpa))) ||
-		fdisk_partition_get_size(firstpa) != fdisk_partition_get_size(secondpa))) {
-		TRACE("Partition differ:");
-		diskpart_partition_info(cxt, "Original", firstpa);
-		diskpart_partition_info(cxt, "New", secondpa);
+			fdisk_partition_cmp_start(firstpa, secondpa)) ||
+		fdisk_partition_get_size(firstpa) != fdisk_partition_get_size(secondpa)) {
 		return true;
 	}
+
+	struct fdisk_parttype *firstpa_type = fdisk_partition_get_type(firstpa);
+	if (!firstpa_type)
+		return true;
+	struct fdisk_parttype *secondpa_type = fdisk_partition_get_type(secondpa);
+
+	if (fdisk_parttype_get_string(firstpa_type)) {
+		/* gpt */
+		const char *firstpa_name = fdisk_partition_get_name(firstpa);
+		const char *secondpa_name = fdisk_partition_get_name(secondpa);
+		if ((secondpa_type && strcmp(fdisk_parttype_get_string(firstpa_type), fdisk_parttype_get_string(secondpa_type))) ||
+			strcmp(firstpa_name ? firstpa_name : "", secondpa_name ? secondpa_name : "")) {
+			return true;
+		}
+
+		const char *firstpa_uuid = fdisk_partition_get_uuid(firstpa);
+		const char *secondpa_uuid = fdisk_partition_get_uuid(secondpa);
+		if (firstpa_uuid && secondpa_uuid && strcmp(firstpa_uuid, secondpa_uuid)) {
+			return true;
+		}
+	} else {
+		/* dos */
+		if (fdisk_parttype_get_code(firstpa_type) != fdisk_parttype_get_code(secondpa_type)) {
+			return true;
+		}
+	}
+
 	return false;
 }
 
@@ -610,7 +620,10 @@ static int diskpart_table_cmp(struct fdisk_context *cxt, struct fdisk_table *tb,
 				fdisk_table_next_partition (oldtb, olditr, &pa)) {
 				TRACE("Partition not found, something went wrong %lu !", i);
 				ret = -EFAULT;
-			} else if (diskpart_partition_cmp(cxt, pa, newpa)) {
+			} else if (diskpart_partition_cmp(pa, newpa)) {
+				TRACE("Partition differ:");
+				diskpart_partition_info(cxt, "Original", pa);
+				diskpart_partition_info(cxt, "New", newpa);
 				ret = 1;
 			}
 
@@ -845,6 +858,9 @@ static int diskpart(struct img_type *img,
 						strncpy(part->dostype, equal, sizeof(part->dostype));
 						hybrid++;
 						break;
+					case PART_UUID:
+						strncpy(part->partuuid, equal, sizeof(part->partuuid));
+						break;
 					}
 				}
 			}
@@ -864,12 +880,13 @@ static int diskpart(struct img_type *img,
 			goto handler_exit;
 		}
 
-		TRACE("partition-%zu:%s size %" PRIu64 " start %zu type %s",
+		TRACE("partition-%zu:%s size %" PRIu64 " start %zu type %s partuuid %s",
 			part->partno != LIBFDISK_INIT_UNDEF(part->partno) ? part->partno : 0,
 			strlen(part->name) ? part->name : "UNDEF NAME",
 			part->size != LIBFDISK_INIT_UNDEF(part->size) ? part->size : 0,
 			part->start!= LIBFDISK_INIT_UNDEF(part->start) ? part->start : 0,
-			part->type);
+			part->type,
+			strlen(part->partuuid) ? part->partuuid : "automatic");
 
 		/*
 		 * Partitions in sw-description start from 1,
