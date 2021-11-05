@@ -431,7 +431,7 @@ static void diskpart_partition_info(struct fdisk_context *cxt, const char *name,
 /*
  * Return true if partition differs
  */
-static bool diskpart_partition_cmp(struct fdisk_partition *firstpa, struct fdisk_partition *secondpa)
+static bool is_diskpart_different(struct fdisk_partition *firstpa, struct fdisk_partition *secondpa)
 {
 	if (!firstpa || !secondpa)
 		return true;
@@ -620,7 +620,7 @@ static int diskpart_table_cmp(struct fdisk_context *cxt, struct fdisk_table *tb,
 				fdisk_table_next_partition (oldtb, olditr, &pa)) {
 				TRACE("Partition not found, something went wrong %lu !", i);
 				ret = -EFAULT;
-			} else if (diskpart_partition_cmp(pa, newpa)) {
+			} else if (is_diskpart_different(pa, newpa)) {
 				TRACE("Partition differ:");
 				diskpart_partition_info(cxt, "Original", pa);
 				diskpart_partition_info(cxt, "New", newpa);
