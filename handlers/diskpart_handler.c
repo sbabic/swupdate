@@ -952,7 +952,8 @@ handler_exit:
 			WARN("Error deassign device %s", img->device);
 
 handler_release:
-	diskpart_unref_context(cxt);
+	if (cxt)
+		diskpart_unref_context(cxt);
 
 	/*
 	 * Kernel rereads the partition table and add just a delay to be sure
