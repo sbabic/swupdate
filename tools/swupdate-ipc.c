@@ -295,7 +295,9 @@ static int gethawkbitstatus(cmd_t  __attribute__((__unused__)) *cmd,
 
 }
 #else
-static int gethawkbitstatus(cmd_t *cmd, int __attribute__((__unused__)) argc, char **argv) {
+static int gethawkbitstatus(cmd_t __attribute__((__unused__)) *cmd,
+			    int __attribute__((__unused__)) argc,
+			    char **argv) {
 	fprintf(stderr, "%s: JSON not available, exiting..\n", argv[1]);
 	return 1;
 }
@@ -575,7 +577,9 @@ static int sysrestart(cmd_t  __attribute__((__unused__)) *cmd, int argc, char *a
 	}
 }
 #else
-static int sysrestart(cmd_t *cmd, int __attribute__((__unused__)) argc, char **argv) {
+static int sysrestart(cmd_t __attribute__((__unused__)) *cmd,
+		      int __attribute__((__unused__)) argc,
+		      char **argv) {
 	fprintf(stderr, "%s: Curl not available, exiting..\n", argv[1]);
 	return 1;
 }
