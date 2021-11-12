@@ -404,7 +404,6 @@ int run_system_cmd(const char *cmd)
 void sigchld_handler (int __attribute__ ((__unused__)) signum)
 {
 	int childpid, status, serrno;
-	int exitstatus;
 	int hasdied = 0;
 	int i;
 
@@ -427,11 +426,9 @@ void sigchld_handler (int __attribute__ ((__unused__)) signum)
 			hasdied = 0;
 			if (WIFEXITED(status)) {
 				hasdied = 1;
-				exitstatus = WEXITSTATUS(status);
-				printf("exited, status=%d\n", exitstatus);
+				printf("exited, status=%d\n", WIFEXITED(status));
 			} else if (WIFSIGNALED(status)) {
 				hasdied = 1;
-				exitstatus = WTERMSIG(status);
 				printf("killed by signal %d\n", WTERMSIG(status));
 			} else if (WIFSTOPPED(status)) {
 				printf("stopped by signal %d\n", WSTOPSIG(status));
@@ -454,7 +451,11 @@ void sigchld_handler (int __attribute__ ((__unused__)) signum)
 			}
 		}
 
-		exit(exitstatus);
+		/*
+		 * exit() it not safe to call from a signal handler because of atexit()
+		 * handlers, so send SIGTERM to ourself instead
+		 */
+		kill(getpid(), SIGTERM);
 	}
 
 	errno = serrno;
