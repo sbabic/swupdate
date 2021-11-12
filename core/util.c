@@ -212,6 +212,18 @@ void freeargs (char **argv)
 	}
 }
 
+void *saferealloc(void *ptr, size_t size) {
+    void *ret = realloc(ptr, size);
+    /*
+     * Realloc does not touch the original block if fails.
+     * Policy is to free memory and returns with error (Null)
+     */
+    if (!ret && ptr)
+        free(ptr);
+    return ret;
+}
+
+
 /*
  * Concatente array of strings in a single string
  * The allocated string must be freed by the caller

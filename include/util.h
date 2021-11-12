@@ -162,6 +162,7 @@ bool strtobool(const char *s);
  */
 typedef int (*writeimage) (void *out, const void *buf, unsigned int len);
 
+void *saferealloc(void *ptr, size_t size);
 int openfile(const char *filename);
 int copy_write(void *out, const void *buf, unsigned int len);
 #if defined(__FreeBSD__)
