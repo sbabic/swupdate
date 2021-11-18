@@ -55,6 +55,7 @@ $_SUDO apt-get install -y \
     libpci-dev \
     gawk \
     cpio \
-    wget
+    wget \
+    python3
 
 $_SUDO ln -sf /usr/lib/x86_64-linux-gnu/pkgconfig/lua5.2.pc /usr/lib/x86_64-linux-gnu/pkgconfig/lua.pc
