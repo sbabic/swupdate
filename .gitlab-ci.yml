@@ -12,6 +12,8 @@ ubuntu-focal:
     - if [ $CI_COMMIT_BRANCH == "coverity_scan" ]; then ./ci/coverity.sh;fi
     - ./ci/test-configs.sh
 reuse:
+  needs: []
+  stage: test
   image:
     name: fsfe/reuse:latest
     entrypoint: [""]
