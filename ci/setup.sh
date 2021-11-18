@@ -55,6 +55,9 @@ $_SUDO apt-get install -y \
     libpci-dev \
     gawk \
     cpio \
+    meson \
+    ninja-build \
+    libzstd-dev \
     wget \
     python3
 

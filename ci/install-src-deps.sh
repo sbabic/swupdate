@@ -53,7 +53,18 @@ install_efibootguard() {
     cd ..
 }
 
+install_zchunk() {
+    git clone https://github.com/zchunk/zchunk
+    cd zchunk
+    meson build
+    cd build
+    ninja
+    $_SUDO ninja install
+    cd ..
+}
+
 install_mtd_utils
 install_libubootenv
 install_efibootguard
+install_zchunk
 $_SUDO ldconfig
