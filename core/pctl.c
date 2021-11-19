@@ -328,7 +328,7 @@ int run_system_cmd(const char *cmd)
 			fd_set readfds;
 			int n, i;
 
-			w = waitpid(process_id, &wstatus, WNOHANG | WUNTRACED | WCONTINUED);
+			w = waitpid(process_id, &wstatus, WNOHANG);
 			if (w == -1) {
 				ERROR("Error from waitpid() !!");
 				close(stdoutpipe[PIPE_READ]);
@@ -386,8 +386,11 @@ int run_system_cmd(const char *cmd)
 		if (WIFEXITED(wstatus)) {
 			ret = WEXITSTATUS(wstatus);
 			TRACE("%s command returned %d", cmd, ret);
-		} else {
+		} else if (WIFSIGNALED(wstatus)) {
 			TRACE("(%s) killed by signal %d\n", cmd, WTERMSIG(wstatus));
+			ret = -1;
+		} else {
+			TRACE("(%s) not exited nor killed!\n", cmd);
 			ret = -1;
 		}
 	}
