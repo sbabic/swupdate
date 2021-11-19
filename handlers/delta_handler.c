@@ -939,7 +939,7 @@ static int install_delta(struct img_type *img,
 	 * Open files
 	 */
 	dst_fd = open("/dev/null", O_TRUNC | O_WRONLY | O_CREAT, 0666);
-	if (!dst_fd) {
+	if (dst_fd < 0) {
 		ERROR("/dev/null not present or cannot be opened, aborting...");
 		goto cleanup;
 	}
