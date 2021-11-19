@@ -787,7 +787,9 @@ static int diskpart(struct img_type *img,
 	int ret = 0;
 	unsigned long i;
 	unsigned long hybrid = 0;
-	struct hnd_priv priv =  {FDISK_DISKLABEL_DOS, false, false};
+	struct hnd_priv priv =  {
+		.labeltype = FDISK_DISKLABEL_DOS,
+	};
 	struct create_table *createtable = NULL;
 
 	if (!lbtype || (strcmp(lbtype, "gpt") && strcmp(lbtype, "dos"))) {

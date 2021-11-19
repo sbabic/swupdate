@@ -595,7 +595,7 @@ cmd_t commands[] = {
 	{"hawkbitcfg", hawkbitcfg, usage_hawkbitcfg},
 	{"gethawkbit", gethawkbitstatus, usage_gethawkbitstatus},
 	{"sysrestart", sysrestart, usage_sysrestart},
-	{NULL, NULL}
+	{NULL, NULL, NULL}
 };
 
 /*
