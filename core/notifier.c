@@ -222,6 +222,7 @@ void notify(RECOVERY_STATUS status, int error, int level, const char *msg)
 
 	if (pid == getpid()) {
 		if (notifyfd > 0) {
+			memset(&notifymsg, 0, sizeof(notifymsg));
 			notifymsg.status = status;
 			notifymsg.error = error;
 			notifymsg.level = level;
