@@ -209,7 +209,7 @@ static void network_notifier(RECOVERY_STATUS status, int error, int level, const
 
 	ipcmsg.magic = IPC_MAGIC;
 	ipcmsg.type = NOTIFY_STREAM;
-	memset(ipcmsg.data.msg, 0, sizeof(ipcmsg.data.msg));
+	memset(&ipcmsg.data, 0, sizeof(ipcmsg.data));
 
 	strncpy(ipcmsg.data.notify.msg, newmsg->msg,
 			sizeof(ipcmsg.data.notify.msg) - 1);
