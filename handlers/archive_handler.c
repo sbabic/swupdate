@@ -203,6 +203,7 @@ out:
 
 #ifdef CONFIG_LOCALE
 	uselocale(old_locale);
+	freelocale(archive_locale);
 #endif
 	data->exitval = exitval;
 	pthread_exit(NULL);
