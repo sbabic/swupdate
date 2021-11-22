@@ -58,7 +58,7 @@ static struct option long_options[] = {
 
 static unsigned short mandatory_argument_count = 0;
 static pthread_mutex_t notifylock = PTHREAD_MUTEX_INITIALIZER;
-static pthread_mutex_t ipc_lock = PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP;
+static pthread_mutex_t ipc_lock = PTHREAD_MUTEX_INITIALIZER;
 
 /*
  * See hawkBit's API for an explanation
@@ -109,7 +109,7 @@ server_send_deployment_reply(channel_t *channel,
 			     const int job_cnt_cur, const char *finished,
 			     const char *execution_status, int numdetails, const char *details[]);
 server_op_res_t server_send_cancel_reply(channel_t *channel, const int action_id);
-static int get_target_data_length(void);
+static int get_target_data_length(bool locked);
 
 server_hawkbit_t server_hawkbit = {.url = NULL,
 				   .polling_interval = CHANNEL_DEFAULT_POLLING_INTERVAL,
@@ -529,7 +529,7 @@ server_op_res_t server_set_config_data(json_object *json_root)
 		if (server_hawkbit.configData_url)
 			free(server_hawkbit.configData_url);
 		server_hawkbit.configData_url = tmp;
-		server_hawkbit.has_to_send_configData = (get_target_data_length() > 0) ? true : false;
+		server_hawkbit.has_to_send_configData = (get_target_data_length(true) > 0) ? true : false;
 		TRACE("ConfigData: %s", server_hawkbit.configData_url);
 		pthread_mutex_unlock(&ipc_lock);
 	}
@@ -1477,19 +1477,21 @@ cleanup:
 	return result;
 }
 
-int get_target_data_length(void)
+int get_target_data_length(bool locked)
 {
 	int len = 0;
 	struct dict_entry *entry;
 
-	pthread_mutex_lock(&ipc_lock);
+	if (!locked)
+		pthread_mutex_lock(&ipc_lock);
 	LIST_FOREACH(entry, &server_hawkbit.configdata, next) {
 		char *key = dict_entry_get_key(entry);
 		char *value = dict_entry_get_value(entry);
 
 		len += strlen(key) + strlen(value) + strlen (" : ") + 6;
 	}
-	pthread_mutex_unlock(&ipc_lock);
+	if (!locked)
+		pthread_mutex_unlock(&ipc_lock);
 
 	return len;
 }
@@ -1505,7 +1507,7 @@ server_op_res_t server_send_target_data(void)
 	char *url = NULL;
 
 	assert(channel != NULL);
-	len = get_target_data_length();
+	len = get_target_data_length(false);
 
 	if (!len) {
 		server_hawkbit.has_to_send_configData = false;
