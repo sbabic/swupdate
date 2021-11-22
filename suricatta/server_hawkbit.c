@@ -158,7 +158,7 @@ unsigned int server_get_polling_interval(void);
 /*
  * Just called once to setup the tokens
  */
-static inline void server_hakwbit_settoken(const char *type, const char *token)
+static inline void server_hawkbit_settoken(const char *type, const char *token)
 {
 	char *tokens_header = NULL;
 	if (!token)
@@ -1873,8 +1873,8 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 				"but just one at a time is supported.\n");
 		exit(EXIT_FAILURE);
 	}
-	server_hakwbit_settoken("TargetToken", server_hawkbit.targettoken);
-	server_hakwbit_settoken("GatewayToken", server_hawkbit.gatewaytoken);
+	server_hawkbit_settoken("TargetToken", server_hawkbit.targettoken);
+	server_hawkbit_settoken("GatewayToken", server_hawkbit.gatewaytoken);
 
 	/*
 	 * Allocate a channel to communicate with the server
