@@ -29,9 +29,6 @@
 #include <netdb.h>
 #include <pthread.h>
 #include <getopt.h>
-#include <readline/readline.h>
-#include <readline/history.h>
-#include <getopt.h>
 
 #include "network_ipc.h"
 #include <progress_ipc.h>
