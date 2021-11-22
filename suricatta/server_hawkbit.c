@@ -1759,6 +1759,7 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 			 */
 			update_state = (unsigned int)*optarg;
 			switch (update_state) {
+			case STATE_OK:
 			case STATE_INSTALLED:
 			case STATE_TESTING:
 			case STATE_FAILED:
