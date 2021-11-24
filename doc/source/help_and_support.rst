@@ -34,7 +34,7 @@ Please check for `services <https://swupdate.org/services>` if you need professi
 Talks about SWUpdate
 ====================
 
-       - `Software Update in Embedded Systems by Stefano Babic <http://events.linuxfoundation.org/sites/events/files/slides/SoftwareUpdateForEmbedded.pdf>`_
+       - `Software Update in Embedded Systems by Stefano Babic <https://elinux.org/images/1/19/Babic--software_update_in_embedded_systems.pdf>`_
        - `Updating Embedded Linux devices in field by Chris Simmonds <http://de.slideshare.net/chrissimmonds/linux-fieldupdate2015>`_
        - `OpenEmbedded in the Real World by Scott Murray <https://elinux.org/images/7/74/Murray.pdf>`_
        - `[RFC] Device-side support for software update in AGL by Matt Porter <https://lists.linuxfoundation.org/pipermail/automotive-discussions/2016-May/002061.html>`_
