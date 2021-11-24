@@ -653,12 +653,6 @@ void *network_initializer(void *data)
 		 */
 		software->parms = parms;
 
-		pthread_mutex_lock(&stream_mutex);
-		inst.status = IDLE;
-		pthread_mutex_unlock(&stream_mutex);
-		TRACE("Main thread sleep again !");
-		notify(IDLE, RECOVERY_NO_ERROR, INFOLEVEL, "Waiting for requests...");
-
 		/* release temp files we may have created */
 		cleanup_files(software);
 
@@ -666,6 +660,12 @@ void *network_initializer(void *data)
 		swupdate_remove_directory(SCRIPTS_DIR_SUFFIX);
 		swupdate_remove_directory(DATADST_DIR_SUFFIX);
 #endif
+
+		pthread_mutex_lock(&stream_mutex);
+		inst.status = IDLE;
+		pthread_mutex_unlock(&stream_mutex);
+		TRACE("Main thread sleep again !");
+		notify(IDLE, RECOVERY_NO_ERROR, INFOLEVEL, "Waiting for requests...");
 	}
 
 	pthread_exit((void *)0);
