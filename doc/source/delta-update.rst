@@ -162,10 +162,8 @@ A short list of changes in the Zchunk project is:
         - add API to allow an external caller to take itself the decision if a chunk must be
           downloaded or reused.
 
-Some of these changes were merged into Zchunk project, some are still open. Zchunk working with
-SWUpdate ist stored on a separate branch_.
-
-.. _branch: https://github.com/sbabic/zchunk/tree/devel
+These changes were merged into Zchunk project - be sure to get a recent version of Zchunk, at least with 
+commit 1b36f8b5e0ecb, that means newer as 1.1.16.
 
 Most of missing features in Zchunk listed in TODO for the project have no relevance here:
 SWUpdate already verifies the downloaded data, and there is no need to add signatures to Zchunk itself.
@@ -221,3 +219,45 @@ several requests to the downloader, and tracking each of them.
 The downloader is thought as dummy servant: it starts the connection, retrieves HTTP headers and data,
 and sends them back to the caller. The delta handler is then responsible to parse the answer, and to
 retrieve the missing chunks from the multipart HTTP body.
+
+Creation of ZCK Header and ZCK file for SWUpdate
+------------------------------------------------
+
+Zchunk supports more SHA algorithms and it sets as default SHA512/128. This is not compatible with SWUpdate
+that just support SHA256. Be sure to generate header and chunks with SHA256 support.
+You have to enable the generation of hashes for uncompressed chunk, too. A possible usage of the tool
+is:
+
+::
+
+        zck --output <output file> -u --chunk-hash-type sha256 <artifact, like rootfs>
+
+The output is the ZCK file with all chunks.
+This file should be put on a Webserver accessible to the target, and that supports Range Request
+(RFC 7233). All modern Webserver support it.
+
+The SWU must just contain the header. This can be easy extracted from the ZCK file with:
+
+::
+
+        HSIZE=`zck_read_header -v <ZCK file> | grep "Header size" | cut -d':' -f2`
+        dd if=<ZCK FILE> of=<ZCK HEADER file> bs=1 count=$((HSIZE))
+
+Using ZCK tools to foresee download size
+----------------------------------------
+
+There are tools that can be used at build time to know how many chunks should be downloaded
+when a device is upgrading from a known version. You can use `zck_cmp_uncomp` from the test
+directory:
+
+::
+
+        ../build/test/zck_cmp_uncomp --verbose <uncompressed old version file> <ZCK file>
+
+This prints a list with all chunks, marking them with SRC if they are the same in the old version
+and they should not retrieved and with DST if they are new and must be downloaded.
+The tool show at the end a summary with the total number of bytes of the new release (uncompressed) and how
+many bytes must be downloaded for the upgrade.
+Please remmeber that these value are just payload. SWUpdate reports a summary, too, but it takes into account
+also the HTTP overhead (headers, etc.), so that values are not the same and the ones from SWUpdate are
+slightly bigger.
