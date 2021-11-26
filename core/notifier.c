@@ -40,6 +40,7 @@ struct notify_elem {
 STAILQ_HEAD(notifylist, notify_elem);
 
 static struct notifylist clients;
+static pthread_mutex_t clients_mutex;
 
 /*
  * Notification can be sent even by other
@@ -203,7 +204,9 @@ int register_notifier(notifier client)
 		return -ENOMEM;
 	newclient->client = client;
 
+	pthread_mutex_lock(&clients_mutex);
 	STAILQ_INSERT_TAIL(&clients, newclient, next);
+	pthread_mutex_unlock(&clients_mutex);
 
 	return 0;
 }
@@ -235,8 +238,10 @@ void notify(RECOVERY_STATUS status, int error, int level, const char *msg)
 				sizeof(struct sockaddr_un));
 		}
 	} else { /* Main process */
+		pthread_mutex_lock(&clients_mutex);
 		STAILQ_FOREACH(elem, &clients, next)
 			(elem->client)(status, error, level, msg);
+		pthread_mutex_unlock(&clients_mutex);
 	}
 }
 
@@ -524,6 +529,7 @@ void notify_init(void)
 		 */
 		addr_init(&notify_server, "NotifyServer");
 		STAILQ_INIT(&clients);
+		pthread_mutex_init(&clients_mutex, NULL);
 		register_notifier(console_notifier);
 		register_notifier(process_notifier);
 		register_notifier(progress_notifier);
