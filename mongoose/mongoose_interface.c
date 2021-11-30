@@ -229,10 +229,8 @@ static void *broadcast_progress_thread(void *data)
 		if (ret != sizeof(msg))
 			return NULL;
 
-		if (msg.status == PROGRESS)
-			continue;
-
-		if (msg.status != status || msg.status == FAILURE) {
+		if (msg.status != PROGRESS &&
+		    (msg.status != status || msg.status == FAILURE)) {
 			status = msg.status;
 
 			snescape(escaped, sizeof(escaped), get_status_string(msg.status));
