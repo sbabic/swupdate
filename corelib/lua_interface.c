@@ -900,6 +900,33 @@ static int l_progress_update(lua_State *L)
 }
 #endif
 
+static void lua_push_enum(lua_State *L, const char *name, int value)
+{
+	lua_pushstring(L, name);
+	lua_pushnumber(L, (lua_Number) value );
+	lua_settable(L, -3);
+}
+
+static int l_getversion(lua_State *L)
+{
+	unsigned int version = 0, patchlevel = 0;
+	/* Deliberately ignore sublevel and extraversion. */
+	if (sscanf(SWU_VER, "%u.%u.%*s", &version, &patchlevel) != 2) {
+		version = 0;
+		patchlevel = 0;
+	}
+	lua_newtable (L);
+	lua_pushnumber(L, 1);
+	lua_pushnumber(L, version);
+	lua_settable(L, -3);
+	lua_pushnumber(L, 2);
+	lua_pushnumber(L, patchlevel);
+	lua_settable(L, -3);
+	lua_push_enum(L, "version", version);
+	lua_push_enum(L, "patchlevel", patchlevel);
+	return 1;
+}
+
 /**
  * @brief array with the function which are exported to Lua
  */
@@ -913,6 +940,7 @@ static const luaL_Reg l_swupdate[] = {
         { "mount", l_mount },
         { "umount", l_umount },
         { "getroot", l_getroot },
+        { "getversion", l_getversion },
         { NULL, NULL }
 };
 
@@ -933,13 +961,6 @@ static const luaL_Reg l_swupdate_handler[] = {
         { NULL, NULL }
 };
 #endif
-
-static void lua_push_enum(lua_State *L, const char *name, int value)
-{
-	lua_pushstring(L, name);
-	lua_pushnumber(L, (lua_Number) value );
-	lua_settable(L, -3);
-}
 
 /**
  * @brief function to register the swupdate package in the Lua Stack
