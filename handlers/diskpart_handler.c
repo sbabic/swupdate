@@ -287,7 +287,8 @@ static int diskpart_get_partitions(struct fdisk_context *cxt, struct diskpart_ta
 static int diskpart_set_partition(struct fdisk_partition *pa,
 				  struct partition_data *part,
 				  unsigned long sector_size,
-				  struct fdisk_parttype *parttype)
+				  struct fdisk_parttype *parttype,
+				  struct fdisk_table *oldtb)
 {
 	int ret;
 
@@ -312,8 +313,21 @@ static int diskpart_set_partition(struct fdisk_partition *pa,
 	if (parttype)
 		ret |= fdisk_partition_set_type(pa, parttype);
 
-	if (strlen(part->partuuid))
-	      ret |= fdisk_partition_set_uuid(pa, part->partuuid);
+	if (strlen(part->partuuid)) {
+		ret |= fdisk_partition_set_uuid(pa, part->partuuid);
+	} else {
+		/*
+		 * If the uuid is not set a random one will be generated, retrieve the
+		 * existing uuid from the on-disk partition if one exists so that we
+		 * don't mark the partition as changed due to a different random uuid.
+		 */
+		struct fdisk_partition *oldpart = fdisk_table_get_partition_by_partno(oldtb, part->partno);
+		if (oldpart) {
+			const char *uuid = fdisk_partition_get_uuid(oldpart);
+			if (uuid)
+				ret |= fdisk_partition_set_uuid(pa, uuid);
+		}
+	}
 
 	return ret;
 }
@@ -496,7 +510,7 @@ static int diskpart_reload_table(struct fdisk_context *cxt, struct fdisk_table *
 }
 
 static int diskpart_fill_table(struct fdisk_context *cxt, struct diskpart_table *tb,
-		struct partition_data *part, struct hnd_priv priv)
+		struct diskpart_table *oldtb, struct partition_data *part, struct hnd_priv priv)
 {
 	struct fdisk_parttype *parttype;
 	struct fdisk_label *lb;
@@ -527,7 +541,7 @@ static int diskpart_fill_table(struct fdisk_context *cxt, struct diskpart_table 
 		} else {
 			parttype = fdisk_label_get_parttype_from_code(lb, ustrtoull(part->type, 16));
 		}
-		ret = diskpart_set_partition(newpa, part, sector_size, parttype);
+		ret = diskpart_set_partition(newpa, part, sector_size, parttype, oldtb->parent);
 		if (ret) {
 			WARN("I cannot set all partition's parameters");
 		}
@@ -949,7 +963,7 @@ static int diskpart(struct img_type *img,
 	/*
 	 * Fill the new in-memory partition table from the partition list.
 	 */
-	ret = diskpart_fill_table(cxt, tb, part, priv);
+	ret = diskpart_fill_table(cxt, tb, oldtb, part, priv);
 	if (ret)
 		goto handler_exit;
 
