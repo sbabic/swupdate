@@ -219,7 +219,8 @@ static int apply_rdiff_chunk_cb(void *out, const void *buf, unsigned int len)
 }
 
 static int apply_rdiff_patch(struct img_type *img,
-							 void __attribute__((__unused__)) * data)
+			     void __attribute__((__unused__)) * data,
+			     script_fn __attribute__ ((__unused__)) scriptfn)
 {
 	int ret = 0;
 

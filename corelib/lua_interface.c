@@ -1070,7 +1070,9 @@ static lua_State *gL = NULL;
  * @param data [in] pointer to the index in the Lua registry for the function
  * @return This function returns 0 if successful and -1 if unsuccessful.
  */
-static int l_handler_wrapper(struct img_type *img, void *data) {
+static int l_handler_wrapper(struct img_type *img, void *data,
+			     script_fn __attribute__ ((__unused__)) scriptfn)
+{
 	int res = 0;
 	lua_Number result;
 	int l_func_ref;
@@ -1175,7 +1177,7 @@ static int l_call_handler(lua_State *L)
 		ret = 1;
 		goto call_handler_exit;
 	}
-	if ((hnd->installer(&img, hnd->data)) != 0) {
+	if ((hnd->installer(&img, hnd->data, NONE)) != 0) {
 		if (asprintf(&msg, "Executing handler %s failed!", hnd->desc) == -1) {
 			msg = NULL;
 		}

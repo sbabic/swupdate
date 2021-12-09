@@ -164,9 +164,10 @@ static int inline get_active_ssbl(struct ssbl_priv *padmins) {
 	return get_inactive_ssbl(padmins) == 1 ? 0 : 1;
 }
 
-static int ssbl_swap(struct img_type *img, void *data)
+static int ssbl_swap(struct img_type *img,
+		     void __attribute__ ((__unused__)) *data,
+		     script_fn scriptfn)
 {
-	script_fn scriptfn;
 	struct ssbl_priv admins[2];
 	struct ssbl_priv *pssbl;
 	struct proplist *entry;
@@ -174,11 +175,6 @@ static int ssbl_swap(struct img_type *img, void *data)
 	int fd;
 	struct flash_description *flash = get_flash_info();
 	char mtd_device[80];
-
-	if (!data)
-		return -EINVAL;
-
-	scriptfn = *(script_fn *)data;
 
 	/*
 	 * Call only in case of postinstall

@@ -498,7 +498,8 @@ static int get_gpio_from_property(struct dict_list *prop, struct mode_setup *gpi
 }
 
 static int install_uc_firmware_image(struct img_type *img,
-	void __attribute__ ((__unused__)) *data)
+	void __attribute__ ((__unused__)) *data,
+	script_fn __attribute__ ((__unused__)) scriptfn)
 {
 	struct handler_priv hnd_data;
 	struct dict_list *properties;

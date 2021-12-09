@@ -774,7 +774,8 @@ static void diskpart_unref_context(struct fdisk_context *cxt)
 }
 
 static int diskpart(struct img_type *img,
-	void __attribute__ ((__unused__)) *data)
+	void __attribute__ ((__unused__)) *data,
+	script_fn __attribute__ ((__unused__)) scriptfn)
 {
 	char *lbtype = diskpart_get_lbtype(img);
 	struct dict_list *parts;

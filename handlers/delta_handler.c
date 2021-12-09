@@ -869,7 +869,8 @@ static bool copy_existing_chunks(zckChunk **dstChunk, struct hnd_priv *priv)
  * Handler entry point
  */
 static int install_delta(struct img_type *img,
-	void __attribute__ ((__unused__)) *data)
+	void __attribute__ ((__unused__)) *data,
+	script_fn __attribute__ ((__unused__)) scriptfn)
 {
 	struct hnd_priv *priv;
 	int ret = -1;

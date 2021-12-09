@@ -47,15 +47,11 @@ static int execute_shell_script(struct img_type *img, const char *fnname)
 	return ret;
 }
 
-static int start_shell_script(struct img_type *img, void *data)
+static int start_shell_script(struct img_type *img,
+			      void __attribute__ ((__unused__)) *data,
+			      script_fn scriptfn)
 {
 	const char *fnname;
-	script_fn scriptfn;
-
-	if (!data)
-		return -EINVAL;
-
-	scriptfn = *(script_fn *)data;
 
 	switch (scriptfn) {
 	case PREINSTALL:
@@ -72,15 +68,10 @@ static int start_shell_script(struct img_type *img, void *data)
 	return execute_shell_script(img, fnname);
 }
 
-static int start_preinstall_script(struct img_type *img, void *data)
+static int start_preinstall_script(struct img_type *img,
+				   void __attribute__ ((__unused__)) *data,
+				   script_fn scriptfn)
 {
-	script_fn scriptfn;
-
-	if (!data)
-		return -EINVAL;
-
-	scriptfn = *(script_fn *)data;
-
 	/*
 	 * Call only in case of preinstall
 	 */
@@ -90,15 +81,10 @@ static int start_preinstall_script(struct img_type *img, void *data)
 	return execute_shell_script(img, "");
 }
 
-static int start_postinstall_script(struct img_type *img, void *data)
+static int start_postinstall_script(struct img_type *img,
+				    void __attribute__ ((__unused__)) *data,
+				    script_fn scriptfn)
 {
-	script_fn scriptfn;
-
-	if (!data)
-		return -EINVAL;
-
-	scriptfn = *(script_fn *)data;
-
 	/*
 	 * Call only in case of postinstall
 	 */

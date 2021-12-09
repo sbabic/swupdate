@@ -119,7 +119,8 @@ blkprotect_out:
 }
 
 static int install_raw_image(struct img_type *img,
-	void __attribute__ ((__unused__)) *data)
+	void __attribute__ ((__unused__)) *data,
+	script_fn __attribute__ ((__unused__)) scriptfn)
 {
 	int ret;
 	int fdout;
@@ -150,7 +151,8 @@ static int install_raw_image(struct img_type *img,
 }
 
 static int copy_raw_image(struct img_type *img,
-	void __attribute__ ((__unused__)) *data)
+	void __attribute__ ((__unused__)) *data,
+	script_fn __attribute__ ((__unused__)) scriptfn)
 {
 	int ret;
 	int fdout, fdin;
@@ -203,7 +205,8 @@ static int copy_raw_image(struct img_type *img,
 }
 
 static int install_raw_file(struct img_type *img,
-	void __attribute__ ((__unused__)) *data)
+	void __attribute__ ((__unused__)) *data,
+	script_fn __attribute__ ((__unused__)) scriptfn)
 {
 	char path[255];
 	int fdout;

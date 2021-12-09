@@ -56,7 +56,8 @@ The prototype for the callback is:
 ::
 
 	int my_handler(struct img_type *img,
-		void __attribute__ ((__unused__)) *data)
+		void __attribute__ ((__unused__)) *data,
+		script_fn __attribute__ ((__unused__)) scriptfn)
 
 
 The most important parameter is the pointer to a struct img_type. It describes

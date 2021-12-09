@@ -277,7 +277,8 @@ out:
 }
 
 static int install_flash_hamming_image(struct img_type *img,
-	void __attribute__ ((__unused__)) *data)
+	void __attribute__ ((__unused__)) *data,
+	script_fn __attribute__ ((__unused__)) scriptfn)
 {
 	int mtdnum;
 

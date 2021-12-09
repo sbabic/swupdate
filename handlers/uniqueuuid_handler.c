@@ -28,7 +28,8 @@
 void uniqueuuid_handler(void);
 
 static int uniqueuuid(struct img_type *img,
-	void __attribute__ ((__unused__)) *data)
+	void __attribute__ ((__unused__)) *data,
+	script_fn __attribute__ ((__unused__)) scriptfn)
 {
 	struct dict_list *uuids;
 	struct dict_list_elem *uuid;

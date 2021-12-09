@@ -388,7 +388,8 @@ static int wait_volume(struct img_type *img)
 }
 
 static int install_ubivol_image(struct img_type *img,
-	void __attribute__ ((__unused__)) *data)
+	void __attribute__ ((__unused__)) *data,
+	script_fn __attribute__ ((__unused__)) scriptfn)
 {
 	struct flash_description *flash = get_flash_info();
 	struct ubi_part *ubivol;
@@ -429,7 +430,8 @@ static int install_ubivol_image(struct img_type *img,
 }
 
 static int adjust_volume(struct img_type *cfg,
-	void __attribute__ ((__unused__)) *data)
+	void __attribute__ ((__unused__)) *data,
+	script_fn __attribute__ ((__unused__)) scriptfn)
 {
 	return resize_volume(cfg, cfg->partsize);
 }
@@ -450,9 +452,10 @@ static int ubi_volume_get_info(char *name, int *dev_num, int *vol_id)
 	return 0;
 }
 
-static int swap_volume(struct img_type *img, void *data)
+static int swap_volume(struct img_type *img,
+		       void __attribute__ ((__unused__)) *data,
+		       script_fn scriptfn)
 {
-	script_fn scriptfn;
 	struct flash_description *flash = get_flash_info();
 	libubi_t libubi = flash->libubi;
 	int num, count = 0;
@@ -464,11 +467,6 @@ static int swap_volume(struct img_type *img, void *data)
 	char masternode[UBI_MAX_VOLUME_NAME+1];
 	struct ubi_rnvol_req rnvol;
 	int ret = -1;
-
-	if (!data)
-		return -EINVAL;
-
-	scriptfn = *(script_fn *)data;
 
 	/*
 	 * Call only in case of postinstall

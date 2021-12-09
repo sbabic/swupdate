@@ -284,7 +284,8 @@ static int initialize_backchannel(struct hnd_priv *priv)
 }
 
 static int install_remote_swu(struct img_type *img,
-	void __attribute__ ((__unused__)) *data)
+	void __attribute__ ((__unused__)) *data,
+	script_fn __attribute__ ((__unused__)) scriptfn)
 {
 	struct hnd_priv priv;
 	struct curlconn *conn, *tmp;

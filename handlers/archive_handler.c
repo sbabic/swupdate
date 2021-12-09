@@ -210,7 +210,8 @@ out:
 }
 
 static int install_archive_image(struct img_type *img,
-	void __attribute__ ((__unused__)) *data)
+	void __attribute__ ((__unused__)) *data,
+	script_fn __attribute__ ((__unused__)) scriptfn)
 {
 	char path[255];
 	int fdout = -1;

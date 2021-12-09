@@ -149,7 +149,8 @@ static int forward_data(void *request, const void *buf, unsigned int len)
 }
 
 static int install_remote_image(struct img_type *img,
-	void __attribute__ ((__unused__)) *data)
+	void __attribute__ ((__unused__)) *data,
+	script_fn __attribute__ ((__unused__)) scriptfn)
 {
 	void *context = zmq_ctx_new();
 	void *request = zmq_socket (context, ZMQ_REQ);

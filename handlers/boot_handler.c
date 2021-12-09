@@ -25,7 +25,8 @@ static void uboot_handler(void);
 static void boot_handler(void);
 
 static int install_boot_environment(struct img_type *img,
-	void __attribute__ ((__unused__)) *data)
+	void __attribute__ ((__unused__)) *data,
+	script_fn __attribute__ ((__unused__)) scriptfn)
 {
 	int ret;
 	int fdout;

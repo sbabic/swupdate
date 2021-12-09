@@ -33,7 +33,7 @@ typedef enum {
 			BOOTLOADER_HANDLER | PARTITION_HANDLER | \
 			NO_DATA_HANDLER)
 
-typedef int (*handler)(struct img_type *img, void *data);
+typedef int (*handler)(struct img_type *img, void *data, script_fn scriptfn);
 struct installer_handler{
 	char	desc[64];
 	handler installer;

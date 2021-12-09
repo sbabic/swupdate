@@ -26,12 +26,10 @@
 void readback_handler(void);
 static int readback_postinst(struct img_type *img);
 
-static int readback(struct img_type *img, void *data)
+static int readback(struct img_type *img,
+		    void __attribute__ ((__unused__)) *data,
+		    script_fn scriptfn)
 {
-	if (!data)
-		return -1;
-
-	script_fn scriptfn = *(script_fn *)data;
 	switch (scriptfn) {
 	case POSTINSTALL:
 		return readback_postinst(img);

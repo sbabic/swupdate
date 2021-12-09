@@ -200,7 +200,7 @@ static int run_prepost_scripts(struct imglist *list, script_fn type)
 			continue;
 		hnd = find_handler(img);
 		if (hnd) {
-			ret = hnd->installer(img, &type);
+			ret = hnd->installer(img, hnd->data, type);
 			if (ret)
 				return ret;
 		}
@@ -231,7 +231,7 @@ int install_single_image(struct img_type *img, bool dry_run)
 	swupdate_progress_inc_step(img->fname, hnd->desc);
 
 	/* TODO : check callback to push results / progress */
-	ret = hnd->installer(img, hnd->data);
+	ret = hnd->installer(img, hnd->data, NONE);
 	if (ret != 0) {
 		TRACE("Installer for %s not successful !",
 			hnd->desc);

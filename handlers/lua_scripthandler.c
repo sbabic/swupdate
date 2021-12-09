@@ -25,19 +25,15 @@
 
 static void lua_handler(void);
 
-static int start_lua_script(struct img_type *img, void *data)
+static int start_lua_script(struct img_type *img,
+			    void __attribute__ ((__unused__)) *data,
+			    script_fn scriptfn)
 {
 	int ret;
 	const char *fnname;
-	script_fn scriptfn;
 
 	const char* tmp = get_tmpdirscripts();
 	char filename[MAX_IMAGE_FNAME + strlen(tmp) + 2 + strlen(img->type_data)];
-
-	if (!data)
-		return -1;
-
-	scriptfn = *(script_fn *)data;
 
 	switch (scriptfn) {
 	case PREINSTALL:
