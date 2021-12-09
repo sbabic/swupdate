@@ -173,7 +173,7 @@ static void *broadcast_message_thread(void *data)
 			continue;
 		}
 
-		ret = ipc_notify_receive(&fd, &msg);
+		ret = ipc_notify_receive(&fd, &msg, -1);
 		if (ret != sizeof(msg))
 			return NULL;
 
