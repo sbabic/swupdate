@@ -781,6 +781,28 @@ the source - it can be a file or a partition.
                 }
         }
 
+Archive handler
+---------------
+
+The archive handler extracts an archive to a destination path.
+It supports whatever format libarchive has been compiled to support, for example even if swupdate
+itself has no direct support for xz it can be possible to extract tar.xz files with it.
+
+The attribute `preserve-attributes` must be set to preserve timestamps. uid/gid (numeric),
+permissions (except +x, always preserved) and extended attributes.
+
+::
+
+                files: (
+                        {
+                                filename = "examples.tar.zst";
+                                type = "archive";
+                                path = "/extract/here";
+                                preserve-attributes = true;
+                                installed-directly = true;
+                        }
+                );
+
 Disk partitioner
 ----------------
 
