@@ -202,6 +202,8 @@ int ipc_notify_connect(void)
 	if (ret || msg.type != ACK) {
 		fprintf(stdout, "Notify connection handshake failed..\n");
 		close(connfd);
+		if (ret >= 0)
+			ret = -EIO;
 		return ret;
 	}
 
