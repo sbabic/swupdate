@@ -85,8 +85,8 @@ static int printstatus(ipc_message *msg)
 {
 	if (verbose)
 		fprintf(stdout, "Status: %d message: %s\n",
-			msg->data.status.current,
-			strlen(msg->data.status.desc) > 0 ? msg->data.status.desc : "");
+			msg->data.notify.status,
+			msg->data.notify.msg);
 
 	return 0;
 }

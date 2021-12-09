@@ -37,17 +37,25 @@ static void *swupdate_async_thread(void *data)
 	sigset_t saved_mask;
 	struct timespec zerotime = {0, 0};
 	struct async_lib *rq = (struct async_lib *)data;
-	int swupdate_result;
+	int notify_fd, ret;
+	ipc_message msg;
+	msg.data.notify.status = RUN;
 
 	sigemptyset(&sigpipe_mask);
 	sigaddset(&sigpipe_mask, SIGPIPE);
 
 	if (pthread_sigmask(SIG_BLOCK, &sigpipe_mask, &saved_mask) == -1) {
-		  perror("pthread_sigmask");
-		    exit(1);
+		perror("pthread_sigmask");
+		exit(1);
 	}
-	/* Start writing the image until end */
 
+	notify_fd = ipc_notify_connect();
+	if (notify_fd < 0) {
+		perror("could not setup notify fd");
+		exit(1);
+	}
+
+	/* Start writing the image until end */
 	do {
 		if (!rq->wr)
 			break;
@@ -55,17 +63,32 @@ static void *swupdate_async_thread(void *data)
 		rq->wr(&pbuf, &size);
 		if (size)
 			swupdate_image_write(pbuf, size);
+
+		/* handle any notification coming */
+		while ((ret = ipc_notify_receive(&notify_fd, &msg, 0))
+				!= -ETIMEDOUT) {
+			if (ret < 0) {
+				perror("ipc_notify receive failed");
+				exit(1);
+			}
+			if (rq->get)
+				rq->get(&msg);
+		}
 	} while(size > 0);
 
 	ipc_end(rq->connfd);
 
-	/*
-	 * Everything sent, ask for status
-	 */
-
-	swupdate_result = ipc_wait_for_complete(rq->get);
-
-	handle = 0;
+	/* Everything sent, wait until we are IDLE again */
+	while (msg.data.notify.status != IDLE) {
+		ret = ipc_notify_receive(&notify_fd, &msg, -1);
+		if (ret < 0) {
+			perror("ipc_notify receive failed");
+			exit(1);
+		}
+		if (rq->get)
+			rq->get(&msg);
+	}
+	ipc_end(notify_fd);
 
 	if (sigtimedwait(&sigpipe_mask, 0, &zerotime) == -1) {
 		// currently ignored
@@ -75,8 +98,18 @@ static void *swupdate_async_thread(void *data)
 		  perror("pthread_sigmask");
 	}
 
-	if (rq->end)
-		rq->end((RECOVERY_STATUS)swupdate_result);
+	if (rq->end) {
+		/* Get status to get update return code */
+		ret = ipc_get_status(&msg);
+		if (ret < 0) {
+			perror("ipc_get_status failed");
+			exit(1);
+		}
+
+		rq->end(msg.data.status.last_result);
+	}
+
+	handle = 0;
 
 	pthread_exit(NULL);
 }
