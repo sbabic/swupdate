@@ -141,8 +141,6 @@ static int write_notify_msg(ipc_message *msg, int sockfd)
 			 */
 			if (n == 0) {
 				fprintf(stderr, "Error: A status client is not responding, removing it.\n");
-			} else {
-				fprintf(stderr, "A status client disappeared, removing it: %s\n", strerror(errno));
 			}
 			ret = -1;
 			break;
