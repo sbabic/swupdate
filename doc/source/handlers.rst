@@ -293,7 +293,7 @@ In analogy to C handlers, the prototype for a Lua handler is
 
 ::
 
-        function lua_handler(image)
+        function lua_handler(image, scriptfn)
             ...
         end
 
@@ -305,6 +305,10 @@ Note that dashes in the attributes' names are replaced with
 underscores for the Lua domain to make them idiomatic, e.g.,
 ``installed-directly`` becomes ``installed_directly`` in the
 Lua domain.
+
+For a script handler, ``scriptfn`` is either ``"preinst"`` or
+``"postinst"``.  For other handlers it is ``nil``, and does not need
+to be declared as a parameter.
 
 To register a Lua handler, the ``swupdate`` module provides the
 ``swupdate.register_handler()`` method that takes the handler's

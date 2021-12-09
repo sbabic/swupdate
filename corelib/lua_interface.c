@@ -1098,7 +1098,19 @@ static int l_handler_wrapper(struct img_type *img, void *data,
 	lua_rawgeti(gL, LUA_REGISTRYINDEX, l_func_ref );
 	image2table(gL, img);
 
-	if (LUA_OK != (res = lua_pcall(gL, 1, 1, 0))) {
+	switch (scriptfn) {
+	case PREINSTALL:
+		lua_pushstring(gL, "preinst");
+		break;
+	case POSTINSTALL:
+		lua_pushstring(gL, "postinst");
+		break;
+	default:
+		lua_pushnil(gL);
+		break;
+	}
+
+	if (LUA_OK != (res = lua_pcall(gL, 2, 1, 0))) {
 		ERROR("Error %d while executing the Lua callback: %s",
 			  res, lua_tostring(gL, -1));
 		return -1;
