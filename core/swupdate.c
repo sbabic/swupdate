@@ -888,7 +888,6 @@ int main(int argc, char **argv)
 
 	if (opt_i) {
 		result = install_from_file(fname, opt_c);
-		cleanup_files(&swcfg);
 	}
 
 #ifdef CONFIG_SYSTEMD
