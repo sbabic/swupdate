@@ -922,12 +922,32 @@ size_t snescape(char *dst, size_t n, const char *src)
 }
 
 /*
- * This returns the device name where rootfs is mounted
+ * If major:minor is a containerized filesystem, e.g., in case of LUKS,
+ * return the pointed-to device name.
  */
-
 static int filter_slave(const struct dirent *ent) {
 	return (strcmp(ent->d_name, ".") && strcmp(ent->d_name, ".."));
 }
+static char *get_root_containerized_fs(int major, int minor)
+{
+	struct dirent **devlist = NULL;
+	char *devname = NULL;
+	char buf[23+4+7+1];
+	int ret = snprintf(buf, sizeof(buf), "/sys/dev/block/%d:%d/slaves", major, minor);
+	if (ret < 0 || ret >= sizeof(buf)) {
+		return NULL;
+	}
+	if (scandir(buf, &devlist, filter_slave, NULL) == 1) {
+		devname = strdup(devlist[0]->d_name);
+	}
+	free(devlist);
+	return devname;
+}
+
+/*
+ * Return the rootfs's device name from /proc/partitions supporting
+ * containerized filesystems such as, e.g., LUKS.
+ */
 static char *get_root_from_partitions(void)
 {
 	struct stat info;
@@ -935,8 +955,7 @@ static char *get_root_from_partitions(void)
 	char *devname = NULL;
 	unsigned long major, minor, nblocks;
 	char buf[256];
-	int ret, dev_major, dev_minor, n;
-	struct dirent **devlist = NULL;
+	int ret, dev_major, dev_minor;
 
 	if (stat("/", &info) < 0)
 		return NULL;
@@ -944,18 +963,10 @@ static char *get_root_from_partitions(void)
 	dev_major = info.st_dev / 256;
 	dev_minor = info.st_dev % 256;
 
-	/*
-	 * Check if this is just a container, for example in case of LUKS
-	 * Search if the device has slaves pointing to another device
-	 */
-	snprintf(buf, sizeof(buf) - 1, "/sys/dev/block/%d:%d/slaves", dev_major, dev_minor);
-	n = scandir(buf, &devlist, filter_slave, NULL);
-	if (n == 1) {
-		devname = strdup(devlist[0]->d_name);
-		free(devlist);
+	devname = get_root_containerized_fs(dev_major, dev_minor);
+	if (devname) {
 		return devname;
 	}
-	free(devlist);
 
 	fp = fopen("/proc/partitions", "r");
 	if (!fp)
