@@ -820,9 +820,9 @@ static int l_getroot(lua_State *L) {
 	if (count_string_array((const char **)root) > 1) {
 		if (!strncmp(root[0], "UUID", strlen("UUID"))) {
 			type = ROOT_DEV_UUID;
-		} else if (strncmp(root[0], "PARTUUID", strlen("PARTUUID"))) {
+		} else if (!strncmp(root[0], "PARTUUID", strlen("PARTUUID"))) {
 			type = ROOT_DEV_PARTUUID;
-		} else if (strncmp(root[0], "PARTLABEL", strlen("PARTLABEL"))) {
+		} else if (!strncmp(root[0], "PARTLABEL", strlen("PARTLABEL"))) {
 			type = ROOT_DEV_PARTLABEL;
 		}
 		value = root[1];
