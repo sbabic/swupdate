@@ -7,6 +7,7 @@
  */
 
 #include <stdlib.h>
+#include <fcntl.h>
 #include <unistd.h>
 #include <stdbool.h>
 #include <errno.h>
@@ -810,24 +811,51 @@ l_umount_exit:
 	return 1;
 }
 
+static char* getroot_dev_path(char *prefix, char *devname) {
+	int prefix_len = strlen(prefix);
+	int devname_len = strnlen(devname, PATH_MAX - prefix_len - 1);
+	char *tmp = alloca(sizeof(char) * (prefix_len + devname_len + 1));
+	(void)strcpy(strcpy(tmp, prefix) + prefix_len, devname);
+	char *path = realpath(tmp, NULL);
+	if (path) {
+		int fd = open(path, O_RDWR | O_CLOEXEC);
+		if (fd != -1) {
+			(void)close(fd);
+			return path;
+		}
+		free(path);
+	}
+	return NULL;
+}
+
 static int l_getroot(lua_State *L) {
 	char *rootdev = get_root_device();
 	root_dev_type type = ROOT_DEV_PATH;
 	char **root = NULL;
 	char *value = rootdev;
+	char* dev_path = getroot_dev_path((char*)"", rootdev);
 
 	root = string_split(rootdev, '=');
 	if (count_string_array((const char **)root) > 1) {
 		if (!strncmp(root[0], "UUID", strlen("UUID"))) {
 			type = ROOT_DEV_UUID;
+			dev_path = getroot_dev_path((char*)"/dev/disk/by-uuid/", root[1]);
 		} else if (!strncmp(root[0], "PARTUUID", strlen("PARTUUID"))) {
 			type = ROOT_DEV_PARTUUID;
+			dev_path = getroot_dev_path((char*)"/dev/disk/by-partuuid/", root[1]);
 		} else if (!strncmp(root[0], "PARTLABEL", strlen("PARTLABEL"))) {
 			type = ROOT_DEV_PARTLABEL;
+			dev_path = getroot_dev_path((char*)"/dev/disk/by-partlabel/", root[1]);
 		}
 		value = root[1];
 	}
 	lua_newtable (L);
+	if (dev_path) {
+		lua_pushstring(L, "path");
+		lua_pushstring(L, dev_path);
+		lua_settable(L, -3);
+		free(dev_path);
+	}
 	lua_pushstring(L, "type");
 	lua_pushinteger(L, type);
 	lua_settable(L, -3);
