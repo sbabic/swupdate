@@ -1233,6 +1233,12 @@ call_handler_exit:
 
 int lua_handlers_init(void)
 {
+	static const char location[] =
+#if defined(CONFIG_EMBEDDED_LUA_HANDLER)
+		"Compiled-in";
+#else
+		"External";
+#endif
 	int ret = -1;
 
 	gL = luaL_newstate();
@@ -1246,29 +1252,18 @@ int lua_handlers_init(void)
 		lua_pop(gL, 1); /* remove unused copy left on stack */
 		/* try to load Lua handlers for the swupdate system */
 #if defined(CONFIG_EMBEDDED_LUA_HANDLER)
-		if ((ret = (luaL_loadbuffer(gL, EMBEDDED_LUA_SRC_START, EMBEDDED_LUA_SRC_END-EMBEDDED_LUA_SRC_START, "LuaHandler") ||
-					lua_pcall(gL, 0, LUA_MULTRET, 0))) != 0) {
-			INFO("No compiled-in Lua handler(s) found.");
+		ret = (luaL_loadbuffer(gL, EMBEDDED_LUA_SRC_START, EMBEDDED_LUA_SRC_END-EMBEDDED_LUA_SRC_START, "LuaHandler") ||
+		       lua_pcall(gL, 0, LUA_MULTRET, 0));
+#else
+		ret = luaL_dostring(gL, "require (\"swupdate_handlers\")");
+#endif
+		if (ret != 0) {
+			INFO("%s Lua handler(s) not found.", location);
 			lua_report_exception(gL);
 			lua_pop(gL, 1);
 		} else {
-			INFO("Compiled-in Lua handler(s) found and loaded.");
+			INFO("%s Lua handler(s) found and loaded.", location);
 		}
-#else
-		if ((ret = luaL_dostring(gL, "require (\"swupdate_handlers\")")) != 0) {
-			INFO("No Lua handler(s) found.");
-			if (luaL_dostring(gL, "return package.path:gsub('?','swupdate_handlers'):gsub(';','\\0')") == 0) {
-				const char *paths = lua_tostring(gL, -2);
-				for (int i=lua_tonumber(gL, -1); i >= 0; i--) {
-					TRACE("\t%s", paths);
-					paths += strlen(paths) + 1;
-				}
-				lua_pop(gL, 2);
-			}
-		} else {
-			INFO("Lua handler(s) found.");
-		}
-#endif
 	} else	{
 		WARN("Unable to register Lua context for callbacks");
 	}
