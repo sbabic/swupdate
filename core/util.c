@@ -996,13 +996,28 @@ static char *get_root_from_partitions(void)
 static char *get_root_from_mountinfo(void)
 {
 	char *mnt_point, *device = NULL;
+	unsigned int dev_major, dev_minor;
 	FILE *fp = fopen("/proc/self/mountinfo", "r");
-	while (fp && !feof(fp)){
+	while (fp && !feof(fp)) {
 		/* format: https://www.kernel.org/doc/Documentation/filesystems/proc.txt */
-		if (fscanf(fp, "%*s %*s %*u:%*u %*s %ms %*s %*[-] %*s %ms %*s",
-			   &mnt_point, &device) == 2) {
+		if (fscanf(fp, "%*s %*s %u:%u %*s %ms %*s %*[-] %*s %ms %*s",
+			   &dev_major, &dev_minor, &mnt_point, &device) == 4) {
 			if ( (!strcmp(mnt_point, "/")) && (strcmp(device, "none")) ) {
 				free(mnt_point);
+				char *dpath;
+				if ((dpath = realpath(device, NULL))) {
+					free(device);
+					device = dpath;
+					struct stat dinfo;
+					if (stat(device, &dinfo) == 0) {
+						dev_major = dinfo.st_rdev / 256;
+						dev_minor = dinfo.st_rdev % 256;
+					}
+				}
+				if ((dpath = get_root_containerized_fs(dev_major, dev_minor))) {
+					free(device);
+					device = dpath;
+				}
 				break;
 			}
 			free(mnt_point);
