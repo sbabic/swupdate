@@ -945,6 +945,38 @@ static char *get_root_containerized_fs(int major, int minor)
 }
 
 /*
+ * Return the real full path to a device, or NULL.
+ */
+static char *getroot_abs_path(char* devname)
+{
+	int fd;
+	char *path;
+	if ((path = realpath(devname, NULL))) {
+		if ((fd = open(path, O_RDWR | O_CLOEXEC)) != -1) {
+			(void)close(fd);
+			free(devname);
+			return path;
+		}
+		free(path);
+	}
+
+	char* prefix = (char*)"/dev/";
+	int prefix_len = strlen(prefix);
+	int devname_len = strnlen(devname, PATH_MAX - prefix_len - 1);
+	char *tmp = alloca(sizeof(char) * (prefix_len + devname_len + 1));
+	(void)strcpy(strcpy(tmp, prefix) + prefix_len, devname);
+	free(devname);
+	if ((path = realpath(tmp, NULL))) {
+		if ((fd = open(path, O_RDWR | O_CLOEXEC)) != -1) {
+			(void)close(fd);
+			return path;
+		}
+		free(path);
+	}
+	return NULL;
+}
+
+/*
  * Return the rootfs's device name from /proc/partitions supporting
  * containerized filesystems such as, e.g., LUKS.
  */
@@ -965,7 +997,7 @@ static char *get_root_from_partitions(void)
 
 	devname = get_root_containerized_fs(dev_major, dev_minor);
 	if (devname) {
-		return devname;
+		return getroot_abs_path(devname);
 	}
 
 	fp = fopen("/proc/partitions", "r");
@@ -979,7 +1011,7 @@ static char *get_root_from_partitions(void)
 			continue;
 		if ((major == dev_major) && (minor == dev_minor)) {
 			fclose(fp);
-			return devname;
+			return getroot_abs_path(devname);
 		}
 		free(devname);
 	}
@@ -1016,7 +1048,7 @@ static char *get_root_from_mountinfo(void)
 				}
 				if ((dpath = get_root_containerized_fs(dev_major, dev_minor))) {
 					free(device);
-					device = dpath;
+					device = getroot_abs_path(dpath);
 				}
 				break;
 			}
@@ -1064,7 +1096,10 @@ static char *get_root_from_cmdline(void)
 		for (unsigned int index = 0; index < nparms; index++) {
 			if (!strncmp(parms[index], "root=", strlen("root="))) {
 				const char *value = parms[index] + strlen("root=");
-				root = strdup(value);
+				root = getroot_abs_path(strdup(value));
+				if (!root) {
+					root = strdup(value);
+				}
 				break;
 			}
 		}
@@ -1081,9 +1116,9 @@ char *get_root_device(void)
 
 	root = get_root_from_partitions();
 	if (!root)
-		root = get_root_from_cmdline();
-	if (!root)
 		root = get_root_from_mountinfo();
+	if (!root)
+		root = get_root_from_cmdline();
 
 	return root;
 }
