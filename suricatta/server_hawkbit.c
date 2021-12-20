@@ -707,6 +707,7 @@ static size_t server_check_during_dwl(char  __attribute__ ((__unused__)) *stream
 		 * it is not possible to check for a cancelUpdate,
 		 * go on downloading
 		 */
+		channel->close(channel);
 		free(channel);
 		return ret;
 	}
@@ -959,6 +960,7 @@ static void *process_notification_thread(void *data)
 		return NULL;
 
 	if (channel->open(channel, &channel_data) != CHANNEL_OK) {
+		channel->close(channel);
 		free(channel);
 		return NULL;
 	}
@@ -1892,6 +1894,8 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 		return SERVER_EINIT;
 
 	if (server_hawkbit.channel->open(server_hawkbit.channel, &channel_data_defaults) != CHANNEL_OK) {
+		(void)server_hawkbit.channel->close(server_hawkbit.channel);
+		free(server_hawkbit.channel);
 		return SERVER_EINIT;
 	}
 	/* If an update was performed, report its status to the hawkBit server
@@ -1931,6 +1935,7 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 server_op_res_t server_stop(void)
 {
 	(void)server_hawkbit.channel->close(server_hawkbit.channel);
+	free(server_hawkbit.channel);
 	return SERVER_OK;
 }
 
