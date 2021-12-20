@@ -263,6 +263,7 @@ static void *server_progress_thread (void *data)
 	channel = channel_new();
 	if (!channel) {
 		ERROR("Cannot get channel for communication");
+		pthread_exit((void *)SERVER_EINIT);
 	}
 	if (channel->open(channel, &channel_data) != CHANNEL_OK) {
 		ERROR("Cannot open channel for progress thread");
