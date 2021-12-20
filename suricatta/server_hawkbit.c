@@ -699,6 +699,8 @@ static size_t server_check_during_dwl(char  __attribute__ ((__unused__)) *stream
 	 * a connection parallel to the download
 	 */
 	channel_t *channel = channel_new();
+	if (!channel)
+		return ret;
 
 	if (channel->open(channel, &channel_data_defaults) != CHANNEL_OK) {
 		/*
@@ -953,6 +955,9 @@ static void *process_notification_thread(void *data)
 	 * used to download the SWU
 	 */
 	channel_t *channel = channel_new();
+	if (!channel)
+		return NULL;
+
 	if (channel->open(channel, &channel_data) != CHANNEL_OK) {
 		free(channel);
 		return NULL;
