@@ -267,6 +267,8 @@ static void *server_progress_thread (void *data)
 	}
 	if (channel->open(channel, &channel_data) != CHANNEL_OK) {
 		ERROR("Cannot open channel for progress thread");
+		(void)channel->close(channel);
+		free(channel);
 		pthread_exit((void *)SERVER_EINIT);
 	}
 
@@ -341,6 +343,7 @@ static void *server_progress_thread (void *data)
 	}
 
 	(void)channel->close(channel);
+	free(channel);
 	pthread_exit((void *)0);
 }
 
@@ -706,6 +709,8 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 		return SERVER_EINIT;
 
 	if (server_general.channel->open(server_general.channel, &channel_data_defaults) != CHANNEL_OK) {
+		(void)server_general.channel->close(server_general.channel);
+		free(server_general.channel);
 		return SERVER_EINIT;
 	}
 
@@ -723,6 +728,7 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 server_op_res_t server_stop(void)
 {
 	(void)server_general.channel->close(server_general.channel);
+	free(server_general.channel);
 	return SERVER_OK;
 }
 
