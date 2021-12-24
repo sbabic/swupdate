@@ -16,6 +16,7 @@
   "devDependencies": {
     "csslint": "^1.0.5",
     "del": "^3.0.0",
+    "eslint": "^5.11.1",
     "gulp": "^4.0.0",
     "gulp-clean-css": "^4.0.0",
     "gulp-filter": "^5.1.0",
@@ -26,21 +27,21 @@
     "gulp-minify": "^3.1.0",
     "gulp-rename": "^1.4.0",
     "gulp-replace": "^1.0.0",
-    "gulp-sass": "^4.0.2",
+    "gulp-sass": "^5.0.0",
     "gulp-tar": "^2.1.0",
     "gulp-useref": "^3.1.6",
     "htmlhint": "^0.10.1",
     "minimist": "^1.2.0",
+    "sass": "^1.45.1",
     "sass-lint": "^1.12.1",
-    "standard": "^12.0.1",
-    "eslint": "^5.11.1"
+    "standard": "^12.0.1"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.6.3",
     "bootstrap": "^4.2.1",
-    "popper.js": "^1.14.6",
     "dropzone": "5.5.1",
-    "jquery": "^3.3.1"
+    "jquery": "^3.3.1",
+    "popper.js": "^1.14.6"
   },
   "standard": {
     "ignore": [
