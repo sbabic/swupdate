@@ -791,6 +791,9 @@ itself has no direct support for xz it can be possible to extract tar.xz files w
 The attribute `preserve-attributes` must be set to preserve timestamps. uid/gid (numeric),
 permissions (except +x, always preserved) and extended attributes.
 
+The property `create-destination` can be set to the string `true` to have swupdate create
+the destination path before extraction.
+
 ::
 
                 files: (
@@ -800,6 +803,9 @@ permissions (except +x, always preserved) and extended attributes.
                                 path = "/extract/here";
                                 preserve-attributes = true;
                                 installed-directly = true;
+                                properties: {
+                                        create-destination = "true";
+                                }
                         }
                 );
 
