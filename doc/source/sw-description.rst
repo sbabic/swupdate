@@ -197,9 +197,9 @@ Multiple devices are supported by the default parser, too.
 In this way, it is possible to have a single image providing software
 for each device you have.
 
-By default the hardware information is extracted from
+By default, the hardware information is extracted from
 `/etc/hwrevision` file. The file should contain a single line in the
-following format::
+following format:
 
   <boardname> <revision>
 
@@ -216,7 +216,7 @@ Software collections
 --------------------
 
 Software collections and operation modes can be used to implement a
-dual copy strategy. The simplest case is to define two installation
+dual copy strategy. The simplest case is to define two installations
 locations for the firmware image and call `SWUpdate` selecting the
 appropriate image.
 
@@ -249,7 +249,7 @@ appropriate image.
 In this way it is possible to specify that `copy-1` gets installed to
 `/dev/mtd4`, while `copy-2` to `/dev/mtd5`. By properly selecting the
 installation locations, `SWUpdate` will update the firmware in the
-other slot.
+another slot.
 
 The method of image selection is out of the scope of SWUpdate and user
 is responsible for calling `SWUpdate` passing proper settings.
@@ -315,8 +315,8 @@ Take an example. The following sw-description describes the release for a set of
 
 On *myboard*, SWUpdate searches and find myboard.stable.copy1(2). When running on different
 boards, SWUpdate does not find an entry corresponding to the boardname and it fallbacks to the
-version without boardname. This lets realize the same release for different boards having
-a complete different hardware. `myboard` could have a eMMC and an ext4 filesystem,
+version without boardname. This let’s realize the same release for different boards having
+a completely different hardware. `myboard` could have an eMMC and an ext4 filesystem,
 while another device can have raw flash and install an UBI filesystem. Nevertheless, they are
 both just a different format of the same release and they could be described together in sw-description.
 It is important to understand the priorities how SWUpdate scans for entries during the parsing.
@@ -605,8 +605,8 @@ All fields are mandatory. SWUpdate searches for a volume of the given
 name and if necessary adjusts size or type (see below). If no volume
 with the given name is found, a new volume is created on the UBI
 device attached to the MTD device given by ``device``. ``device`` can
-be specified by number (e.g. "mtd4") or by name (the name of the MTD
-device, e.g. "ubi_partition"). The UBI device is attached
+be specified by number (e.g., "mtd4") or by name (the name of the MTD
+device, e.g., "ubi_partition"). The UBI device is attached
 automatically.
 
 The default behavior of swupdate is to create a dynamic UBI volume. To
@@ -681,7 +681,7 @@ The offset handles the following multiplicative suffixes: K=1024 and M=1024*1024
 
 However, writing to flash in raw mode must be managed in a special
 way. Flashes must be erased before copying, and writing into NAND
-must take care of bad blocks and ECC errors. For this reasons, the
+must take care of bad blocks and ECC errors. For these reasons, the
 handler "flash" must be selected:
 
 For example, to copy the kernel into the MTD7 of a NAND flash:
@@ -731,11 +731,11 @@ debugging or special purposes.
 Entries in "files" section are managed as single files. The attributes
 "filename" and "path" are mandatory. Attributes "device" and "filesystem" are
 optional; they tell SWUpdate to mount device (of the given filesystem type,
-e.g. "ext4") before copying "filename" to "path". Without "device" and
+e.g., "ext4") before copying "filename" to "path". Without "device" and
 "filesystem", the "filename" will be copied to "path" in the current rootfs.
 
 As a general rule, swupdate doesn't copy out a file if the destination path
-doesn't exists. This behavior could be changed using the special property
+doesn't exist. This behavior could be changed using the special property
 "create-destination".
 
 Scripts
@@ -1070,7 +1070,7 @@ where each field is a plain number (no alphanumeric) in the range 0..65535.
 User can add further fields using the dot separator, but they are not
 considered for version comparison. SWUpdate will check if a version
 number is set according to this rule, and fallback to semantic version
-if fails. The version is converted in a 64 bit number (each field is 16 bit)
+if fails. The version is converted in a 64-bit number (each field is 16 bit)
 and compare with the running version of the same artifact.
 
 Please consider that, because additional fields are descriptive only, for the
@@ -1116,7 +1116,7 @@ device in a single file, but the device should install it just when needed.
 SWUpdate searches for a file (/etc/sw-versions is the default location)
 containing all versions of the installed images. This must be generated
 before running SWUpdate.
-The file must contains pairs with the name of image and his version, as:
+The file must contain pairs with the name of image and his version, as:
 
 ::
 
@@ -1318,7 +1318,7 @@ There are 4 main sections inside sw-description:
    +-------------+----------+------------+---------------------------------------+
    | type        | string   | images     | string identifier for the handler,    |
    |             |          | files      | as it is set by the handler when it   |
-   |             |          | scripts    | regitsters itself.                    |
+   |             |          | scripts    | registers itself.                    |
    |             |          |            | Example: "ubivol", "raw", "rawfile",  |
    +-------------+----------+------------+---------------------------------------+
    | compressed  | string   | images     | string to indicate the "filename" is  |
@@ -1373,7 +1373,7 @@ There are 4 main sections inside sw-description:
    |             |          | scripts    | set. Each artefact can have an own    |
    |             |          |            | IVT to avoid attacker can guess the   |
    |             |          |            | the key.                              |
-   |             |          |            | It is a ASCII string of 32 chars      |
+   |             |          |            | It is an ASCII string of 32 chars      |
    +-------------+----------+------------+---------------------------------------+
    | data        | string   | images     | This is used to pass arbitrary data   |
    |             |          | files      | to a handler.                         |
