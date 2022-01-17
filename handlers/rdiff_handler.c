@@ -177,7 +177,7 @@ static inline void rdiff_stats(const char* msg, struct rdiff_t *rdiff_state, rs_
 		  msg, buffers->avail_in, buffers->avail_out, strresult);
 }
 
-static int apply_rdiff_chunk_cb(void *out, const void *buf, unsigned int len)
+static int apply_rdiff_chunk_cb(void *out, const void *buf, size_t len)
 {
 	struct rdiff_t *rdiff_state = (struct rdiff_t *)out;
 	rs_buffers_t *buffers = &rdiff_state->buffers;

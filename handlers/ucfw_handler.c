@@ -407,7 +407,7 @@ static int prepare_update(struct handler_priv *priv,
 	return 0;
 }
 
-static int update_fw(void *data, const void *buffer, unsigned int size)
+static int update_fw(void *data, const void *buffer, size_t size)
 {
 	int cnt = 0;
 	char c;

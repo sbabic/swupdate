@@ -120,9 +120,9 @@ void extract_padding(int fd, unsigned long *offset)
  * Export the copy_write{,_*} functions to be used in other modules
  * for copying a buffer to a file.
  */
-int copy_write(void *out, const void *buf, unsigned int len)
+int copy_write(void *out, const void *buf, size_t len)
 {
-	int ret;
+	ssize_t ret;
 	int fd;
 
 	if (!out) {
@@ -138,12 +138,12 @@ int copy_write(void *out, const void *buf, unsigned int len)
 		if (ret < 0) {
 			if (errno == EINTR)
 				continue;
-			ERROR("cannot write %d bytes: %s", len, strerror(errno));
+			ERROR("cannot write %lu bytes: %s", len, strerror(errno));
 			return -1;
 		}
 
 		if (ret == 0) {
-			ERROR("cannot write %d bytes: %s", len, strerror(errno));
+			ERROR("cannot write %lu bytes: %s", len, strerror(errno));
 			return -1;
 		}
 
@@ -162,7 +162,7 @@ int copy_write(void *out, const void *buf, unsigned int len)
  * length is smaller than cpio_utils.c's CPIO_BUFFER_SIZE and
  * doesn't satisfy length % 512 == 0.
  */
-int copy_write_padded(void *out, const void *buf, unsigned int len)
+int copy_write_padded(void *out, const void *buf, size_t len)
 {
 	if (len % 512 == 0) {
 		return copy_write(out, buf, len);
@@ -197,7 +197,7 @@ struct InputState
 	input_type_t source;
 	unsigned char *inbuf;
 	size_t pos;
-	unsigned int nbytes;
+	size_t nbytes;
 	unsigned long *offs;
 	void *dgst;	/* use a private context for HASH */
 	uint32_t checksum;
@@ -404,7 +404,7 @@ static int zstd_step(void* state, void* buffer, size_t size)
 
 #endif
 
-static int __swupdate_copy(int fdin, unsigned char *inbuf, void *out, unsigned int nbytes, unsigned long *offs, unsigned long long seek,
+static int __swupdate_copy(int fdin, unsigned char *inbuf, void *out, size_t nbytes, unsigned long *offs, unsigned long long seek,
 	int skip_file, int __attribute__ ((__unused__)) compressed,
 	uint32_t *checksum, unsigned char *hash, bool encrypted, const char *imgivt, writeimage callback)
 {
@@ -672,7 +672,7 @@ copyfile_exit:
 	return ret;
 }
 
-int copyfile(int fdin, void *out, unsigned int nbytes, unsigned long *offs, unsigned long long seek,
+int copyfile(int fdin, void *out, size_t nbytes, unsigned long *offs, unsigned long long seek,
 	int skip_file, int __attribute__ ((__unused__)) compressed,
 	uint32_t *checksum, unsigned char *hash, bool encrypted, const char *imgivt, writeimage callback)
 {
@@ -691,7 +691,7 @@ int copyfile(int fdin, void *out, unsigned int nbytes, unsigned long *offs, unsi
 				callback);
 }
 
-int copybuffer(unsigned char *inbuf, void *out, unsigned int nbytes, int __attribute__ ((__unused__)) compressed,
+int copybuffer(unsigned char *inbuf, void *out, size_t nbytes, int __attribute__ ((__unused__)) compressed,
 	unsigned char *hash, bool encrypted, const char *imgivt, writeimage callback)
 {
 	return __swupdate_copy(-1,

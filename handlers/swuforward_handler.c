@@ -91,7 +91,7 @@ static size_t curl_read_data(char *buffer, size_t size, size_t nmemb, void *user
  * This is the copyimage's callback. When called,
  * there is a buffer to be passed to curl connections
  */
-static int swu_forward_data(void *data, const void *buf, unsigned int len)
+static int swu_forward_data(void *data, const void *buf, size_t len)
 {
 	struct hnd_priv *priv = (struct hnd_priv *)data;
 	ssize_t written;

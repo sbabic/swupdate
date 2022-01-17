@@ -400,7 +400,7 @@ copyfile_exit:
 	return 2;
 }
 
-static int istream_read_callback(void *out, const void *buf, unsigned int len)
+static int istream_read_callback(void *out, const void *buf, size_t len)
 {
 	lua_State* L = (lua_State*)out;
 	if (len > LUAL_BUFFERSIZE) {
