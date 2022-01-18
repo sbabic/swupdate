@@ -527,7 +527,7 @@ void server_print_help(void)
 	    stdout,
 	    "\t  -u, --url         * Host and port of the server instance, "
 	    "e.g., localhost:8080\n"
-	    "\t  -p, --polldelay     Delay in seconds between two hawkBit "
+	    "\t  -p, --polldelay     Delay in seconds between two server "
 	    "poll operations (default: %ds).\n"
 	    "\t  -r, --retry         Resume and retry interrupted downloads "
 	    "(default: %d tries).\n"
