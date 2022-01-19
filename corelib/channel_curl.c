@@ -440,8 +440,8 @@ static int channel_callback_xferinfo(void *p, curl_off_t dltotal, curl_off_t dln
 		data->percent = percent;
 
 	DEBUG("Downloaded %d%% (%lu of %lu kB)", percent,
-	      (unsigned long)dlnow / 1024,
-	      (unsigned long)dltotal / 1024);
+		(unsigned long)dlnow / 1024,
+		(unsigned long)dltotal / 1024);
 	swupdate_download_update(percent, dltotal);
 
 	return 0;
