@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2021 James Hilliard <james.hilliard1@gmail.com>
+#
+# SPDX-License-Identifier: MIT
+
 on:
   pull_request_target:
     types:
