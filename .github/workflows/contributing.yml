@@ -1,0 +1,29 @@
+on:
+  pull_request_target:
+    types:
+      - opened
+
+jobs:
+  comment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install pandoc
+        run: sudo apt-get install pandoc
+      - uses: actions/github-script@v5
+        with:
+          script: |
+            const contributing = await github.rest.repos.getContent({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              path: 'doc/source/contributing.rst',
+            })
+            options = {
+              input: Buffer.from(contributing.data.content, 'base64')
+            }
+            mdout = await exec.getExecOutput('pandoc', ['-f', 'rst', '-t', 'gfm'], options)
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: mdout.stdout
+            })

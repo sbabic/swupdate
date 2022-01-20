@@ -123,3 +123,4 @@ web-app/swupdate-www.tar.gz
 
 # ci
 !.gitlab-ci.yml
+!.github
