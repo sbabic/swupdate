@@ -1036,6 +1036,7 @@ static int luaopen_swupdate(lua_State *L)
 		lua_push_enum(L, "SCRIPT_HANDLER", SCRIPT_HANDLER);
 		lua_push_enum(L, "BOOTLOADER_HANDLER", BOOTLOADER_HANDLER);
 		lua_push_enum(L, "PARTITION_HANDLER", PARTITION_HANDLER);
+		lua_push_enum(L, "NO_DATA_HANDLER", NO_DATA_HANDLER);
 		lua_push_enum(L, "ANY_HANDLER", ANY_HANDLER);
 		lua_settable(L, -3);
 
