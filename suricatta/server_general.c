@@ -398,7 +398,7 @@ cleanup:
 	curl_easy_cleanup(curl);
 
 	if (!qry)
-		qry = url;
+		qry = strdup(url);
 
 	return qry;
 
