@@ -465,7 +465,6 @@ static server_op_res_t server_get_deployment_info(channel_t *channel, channel_da
 	channel_data->url= server_prepare_query(server_general.url, &server_general.configdata);
 
 	LIST_INIT(&server_general.received_httpheaders);
-	LIST_INIT(&server_general.httpheaders_to_send);
 	channel_data->received_headers = &server_general.received_httpheaders;
 
 	result = map_http_retcode(channel->get(channel, (void *)channel_data));
@@ -669,8 +668,10 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 			SETSTRING(server_general.cached_file, optarg);
 			break;
 		case 'a':
-			if (optind >= argc)
+			if (optind >= argc) {
+				ERROR("Wrong option format for --custom-http-header, see --help.");
 				return SERVER_EINIT;
+			}
 
 			if (dict_insert_value(&server_general.httpheaders_to_send,
 						optarg,
@@ -729,6 +730,7 @@ server_op_res_t server_stop(void)
 {
 	(void)server_general.channel->close(server_general.channel);
 	free(server_general.channel);
+	dict_drop_db(&server_general.httpheaders_to_send);
 	return SERVER_OK;
 }
 
