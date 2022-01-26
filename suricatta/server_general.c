@@ -485,28 +485,16 @@ static server_op_res_t server_get_deployment_info(channel_t *channel, channel_da
 
 server_op_res_t server_has_pending_action(int *action_id)
 {
-
-	channel_data_t channel_data = channel_data_defaults;
-	server_op_res_t result =
-	    server_get_deployment_info(server_general.channel,
-				       &channel_data);
-
-	/*
-	 * action_id is not used by this server
-	 * There is no memory between one call and the next one
-	 */
 	*action_id = 0;
 
-	if ((result == SERVER_UPDATE_AVAILABLE) &&
-	    (get_state() == STATE_INSTALLED)) {
-		WARN("An already installed update is pending testing, "
-		     "ignoring available update action.");
-		INFO("Please restart SWUpdate to report the test results "
-		     "upstream.");
-		result = SERVER_NO_UPDATE_AVAILABLE;
+	if (get_state() == STATE_INSTALLED) {
+		WARN("An already installed update is pending testing.");
+		return SERVER_NO_UPDATE_AVAILABLE;
 	}
 
-	return result;
+	channel_data_t channel_data = channel_data_defaults;
+	return server_get_deployment_info(server_general.channel,
+					  &channel_data);
 }
 
 server_op_res_t server_send_target_data(void)
