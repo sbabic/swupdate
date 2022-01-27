@@ -68,6 +68,11 @@ A common pattern for a toggling in the bootloader is:
   action after having sufficiently checked that the new software is running. This includes
   performing in the application a database migration, starting communicating with peers, whatever.
 
+A possible diagram is shown in next picture - it is not supposed to work with any project, but it gives an idea
+how fallback is working together with the bootloaders.
+
+.. image:: images/statemachine.png
+
 Check in advance which security topics are relevant for your project. This includes:
 
 - signed images (SWU is verified before installing), and then which crypto mechanism is used

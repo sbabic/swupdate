@@ -1,0 +1,106 @@
+# SPDX-FileCopyrightText: 2022 Stefano Babic <sbabic@denx.de>
+#
+# SPDX-License-Identifier: GPL-2.0-only
+
+digraph G {
+  ratio="fill";
+  size="8.3,11.7!";
+  node [fontname = "Handlee"];
+  edge [fontname = "Handlee"];
+
+  start [
+    label = "System start";
+    shape = rect;
+    style=filled;
+    fillcolor=blue;
+  ];
+  inccounter [
+    label = "bootcounter++";
+    shape = rect;
+  ];
+  bootcounter [
+    label = "bootcounter < bootlimit ?";
+    shape = diamond;
+  ];
+
+  ustate [
+    label = "ustate == 1 ?";
+    shape = diamond;
+  ];
+  failed [
+    label = "ustate = 3 (FAILED)";
+    shape = rect;
+  ];
+  toggle [
+    label = "toggle devices";
+    shape = rect;
+  ];
+  normal [
+    label = "normal boot";
+    shape = rect;
+  ];
+
+  success [
+    label = "Success ?";
+    shape = diamond;
+  ];
+
+  reset [
+    label = "System reset";
+    shape = rect;
+  ];
+
+  rescue [
+    label = "Rescue System (ramdisk)";
+    shape = rect;
+    style=filled;
+    fillcolor=red;
+  ];
+
+  running [
+    label = "OS running";
+    shape = rect;
+  ];
+  running [
+    label = "OS running";
+    shape = rect;
+  ];
+  notworking [
+    label = "Panic ?\nWatchdog ?\nApp not functional ?";
+
+    shape = diamond;
+  ];
+  final [
+    label = "ustate = 0, bootcounter = 0";
+    shape = rect;
+  ];
+  operational [
+    label = "OPERATIONAL";
+    shape = oval;
+    style=filled;
+    fillcolor=green;
+  ];
+  start -> inccounter;
+  inccounter -> bootcounter;
+  bootcounter -> ustate [ label = "No" ];
+  bootcounter -> normal [ label = "Yes" ];
+  ustate:s -> failed [ label = "Yes" ];
+  failed -> toggle;
+  toggle -> normal;
+  normal -> success;
+  success -> reset [ label = "No" ];
+  success -> running [ label = "Yes" ];
+  reset -> start;
+  running -> notworking;
+
+
+  ustate:w -> rescue [ label = "No" ];
+  {
+    rank=same;
+    rescue;
+  }
+
+  notworking -> final [ label = "No" ];
+  notworking:e -> reset [ label = "Yes"];
+  final -> operational;
+}
