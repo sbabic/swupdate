@@ -361,31 +361,12 @@ endmenu
 
 endmenu
 
+comment "Bootloader support"
+
 source bootloader/Config.in
 
 
-choice
-	prompt "SSL implementation to use"
-	default SSL_IMPL_OPENSSL
-	help
-	  Select SSL implementation for hashing, verifying and decrypting images.
-
-	config SSL_IMPL_NONE
-		bool "None"
-
-	config SSL_IMPL_OPENSSL
-		bool "OpenSSL"
-		depends on HAVE_LIBSSL
-
-	config SSL_IMPL_WOLFSSL
-		bool "wolfSSL (with OpenSSL compatibility layer)"
-		depends on HAVE_WOLFSSL
-
-	config SSL_IMPL_MBEDTLS
-		bool "mbedTLS"
-		depends on HAVE_MBEDTLS
-
-endchoice
+comment Interfaces
 
 config DOWNLOAD
 	bool "Enable image downloading"
@@ -411,6 +392,36 @@ config CHANNEL_CURL
 	bool
 	depends on HAVE_LIBCURL
 	select CURL
+
+source suricatta/Config.in
+
+source mongoose/Config.in
+
+comment Security
+
+choice
+	prompt "SSL implementation to use"
+	default SSL_IMPL_OPENSSL
+	help
+	  Select SSL implementation for hashing, verifying and decrypting images.
+
+	config SSL_IMPL_NONE
+		bool "None"
+
+	config SSL_IMPL_OPENSSL
+		bool "OpenSSL"
+		depends on HAVE_LIBSSL
+
+	config SSL_IMPL_WOLFSSL
+		bool "wolfSSL (with OpenSSL compatibility layer)"
+		depends on HAVE_WOLFSSL
+
+	config SSL_IMPL_MBEDTLS
+		bool "mbedTLS"
+		depends on HAVE_MBEDTLS
+
+endchoice
+
 
 config CHANNEL_CURL_SSL
 	bool
@@ -494,9 +505,7 @@ config PKCS11
 	  key available in a file. This is implemented with wolfSSL independent
 	  from the SSL implementation and replaces the plain key method.
 
-source suricatta/Config.in
-
-source mongoose/Config.in
+comment "Compressors (zlib always on)"
 
 config GUNZIP
 	bool
@@ -507,5 +516,8 @@ config ZSTD
 	bool "Zstd compression support"
 	depends on HAVE_ZSTD
 
+comment Parsers
 source parser/Config.in
+
+comment Handlers
 source handlers/Config.in
