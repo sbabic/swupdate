@@ -13,6 +13,7 @@ SWUpdate - Software Update for Embedded Linux Devices
 [![Coverity Scan Build Status](https://scan.coverity.com/projects/20753/badge.svg)](https://scan.coverity.com/projects/20753)
 ![License](https://img.shields.io/github/license/sbabic/swupdate)
 [![REUSE status](https://api.reuse.software/badge/github.com/sbabic/swupdate)](https://api.reuse.software/info/github.com/sbabic/swupdate)
+[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/donate/?hosted_button_id=R7Y5JDQB7E3YU)
 
 [SWUpdate](https://swupdate.org) is a Linux Update agent with the goal to
 provide an efficient and safe way to update
