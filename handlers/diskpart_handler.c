@@ -186,8 +186,8 @@ static int diskpart_assign_context(struct fdisk_context **cxt,struct img_type *i
 	 */
 	ret = fdisk_assign_device(parent, path, 0);
 	free(path);
-	if (ret == -EACCES) {
-		ERROR("no access to %s", img->device);
+	if (ret < 0) {
+		ERROR("Device %s cannot be opened: %s", img->device, strerror(-ret));
 		return ret;
 	}
 
