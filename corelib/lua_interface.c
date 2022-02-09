@@ -180,6 +180,21 @@ void LUAstackDump(lua_State *L)
 	}
 }
 
+static void lua_report_exception(lua_State *L)
+{
+	const char *s = lua_tostring(L, -1);
+
+	TRACE("Lua exception:");
+
+	/* Log one line at a time, so each has the proper prefix */
+	do {
+		int len = strcspn(s, "\n");
+
+		TRACE("%.*s", len, s);
+		s += len;
+	} while (*s++);
+}
+
 int run_lua_script(const char *script, const char *function, char *parms)
 {
 	int ret;
@@ -1234,7 +1249,7 @@ int lua_handlers_init(void)
 		if ((ret = (luaL_loadbuffer(gL, EMBEDDED_LUA_SRC_START, EMBEDDED_LUA_SRC_END-EMBEDDED_LUA_SRC_START, "LuaHandler") ||
 					lua_pcall(gL, 0, LUA_MULTRET, 0))) != 0) {
 			INFO("No compiled-in Lua handler(s) found.");
-			TRACE("Lua exception:\n%s", lua_tostring(gL, -1));
+			lua_report_exception(gL);
 			lua_pop(gL, 1);
 		} else {
 			INFO("Compiled-in Lua handler(s) found and loaded.");
