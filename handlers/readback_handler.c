@@ -52,7 +52,7 @@ static int readback_postinst(struct img_type *img)
 	}
 
 	/* Get property: partition size */
-	unsigned int size = 0;
+	size_t size = 0;
 	char *value = dict_get_value(&img->properties, "size");
 	if (value) {
 		size = strtoul(value, NULL, 10);
@@ -83,7 +83,7 @@ static int readback_postinst(struct img_type *img)
 			close(fdin);
 			return -EFAULT;
 		}
-		TRACE("Partition size: %u", size);
+		TRACE("Partition size: %zu", size);
 	}
 
 	/* 
