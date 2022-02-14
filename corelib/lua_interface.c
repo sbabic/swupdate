@@ -956,6 +956,23 @@ static int l_getversion(lua_State *L)
 }
 
 /**
+ * @brief Dispatch a message to the progress interface.
+ *
+ * @param [Lua] Message to dispatch to progress interface.
+ * @return [Lua] nil.
+ */
+static int l_notify_progress(lua_State *L) {
+  /*
+   * NOTE: level is INFOLEVEL for the sake of specifying a level.
+   * It is unused in core/notifier.c :: progress_notifier() as the
+   * progress emitter doesn't know about log levels.
+   */
+  notify(PROGRESS, RECOVERY_NO_ERROR, INFOLEVEL, luaL_checkstring(L, -1));
+  lua_pop(L, 1);
+  return 0;
+}
+
+/**
  * @brief array with the function which are exported to Lua
  */
 static const luaL_Reg l_swupdate[] = {
@@ -969,6 +986,7 @@ static const luaL_Reg l_swupdate[] = {
         { "umount", l_umount },
         { "getroot", l_getroot },
         { "getversion", l_getversion },
+        { "progress", l_notify_progress },
         { NULL, NULL }
 };
 
