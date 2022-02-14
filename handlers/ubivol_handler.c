@@ -203,7 +203,7 @@ static int update_volume(libubi_t libubi, struct img_type *img,
 	notify(RUN, RECOVERY_NO_ERROR, INFOLEVEL, sbuf);
 
 	TRACE("Updating UBI : %s %lld",
-			img->fname, img->size);
+			img->fname, bytes);
 	if (copyimage(&fdout, img, NULL) < 0) {
 		ERROR("Error copying extracted file");
 		err = -1;
