@@ -877,7 +877,7 @@ bool swupdate_verify_chksum(const uint32_t chk1, struct filehdr *fhdr) {
 	if (fhdr->format == CPIO_NEWASCII)
 		return true;
 	if (!ret) {
-		ERROR("Checksum WRONG ! Computed 0x%ux, it should be 0x%ux",
+		ERROR("Checksum WRONG ! Computed 0x%x, it should be 0x%x",
 			chk1, (uint32_t)fhdr->chksum);
 	}
 	return ret;
