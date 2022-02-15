@@ -535,9 +535,13 @@ static int diskpart_fill_table(struct fdisk_context *cxt, struct diskpart_table 
 		 * GPT uses strings instead of hex code for partition type
 		 */
 		if (fdisk_is_label(PARENT(cxt), GPT)) {
-			parttype = fdisk_label_get_parttype_from_string(lb, part->type);
-			if (!parttype)
+			if (part->type[0]) {
+				parttype = fdisk_label_get_parttype_from_string(lb, part->type);
+				if (!parttype)
+					parttype = fdisk_new_unknown_parttype(0, part->type);
+			} else {
 				parttype = fdisk_label_get_parttype_from_string(lb, GPT_DEFAULT_ENTRY_TYPE);
+			}
 		} else {
 			parttype = fdisk_label_get_parttype_from_code(lb, ustrtoull(part->type, 16));
 		}
