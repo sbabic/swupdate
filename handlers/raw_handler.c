@@ -206,6 +206,7 @@ static int install_raw_file(struct img_type *img,
 	void __attribute__ ((__unused__)) *data)
 {
 	char path[255];
+	char tmp_path[255];
 	int fdout;
 	int ret = 0;
 	int use_mount = (strlen(img->device) && strlen(img->filesystem)) ? 1 : 0;
@@ -237,8 +238,16 @@ static int install_raw_file(struct img_type *img,
 		}
 	}
 
-	TRACE("Installing file %s on %s",
-		img->fname, path);
+	if (strtobool(dict_get_value(&img->properties, "atomic-install"))) {
+		if (snprintf(tmp_path, sizeof(tmp_path), "%s.tmp", path) >= (int)sizeof(tmp_path)) {
+			ERROR("Temp path too long: %s.tmp", img->path);
+			return -1;
+		}
+	}
+	else {
+		snprintf(tmp_path, sizeof(tmp_path), "%s", path);
+	}
+	TRACE("Installing file %s on %s", img->fname, tmp_path);
 
 	if (strtobool(dict_get_value(&img->properties, "create-destination"))) {
 		TRACE("Creating path %s", path);
@@ -249,7 +258,7 @@ static int install_raw_file(struct img_type *img,
 		}
 	}
 
-	fdout = openfileoutput(path);
+	fdout = openfileoutput(tmp_path);
 	if (fdout < 0)
 		return fdout;
 	if (!img_check_free_space(img, fdout)) {
@@ -260,7 +269,21 @@ static int install_raw_file(struct img_type *img,
 	if (ret< 0) {
 		ERROR("Error copying extracted file");
 	}
+
+	if(fsync(fdout)) {
+		ERROR("Error writing %s to disk: %s", tmp_path, strerror(errno));
+		return -1;
+	}
+
 	close(fdout);
+
+	if (strtobool(dict_get_value(&img->properties, "atomic-install"))) {
+		TRACE("Renaming file %s to %s", tmp_path, path);
+		if(rename(tmp_path, path)) {
+			ERROR("Error renaming %s to %s: %s", tmp_path, path, strerror(errno));
+			return -1;
+		}
+	}
 
 	if (use_mount) {
 		swupdate_umount(DATADST_DIR);

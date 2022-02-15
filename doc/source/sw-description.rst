@@ -738,6 +738,17 @@ As a general rule, swupdate doesn't copy out a file if the destination path
 doesn't exists. This behavior could be changed using the special property
 "create-destination".
 
+As another general rule, the raw file handler installs the file directly to the
+specified path. If the target file already exists and the raw file handler
+is interrupted, the existing file may be replaced by an empty or partially
+written file. A use case can exist where having an empty or corrupted file is
+worse than the existing file. For this reason, the raw file handler supports an
+"atomic-install" property. Setting the property to "true" installs the file to
+the specified path with ".tmp" apppended to the filename. Once the contents of
+the file have been written and the buffer is flushed, the ".tmp" file is renamed
+to the target file. This minimizes chances that an empty or corrupted file is
+created by an interrupted raw file handler.
+
 Scripts
 -------
 
