@@ -79,6 +79,7 @@ static void usage_hawkbitcfg(const char *program) {
 		"\t\t-p, --polling-time      : Set polling time (0=from server) to ask the backend server\n"
 		"\t\t-e, --enable            : Enable polling of backend server\n"
 		"\t\t-d, --disable           : Disable polling of backend server\n"
+		"\t\t-t, --trigger           : Enable and check for update\n"
 		);
 }
 
@@ -127,6 +128,7 @@ static struct option hawkbitcfg_options[] = {
 	{"polling-time", required_argument, NULL, 'p'},
 	{"enable", no_argument, NULL, 'e'},
 	{"disable", no_argument, NULL, 'd'},
+	{"trigger", no_argument, NULL, 't'},
 	{NULL, 0, NULL, 0}
 };
 
@@ -137,6 +139,7 @@ static int hawkbitcfg(cmd_t  __attribute__((__unused__)) *cmd, int argc, char *a
 	int c;
 	unsigned long polling_time;
 	bool enable = false;
+	bool trigger = false;
 	int opt_e = 0;
 	int opt_p = 0;
 
@@ -148,7 +151,7 @@ static int hawkbitcfg(cmd_t  __attribute__((__unused__)) *cmd, int argc, char *a
 	buf = msg.data.procmsg.buf;
 
 	/* Process options with getopt */
-	while ((c = getopt_long(argc, argv, "p:edh",
+	while ((c = getopt_long(argc, argv, "p:edth",
 				hawkbitcfg_options, NULL)) != EOF) {
 		switch (c) {
 		case 'p':
@@ -158,9 +161,11 @@ static int hawkbitcfg(cmd_t  __attribute__((__unused__)) *cmd, int argc, char *a
 			break;
 		case 'e':
 		case 'd':
+		case 't':
 			msg.data.procmsg.cmd = CMD_ENABLE;
 			opt_e = 1;
-			enable = (c == 'e');
+			trigger = (c == 't');
+			enable = (c == 'e') || trigger;
 			break;
 		}
 	}
@@ -178,7 +183,7 @@ static int hawkbitcfg(cmd_t  __attribute__((__unused__)) *cmd, int argc, char *a
 		send_msg(&msg);
 	}
 	if (opt_e) {
-		snprintf(buf, size, "{ \"enable\" : %s}", enable ? "true" : "false");
+		snprintf(buf, size, trigger ? "{ \"trigger\" : %s}" : "{ \"enable\" : %s}", enable ? "true" : "false");
 		msg.data.procmsg.len = strnlen(buf, size);
 		send_msg(&msg);
 	}
