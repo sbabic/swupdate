@@ -218,26 +218,6 @@ static int install_raw_file(struct img_type *img,
 		return -1;
 	}
 
-	if (use_mount) {
-		ret = swupdate_mount(img->device, DATADST_DIR, img->filesystem);
-		if (ret) {
-			ERROR("Device %s with filesystem %s cannot be mounted: %s",
-				img->device, img->filesystem, strerror(errno));
-			return -1;
-		}
-
-		if (snprintf(path, sizeof(path), "%s%s",
-					 DATADST_DIR, img->path) >= (int)sizeof(path)) {
-			ERROR("Path too long: %s%s", DATADST_DIR, img->path);
-			return -1;
-		}
-	} else {
-		if (snprintf(path, sizeof(path), "%s", img->path) >= (int)sizeof(path)) {
-			ERROR("Path too long: %s", img->path);
-			return -1;
-		}
-	}
-
 	if (strtobool(dict_get_value(&img->properties, "atomic-install"))) {
 		if (snprintf(tmp_path, sizeof(tmp_path), "%s.tmp", path) >= (int)sizeof(tmp_path)) {
 			ERROR("Temp path too long: %s.tmp", img->path);
@@ -247,6 +227,27 @@ static int install_raw_file(struct img_type *img,
 	else {
 		snprintf(tmp_path, sizeof(tmp_path), "%s", path);
 	}
+
+	if (use_mount) {
+		if (snprintf(path, sizeof(path), "%s%s",
+					 DATADST_DIR, img->path) >= (int)sizeof(path)) {
+			ERROR("Path too long: %s%s", DATADST_DIR, img->path);
+			return -1;
+		}
+
+		ret = swupdate_mount(img->device, DATADST_DIR, img->filesystem);
+		if (ret) {
+			ERROR("Device %s with filesystem %s cannot be mounted: %s",
+				img->device, img->filesystem, strerror(errno));
+			return -1;
+		}
+	} else {
+		if (snprintf(path, sizeof(path), "%s", img->path) >= (int)sizeof(path)) {
+			ERROR("Path too long: %s", img->path);
+			return -1;
+		}
+	}
+
 	TRACE("Installing file %s on %s", img->fname, tmp_path);
 
 	if (strtobool(dict_get_value(&img->properties, "create-destination"))) {
@@ -254,25 +255,32 @@ static int install_raw_file(struct img_type *img,
 		fdout = mkpath(dirname(strdupa(path)), 0755);
 		if (fdout < 0) {
 			ERROR("I cannot create path %s: %s", path, strerror(errno));
-			return -1;
+			ret = -1;
+			goto install_raw_file_out;
 		}
 	}
 
 	fdout = openfileoutput(tmp_path);
-	if (fdout < 0)
-		return fdout;
+	if (fdout < 0) {
+		ret = fdout;
+		goto install_raw_file_out;
+	}
 	if (!img_check_free_space(img, fdout)) {
-		return -ENOSPC;
+		close(fdout);
+		ret = -ENOSPC;
+		goto install_raw_file_out;
 	}
 
 	ret = copyimage(&fdout, img, NULL);
-	if (ret< 0) {
+	if (ret < 0) {
 		ERROR("Error copying extracted file");
 	}
 
-	if(fsync(fdout)) {
+	if (fsync(fdout)) {
 		ERROR("Error writing %s to disk: %s", tmp_path, strerror(errno));
-		return -1;
+		ret = -1;
+		close(fdout);
+		goto install_raw_file_out;
 	}
 
 	close(fdout);
@@ -281,10 +289,11 @@ static int install_raw_file(struct img_type *img,
 		TRACE("Renaming file %s to %s", tmp_path, path);
 		if(rename(tmp_path, path)) {
 			ERROR("Error renaming %s to %s: %s", tmp_path, path, strerror(errno));
-			return -1;
+			ret = -1;
 		}
 	}
 
+install_raw_file_out:
 	if (use_mount) {
 		swupdate_umount(DATADST_DIR);
 	}
