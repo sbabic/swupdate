@@ -930,8 +930,7 @@ static int install_delta(struct img_type *img,
 	 * FIFO to communicate with the chainhandler thread
 	 */
 	unlink(FIFO);
-	ret = mkfifo(FIFO, 0600);
-	if (ret) {
+	if (mkfifo(FIFO, 0600)) {
 		ERROR("FIFO cannot be created in delta handler");
 		goto cleanup;
 	}
