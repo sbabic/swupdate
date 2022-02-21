@@ -1027,6 +1027,8 @@ static channel_op_res_t channel_put_method(channel_t *this, void *data)
 	channel_op_res_t result = CHANNEL_OK;
 	channel_data_t *channel_data = (channel_data_t *)data;
 	channel_data->offs = 0;
+	output_data_t outdata = {};
+	write_callback_t wrdata = { .this = this, .channel_data = channel_data, .outdata = &outdata };
 
 	if ((result = channel_set_content_type(this, channel_data)) !=
 	    CHANNEL_OK) {
@@ -1036,6 +1038,10 @@ static channel_op_res_t channel_put_method(channel_t *this, void *data)
 
 	if ((result = channel_set_options(this, channel_data)) != CHANNEL_OK) {
 		ERROR("Set channel option failed.");
+		goto cleanup_header;
+	}
+
+	if ((result = setup_reply_buffer(channel_curl->handle, &wrdata)) != CHANNEL_OK) {
 		goto cleanup_header;
 	}
 
@@ -1074,6 +1080,7 @@ static channel_op_res_t channel_put_method(channel_t *this, void *data)
 	channel_log_reply(result, channel_data, NULL);
 
 cleanup_header:
+	outdata.memory != NULL ? free(outdata.memory) : (void)0;
 	curl_easy_reset(channel_curl->handle);
 	curl_slist_free_all(channel_curl->header);
 	channel_curl->header = NULL;
