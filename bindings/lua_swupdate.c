@@ -279,6 +279,13 @@ static luaL_Reg progress_methods[] = {
     {NULL,          NULL}
 };
 
+/**
+ * @brief Connect to SWUpdate progress socket.
+ *
+ * @param  [Lua] The swupdate_progress class instance.
+   @return [Lua] The connection handle (mostly for information), or,
+ *               in case of errors, nil plus an error message.
+ */
 static int progress_connect(lua_State *L) {
 	struct prog_obj *p = (struct prog_obj *) auxiliar_checkclass(L, "swupdate_progress", 1);
 	int connfd;
@@ -286,12 +293,19 @@ static int progress_connect(lua_State *L) {
 	close(p->socket);
 	connfd = progress_ipc_connect(WAIT);
 	if (connfd < 0) {
+		lua_pop(L, 1);
 		lua_pushnil(L);
+		lua_pushstring(L, "Cannot connect to SWUpdate progress socket.");
 		return 2;
 	}
 	p->socket = connfd;
 	p->status = IDLE;
-	return 1;
+
+	lua_pop(L, 1);
+	lua_pushnumber(L, connfd);
+	lua_pushnil(L);
+
+	return 2;
 }
 
 static int progress_close(lua_State __attribute__ ((__unused__)) *L) {
