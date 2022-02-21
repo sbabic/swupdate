@@ -74,11 +74,6 @@ static void send_progress_msg(void)
 		while (count > 0) {
 			n = send(conn->sockfd, buf, count, MSG_NOSIGNAL);
 			if (n <= 0) {
-				if (n == 0) {
-					TRACE("A progress client is not responding, removing it.");
-				} else {
-					TRACE("A progress client disappeared, removing it: %s", strerror(errno));
-				}
 				close(conn->sockfd);
 				SIMPLEQ_REMOVE(&pprog->conns, conn,
 					       	progress_conn, next);
