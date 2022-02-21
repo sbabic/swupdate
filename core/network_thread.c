@@ -532,9 +532,10 @@ void *network_thread (void *data)
 				if (instp->status == IDLE) {
 					instp->fd = ctrlconnfd;
 					instp->req = msg.data.instmsg.req;
-					if (is_selection_allowed(instp->req.software_set,
-								 instp->req.running_mode,
-								 &instp->software->accepted_set)) {
+					if ((instp->req.apiversion == SWUPDATE_API_VERSION) &&
+					    (is_selection_allowed(instp->req.software_set,
+								  instp->req.running_mode,
+								  &instp->software->accepted_set))) {
 						/*
 						 * Prepare answer
 						 */
