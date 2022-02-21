@@ -338,28 +338,17 @@ static int progress_receive(lua_State *L) {
 }
 
 static int progress(lua_State *L) {
-
-	int connfd;
-
-	connfd = progress_ipc_connect(WAIT);
-
-	if (connfd < 0) {
-		lua_pushnil(L);
-		return 2;
-	}
-
-	/* allocate   progress object */
+	/* allocate progress object */
 	struct prog_obj *p = (struct prog_obj *) lua_newuserdata(L, sizeof(*p));
-	p->socket = connfd;
+	p->socket = -1;
 	p->status = IDLE;
 
 	/* set its type as master object */
 	auxiliar_setclass(L, "swupdate_progress", -1);
 
 	return 1;
-
 }
- 
+
 static const luaL_Reg lua_swupdate[] = {
   {"progress", progress},
   {"control", ctrl},
