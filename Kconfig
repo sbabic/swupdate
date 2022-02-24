@@ -7,7 +7,7 @@
 # see scripts/kbuild/config-language.txt.
 #
 
-mainmenu "Swupdate Configuration"
+mainmenu "SWUpdate Configuration"
 
 config HAVE_LINUX
 	bool
@@ -121,7 +121,7 @@ config HAVE_ZCK
 	bool
 	option env="HAVE_ZCK"
 
-menu "Swupdate Settings"
+menu "SWUpdate Settings"
 
 menu "General Configuration"
 
@@ -318,7 +318,7 @@ endmenu
 menu 'Debugging Options'
 
 config DEBUG
-	bool "Build Swupdate with extra Debugging symbols"
+	bool "Build SWUpdate with extra Debugging symbols"
 	default n
 	help
 	  Say Y here if you wish to examine swupdate internals while applets are

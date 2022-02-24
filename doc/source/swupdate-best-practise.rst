@@ -3,7 +3,7 @@
         SPDX-License-Identifier: GPL-2.0-only
 
 **********************
-Swupdate Best Practice
+SWUpdate Best Practice
 **********************
 
 This is intended as general rule to integrate SWUpdate into a custom project.

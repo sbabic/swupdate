@@ -100,7 +100,7 @@ static int end(RECOVERY_STATUS status)
 {
 	end_status = (status == SUCCESS) ? EXIT_SUCCESS : EXIT_FAILURE;
 
-	fprintf(stdout, "Swupdate %s\n",
+	fprintf(stdout, "SWUpdate %s\n",
 		status == FAILURE ? "*failed* !" :
 			"was successful !");
 

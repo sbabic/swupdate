@@ -51,7 +51,7 @@ static int endupdate(RECOVERY_STATUS status)
 {
 	end_status = (status == SUCCESS) ? EXIT_SUCCESS : EXIT_FAILURE;
 
-	INFO("Swupdate %s\n",
+	INFO("SWUpdate %s\n",
 		status == FAILURE ? "*failed* !" :
 			"was successful !");
 

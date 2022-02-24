@@ -8,7 +8,7 @@
 #ifndef _GLOBALS_H
 #define _GLOBALS_H
 
-#define BANNER "Swupdate v" SWU_VER "\n"
+#define BANNER "SWUpdate v" SWU_VER "\n"
 
 #define SWUPDATE_GENERAL_STRING_SIZE	256
 #define SWUPDATE_UPDATE_DESCRIPTION_STRING_SIZE	512

@@ -237,7 +237,7 @@ latex_use_parts = False
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-        ('index', 'swupdate', u'Swupdate Documentation', [u'Stefano Babic'], 1),
+        ('index', 'swupdate', u'SWUpdate Documentation', [u'Stefano Babic'], 1),
         ('swupdate-ipc', 'ipc', u'SWUpdate IPC tool', '', 1),
         ('swupdate-client', 'client', u'SWUpdate client tool', '', 1),
         ('swupdate-progress', 'progress', u'SWUpdate progress tool', '', 1),
