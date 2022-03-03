@@ -92,32 +92,11 @@ int ipc_postupdate(ipc_message *msg) {
 	return -result;
 }
 
-static int __ipc_select_timeout(int connfd, ipc_message *msg, int timeout_ms) {
+static int __ipc_get_status(int connfd, ipc_message *msg, unsigned int timeout_ms)
+{
 	fd_set fds;
 	struct timeval tv;
 
-	if (timeout_ms < 0)
-		return 0;
-	FD_ZERO(&fds);
-	FD_SET(connfd, &fds);
-
-	/*
-	 * Invalid the message
-	 * Caller should check it
-	 */
-	msg->magic = 0;
-
-	tv.tv_sec = 0;
-	tv.tv_usec = timeout_ms * 1000;
-	if ((select(connfd + 1, &fds, NULL, NULL, &tv) <= 0) ||
-			!FD_ISSET(connfd, &fds))
-		return -ETIMEDOUT;
-
-	return 0;
-}
-
-static int __ipc_get_status(int connfd, ipc_message *msg, int timeout_ms)
-{
 	memset(msg, 0, sizeof(*msg));
 	msg->magic = IPC_MAGIC;
 	msg->type = GET_STATUS;
@@ -125,8 +104,22 @@ static int __ipc_get_status(int connfd, ipc_message *msg, int timeout_ms)
 	if (write(connfd, msg, sizeof(*msg)) != sizeof(*msg))
 		return -1;
 
-	if (__ipc_select_timeout(connfd, msg, timeout_ms))
-		return -ETIMEDOUT;
+	if (timeout_ms) {
+		FD_ZERO(&fds);
+		FD_SET(connfd, &fds);
+
+		/*
+		 * Invalid the message
+		 * Caller should check it
+		 */
+		msg->magic = 0;
+
+		tv.tv_sec = 0;
+		tv.tv_usec = timeout_ms * 1000;
+		if ((select(connfd + 1, &fds, NULL, NULL, &tv) <= 0) ||
+			!FD_ISSET(connfd, &fds))
+			return -ETIMEDOUT;
+	}
 
 	return -(read(connfd, msg, sizeof(*msg)) != sizeof(*msg));
 }
@@ -140,7 +133,7 @@ int ipc_get_status(ipc_message *msg)
 	if (connfd < 0)
 		return -1;
 
-	ret = __ipc_get_status(connfd, msg, -1);
+	ret = __ipc_get_status(connfd, msg, 0);
 	close(connfd);
 
 	return ret;
@@ -151,7 +144,7 @@ int ipc_get_status(ipc_message *msg)
  *           -1 : error
  *           else data read
  */
-int ipc_get_status_timeout(ipc_message *msg, int timeout_ms)
+int ipc_get_status_timeout(ipc_message *msg, unsigned int timeout_ms)
 {
 	int ret;
 	int connfd;
@@ -170,8 +163,11 @@ int ipc_get_status_timeout(ipc_message *msg, int timeout_ms)
 	return ret == 0 ? sizeof(*msg) : -1;
 }
 
-static int __ipc_start_notify(int connfd, ipc_message *msg, int timeout_ms)
+static int __ipc_start_notify(int connfd, ipc_message *msg, unsigned int timeout_ms)
 {
+	fd_set fds;
+	struct timeval tv;
+
 	memset(msg, 0, sizeof(*msg));
 	msg->magic = IPC_MAGIC;
 	msg->type = NOTIFY_STREAM;
@@ -179,8 +175,22 @@ static int __ipc_start_notify(int connfd, ipc_message *msg, int timeout_ms)
 	if (write(connfd, msg, sizeof(*msg)) != sizeof(*msg))
 		return -1;
 
-	if (__ipc_select_timeout(connfd, msg, timeout_ms))
-		return -ETIMEDOUT;
+	if (timeout_ms) {
+		FD_ZERO(&fds);
+		FD_SET(connfd, &fds);
+
+		/*
+		 * Invalid the message
+		 * Caller should check it
+		 */
+		msg->magic = 0;
+
+		tv.tv_sec = 0;
+		tv.tv_usec = timeout_ms * 1000;
+		if ((select(connfd + 1, &fds, NULL, NULL, &tv) <= 0) ||
+		!FD_ISSET(connfd, &fds))
+			return -ETIMEDOUT;
+	}
 
 	return -(read(connfd, msg, sizeof(*msg)) != sizeof(*msg));
 }
@@ -198,7 +208,7 @@ int ipc_notify_connect(void)
 	/*
 	 * Initialize the notify stream
 	 */
-	ret = __ipc_start_notify(connfd, &msg, -1);
+	ret = __ipc_start_notify(connfd, &msg, 0);
 	if (ret || msg.type != ACK) {
 		fprintf(stdout, "Notify connection handshake failed..\n");
 		close(connfd);
@@ -210,14 +220,10 @@ int ipc_notify_connect(void)
 	return connfd;
 }
 
-int ipc_notify_receive(int *connfd, ipc_message *msg, int timeout_ms)
+int ipc_notify_receive(int *connfd, ipc_message *msg)
 {
-	int ret;
+	int ret = read(*connfd, msg, sizeof(*msg));
 
-	if (__ipc_select_timeout(*connfd, msg, timeout_ms))
-		return -ETIMEDOUT;
-
-	ret = read(*connfd, msg, sizeof(*msg));
 	if (ret == -1 && (errno == EAGAIN || errno == EINTR))
 		return 0;
 
@@ -225,14 +231,14 @@ int ipc_notify_receive(int *connfd, ipc_message *msg, int timeout_ms)
 		fprintf(stdout, "Connection closing..\n");
 		close(*connfd);
 		*connfd = -1;
-		return -EIO;
+		return -1;
 	}
 
 	if (msg->magic != IPC_MAGIC) {
 		fprintf(stdout, "Connection closing, invalid magic...\n");
 		close(*connfd);
 		*connfd = -1;
-		return -EIO;
+		return -1;
 	}
 
 	return ret;
@@ -326,7 +332,7 @@ int ipc_wait_for_complete(getstatus callback)
 		fd = prepare_ipc();
 		if (fd < 0)
 			break;
-		ret = __ipc_get_status(fd, &message, -1);
+		ret = __ipc_get_status(fd, &message, 0);
 		close(fd);
 
 		if (ret < 0) {
