@@ -64,7 +64,6 @@ static int _progress_ipc_connect(const char *socketpath, bool reconnect)
 		usleep(10000);
 	} while (true);
 
-	fprintf(stdout, "Connected to SWUpdate via %s\n", socketpath);
 	return fd;
 }
 
@@ -84,7 +83,6 @@ int progress_ipc_receive(int *connfd, struct progress_msg *msg) {
 		return 0;
 
 	if (ret != sizeof(*msg)) {
-		fprintf(stdout, "Connection closing..\n");
 		close(*connfd);
 		*connfd = -1;
 		return -1;
