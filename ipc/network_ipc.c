@@ -310,8 +310,18 @@ int ipc_inst_start(void)
  */
 int ipc_send_data(int connfd, char *buf, int size)
 {
-	ssize_t ret = write(connfd, buf, (size_t)size);
-	return ret != size ? -1 : (int)ret;
+	ssize_t ret;
+	ssize_t len = size;
+
+	while (len) {
+		ret = write(connfd, buf, (size_t)size);
+		if (ret < 0)
+			return ret;
+		len -= ret;
+		buf += ret;
+	}
+
+	return size;
 }
 
 void ipc_end(int connfd)
