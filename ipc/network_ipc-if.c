@@ -43,8 +43,8 @@ static void *swupdate_async_thread(void *data)
 	sigaddset(&sigpipe_mask, SIGPIPE);
 
 	if (pthread_sigmask(SIG_BLOCK, &sigpipe_mask, &saved_mask) == -1) {
-		  perror("pthread_sigmask");
-		    exit(1);
+		perror("pthread_sigmask");
+		pthread_exit((void *)-1);
 	}
 	/* Start writing the image until end */
 
@@ -53,8 +53,12 @@ static void *swupdate_async_thread(void *data)
 			break;
 
 		rq->wr(&pbuf, &size);
-		if (size)
-			swupdate_image_write(pbuf, size);
+		if (size) {
+			if (swupdate_image_write(pbuf, size) != size) {
+				perror("swupdate_image_write failed");
+				pthread_exit((void *)-1);
+			}
+		}
 	} while(size > 0);
 
 	ipc_end(rq->connfd);
@@ -97,7 +101,7 @@ static pthread_t start_ipc_thread(void *(* start_routine) (void *), void *arg)
 
 	ret = pthread_create(&id, &attr, start_routine, arg);
 	if (ret) {
-		exit(1);
+		return -1;
 	}
 	return id;
 }
