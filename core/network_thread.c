@@ -21,6 +21,7 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <pthread.h>
+#include <signal.h>
 
 #include "bsdqueue.h"
 #include "util.h"
@@ -325,7 +326,7 @@ static void send_subprocess_reply(
 {
 	if (write(subprocess_msg->client, &subprocess_msg->message,
 			sizeof(subprocess_msg->message)) < 0)
-		ERROR("Error write on socket ctrl");
+		ERROR("Error writing on ctrl socket: %s", strerror(errno));
 }
 
 static void handle_subprocess_ipc(struct subprocess_msg_elem *subprocess_msg)
@@ -402,6 +403,12 @@ static void *subprocess_thread (void *data)
 {
 	(void)data;
 	thread_ready();
+
+	sigset_t sigpipe_mask;
+	sigemptyset(&sigpipe_mask);
+	sigaddset(&sigpipe_mask, SIGPIPE);
+	pthread_sigmask(SIG_BLOCK, &sigpipe_mask, NULL);
+
 	pthread_mutex_lock(&subprocess_msg_lock);
 
 	while(1) {
