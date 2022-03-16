@@ -68,6 +68,12 @@ The structure *img_type* contains the file descriptor of the stream pointing to 
 of the image to be installed. The handler must read the whole image, and when it returns
 back SWUpdate can go on with the next image in the stream.
 
+The data parameter is usually a pointer that was registered with the
+handler. For script handlers it is instead a pointer to a ``struct
+script_handler_data`` which contains a ``script_fn`` enum value,
+indicating the current installation phase, and the registered data
+pointer.
+
 SWUpdate provides a general function to extract data from the stream and copy
 to somewhere else:
 

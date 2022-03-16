@@ -41,6 +41,15 @@ struct installer_handler{
 	unsigned int mask;
 };
 
+struct script_handler_data {
+	/*
+	 * scriptfn must be first, as script handlers may expect to
+	 * receive just a script_fn
+	 */
+	script_fn scriptfn;
+	void	*data;
+};
+
 int register_handler(const char *desc, 
 		handler installer, HANDLER_MASK mask, void *data);
 

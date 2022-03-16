@@ -200,7 +200,12 @@ static int run_prepost_scripts(struct imglist *list, script_fn type)
 			continue;
 		hnd = find_handler(img);
 		if (hnd) {
-			ret = hnd->installer(img, &type);
+			struct script_handler_data data = {
+				.scriptfn = type,
+				.data = hnd->data
+			};
+
+			ret = hnd->installer(img, &data);
 			if (ret)
 				return ret;
 		}
