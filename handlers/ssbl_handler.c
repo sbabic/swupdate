@@ -166,7 +166,7 @@ static int inline get_active_ssbl(struct ssbl_priv *padmins) {
 
 static int ssbl_swap(struct img_type *img, void *data)
 {
-	script_fn scriptfn;
+	struct script_handler_data *script_data;
 	struct ssbl_priv admins[2];
 	struct ssbl_priv *pssbl;
 	struct proplist *entry;
@@ -178,12 +178,12 @@ static int ssbl_swap(struct img_type *img, void *data)
 	if (!data)
 		return -EINVAL;
 
-	scriptfn = *(script_fn *)data;
+	script_data = data;
 
 	/*
 	 * Call only in case of postinstall
 	 */
-	if (scriptfn != POSTINSTALL)
+	if (script_data->scriptfn != POSTINSTALL)
 		return 0;
 
 	memset(admins, 0, 2 * sizeof(struct ssbl_priv));

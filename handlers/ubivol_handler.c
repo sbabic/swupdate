@@ -452,7 +452,7 @@ static int ubi_volume_get_info(char *name, int *dev_num, int *vol_id)
 
 static int swap_volume(struct img_type *img, void *data)
 {
-	script_fn scriptfn;
+	struct script_handler_data *script_data;
 	struct flash_description *flash = get_flash_info();
 	libubi_t libubi = flash->libubi;
 	int num, count = 0;
@@ -468,12 +468,12 @@ static int swap_volume(struct img_type *img, void *data)
 	if (!data)
 		return -EINVAL;
 
-	scriptfn = *(script_fn *)data;
+	script_data = data;
 
 	/*
 	 * Call only in case of postinstall
 	 */
-	if (scriptfn != POSTINSTALL)
+	if (script_data->scriptfn != POSTINSTALL)
 		return 0;
 
 	while (1) {

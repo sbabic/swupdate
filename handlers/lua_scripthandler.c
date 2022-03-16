@@ -29,7 +29,7 @@ static int start_lua_script(struct img_type *img, void *data)
 {
 	int ret;
 	const char *fnname;
-	script_fn scriptfn;
+	struct script_handler_data *script_data;
 
 	const char* tmp = get_tmpdirscripts();
 	char filename[MAX_IMAGE_FNAME + strlen(tmp) + 2 + strlen(img->type_data)];
@@ -37,9 +37,9 @@ static int start_lua_script(struct img_type *img, void *data)
 	if (!data)
 		return -1;
 
-	scriptfn = *(script_fn *)data;
+	script_data = data;
 
-	switch (scriptfn) {
+	switch (script_data->scriptfn) {
 	case PREINSTALL:
 		fnname="preinst";
 		break;

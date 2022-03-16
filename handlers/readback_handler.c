@@ -31,8 +31,8 @@ static int readback(struct img_type *img, void *data)
 	if (!data)
 		return -1;
 
-	script_fn scriptfn = *(script_fn *)data;
-	switch (scriptfn) {
+	struct script_handler_data *script_data = data;
+	switch (script_data->scriptfn) {
 	case POSTINSTALL:
 		return readback_postinst(img);
 	case PREINSTALL:
