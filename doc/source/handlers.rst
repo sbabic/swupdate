@@ -311,6 +311,16 @@ underscores for the Lua domain to make them idiomatic, e.g.,
 ``installed-directly`` becomes ``installed_directly`` in the
 Lua domain.
 
+For a script handler written in Lua, the prototype is
+
+::
+
+        function lua_handler(image, scriptfn)
+            ...
+        end
+
+where ``scriptfn`` is either ``"preinst"`` or ``"postinst"``.
+
 To register a Lua handler, the ``swupdate`` module provides the
 ``swupdate.register_handler()`` method that takes the handler's
 name, the Lua handler function to be registered under that name,

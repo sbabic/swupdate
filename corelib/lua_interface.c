@@ -1102,9 +1102,11 @@ static lua_State *gL = NULL;
  * @param index [in] defines which image have to be installed
  * @param unused [in] unused in this context
  * @param data [in] pointer to the index in the Lua registry for the function
+ * @param scriptfn [in] installation phase for script handlers, or NONE
  * @return This function returns 0 if successful and -1 if unsuccessful.
  */
-static int l_handler_wrapper(struct img_type *img, void *data) {
+static int l_handler_wrapper(struct img_type *img, void *data,
+			     script_fn scriptfn) {
 	int res = 0;
 	lua_Number result;
 	int l_func_ref;
@@ -1130,7 +1132,19 @@ static int l_handler_wrapper(struct img_type *img, void *data) {
 	lua_rawgeti(gL, LUA_REGISTRYINDEX, l_func_ref );
 	image2table(gL, img);
 
-	if (LUA_OK != (res = lua_pcall(gL, 1, 1, 0))) {
+	switch (scriptfn) {
+	case PREINSTALL:
+		lua_pushstring(gL, "preinst");
+		break;
+	case POSTINSTALL:
+		lua_pushstring(gL, "postinst");
+		break;
+	default:
+		lua_pushnil(gL);
+		break;
+	}
+
+	if (LUA_OK != (res = lua_pcall(gL, 2, 1, 0))) {
 		ERROR("Error %d while executing the Lua callback: %s",
 			  res, lua_tostring(gL, -1));
 		return -1;
@@ -1149,6 +1163,18 @@ static int l_handler_wrapper(struct img_type *img, void *data) {
 	return (int) result;
 }
 
+static int l_script_handler_wrapper(struct img_type *img, void *data)
+{
+	struct script_handler_data *script_data = data;
+
+	return l_handler_wrapper(img, script_data->data, script_data->scriptfn);
+}
+
+static int l_other_handler_wrapper(struct img_type *img, void *data)
+{
+	return l_handler_wrapper(img, data, NONE);
+}
+
 /**
  * @brief function to register a callback from Lua
  *
@@ -1165,18 +1191,35 @@ static int l_register_handler( lua_State *L ) {
 		lua_pop(L, 2);
 		return 0;
 	} else {
-		unsigned int mask = ANY_HANDLER;
+		unsigned int mask = ANY_HANDLER & ~SCRIPT_HANDLER;
 		if (lua_isnumber(L, 3)) {
 			mask = luaL_checknumber(L, 3);
 			lua_pop(L, 1);
 		}
+		if ((mask & SCRIPT_HANDLER) &&
+		    (mask & (IMAGE_HANDLER | FILE_HANDLER |
+			     BOOTLOADER_HANDLER | PARTITION_HANDLER))) {
+			/*
+			 * This won't work - script handlers are
+			 * called differently
+			 */
+			ERROR("Lua handler: attempted to register"
+			      " a handler for scripts and non-scripts");
+			free(l_func_ref);
+			lua_pop(L, 1);
+			return 0;
+		}
+
 		const char *handler_desc = luaL_checkstring(L, 1);
 		/* store the callback function in registry */
 		*l_func_ref = luaL_ref (L, LUA_REGISTRYINDEX);
 		/* cleanup stack */
 		lua_pop (L, 1);
 
-		register_handler(handler_desc, l_handler_wrapper,
+		register_handler(handler_desc,
+				 (mask & SCRIPT_HANDLER) ?
+				 l_script_handler_wrapper :
+				 l_other_handler_wrapper,
 				 mask, l_func_ref);
 		return 0;
 	}
