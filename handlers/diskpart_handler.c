@@ -74,6 +74,7 @@ struct partition_data {
 	char fstype[SWUPDATE_GENERAL_STRING_SIZE];
 	char dostype[SWUPDATE_GENERAL_STRING_SIZE];
 	char partuuid[UUID_STR_LEN];
+	int explicit_size;
 	LIST_ENTRY(partition_data) next;
 };
 LIST_HEAD(listparts, partition_data);
@@ -305,10 +306,13 @@ static int diskpart_set_partition(struct fdisk_partition *pa,
 		ret |= -EINVAL;
 	if (strlen(part->name))
 	      ret |= fdisk_partition_set_name(pa, part->name);
-	if (part->size != LIBFDISK_INIT_UNDEF(part->size))
+	if (part->size != LIBFDISK_INIT_UNDEF(part->size)) {
 	      ret |= fdisk_partition_set_size(pa, part->size / sector_size);
-	else
+	      if (part->explicit_size)
+			ret |= fdisk_partition_size_explicit(pa, part->explicit_size);
+	} else {
 		ret |= fdisk_partition_end_follow_default(pa, 1);
+	}
 
 	if (parttype)
 		ret |= fdisk_partition_set_type(pa, parttype);
@@ -543,7 +547,7 @@ static int diskpart_fill_table(struct fdisk_context *cxt, struct diskpart_table 
 				parttype = fdisk_label_get_parttype_from_string(lb, GPT_DEFAULT_ENTRY_TYPE);
 			}
 		} else {
-			parttype = fdisk_label_get_parttype_from_code(lb, ustrtoull(part->type, 16));
+			parttype = fdisk_label_get_parttype_from_code(lb, ustrtoull(part->type, NULL, 16));
 		}
 		ret = diskpart_set_partition(newpa, part, sector_size, parttype, oldtb->parent);
 		if (ret) {
@@ -578,7 +582,7 @@ static int diskpart_fill_table(struct fdisk_context *cxt, struct diskpart_table 
 
 				newpa = fdisk_new_partition();
 
-				parttype = fdisk_label_get_parttype_from_code(lb, ustrtoull(part->dostype, 16));
+				parttype = fdisk_label_get_parttype_from_code(lb, ustrtoull(part->dostype, NULL, 16));
 				if (!parttype) {
 					ERROR("I cannot add hybrid partition %zu(%s) invalid dostype: %s",
 						part->partno, part->name, part->dostype);
@@ -854,10 +858,12 @@ static int diskpart(struct img_type *img,
 					equal++;
 					switch (i) {
 					case PART_SIZE:
-						part->size = ustrtoull(equal, 10);
+						part->size = ustrtoull(equal, NULL, 10);
+						if (!size_delimiter_match(equal))
+							part->explicit_size = 1;
 						break;
 					case PART_START:
-						part->start = ustrtoull(equal, 10);
+						part->start = ustrtoull(equal, NULL, 10);
 						break;
 					case PART_TYPE:
 						strncpy(part->type, equal, sizeof(part->type));

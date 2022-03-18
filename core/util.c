@@ -743,7 +743,27 @@ void free_string_array(char **nodes)
 	free(nodes);
 }
 
-unsigned long long ustrtoull(const char *cp, unsigned int base)
+/*
+ * Determines if ustrtoull() consumes a size-type delimiter
+ * from the provided string.
+ */
+int size_delimiter_match(const char *size)
+{
+	char *suffix = NULL, *usuffix = NULL;
+	strtoull(size, &suffix, 10);
+	ustrtoull(size, &usuffix, 10);
+	return suffix != usuffix;
+}
+
+/*
+ * Like strtoull(), but automatically scales the conversion
+ * result by size-type units, and only returns a pointer to
+ * the size unit in the string if requested by the caller.
+ *
+ * Sets errno to ERANGE if strtoull() found no digits or
+ * encountered an overflow, and returns 0 in both cases.
+ */
+unsigned long long ustrtoull(const char *cp, char **endptr, unsigned int base)
 {
 	errno = 0;
 	char *endp = NULL;
@@ -756,7 +776,8 @@ unsigned long long ustrtoull(const char *cp, unsigned int base)
 
 	if (cp == endp || (result == ULLONG_MAX && errno == ERANGE)) {
 		errno = ERANGE;
-		return 0;
+		result = 0;
+		goto out;
 	}
 
 	switch (*endp) {
@@ -774,8 +795,15 @@ unsigned long long ustrtoull(const char *cp, unsigned int base)
 				endp += 3;
 			else
 				endp += 2;
+		} else {
+			endp += 1;
 		}
 	}
+
+out:
+	if (endptr)
+		*endptr = endp;
+
 	return result;
 }
 
@@ -1196,7 +1224,7 @@ long long get_output_size(struct img_type *img, bool strict)
 			return -ENOENT;
 		}
 
-		bytes = ustrtoull(output_size_str, 0);
+		bytes = ustrtoull(output_size_str, NULL, 0);
 		if (errno || bytes <= 0) {
 			ERROR("decompressed-size argument %s: ustrtoull failed",
 			      output_size_str);
@@ -1214,7 +1242,7 @@ long long get_output_size(struct img_type *img, bool strict)
 			return -ENOENT;
 		}
 
-		bytes = ustrtoull(output_size_str, 0);
+		bytes = ustrtoull(output_size_str, NULL, 0);
 		if (errno || bytes <= 0) {
 			ERROR("decrypted-size argument %s: ustrtoull failed",
 			      output_size_str);

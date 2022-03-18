@@ -26,6 +26,7 @@ tests-$(CONFIG_SIGNED_IMAGES) += test_verify
 endif
 tests-$(CONFIG_SURICATTA_HAWKBIT) += test_json
 tests-$(CONFIG_SURICATTA_HAWKBIT) += test_server_hawkbit
+tests-y += test_util
 
 ccflags-y += -I$(src)/../
 

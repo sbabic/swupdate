@@ -228,7 +228,8 @@ void set_version_range(const char *minversion,
 			const char *maxversion,
 			const char *current);
 
-unsigned long long ustrtoull(const char *cp, unsigned int base);
+int size_delimiter_match(const char *size);
+unsigned long long ustrtoull(const char *cp, char **endptr, unsigned int base);
 
 const char* get_tmpdir(void);
 const char* get_tmpdirscripts(void);

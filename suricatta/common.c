@@ -25,7 +25,7 @@ void suricatta_channel_settings(void *elem, channel_data_t *chan)
 
 	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "max-download-speed", tmp);
 	if (strlen(tmp))
-		chan->max_download_speed = (unsigned int)ustrtoull(tmp, 10);
+		chan->max_download_speed = (unsigned int)ustrtoull(tmp, NULL, 10);
 
 	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "retrywait", tmp);
 	if (strlen(tmp))

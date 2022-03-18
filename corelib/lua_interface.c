@@ -319,7 +319,7 @@ static void lua_string_to_img(struct img_type *img, const char *key,
 		strncpy(seek_str, value,
 			sizeof(seek_str));
 		/* convert the offset handling multiplicative suffixes */
-		img->seek = ustrtoull(seek_str, 0);
+		img->seek = ustrtoull(seek_str, NULL, 0);
 		if (errno){
 			ERROR("offset argument: ustrtoull failed");
 		}

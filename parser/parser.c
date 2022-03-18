@@ -406,7 +406,7 @@ static int parse_common_attributes(parsertype p, void *elem, struct img_type *im
 	get_hash_value(p, elem, image->sha256);
 
 	/* convert the offset handling multiplicative suffixes */
-	image->seek = ustrtoull(seek_str, 0);
+	image->seek = ustrtoull(seek_str, NULL, 0);
 	if (errno){
 		ERROR("offset argument: ustrtoull failed");
 		return -1;

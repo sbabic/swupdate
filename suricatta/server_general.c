@@ -669,7 +669,7 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
 			break;
 		case 'n':
 			channel_data_defaults.max_download_speed =
-				(unsigned int)ustrtoull(optarg, 10);
+				(unsigned int)ustrtoull(optarg, NULL, 10);
 			break;
 
 		case '?':

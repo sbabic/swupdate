@@ -69,7 +69,7 @@ static void sw_append_stream(struct img_type *img, const char *key,
 		strlcpy(seek_str, value,
 			sizeof(seek_str));
 		/* convert the offset handling multiplicative suffixes */
-		img->seek = ustrtoull(seek_str, 0);
+		img->seek = ustrtoull(seek_str, NULL, 0);
 		if (errno){
 			ERROR("offset argument: ustrtoull failed");
 		}

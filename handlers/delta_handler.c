@@ -329,7 +329,7 @@ static int delta_retrieve_attributes(struct img_type *img, struct hnd_priv *priv
 		if (!strcmp(srcsize, "detect"))
 			priv->detectsrcsize = true;
 		else
-			priv->srcsize = ustrtoull(srcsize, 10);
+			priv->srcsize = ustrtoull(srcsize, NULL, 10);
 	}
 
 	char *zckloglevel = dict_get_value(&img->properties, "zckloglevel");
