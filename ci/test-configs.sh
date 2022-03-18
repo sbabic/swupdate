@@ -10,9 +10,9 @@
 # SPDX-License-Identifier:	GPL-2.0-only
 set -eu
 
-for i in configs/*; do
-    echo "*** Testing config: $i"
-    make "$(basename $i)"
-    make -j8
+find configs -type f | while read -r fname; do
+    echo "*** Testing config: $fname"
+    make "$(basename "$fname")"
+    make "-j$(nproc)"
     make tests
 done
