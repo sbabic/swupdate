@@ -180,6 +180,7 @@ void LUAstackDump(lua_State *L)
 	}
 }
 
+#ifdef CONFIG_HANDLER_IN_LUA
 static void lua_report_exception(lua_State *L)
 {
 	const char *s = lua_tostring(L, -1);
@@ -194,6 +195,7 @@ static void lua_report_exception(lua_State *L)
 		s += len;
 	} while (*s++);
 }
+#endif
 
 int run_lua_script(const char *script, const char *function, char *parms)
 {
