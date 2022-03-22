@@ -44,12 +44,11 @@ install_libubootenv() {
 install_efibootguard() {
     git clone https://github.com/siemens/efibootguard.git
     cd efibootguard
+    git submodule update --init
     autoreconf -fi
-    ./configure
-    make libebgenv.a
-    $_SUDO install -m 644 libebgenv.a /usr/local/lib/libebgenv.a
-    $_SUDO install -m 755 -d /usr/include/efibootguard
-    $_SUDO install -m 644 include/ebgenv.h /usr/include/efibootguard/ebgenv.h
+    ./configure --disable-bootloader
+    make
+    $_SUDO make install
     cd ..
 }
 
