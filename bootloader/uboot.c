@@ -17,6 +17,7 @@
 #include <dirent.h>
 #include "generated/autoconf.h"
 #include "util.h"
+#include "dlfcn.h"
 #include "bootloader.h"
 
 #include <libuboot.h>
@@ -24,19 +25,31 @@
 #define CONFIG_UBOOT_DEFAULTENV	"/etc/u-boot-initial-env"
 #endif
 
+static struct {
+	int   (*open)(struct uboot_ctx*);
+	void  (*close)(struct uboot_ctx *ctx);
+	void  (*exit)(struct uboot_ctx *ctx);
+	int   (*initialize)(struct uboot_ctx **out, struct uboot_env_device *envdevs);
+	char* (*get_env)(struct uboot_ctx *ctx, const char *varname);
+	int   (*read_config)(struct uboot_ctx *ctx, const char *config);
+	int   (*load_file)(struct uboot_ctx *ctx, const char *filename);
+	int   (*set_env)(struct uboot_ctx *ctx, const char *varname, const char *value);
+	int   (*env_store)(struct uboot_ctx *ctx);
+} libuboot;
+
 static int bootloader_initialize(struct uboot_ctx **ctx)
 {
-	if (libuboot_initialize(ctx, NULL) < 0) {
+	if (libuboot.initialize(ctx, NULL) < 0) {
 		ERROR("Error: environment not initialized");
 		return -ENODEV;
 	}
-	if (libuboot_read_config(*ctx, CONFIG_UBOOT_FWENV) < 0) {
+	if (libuboot.read_config(*ctx, CONFIG_UBOOT_FWENV) < 0) {
 		ERROR("Configuration file %s wrong or corrupted", CONFIG_UBOOT_FWENV);
 		return -EINVAL;
 	}
-	if (libuboot_open(*ctx) < 0) {
+	if (libuboot.open(*ctx) < 0) {
 		WARN("Cannot read environment, using default");
-		if (libuboot_load_file(*ctx, CONFIG_UBOOT_DEFAULTENV) < 0) {
+		if (libuboot.load_file(*ctx, CONFIG_UBOOT_DEFAULTENV) < 0) {
 			ERROR("Error: Cannot read default environment from file");
 			return -ENODATA;
 		}
@@ -45,47 +58,47 @@ static int bootloader_initialize(struct uboot_ctx **ctx)
 	return 0;
 }
 
-int bootloader_env_set(const char *name, const char *value)
+static int do_env_set(const char *name, const char *value)
 {
 	int ret;
 	struct uboot_ctx *ctx = NULL;
 
 	ret = bootloader_initialize(&ctx);
 	if (!ret) {
-		libuboot_set_env(ctx, name, value);
-		ret = libuboot_env_store(ctx);
+		libuboot.set_env(ctx, name, value);
+		ret = libuboot.env_store(ctx);
 	}
 
-	libuboot_close(ctx);
-	libuboot_exit(ctx);
+	libuboot.close(ctx);
+	libuboot.exit(ctx);
 
 	return ret;
 }
 
-int bootloader_env_unset(const char *name)
+static int do_env_unset(const char *name)
 {
-	return bootloader_env_set(name, NULL);
+	return do_env_set(name, NULL);
 }
 
 
-int bootloader_apply_list(const char *filename)
+static int do_apply_list(const char *filename)
 {
 	int ret;
 	struct uboot_ctx *ctx = NULL;
 
 	ret = bootloader_initialize(&ctx);
 	if (!ret) {
-		libuboot_load_file(ctx, filename);
-		ret = libuboot_env_store(ctx);
+		libuboot.load_file(ctx, filename);
+		ret = libuboot.env_store(ctx);
 	}
 
-	libuboot_close(ctx);
-	libuboot_exit(ctx);
+	libuboot.close(ctx);
+	libuboot.exit(ctx);
 
 	return ret;
 }
 
-char *bootloader_env_get(const char *name)
+static char *do_env_get(const char *name)
 {
 	int ret;
 	struct uboot_ctx *ctx = NULL;
@@ -93,10 +106,43 @@ char *bootloader_env_get(const char *name)
 
 	ret = bootloader_initialize(&ctx);
 	if (!ret) {
-		value = libuboot_get_env(ctx, name);
+		value = libuboot.get_env(ctx, name);
 	}
-	libuboot_close(ctx);
-	libuboot_exit(ctx);
+	libuboot.close(ctx);
+	libuboot.exit(ctx);
 
 	return value;
+}
+
+static bootloader uboot = {
+	.env_get = &do_env_get,
+	.env_set = &do_env_set,
+	.env_unset = &do_env_unset,
+	.apply_list = &do_apply_list
+};
+
+static bootloader* probe(void)
+{
+	void* handle = dlopen("libubootenv.so", RTLD_NOW | RTLD_GLOBAL);
+	if (!handle) {
+		return NULL;
+	}
+
+	(void)dlerror();
+	load_symbol(handle, &libuboot.open, "libuboot_open");
+	load_symbol(handle, &libuboot.close, "libuboot_close");
+	load_symbol(handle, &libuboot.exit, "libuboot_exit");
+	load_symbol(handle, &libuboot.initialize, "libuboot_initialize");
+	load_symbol(handle, &libuboot.get_env, "libuboot_get_env");
+	load_symbol(handle, &libuboot.read_config, "libuboot_read_config");
+	load_symbol(handle, &libuboot.load_file, "libuboot_load_file");
+	load_symbol(handle, &libuboot.set_env, "libuboot_set_env");
+	load_symbol(handle, &libuboot.env_store, "libuboot_env_store");
+	return &uboot;
+}
+
+__attribute__((constructor))
+static void uboot_probe(void)
+{
+	(void)register_bootloader("uboot", probe());
 }

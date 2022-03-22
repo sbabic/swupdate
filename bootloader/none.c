@@ -12,7 +12,7 @@
 
 static struct dict environment;
 
-int bootloader_env_set(const char *name,
+static int do_env_set(const char *name,
 			const char  *value)
 {
 	dict_set_value(&environment, name, value);
@@ -20,14 +20,14 @@ int bootloader_env_set(const char *name,
 	return 0;
 }
 
-int bootloader_env_unset(const char *name)
+static int do_env_unset(const char *name)
 {
 	dict_remove(&environment, name);
 
 	return 0;
 }
 
-char *bootloader_env_get(const char  *name)
+static char *do_env_get(const char  *name)
 {
 	char *value = NULL, *var;
 
@@ -39,7 +39,20 @@ char *bootloader_env_get(const char  *name)
 	return value;
 }
 
-int bootloader_apply_list(const char *filename)
+static int do_apply_list(const char *filename)
 {
 	return dict_parse_script(&environment, filename);
+}
+
+static bootloader none = {
+	.env_get = &do_env_get,
+	.env_set = &do_env_set,
+	.env_unset = &do_env_unset,
+	.apply_list = &do_apply_list
+};
+
+__attribute__((constructor))
+static void none_probe(void)
+{
+	(void)register_bootloader("none", &none);
 }
