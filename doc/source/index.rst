@@ -47,6 +47,7 @@ SWUpdate Documentation
    swupdate-ipc-interface.rst
    progress.rst
    bindings.rst
+   bootloader_interface.rst
    building-with-yocto.rst
    swupdate-best-practise.rst
    delta-update.rst
