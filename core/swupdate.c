@@ -114,6 +114,7 @@ static struct option long_options[] = {
 #ifdef CONFIG_WEBSERVER
 	{"webserver", required_argument, NULL, 'w'},
 #endif
+	{"bootloader", required_argument, NULL, 'B'},
 	{NULL, 0, NULL, 0}
 };
 
@@ -129,6 +130,7 @@ static void usage(char *programname)
 #ifdef CONFIG_UBIATTACH
 		" -b, --blacklist <list of mtd>  : MTDs that must not be scanned for UBI\n"
 #endif
+		" -B, --bootloader               : bootloader interface (default: " PREPROCVALUE(BOOTLOADER_DEFAULT) ")\n"
 		" -p, --postupdate               : execute post-update command\n"
 		" -P, --preupdate                : execute pre-update command\n"
 		" -e, --select <software>,<mode> : Select software images set and source\n"
@@ -284,6 +286,15 @@ static int read_globals_settings(void *elem, void *data)
 	struct swupdate_cfg *sw = (struct swupdate_cfg *)data;
 
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
+				"bootloader", tmp);
+	if (tmp[0] != '\0') {
+		if (set_bootloader(tmp) != 0) {
+			ERROR("Bootloader interface '%s' could not be initialized.", tmp);
+			exit(EXIT_FAILURE);
+		}
+		tmp[0] = '\0';
+	}
+	GET_FIELD_STRING(LIBCFG_PARSER, elem,
 				"public-key-file", sw->publickeyfname);
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
 				"ca-path", sw->publickeyfname);
@@ -435,7 +446,7 @@ int main(int argc, char **argv)
 #endif
 	memset(main_options, 0, sizeof(main_options));
 	memset(image_url, 0, sizeof(image_url));
-	strcpy(main_options, "vhni:e:gq:l:Lcf:p:P:o:N:R:Mm");
+	strcpy(main_options, "vhni:e:gq:l:Lcf:p:P:o:N:R:MmB:");
 #ifdef CONFIG_MTD
 	strcat(main_options, "b:");
 #endif
@@ -580,6 +591,13 @@ int main(int argc, char **argv)
 			break;
 		case 'o':
 			strlcpy(swcfg.output, optarg, sizeof(swcfg.output));
+			break;
+		case 'B':
+			if (set_bootloader(optarg) != 0) {
+				ERROR("Bootloader interface '%s' could not be initialized.", optarg);
+				print_registered_bootloaders();
+				exit(EXIT_FAILURE);
+			}
 			break;
 		case 'l':
 			loglevel = strtoul(optarg, NULL, 10);
@@ -753,6 +771,20 @@ int main(int argc, char **argv)
 	printf("%s\n", BANNER);
 	printf("Licensed under GPLv2. See source distribution for detailed "
 		"copyright notices.\n\n");
+
+	print_registered_bootloaders();
+	if (!get_bootloader()) {
+		if (set_bootloader(PREPROCVALUE(BOOTLOADER_DEFAULT)) != 0) {
+			ERROR("Default bootloader interface '" PREPROCVALUE(
+			    BOOTLOADER_DEFAULT) "' couldn't be loaded.");
+			INFO("Check that the bootloader interface shared library is present.");
+			INFO("Or chose another bootloader interface by supplying -B <loader>.");
+			exit(EXIT_FAILURE);
+		}
+		INFO("Using default bootloader interface: " PREPROCVALUE(BOOTLOADER_DEFAULT));
+	} else {
+		INFO("Using bootloader interface: %s", get_bootloader());
+	}
 
 	/*
 	 * Install a child handler to check if a subprocess

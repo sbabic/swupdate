@@ -54,14 +54,6 @@ ifeq ($(HAVE_ZSTD),)
 export HAVE_ZSTD = y
 endif
 
-ifeq ($(HAVE_LIBUBOOTENV),)
-export HAVE_LIBUBOOTENV = y
-endif
-
-ifeq ($(HAVE_LIBEBGENV),)
-export HAVE_LIBEBGENV = y
-endif
-
 ifeq ($(HAVE_LIBEXT2FS),)
 export HAVE_LIBEXT2FS = y
 endif

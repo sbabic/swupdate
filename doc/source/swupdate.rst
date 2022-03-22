@@ -467,6 +467,9 @@ Command line parameters
 |             |          | Example: U-Boot and environment in MTD0-1: |
 |             |          | ``swupdate -b "0 1"``.                     |
 +-------------+----------+--------------------------------------------+
+| -B <loader> | string   | Override the default bootloader interface  |
+|             |          | to use ``loader`` instead.                 |
++-------------+----------+--------------------------------------------+
 | -e <sel>    | string   | ``sel`` is in the format <software>,<mode>.|
 |             |          | It allows one to find a subset of rules in |
 |             |          | the sw-description file. With it,          |

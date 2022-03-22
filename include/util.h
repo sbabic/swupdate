@@ -125,6 +125,7 @@ void notifier_set_color(int level, char *col);
 #endif
 
 #define STRINGIFY(...) #__VA_ARGS__
+#define PREPROCVALUE(s) STRINGIFY(s)
 #define SETSTRING(p, v) do { \
 	if (p) \
 		free(p); \

@@ -2,47 +2,26 @@
 #
 # SPDX-License-Identifier: GPL-2.0-only
 
-choice
-	prompt "Bootloader (U-Boot, ..)"
-	default UBOOT
-	help
-	  Choose the bootloader
-
-config BOOTLOADER_EBG
-	bool "EFI Boot Guard"
-	depends on HAVE_LIBEBGENV
-	depends on HAVE_ZLIB
-	help
-	  Support for EFI Boot Guard
-	  https://github.com/siemens/efibootguard
-
-comment "EFI Boot Guard needs libebgenv and libz"
-	depends on !HAVE_ZLIB || !HAVE_LIBEBGENV
-
-config UBOOT
-	bool "U-Boot"
-	depends on HAVE_LIBUBOOTENV
-	depends on HAVE_ZLIB
-	help
-	  Support for U-Boot
-	  https://www.denx.de/wiki/U-Boot
-
-comment "U-Boot support needs libubootenv and libz"
-	depends on !HAVE_LIBUBOOTENV || !HAVE_ZLIB
+menu "Bootloader Interfaces"
 
 config BOOTLOADER_NONE
 	bool "Environment in RAM"
 	help
 	  This simulates the interface to a bootloader.
-	  Bootloader environment is just maitained in RAM
+	  Bootloader environment is just maintained in RAM
 	  and lost when SWUpdate exits.
 
-config BOOTLOADER_GRUB
-	bool "GRUB"
+config BOOTLOADER_EBG
+	bool "EFI Boot Guard"
 	help
-	  Support for GRUB
-	  https://www.gnu.org/software/grub/
-endchoice
+	  Support for EFI Boot Guard
+	  https://github.com/siemens/efibootguard
+
+config UBOOT
+	bool "U-Boot"
+	help
+	  Support for U-Boot
+	  https://www.denx.de/wiki/U-Boot
 
 config UBOOT_FWENV
 	string "U-Boot Environment Configuration file"
@@ -52,6 +31,71 @@ config UBOOT_FWENV
 	  This is the file described in U-Boot documentation
 	  in the tools directory. It tells where the U-Boot
 	  environment is saved.
+
+config UBOOT_DEFAULTENV
+	string "U-Boot Initial Environment file"
+	depends on UBOOT
+	default "/etc/u-boot-initial-env"
+	help
+	  This is the file with the initial environment delivered
+	  with the bootloader. It is used by SWUpdate if no environment
+	  is found on the storage.
+
+config BOOTLOADER_GRUB
+	bool "GRUB"
+	help
+	  Support for GRUB
+	  https://www.gnu.org/software/grub/
+
+config GRUBENV_PATH
+	string "GRUB Environment block file path"
+	depends on BOOTLOADER_GRUB
+	default "/boot/efi/EFI/BOOT/grub/grubenv"
+	help
+	  Provide path to GRUB environment block file
+
+endmenu
+
+choice
+	prompt "Default Bootloader Interface"
+	help
+	  Default bootloader interface to use if not explicitly
+	  overridden via configuration or command-line option
+	  at run-time.
+
+config BOOTLOADER_DEFAULT_EBG
+	bool "EBG"
+	depends on BOOTLOADER_EBG
+	help
+	  Use EFI Boot Guard as default bootloader interface.
+	  
+	  Note: Make sure the environment modification shared
+	  library https://github.com/siemens/efibootguard (including
+	  dependencies) is installed on the target system.
+
+config BOOTLOADER_DEFAULT_UBOOT
+	bool "U-Boot"
+	depends on UBOOT
+	help
+	  Use U-Boot as default bootloader interface.
+	  
+	  Note: Make sure the environment modification shared
+	  library https://github.com/sbabic/libubootenv (including
+	  dependencies) is installed on the target system.
+
+config BOOTLOADER_DEFAULT_GRUB
+	bool "GRUB"
+	depends on BOOTLOADER_GRUB
+	help
+	  Use GRUB as default bootloader interface.
+
+config BOOTLOADER_DEFAULT_NONE
+	bool "Environment in RAM"
+	depends on BOOTLOADER_NONE
+	help
+	  Use Environment in RAM as default bootloader interface.
+
+endchoice
 
 choice
 	prompt "Update Status Storage"
@@ -67,6 +111,7 @@ config UPDATE_STATE_CHOICE_NONE
 
 config UPDATE_STATE_CHOICE_BOOTLOADER
 	bool "Bootloader"
+	depends on BOOTLOADER_EBG || UBOOT || BOOTLOADER_NONE || BOOTLOADER_GRUB
 	help
 	  Store update status in Bootloader's environment.
 	  Specify Bootloader environment variable name to store update status in.
@@ -80,18 +125,3 @@ config UPDATE_STATE_BOOTLOADER
 	help
 	  Store update information in Bootloader's environment.
 
-config UBOOT_DEFAULTENV
-	string "U-Boot Initial Environment file"
-	depends on UBOOT
-	default "/etc/u-boot-initial-env"
-	help
-	  This is the file with the initial environment delivered
-	  with the bootloader. It is used by SWUpdate if no environment
-	  is found on the storage.
-
-config GRUBENV_PATH
-	string "GRUB Environment block file path"
-	depends on BOOTLOADER_GRUB
-	default "/boot/efi/EFI/BOOT/grub/grubenv"
-	help
-	  Provide path to GRUB environment block file
