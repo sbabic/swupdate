@@ -6,6 +6,7 @@ menu "Bootloader Interfaces"
 
 config BOOTLOADER_NONE
 	bool "Environment in RAM"
+	default y
 	help
 	  This simulates the interface to a bootloader.
 	  Bootloader environment is just maintained in RAM
