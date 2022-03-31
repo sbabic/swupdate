@@ -15,7 +15,7 @@ var htmlmin = require('gulp-htmlmin')
 var minify = require('gulp-minify')
 var rename = require('gulp-rename')
 var replace = require('gulp-replace')
-var sass = require('gulp-sass')(require('sass'));
+var sass = require('gulp-sass')(require('sass'))
 var tar = require('gulp-tar')
 var useref = require('gulp-useref')
 var minimist = require('minimist')
@@ -102,9 +102,9 @@ gulp.task('copy-js', async function () {
 
 gulp.task('copy-fonts', async function () {
   return gulp.src([
-   'node_modules/@fortawesome/fontawesome-free/webfonts/fa-solid-900.{ttf,woff,woff2}' 
+    'node_modules/@fortawesome/fontawesome-free/webfonts/fa-solid-900.{ttf,woff,woff2}'
   ])
-  .pipe(gulp.dest('dist/webfonts'))
+    .pipe(gulp.dest('dist/webfonts'))
 })
 
 gulp.task('resize-images', async function () {

@@ -31,16 +31,16 @@
     "gulp-tar": "^2.1.0",
     "gulp-useref": "^3.1.6",
     "htmlhint": "^0.10.1",
-    "minimist": "^1.2.0",
-    "sass": "^1.45.1",
+    "minimist": "^1.2.6",
+    "sass": "^1.49.10",
     "sass-lint": "^1.12.1",
     "standard": "^12.0.1"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.6.3",
-    "bootstrap": "^4.2.1",
+    "bootstrap": "^4.6.0",
     "dropzone": "5.5.1",
-    "jquery": "^3.3.1",
+    "jquery": "^3.6.0",
     "popper.js": "^1.14.6"
   },
   "standard": {

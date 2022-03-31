@@ -14,7 +14,7 @@ function restart () {
 }
 
 function showRestart () {
-  $('#swu-restart-modal').modal({backdrop: 'static', keyboard: false})
+  $('#swu-restart-modal').modal({ backdrop: 'static', keyboard: false })
   window.setTimeout(tryReload, 3000)
 }
 
@@ -65,9 +65,9 @@ var updateProgressBarStatus = (function (status) {
 
   return function (status) {
     $('#swu-progress-bar')
-    .removeClass('bg-danger bg-success progress-bar-animated')
+      .removeClass('bg-danger bg-success progress-bar-animated')
     $('#swu-progress-spinner')
-    .removeClass('fa-spinner fa-spin')
+      .removeClass('fa-spinner fa-spin')
     $('#swu-progress-run').hide()
 
     switch (status) {
