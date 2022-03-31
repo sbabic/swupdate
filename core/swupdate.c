@@ -860,7 +860,7 @@ int main(int argc, char **argv)
 		gid_t gid;
 		read_settings_user_id(&handle, "download", &uid, &gid);
 		start_subprocess(SOURCE_CHUNKS_DOWNLOADER, "chunks_downloader", uid, gid,
-				cfgfname, ac, av,
+				cfgfname, 0, NULL,
 				start_delta_downloader);
 	}
 #endif
