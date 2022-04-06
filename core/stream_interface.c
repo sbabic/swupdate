@@ -495,6 +495,23 @@ no_copy_output:
 	return ret;
 }
 
+static bool update_transaction_state(struct swupdate_cfg *software, update_state_t newstate)
+{
+	if (!software->parms.dry_run && software->bootloader_transaction_marker) {
+		if (newstate == STATE_INSTALLED)
+			bootloader_env_unset(BOOTVAR_TRANSACTION);
+		else
+			bootloader_env_set(BOOTVAR_TRANSACTION, get_state_string(newstate));
+	}
+	if (!software->parms.dry_run
+	    && software->bootloader_state_marker
+	    && save_state(newstate) != SERVER_OK) {
+		WARN("Cannot persistently store %s update state.", get_state_string(newstate));
+		return false;
+	}
+	return true;
+}
+
 void *network_initializer(void *data)
 {
 	int ret;
@@ -605,34 +622,20 @@ void *network_initializer(void *data)
 			 * must be successful. Set we have
 			 * initiated an update
 			 */
-			if (!software->parms.dry_run && software->bootloader_transaction_marker) {
-				bootloader_env_set(BOOTVAR_TRANSACTION, get_state_string(STATE_IN_PROGRESS));
-			}
+			update_transaction_state(software, STATE_IN_PROGRESS);
 
 			notify(RUN, RECOVERY_NO_ERROR, INFOLEVEL, "Installation in progress");
 			ret = install_images(software);
 			if (ret != 0) {
-				if (!software->parms.dry_run && software->bootloader_transaction_marker) {
-					bootloader_env_set(BOOTVAR_TRANSACTION, get_state_string(STATE_FAILED));
-				}
+				update_transaction_state(software, STATE_FAILED);
 				notify(FAILURE, RECOVERY_ERROR, ERRORLEVEL, "Installation failed !");
 				inst.last_install = FAILURE;
-				if (!software->parms.dry_run
-				    && software->bootloader_state_marker
-				    && save_state(STATE_FAILED) != SERVER_OK) {
-					WARN("Cannot persistently store FAILED update state.");
-				}
 			} else {
 				/*
 				 * Clear the recovery variable to indicate to bootloader
 				 * that it is not required to start recovery again
 				 */
-				if (!software->parms.dry_run && software->bootloader_transaction_marker) {
-					bootloader_env_unset(BOOTVAR_TRANSACTION);
-				}
-				if (!software->parms.dry_run
-				    && software->bootloader_state_marker
-				    && save_state(STATE_INSTALLED) != SERVER_OK) {
+				if (!update_transaction_state(software, STATE_INSTALLED)) {
 					ERROR("Cannot persistently store INSTALLED update state.");
 					notify(FAILURE, RECOVERY_ERROR, ERRORLEVEL, "Installation failed !");
 					inst.last_install = FAILURE;
