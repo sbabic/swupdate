@@ -68,7 +68,6 @@ against it. To use it as replacement for u-boot-fw-utils:
 ::
 
                 CONFIG_UBOOT=y
-                CONFIG_UBOOT_NEWAPI=y
 
 With this library, you can simply pass the default environment as file (u-boot-initial-env).
 It is recommended for new project to switch to the new library to become independent from
