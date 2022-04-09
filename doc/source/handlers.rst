@@ -946,6 +946,24 @@ MBR Example:
 	   }
 	}
 
+Toggleboot Handler
+------------------
+
+This handler is a script handler. It turns on the bootflag for one of a disk partition
+if the partition table is DOS. It reports an error if the table is GPT.
+
+::
+
+	script: (
+	{
+	   type = "toggleboot";
+	   device = "/dev/sde";
+	   properties: {
+		partition = "1";
+           }
+        }
+
+
 Diskformat Handler
 ------------------
 

@@ -23,6 +23,7 @@
 #include "util.h"
 
 void diskpart_handler(void);
+void diskpart_toggle_boot(void);
 
 /*
  * This is taken from libfdisk to declare if a field is not set
@@ -1111,9 +1112,114 @@ handler_release:
 	return ret;
 }
 
+static int toggle_boot(struct img_type *img, void  *data)
+{
+
+	struct fdisk_context *cxt;
+	char *path;
+	int ret;
+	unsigned long partno;
+
+	struct script_handler_data *script_data;
+
+	if (!data)
+		return -1;
+
+	script_data = data;
+
+	if (script_data->scriptfn != POSTINSTALL)
+		return 0;
+
+	/*
+	 * Parse properties
+	 */
+	partno = strtoul(dict_get_value(&img->properties, "partition"), NULL, 10);
+
+	/*
+	 * Set is possible only for primary partitions
+	 */
+	if (partno > 4 || partno < 1) {
+		ERROR("Wrong partition number: %ld", partno);
+		return -EINVAL;
+	}
+
+	partno--;
+
+	cxt = fdisk_new_context();
+	if (!cxt) {
+		ERROR("Failed to allocate libfdisk context");
+		return -ENOMEM;
+	}
+
+	/*
+	 * Resolve device path symlink.
+	 */
+	path = realpath(img->device, NULL);
+	if (!path)
+		path = strdup(img->device);
+
+	/*
+	 * fdisk_new_nested_context requires the device to be assigned.
+	 */
+	ret = fdisk_assign_device(cxt, path, 0);
+	free(path);
+	if (ret < 0) {
+		ERROR("Device %s cannot be opened: %s", img->device, strerror(-ret));
+		return ret;
+	}
+
+	if (!fdisk_is_label(cxt, DOS)) {
+		ERROR("Setting boot flag supported for DOS table only");
+		ret = -EINVAL;
+		goto toggle_boot_exit;
+	}
+
+	int nparts = fdisk_get_npartitions(cxt);
+
+	TRACE("Toggling Boot Flag for partition %ld", partno);
+
+	struct fdisk_partition *pa = NULL;
+	for (int i = 0; i < nparts; i++) {
+
+		if (fdisk_get_partition(cxt, i, &pa) != 0)
+			continue;
+
+		if (i != partno) {
+			if (fdisk_partition_is_bootable(pa))
+				fdisk_toggle_partition_flag(cxt, i, DOS_FLAG_ACTIVE);
+		} else {
+			if (!fdisk_partition_is_bootable(pa)) {
+				ret = fdisk_toggle_partition_flag(cxt, i, DOS_FLAG_ACTIVE);
+				if (ret)
+					ERROR("Setting boot flag for partition %d on %s FAILED", i, img->device);
+			}
+		}
+	}
+	fdisk_unref_partition(pa);
+
+	ret = fdisk_write_disklabel(cxt);
+
+toggle_boot_exit:
+	if (cxt && fdisk_get_devfd(cxt) >= 0) {
+		if (fdisk_deassign_device(cxt, 0))
+			WARN("Error deassign device %s", img->device);
+	}
+	if (cxt)
+		diskpart_unref_context(cxt);
+
+	return ret;
+}
+
 __attribute__((constructor))
 void diskpart_handler(void)
 {
 	register_handler("diskpart", diskpart,
 				PARTITION_HANDLER | NO_DATA_HANDLER, NULL);
+}
+
+__attribute__((constructor))
+void diskpart_toggle_boot(void)
+{
+	register_handler("toggleboot", toggle_boot,
+				SCRIPT_HANDLER | NO_DATA_HANDLER, NULL);
 }
