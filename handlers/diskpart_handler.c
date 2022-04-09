@@ -104,6 +104,18 @@ static char *diskpart_get_lbtype(struct img_type *img)
 	return dict_get_value(&img->properties, "labeltype");
 }
 
+static bool diskpart_is_gpt(struct img_type *img)
+{
+	char *lbtype = diskpart_get_lbtype(img);
+	return (lbtype && !strcmp(lbtype, "gpt"));
+}
+
+static bool diskpart_is_dos(struct img_type *img)
+{
+	char *lbtype = diskpart_get_lbtype(img);
+	return (lbtype && !strcmp(lbtype, "dos"));
+}
+
 static int diskpart_assign_label(struct fdisk_context *cxt, struct img_type *img,
 		struct hnd_priv priv, struct create_table *createtable, unsigned long hybrid)
 {
@@ -125,7 +137,7 @@ static int diskpart_assign_label(struct fdisk_context *cxt, struct img_type *img
 		if (hybrid)
 			createtable->child = true;
 	} else if (lbtype) {
-		if (!strcmp(lbtype, "gpt")) {
+		if (diskpart_is_gpt(img)) {
 			priv.labeltype = FDISK_DISKLABEL_GPT;
 		} else {
 			priv.labeltype = FDISK_DISKLABEL_DOS;
@@ -800,7 +812,7 @@ static int diskpart(struct img_type *img,
 	};
 	struct create_table *createtable = NULL;
 
-	if (!lbtype || (strcmp(lbtype, "gpt") && strcmp(lbtype, "dos"))) {
+	if (!diskpart_is_gpt(img) && !diskpart_is_dos(img)) {
 		ERROR("Just GPT or DOS partition table are supported");
 		return -EINVAL;
 	}
@@ -935,7 +947,7 @@ static int diskpart(struct img_type *img,
 		}
 	}
 
-	if (hybrid && (!lbtype || strcmp(lbtype, "gpt"))) {
+	if (hybrid && !diskpart_is_gpt(img)) {
 		ERROR("Partitions have hybrid(dostype) entries but labeltype is not gpt !");
 		ret = -EINVAL;
 		goto handler_release;
