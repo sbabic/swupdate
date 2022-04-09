@@ -894,6 +894,9 @@ supported:
    | partuuid    | string   | The partition UUID (GPT only). If omitted, a UUID  |
    |             |          | will be generated automatically.			 |
    +-------------+----------+----------------------------------------------------+
+   | flag        | string   | The following flags are supported:                 |
+   |             |          | Dos Partition : "boot" set bootflag		 |
+   +-------------+----------+----------------------------------------------------+
 
 
 

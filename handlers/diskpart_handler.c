@@ -53,6 +53,7 @@ enum partfield {
 	PART_FSTYPE,
 	PART_DOSTYPE,
 	PART_UUID,
+	PART_FLAG,
 };
 
 const char *fields[] = {
@@ -63,6 +64,7 @@ const char *fields[] = {
 	[PART_FSTYPE] = "fstype",
 	[PART_DOSTYPE] = "dostype",
 	[PART_UUID] = "partuuid",
+	[PART_FLAG] = "flag",
 };
 
 struct partition_data {
@@ -75,6 +77,7 @@ struct partition_data {
 	char dostype[SWUPDATE_GENERAL_STRING_SIZE];
 	char partuuid[UUID_STR_LEN];
 	int explicit_size;
+	unsigned long flags;
 	LIST_ENTRY(partition_data) next;
 };
 LIST_HEAD(listparts, partition_data);
@@ -497,6 +500,9 @@ static bool is_diskpart_different(struct fdisk_partition *firstpa, struct fdisk_
 		if (fdisk_parttype_get_code(firstpa_type) != fdisk_parttype_get_code(secondpa_type)) {
 			return true;
 		}
+		if (fdisk_partition_is_bootable(firstpa) != fdisk_partition_is_bootable(secondpa)) {
+			return true;
+		}
 	}
 
 	return false;
@@ -623,6 +629,14 @@ static int diskpart_fill_table(struct fdisk_context *cxt, struct diskpart_table 
 		ret = diskpart_reload_table(cxt, tb->child);
 		if (ret)
 			return ret;
+	} else {
+		if (fdisk_is_label(cxt, DOS)) {
+			LIST_FOREACH(part, &priv.listparts, next) {
+				if (part->flags & DOS_FLAG_ACTIVE) {
+					fdisk_toggle_partition_flag(cxt, part->partno, DOS_FLAG_ACTIVE);
+				}
+			}
+		}
 	}
 	return ret;
 }
@@ -796,7 +810,6 @@ static void diskpart_unref_context(struct fdisk_context *cxt)
 static int diskpart(struct img_type *img,
 	void __attribute__ ((__unused__)) *data)
 {
-	char *lbtype = diskpart_get_lbtype(img);
 	struct dict_list *parts;
 	struct dict_list_elem *elem;
 	struct fdisk_context *cxt = NULL;
@@ -807,6 +820,7 @@ static int diskpart(struct img_type *img,
 	int ret = 0;
 	unsigned long i;
 	unsigned long hybrid = 0;
+	unsigned int nbootflags = 0;
 	struct hnd_priv priv =  {
 		.labeltype = FDISK_DISKLABEL_DOS,
 	};
@@ -899,6 +913,20 @@ static int diskpart(struct img_type *img,
 					case PART_UUID:
 						strncpy(part->partuuid, equal, sizeof(part->partuuid));
 						break;
+					case PART_FLAG:
+						if (strcmp(equal, "boot")) {
+							ERROR("Unknown flag : %s", equal);
+							ret = -EINVAL;
+							goto handler_exit;
+						}
+						nbootflags++;
+						if (nbootflags > 1) {
+							ERROR("Boot flag set to multiple partitions");
+							ret = -EINVAL;
+							goto handler_exit;
+						}
+						part->flags |= DOS_FLAG_ACTIVE;
+						break;
 					}
 				}
 			}
@@ -949,6 +977,11 @@ static int diskpart(struct img_type *img,
 
 	if (hybrid && !diskpart_is_gpt(img)) {
 		ERROR("Partitions have hybrid(dostype) entries but labeltype is not gpt !");
+		ret = -EINVAL;
+		goto handler_release;
+	}
+	if (nbootflags && !diskpart_is_dos(img)) {
+		ERROR("Boot flag can be set just for labeltype dos !");
 		ret = -EINVAL;
 		goto handler_release;
 	}
