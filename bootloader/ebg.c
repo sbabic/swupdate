@@ -129,6 +129,8 @@ static char *do_env_get(const char *name)
 	if (strncmp(name, (char *)STATE_KEY, strlen((char *)STATE_KEY) + 1) == 0) {
 		value = (char *)malloc(sizeof(char));
 		*value = libebg.env_getglobalstate(&ebgenv);
+		/* Map EFI Boot Guard's int return to update_state_t's char value */
+		*value = *value + '0';
 	} else {
 		if ((size = libebg.env_get(&ebgenv, (char *)name, NULL)) != 0) {
 			value = malloc(size);
@@ -147,8 +149,6 @@ static char *do_env_get(const char *name)
 		    name, strerror(errno));
 	}
 
-	/* Map EFI Boot Guard's int return to update_state_t's char value */
-	*value = *value + '0';
 	return value;
 }
 
