@@ -119,7 +119,7 @@ static int flash_write_nand(int mtdnum, struct img_type *img)
 		return -EINVAL;
 	}
 
-	if(flash_erase_sector(mtdnum, img->offset, img->size)) {
+	if(flash_erase_sector(mtdnum, img->seek, img->size)) {
 		ERROR("I cannot erasing %s",
 			img->device);
 		return -1;
@@ -301,7 +301,7 @@ static int flash_write_nor(int mtdnum, struct img_type *img)
 		return -ENODEV;
 	}
 
-	if(flash_erase_sector(mtdnum, img->offset, img->size)) {
+	if(flash_erase_sector(mtdnum, img->seek, img->size)) {
 		ERROR("I cannot erasing %s",
 			img->device);
 		return -1;
