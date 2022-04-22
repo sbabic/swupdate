@@ -429,7 +429,7 @@ void sigchld_handler (int __attribute__ ((__unused__)) signum)
 			hasdied = 0;
 			if (WIFEXITED(status)) {
 				hasdied = 1;
-				printf("exited, status=%d\n", WIFEXITED(status));
+				printf("exited, status=%d\n", WEXITSTATUS(status));
 			} else if (WIFSIGNALED(status)) {
 				hasdied = 1;
 				printf("killed by signal %d\n", WTERMSIG(status));
