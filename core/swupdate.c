@@ -60,6 +60,9 @@ static pthread_t network_daemon;
 /* Tree derived from the configuration file */
 static struct swupdate_cfg swcfg;
 
+int loglevel = ERRORLEVEL;
+int exit_code = EXIT_SUCCESS;
+
 #ifdef CONFIG_MTD
 /* Global MTD configuration */
 static struct flash_description flashdesc;
@@ -117,8 +120,6 @@ static struct option long_options[] = {
 	{"bootloader", required_argument, NULL, 'B'},
 	{NULL, 0, NULL, 0}
 };
-
-int loglevel = ERRORLEVEL;
 
 static void usage(char *programname)
 {
@@ -421,7 +422,6 @@ int main(int argc, char **argv)
 	char main_options[256];
 	unsigned int public_key_mandatory = 0;
 	struct sigaction sa;
-	int result = EXIT_SUCCESS;
 #ifdef CONFIG_SURICATTA
 	int opt_u = 0;
 	char *suricattaoptions;
@@ -919,7 +919,7 @@ int main(int argc, char **argv)
 	}
 
 	if (opt_i) {
-		result = install_from_file(fname, opt_c);
+		exit_code = install_from_file(fname, opt_c);
 	}
 
 #ifdef CONFIG_SYSTEMD
@@ -945,5 +945,5 @@ int main(int argc, char **argv)
 	if (!opt_c && !opt_i)
 		pthread_join(network_daemon, NULL);
 
-	return result;
+	return exit_code;
 }

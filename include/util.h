@@ -33,6 +33,7 @@
 #define SWUPDATE_ALIGN(A,S)    (((A) + (S) - 1) & ~((S) - 1))
 
 extern int loglevel;
+extern int exit_code;
 
 typedef enum {
 	SERVER_OK,

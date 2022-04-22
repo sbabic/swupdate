@@ -429,9 +429,11 @@ void sigchld_handler (int __attribute__ ((__unused__)) signum)
 			hasdied = 0;
 			if (WIFEXITED(status)) {
 				hasdied = 1;
-				printf("exited, status=%d\n", WEXITSTATUS(status));
+				exit_code = WEXITSTATUS(status);
+				printf("exited, status=%d\n", exit_code);
 			} else if (WIFSIGNALED(status)) {
 				hasdied = 1;
+				exit_code = EXIT_FAILURE;
 				printf("killed by signal %d\n", WTERMSIG(status));
 			} else if (WIFSTOPPED(status)) {
 				printf("stopped by signal %d\n", WSTOPSIG(status));
