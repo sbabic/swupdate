@@ -24,7 +24,11 @@ struct async_lib {
 	terminated	end;
 };
 
-static int handle = 0;
+static enum async_thread_state {
+	ASYNC_THREAD_INIT,
+	ASYNC_THREAD_RUNNING,
+	ASYNC_THREAD_DONE
+} running = ASYNC_THREAD_INIT;
 
 static struct async_lib request;
 
@@ -83,7 +87,7 @@ static void *swupdate_async_thread(void *data)
 	}
 
 out:
-	handle = 0;
+	running = ASYNC_THREAD_DONE;
 	if (rq->end)
 		rq->end((RECOVERY_STATUS)swupdate_result);
 
@@ -95,20 +99,21 @@ out:
  * to let build the ipc library without
  * linking pctl code
  */
-static pthread_t start_ipc_thread(void *(* start_routine) (void *), void *arg)
+static void start_ipc_thread(void *(* start_routine) (void *), void *arg)
 {
 	int ret;
-	pthread_t id;
 	pthread_attr_t attr;
 
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
-	ret = pthread_create(&id, &attr, start_routine, arg);
+	ret = pthread_create(&async_thread_id, &attr, start_routine, arg);
 	if (ret) {
-		return -1;
+		perror("ipc thread creation failed");
+		return;
 	}
-	return id;
+
+	running = ASYNC_THREAD_RUNNING;
 }
 
 /*
@@ -121,8 +126,16 @@ int swupdate_async_start(writedata wr_func, getstatus status_func,
 	struct async_lib *rq;
 	int connfd;
 
-	if (handle)
+	switch (running) {
+	case ASYNC_THREAD_INIT:
+		break;
+	case ASYNC_THREAD_DONE:
+		pthread_join(async_thread_id, NULL);
+		running = ASYNC_THREAD_INIT;
+		break;
+	default:
 		return -EBUSY;
+	}
 
 	rq = get_request();
 
@@ -137,11 +150,9 @@ int swupdate_async_start(writedata wr_func, getstatus status_func,
 
 	rq->connfd = connfd;
 
-	async_thread_id = start_ipc_thread(swupdate_async_thread, rq);
+	start_ipc_thread(swupdate_async_thread, rq);
 
-	handle++;
-
-	return handle;
+	return running != ASYNC_THREAD_INIT;
 }
 
 int swupdate_image_write(char *buf, int size)
