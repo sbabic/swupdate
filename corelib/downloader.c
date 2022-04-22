@@ -163,5 +163,5 @@ int start_download(const char *fname, int argc, char *argv[])
 		free(channel_options.auth);
 	}
 
-	exit(result == SUCCESS ? EXIT_SUCCESS : result);
+	exit(result == SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE);
 }
