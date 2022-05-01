@@ -122,7 +122,7 @@ Handling configuration differences
 
 The concept can be extended to deliver a single image
 containing the release for multiple devices. Each device has its own
-kernel, dtb and root filesystem, or they can share some parts.
+kernel, dtb, and root filesystem, or they can share some parts.
 
 Currently this is managed (and already used in a real project) by
 writing an own parser, that checks which images must be installed
@@ -197,9 +197,9 @@ Multiple devices are supported by the default parser, too.
 In this way, it is possible to have a single image providing software
 for each device you have.
 
-By default the hardware information is extracted from
+By default, the hardware information is extracted from
 `/etc/hwrevision` file. The file should contain a single line in the
-following format::
+following format:
 
   <boardname> <revision>
 
@@ -313,10 +313,10 @@ Take an example. The following sw-description describes the release for a set of
             }
     }
 
-On *myboard*, SWUpdate searches and find myboard.stable.copy1(2). When running on different
-boards, SWUpdate does not find an entry corresponding to the boardname and it fallbacks to the
-version without boardname. This lets realize the same release for different boards having
-a complete different hardware. `myboard` could have a eMMC and an ext4 filesystem,
+On *myboard*, SWUpdate searches and finds myboard.stable.copy1(2). When running on different
+boards, SWUpdate does not find an entry corresponding to the boardname and it falls back to the
+version without boardname. This allows to realize the same release for different boards having
+a completely different hardware. `myboard` could have an eMMC and an ext4 filesystem,
 while another device can have raw flash and install an UBI filesystem. Nevertheless, they are
 both just a different format of the same release and they could be described together in sw-description.
 It is important to understand the priorities how SWUpdate scans for entries during the parsing.
@@ -402,7 +402,7 @@ the section with `-e stable,<rev number>`.
 If each of them requires an own section, it is the way to do. Anyway, it is more probable
 than revisions can be grouped together, for example board with the same major revision
 number could have the same installation instructions. This leads in the example to 3 groups
-for rev1.X, rev2.X and rev3.X. Links allow one to group section together. When a "ref" is found
+for rev1.X, rev2.X, and rev3.X. Links allow one to group section together. When a "ref" is found
 when SWUpdate searches for a group (images, files, script, bootenv), it replaces the current path
 in the tree with the value of the string. In this way, the example above can be written in this way:
 
@@ -560,7 +560,7 @@ Example:
 	hardware-compatibility: [ "1.0", "1.2", "1.3"];
 
 This defines that the software is compatible with HW-Revisions 1.0,
-1.2 and 1.3, but not with 1.1 or any other version not explicitly
+1.2, and 1.3, but not with 1.1 or any other version not explicitly
 listed here. In the above example, compatibility is checked by means
 of string comparison. If the software is compatible with a large
 number of hardware revisions, it may get cumbersome to enumerate all
@@ -681,7 +681,7 @@ The offset handles the following multiplicative suffixes: K=1024 and M=1024*1024
 
 However, writing to flash in raw mode must be managed in a special
 way. Flashes must be erased before copying, and writing into NAND
-must take care of bad blocks and ECC errors. For this reasons, the
+must take care of bad blocks and ECC errors. For these reasons, the
 handler "flash" must be selected:
 
 For example, to copy the kernel into the MTD7 of a NAND flash:
@@ -744,7 +744,7 @@ is interrupted, the existing file may be replaced by an empty or partially
 written file. A use case can exist where having an empty or corrupted file is
 worse than the existing file. For this reason, the raw file handler supports an
 "atomic-install" property. Setting the property to "true" installs the file to
-the specified path with ".tmp" apppended to the filename. Once the contents of
+the specified path with ".tmp" appended to the filename. Once the contents of
 the file have been written and the buffer is flushed, the ".tmp" file is renamed
 to the target file. This minimizes chances that an empty or corrupted file is
 created by an interrupted raw file handler.
@@ -1080,9 +1080,9 @@ SWUpdate supports a version based on the schema:
 where each field is a plain number (no alphanumeric) in the range 0..65535.
 User can add further fields using the dot separator, but they are not
 considered for version comparison. SWUpdate will check if a version
-number is set according to this rule, and fallback to semantic version
-if fails. The version is converted in a 64 bit number (each field is 16 bit)
-and compare with the running version of the same artifact.
+number is set according to this rule and fall back to semantic version
+upon failure. The version is converted to a 64 bit number (each field is 16 bit)
+and compared against the running version of the same artifact.
 
 Please consider that, because additional fields are descriptive only, for the
 comparison they are not considered. This example contains version numbers
@@ -1100,7 +1100,7 @@ But the following is different:
 
         1.2.3.4-alpha
 
-And it is treated as semantic version
+And it is treated as semantic version.
 
 Semantic version
 ----------------
@@ -1127,13 +1127,13 @@ device in a single file, but the device should install it just when needed.
 SWUpdate searches for a file (/etc/sw-versions is the default location)
 containing all versions of the installed images. This must be generated
 before running SWUpdate.
-The file must contains pairs with the name of image and his version, as:
+The file must contain pairs with the name of image and version, as:
 
 ::
 
 	<name of component>	<version>
 
-In sw-description, the optional attributes "name", "version" and
+In sw-description, the optional attributes "name", "version", and
 "install-if-different" provide the connection. Name and version are then
 compared with the data in the versions file. install-if-different is a
 boolean that enables the check for this image. It is then possible to
@@ -1329,7 +1329,7 @@ There are 4 main sections inside sw-description:
    +-------------+----------+------------+---------------------------------------+
    | type        | string   | images     | string identifier for the handler,    |
    |             |          | files      | as it is set by the handler when it   |
-   |             |          | scripts    | regitsters itself.                    |
+   |             |          | scripts    | registers itself.                     |
    |             |          |            | Example: "ubivol", "raw", "rawfile",  |
    +-------------+----------+------------+---------------------------------------+
    | compressed  | string   | images     | string to indicate the "filename" is  |
@@ -1384,7 +1384,7 @@ There are 4 main sections inside sw-description:
    |             |          | scripts    | set. Each artefact can have an own    |
    |             |          |            | IVT to avoid attacker can guess the   |
    |             |          |            | the key.                              |
-   |             |          |            | It is a ASCII string of 32 chars      |
+   |             |          |            | It is an ASCII string of 32 chars     |
    +-------------+----------+------------+---------------------------------------+
    | data        | string   | images     | This is used to pass arbitrary data   |
    |             |          | files      | to a handler.                         |
