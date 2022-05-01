@@ -338,7 +338,7 @@ the section with `-e stable,<rev number>`.
 		myboard = {
 	            stable = {
 
-			hardware-compatibility: ["1.0", "1.2", "2.0", "1.§, "3.0", "3.1"];
+			hardware-compatibility: ["1.0", "1.2", "2.0", "1.3", "3.0", "3.1"];
 			rev-1.0: {
 				images: (
 					...
@@ -415,7 +415,7 @@ in the tree with the value of the string. In this way, the example above can be 
                 myboard = {
 	            stable = {
 
-                        hardware-compatibility: ["1.0", "1.2", "2.0", "1.3, "3.0", "3.1"];
+                        hardware-compatibility: ["1.0", "1.2", "2.0", "1.3", "3.0", "3.1"];
                         rev-1x: {
                                 images: (
                                    ...
@@ -467,7 +467,7 @@ The link can be absolute or relative. The keyword *"ref"* is used to indicate a 
 will traverse the tree and replaces the current path with the values find in the string pointed by "ref". There are
 simple rules for a link:
 
-       - it must start with the character '#' 
+       - it must start with the character '#'
        - "." points to the current level in the tree, that means the parent of "ref"
        - ".." points to the parent level in the tree
        - "/" is used as filed separator in the link
@@ -478,7 +478,7 @@ leading "../" to move the current cursor to the parent leaf of the tree.
 In the following example, rev40 sets a link to a "common" section, where `images`
 is found. This is sets via a link, too, to a section in the parent node.
 The path `software.myboard.stable.common.images`  is then replaced by
-`software.myboard.stable.trythis` 
+`software.myboard.stable.trythis`
 
 ::
 
@@ -496,7 +496,7 @@ The path `software.myboard.stable.common.images`  is then replaced by
 	  stable:{
 
 	    common:{
-		images = 
+		images =
 		{
 		  ref = "#./../trythis";
 		}
@@ -1197,7 +1197,7 @@ must be changed to:
 
         print (\"Test\")
 
-If not, the parser thinks to have the closure of the script and this generates an error. 
+If not, the parser thinks to have the closure of the script and this generates an error.
 See the examples directory for examples how to use it.
 Any entry in files or images can trigger one function in the script. The "hook" attribute
 tells the parser to load the script and to search for the function pointed to by the hook
