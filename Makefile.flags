@@ -6,7 +6,7 @@
 # Build system
 # ==========================================================================
 
-SWU_VER = $(VERSION).$(PATCHLEVEL).$(SUBLEVEL)$(EXTRAVERSION)
+SWU_VER = $(shell git describe --tags --always --dirty)
 export SWU_VER
 SKIP_STRIP ?= n
 
