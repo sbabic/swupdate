@@ -134,7 +134,7 @@ generating the SWU. The class defines new variables, all of them have the prefix
 
   ::
 
-                openssl enc -aes-256-cbc -k <PASSPHRASE> -P -md sha1 > $SWUPDATE_AES_FILE
+                openssl enc -aes-256-cbc -k <PASSPHRASE> -P -md sha1 -nosalt > $SWUPDATE_AES_FILE
 
   To use it, it is enough to add IMAGE_FSTYPES += "enc" to the  artifact. SWUpdate supports decryption of
   compressed artifact, such as
