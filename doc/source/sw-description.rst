@@ -1232,7 +1232,7 @@ a "-", it is replaced with "_", because "-" cannot be used in Lua. This means, f
 ::
 
         install-if-different ==> install_if_different
-        install-directly     ==> install_directly
+        installed-directly   ==> installed_directly
 
 Attributes can be changed in the Lua script and values are taken over on return.
 The Lua function must return 2 values:

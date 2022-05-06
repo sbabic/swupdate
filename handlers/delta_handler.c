@@ -883,7 +883,7 @@ static int install_delta(struct img_type *img,
 	 * No streaming allowed
 	 */
 	if (img->install_directly) {
-		ERROR("Do not set install-directly with delta, the header cannot be streamed");
+		ERROR("Do not set installed-directly with delta, the header cannot be streamed");
 		return -EINVAL;
 	}
 
