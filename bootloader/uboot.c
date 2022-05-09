@@ -123,7 +123,7 @@ static bootloader uboot = {
 
 static bootloader* probe(void)
 {
-	void* handle = dlopen("libubootenv.so", RTLD_NOW | RTLD_GLOBAL);
+	void* handle = dlopen("libubootenv.so.0", RTLD_NOW | RTLD_GLOBAL);
 	if (!handle) {
 		return NULL;
 	}

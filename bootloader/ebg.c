@@ -198,7 +198,7 @@ static bootloader ebg = {
 
 static bootloader* probe(void)
 {
-	void* handle = dlopen("libebgenv.so", RTLD_NOW | RTLD_GLOBAL);
+	void* handle = dlopen("libebgenv.so.0", RTLD_NOW | RTLD_GLOBAL);
 	if (!handle) {
 		return NULL;
 	}
