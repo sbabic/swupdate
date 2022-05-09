@@ -18,7 +18,7 @@
 #include "util.h"
 #include "installer.h"
 
-static pthread_mutex_t mymutex;
+static pthread_mutex_t install_file_mutex;
 
 static char buf[16 * 1024];
 static int fd = STDIN_FILENO;
@@ -63,9 +63,9 @@ static int endupdate(RECOVERY_STATUS status)
 		}
 	}
 
-	pthread_mutex_lock(&mymutex);
+	pthread_mutex_lock(&install_file_mutex);
 	pthread_cond_signal(&cv_end);
-	pthread_mutex_unlock(&mymutex);
+	pthread_mutex_unlock(&install_file_mutex);
 
 	return 0;
 }
@@ -88,6 +88,8 @@ int install_from_file(const char *filename, bool check)
 	if (check)
 		req.dry_run = RUN_DRYRUN;
 
+	pthread_mutex_init(&install_file_mutex, NULL);
+	pthread_mutex_lock(&install_file_mutex);
 	while (timeout_cnt > 0) {
 		rc = swupdate_async_start(readimage, NULL,
 					  endupdate, &req, sizeof(req));
@@ -100,16 +102,16 @@ int install_from_file(const char *filename, bool check)
 	/* return if we've hit an error scenario */
 	if (rc < 0) {
 		ERROR ("swupdate_async_start returns %d\n", rc);
-		close(fd);
-		return EXIT_FAILURE;
+		end_status = EXIT_FAILURE;
+		goto out;
 	}
 
-	pthread_mutex_init(&mymutex, NULL);
 
 	/* Now block */
-	pthread_mutex_lock(&mymutex);
-	pthread_cond_wait(&cv_end, &mymutex);
-	pthread_mutex_unlock(&mymutex);
+	pthread_cond_wait(&cv_end, &install_file_mutex);
+
+out:
+	pthread_mutex_unlock(&install_file_mutex);
 
 	if (filename)
 		close(fd);
