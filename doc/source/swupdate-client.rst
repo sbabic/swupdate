@@ -21,7 +21,7 @@ DESCRIPTION
        print help and exit
 -d
        ask the server to only perform a dry-run
--e <software>,<mode>
+-e     <software>,<mode>
        select software image set and source (for example: stable,main)
 -q
        go quiet, resets verbosity
