@@ -25,7 +25,7 @@ static unsigned int num_available = 0;
 
 int register_bootloader(const char *name, bootloader *bl)
 {
-	entry *tmp = reallocarray(available, num_available + 1, sizeof(entry));
+	entry *tmp = realloc(available, (num_available + 1) * sizeof(entry));
 	if (!tmp) {
 		return -ENOMEM;
 	}
