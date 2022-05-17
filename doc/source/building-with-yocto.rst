@@ -153,13 +153,13 @@ is signed. Each artifact must have the attribute:
 
 ::
 
-        sha256 = "@artifact-file-name"
+        sha256 = "$swupdate_get_sha256(artifact-file-name)"
 
 For example, to add sha256 to the standard Yocto core-image-full-cmdline:
 
 ::
 
-        sha256 = "@core-image-full-cmdline-machine.ubifs";
+        sha256 = "$swupdate_get_sha256(core-image-full-cmdline-machine.ubifs)";
 
 
 The name of the file must be the same as in deploy directory.
