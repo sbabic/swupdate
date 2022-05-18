@@ -1062,6 +1062,8 @@ static char *get_root_from_mountinfo(void)
 	char *mnt_point, *device = NULL;
 	unsigned int dev_major, dev_minor;
 	FILE *fp = fopen("/proc/self/mountinfo", "r");
+	if (!fp)
+		return NULL;
 	while (fp && !feof(fp)) {
 		/* format: https://www.kernel.org/doc/Documentation/filesystems/proc.txt */
 		if (fscanf(fp, "%*s %*s %u:%u %*s %ms %*s %*[-] %*s %ms %*s",
