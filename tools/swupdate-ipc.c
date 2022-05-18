@@ -83,6 +83,14 @@ static void usage_hawkbitcfg(const char *program) {
 		);
 }
 
+static void usage_monitor(const char *program) {
+	fprintf(stdout,"\t %s \n", program);
+	fprintf(stdout,
+		"\t\t-s, --socket <path>     : path to progress IPC socket\n"
+		"\t\t-h, --help              : print this help and exit\n"
+		);
+}
+
 /*
  * Utility functions called by subcommands
  */
@@ -589,6 +597,85 @@ static int sysrestart(cmd_t __attribute__((__unused__)) *cmd,
 }
 #endif
 
+static struct option monitor_options[] = {
+	{"help", no_argument, NULL, 'h'},
+	{"socket", required_argument, NULL, 's'},
+	{NULL, 0, NULL, 0}
+};
+
+static int monitor(cmd_t  __attribute__((__unused__)) *cmd, int argc, char *argv[]) {
+	char *socket_path = NULL;
+
+	/* Process options with getopt */
+	int c;
+	while ((c = getopt_long(argc, argv, "hs:", monitor_options, NULL)) != EOF) {
+		switch (c) {
+		case 's':
+			free(socket_path);
+			socket_path = strdup(optarg);
+			break;
+		case 'h':
+			usage_monitor(argv[0]);
+			exit(0);
+			break;
+		default:
+			usage_monitor(argv[0]);
+			exit(1);
+			break;
+		}
+	}
+
+	int connfd = -1;
+	struct progress_msg msg;
+	while (1) {
+		if (connfd < 0) {
+			if (!socket_path)
+				connfd = progress_ipc_connect(true);
+			else
+				connfd = progress_ipc_connect_with_path(socket_path, true);
+		}
+
+		/*
+		 * if still fails, try later
+		 */
+		if (connfd < 0) {
+			sleep(1);
+			continue;
+		}
+
+		if (progress_ipc_receive(&connfd, &msg) <= 0) {
+			continue;
+		}
+
+		if (msg.infolen > 0) {
+			/*
+			 * check that msg is NULL terminated
+			 */
+			if (msg.infolen > sizeof(msg.info) - 1) {
+				msg.infolen = sizeof(msg.info) - 1;
+			}
+			msg.info[msg.infolen] = '\0';
+		}
+
+		/*
+		 * ensure strings are null-terminated (they usually are by construction)
+		 */
+		msg.hnd_name[sizeof(msg.hnd_name) - 1] = '\0';
+		msg.cur_image[sizeof(msg.cur_image) - 1] = '\0';
+
+		fprintf(stdout, "[{ \"magic\": %d, \"status\": %u, \"dwl_percent\": %u, \"dwl_bytes\": %llu"
+				", \"nsteps\": %u, \"cur_step\": %u, \"cur_percent\": %u, \"cur_image\": \"%s\""
+				", \"hnd_name\": \"%s\", \"source\": %u, \"infolen\": %u }",
+				msg.magic, msg.status, msg.dwl_percent,
+				msg.dwl_bytes, msg.nsteps, msg.cur_step,
+				msg.cur_percent, msg.cur_image, msg.hnd_name,
+				msg.source, msg.infolen);
+                if (msg.infolen > 0) fprintf(stdout, ", %s]\n", msg.info); else fprintf(stdout, "]\n");
+
+		fflush(stdout);
+	}
+	return 0;
+}
 
 /*
  * List of implemented commands
@@ -600,6 +687,7 @@ cmd_t commands[] = {
 	{"hawkbitcfg", hawkbitcfg, usage_hawkbitcfg},
 	{"gethawkbit", gethawkbitstatus, usage_gethawkbitstatus},
 	{"sysrestart", sysrestart, usage_sysrestart},
+	{"monitor", monitor, usage_monitor},
 	{NULL, NULL, NULL}
 };
 
