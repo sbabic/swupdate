@@ -247,11 +247,12 @@ int main(int argc, char **argv)
 		}
 	}
 		
-	rundir = getenv("PSPLASH_FIFO_DIR");
-	if (!rundir)
-		rundir = "/run";
-	snprintf(psplash_pipe_path, sizeof(psplash_pipe_path), "%s/psplash_fifo", rundir);
-
+	if (opt_p) {
+		rundir = getenv("PSPLASH_FIFO_DIR");
+		if (!rundir)
+			rundir = "/run";
+		snprintf(psplash_pipe_path, sizeof(psplash_pipe_path), "%s/psplash_fifo", rundir);
+	}
 	connfd = -1;
 	while (1) {
 		if (connfd < 0) {
