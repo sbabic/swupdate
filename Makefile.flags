@@ -5,8 +5,8 @@
 # ==========================================================================
 # Build system
 # ==========================================================================
-
-SWU_VER = $(shell git describe --tags --always --dirty)
+SWU_DIR = $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+SWU_VER = $(shell git -C $(SWU_DIR) describe --tags --always --dirty)
 export SWU_VER
 SKIP_STRIP ?= n
 
