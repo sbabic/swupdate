@@ -154,7 +154,7 @@ void swupdate_download_update(unsigned int perc, unsigned long long totalbytes)
 	_swupdate_download_update(perc, totalbytes);
 }
 
-void swupdate_progress_inc_step(char *image, char *handler_name)
+void swupdate_progress_inc_step(const char *image, const char *handler_name)
 {
 	struct swupdate_progress *pprog = &progress;
 	pthread_mutex_lock(&pprog->lock);
