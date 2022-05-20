@@ -92,6 +92,8 @@ A community support takes place on the SWUpdate's Mailing List:
 
 The Mailing List is open without need to be registered.
 
+A web-interface is available [here](https://groups.google.com/g/swupdate).
+
 ## Contributing to the project
 
 Contributions are welcome !  You can submit your patches (or post questions
