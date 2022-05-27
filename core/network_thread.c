@@ -261,6 +261,9 @@ int listener_create(const char *path, int type)
 			WARN("chmod cannot be set on socket, error %s", strerror(errno));
 	}
 
+	if (fcntl(listenfd, F_SETFD, FD_CLOEXEC) < 0)
+		WARN("Could not set %d as cloexec: %s", listenfd, strerror(errno));
+
 	if (type == SOCK_STREAM)
 		if (listen(listenfd, LISTENQ) < 0) {
 			close(listenfd);
@@ -483,6 +486,9 @@ void *network_thread (void *data)
 				continue;
 			}
 		}
+		if (fcntl(ctrlconnfd, F_SETFD, FD_CLOEXEC) < 0)
+			WARN("Could not set %d as cloexec: %s", ctrlconnfd, strerror(errno));
+
 		nread = read(ctrlconnfd, (void *)&msg, sizeof(msg));
 
 		if (nread != sizeof(msg)) {
