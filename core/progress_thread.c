@@ -271,6 +271,9 @@ void *progress_bar_thread (void __attribute__ ((__unused__)) *data)
 			}
 		}
 
+		if (fcntl(connfd, F_SETFD, FD_CLOEXEC) < 0)
+			WARN("Could not set %d as cloexec: %s", connfd, strerror(errno));
+
 		/*
 		 * Save the new connection to be handled by the progress thread
 		 */
