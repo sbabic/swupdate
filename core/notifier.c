@@ -10,6 +10,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <sys/select.h>
 #include <sys/socket.h>
 #include <sys/un.h>
@@ -430,6 +431,10 @@ static void *notifier_thread (void __attribute__ ((__unused__)) *data)
 		exit(2);
 	}
 
+	if (fcntl(serverfd, F_SETFD, FD_CLOEXEC) < 0) {
+		fprintf(stderr, "Could not set %d as cloexec: %s", serverfd, strerror(errno));
+	}
+
 #if defined(__FreeBSD__)
 	setup_socket_cleanup(&notify_server);
 #endif
@@ -509,10 +514,15 @@ void notify_init(void)
 		setup_socket_cleanup(&notify_client);
 #endif
 		notifyfd = socket(AF_UNIX, SOCK_DGRAM, 0);
+
 		if (notifyfd < 0) {
 			printf("Error creating notifier socket for pid %d", pid);
 			return;
 		}
+
+		if (fcntl(notifyfd, F_SETFD, FD_CLOEXEC) < 0)
+			WARN("Could not set %d as cloexec: %s", notifyfd, strerror(errno));
+
 		if (bind(notifyfd, (const struct sockaddr *) &notify_client,
 			sizeof(struct sockaddr_un)) < 0) {
 				/* Trace cannot work here, use printf */
