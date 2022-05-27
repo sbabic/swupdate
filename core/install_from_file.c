@@ -75,7 +75,7 @@ int install_from_file(const char *filename, bool check)
 	int rc;
 	int timeout_cnt = 3;
 
-	if (filename && (fd = open(filename, O_RDONLY)) < 0) {
+	if (filename && (fd = open(filename, O_RDONLY|O_CLOEXEC)) < 0) {
 		fprintf(stderr, "Unable to open %s\n", filename);
 		return EXIT_FAILURE;
 	}
