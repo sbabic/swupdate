@@ -62,9 +62,9 @@ const char* get_bootloader(void)
 
 void print_registered_bootloaders(void)
 {
-	INFO("Registered bootloaders:");
+	TRACE("Registered bootloaders:");
 	for (unsigned int i = 0; i < num_available; i++) {
-		INFO("\t%s\t%s", available[i].name,
+		TRACE("\t%s\t%s", available[i].name,
 		     available[i].funcs == NULL ? "shared lib not found."
 						: "loaded.");
 	}
