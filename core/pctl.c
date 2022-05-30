@@ -11,6 +11,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/select.h>
+#include <stdlib.h>
 #if defined(__linux__)
 #include <sys/prctl.h>
 #endif
@@ -247,12 +248,13 @@ void start_subprocess(sourcetype type, const char *name,
 int run_system_cmd(const char *cmd)
 {
 	int ret = 0;
-	int stdoutpipe[2];
-	int stderrpipe[2];
+	int const npipes = 4;
+	int pipes[npipes][2];
+	LOGLEVEL levels[4] = { TRACELEVEL, ERRORLEVEL, INFOLEVEL, WARNLEVEL };
 	pid_t process_id;
 	int const PIPE_READ = 0;
 	int const PIPE_WRITE = 1;
-	int wstatus;
+	int wstatus, i;
 
 	if (!strnlen(cmd, SWUPDATE_GENERAL_STRING_SIZE))
 		return 0;
@@ -267,29 +269,42 @@ int run_system_cmd(const char *cmd)
 	 * Creates pipes to intercept stdout and stderr of the
 	 * child process
 	 */
-	if (pipe(stdoutpipe) < 0) {
-		ERROR("stdout pipe cannot be created, exiting...");
-		return -EFAULT;
+	for (i = 0; i < npipes; i++) {
+		if (pipe(pipes[i]) < 0) {
+			ERROR("Could not create pipes for subprocess, existing...");
+			break;
+		}
 	}
-	if (pipe(stderrpipe) < 0) {
-		ERROR("stderr pipe cannot be created, exiting...");
-		close(stdoutpipe[0]);
-		close(stdoutpipe[1]);
+	if (i < npipes) {
+		while (i >= 0) {
+			close(pipes[i][0]);
+			close(pipes[i][1]);
+			i--;
+		}
 		return -EFAULT;
 	}
 
 	process_id = fork();
 	/* Child process, this runs the shell command */
 	if (process_id == 0) {
-		if (dup2(stdoutpipe[PIPE_WRITE], STDOUT_FILENO) < 0)
+		if (dup2(pipes[0][PIPE_WRITE], STDOUT_FILENO) < 0)
 			exit(errno);
-		if (dup2(stderrpipe[PIPE_WRITE], STDERR_FILENO) < 0)
+		if (dup2(pipes[1][PIPE_WRITE], STDERR_FILENO) < 0)
 			exit(errno);
+		/* posix sh cannot use fd >= 10, so dup these to lower
+		 * numbers for convenience */
+		if (dup2(pipes[2][PIPE_WRITE], 3) < 0)
+			exit(errno);
+		setenv("SWUPDATE_INFO_FD", "3", 1);
+		if (dup2(pipes[3][PIPE_WRITE], 4) < 0)
+			exit(errno);
+		setenv("SWUPDATE_WARN_FD", "4", 1);
+
 		/* close all pipes, not used anymore */
-		close(stdoutpipe[PIPE_READ]);
-		close(stdoutpipe[PIPE_WRITE]);
-		close(stderrpipe[PIPE_READ]);
-		close(stderrpipe[PIPE_WRITE]);
+		for (i = 0; i < npipes; i++) {
+			close(pipes[i][PIPE_READ]);
+			close(pipes[i][PIPE_WRITE]);
+		}
 
 		ret = execl("/bin/sh", "sh", "-c", cmd, (char *)NULL);
 		if (ret) {
@@ -297,25 +312,24 @@ int run_system_cmd(const char *cmd)
 			exit(1);
 		}
 	} else {
-		int fds[2];
+		int fds[npipes];
+		int fdmax = 0;
 		pid_t w;
-		char buf[2][SWUPDATE_GENERAL_STRING_SIZE];
-		int cindex[2] = {0, 0}; /* this is the first free char inside buffer */
-		LOGLEVEL levels[2] = { TRACELEVEL, ERRORLEVEL };
-
-		close(stdoutpipe[PIPE_WRITE]);
-		close(stderrpipe[PIPE_WRITE]);
-
-		fds[0] = stdoutpipe[PIPE_READ];
-		fds[1] = stderrpipe[PIPE_READ];
-
 		/*
 		 * Use buffers (for stdout and stdin) to collect data from
 		 * the cmd. Data can contain multiple lines or just a part
 		 * of a line and must be parsed
 		 */
-		memset(buf[0], 0, SWUPDATE_GENERAL_STRING_SIZE);
-		memset(buf[1], 0, SWUPDATE_GENERAL_STRING_SIZE);
+		char buf[npipes][SWUPDATE_GENERAL_STRING_SIZE];
+		int cindex[npipes];
+
+		for (i = 0; i < npipes; i++) {
+			close(pipes[i][PIPE_WRITE]);
+			fds[i] = pipes[i][PIPE_READ];
+			memset(buf[i], 0, sizeof(buf[i]));
+			cindex[i] = 0;
+			if (fds[i] > fdmax) fdmax = fds[i];
+		}
 
 		/*
 		 * Now waits until the child process exits and checks
@@ -326,13 +340,13 @@ int run_system_cmd(const char *cmd)
 			int n1 = 0;
 			struct timeval tv;
 			fd_set readfds;
-			int n, i;
+			int n;
 
 			w = waitpid(process_id, &wstatus, WNOHANG);
 			if (w == -1) {
 				ERROR("Error from waitpid() !!");
-				close(stdoutpipe[PIPE_READ]);
-				close(stderrpipe[PIPE_READ]);
+				close(pipes[0][PIPE_READ]);
+				close(pipes[1][PIPE_READ]);
 				return -EFAULT;
 			}
 
@@ -342,15 +356,15 @@ int run_system_cmd(const char *cmd)
 			/* Check if the child has sent something */
 			do {
 				FD_ZERO(&readfds);
-				FD_SET(fds[0], &readfds);
-				FD_SET(fds[1], &readfds);
+				for (i = 0; i < npipes; i++)
+					FD_SET(fds[i], &readfds);
 
 				n1 = 0;
-				ret = select(max(fds[0], fds[1]) + 1, &readfds, NULL, NULL, &tv);
+				ret = select(fdmax + 1, &readfds, NULL, NULL, &tv);
 				if (ret <= 0)
 					break;
 
-				for (i = 0; i < 2 ; i++) {
+				for (i = 0; i < npipes ; i++) {
 					char *pbuf = buf[i];
 					int *c = &cindex[i];
 					LOGLEVEL level = levels[i];
@@ -367,7 +381,7 @@ int run_system_cmd(const char *cmd)
 		} while (w != process_id);
 
 		/* print any unfinished line */
-		for (int i = 0; i < 2; i++) {
+		for (i = 0; i < npipes; i++) {
 			if (cindex[i]) {
 				switch(i) {
 				case 0:
@@ -378,10 +392,8 @@ int run_system_cmd(const char *cmd)
 					break;
 				}
 			}
+			close(pipes[i][PIPE_READ]);
 		}
-
-		close(stdoutpipe[PIPE_READ]);
-		close(stderrpipe[PIPE_READ]);
 
 		if (WIFEXITED(wstatus)) {
 			ret = WEXITSTATUS(wstatus);
