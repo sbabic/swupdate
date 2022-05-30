@@ -1340,7 +1340,7 @@ There are 4 main sections inside sw-description:
    |             |          |            | and "zstd".                           |
    +-------------+----------+------------+---------------------------------------+
    | compressed  | bool (dep| images     | Deprecated. Use the string form. true |
-   |             | recated) | files      | is equal to 'compression = "zlib"'.   |
+   |             | recated) | files      | is equal to 'compressed = "zlib"'.    |
    +-------------+----------+------------+---------------------------------------+
    | installed-\ | bool     | images     | flag to indicate that image is        |
    | directly    |          |            | streamed into the target without any  |
