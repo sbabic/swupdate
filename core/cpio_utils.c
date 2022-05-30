@@ -503,7 +503,7 @@ static int __swupdate_copy(int fdin, unsigned char *inbuf, void *out, size_t nby
 
 	if (compressed) {
 		if (compressed == COMPRESSED_TRUE) {
-			WARN("compressed argument: boolean form is deprecated, use the string form");
+			WARN("compressed argument: boolean form is deprecated, use compressed = \"zlib\";");
 		}
 #ifdef CONFIG_GUNZIP
 		if (compressed == COMPRESSED_ZLIB || compressed == COMPRESSED_TRUE) {
