@@ -61,7 +61,7 @@ static pthread_cond_t threads_towait_cond = PTHREAD_COND_INITIALIZER;
 #if defined(__linux__)
 static void parent_dead_handler(int __attribute__ ((__unused__)) dummy)
 {
-	exit(1);
+	_exit(1);
 }
 #endif
 
