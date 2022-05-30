@@ -1869,7 +1869,7 @@ typedef struct {
 
 void cs_md5_init(cs_md5_ctx *c);
 void cs_md5_update(cs_md5_ctx *c, const unsigned char *data, size_t len);
-void cs_md5_final(unsigned char *md, cs_md5_ctx *c);
+void cs_md5_final(unsigned char digest[16], cs_md5_ctx *c);
 
 #ifdef __cplusplus
 }
