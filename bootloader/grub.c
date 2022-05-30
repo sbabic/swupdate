@@ -52,7 +52,6 @@ static int grubenv_open(struct grubenv_t *grubenv)
 	buf = calloc(1, size + 1);
 	if (!buf) {
 		ERROR("Not enough memory for environment");
-		fclose(fp);
 		ret = -ENOMEM;
 		goto cleanup;
 	}
