@@ -979,6 +979,10 @@ static char *getroot_abs_path(char* devname)
 {
 	int fd;
 	char *path;
+
+	if (!devname)
+		return NULL;
+
 	if ((path = realpath(devname, NULL))) {
 		if ((fd = open(path, O_RDWR | O_CLOEXEC)) != -1) {
 			(void)close(fd);
@@ -1120,6 +1124,8 @@ static char *get_root_from_cmdline(void)
 
 	if (ret > 0) {
 		parms = string_split(buf, ' ');
+		if (!parms)
+			goto out;
 		int nparms = count_string_array((const char **)parms);
 		for (unsigned int index = 0; index < nparms; index++) {
 			if (!strncmp(parms[index], "root=", strlen("root="))) {
@@ -1132,6 +1138,7 @@ static char *get_root_from_cmdline(void)
 			}
 		}
 	}
+out:
 	fclose(fp);
 	free_string_array(parms);
 	free(buf);
@@ -1181,6 +1188,8 @@ int read_lines_notify(int fd, char *buf, int buf_size, int *buf_offset,
 	}
 
 	char **lines = string_split(buf, '\n');
+	if (!lines)
+		return -errno;
 	int nlines = count_string_array((const char **)lines);
 	/*
 	 * If the buffer is full and there is only one line,
