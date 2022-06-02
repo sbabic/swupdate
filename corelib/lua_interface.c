@@ -952,7 +952,7 @@ static void lua_push_enum(lua_State *L, const char *name, int value)
 	lua_settable(L, -3);
 }
 
-static int l_getversion(lua_State *L)
+int lua_get_swupdate_version(lua_State *L)
 {
 	unsigned int version = 0, patchlevel = 0;
 	/* Deliberately ignore sublevel and extraversion. */
@@ -1002,7 +1002,7 @@ static const luaL_Reg l_swupdate[] = {
         { "mount", l_mount },
         { "umount", l_umount },
         { "getroot", l_getroot },
-        { "getversion", l_getversion },
+        { "getversion", lua_get_swupdate_version },
         { "progress", l_notify_progress },
         { NULL, NULL }
 };
