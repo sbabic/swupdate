@@ -53,6 +53,49 @@ config SURICATTA_HAWKBIT
 comment "hawkBit support needs json-c"
 	depends on !HAVE_JSON_C
 
+config SURICATTA_LUA
+	bool "Suricatta Lua module"
+	depends on HAVE_LIBCURL
+	depends on HAVE_LUA
+	select CHANNEL_CURL
+	help
+	  Support for Suricatta modules in Lua.
+
+	  The optional JSON support for Suricatta Lua modules
+	  provides JSON as Lua Tables to the Lua realm and
+	  enables channel result parsing to JSON per default.
+	  To enable, select 'libjson' in 'Parser Features'.
+	
+config EMBEDDED_SURICATTA_LUA
+	bool "Embed Suricatta Lua module in SWUpdate binary"
+	depends on SURICATTA_LUA
+	default n
+	help
+	  Embed the Suricatta Lua module source code file into
+	  the SWUpdate binary.
+
+	  If enabled, a swupdate_suricatta.lua will *not*
+	  be loaded from disk at SWUpdate startup.
+
+	  Note: Exactly one Lua source code file is embedded
+	  into the binary, i.e., possible dependencies either
+	  have to be deployed on the target system or put into
+	  the one embedded Lua source code file.
+
+config EMBEDDED_SURICATTA_LUA_SOURCE
+	string "Suricatta Lua module file"
+	depends on EMBEDDED_SURICATTA_LUA
+	default "swupdate_suricatta.lua"
+	help
+	  Path to the Suricatta Lua module source code file to
+	  be embedded into the SWUpdate binary.
+
+comment "Suricatta Lua module support needs libcurl and Lua"
+	depends on !HAVE_LIBCURL || !HAVE_LUA
+
+comment "Suricatta Lua module JSON support needs json-c"
+	depends on SURICATTA_LUA && !JSON
+
 config SURICATTA_GENERAL
 	bool "General HTTP support"
 	depends on HAVE_JSON_C
