@@ -978,7 +978,7 @@ int lua_get_swupdate_version(lua_State *L)
  * @param [Lua] Message to dispatch to progress interface.
  * @return [Lua] nil.
  */
-static int l_notify_progress(lua_State *L) {
+int lua_notify_progress(lua_State *L) {
   /*
    * NOTE: level is INFOLEVEL for the sake of specifying a level.
    * It is unused in core/notifier.c :: progress_notifier() as the
@@ -1003,7 +1003,7 @@ static const luaL_Reg l_swupdate[] = {
         { "umount", l_umount },
         { "getroot", l_getroot },
         { "getversion", lua_get_swupdate_version },
-        { "progress", l_notify_progress },
+        { "progress", lua_notify_progress },
         { NULL, NULL }
 };
 
