@@ -299,6 +299,7 @@ char *channel_get_redirect_url(channel_t *this)
 channel_op_res_t channel_map_http_code(channel_t *this, long *http_response_code)
 {
 	char *url = NULL;
+	long protocol;
 	channel_curl_t *channel_curl = this->priv;
 	CURLcode curlrc =
 	    curl_easy_getinfo(channel_curl->handle, CURLINFO_RESPONSE_CODE,
@@ -312,7 +313,12 @@ channel_op_res_t channel_map_http_code(channel_t *this, long *http_response_code
 		return CHANNEL_EINIT;
 	}
 	switch (*http_response_code) {
-	case 0:   /* libcURL: no server response code has been received yet */
+	case 0:   /* libcURL: no server response code has been received yet or file:// protocol */
+		curlrc = curl_easy_getinfo(channel_curl->handle, CURLINFO_PROTOCOL,
+					   &protocol);
+		if (curlrc == CURLE_OK && protocol == CURLPROTO_FILE) {
+			return CHANNEL_OK;
+		}
 		DEBUG("No HTTP response code has been received yet!");
 		return CHANNEL_EBADMSG;
 	case 401: /* Unauthorized. The request requires user authentication. */
