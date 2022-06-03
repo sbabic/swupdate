@@ -974,7 +974,6 @@ int parse_cfg (struct swupdate_cfg *swcfg, const char *filename)
 		fprintf(stderr, "%s:%d - %s\n", config_error_file(&cfg),
 			config_error_line(&cfg), config_error_text(&cfg));
 		config_destroy(&cfg);
-		ERROR(" ..exiting");
 		return -1;
 	}
 
