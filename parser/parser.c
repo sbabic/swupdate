@@ -995,6 +995,9 @@ int parse_cfg (struct swupdate_cfg __attribute__ ((__unused__)) *swcfg,
 #endif
 
 #ifdef CONFIG_JSON
+
+#define JSON_OBJECT_FREED 1
+
 int parse_json(struct swupdate_cfg *swcfg, const char *filename)
 {
 	int fd, ret;
@@ -1048,7 +1051,9 @@ int parse_json(struct swupdate_cfg *swcfg, const char *filename)
 
 	ret = parser(p, cfg, swcfg);
 
-	json_object_put(cfg);
+	if (json_object_put(cfg) != JSON_OBJECT_FREED) {
+		WARN("Leaking cfg json object");
+	}
 
 	free(string);
 
