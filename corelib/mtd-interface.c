@@ -79,6 +79,9 @@ int flash_erase_sector(int mtdnum, off_t start, size_t size)
 		if (!noskipbad) {
 			int isbad = mtd_is_bad(mtd, fd, eb);
 			if (isbad > 0) {
+				/* Will need to erase one more block, instead of the bad one */
+				if (eb_end * mtd->eb_size < mtd->size)
+					eb_end++;
 				continue;
 			} else if (isbad < 0) {
 				if (errno == EOPNOTSUPP) {
