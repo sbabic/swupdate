@@ -963,6 +963,31 @@ if the partition table is DOS. It reports an error if the table is GPT.
            }
         }
 
+gpt partition installer
+-----------------------
+
+There is a handler gptpart that allows writing an image into a gpt partition selected by
+the name. This handler do not modify the gpt partition (type, size, ...), it just writes
+the image in the GPT partition.
+
+::
+
+	images: (
+		{
+			filename = "u-boot.bin";
+			type = "gptpart";
+			device = "/dev/vdb";
+			volume = "u-boot-1";
+			offset = "1024";
+		},
+		{
+			filename = "kernel.bin";
+			type = "gptpart";
+			device = "/dev/vdb";
+			volume = "kernel-1";
+		},
+	);
+
 gpt partition swap
 ------------------
 

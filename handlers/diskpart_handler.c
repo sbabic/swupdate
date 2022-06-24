@@ -27,6 +27,7 @@
 void diskpart_handler(void);
 void diskpart_toggle_boot(void);
 void diskpart_gpt_swap_partition(void);
+void diskpart_install_gpt_partition_image(void);
 
 /*
  * This is taken from libfdisk to declare if a field is not set
@@ -908,6 +909,116 @@ static int diskpart_reread_partition(char *device)
 	return ret;
 }
 
+static int install_gpt_partition_image(struct img_type *img,
+				       void __attribute__ ((__unused__)) *data)
+{
+	struct fdisk_context *cxt = NULL;
+	struct diskpart_table *tb = NULL;
+	int ret = 0;
+	unsigned long hybrid = 0;
+	struct hnd_priv priv =  {
+		.labeltype = FDISK_DISKLABEL_DOS,
+	};
+	struct create_table *createtable = NULL;
+	struct fdisk_partition *pa;
+	size_t partno;
+	char device[MAX_VOLNAME];
+	struct installer_handler *hnd;
+
+	LIST_INIT(&priv.listparts);
+	if (!strlen(img->device)) {
+		ERROR("Partition handler without setting the device");
+		return -EINVAL;
+	}
+
+	createtable = calloc(1, sizeof(*createtable));
+	if (!createtable) {
+		ERROR("OOM allocating createtable !");
+		return -ENOMEM;
+	}
+
+	/*
+	 * Reads flags: nolock and noinuse
+	 */
+	priv.nolock = strtobool(dict_get_value(&img->properties, "nolock"));
+	priv.noinuse = strtobool(dict_get_value(&img->properties, "noinuse"));
+
+        /*
+         * Create context
+         */
+	ret = diskpart_assign_context(&cxt, img, priv, hybrid, createtable);
+	if (ret == -EACCES)
+		goto handler_release;
+	else if (ret)
+		goto handler_exit;
+
+	tb = calloc(1, sizeof(*tb));
+	if (!tb) {
+		ERROR("OOM loading partitions !");
+		ret = -ENOMEM;
+		goto handler_exit;
+	}
+
+	/*
+	 * Fill the in-memory partition table from the disk.
+	 */
+	ret = diskpart_get_partitions(cxt, tb, createtable);
+	if (ret)
+		goto handler_exit;
+
+	/*
+	 * Search partition to update
+	 */
+	pa = diskpart_get_partition_by_name(tb, img->volname);
+	if (!pa) {
+		ERROR("Can't find partition %s", img->volname);
+		ret = -1;
+		goto handler_exit;
+	}
+
+	/*
+	 * Set device for next handler
+	 */
+	partno = fdisk_partition_get_partno(pa);
+	snprintf(device, sizeof(device), "%s%zu", img->device, partno + 1);
+	strlcpy(img->device, device, sizeof(img->device));
+
+	/*
+	 * Set next handler
+	 */
+	strcpy(img->type, "raw");
+
+	/*
+	 * Search next handler
+	 */
+	hnd = find_handler(img);
+	if (!hnd) {
+		ERROR("Can't find handler raw\n");
+		goto handler_exit;
+	}
+
+	/*
+	 * Launch next handler
+	 */
+	ret = hnd->installer(img, NULL);
+
+handler_exit:
+	if (tb)
+		diskpart_unref_table(tb);
+	if (cxt && fdisk_get_devfd(cxt) >= 0)
+		if (fdisk_deassign_device(cxt, 0))
+			WARN("Error deassign device %s", img->device);
+
+handler_release:
+	if (cxt)
+		diskpart_unref_context(cxt);
+
+	if (createtable)
+		free(createtable);
+
+	return ret;
+}
+
 static int diskpart(struct img_type *img,
 	void __attribute__ ((__unused__)) *data)
 {
@@ -1475,4 +1586,11 @@ void diskpart_gpt_swap_partition(void)
 {
 	register_handler("gptswap", gpt_swap_partition,
 			 SCRIPT_HANDLER | NO_DATA_HANDLER, NULL);
+}
+
+__attribute__((constructor))
+void diskpart_install_gpt_partition_image(void)
+{
+	register_handler("gptpart", install_gpt_partition_image,
+			 IMAGE_HANDLER, NULL);
 }
