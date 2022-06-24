@@ -14,8 +14,10 @@
 #include <errno.h>
 #include <ctype.h>
 #include <sys/file.h>
+#include <sys/ioctl.h>
 #include <sys/types.h>
 #include <libfdisk/libfdisk.h>
+#include <linux/fs.h>
 #include <fs_interface.h>
 #include <uuid/uuid.h>
 #include "swupdate.h"
@@ -24,6 +26,7 @@
 
 void diskpart_handler(void);
 void diskpart_toggle_boot(void);
+void diskpart_gpt_swap_partition(void);
 
 /*
  * This is taken from libfdisk to declare if a field is not set
@@ -298,6 +301,80 @@ static int diskpart_get_partitions(struct fdisk_context *cxt, struct diskpart_ta
 	if (IS_HYBRID(cxt) && fdisk_get_partitions(cxt, &tb->child))
 		createtable->child = true;
 
+	return ret;
+}
+
+static struct fdisk_partition *
+diskpart_fdisk_table_get_partition_by_name(struct fdisk_table *tb, char *name)
+{
+	struct fdisk_partition *pa = NULL;
+	struct fdisk_partition *ipa = NULL;
+	struct fdisk_iter *itr;
+	const char *iname;
+
+	if (!tb || !name)
+		goto out;
+
+	itr = fdisk_new_iter(FDISK_ITER_FORWARD);
+
+	while (!fdisk_table_next_partition(tb, itr, &ipa)) {
+		iname = fdisk_partition_get_name(ipa);
+		if (iname && !strcmp(iname, name)) {
+			pa = ipa;
+			break;
+		}
+	}
+
+	fdisk_free_iter(itr);
+
+ out:
+	return pa;
+}
+
+static struct fdisk_partition *
+diskpart_get_partition_by_name(struct diskpart_table *tb, char *name)
+{
+	struct fdisk_partition *pa = NULL;
+
+	if (!tb || !name)
+		goto out;
+
+	if (tb->parent)
+		pa = diskpart_fdisk_table_get_partition_by_name(tb->parent, name);
+
+ out:
+	return pa;
+}
+
+static int diskpart_swap_partition(struct diskpart_table *tb,
+				   struct create_table *createtable,
+				   char *name1, char *name2)
+{
+	struct fdisk_partition *pa1 = NULL, *pa2 = NULL;
+	int ret = -1;
+
+	pa1 = diskpart_get_partition_by_name(tb, name1);
+	if (!pa1) {
+		ERROR("Can't find partition %s", name1);
+		goto out;
+	}
+
+	pa2 = diskpart_get_partition_by_name(tb, name2);
+	if (!pa2) {
+		ERROR("Can't find partition %s", name2);
+		goto out;
+	}
+
+	ret = fdisk_partition_set_name(pa1, name2);
+	if (ret)
+		goto out;
+	ret = fdisk_partition_set_name(pa2, name1);
+	if (ret)
+		goto out;
+
+	createtable->parent = true;
+
+ out:
 	return ret;
 }
 
@@ -808,6 +885,29 @@ static void diskpart_unref_context(struct fdisk_context *cxt)
 	fdisk_unref_context(cxt);
 }
 
+static int diskpart_reread_partition(char *device)
+{
+	int fd, ret = -1;
+
+	fd = open(device, O_RDONLY);
+	if (fd < 0) {
+		ERROR("Device %s can't be opened", device);
+		goto out;
+	}
+
+	ret = ioctl(fd, BLKRRPART, NULL);
+	if (ret < 0) {
+		ERROR("Scan cannot be done on device %s", device);
+		goto out_close;
+	}
+
+ out_close:
+	close(fd);
+
+ out:
+	return ret;
+}
+
 static int diskpart(struct img_type *img,
 	void __attribute__ ((__unused__)) *data)
 {
@@ -1210,6 +1310,152 @@ toggle_boot_exit:
 	return ret;
 }
 
+static int gpt_swap_partition(struct img_type *img, void *data)
+{
+	struct fdisk_context *cxt = NULL;
+	struct diskpart_table *tb = NULL;
+	int ret = 0;
+	unsigned long hybrid = 0;
+	struct hnd_priv priv =  {
+		.labeltype = FDISK_DISKLABEL_DOS,
+	};
+	struct create_table *createtable = NULL;
+	struct script_handler_data *script_data = data;
+	char prop[SWUPDATE_GENERAL_STRING_SIZE];
+	struct dict_list *partitions;
+	struct dict_list_elem *partition;
+	int num, count = 0;
+	char *name[2];
+
+	if (!script_data)
+		return -EINVAL;
+
+	/*
+	 * Call only in case of postinstall
+	 */
+	if (script_data->scriptfn != POSTINSTALL)
+		return 0;
+
+	LIST_INIT(&priv.listparts);
+	if (!strlen(img->device)) {
+		ERROR("Partition handler without setting the device");
+		return -EINVAL;
+	}
+
+	createtable = calloc(1, sizeof(*createtable));
+	if (!createtable) {
+		ERROR("OOM allocating createtable !");
+		return -ENOMEM;
+	}
+
+	/*
+	 * Reads flags: nolock and noinuse
+	 */
+	priv.nolock = strtobool(dict_get_value(&img->properties, "nolock"));
+	priv.noinuse = strtobool(dict_get_value(&img->properties, "noinuse"));
+
+        /*
+         * Create context
+         */
+	ret = diskpart_assign_context(&cxt, img, priv, hybrid, createtable);
+	if (ret == -EACCES)
+		goto handler_release;
+	else if (ret)
+		goto handler_exit;
+
+	tb = calloc(1, sizeof(*tb));
+	if (!tb) {
+		ERROR("OOM loading partitions !");
+		ret = -ENOMEM;
+		goto handler_exit;
+	}
+
+	/*
+	 * Fill the in-memory partition table from the disk.
+	 */
+	ret = diskpart_get_partitions(cxt, tb, createtable);
+	if (ret)
+		goto handler_exit;
+
+	while (1) {
+		snprintf(prop, sizeof(prop), "swap-%d", count);
+		partitions = dict_get_list(&img->properties, prop);
+		if (!partitions)
+			break;
+
+		num = 0;
+		LIST_FOREACH(partition, partitions, next) {
+			if (num >= 2) {
+				ERROR("Too many partition (%s)", prop);
+				goto handler_exit;
+			}
+
+			name[num] = partition->value;
+			num++;
+		}
+
+		if (num != 2) {
+			ERROR("Invalid number (%d) of partition (%s)", num, prop);
+			goto handler_exit;
+		}
+
+		TRACE("swap partition %s <-> %s", name[0], name[1]);
+
+		ret = diskpart_swap_partition(tb, createtable, name[0], name[1]);
+		if (ret) {
+			ERROR("Can't swap %s and %s", name[0], name[1]);
+			break;
+		}
+
+		count++;
+	}
+
+	/* Reload table for parent */
+	ret = diskpart_reload_table(PARENT(cxt), tb->parent);
+	if (ret) {
+		ERROR("Can't reload table for parent (err = %d)", ret);
+		goto handler_exit;
+	}
+
+	/* Reload table for child */
+	if (IS_HYBRID(cxt)) {
+		ret = diskpart_reload_table(cxt, tb->child);
+		if (ret) {
+			ERROR("Can't reload table for child (err = %d)", ret);
+			goto handler_exit;
+		}
+	}
+
+	/* Write table */
+	ret = diskpart_write_table(cxt, createtable, priv.nolock, priv.noinuse);
+	if (ret) {
+		ERROR("Can't write table (err = %d)", ret);
+		goto handler_exit;
+	}
+
+handler_exit:
+	if (tb)
+		diskpart_unref_table(tb);
+	if (cxt && fdisk_get_devfd(cxt) >= 0)
+		if (fdisk_deassign_device(cxt, 0))
+			WARN("Error deassign device %s", img->device);
+
+handler_release:
+	if (cxt)
+		diskpart_unref_context(cxt);
+
+	if (createtable)
+		free(createtable);
+
+	/*
+	 * Re-read the partition table to be sure that SWupdate does not
+	 * try to acces the partitions before the kernel is ready
+	 */
+	diskpart_reread_partition(img->device);
+
+	return ret;
+}
+
 __attribute__((constructor))
 void diskpart_handler(void)
 {
@@ -1222,4 +1468,11 @@ void diskpart_toggle_boot(void)
 {
 	register_handler("toggleboot", toggle_boot,
 				SCRIPT_HANDLER | NO_DATA_HANDLER, NULL);
+}
+
+__attribute__((constructor))
+void diskpart_gpt_swap_partition(void)
+{
+	register_handler("gptswap", gpt_swap_partition,
+			 SCRIPT_HANDLER | NO_DATA_HANDLER, NULL);
 }

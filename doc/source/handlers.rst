@@ -963,6 +963,29 @@ if the partition table is DOS. It reports an error if the table is GPT.
            }
         }
 
+gpt partition swap
+------------------
+
+There is a handler gptswap that allow to swap gpt partitions after all the images were flashed.
+This handler only swap the name of the partition. It coud be usefull for a dual bank strategy.
+This handler is a script for the point of view of swupdate, so the node that provide it should
+be added in the section scripts.
+
+Simple example:
+
+::
+
+	scripts: (
+		{
+			type = "gptswap";
+			device = "/dev/vdb";
+			properties =
+			{
+				swap-0 = [ "u-boot-0" , "u-boot-1" ];
+				swap-1 = [ "kernel-0" , "kernel-1" ];
+			};
+		},
+	);
 
 Diskformat Handler
 ------------------
