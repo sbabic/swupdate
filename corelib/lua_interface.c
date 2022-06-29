@@ -1149,12 +1149,14 @@ static int l_handler_wrapper(struct img_type *img, void *data,
 	if (LUA_OK != (res = lua_pcall(gL, 2, 1, 0))) {
 		ERROR("Error %d while executing the Lua callback: %s",
 			  res, lua_tostring(gL, -1));
+		lua_pop(gL, 1);
 		return -1;
 	}
 
 	 /* retrieve result */
 	if (!lua_isnumber(gL, -1)) {
 		printf(" Lua Handler must return a number");
+		lua_pop(gL, 1);
 		return -1;
 	}
 
