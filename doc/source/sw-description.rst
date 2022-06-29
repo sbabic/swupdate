@@ -1369,10 +1369,12 @@ There are 4 main sections inside sw-description:
    | install-if\ | bool     | images     | flag                                  |
    | -different  |          | files      | if set, name and version are          |
    |             |          |            | compared with the entries in          |
+   |             |          |            | sw-versions                           |
    +-------------+----------+------------+---------------------------------------+
    | install-if\ | bool     | images     | flag                                  |
    | -higher     |          | files      | if set, name and version are          |
    |             |          |            | compared with the entries in          |
+   |             |          |            | sw-versions                           |
    +-------------+----------+------------+---------------------------------------+
    | encrypted   | bool     | images     | flag                                  |
    |             |          | files      | if set, file is encrypted             |
