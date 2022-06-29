@@ -32,7 +32,7 @@ struct progress_msg {
 	unsigned int	cur_step;	/* Current step index */
 	unsigned int	cur_percent;	/* % in current step */
 	char		cur_image[256];	/* Name of image to be installed */
-	char		hnd_name[64];	/* Name of running hanler */
+	char		hnd_name[64];	/* Name of running handler */
 	sourcetype	source;		/* Interface that triggered the update */
 	unsigned int 	infolen;    	/* Len of data valid in info */
 	char		info[PRINFOSIZE]; /* additional information about install */
