@@ -1105,7 +1105,7 @@ static lua_State *gL = NULL;
  * @param unused [in] unused in this context
  * @param data [in] pointer to the index in the Lua registry for the function
  * @param scriptfn [in] installation phase for script handlers, or NONE
- * @return This function returns 0 if successful and -1 if unsuccessful.
+ * @return This function returns 0 if successful and != 0 otherwise.
  */
 static int l_handler_wrapper(struct img_type *img, void *data,
 			     script_fn scriptfn) {
