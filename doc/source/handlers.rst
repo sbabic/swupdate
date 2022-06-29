@@ -298,13 +298,18 @@ In analogy to C handlers, the prototype for a Lua handler is
 
 ::
 
+        --- Lua Handler.
+        --
+        --- @param  image  img_type  Lua equivalent of `struct img_type`
+        --- @return number           # 0 on success, 1 on error
         function lua_handler(image)
             ...
         end
 
 where ``image`` is a Lua table (with attributes according to
 :ref:`sw-description's attribute reference <sw-description-attribute-reference>`)
-that describes a single artifact to be processed by the handler.
+that describes a single artifact to be processed by the handler
+(also see the Lua Handler Interface Specification in ``handlers/swupdate.lua``).
 
 Note that dashes in the attributes' names are replaced with
 underscores for the Lua domain to make them idiomatic, e.g.,
@@ -315,6 +320,11 @@ For a script handler written in Lua, the prototype is
 
 ::
 
+        --- Lua Handler.
+        --
+        --- @param  image     img_type  Lua equivalent of `struct img_type`
+        --- @param  scriptfn  string    Type, one of `preinst` or `postinst` 
+        --- @return number              # 0 on success, 1 on error
         function lua_handler(image, scriptfn)
             ...
         end
@@ -343,6 +353,10 @@ a simple handler chain-calling the ``rawfile`` C handler:
 
 ::
 
+        --- Lua Handler.
+        --
+        --- @param  image  img_type  Lua equivalent of `struct img_type`
+        --- @return number           # 0 on success, 1 on error
         function lua_handler(image)
             if not swupdate.handler["rawfile"] then
                 swupdate.error("rawfile handler not available")
@@ -381,6 +395,10 @@ a simple handler calling ``image:copy2file()``:
 
 ::
 
+        --- Lua Handler.
+        --
+        --- @param  image  img_type  Lua equivalent of `struct img_type`
+        --- @return number           # 0 on success, 1 on error
         function lua_handler(image)
             local err, msg = image:copy2file("/tmp/destination.path")
             if err ~= 0 then
@@ -401,6 +419,10 @@ of a simple handler printing the artifact's content:
 
 ::
 
+        --- Lua Handler.
+        --
+        --- @param  image  img_type  Lua equivalent of `struct img_type`
+        --- @return number           # 0 on success, 1 on error
         function lua_handler(image)
             err, msg = image:read(function(data) print(data) end)
             if err ~= 0 then
@@ -420,6 +442,13 @@ described in its ``image`` parameter so that SWUpdate can
 continue with the next artifact in the stream after the Lua handler
 returns. Chaining handlers, calling ``image:copy2file()``, or using
 ``image:read()`` satisfies this requirement.
+
+
+The ``swupdate`` Lua module interface specification that details what
+functionality is made available to Lua handlers by SWUpdate's
+``corelib/lua_interface.c`` is found in ``handlers/swupdate.lua``.
+It serves as reference, for mocking purposes, and type checking thanks
+to the EmmyLua-inspired annotations.
 
 
 Note that although the dynamic nature of Lua handlers would
