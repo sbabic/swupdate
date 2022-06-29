@@ -51,9 +51,10 @@ static int endupdate(RECOVERY_STATUS status)
 {
 	end_status = (status == SUCCESS) ? EXIT_SUCCESS : EXIT_FAILURE;
 
-	INFO("SWUpdate %s\n",
-		status == FAILURE ? "*failed* !" :
-			"was successful !");
+	if (status == FAILURE)
+		ERROR("SWUpdate *failed* !");
+	else
+		INFO("SWUpdate was successful !");
 
 	if (status == SUCCESS) {
 		ipc_message msg;
