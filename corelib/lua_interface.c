@@ -1155,7 +1155,7 @@ static int l_handler_wrapper(struct img_type *img, void *data,
 
 	 /* retrieve result */
 	if (!lua_isnumber(gL, -1)) {
-		printf(" Lua Handler must return a number");
+		ERROR("Lua Handler must return a number");
 		lua_pop(gL, 1);
 		return -1;
 	}
