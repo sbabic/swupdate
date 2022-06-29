@@ -361,6 +361,32 @@ static const luaL_Reg lua_swupdate[] = {
  */
 int luaopen_lua_swupdate(lua_State *L){
 	luaL_newlib(L, lua_swupdate);
+
+	/* Export the RECOVERY_STATUS enum */
+	lua_pushstring(L, "RECOVERY_STATUS");
+	lua_newtable (L);
+	LUA_PUSH_INT("IDLE", IDLE);
+	LUA_PUSH_INT("START", START);
+	LUA_PUSH_INT("RUN", RUN);
+	LUA_PUSH_INT("SUCCESS", SUCCESS);
+	LUA_PUSH_INT("FAILURE", FAILURE);
+	LUA_PUSH_INT("DOWNLOAD", DOWNLOAD);
+	LUA_PUSH_INT("DONE", DONE);
+	LUA_PUSH_INT("SUBPROCESS", SUBPROCESS);
+	LUA_PUSH_INT("PROGRESS", PROGRESS);
+	lua_settable(L, -3);
+
+	/* Export the sourcetype enum */
+	lua_pushstring(L, "sourcetype");
+	lua_newtable (L);
+	LUA_PUSH_INT("SOURCE_UNKNOWN", SOURCE_UNKNOWN);
+	LUA_PUSH_INT("SOURCE_WEBSERVER", SOURCE_WEBSERVER);
+	LUA_PUSH_INT("SOURCE_SURICATTA", SOURCE_SURICATTA);
+	LUA_PUSH_INT("SOURCE_DOWNLOADER", SOURCE_DOWNLOADER);
+	LUA_PUSH_INT("SOURCE_LOCAL", SOURCE_LOCAL);
+	LUA_PUSH_INT("SOURCE_CHUNKS_DOWNLOADER", SOURCE_CHUNKS_DOWNLOADER);
+	lua_settable(L, -3);
+
 	auxiliar_newclass(L, "swupdate_progress", progress_methods);
 	auxiliar_newclass(L, "swupdate_control", ctrl_methods);
 	return 1;
