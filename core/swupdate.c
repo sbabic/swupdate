@@ -136,6 +136,7 @@ static void usage(char *programname)
 		" -P, --preupdate                : execute pre-update command\n"
 		" -e, --select <software>,<mode> : Select software images set and source\n"
 		"                                  Ex.: stable,main\n"
+		" -g, --get-root                 : detect and print the root device and exit\n" 
 		" -q, --accepted-select\n"
 		"            <software>,<mode>   : List for software images set and source\n"
 		"                                  that are accepted via IPC\n"
