@@ -225,7 +225,7 @@ void swupdate_progress_done(const char *info)
 static void unlink_socket(void)
 {
 #ifdef CONFIG_SYSTEMD
-	if (sd_booted() && sd_listen_fds(0) > 0) {
+	if (sd_booted()) {
 		/*
 		 * There were socket fds handed-over by systemd,
 		 * so don't delete the socket file.
