@@ -18,6 +18,8 @@
 #include <sys/stat.h>
 #include <sys/un.h>
 #include <sys/select.h>
+#include <sys/reboot.h>
+#include <linux/reboot.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <pthread.h>
@@ -380,7 +382,8 @@ int main(int argc, char **argv)
 			psplash_ok = 0;
 			if ((msg.status == SUCCESS) && (msg.cur_step > 0) && opt_r) {
 				sleep(5);
-				if (system("reboot") < 0) { /* It should never happen */
+				sync();
+				if (reboot(LINUX_REBOOT_CMD_RESTART) < 0) { /* It should never happen */
 					fprintf(stdout, "Please reset the board.\n");
 				}
 			}

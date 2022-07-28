@@ -23,6 +23,8 @@
 #include <sys/stat.h>
 #include <sys/un.h>
 #include <sys/select.h>
+#include <sys/reboot.h>
+#include <linux/reboot.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <ifaddrs.h>
@@ -571,8 +573,8 @@ static int sysrestart(cmd_t  __attribute__((__unused__)) *cmd, int argc, char *a
 			fprintf(stdout, "Ready to reboot !\n");
 			restart_system(ndevs);
 			sleep(5);
-
-			if (system("reboot") < 0) { /* It should never happen */
+			sync();
+			if (reboot(LINUX_REBOOT_CMD_RESTART) < 0) { /* It should never happen */
 				fprintf(stdout, "Please reset the board.\n");
 			}
 			break;
