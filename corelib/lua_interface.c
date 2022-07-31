@@ -945,6 +945,27 @@ static int l_progress_update(lua_State *L)
 }
 #endif
 
+static int l_get_hw(lua_State *L)
+{
+	struct swupdate_cfg *cfg = get_swupdate_cfg();
+
+	if (get_hw_revision(&cfg->hw) < 0)
+		goto l_get_hw_exit;
+
+	lua_newtable (L);
+	lua_pushstring(L, "boardname");
+	lua_pushstring(L, cfg->hw.boardname);
+	lua_settable(L, -3);
+	lua_pushstring(L, "revision");
+	lua_pushstring(L, cfg->hw.revision);
+	lua_settable(L, -3);
+	return 1;
+
+l_get_hw_exit:
+	lua_pushnil(L);
+	return 1;
+}
+
 static void lua_push_enum(lua_State *L, const char *name, int value)
 {
 	lua_pushstring(L, name);
@@ -1002,6 +1023,7 @@ static const luaL_Reg l_swupdate[] = {
         { "mount", l_mount },
         { "umount", l_umount },
         { "getroot", l_getroot },
+        { "get_hw", l_get_hw },
         { "getversion", lua_get_swupdate_version },
         { "progress", lua_notify_progress },
         { NULL, NULL }

@@ -127,6 +127,17 @@ swupdate.tmpdirscripts = function() end
 swupdate.tmpdir = function() end
 
 
+--- SWUpdate hardware information.
+--- @class swupdate_hardware
+--- @field boardname   string  SWUpdate's boardname
+--- @field revision    string  SWUpdate's revision
+
+--- Get SWUpdate hardware.
+--
+--- @return swupdate_hardware  # Table with 'boardname' and 'revision' fields
+swupdate.get_hw = function() end
+
+
 --- SWUpdate version information.
 --- @class swupdate_version
 --- @field [1]         number  SWUpdate's version
