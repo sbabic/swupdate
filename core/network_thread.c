@@ -553,6 +553,7 @@ void *network_thread (void *data)
 						 * Prepare answer
 						 */
 						msg.type = ACK;
+						memset(msg.data.msg, 0, sizeof(msg.data.msg));
 						should_close_socket = false;
 
 						/* Drop all old notification from last run */
@@ -560,9 +561,10 @@ void *network_thread (void *data)
 
 						/* Wake-up the installer */
 						pthread_cond_signal(&stream_wkup);
-					} else
+					} else {
 						msg.type = NACK;
-
+						memset(msg.data.msg, 0, sizeof(msg.data.msg));
+					}
 				} else {
 					msg.type = NACK;
 					sprintf(msg.data.msg, "Installation in progress");
