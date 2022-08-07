@@ -791,6 +791,10 @@ static bool copy_network_chunks(zckChunk **dstChunk, struct hnd_priv *priv)
 			priv->dwlstate = WAITING_FOR_FIRST_DATA;
 			break;
 		case WAITING_FOR_FIRST_DATA:
+			if (priv->range_type == SINGLE_RANGE &&
+				multipart_data_complete(priv->parser) != 0)
+				return false;
+
 			if (!fill_buffers_list(priv))
 				return false;
 			priv->dwlstate = WAITING_FOR_DATA;
@@ -805,6 +809,8 @@ static bool copy_network_chunks(zckChunk **dstChunk, struct hnd_priv *priv)
 				return false;
 			break;
 		case END_TRANSFER:
+			if (priv->range_type == SINGLE_RANGE)
+				multipart_data_end(priv->parser);
 			dwl_cleanup(priv);
 			priv->dwlstate = NOTRUNNING;
 			*dstChunk = priv->chunk;
