@@ -1088,6 +1088,8 @@ static int install_delta(struct img_type *img,
 		}
 	}
 
+	close(priv->fdout);
+
 	INFO("Total downloaded data : %ld bytes", priv->totaldwlbytes);
 
 	void *status;
