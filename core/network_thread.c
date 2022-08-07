@@ -450,6 +450,7 @@ void *network_thread (void *data)
 	update_state_t value;
 	struct subprocess_msg_elem *subprocess_msg;
 	bool should_close_socket;
+	struct swupdate_cfg *cfg;
 
 	if (!instp) {
 		TRACE("Fatal error: Network thread aborting...");
@@ -660,6 +661,21 @@ void *network_thread (void *data)
 				set_version_range(msg.data.versions.minimum_version,
 						  msg.data.versions.maximum_version,
 						  msg.data.versions.current_version);
+				break;
+			case GET_HW_REVISION:
+				cfg = get_swupdate_cfg();
+				if (get_hw_revision(&cfg->hw) < 0) {
+					msg.type = NACK;
+					memset(msg.data.msg, 0, sizeof(msg.data.msg));
+					break;
+				}
+				msg.type = ACK;
+				memset(msg.data.revisions.boardname, 0, sizeof(msg.data.revisions.boardname));
+				strncpy(msg.data.revisions.boardname, cfg->hw.boardname,
+					sizeof(msg.data.revisions.boardname) - 1);
+				memset(msg.data.revisions.revision, 0, sizeof(msg.data.revisions.revision));
+				strncpy(msg.data.revisions.revision, cfg->hw.revision,
+					sizeof(msg.data.revisions.revision) - 1);
 				break;
 			case SET_UPDATE_STATE:
 				value = *(update_state_t *)msg.data.msg;

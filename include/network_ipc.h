@@ -38,7 +38,8 @@ typedef enum {
 	GET_UPDATE_STATE,
 	REQ_INSTALL_EXT,
 	SET_VERSIONS_RANGE,
-	NOTIFY_STREAM
+	NOTIFY_STREAM,
+	GET_HW_REVISION
 } msgtype;
 
 /*
@@ -115,6 +116,10 @@ typedef union {
 		char maximum_version[256];
 		char current_version[256];
 	} versions;
+	struct {
+		char boardname[256];
+		char revision[256];
+	} revisions;
 } msgdata;
 	
 typedef struct {
