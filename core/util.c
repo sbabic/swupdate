@@ -1277,15 +1277,17 @@ static bool check_free_space(int fd, long long size, char *fname)
 #define fstatvfs fstatfs
 #endif
 	struct statvfs statvfs;
+	unsigned long long free_space;
 
 	if (fstatvfs(fd, &statvfs)) {
 		ERROR("Statfs failed on %s, skipping free space check", fname);
 		return true;
 	}
+	free_space = (unsigned long long)statvfs.f_bfree * statvfs.f_bsize;
 
-	if (statvfs.f_bfree * statvfs.f_bsize < size) {
+	if (free_space < size) {
 		ERROR("Not enough free space to extract %s (needed %llu, got %llu)",
-		       fname, size, (unsigned long long)statvfs.f_bfree * statvfs.f_bsize);
+		       fname, size, free_space);
 		return false;
 	}
 
