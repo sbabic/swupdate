@@ -117,6 +117,23 @@ static int extract_file_to_tmp(int fd, const char *fname, unsigned long *poffs, 
 	return 0;
 }
 
+static bool update_transaction_state(struct swupdate_cfg *software, update_state_t newstate)
+{
+	if (!software->parms.dry_run && software->bootloader_transaction_marker) {
+		if (newstate == STATE_INSTALLED)
+			bootloader_env_unset(BOOTVAR_TRANSACTION);
+		else
+			bootloader_env_set(BOOTVAR_TRANSACTION, get_state_string(newstate));
+	}
+	if (!software->parms.dry_run
+	    && software->bootloader_state_marker
+	    && save_state(newstate) != SERVER_OK) {
+		WARN("Cannot persistently store %s update state.", get_state_string(newstate));
+		return false;
+	}
+	return true;
+}
+
 static int extract_files(int fd, struct swupdate_cfg *software)
 {
 	int status = STREAM_WAIT_DESCRIPTION;
@@ -254,9 +271,7 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 				 * just once
 				 */
 				if (!installed_directly) {
-					if (!software->parms.dry_run && software->bootloader_transaction_marker) {
-						bootloader_env_set(BOOTVAR_TRANSACTION, get_state_string(STATE_IN_PROGRESS));
-					}
+					update_transaction_state(software, STATE_IN_PROGRESS);
 					installed_directly = true;
 				}
 
@@ -493,23 +508,6 @@ no_copy_output:
 	cleanup_files(software);
 
 	return ret;
-}
-
-static bool update_transaction_state(struct swupdate_cfg *software, update_state_t newstate)
-{
-	if (!software->parms.dry_run && software->bootloader_transaction_marker) {
-		if (newstate == STATE_INSTALLED)
-			bootloader_env_unset(BOOTVAR_TRANSACTION);
-		else
-			bootloader_env_set(BOOTVAR_TRANSACTION, get_state_string(newstate));
-	}
-	if (!software->parms.dry_run
-	    && software->bootloader_state_marker
-	    && save_state(newstate) != SERVER_OK) {
-		WARN("Cannot persistently store %s update state.", get_state_string(newstate));
-		return false;
-	}
-	return true;
 }
 
 void *network_initializer(void *data)
