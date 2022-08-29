@@ -190,7 +190,7 @@ static int do_apply_list(const char *filename)
 		key = strtok(line, "=");
 		value = strtok(NULL, "\t\n");
 		if (value != NULL && key != NULL) {
-			if ((ret = bootloader_env_set(key, value)) != 0) {
+			if ((ret = do_env_set(key, value)) != 0) {
 				break;
 			}
 		}
