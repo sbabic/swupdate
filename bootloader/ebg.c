@@ -41,8 +41,6 @@ static int do_env_set(const char *name, const char *value)
 	errno = 0;
 	libebg.beverbose(&ebgenv, loglevel > INFOLEVEL ? true : false);
 
-	DEBUG("Setting %s=%s in bootloader environment", name, value);
-
 	if ((ret = libebg.env_open_current(&ebgenv)) != 0) {
 		ERROR("Cannot open current bootloader environment: %s.", strerror(ret));
 		return ret;
@@ -51,6 +49,7 @@ static int do_env_set(const char *name, const char *value)
 	if (strncmp(name, BOOTVAR_TRANSACTION, strlen(name) + 1) == 0 &&
 	    strncmp(value, get_state_string(STATE_IN_PROGRESS),
 		    strlen(get_state_string(STATE_IN_PROGRESS)) + 1) == 0) {
+		DEBUG("Setting %s=%s in bootloader environment", name, value);
 		/* Open or create a new environment to reflect
 		 * EFI Boot Guard's representation of SWUpdate's
 		 * recovery_status=in_progress. */
@@ -59,14 +58,30 @@ static int do_env_set(const char *name, const char *value)
 			     strerror(ret));
 		}
 	} else if (strncmp(name, (char *)STATE_KEY, strlen((char *)STATE_KEY) + 1) == 0) {
-		/* Map suricatta's update_state_t to EFI Boot Guard's API. */
-		if ((ret = libebg.env_setglobalstate(&ebgenv, *value - '0')) != 0) {
-			ERROR("Cannot set %s=%s in bootloader environment.", STATE_KEY, value);
+		/* Map update_state_t to EFI Boot Guard's API. */
+		switch (*value) {
+		case STATE_IN_PROGRESS:
+		case STATE_FAILED:
+		case STATE_TESTING:
+			/* Fall-through for update_state_t values destined either
+			 * for BOOTVAR_TRANSACTION or handled by EBG internally. */
+			break;
+		case STATE_OK:
+		case STATE_INSTALLED:
+			DEBUG("Setting %s=%s in bootloader environment", name, value);
+			if ((ret = libebg.env_setglobalstate(&ebgenv, *value - '0')) != 0) {
+				ERROR("Cannot set %s=%s in bootloader environment.", STATE_KEY, value);
+			}
+			break;
+		default:
+			ret = -EINVAL;
+			ERROR("Unsupported bootloader environment assignment %s=%s.", STATE_KEY, value);
 		}
 	} else {
 		/* A new environment is created if EFI Boot Guard's
 		 * representation of SWUpdate's recovery_status is
 		 * not in_progress. */
+		DEBUG("Setting %s=%s in bootloader environment", name, value);
 		if ((ret = libebg.env_create_new(&ebgenv)) != 0) {
 			ERROR("Cannot open/create new bootloader environment: %s.",
 			     strerror(ret));
@@ -93,6 +108,7 @@ static int do_env_unset(const char *name)
 		return ret;
 	}
 
+	DEBUG("Unsetting %s in bootloader environment", name);
 	if (strncmp(name, BOOTVAR_TRANSACTION, strlen(name) + 1) == 0) {
 		ret = libebg.env_finalize_update(&ebgenv);
 		if (ret) {
