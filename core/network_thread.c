@@ -467,7 +467,7 @@ void *network_thread (void *data)
 	/* Initialize and bind to UDS */
 	ctrllisten = listener_create(get_ctrl_socket(), SOCK_STREAM);
 	if (ctrllisten < 0 ) {
-		TRACE("Error creating IPC sockets");
+		ERROR("Error creating IPC control socket");
 		exit(2);
 	}
 
