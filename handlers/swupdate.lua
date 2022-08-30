@@ -22,9 +22,8 @@
 local swupdate = {}
 
 
---- @class swupdate.RECOVERY_STATUS
+--- @enum swupdate.RECOVERY_STATUS
 --- Lua equivalent of `RECOVERY_STATUS` as in `include/swupdate_status.h`.
---- @type table<string, number>
 swupdate.RECOVERY_STATUS = {
     IDLE       = 0,
     START      = 1,
@@ -67,9 +66,9 @@ swupdate.debug = function(format, ...) end
 swupdate.progress = function(msg) end
 
 --- Lua equivalent of `notify(status, error, INFOLEVEL, msg)`.
---- @param status  number  Current status, one of `swupdate.RECOVERY_STATUS`'s values
---- @param error   number  Error code
---- @param msg     string  Message
+--- @param status  swupdate.RECOVERY_STATUS  Current status, one of `swupdate.RECOVERY_STATUS`'s values
+--- @param error   number                    Error code
+--- @param msg     string                    Message
 swupdate.notify = function(status, error, msg) end
 
 
@@ -89,13 +88,12 @@ swupdate.mount = function(device, filesystem) end
 --- Unmount a mountpoint.
 --
 --- @param  target  string  Mountpoint to unmount
---- @return boolean         # true if successful, nil on error
+--- @return boolean | nil   # true if successful, nil on error
 swupdate.umount = function(target) end
 
 
---- @class swupdate.ROOT_DEVICE
+--- @enum swupdate.ROOT_DEVICE
 --- Lua equivalent of `root_dev_type` as in `include/lua_util.h`.
---- @type  table<string, number>
 swupdate.ROOT_DEVICE = {
     PATH      = 0,
     UUID      = 1,
@@ -105,14 +103,14 @@ swupdate.ROOT_DEVICE = {
 
 
 --- Current root device information.
---- @class rootdev
---- @field type   number  Root device type, one of `swupdate.ROOT_DEVICE`'s values
---- @field value  string  Root device path
---- @field path   string  Full root device path, if identified, else nil
+--- @class swupdate.rootdev
+--- @field type   swupdate.ROOT_DEVICE  Root device type, one of `swupdate.ROOT_DEVICE`'s values
+--- @field value  string                Root device path
+--- @field path   string                Full root device path, if identified, else nil
 
 --- Get current root device.
 --
---- @return rootdev  # Table containing type, and (full) path to root device
+--- @return swupdate.rootdev  # Table containing type, and (full) path to root device
 swupdate.getroot = function() end
 
 
@@ -128,18 +126,18 @@ swupdate.tmpdir = function() end
 
 
 --- SWUpdate hardware information.
---- @class swupdate_hardware
+--- @class swupdate.hardware
 --- @field boardname   string  SWUpdate's boardname
 --- @field revision    string  SWUpdate's revision
 
 --- Get SWUpdate hardware.
 --
---- @return swupdate_hardware  # Table with 'boardname' and 'revision' fields
+--- @return swupdate.hardware  # Table with 'boardname' and 'revision' fields
 swupdate.get_hw = function() end
 
 
 --- SWUpdate version information.
---- @class swupdate_version
+--- @class swupdate.version
 --- @field [1]         number  SWUpdate's version
 --- @field [2]         number  SWUpdate's patch level
 --- @field version     number  SWUpdate's version
@@ -147,7 +145,7 @@ swupdate.get_hw = function() end
 
 --- Get SWUpdate version.
 --
---- @return swupdate_version  # Table with 'version' and 'patchlevel' fields
+--- @return swupdate.version  # Table with 'version' and 'patchlevel' fields
 swupdate.getversion = function() end
 
 
@@ -171,9 +169,8 @@ swupdate.set_bootenv = function(key, value) end
 swupdate.get_bootenv = function(key) end
 
 
---- @class swupdate.HANDLER_MASK
+--- @enum swupdate.HANDLER_MASK
 --- Lua equivalent of `HANDLER_MASK` as in `include/handler.h`.
---- @type  table<string, number>
 swupdate.HANDLER_MASK = {
     IMAGE_HANDLER      = 1,
     FILE_HANDLER       = 2,
@@ -188,9 +185,9 @@ swupdate.HANDLER_MASK = {
 --
 -- The signature of the function to be registered as Handler implementation is:
 --
--- --- @param  image img_type Lua equivalent of `struct img_type`
--- --- @param  fn?   string   `preinst` or `postinst` for `SCRIPT_HANDLER`s, else nil
--- --- @return number         # 0 on success, 1 on error
+-- --- @param  image     img_type  Lua equivalent of `struct img_type`
+-- --- @param  fn | nil  string    `preinst` or `postinst` for `SCRIPT_HANDLER`s, else nil
+-- --- @return number    # 0 on success, 1 on error
 -- function lua_handler(image, fn)
 --     ...
 -- end
