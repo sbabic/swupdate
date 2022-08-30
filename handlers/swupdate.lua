@@ -114,6 +114,35 @@ swupdate.ROOT_DEVICE = {
 swupdate.getroot = function() end
 
 
+--- Table with major/minor numbers of the device on which the swupdate.stat()'d file resides.
+--- @class swupdate.stat_dev
+--- @field major  number  Major device number
+--- @field minor  number  Minor device number
+
+--- `struct stat`-alike Table.
+--- @class swupdate.stat_info
+--- @field mode          "directory"|"named pipe"|"link"|"regular file"|"socket"|"block device"|"char device"|"unknown"  File type and mode
+--- @field dev           swupdate.stat_dev  ID of device containing file
+--- @field ino           number             Inode number
+--- @field nlink         number             Number of hard links
+--- @field uid           number             User ID of owner
+--- @field gid           number             Group ID of owner
+--- @field rdev          swupdate.stat_dev  Device ID (if special file)
+--- @field access        string             Time of last access, e.g., "Wed Jun 30 21:49:08 1993"
+--- @field modification  string             Time of last modification, e.g., "Wed Jun 30 21:49:08 1993"
+--- @field change        string             Time of last status change, e.g., "Wed Jun 30 21:49:08 1993"
+--- @field size          number             Total size, in bytes
+--- @field permissions   string             Unix file permissions string, e.g., "rwxr-xr-x"
+--- @field blocks        number             Number of 512B blocks allocated
+--- @field blksize       number             Block size for filesystem I/O
+
+--- STAT(2) Wrapper.
+--
+--- @param  pathname  string          Retrieve information about the file `pathname`
+--- @return swupdate.stat_info | nil  # `struct stat`-alike Table if successful, nil on error
+swupdate.stat = function(pathname) end
+
+
 --- Get SWUpdate's TMPDIRSCRIPT directory.
 --
 --- @return string  # TMPDIRSCRIPT directory
