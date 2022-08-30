@@ -31,9 +31,8 @@ local lua_swupdate = {}
 lua_swupdate.ipv4 = function() end
 
 
---- @class lua_swupdate.RECOVERY_STATUS
+--- @enum lua_swupdate.RECOVERY_STATUS
 --- Lua equivalent of `RECOVERY_STATUS` as in `include/swupdate_status.h`.
---- @type  table<string, number>
 lua_swupdate.RECOVERY_STATUS = {
     IDLE       = 0,
     START      = 1,
@@ -47,9 +46,8 @@ lua_swupdate.RECOVERY_STATUS = {
 }
 
 
---- @class lua_swupdate.sourcetype
+--- @enum lua_swupdate.sourcetype
 --- Lua equivalent of `sourcetype` as in `include/swupdate_status.h`.
---- @type  table<string, number>
 lua_swupdate.sourcetype = {
     SOURCE_UNKNOWN           = 0,
     SOURCE_WEBSERVER         = 1,
@@ -61,10 +59,10 @@ lua_swupdate.sourcetype = {
 
 
 --- Lua equivalent of `struct progress_msg` as in `include/progress_ipc.h`.
---- @class progress_msg
---- @field status    number  Update status, one of `lua_swupdate.RECOVERY_STATUS`'s values
+--- @class lua_swupdate.progress_msg
+--- @field status    lua_swupdate.RECOVERY_STATUS  Update status, one of `lua_swupdate.RECOVERY_STATUS`'s values
 --- @field download  number  Downloaded data percentage
---- @field source    number  Interface that triggered the update, one of `lua_swupdate.sourcetype`'s values
+--- @field source    lua_swupdate.sourcetype  Interface that triggered the update, one of `lua_swupdate.sourcetype`'s values
 --- @field nsteps    number  Total number of steps
 --- @field step      number  Current step
 --- @field percent   number  Percentage done in current step
@@ -73,7 +71,6 @@ lua_swupdate.sourcetype = {
 --- @field info      string  Additional information about installation
 
 
---- @class lua_swupdate.progress
 --- SWUpdate progress socket binding.
 --
 -- The returned Class Table contains methods to
@@ -83,28 +80,27 @@ lua_swupdate.progress = function()
     return {
         --- Connect to SWUpdate's progress socket.
         --
-        --- @param  self  lua_swupdate.progress  This `lua_swupdate.progress` instance
-        --- @return number | nil                 # The connection handle or nil in case of error
-        --- @return nil | string                 # nil or an error message in case of error
+        --- @param  self  table   This `lua_swupdate.progress` instance
+        --- @return number | nil  # The connection handle or nil in case of error
+        --- @return nil | string  # nil or an error message in case of error
         connect = function(self) end,
 
         --- Receive data from SWUpdate's progress socket.
         --
-        --- @param  self  lua_swupdate.progress           This `lua_swupdate.progress` instance
-        --- @return lua_swupdate.progress | progress_msg  # This `lua_swupdate.progress` instance on error or the received progress message
-        --- @return nil                                   # nil in case of error
+        --- @param  self  table                        This `lua_swupdate.progress` instance
+        --- @return table | lua_swupdate.progress_msg  # This `lua_swupdate.progress` instance on error or the received progress message
+        --- @return nil                                # nil in case of error
         receive = function(self) end,
 
         --- Close connection to SWUpdate's progress socket.
         --
-        --- @param  self  lua_swupdate.progress  This `lua_swupdate.progress` instance
-        --- @return lua_swupdate.progress        # This `lua_swupdate.progress` instance
+        --- @param  self  table  This `lua_swupdate.progress` instance
+        --- @return table        # This `lua_swupdate.progress` instance
         close = function(self) end,
     }
 end
 
 
---- @class lua_swupdate.control
 --- SWUpdate control socket binding.
 --
 -- The returned Class Table contains methods to
@@ -114,24 +110,24 @@ lua_swupdate.control = function()
     return {
         --- Connect to SWUpdate's control socket.
         --
-        --- @param  self  lua_swupdate.control  This `lua_swupdate.control` instance
-        --- @return number | nil                # Connection handle or nil in case of error
-        --- @return nil | string                # nil or an error message in case of error
+        --- @param  self  table   This `lua_swupdate.control` instance
+        --- @return number | nil  # Connection handle or nil in case of error
+        --- @return nil | string  # nil or an error message in case of error
         connect = function(self) end,
 
         --- Write to connected SWUpdate control socket.
         --
-        --- @param  self  lua_swupdate.control  This `lua_swupdate.control` instance
-        --- @param  data  string                Chunk data to write to SWUpdate's control socket
-        --- @return boolean | nil               # true or nil in case of error
-        --- @return nil | string                # nil or an error message in case of error
+        --- @param  self  table    This `lua_swupdate.control` instance
+        --- @param  data  string   Chunk data to write to SWUpdate's control socket
+        --- @return boolean | nil  # true or nil in case of error
+        --- @return nil | string   # nil or an error message in case of error
         write = function(self, data) end,
 
         --- Close connection to SWUpdate's control socket.
         --
-        --- @param  self  lua_swupdate.control  This `lua_swupdate.control` instance
-        --- @return boolean | nil               # true or nil in case of error
-        --- @return nil | string                # nil or an error message in case of error
+        --- @param  self  table    This `lua_swupdate.control` instance
+        --- @return boolean | nil  # true or nil in case of error
+        --- @return nil | string   # nil or an error message in case of error
         close = function(self) end,
     }
 end
