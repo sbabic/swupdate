@@ -22,7 +22,7 @@ local suricatta = require("suricatta")
 -- Unknown options are (silently) ignored.
 -- If an option's required argument is missing, (':', option) is returned.
 --
---- @param  argv       string  Integer-keyed arguments table
+--- @param  argv       table   Integer-keyed arguments table
 --- @param  optstring  string  GETOPT(3)-like option string
 --- @return function           # Iterator, returning the next (option, optarg) pair
 function getopt(argv, optstring)
@@ -112,21 +112,21 @@ end
 --[[ Suricatta General Purpose HTTP Server Module                              ]]
 --[[ <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< ]]
 
+--- Marker for not (yet) set valid Device ID
+DEVICE_ID_INVALID = "InvalidDeviceID"
+
 --- Device state and information.
 --
 --- @class device
---- @field pstate  suricatta.pstate  Persistent state ID number
---- @field id      string            Device ID
+--- @field id  string  Device ID
 device = {
-    pstate = nil,
-    id     = nil
+    id = DEVICE_ID_INVALID
 }
 
 
 --- Job type "enum".
 --
---- @class job.type
---- @type table<string, number>
+--- @enum job.type
 jobtype = {
     INSTALL = 1,
     DOWNLOAD = 2,
@@ -166,7 +166,7 @@ gs = {
 -- sleeping again.
 --
 --- @param  action_id  number  Current Action ID [unused]
---- @return number             # Action ID [optional]
+--- @return number|nil         # Action ID [optional]
 --- @return suricatta.status   # Suricatta return code
 function has_pending_action(action_id)
     action_id = action_id
@@ -174,7 +174,7 @@ function has_pending_action(action_id)
     local _, pstate = suricatta.pstate.get()
     if pstate == suricatta.pstate.INSTALLED then
         suricatta.notify.warn("An installed update is pending testing, not querying server.")
-        return suricatta.status.NO_UPDATE_AVAILABLE
+        return action_id, suricatta.status.NO_UPDATE_AVAILABLE
     end
 
     suricatta.notify.trace("Querying %q", gs.channel_config.url)
@@ -197,10 +197,10 @@ function has_pending_action(action_id)
                 "Server queries client data for: %s",
                 data.received_headers["Served-Client"] or "<Unknown>"
             )
-            return suricatta.status.ID_REQUESTED
+            return action_id, suricatta.status.ID_REQUESTED
         end
         suricatta.notify.trace("Server served request for: %s", data.received_headers["Served-Client"] or "<Unknown>")
-        return suricatta.status.NO_UPDATE_AVAILABLE
+        return action_id, suricatta.status.NO_UPDATE_AVAILABLE
     end
 
     if data.http_response_code == 503 then
@@ -208,7 +208,7 @@ function has_pending_action(action_id)
         -- Try again after seconds announced in HTTP header or default value.
         gs.polldelay.current = tonumber(data.received_headers["Retry-After"]) or gs.polldelay.default
         suricatta.notify.debug("Server busy, waiting for %ds.", gs.polldelay.current)
-        return suricatta.status.NO_UPDATE_AVAILABLE
+        return action_id, suricatta.status.NO_UPDATE_AVAILABLE
     end
 
     if data.http_response_code == 302 then
@@ -219,11 +219,11 @@ function has_pending_action(action_id)
         suricatta.notify.info("Update available, update job enqueued.")
         gs.job.md5 = data.received_headers["Content-Md5"]
         gs.job.url = data.received_headers["Location"]
-        return suricatta.status.UPDATE_AVAILABLE
+        return action_id, suricatta.status.UPDATE_AVAILABLE
     end
 
     suricatta.notify.trace("Unhandled HTTP status code %d.", data.http_response_code)
-    return suricatta.status.NO_UPDATE_AVAILABLE
+    return action_id, suricatta.status.NO_UPDATE_AVAILABLE
 end
 suricatta.server.register(has_pending_action, suricatta.server.HAS_PENDING_ACTION)
 
@@ -491,7 +491,7 @@ function server_start(defaults, argv, fconfig)
     end
     gs.polldelay.current = gs.polldelay.default
 
-    if not gs.channel_config.url or not device.id then
+    if not gs.channel_config.url or device.id == DEVICE_ID_INVALID then
         suricatta.notify.error("Mandatory configuration parameter missing.")
         return suricatta.status.EINIT
     end
@@ -560,6 +560,17 @@ end
 suricatta.server.register(send_target_data, suricatta.server.SEND_TARGET_DATA)
 
 
+--- Lua "enum" of IPC commands as in `include/network_ipc.h`
+--
+-- `CMD_ENABLE` is not passed through and hence not in `ipc_commands` as
+-- it's handled directly in `suricatta/suricatta.c`.
+--
+--- @type  table<string, number>
+--- @class ipc_commands
+--- @field ACTIVATION  number  0
+--- @field CONFIG      number  1
+--- @field GET_STATUS  number  3
+
 --- Lua-alike of `ipc_message` as in `include/network_ipc.h`
 --
 -- Note: Some members are deliberately not passed through to the Lua realm
@@ -567,21 +578,13 @@ suricatta.server.register(send_target_data, suricatta.server.SEND_TARGET_DATA)
 -- transparently.
 -- Also, this is not a direct equivalent as, e.g., the `json` field is not
 -- present in `struct ipc_message`, but rather it's a "sensible" selection.
--- As another example, CMD_ENABLE is also not passed through and hence not
--- in `ipc_commands` as it's handled directly in `suricatta/suricatta.c`.
---
---- @type  table<string, number>
---- @class ipc_commands
---- @field ACTIVATION  number  0
---- @field CONFIG      number  1
---- @field GET_STATUS  number  3
 --
 --- @class ipc_message
 --- @field magic     number        SWUpdate IPC magic number
 --- @field commands  ipc_commands  IPC commands
 --- @field cmd       number        Command number, one of `ipc_commands`'s values
 --- @field msg       string        String data sent via IPC
---- @field json      string        If `msg` is JSON, JSON as Lua Table
+--- @field json      table         If `msg` is JSON, JSON as Lua Table
 
 
 --- Handle IPC messages sent to Suricatta Lua module.
