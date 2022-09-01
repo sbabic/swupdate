@@ -91,7 +91,7 @@ static int flash_write_nand(int mtdnum, struct img_type *img)
 	unsigned char *filebuf = NULL;
 	size_t filebuf_max = 0;
 	size_t filebuf_len = 0;
-	long long mtdoffset = 0;
+	long long mtdoffset = img->seek;
 	int ifd = img->fdin;
 	int fd = -1;
 	bool failed = true;
@@ -104,11 +104,18 @@ static int flash_write_nand(int mtdnum, struct img_type *img)
 	if (!img->size)
 		return 0;
 
+	if (mtdoffset & (mtd->min_io_size - 1)) {
+		ERROR("The start address is not page-aligned !\n"
+			   "The pagesize of this NAND Flash is 0x%x.\n",
+			   mtd->min_io_size);
+		return -EIO;
+	}
+
 	pagelen = mtd->min_io_size;
 	imglen = img->size;
 	snprintf(mtd_device, sizeof(mtd_device), "/dev/mtd%d", mtdnum);
 
-	if ((imglen / pagelen) * mtd->min_io_size > mtd->size) {
+	if ((imglen / pagelen) * mtd->min_io_size > mtd->size - mtdoffset) {
 		ERROR("Image %s does not fit into mtd%d", img->fname, mtdnum);
 		return -EIO;
 	}
