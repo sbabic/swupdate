@@ -191,7 +191,7 @@ void *find_root_json(json_object *root, const char **nodes, unsigned int depth)
 	 * check for deadlock links, block recursion
 	 */
 	if (!(--depth))
-		return false;
+		return NULL;
 
 	node = find_json_recursive_node(root, nodes);
 
