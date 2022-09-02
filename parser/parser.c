@@ -385,6 +385,7 @@ static int parse_common_attributes(parsertype p, void *elem, struct img_type *im
 {
 	char seek_str[MAX_SEEK_STRING_SIZE];
 	const char* compressed;
+	unsigned long offset = 0;
 
 	/*
 	 * GET_FIELD_STRING does not touch the passed string if it is not
@@ -401,15 +402,24 @@ static int parse_common_attributes(parsertype p, void *elem, struct img_type *im
 	GET_FIELD_STRING(p, elem, "mtdname", image->mtdname);
 	GET_FIELD_STRING(p, elem, "filesystem", image->filesystem);
 	GET_FIELD_STRING(p, elem, "type", image->type);
+	get_field(p, elem, "offset", &offset);
 	GET_FIELD_STRING(p, elem, "offset", seek_str);
 	GET_FIELD_STRING(p, elem, "data", image->type_data);
 	get_hash_value(p, elem, image->sha256);
 
-	/* convert the offset handling multiplicative suffixes */
-	image->seek = ustrtoull(seek_str, NULL, 0);
-	if (errno){
-		ERROR("offset argument: ustrtoull failed");
-		return -1;
+	/*
+	 * offset can be set as number or string. As string,
+	 * multiplier suffixes are allowed
+	 */
+	if (offset)
+		image->seek = offset;
+	else {
+		/* convert the offset handling multiplicative suffixes */
+		image->seek = ustrtoull(seek_str, NULL, 0);
+		if (errno){
+			ERROR("offset argument: ustrtoull failed");
+			return -1;
+		}
 	}
 
 	if ((compressed = get_field_string(p, elem, "compressed")) != NULL) {
