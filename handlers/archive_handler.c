@@ -57,18 +57,21 @@ copy_data(struct archive *ar, struct archive *aw, struct archive_entry *entry)
 			return (ARCHIVE_OK);
 		if (r != ARCHIVE_OK) {
 			if (r == ARCHIVE_WARN) {
-				WARN("archive_read_next_header(): %s for '%s'",
-				     archive_error_string(ar), archive_entry_pathname(entry));
+				WARN("archive_read_next_header(): %s for '%s': %s",
+				     archive_error_string(ar), archive_entry_pathname(entry),
+				     strerror(archive_errno(ar)));
 			} else {
-				ERROR("archive_read_data_block(): %s for '%s'",
-				      archive_error_string(ar), archive_entry_pathname(entry));
+				ERROR("archive_read_data_block(): %s for '%s': %s",
+				      archive_error_string(ar), archive_entry_pathname(entry),
+				      strerror(archive_errno(ar)));
 				return (r);
 			}
 		}
 		r = archive_write_data_block(aw, buff, size, offset);
 		if (r != ARCHIVE_OK) {
-			ERROR("archive_write_data_block(): %s for '%s'",
-			      archive_error_string(aw), archive_entry_pathname(entry));
+			ERROR("archive_write_data_block(): %s for '%s': %s",
+			      archive_error_string(aw), archive_entry_pathname(entry),
+			      strerror(archive_errno(aw)));
 			return (r);
 		}
 	}
@@ -140,8 +143,8 @@ extract(void *p)
 	}
 
 	if ((r = archive_read_open_filename(a, FIFO, 4096))) {
-		ERROR("archive_read_open_filename(): %s %d",
-		    archive_error_string(a), r);
+		ERROR("archive_read_open_filename(): %s %d: %s",
+		    archive_error_string(a), r, strerror(archive_errno(a)));
 		goto out;
 	}
 	for (;;) {
@@ -150,11 +153,13 @@ extract(void *p)
 			if (r == ARCHIVE_EOF)
 				break;
 			if (r == ARCHIVE_WARN) {
-				WARN("archive_read_next_header(): %s for '%s'",
-				    archive_error_string(a), archive_entry_pathname(entry));
+				WARN("archive_read_next_header(): %s for '%s': %s",
+				    archive_error_string(a), archive_entry_pathname(entry),
+				    strerror(archive_errno(a)));
 			} else {
-				ERROR("archive_read_next_header(): %s",
-				    archive_error_string(a));
+				ERROR("archive_read_next_header(): %s: %s",
+				    archive_error_string(a),
+				    strerror(archive_errno(a)));
 				goto out;
 			}
 		}
@@ -164,8 +169,9 @@ extract(void *p)
 
 		r = archive_write_header(ext, entry);
 		if (r != ARCHIVE_OK) {
-			ERROR("archive_write_header(): %s",
-			      archive_error_string(ext));
+			ERROR("archive_write_header(): %s: %s",
+			      archive_error_string(ext),
+			      strerror(archive_errno(ext)));
 			goto out;
 		}
 
@@ -175,8 +181,9 @@ extract(void *p)
 
 		r = archive_write_finish_entry(ext);
 		if (r != ARCHIVE_OK)  {
-			ERROR("archive_write_finish_entry(): %s for '%s'",
-			    archive_error_string(ext), archive_entry_pathname(entry));
+			ERROR("archive_write_finish_entry(): %s for '%s': %s",
+			    archive_error_string(ext), archive_entry_pathname(entry),
+			    strerror(archive_errno(ext)));
 			goto out;
 		}
 
@@ -188,8 +195,9 @@ out:
 	if (ext) {
 		r = archive_write_free(ext);
 		if (r) {
-			ERROR("archive_write_free(): %s %d",
-					archive_error_string(a), r);
+			ERROR("archive_write_free(): %s %d: %s",
+				archive_error_string(a), r,
+				strerror(archive_errno(a)));
 			exitval = -EFAULT;
 		}
 	}
