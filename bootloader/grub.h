@@ -18,6 +18,7 @@
 
 #define GRUBENV_SIZE 1024 /* bytes */
 #define GRUBENV_HEADER "# GRUB Environment Block\n"
+#define GRUBENV_HEADER_WARNING "# WARNING"
 #define GRUBENV_DEFAULT_PATH "/boot/efi/EFI/BOOT/grub/grubenv"
 
 #ifdef CONFIG_GRUBENV_PATH

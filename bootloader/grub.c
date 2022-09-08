@@ -15,7 +15,7 @@ static int grubenv_open(struct grubenv_t *grubenv)
 	FILE *fp = NULL;
 	size_t size;
 	int ret = 0;
-	char *buf = NULL, *key = NULL, *value = NULL;
+	char *buf = NULL, *key = NULL, *value = NULL, *header = NULL;
 
 	fp = fopen(GRUBENV_PATH, "rb");
 	if (!fp) {
@@ -69,10 +69,19 @@ static int grubenv_open(struct grubenv_t *grubenv)
 	}
 
 	/* truncate header, prepare buf for further splitting */
-	if (!(strtok(buf, "\n"))) {
+	if (!(header = strtok(buf, "\n"))) {
 		ERROR("grubenv header not found");
 		ret = -1;
 		goto cleanup;
+	}
+
+	/* check for header warning and skip it */
+	if (memcmp(buf + strlen(header) + 1, GRUBENV_HEADER_WARNING, strlen(GRUBENV_HEADER_WARNING)) == 0) {
+		if (!(strtok(NULL, "\n"))) {
+			ERROR("skipping grubenv warning failed");
+			ret = -1;
+			goto cleanup;
+		}
 	}
 
 	/* load key - value pairs from buffer into dictionary list */
