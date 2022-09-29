@@ -948,7 +948,7 @@ int ext_mkfs(const char *device_name, const char *fstype, unsigned long features
 	if (volume_label) {
 		memset(fs->super->s_volume_name, 0,
 		       sizeof(fs->super->s_volume_name));
-		strncpy(fs->super->s_volume_name, volume_label,
+		strncpy((char *)fs->super->s_volume_name, volume_label,
 			sizeof(fs->super->s_volume_name) - 1);
 	}
 
