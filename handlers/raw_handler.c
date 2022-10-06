@@ -19,8 +19,6 @@
 #include <linux/fs.h>
 #endif
 
-
-#include <unistd.h>
 #include <fcntl.h>
 #include <stdlib.h>
 #include <errno.h>
