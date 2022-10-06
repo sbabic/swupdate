@@ -7,9 +7,10 @@
 # not drop the handler if it is not called.
 # Handler can be called dynamically based
 # on the received image type.
-obj-y	+= dummy_handler.o
+obj-y	+= dummy_handler.o chain_handler.o
 obj-$(CONFIG_ARCHIVE) += archive_handler.o
 obj-$(CONFIG_BOOTLOADERHANDLER) += boot_handler.o
+obj-$(CONFIG_COPY) += copy_handler.o
 obj-$(CONFIG_CFI)	+= flash_handler.o
 obj-$(CONFIG_DELTA)	+= delta_handler.o delta_downloader.o zchunk_range.o
 obj-$(CONFIG_DISKFORMAT_HANDLER)	+= diskformat_handler.o

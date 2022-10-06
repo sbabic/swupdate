@@ -60,6 +60,14 @@ config CFIHAMMING1
 
 	  You do not need this if you do not have an OMAP SoC.
 
+config COPY
+	bool "copy"
+	default n
+	help
+	  This works as script and copies files / images to a
+	  different destination. It requires a chained handler
+	  so that it works even with flash or special devices.
+
 config DELTA
 	bool "delta"
 	depends on HAVE_LIBCURL
