@@ -30,7 +30,6 @@
 
 void raw_image_handler(void);
 void raw_file_handler(void);
-void raw_copyimage_handler(void);
 
 /**
  * Handle write protection for block devices
@@ -148,95 +147,6 @@ static int install_raw_image(struct img_type *img,
 	return ret;
 }
 
-static int copy_raw_image(struct img_type *img, void *data)
-{
-	int ret;
-	int fdout, fdin;
-	struct dict_list *proplist;
-	struct dict_list_elem *entry;
-	uint32_t checksum;
-	unsigned long offset = 0;
-	size_t size;
-	struct stat statbuf;
-	struct script_handler_data *script_data;
-
-	if (!data)
-		return -1;
-
-	script_data = data;
-
-	proplist = dict_get_list(&img->properties, "type");
-	if (proplist) {
-		entry = LIST_FIRST(proplist);
-		/* check if this should just run as pre or post install */
-		if (entry) {
-			if (strcmp(entry->value, "preinstall") && strcmp(entry->value, "postinstall")) {
-				ERROR("Type can be just preinstall or postinstall");
-				return -EINVAL;
-			}
-			script_fn type = !strcmp(entry->value, "preinstall") ? PREINSTALL : POSTINSTALL;
-			if (type != script_data->scriptfn) {
-				TRACE("Script set to %s, skipping", entry->value);
-				return 0;
-			}
-		}
-	}
-
-	proplist = dict_get_list(&img->properties, "copyfrom");
-
-	if (!proplist || !(entry = LIST_FIRST(proplist))) {
-		ERROR("Missing source device, no copyfrom property");
-		return -EINVAL;
-	}
-	fdin = open(entry->value, O_RDONLY);
-	if (fdin < 0) {
-		ERROR("Device %s cannot be opened: %s",
-			entry->value, strerror(errno));
-		return -ENODEV;
-	}
-
-	ret = fstat(fdin, &statbuf);
-	if (ret < 0) {
-		ERROR("Cannot be retrieved information on %s", entry->value);
-		close(fdin);
-		return -ENODEV;
-	}
-
-	if ((statbuf.st_mode & S_IFMT) == S_IFREG)
-		size = statbuf.st_size;
-	else if (ioctl(fdin, BLKGETSIZE64, &size) < 0) {
-		ERROR("Cannot get size of %s", entry->value);
-		close(fdin);
-		return -ENODEV;
-	}
-
-	fdout = open(img->device, O_RDWR);
-	if (fdout < 0) {
-		TRACE("Device %s cannot be opened: %s",
-			img->device, strerror(errno));
-		close(fdin);
-		return -ENODEV;
-	}
-
-	TRACE("Copying %s to %s", entry->value, img->device);
-	ret = copyfile(fdin,
-			&fdout,
-			size,
-			&offset,
-			0,
-			0, /* no skip */
-			0, /* no compressed */
-			&checksum,
-			0, /* no sha256 */
-			false, /* no encrypted */
-			NULL, /* no IVT */
-			NULL);
-
-	close(fdin);
-	close(fdout);
-	return ret;
-}
-
 static int install_raw_file(struct img_type *img,
 	void __attribute__ ((__unused__)) *data)
 {
@@ -339,11 +249,4 @@ void raw_file_handler(void)
 {
 	register_handler("rawfile", install_raw_file,
 				FILE_HANDLER, NULL);
-}
-
-__attribute__((constructor))
-void raw_copyimage_handler(void)
-{
-	register_handler("rawcopy", copy_raw_image,
-				SCRIPT_HANDLER | NO_DATA_HANDLER, NULL);
 }

@@ -34,6 +34,7 @@
 #define PIPE_WRITE 1
 
 static void copy_handler(void);
+static void raw_copyimage_handler(void);
 
 static int copy_image_file(struct img_type *img, void *data)
 {
@@ -200,5 +201,12 @@ __attribute__((constructor))
 void copy_handler(void)
 {
 	register_handler("copy", copy_image_file,
+				SCRIPT_HANDLER | NO_DATA_HANDLER, NULL);
+}
+
+__attribute__((constructor))
+void raw_copyimage_handler(void)
+{
+	register_handler("rawcopy", copy_image_file,
 				SCRIPT_HANDLER | NO_DATA_HANDLER, NULL);
 }
