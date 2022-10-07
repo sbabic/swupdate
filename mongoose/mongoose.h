@@ -1224,8 +1224,13 @@ struct mg_tls {
 
 #if MG_ENABLE_OPENSSL
 
+#ifdef CONFIG_SSL_IMPL_WOLFSSL
+#include <wolfssl/openssl/err.h>
+#include <wolfssl/openssl/ssl.h>
+#else
 #include <openssl/err.h>
 #include <openssl/ssl.h>
+#endif
 
 struct mg_tls {
   SSL_CTX *ctx;
