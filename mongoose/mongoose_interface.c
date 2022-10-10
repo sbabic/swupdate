@@ -222,7 +222,7 @@ static int mg_check_digest_auth(struct mg_str method, struct mg_str uri,
 	/*
 	 * Read passwords file line by line. If should have htdigest format,
 	 * i.e. each line should be a colon-separated sequence:
-	 * USER_NAME:DOMAIN_NAME:HA1_HASH_OF_USER_DOMAIN_AND_PASSWORD
+	 * USER_NAME:DOMAIN_NAME:MD5_HASH_OF_USER_DOMAIN_AND_PASSWORD
 	 */
 	while (fgets(buf, sizeof(buf), fp) != NULL) {
 		if (sscanf(buf, "%[^:]:%[^:]:%s", f_user, f_domain, f_ha1) == 3 &&
