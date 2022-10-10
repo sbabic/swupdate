@@ -41,8 +41,8 @@
 #include "multipart_parser.h"
 #include "installer.h"
 #include "zchunk_range.h"
+#include "chained_handler.h"
 
-#define FIFO_FILE_NAME "deltafifo"
 #define DEFAULT_MAX_RANGES	150	/* Apache has default = 200 */
 
 const char *handlername = "delta";
@@ -91,13 +91,13 @@ struct hnd_priv {
 	char *url;			/* URL to get full ZCK file */
 	char *srcdev;			/* device as source for comparison */
 	char *chainhandler;		/* Handler to pass the decompressed image */
+	struct chain_handler_data chain_handler_data;
 	zck_log_type zckloglevel;	/* if found, set log level for ZCK to this */
 	bool detectsrcsize;		/* if set, try to compute size of filesystem in srcdev */
 	size_t srcsize;			/* Size of source */
 	unsigned long max_ranges;	/* Max allowed ranges (configured via sw-description) */
 	/* Data to be transferred to chain handler */
 	struct img_type img;
-	char fifo[80];
 	int fdout;
 	int fdsrc;
 	zckCtx *tgt;
@@ -498,47 +498,6 @@ static bool create_zckindex(zckCtx *zck, int fd, size_t maxbytes)
 }
 
 /*
- * Thread to start the chained handler.
- * This received from FIFO the reassembled stream with
- * the artifact and can pass it to the handler responsible for the install.
- */
-static void *chain_handler_thread(void *data)
-{
-	struct hnd_priv *priv = (struct hnd_priv *)data;
-	struct img_type *img = &priv->img;
-	unsigned long ret;
-
-	thread_ready();
-	/*
-	 * Try sometimes to open FIFO
-	 */
-	if (!strlen(priv->fifo)) {
-		ERROR("Named FIFO not set, thread exiting !");
-		return (void *)1;
-	}
-	for (int cnt = 5; cnt > 0; cnt--) {
-		img->fdin = open(priv->fifo, O_RDONLY);
-		if (img->fdin > 0)
-			break;
-		sleep(1);
-	}
-	if (img->fdin < 0) {
-		ERROR("Named FIFO cannot be opened, exiting");
-		return (void *)1;
-	}
-
-	img->install_directly = true;
-	ret = install_single_image(img, false);
-
-	if (ret) {
-		ERROR("Chain handler return with Error");
-		close(img->fdin);
-	}
-
-	return (void *)ret;
-}
-
-/*
  * Chunks must be retrieved from network, prepare an send
  * a request for the downloader
  */
@@ -871,6 +830,8 @@ static bool copy_existing_chunks(zckChunk **dstChunk, struct hnd_priv *priv)
 	return true;
 }
 
+#define PIPE_READ  0
+#define PIPE_WRITE 1
 /*
  * Handler entry point
  */
@@ -884,6 +845,7 @@ static int install_delta(struct img_type *img,
 	zckCtx *zckSrc = NULL, *zckDst = NULL;
 	char *FIFO = NULL;
 	pthread_t chain_handler_thread_id;
+	int pipes[2];
 
 	/*
 	 * No streaming allowed
@@ -925,19 +887,9 @@ static int install_delta(struct img_type *img,
 		goto cleanup;
 	}
 
-	if ((asprintf(&FIFO, "%s/%s", get_tmpdir(), FIFO_FILE_NAME) ==
-		ENOMEM_ASPRINTF)) {
-		ERROR("Path too long: %s", get_tmpdir());
-		ret = -ENOMEM;
-		goto cleanup;
-	}
-
-	/*
-	 * FIFO to communicate with the chainhandler thread
-	 */
-	unlink(FIFO);
-	if (mkfifo(FIFO, 0600)) {
-		ERROR("FIFO cannot be created in delta handler");
+	if (pipe(pipes) < 0) {
+		ERROR("Could not create pipes for chained handler, existing...");
+		ret = -EFAULT;
 		goto cleanup;
 	}
 	/*
@@ -1057,23 +1009,21 @@ static int install_delta(struct img_type *img,
 
 
 	/* Overwrite some parameters for chained handler */
-	memcpy(&priv->img, img, sizeof(*img));
-	priv->img.compressed = COMPRESSED_FALSE;
-	priv->img.size = uncompressed_size;
-	memset(priv->img.sha256, 0, SHA256_HASH_LENGTH);
-	strlcpy(priv->img.type, priv->chainhandler, sizeof(priv->img.type));
-	strlcpy(priv->fifo, FIFO, sizeof(priv->fifo));
+	struct chain_handler_data *priv_hnd;
+	priv_hnd = &priv->chain_handler_data;
+	memcpy(&priv_hnd->img, img, sizeof(*img));
+	priv_hnd->img.compressed = COMPRESSED_FALSE;
+	priv_hnd->img.size = uncompressed_size;
+	memset(priv_hnd->img.sha256, 0, SHA256_HASH_LENGTH);
+	strlcpy(priv_hnd->img.type, priv->chainhandler, sizeof(priv_hnd->img.type));
+	priv_hnd->img.fdin = pipes[PIPE_READ];
 
 	signal(SIGPIPE, SIG_IGN);
 
-	chain_handler_thread_id = start_thread(chain_handler_thread, priv);
+	chain_handler_thread_id = start_thread(chain_handler_thread, priv_hnd);
 	wait_threads_ready();
 
-	priv->fdout = open(FIFO, O_WRONLY);
-	if (priv->fdout < 0) {
-		ERROR("Failed to open FIFO %s", FIFO);
-		goto cleanup;
-	}
+	priv->fdout = pipes[PIPE_WRITE];
 
 	ret = 0;
 
