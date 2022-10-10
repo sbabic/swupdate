@@ -73,6 +73,12 @@ Talks about SWUpdate
        - Diving into SWUpdate: adding new platform support with Yocto/OE! by Pierre-Jean Texier, LiveEmbedded 2020,
          `Slides Diving into SWUpdate <https://de.slideshare.net/PierrejeanTexier/diving-into-swupdate-adding-new-platform-support-in-30minutes-with-yoctooe>`_,
          `Video Diving into SWUpdate <https://www.youtube.com/watch?v=TK10pNb_mzw>`_
+       - Implementing UEFI-based Secure Boot + OTA Update for Embedded ARM Devices by Jan Kiszka & Christian Storm, ELCE 2022
+         `Slides Implementing UEFI Secure Boot + OTA Update <https://https://elinux.org/images/4/42/ELCE2022-UEFISecureBootOTAUpdatesOnARM.pdf>`_,
+         `Video Implementing UEFI-based Secure Boot + OTA Update for Embedded ARM Devices <https://www.youtube.com/watch?v=H_dBnwkTAbw>`_
+       - Delta OTA Update with SWUpdate by Stefano Babic, ELCE 2022
+         `Slides  Delta OTA Update with SWUpdate <https://elinux.org/images/9/98/Delta_OTA_Update_with_SWUpdate_-_ELCE_2022.pdf>`_,
+         `Video Delta OTA Update with SWUpdate <https://www.youtube.com/watch?v=noURP22fJhs>`_
 
 Useful references
 =================
