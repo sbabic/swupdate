@@ -249,7 +249,7 @@ int parse(struct swupdate_cfg *sw, const char *descfile)
 	 * Compute the total number of installer
 	 * to initialize the progress bar
 	 */
-	swupdate_progress_init(count_elem_list(&sw->images));
+	swupdate_progress_init(count_elem_list(&sw->images) + count_elem_list(&sw->scripts));
 
 	/*
 	 * Send the version string as first message to progress interface
