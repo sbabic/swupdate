@@ -42,7 +42,7 @@ static void usage(void) {
 		" -d : ask the server to only perform a dry run\n"
 		" -e, --select <software>,<mode> : Select software images set and source\n"
 		"                                  Ex.: stable,main\n"
-		" -q : go quite, resets verbosity\n"
+		" -q : go quiet, resets verbosity\n"
 		" -v : go verbose, essentially print upgrade status messages from server\n"
 		" -p : ask the server to run post-update commands if upgrade succeeds\n"
 		);
