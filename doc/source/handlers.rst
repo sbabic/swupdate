@@ -829,6 +829,42 @@ is called twice.
         }
 
 
+Bootloader handler
+------------------
+
+The bootloader handler allows to set bootloader's environment with a file. The file shold have the format:
+
+::
+
+        # Comments are allowed using the hash char
+
+        varname=value
+
+Empty lines are skipped. This simplifies the update of the whole environment instead of setting each variable inside the
+"bootenv" section in sw-description. The property *nooverride* allows to skip variables that are already set in sw-description. If
+not set, variables set in bootenv are overwritten.
+
+
+::
+
+        images: (
+                {
+                        filename = "uEnv.txt";
+                        type = "bootloader";
+                        properties: {
+                                nooverride = "true";
+                        }
+                }
+        );
+
+        bootenv: (
+        {
+                name = "bootenv01key";
+                value = "SOME VALUE";
+        });
+
+In the example above, bootenv01key is not overwritten by a value in uEnv.txt because the flag "nooverride" is set.
+
 Archive handler
 ---------------
 
