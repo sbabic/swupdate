@@ -204,6 +204,17 @@ copies. Not all handlers support to stream directly into the target.
 Streaming with zero-copy is enabled by setting the flag "installed-directly"
 in the description of the single image.
 
+Multiple swupdate instances supported
+-------------------------------------
+
+Multiple swupdate instances can run in a single system. In order to make this possible
+it is necessary to customize the control and progress socket paths. This can be achieved
+at runtime by setting the environment variables ``SOCKET_CTRL_PATH`` and
+``SOCKET_PROGRESS_PATH``.
+
+These runtime variables will override the default value and the compile-time values set for
+these socket files.
+
 Configuration and build
 =======================
 

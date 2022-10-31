@@ -25,6 +25,11 @@ char *SOCKET_PROGRESS_PATH = NULL;
 #define SOCKET_PROGRESS_DEFAULT  "swupdateprog"
 
 char *get_prog_socket(void) {
+	const char *socket_progress_path = getenv("SOCKET_PROGRESS_PATH");
+	if (socket_progress_path) {
+		return (char *)socket_progress_path;
+	}
+
 	if (!SOCKET_PROGRESS_PATH || !strlen(SOCKET_PROGRESS_PATH)) {
 		const char *tmpdir = getenv("TMPDIR");
 		if (!tmpdir)

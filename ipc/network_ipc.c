@@ -27,6 +27,11 @@ static char* SOCKET_CTRL_PATH = NULL;
 #define SOCKET_CTRL_DEFAULT  "sockinstctrl"
 
 char *get_ctrl_socket(void) {
+	const char *socket_ctrl_path = getenv("SOCKET_CTRL_PATH");
+	if (socket_ctrl_path) {
+		return (char *)socket_ctrl_path;
+	}
+
 	if (!SOCKET_CTRL_PATH || !strlen(SOCKET_CTRL_PATH)) {
 		const char *tmpdir = getenv("TMPDIR");
 		if (!tmpdir)
