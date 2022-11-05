@@ -46,7 +46,7 @@ struct swupdate_digest *swupdate_DECRYPT_init(unsigned char *key, char keylen, u
 		return NULL;
 	}
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
 	EVP_CIPHER_CTX_init(&dgst->ctxdec);
 #else
 	dgst->ctxdec = EVP_CIPHER_CTX_new();
@@ -111,7 +111,7 @@ int swupdate_DECRYPT_final(struct swupdate_digest *dgst, unsigned char *buf,
 void swupdate_DECRYPT_cleanup(struct swupdate_digest *dgst)
 {
 	if (dgst) {
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
 		EVP_CIPHER_CTX_cleanup(SSL_GET_CTXDEC(dgst));
 #else
 		EVP_CIPHER_CTX_free(SSL_GET_CTXDEC(dgst));

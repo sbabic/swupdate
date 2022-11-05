@@ -55,14 +55,11 @@
 #if defined(CONFIG_SSL_IMPL_OPENSSL) || defined(CONFIG_SSL_IMPL_WOLFSSL)
 
 #ifdef CONFIG_SIGALG_CMS
-#if defined(LIBRESSL_VERSION_NUMBER)
-#error "LibreSSL does not support CMS, please select RSA PKCS"
-#else
 #include <openssl/cms.h>
 
 static inline uint32_t SSL_X509_get_extension_flags(X509 *x)
 {
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
 	return x->ex_flags;
 #else
 	return X509_get_extension_flags(x);
@@ -71,14 +68,13 @@ static inline uint32_t SSL_X509_get_extension_flags(X509 *x)
 
 static inline uint32_t SSL_X509_get_extended_key_usage(X509 *x)
 {
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
 	return x->ex_xkusage;
 #else
 	return X509_get_extended_key_usage(x);
 #endif
 }
 
-#endif
 #endif /* CONFIG_SIGALG_CMS */
 
 #ifdef CONFIG_SSL_IMPL_WOLFSSL
@@ -104,14 +100,14 @@ struct swupdate_digest {
 	Aes ctxdec;
 	Pkcs11Dev pkdev;
 	Pkcs11Token pktoken;
-#elif OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
+#elif OPENSSL_VERSION_NUMBER < 0x10100000L
 	EVP_CIPHER_CTX ctxdec;
 #else
 	EVP_CIPHER_CTX *ctxdec;
 #endif
 };
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
 #define SSL_GET_CTXDEC(dgst) &dgst->ctxdec
 #else
 #define SSL_GET_CTXDEC(dgst) dgst->ctxdec
@@ -122,7 +118,7 @@ struct swupdate_digest {
  * library
  * It must be called just once
  */
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
 #define swupdate_crypto_init() { \
 	do { \
 		CRYPTO_malloc_init(); \
