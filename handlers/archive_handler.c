@@ -380,6 +380,7 @@ out:
 		}
 	}
 
+	sync();
 	free(DATADST_DIR);
 	free(FIFO);
 
