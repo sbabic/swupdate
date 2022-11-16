@@ -160,6 +160,11 @@ int IsValidHash(const unsigned char *hash);
 		typeof(b) _b = b;\
 		_a < _b ? _a : _b; })
 
+#define min_t(type,x,y) \
+	({ type __x = (x); type __y = (y); __x < __y ? __x: __y; })
+#define max_t(type,x,y) \
+	({ type __x = (x); type __y = (y); __x > __y ? __x: __y; })
+
 char *sdup(const char *str);
 bool strtobool(const char *s);
 
