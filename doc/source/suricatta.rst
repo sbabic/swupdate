@@ -160,7 +160,8 @@ Support for general purpose HTTP server
 This is a very simple backend that uses standard HTTP response codes to signal if
 an update is available. There are closed source backends implementing this interface,
 but because the interface is very simple interface, this server type is also suitable
-for implementing an own backend server.
+for implementing an own backend server. For inspiration, there's a simple (mock)
+server implementation available in ``examples/suricatta/server_general.py``.
 
 The API consists of a GET with Query parameters to inform the server about the installed version.
 The query string has the format:
