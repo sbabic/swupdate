@@ -53,6 +53,14 @@ config HAVE_LIBUBI
 	bool
 	option env="HAVE_LIBUBI"
 
+config HAVE_LIBUBOOTENV
+	bool
+	option env="HAVE_LIBUBOOTENV"
+
+config HAVE_LIBEBGENV
+       bool
+       option env="HAVE_LIBEBGENV"
+
 config HAVE_LIBEXT2FS
 	bool
 	option env="HAVE_LIBEXT2FS"

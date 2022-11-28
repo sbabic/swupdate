@@ -42,6 +42,14 @@ ifeq ($(HAVE_LIBUBI),)
 export HAVE_LIBUBI = y
 endif
 
+ifeq ($(HAVE_LIBUBOOTENV),)
+export HAVE_LIBUBOOTENV = y
+endif
+
+ifeq ($(HAVE_LIBEBGENV),)
+export HAVE_LIBEBGENV = y
+endif
+
 ifeq ($(HAVE_LIBZEROMQ),)
 export HAVE_LIBZEROMQ = y
 endif
