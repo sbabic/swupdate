@@ -492,9 +492,9 @@ static size_t channel_callback_headers(char *buffer, size_t size, size_t nitems,
 			*strchrnul(val, '\n') = '\0';
 			/* For multiple same-key headers, only the last is saved. */
 			dict_set_value(dict, key, val);
-			TRACE("Header processed: %s : %s", key, val);
+			DEBUG("Header processed: %s : %s", key, val);
 		} else {
-			TRACE("Header not processed: '%s'", info);
+			DEBUG("Header not processed: '%s'", info);
 		}
 
 		free(info);
