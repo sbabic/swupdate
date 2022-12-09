@@ -611,6 +611,40 @@ void *network_initializer(void *data)
 		if (!(inst.fd < 0))
 			close(inst.fd);
 
+		if (!software->parms.dry_run && is_bootloader(BOOTLOADER_EBG)) {
+			if (!software->bootloader_transaction_marker) {
+				/*
+				 * EFI Boot Guard's "in_progress" environment variable
+				 * has special semantics hard-coded, hence the
+				 * bootloader transaction marker cannot be disabled.
+				 */
+				TRACE("Note: Setting EFI Boot Guard's 'in_progress' "
+				      "environment variable cannot be disabled.");
+			}
+			if (!software->bootloader_state_marker) {
+				/*
+				 * With a disabled update state marker, there's no
+				 * transaction auto-commit via
+				 *   save_state(STATE_INSTALLED)
+				 * which effectively calls
+				 *   bootloader_env_set(STATE_KEY, STATE_INSTALLED).
+				 * Hence, manually calling save_state(STATE_INSTALLED)
+				 * or equivalent is required to commit the transaction.
+				 * This can be useful to, e.g., terminate the transaction
+				 * from an according progress interface client or an
+				 * SWUpdate suricatta module after it has received an
+				 * update activation request from the remote server.
+				 */
+				TRACE("Note: EFI Boot Guard environment transaction "
+				      "will not be auto-committed.");
+			}
+			if (!software->bootloader_transaction_marker &&
+			    !software->bootloader_state_marker) {
+				WARN("EFI Boot Guard environment modifications will "
+				     "not be persisted.");
+			}
+		}
+
 		/* do carry out the installation (flash programming) */
 		if (ret == 0) {
 			TRACE("Valid image found: copying to FLASH");
