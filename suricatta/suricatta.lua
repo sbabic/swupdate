@@ -58,6 +58,62 @@ suricatta.notify = {
 }
 
 
+--- SWUpdate's bootloader interface as in `include/bootloader.h`.
+--
+--- @class suricatta.bootloader
+suricatta.bootloader = {
+    --- Bootloaders supported by SWUpdate.
+    --
+    --- @enum suricatta.bootloader.bootloaders
+    bootloaders = {
+        EBG   = "ebg",
+        NONE  = "none",
+        GRUB  = "grub",
+        UBOOT = "uboot",
+    },
+    --- Operations on the currently set bootloader's environment.
+    --
+    --- @class suricatta.bootloader.env
+    env = {}
+}
+
+--- Get currently set bootloader's name.
+--
+--- @return suricatta.bootloader.bootloaders | nil  # Name of currently set bootloader
+suricatta.bootloader.get = function() end
+
+--- Test whether bootloader `name` is currently set.
+--
+--- @param  name     suricatta.bootloader.bootloaders  Name of bootloader to test for being currently selected
+--- @return boolean                                    # True if `name` is currently set bootloader, false otherwise
+suricatta.bootloader.is = function(name) end
+
+--- Get value of a bootloader environment variable.
+--
+--- @param  variable  string  Name of the bootloader environment variable to get value for
+--- @return string | nil      # Value of the bootloader environment variable or nil if non-existent
+suricatta.bootloader.env.get = function(variable) end
+
+--- Set value of a bootloader environment variable.
+--
+--- @param  variable  string  Name of the bootloader environment variable to set
+--- @param  value     string  Value to set the bootloader environment variable `variable` to
+--- @return boolean | nil     # True on success, nil on error
+suricatta.bootloader.env.set = function(variable, value) end
+
+--- Drop a bootloader environment variable.
+--
+--- @param  variable  string  Name of the bootloader environment variable to drop
+--- @return boolean | nil     # True on success, nil on error
+suricatta.bootloader.env.unset = function(variable) end
+
+--- Set multiple bootloader environment variables from local file.
+--
+--- @param  filename  string  Path to local file in format `<variable>=<value>`
+--- @return boolean | nil     # True on success, nil on error
+suricatta.bootloader.env.apply = function(filename) end
+
+
 --- SWUpdate's persistent state IDs as in `include/state.h` and reverse-lookup.
 --
 --- @enum suricatta.pstate

@@ -30,6 +30,7 @@
 #include <swupdate.h>
 #include <parselib.h>
 #include <state.h>
+#include <bootloader.h>
 #include <swupdate_settings.h>
 #include <swupdate_dict.h>
 #include "suricatta_private.h"
@@ -1388,6 +1389,85 @@ failure:
 	return 2;
 }
 
+/**
+ * @brief Test whether a bootloader is currently set.
+ *
+ * @param  [Lua] Name of bootloader to test for being currently set.
+ * @return [Lua] True if given name is the currently set bootloader, false otherwise.
+ */
+static int lua_bootloader_is(lua_State *L)
+{
+	lua_pushboolean(L, is_bootloader(luaL_checkstring(L, -1)));
+	return 1;
+}
+
+/**
+ * @brief Get currently set bootloader's name.
+ *
+ * @return [Lua] Name of currently set bootloader.
+ */
+static int lua_bootloader_get(lua_State *L)
+{
+	(void)lua_pushstring(L, get_bootloader());
+	return 1;
+}
+
+/**
+ * @brief Get value of a bootloader environment variable.
+ *
+ * @param  [Lua] Name of the bootloader environment variable to get value of.
+ * @return [Lua] Value of the bootloader environment variable.
+ */
+static int lua_bootloader_env_get(lua_State *L)
+{
+	char* value = bootloader_env_get(luaL_checkstring(L, -1));
+	(void)lua_pushstring(L, value);
+	free(value);
+	return 1;
+}
+
+/**
+ * @brief Set value of a bootloader environment variable.
+ *
+ * @param  [Lua] Name of the bootloader environment variable to set.
+ * @param  [Lua] Value to set the bootloader environment variable to.
+ * @return [Lua] True, or, in case of error, nil.
+ */
+static int lua_bootloader_env_set(lua_State *L)
+{
+	bootloader_env_set(luaL_checkstring(L, -2), luaL_checkstring(L, -1)) == 0
+		? lua_pushboolean(L, true)
+		: lua_pushnil(L);
+	return 1;
+}
+
+/**
+ * @brief Drop a bootloader environment variable.
+ *
+ * @param  [Lua] Name of the bootloader environment variable to drop.
+ * @return [Lua] True, or, in case of error, nil.
+ */
+static int lua_bootloader_env_unset(lua_State *L)
+{
+	bootloader_env_unset(luaL_checkstring(L, -1)) == 0
+		? lua_pushboolean(L, true)
+		: lua_pushnil(L);
+	return 1;
+}
+
+/**
+ * @brief Set multiple bootloader environment variables from local file.
+ *
+ * @param  [Lua] Path to local file in format `<variable>=<value>`.
+ * @return [Lua] True, or, in case of error, nil.
+ */
+static int lua_bootloader_env_apply(lua_State *L)
+{
+	bootloader_apply_list(luaL_checkstring(L, -1)) == 0
+		? lua_pushboolean(L, true)
+		: lua_pushnil(L);
+	return 1;
+}
 
 /**
  * @brief Get update state from persistent storage (bootloader).
@@ -1477,6 +1557,35 @@ static int suricatta_lua_module(lua_State *L)
 	#define MAP(x) push_to_table(L, #x, SURICATTA_FUNC_ ## x);
 	SURICATTA_FUNCS
 	#undef MAP
+	lua_settable(L, -3);
+
+	luaL_Reg lua_funcs_bootloader[] = {
+		{ "is",  lua_bootloader_is  },
+		{ "get", lua_bootloader_get },
+		{ NULL, NULL }
+	};
+	luaL_Reg lua_funcs_bootloader_env[] = {
+		{ "get",   lua_bootloader_env_get   },
+		{ "set",   lua_bootloader_env_set   },
+		{ "unset", lua_bootloader_env_unset },
+		{ "apply", lua_bootloader_env_apply },
+		{ NULL, NULL }
+	};
+	lua_pushstring(L, "bootloader");
+	lua_newtable(L);
+	luaL_setfuncs(L, lua_funcs_bootloader, 0);
+	lua_pushstring(L, "bootloaders");
+	lua_newtable(L);
+	push_to_table(L, "EBG",   BOOTLOADER_EBG);
+	push_to_table(L, "NONE",  BOOTLOADER_NONE);
+	push_to_table(L, "GRUB",  BOOTLOADER_GRUB);
+	push_to_table(L, "UBOOT", BOOTLOADER_UBOOT);
+	lua_settable(L, -3);
+	lua_pushstring(L, "env");
+	lua_newtable(L);
+	luaL_setfuncs(L, lua_funcs_bootloader_env, 0);
+	lua_settable(L, -3);
+
 	lua_settable(L, -3);
 
 	lua_pushstring(L, "status");

@@ -93,6 +93,10 @@ with
 
 added to ``include/bootloader.h`` as a single central "trunk" bootloader
 name definition aiding in maintaining the uniqueness of bootloader names.
+This new "trunk" bootloader should also be added to the Suricatta Lua
+Module interface specification's bootloader Table
+``suricatta.bootloader.bootloaders = { ... }`` in
+``suricatta/suricatta.lua``.
 
 
 .. attention:: Take care to uniquely name the bootloader.
