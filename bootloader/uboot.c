@@ -144,5 +144,5 @@ static bootloader* probe(void)
 __attribute__((constructor))
 static void uboot_probe(void)
 {
-	(void)register_bootloader("uboot", probe());
+	(void)register_bootloader(BOOTLOADER_UBOOT, probe());
 }

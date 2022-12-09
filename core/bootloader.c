@@ -55,6 +55,13 @@ int set_bootloader(const char *name)
 	return -ENOENT;
 }
 
+bool is_bootloader(const char *name) {
+	if (!name || !current) {
+		return false;
+	}
+	return strcmp(current->name, name) == 0;
+}
+
 const char* get_bootloader(void)
 {
 	return current ? current->name : NULL;

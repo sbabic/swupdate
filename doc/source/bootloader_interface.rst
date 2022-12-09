@@ -82,8 +82,18 @@ registers this bootloader to SWUpdate at run-time:
     __attribute__((constructor))
     static void trunk_probe(void)
     {
-        (void)register_bootloader("trunk", &trunk);
+        (void)register_bootloader(BOOTLOADER_TRUNK, &trunk);
     }
+
+with 
+
+.. code-block:: c
+
+    #define BOOTLOADER_TRUNK "trunk"
+
+added to ``include/bootloader.h`` as a single central "trunk" bootloader
+name definition aiding in maintaining the uniqueness of bootloader names.
+
 
 .. attention:: Take care to uniquely name the bootloader.
 

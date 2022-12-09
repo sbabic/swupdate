@@ -353,5 +353,5 @@ static bootloader grub = {
 __attribute__((constructor))
 static void grub_probe(void)
 {
-	(void)register_bootloader("grub", &grub);
+	(void)register_bootloader(BOOTLOADER_GRUB, &grub);
 }

@@ -54,5 +54,5 @@ static bootloader none = {
 __attribute__((constructor))
 static void none_probe(void)
 {
-	(void)register_bootloader("none", &none);
+	(void)register_bootloader(BOOTLOADER_NONE, &none);
 }

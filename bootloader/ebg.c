@@ -236,5 +236,5 @@ static bootloader* probe(void)
 __attribute__((constructor))
 static void ebg_probe(void)
 {
-	(void)register_bootloader("ebg", probe());
+	(void)register_bootloader(BOOTLOADER_EBG, probe());
 }
