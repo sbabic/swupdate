@@ -33,6 +33,10 @@
 #include "mongoose_multipart.h"
 #include "util.h"
 
+#ifndef MG_ENABLE_SSL
+#define MG_ENABLE_SSL 0
+#endif
+
 #define MG_PORT "8080"
 #define MG_ROOT "."
 
