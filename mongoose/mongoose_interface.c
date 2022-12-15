@@ -539,7 +539,7 @@ static void timer_ev_handler(void *fn_data)
 	if (fus && (watchdog_conn > 0) &&
 		(mg_millis() - fus->last_io_time > (watchdog_conn * 1000))) {
 		/* Connection lost, drop data */
-		ERROR("Connection lost, no data for %ld seconds, closing...",
+		ERROR("Connection lost, no data for %" PRId64 " seconds, closing...",
 			  (mg_millis() - fus->last_io_time) / 1000);
 		mg_http_reply(fus->c, 408, "", "%s", "Request Timeout\n");
 		fus->c->is_draining = 1;

@@ -1171,7 +1171,7 @@ channel_op_res_t channel_get_file(channel_t *this, void *data)
 			WARN("Failed to get total download size for URL %s.",
 				channel_data->url);
 	} else
-		INFO("Total download size is %lu kB.",
+		INFO("Total download size is %" CURL_FORMAT_CURL_OFF_TU " kB.",
 			download_data.total_download_size / 1024);
 
 	}
