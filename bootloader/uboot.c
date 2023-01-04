@@ -123,6 +123,17 @@ static bootloader uboot = {
 
 static bootloader* probe(void)
 {
+#if defined(BOOTLOADER_STATIC_LINKED)
+	libuboot.open = libuboot_open;
+	libuboot.close = libuboot_close;
+	libuboot.exit = libuboot_exit;
+	libuboot.initialize = libuboot_initialize;
+	libuboot.get_env = libuboot_get_env;
+	libuboot.read_config = libuboot_read_config;
+	libuboot.load_file = libuboot_load_file;
+	libuboot.set_env = libuboot_set_env;
+	libuboot.env_store = libuboot_env_store;
+#else
 	void* handle = dlopen("libubootenv.so.0", RTLD_NOW | RTLD_GLOBAL);
 	if (!handle) {
 		return NULL;
@@ -138,6 +149,7 @@ static bootloader* probe(void)
 	load_symbol(handle, &libuboot.load_file, "libuboot_load_file");
 	load_symbol(handle, &libuboot.set_env, "libuboot_set_env");
 	load_symbol(handle, &libuboot.env_store, "libuboot_env_store");
+#endif
 	return &uboot;
 }
 

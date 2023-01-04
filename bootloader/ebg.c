@@ -518,6 +518,18 @@ static bootloader *probe(void)
 		return NULL;
 	}
 
+#if defined(BOOTLOADER_STATIC_LINKED)
+	libebg.beverbose = ebg_beverbose;
+	libebg.env_create_new  = ebg_env_create_new;
+	libebg.env_open_current  = ebg_env_open_current;
+	libebg.env_get  = ebg_env_get;
+	libebg.env_set  =  ebg_env_set;
+	libebg.env_set_ex  = ebg_env_set_ex;
+	libebg.env_getglobalstate = ebg_env_getglobalstate;
+	libebg.env_setglobalstate  = ebg_env_setglobalstate;
+	libebg.env_close  = ebg_env_close;
+	libebg.env_finalize_update  = ebg_env_finalize_update;
+#else
 	void *handle = dlopen("libebgenv.so.0", RTLD_NOW | RTLD_GLOBAL);
 	if (!handle) {
 		return NULL;
@@ -534,6 +546,7 @@ static bootloader *probe(void)
 	load_symbol(handle, &libebg.env_setglobalstate, "ebg_env_setglobalstate");
 	load_symbol(handle, &libebg.env_close, "ebg_env_close");
 	load_symbol(handle, &libebg.env_finalize_update, "ebg_env_finalize_update");
+#endif
 	return &ebg;
 }
 

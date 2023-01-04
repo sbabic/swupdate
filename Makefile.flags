@@ -209,16 +209,25 @@ ifeq ($(CONFIG_UCFWHANDLER),y)
 LDLIBS += gpiod
 endif
 
+
+ifeq ($(CONFIG_BOOTLOADER_STATIC_LINKED),y)
+ifeq ($(CONFIG_UBOOT),y)
+LDLIBS += ubootenv
+endif
+ifeq ($(CONFIG_BOOTLOADER_EBG),y)
+LDLIBS += ebgenv
+endif
+else
 ifeq ($(CONFIG_UBOOT),y)
 LDLIBS += dl
+endif
+ifeq ($(CONFIG_BOOTLOADER_EBG),y)
+LDLIBS += dl
+endif
 endif
 
 ifeq ($(CONFIG_SYSTEMD),y)
 LDLIBS += systemd
-endif
-
-ifeq ($(CONFIG_BOOTLOADER_EBG),y)
-LDLIBS += dl
 endif
 
 ifeq ($(CONFIG_BOOTLOADER_DEFAULT_NONE),y)

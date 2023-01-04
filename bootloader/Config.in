@@ -106,6 +106,16 @@ config BOOTLOADER_DEFAULT_NONE
 
 endchoice
 
+config BOOTLOADER_STATIC_LINKED
+	bool "Bootloader interface static linked"
+	help
+	  Link statically the interface to the bootloader. In case of distros,
+	  more interfaces are available at the same time and SWUpdate checks
+	  at runtime and loads the interface via dlopen(). This is available
+	  with glibc and dlopen support. For other system, the interface can be linked
+	  statically.
+
+
 choice
 	prompt "Update Status Storage"
 	help
