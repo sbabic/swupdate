@@ -89,7 +89,7 @@ static server_progress_data progdata;
 #define ALL_MANDATORY_SET	(URL_BIT)
 
 /*
- * Defibe max size for a log message
+ * Define max size for a log message
  */
 #define MAX_LOG_SIZE 1024
 
@@ -499,7 +499,6 @@ server_op_res_t server_has_pending_action(int *action_id)
 
 server_op_res_t server_send_target_data(void)
 {
-
 	return SERVER_OK;
 }
 
