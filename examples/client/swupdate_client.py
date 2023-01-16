@@ -52,7 +52,7 @@ class SWUpdater:
                         data = json.loads(message)
                     except json.decoder.JSONDecodeError:
                         # As of 2021.04, the version info message contains invalid json
-                        self._logger.warning(f"json parse error: {message}")
+                        self._logger.warning("json parse error: %s", message)
                         continue
 
                     if data["type"] != "message":
@@ -86,8 +86,8 @@ class SWUpdater:
 
             if response.status_code != 200:
                 self._logger.error(
-                    "Cannot upload software image: {}".format(response.status_code)
-                )
+                    "Cannot upload software image: %s",
+                    response.status_code)
                 return False
 
             self._logger.info(
@@ -100,7 +100,7 @@ class SWUpdater:
         except FileNotFoundError:
             self._logger.info("swu file not found")
         except requests.exceptions.ConnectionError as e:
-            self._logger.info("Connection Error:\n%s" % str(e))
+            self._logger.info("Connection Error:\n%s", e)
         return False
 
     async def start_tasks(self, timeout):
