@@ -16,6 +16,14 @@ import requests
 import websockets
 
 
+LOGGING_MAPPING = {
+    "3": logging.ERROR,
+    "4": logging.WARNING,
+    "6": logging.INFO,
+    "7": logging.DEBUG,
+}
+
+
 class SWUpdater:
     """Python helper class for SWUpdate"""
 
@@ -58,7 +66,10 @@ class SWUpdater:
                     if data["type"] != "message":
                         continue
 
-                    self._logger.info(data["text"])
+                    self._logger.log(
+                        LOGGING_MAPPING[data["level"]],
+                        data["text"])
+
                     if "SWUPDATE successful" in data["text"]:
                         return True
                     if "Installation failed" in data["text"]:
