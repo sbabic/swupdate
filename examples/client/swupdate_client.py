@@ -5,14 +5,15 @@
 # SPDX-License-Identifier:     GPL-2.0-only
 #
 
+import argparse
 import asyncio
 import json
-import requests
-import websockets
 import logging
 import string
-import argparse
 import sys
+
+import requests
+import websockets
 
 
 class SWUpdater:
