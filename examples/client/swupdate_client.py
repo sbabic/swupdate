@@ -43,9 +43,8 @@ class SWUpdater:
                         message = "".join(
                             filter(lambda x: x in set(string.printable), message)
                         )
-
-                    except Exception as err:
-                        self._logger.warning(err)
+                    except Exception:
+                        self._logger.exception("Unknown exception")
                         continue
 
                     try:
@@ -63,9 +62,8 @@ class SWUpdater:
                         return True
                     if "Installation failed" in data["text"]:
                         return False
-
-        except Exception as err:
-            self._logger.error(err)
+        except Exception:
+            self._logger.exception("Unknown exception")
             return False
 
     def sync_upload(self, swu_file, timeout):
@@ -96,11 +94,11 @@ class SWUpdater:
             )
             return True
         except ValueError:
-            self._logger.info("No connection to host, exit")
+            self._logger.error("No connection to host, exit")
         except FileNotFoundError:
-            self._logger.info("swu file not found")
-        except requests.exceptions.ConnectionError as e:
-            self._logger.info("Connection Error:\n%s", e)
+            self._logger.error("swu file not found")
+        except requests.exceptions.ConnectionError:
+            self._logger.exception("Connection error")
         return False
 
     async def start_tasks(self, timeout):
@@ -115,7 +113,7 @@ class SWUpdater:
         try:
             result = await asyncio.wait_for(ws_task, timeout=timeout)
         except asyncio.TimeoutError:
-            self._logger.info("timeout!")
+            self._logger.error("timeout!")
             return False
 
         return result
