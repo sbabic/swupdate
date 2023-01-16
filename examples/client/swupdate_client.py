@@ -9,10 +9,11 @@ import argparse
 import asyncio
 import json
 import logging
+import os
 import string
-import sys
 
 import requests
+from termcolor import colored
 import websockets
 
 
@@ -22,6 +23,31 @@ LOGGING_MAPPING = {
     "6": logging.INFO,
     "7": logging.DEBUG,
 }
+
+
+class ColorFormatter(logging.Formatter):
+    """Custom logging formatter with colorized output"""
+
+    COLORS = {
+        logging.DEBUG: "dark_grey",
+        logging.INFO: "black",
+        logging.WARNING: "yellow",
+        logging.ERROR: "red",
+    }
+
+    ATTRIBUTES = {
+        logging.DEBUG: [],
+        logging.INFO: ["bold"],
+        logging.WARNING: ["bold"],
+        logging.ERROR: ["bold"],
+    }
+
+    def format(self, record):
+        return logging.Formatter(colored(
+            "%(levelname)s:%(name)s:%(message)s",
+            self.COLORS[record.levelno],
+            attrs=self.ATTRIBUTES[record.levelno])
+        ).format(record)
 
 
 class SWUpdater:
@@ -37,8 +63,11 @@ class SWUpdater:
         if logger is not None:
             self._logger = logger
         else:
-            logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+            handler = logging.StreamHandler()
+            handler.setFormatter(ColorFormatter())
             self._logger = logging.getLogger("swupdate")
+            self._logger.addHandler(handler)
+            self._logger.setLevel(logging.DEBUG)
 
     async def wait_update_finished(self):
         self._logger.info("Waiting for messages on websocket connection")
@@ -146,7 +175,18 @@ if __name__ == "__main__":
         default=300,
         nargs="?",
     )
+    parser.add_argument(
+        "--color", help="colorize messages (auto, always or never)", type=str,
+        metavar="[WHEN]", choices=["auto", "always", "never"], default="auto"
+    )
 
     args = parser.parse_args()
+
+    # Configure logging colors
+    if args.color == "always":
+        os.environ["FORCE_COLOR"] = "yes"
+    elif args.color == "never":
+        os.environ["NO_COLOR"] = "yes"
+
     updater = SWUpdater(args.swu_file, args.host_name, args.port)
     updater.update(timeout=args.timeout)
