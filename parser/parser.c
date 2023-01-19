@@ -162,18 +162,13 @@ static int parser_follow_link(parsertype p, void *cfg, void *elem,
 static void *find_node(parsertype p, void *root, const char *field,
 			struct swupdate_cfg *swcfg)
 {
-	const char **nodes;
+	const char *nodes[MAX_PARSED_NODES];
 	void *node = NULL;
 
 	if (!field)
 		return NULL;
 
-	nodes = (const char **)calloc(MAX_PARSED_NODES, sizeof(*nodes));
-	if (!nodes)
-		return NULL;
-
 	node = find_node_and_path(p, root, field, swcfg, nodes);
-	free(nodes);
 
 	return node;
 }
