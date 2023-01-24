@@ -140,7 +140,7 @@ static void mg_http_multipart_finalize(struct mg_connection *c) {
 	mg_http_free_proto_data_mp_stream(mp_stream);
 	mp_stream->state = MPS_FINISHED;
 	free(mp_stream);
-	c->label[0] = '\0';
+	c->data[0] = '\0';
 }
 
 static int mg_http_multipart_wait_for_boundary(struct mg_connection *c) {
@@ -335,7 +335,7 @@ void multipart_upload_handler(struct mg_connection *c, int ev, void *ev_data,
 		s = mg_http_get_header(hm, "Content-Type");
 		if (s != NULL && s->len >= 9 && strncmp(s->ptr, "multipart", 9) == 0) {
 			/* New request - new proto data */
-			c->label[0] = 'M';
+			c->data[0] = 'M';
 
 			mg_http_multipart_begin(c, hm);
 			mg_http_multipart_continue(c);
