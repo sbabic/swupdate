@@ -506,7 +506,7 @@ int main(int argc, char **argv)
 			loglevel = strtoul(optarg, NULL, 10);
 			break;
 		case 'v':
-			loglevel = TRACELEVEL;
+			loglevel = LASTLOGLEVEL;
 			break;
 		case '0':
 			printf("%s", BANNER);
@@ -548,7 +548,7 @@ int main(int argc, char **argv)
 			exit(EXIT_FAILURE);
 		}
 
-		loglevel = swcfg.verbose ? TRACELEVEL : swcfg.loglevel;
+		loglevel = swcfg.verbose ? LASTLOGLEVEL : swcfg.loglevel;
 
 		/*
 		 * The following sections are optional, hence -ENODATA error code is
@@ -579,7 +579,7 @@ int main(int argc, char **argv)
 		}
 		switch (c) {
 		case 'v':
-			loglevel = TRACELEVEL;
+			loglevel = LASTLOGLEVEL;
 			break;
 #ifdef CONFIG_UBIATTACH
 		case 'b':
