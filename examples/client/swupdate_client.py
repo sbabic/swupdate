@@ -111,6 +111,7 @@ class SWUpdater:
         return requests.post(
             self.url_upload.format(self._host_name, self._port),
             files={"file": swu_file},
+            headers={"Cache-Control": "no-cache"},
             timeout=timeout,
         )
 
