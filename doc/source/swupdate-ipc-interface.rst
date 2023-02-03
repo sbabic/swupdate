@@ -336,6 +336,8 @@ This event is sent when the internal SWUpdate status change. Following status ar
         START
         RUN
         SUCCESS
+        FAILURE
+        DONE
 
 
 Example:
