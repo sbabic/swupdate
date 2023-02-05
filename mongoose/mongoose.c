@@ -2336,34 +2336,6 @@ static void http_cb(struct mg_connection *c, int ev, void *evd, void *fnd) {
   (void) evd, (void) fnd;
 }
 
-static void mg_hfn(struct mg_connection *c, int ev, void *ev_data, void *fnd) {
-  if (ev == MG_EV_HTTP_MSG) {
-    struct mg_http_message *hm = (struct mg_http_message *) ev_data;
-    if (mg_http_match_uri(hm, "/quit")) {
-      mg_http_reply(c, 200, "", "ok\n");
-      c->is_draining = 1;
-      c->data[0] = 'X';
-    } else if (mg_http_match_uri(hm, "/debug")) {
-      int level = (int) mg_json_get_long(hm->body, "$.level", MG_LL_DEBUG);
-      mg_log_set(level);
-      mg_http_reply(c, 200, "", "Debug level set to %d\n", level);
-    } else {
-      mg_http_reply(c, 200, "", "hi\n");
-    }
-  } else if (ev == MG_EV_CLOSE) {
-    if (c->data[0] == 'X') *(bool *) fnd = true;
-  }
-}
-
-void mg_hello(const char *url) {
-  struct mg_mgr mgr;
-  bool done = false;
-  mg_mgr_init(&mgr);
-  if (mg_http_listen(&mgr, url, mg_hfn, &done) == NULL) done = true;
-  while (done == false) mg_mgr_poll(&mgr, 100);
-  mg_mgr_free(&mgr);
-}
-
 struct mg_connection *mg_http_connect(struct mg_mgr *mgr, const char *url,
                                       mg_event_handler_t fn, void *fn_data) {
   struct mg_connection *c = mg_connect(mgr, url, fn, fn_data);
