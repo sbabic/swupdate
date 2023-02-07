@@ -607,6 +607,40 @@ channel_op_res_t channel_set_options(channel_t *this, channel_data_t *channel_da
 		goto cleanup;
 	}
 
+	/* Check if sslkey or sslcert strings contains a pkcs11 URI
+	 * and set curl engine and types accordingly
+	 */
+	int keyUri = strncasecmp(channel_data->sslkey, "pkcs11:", 7);
+	int certUri = strncasecmp(channel_data->sslcert, "pkcs11:", 7);
+
+	if ((keyUri == 0) || (certUri == 0)) {
+		result = curl_easy_setopt(channel_curl->handle, CURLOPT_SSLENGINE, "pkcs11");
+
+		if (result != CURLE_OK) {
+			ERROR("Error %d setting CURLOPT_SSLENGINE", result);
+			result = CHANNEL_EINIT;
+			goto cleanup;
+		}
+
+		if (keyUri == 0) {
+			result = curl_easy_setopt(channel_curl->handle, CURLOPT_SSLKEYTYPE, "ENG");
+			if (result != CURLE_OK) {
+				ERROR("Error %d setting CURLOPT_SSLKEYTYPE", result);
+				result = CHANNEL_EINIT;
+				goto cleanup;
+			}
+		}
+
+		if (certUri == 0) {
+			result = curl_easy_setopt(channel_curl->handle, CURLOPT_SSLCERTTYPE, "ENG");
+			if (result != CURLE_OK) {
+				ERROR("Error %d setting CURLOPT_SSLCERTTYPE", result);
+				result = CHANNEL_EINIT;
+				goto cleanup;
+			}
+		}
+        }
+
 	/* Only use cafile when set, otherwise let curl use
 	 * the default system location for cacert bundle
 	 */
