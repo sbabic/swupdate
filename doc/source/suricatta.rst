@@ -487,3 +487,44 @@ the response body.
 More examples of how to use a channel can be found in the example suricatta Lua
 module ``examples/suricatta/swupdate_suricatta.lua``.
 
+`suricatta.bootloader`
+......................
+
+The ``suricatta.bootloader`` table exposes SWUpdate's bootloader environment
+modification functions to suricatta Lua modules.
+
+The enum-like table ``suricatta.bootloader.bootloaders`` holds the bootloaders
+SWUpdate supports, i.e.
+
+   .. code-block:: lua
+
+    suricatta.bootloader.bootloaders = {
+        EBG   = "ebg",
+        NONE  = "none",
+        GRUB  = "grub",
+        UBOOT = "uboot",
+    },
+
+
+The function ``suricatta.bootloader.get()`` returns the currently selected
+bootloader in terms of a ``suricatta.bootloader.bootloaders`` field value.
+
+The function ``suricatta.bootloader.is(name)`` takes one of
+``suricatta.bootloader.bootloaders``'s field values as ``name`` and returns
+``true`` if it is the currently selected bootloader, ``false`` otherwise.
+
+The functions in the ``suricatta.bootloader.env`` table interact with the
+currently selected bootloader's environment:
+
+The function ``suricatta.bootloader.env.get(variable)`` retrieves the value
+associated to ``variable`` from the bootloader's environment.
+
+The function ``suricatta.bootloader.env.set(variable, value)`` sets the
+bootloader environment's key ``variable`` to ``value``.
+
+The function ``suricatta.bootloader.env.unset(variable)`` deletes the bootloader
+environment's key ``variable``.
+
+The function ``suricatta.bootloader.env.apply(filename)`` applies
+all key=value lines of a local file ``filename`` to the currently selected
+bootloader's environment.
