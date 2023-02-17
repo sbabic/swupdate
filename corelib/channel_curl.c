@@ -610,10 +610,10 @@ channel_op_res_t channel_set_options(channel_t *this, channel_data_t *channel_da
 	/* Check if sslkey or sslcert strings contains a pkcs11 URI
 	 * and set curl engine and types accordingly
 	 */
-	int keyUri = strncasecmp(channel_data->sslkey, "pkcs11:", 7);
-	int certUri = strncasecmp(channel_data->sslcert, "pkcs11:", 7);
+	bool keyUri = channel_data->sslkey ? strncasecmp(channel_data->sslkey, "pkcs11:", 7) == 0 : false;
+	bool certUri = channel_data->sslkey ? strncasecmp(channel_data->sslcert, "pkcs11:", 7) == 0 : false;
 
-	if ((keyUri == 0) || (certUri == 0)) {
+	if (keyUri || certUri) {
 		result = curl_easy_setopt(channel_curl->handle, CURLOPT_SSLENGINE, "pkcs11");
 
 		if (result != CURLE_OK) {
@@ -622,7 +622,7 @@ channel_op_res_t channel_set_options(channel_t *this, channel_data_t *channel_da
 			goto cleanup;
 		}
 
-		if (keyUri == 0) {
+		if (keyUri) {
 			result = curl_easy_setopt(channel_curl->handle, CURLOPT_SSLKEYTYPE, "ENG");
 			if (result != CURLE_OK) {
 				ERROR("Error %d setting CURLOPT_SSLKEYTYPE", result);
@@ -631,7 +631,7 @@ channel_op_res_t channel_set_options(channel_t *this, channel_data_t *channel_da
 			}
 		}
 
-		if (certUri == 0) {
+		if (certUri) {
 			result = curl_easy_setopt(channel_curl->handle, CURLOPT_SSLCERTTYPE, "ENG");
 			if (result != CURLE_OK) {
 				ERROR("Error %d setting CURLOPT_SSLCERTTYPE", result);
