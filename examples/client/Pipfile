@@ -11,8 +11,3 @@ name = "pypi"
 websockets = "*"
 requests = "*"
 termcolor = "~=2.2.0"
-
-[dev-packages]
-
-[requires]
-python_version = "3.9"
