@@ -6,12 +6,6 @@ SPDX-License-Identifier: GPL-2.0-only
 
 ## Install dependencies
 
-### apt
-```
-sudo apt update
-sudo apt install python3-websockets python3-requests
-```
-
 ### pip
 ```
 pip install websockets requests
@@ -24,7 +18,7 @@ pipenv install
 
 ## Usage
 
-### apt/pip
+### pip
 ```
 ./swupdate_client.py <path-to-swu> <host_name> [port]
 ```
