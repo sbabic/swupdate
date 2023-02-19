@@ -8,7 +8,7 @@ SPDX-License-Identifier: GPL-2.0-only
 
 ### pip
 ```
-pip install websockets requests
+pip install websockets requests termcolor
 ```
 
 ### pipenv
