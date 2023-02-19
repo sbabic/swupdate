@@ -1206,3 +1206,11 @@ Example:
                 };
         }
 
+Memory issue with zchunk
+------------------------
+
+SWUpdate will create the header from the current version, often from a block partition. As default,
+Zchunk creates a temporary file with all chunks in /tmp, that is at the end concatenated to the
+header and written to the destination file. This means that an amount of memory equal to the
+partition (SWUpdate does not compress the chunks) is required. This was solved with later version
+of Zchunk - check inside zchunk code if ZCK_NO_WRITE is supported.

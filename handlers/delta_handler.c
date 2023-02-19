@@ -990,6 +990,9 @@ static int install_delta(struct img_type *img,
 		ERROR("Error setting HASH Type %s\n", zck_get_error(zckSrc));
 		goto cleanup;
 	}
+	if (!zck_set_ioption(zckSrc, ZCK_NO_WRITE, 1)) {
+		WARN("ZCK does not support NO Write, use huge amount of RAM %s\n", zck_get_error(zckSrc));
+	}
 
 	if (!create_zckindex(zckSrc, in_fd, priv->srcsize)) {
 		WARN("ZCK Header form %s cannot be created, fallback to full download",
