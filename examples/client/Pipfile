@@ -10,7 +10,7 @@ name = "pypi"
 [packages]
 websockets = "*"
 requests = "*"
-termcolor = "*"
+termcolor = "~=2.2.0"
 
 [dev-packages]
 
