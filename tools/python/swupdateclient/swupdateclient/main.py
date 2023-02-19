@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # SPDX-FileCopyrightText: 2018 Stefano Babic <sbabic@denx.de>
 # SPDX-FileCopyrightText: 2021 Blueye Robotics AS
 #
@@ -10,7 +9,11 @@ import asyncio
 import json
 import logging
 import os
+import sys
 import string
+from swupdateclient import __about__
+from typing import List, Optional, Tuple, Union
+
 
 import requests
 from termcolor import colored
@@ -164,7 +167,7 @@ class SWUpdater:
         return asyncio.run(self.start_tasks(timeout))
 
 
-if __name__ == "__main__":
+def client (args: List[str]) -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("swu_file", help="Path to swu image")
     parser.add_argument("host_name", help="Host name")
@@ -200,3 +203,9 @@ if __name__ == "__main__":
         args.port,
         log_level=args.log_level.upper())
     updater.update(timeout=args.timeout)
+
+def main():
+    client(sys.argv[1:])
+
+if __name__ == "__main__":
+    main()
