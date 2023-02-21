@@ -56,7 +56,7 @@ class SWUpdater:
     url_upload = "http://{}:{}/upload"
     url_status = "ws://{}:{}/ws"
 
-    def __init__(self, path_image, host_name, port=8080, logger=None):
+    def __init__(self, path_image, host_name, port=8080, logger=None, log_level=logging.DEBUG):
         self._image = path_image
         self._host_name = host_name
         self._port = port
@@ -67,7 +67,7 @@ class SWUpdater:
             handler.setFormatter(ColorFormatter())
             self._logger = logging.getLogger("swupdate")
             self._logger.addHandler(handler)
-            self._logger.setLevel(logging.DEBUG)
+            self._logger.setLevel(log_level)
 
     async def wait_update_finished(self):
         self._logger.info("Waiting for messages on websocket connection")
@@ -177,6 +177,11 @@ if __name__ == "__main__":
         nargs="?",
     )
     parser.add_argument(
+        "--log-level", help="change log level (error, info, warning, debug)",
+        type=str, metavar="[LEVEL]",
+        choices=["error", "info", "warning", "debug"], default="debug"
+    )
+    parser.add_argument(
         "--color", help="colorize messages (auto, always or never)", type=str,
         metavar="[WHEN]", choices=["auto", "always", "never"], default="auto"
     )
@@ -189,5 +194,9 @@ if __name__ == "__main__":
     elif args.color == "never":
         os.environ["NO_COLOR"] = "yes"
 
-    updater = SWUpdater(args.swu_file, args.host_name, args.port)
+    updater = SWUpdater(
+        args.swu_file,
+        args.host_name,
+        args.port,
+        log_level=args.log_level.upper())
     updater.update(timeout=args.timeout)
