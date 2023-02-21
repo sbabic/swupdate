@@ -29,8 +29,8 @@ class ColorFormatter(logging.Formatter):
     """Custom logging formatter with colorized output"""
 
     COLORS = {
-        logging.DEBUG: "dark_grey",
-        logging.INFO: "black",
+        logging.DEBUG: None,
+        logging.INFO: None,
         logging.WARNING: "yellow",
         logging.ERROR: "red",
     }
