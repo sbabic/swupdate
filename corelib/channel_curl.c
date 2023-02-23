@@ -614,17 +614,14 @@ channel_op_res_t channel_set_options(channel_t *this, channel_data_t *channel_da
 	bool certUri = channel_data->sslkey ? strncasecmp(channel_data->sslcert, "pkcs11:", 7) == 0 : false;
 
 	if (keyUri || certUri) {
-		result = curl_easy_setopt(channel_curl->handle, CURLOPT_SSLENGINE, "pkcs11");
-
-		if (result != CURLE_OK) {
+		if (curl_easy_setopt(channel_curl->handle, CURLOPT_SSLENGINE, "pkcs11") != CURLE_OK) {
 			ERROR("Error %d setting CURLOPT_SSLENGINE", result);
 			result = CHANNEL_EINIT;
 			goto cleanup;
 		}
 
 		if (keyUri) {
-			result = curl_easy_setopt(channel_curl->handle, CURLOPT_SSLKEYTYPE, "ENG");
-			if (result != CURLE_OK) {
+			if (curl_easy_setopt(channel_curl->handle, CURLOPT_SSLKEYTYPE, "ENG") != CURLE_OK) {
 				ERROR("Error %d setting CURLOPT_SSLKEYTYPE", result);
 				result = CHANNEL_EINIT;
 				goto cleanup;
@@ -632,8 +629,7 @@ channel_op_res_t channel_set_options(channel_t *this, channel_data_t *channel_da
 		}
 
 		if (certUri) {
-			result = curl_easy_setopt(channel_curl->handle, CURLOPT_SSLCERTTYPE, "ENG");
-			if (result != CURLE_OK) {
+			if (curl_easy_setopt(channel_curl->handle, CURLOPT_SSLCERTTYPE, "ENG") != CURLE_OK) {
 				ERROR("Error %d setting CURLOPT_SSLCERTTYPE", result);
 				result = CHANNEL_EINIT;
 				goto cleanup;
