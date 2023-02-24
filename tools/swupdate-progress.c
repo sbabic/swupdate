@@ -214,7 +214,7 @@ int main(int argc, char **argv)
 	bool wait_update = true;
 
 	/* Process options with getopt */
-	while ((c = getopt_long(argc, argv, "cwprhs:e:",
+	while ((c = getopt_long(argc, argv, "cwprhs:e:q",
 				long_options, NULL)) != EOF) {
 		switch (c) {
 		case 'c':
