@@ -14,5 +14,5 @@ setup(
             "swupdateclient=swupdateclient.main:main",
         ],
     },
-    python_requires=">=3.9",
+    python_requires=">=3.8",
 )
