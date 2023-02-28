@@ -1,6 +1,6 @@
 # Copyright (C) 2022 Stefano Babic
 #
-# SPDX-License-Identifier: GPLv3
+# SPDX-License-Identifier: GPL-2.0-only
 
 __all__ = [
     "__title__",
