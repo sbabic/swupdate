@@ -205,7 +205,11 @@ static int run_prepost_scripts(struct imglist *list, script_fn type)
 				.data = hnd->data
 			};
 
+			swupdate_progress_inc_step(img->fname, hnd->desc);
+			swupdate_progress_update(0);
 			ret = hnd->installer(img, &data);
+			swupdate_progress_update(100);
+			swupdate_progress_step_completed();
 			if (ret)
 				return ret;
 		}
