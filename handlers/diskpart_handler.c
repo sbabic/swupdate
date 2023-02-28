@@ -20,6 +20,8 @@
 #include <linux/fs.h>
 #include <fs_interface.h>
 #include <uuid/uuid.h>
+#include <dirent.h>
+#include <libgen.h>
 #include "swupdate.h"
 #include "handler.h"
 #include "util.h"
@@ -909,6 +911,129 @@ static int diskpart_reread_partition(char *device)
 	return ret;
 }
 
+static int keep_directory(const struct dirent *ent)
+{
+	return ((ent->d_type & DT_DIR) && \
+		strcmp(ent->d_name, ".") && \
+		strcmp(ent->d_name, ".."));
+}
+
+static char *compute_sys_block_path(char *device_name)
+{
+	int size = strlen("/sys/block/") + strlen(device_name) + 1;
+	char *sys_block = malloc(size * sizeof(char));
+
+	if (!sys_block) {
+		ERROR("ERROR: cannot allocate sys_block\n");
+		goto out;
+	}
+
+	sprintf(sys_block, "/sys/block/%s", device_name);
+
+ out:
+	return sys_block;
+}
+
+static int read_partition(char *sys_block, char *dir_name)
+{
+	size_t size = strlen(sys_block) + strlen(dir_name) + 12;
+	char *path = (char *)malloc(size * sizeof(char));
+	struct stat statbuf;
+	int fd, err, len, partition = -1;
+	char *data = NULL;
+
+	if (!path) {
+		ERROR("Failed to allocate path\n");
+		goto out;
+	}
+
+	size = sprintf(path, "%s/%s/partition", sys_block, dir_name);
+
+	fd = open(path, O_RDONLY);
+	if (fd < 0)
+		goto out;
+
+	err = fstat(fd, &statbuf);
+	if (err < 0) {
+		ERROR("Cannot get info on %s\n", path);
+		close(fd);
+		goto out;
+	}
+
+	size = statbuf.st_size;
+	data = (char *)malloc(size * sizeof(char));
+	if (!data) {
+		ERROR("Cannot allocate data\n");
+		close(fd);
+		goto out;
+	}
+
+	len = read(fd, data, size);
+	if ((len > 0) && (len <= size))
+		partition = strtoul(data, NULL, 10);
+
+	close(fd);
+
+ out:
+	free(path);
+	free(data);
+	return partition;
+}
+
+static int set_partition(char *buf, int bufsize, char *device, int partno)
+{
+	char *device1 = strdup(device);
+	char *device2 = strdup(device);
+	char *device_path;
+	char *device_name;
+	char *sys_block = NULL;
+	struct dirent **dirlist = NULL;
+	int i, num_dir, ret = -1;
+
+	if (!device1 || !device2) {
+		ERROR("Cannot duplicate device\n");
+		goto out;
+	}
+
+	device_path = dirname(device1);
+	device_name = basename(device2);
+
+	if (!device_name) {
+		ERROR("Cannot get basename\n");
+		goto out;
+	}
+
+	sys_block = compute_sys_block_path(device_name);
+	if (!sys_block)
+		goto out;
+
+	num_dir = scandir(sys_block, &dirlist, keep_directory, NULL);
+	if (num_dir < 0)
+		goto out;
+
+	for (i = 0; i < num_dir; i++) {
+		char *dir_name = dirlist[i]->d_name;
+		int partition;
+
+		partition = read_partition(sys_block, dir_name);
+		if (partition == partno) {
+			snprintf(buf, bufsize, "%s/%s", device_path, dir_name);
+			ret = 0;
+		}
+
+		free(dirlist[i]);
+	}
+
+	free(dirlist);
+
+ out:
+	free(sys_block);
+	free(device1);
+	free(device2);
+
+	return ret;
+}
+
 static int install_gpt_partition_image(struct img_type *img,
 				       void __attribute__ ((__unused__)) *data)
 {
@@ -980,7 +1105,7 @@ static int install_gpt_partition_image(struct img_type *img,
 	 * Set device for next handler
 	 */
 	partno = fdisk_partition_get_partno(pa);
-	snprintf(device, sizeof(device), "%s%zu", img->device, partno + 1);
+	set_partition(device, sizeof(device), img->device, partno + 1);
 	strlcpy(img->device, device, sizeof(img->device));
 
 	/*
