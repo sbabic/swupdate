@@ -25,6 +25,7 @@
 #include "swupdate.h"
 #include "handler.h"
 #include "util.h"
+#include "progress.h"
 
 void diskpart_handler(void);
 void diskpart_toggle_boot(void);
@@ -1141,6 +1142,11 @@ handler_release:
 	if (createtable)
 		free(createtable);
 
+	/*
+	 * Declare that handler has finished
+	 */
+	swupdate_progress_update(100);
+
 	return ret;
 }
 
@@ -1445,6 +1451,11 @@ handler_release:
 	if (createtable)
 		free(createtable);
 
+	/*
+	 * Declare that handler has finished
+	 */
+	swupdate_progress_update(100);
+
 	return ret;
 }
 
@@ -1542,6 +1553,11 @@ toggle_boot_exit:
 	}
 	if (cxt)
 		diskpart_unref_context(cxt);
+
+	/*
+	 * Declare that handler has finished
+	 */
+	swupdate_progress_update(100);
 
 	return ret;
 }
@@ -1669,6 +1685,11 @@ static int gpt_swap_partition(struct img_type *img, void *data)
 		goto handler_exit;
 	}
 
+	/*
+	 * Declare that handler has finished
+	 */
+	swupdate_progress_update(100);
+
 handler_exit:
 	if (tb)
 		diskpart_unref_table(tb);
@@ -1688,6 +1709,11 @@ handler_release:
 	 * try to acces the partitions before the kernel is ready
 	 */
 	diskpart_reread_partition(img->device);
+
+	/*
+	 * Declare that handler has finished
+	 */
+	swupdate_progress_update(100);
 
 	return ret;
 }
