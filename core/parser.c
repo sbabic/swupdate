@@ -249,7 +249,14 @@ int parse(struct swupdate_cfg *sw, const char *descfile)
 	 * Compute the total number of installer
 	 * to initialize the progress bar
 	 */
-	swupdate_progress_init(count_elem_list(&sw->images) + count_elem_list(&sw->scripts));
+	unsigned int totalsteps = count_elem_list(&sw->images) +
+					2 * count_elem_list(&sw->scripts);
+	swupdate_progress_init(totalsteps);
+
+	TRACE("Number of found artifacts: %d", count_elem_list(&sw->images));
+	TRACE("Number of scripts: %d", count_elem_list(&sw->scripts));
+	TRACE("Number of steps to be run: %d", totalsteps);
+
 
 	/*
 	 * Send the version string as first message to progress interface
