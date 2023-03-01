@@ -123,11 +123,6 @@ choice
 	  status for, e.g., communicating it to SWUpdate after
 	  a reboot.
 
-config UPDATE_STATE_CHOICE_NONE
-	bool "None"
-	help
-	  Do not store update status.
-
 config UPDATE_STATE_CHOICE_BOOTLOADER
 	bool "Bootloader"
 	depends on BOOTLOADER_EBG || UBOOT || BOOTLOADER_NONE || BOOTLOADER_GRUB
