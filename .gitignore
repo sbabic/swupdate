@@ -124,3 +124,10 @@ web-app/swupdate-www.tar.gz
 # ci
 !.gitlab-ci.yml
 !.github
+
+# swupdateclient
+Pipfile
+Pipfile.lock
+tools/python/swupdateclient/Pipfile.lock
+tools/python/swupdateclient/build/
+tools/python/swupdateclient/swupdateclient.egg-info/
