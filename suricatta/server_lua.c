@@ -1806,7 +1806,7 @@ static int config_section_to_table(void *setting, void *data)
 			break;
 		case CONFIG_TYPE_BOOL:
 			push_to_table((lua_State *)data, entry->name,
-				      config_setting_get_bool(entry));
+				      (bool)config_setting_get_bool(entry));
 			break;
 		case CONFIG_TYPE_FLOAT:
 			push_to_table((lua_State *)data, entry->name,
