@@ -1,73 +1,35 @@
-
-
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>Symmetrically Encrypted Update Images &mdash; Embedded Software Update Documentation 2022.05 documentation</title>
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-  
-  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Symmetrically Encrypted Update Images &mdash; Embedded Software Update Documentation 2022.12 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
   
-  
-  
-
-  
-  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Handlers" href="handlers.html" />
     <link rel="prev" title="Update images from verified source" href="signed_images.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="index.html" class="icon icon-home"> Embedded Software Update Documentation
-          
-
-          
           </a>
-
-          
-            
-            
               <div class="version">
-                2022.05
+                2022.12
               </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -75,17 +37,7 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Software Management on embedded systems</a></li>
 <li class="toctree-l1"><a class="reference internal" href="licensing.html">License</a></li>
@@ -131,75 +83,37 @@
 <li class="toctree-l1"><a class="reference internal" href="previous-releases.html">Documentation for previous releases</a></li>
 </ul>
 
-            
-          
         </div>
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">Embedded Software Update Documentation</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="index.html">Docs</a> &raquo;</li>
-        
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
       <li>Symmetrically Encrypted Update Images</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-            
             <a href="_sources/encrypted_images.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="symmetrically-encrypted-update-images">
-<h1>Symmetrically Encrypted Update Images<a class="headerlink" href="#symmetrically-encrypted-update-images" title="Permalink to this headline">¶</a></h1>
+             
+  <section id="symmetrically-encrypted-update-images">
+<h1>Symmetrically Encrypted Update Images<a class="headerlink" href="#symmetrically-encrypted-update-images" title="Permalink to this headline"></a></h1>
 <p>SWUpdate allows one to symmetrically encrypt update images using the
 AES block cipher in CBC mode. The following shows encryption with 256
 bit key length but you may use other key lengths as well.</p>
-<div class="section" id="building-an-encrypted-swu-image">
-<h2>Building an Encrypted SWU Image<a class="headerlink" href="#building-an-encrypted-swu-image" title="Permalink to this headline">¶</a></h2>
+<section id="building-an-encrypted-swu-image">
+<h2>Building an Encrypted SWU Image<a class="headerlink" href="#building-an-encrypted-swu-image" title="Permalink to this headline"></a></h2>
 <p>First, create a key; for aes-256-cbc we need 32 bytes of key and 16 bytes
 for an initialisation vector (IV).
 A complete documentation can be found at the
@@ -228,15 +142,15 @@ separated by whitespace, e.g., for above example values</p>
 that was never actually used for aes and has been removed.</p>
 <p>You should change the IV with every encryption, see <a class="reference external" href="http://cwe.mitre.org/data/definitions/329.html">CWE-329</a>. The <code class="docutils literal notranslate"><span class="pre">ivt</span></code>
 sw-description attribute overrides the key file’s IV for one specific image.</p>
-</div>
-<div class="section" id="encryption-of-ubi-volumes">
-<h2>Encryption of UBI volumes<a class="headerlink" href="#encryption-of-ubi-volumes" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="encryption-of-ubi-volumes">
+<h2>Encryption of UBI volumes<a class="headerlink" href="#encryption-of-ubi-volumes" title="Permalink to this headline"></a></h2>
 <p>Due to a limit in the Linux kernel API for UBI volumes, the size reserved to be
 written on disk should be declared before actually writing anything.</p>
 <p>See the property “decrypted-size” in UBI Volume Handler’s documentation.</p>
-</div>
-<div class="section" id="example-sw-description-with-encrypted-image">
-<h2>Example sw-description with Encrypted Image<a class="headerlink" href="#example-sw-description-with-encrypted-image" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="example-sw-description-with-encrypted-image">
+<h2>Example sw-description with Encrypted Image<a class="headerlink" href="#example-sw-description-with-encrypted-image" title="Permalink to this headline"></a></h2>
 <p>The following example is a (minimal) <code class="docutils literal notranslate"><span class="pre">sw-description</span></code> for installing
 a Yocto image onto a Beaglebone. Pay attention to the <code class="docutils literal notranslate"><span class="pre">encrypted</span> <span class="pre">=</span> <span class="pre">true;</span></code>
 setting.</p>
@@ -253,71 +167,53 @@ setting.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="running-swupdate-with-encrypted-images">
-<h2>Running SWUpdate with Encrypted Images<a class="headerlink" href="#running-swupdate-with-encrypted-images" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="running-swupdate-with-encrypted-images">
+<h2>Running SWUpdate with Encrypted Images<a class="headerlink" href="#running-swupdate-with-encrypted-images" title="Permalink to this headline"></a></h2>
 <p>Symmetric encryption support is activated by setting the <code class="docutils literal notranslate"><span class="pre">ENCRYPTED_IMAGES</span></code>
 option in SWUpdate’s configuration. Use the <cite>-K</cite> parameter to provide the
 symmetric key file generated above to SWUpdate.</p>
-</div>
-<div class="section" id="decrypting-with-a-pkcs-11-token">
-<h2>Decrypting with a PKCS#11 token<a class="headerlink" href="#decrypting-with-a-pkcs-11-token" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="decrypting-with-a-pkcs-11-token">
+<h2>Decrypting with a PKCS#11 token<a class="headerlink" href="#decrypting-with-a-pkcs-11-token" title="Permalink to this headline"></a></h2>
 <p>PKCS#11 support is activated by setting the <code class="docutils literal notranslate"><span class="pre">PKCS11</span></code> option in SWUpdate’s
 configuration. The key file has to have a PKCS#11 URL instead of the key then,
 containing at least the elements of this example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>pkcs11:slot-id=42;id=%CA%FE%BA%BE?pin-value=1234&amp;module-path=/usr/lib/libsofthsm2.so 65D793B87B6724BB27954C7664F15FF3
 </pre></div>
 </div>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="handlers.html" class="btn btn-neutral float-right" title="Handlers" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="signed_images.html" class="btn btn-neutral float-left" title="Update images from verified source" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="signed_images.html" class="btn btn-neutral float-left" title="Update images from verified source" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="handlers.html" class="btn btn-neutral float-right" title="Handlers" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &copy; Copyright 2013-2022, Stefano Babic
-
-    </p>
+    <p>&#169; Copyright 2013-2022, Stefano Babic.</p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
-
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

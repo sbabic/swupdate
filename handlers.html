@@ -1,73 +1,35 @@
-
-
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>Handlers &mdash; Embedded Software Update Documentation 2022.05 documentation</title>
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-  
-  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Handlers &mdash; Embedded Software Update Documentation 2022.12 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
   
-  
-  
-
-  
-  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Mongoose daemon mode" href="mongoose.html" />
     <link rel="prev" title="Symmetrically Encrypted Update Images" href="encrypted_images.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="index.html" class="icon icon-home"> Embedded Software Update Documentation
-          
-
-          
           </a>
-
-          
-            
-            
               <div class="version">
-                2022.05
+                2022.12
               </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -75,17 +37,7 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Software Management on embedded systems</a></li>
 <li class="toctree-l1"><a class="reference internal" href="licensing.html">License</a></li>
@@ -115,9 +67,12 @@
 <li class="toctree-l2"><a class="reference internal" href="#ssbl-handler">SSBL Handler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#readback-handler">Readback Handler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#rawcopy-handler">Rawcopy handler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bootloader-handler">Bootloader handler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#archive-handler">Archive handler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#disk-partitioner">Disk partitioner</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#toggleboot-handler">Toggleboot Handler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#gpt-partition-installer">gpt partition installer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#gpt-partition-swap">gpt partition swap</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#diskformat-handler">Diskformat Handler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#unique-uuid-handler">Unique UUID Handler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#delta-update-handler">Delta Update Handler</a></li>
@@ -150,72 +105,34 @@
 <li class="toctree-l1"><a class="reference internal" href="previous-releases.html">Documentation for previous releases</a></li>
 </ul>
 
-            
-          
         </div>
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">Embedded Software Update Documentation</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="index.html">Docs</a> &raquo;</li>
-        
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
       <li>Handlers</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-            
             <a href="_sources/handlers.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="handlers">
-<h1>Handlers<a class="headerlink" href="#handlers" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+             
+  <section id="handlers">
+<h1>Handlers<a class="headerlink" href="#handlers" title="Permalink to this headline"></a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline"></a></h2>
 <p>It is quite difficult to foresee all possible installation cases.
 Instead of trying to find all use cases, SWUpdate let the
 developer free to add his own installer (that is, a new <strong>handler</strong>),
@@ -226,26 +143,25 @@ a specific handler.</p>
 It fills a table containing the list of images to be installed
 with the required handler to execute the installation. Each image
 can have a different installer.</p>
-</div>
-<div class="section" id="supplied-handlers">
-<h2>Supplied handlers<a class="headerlink" href="#supplied-handlers" title="Permalink to this headline">¶</a></h2>
-<dl class="docutils">
-<dt>In mainline there are the handlers for the most common cases. They include:</dt>
-<dd><ul class="first last simple">
-<li>flash devices in raw mode (both NOR and NAND)</li>
-<li>UBI volumes</li>
-<li>UBI volumes partitioner</li>
-<li>raw flashes handler (NAND, NOR, SPI-NOR, CFI interface)</li>
-<li>disk partitioner</li>
-<li>raw devices, such as a SD Card partition</li>
-<li>bootloader (U-Boot, GRUB, EFI Boot Guard) environment</li>
-<li>Lua scripts handler</li>
-<li>shell scripts handler</li>
-<li>rdiff handler</li>
-<li>readback handler</li>
-<li>archive (zo, tarballs) handler</li>
-<li>remote handler</li>
-<li>microcontroller update handler</li>
+</section>
+<section id="supplied-handlers">
+<h2>Supplied handlers<a class="headerlink" href="#supplied-handlers" title="Permalink to this headline"></a></h2>
+<dl class="simple">
+<dt>In mainline there are the handlers for the most common cases. They include:</dt><dd><ul class="simple">
+<li><p>flash devices in raw mode (both NOR and NAND)</p></li>
+<li><p>UBI volumes</p></li>
+<li><p>UBI volumes partitioner</p></li>
+<li><p>raw flashes handler (NAND, NOR, SPI-NOR, CFI interface)</p></li>
+<li><p>disk partitioner</p></li>
+<li><p>raw devices, such as a SD Card partition</p></li>
+<li><p>bootloader (U-Boot, GRUB, EFI Boot Guard) environment</p></li>
+<li><p>Lua scripts handler</p></li>
+<li><p>shell scripts handler</p></li>
+<li><p>rdiff handler</p></li>
+<li><p>readback handler</p></li>
+<li><p>archive (zo, tarballs) handler</p></li>
+<li><p>remote handler</p></li>
+<li><p>microcontroller update handler</p></li>
 </ul>
 </dd>
 </dl>
@@ -253,9 +169,9 @@ can have a different installer.</p>
 the parser must fill a supplied table setting “ubi” as required handler,
 and filling the other fields required for this handler: name of volume, size,
 and so on.</p>
-</div>
-<div class="section" id="creating-own-handlers">
-<h2>Creating own handlers<a class="headerlink" href="#creating-own-handlers" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="creating-own-handlers">
+<h2>Creating own handlers<a class="headerlink" href="#creating-own-handlers" title="Permalink to this headline"></a></h2>
 <p>SWUpdate can be extended with new handlers. The user needs to register his own
 handler with the core and he must provide the callback that SWUpdate uses when
 an image required to be installed with the new handler.</p>
@@ -304,17 +220,17 @@ when SWUpdate is initialized.</p>
 </div>
 <p>Where:</p>
 <ul class="simple">
-<li>my_image_type : string identifying the own new image type.</li>
-<li>my_handler : pointer to the installer to be registered.</li>
-<li>my_mask : <code class="docutils literal notranslate"><span class="pre">HANDLER_MASK</span></code> enum value(s) specifying what
-input type(s) my_handler can process.</li>
-<li>data : an optional pointer to an own structure, that SWUpdate
+<li><p>my_image_type : string identifying the own new image type.</p></li>
+<li><p>my_handler : pointer to the installer to be registered.</p></li>
+<li><p>my_mask : <code class="docutils literal notranslate"><span class="pre">HANDLER_MASK</span></code> enum value(s) specifying what
+input type(s) my_handler can process.</p></li>
+<li><p>data : an optional pointer to an own structure, that SWUpdate
 saves in the handlers’ list and pass to the handler when it will
-be executed.</li>
+be executed.</p></li>
 </ul>
-</div>
-<div class="section" id="ubi-volume-handler">
-<h2>UBI Volume Handler<a class="headerlink" href="#ubi-volume-handler" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="ubi-volume-handler">
+<h2>UBI Volume Handler<a class="headerlink" href="#ubi-volume-handler" title="Permalink to this headline"></a></h2>
 <p>The UBI volume handler will update UBI volumes without changing the
 layout on the storage. Therefore, volumes must be created/adjusted
 beforehand. This can be done using the <code class="docutils literal notranslate"><span class="pre">partitions</span></code> tag (see
@@ -330,8 +246,8 @@ may not be right one!).</p>
 preserved and not lost. The behavior of updating is identical to that
 of the <code class="docutils literal notranslate"><span class="pre">ubiupdatevol(1)</span></code> tool from mtd-utils. In fact, the same
 library from mtd-utils (libubi) is reused by SWUpdate.</p>
-<div class="section" id="atomic-volume-renaming">
-<h3>atomic volume renaming<a class="headerlink" href="#atomic-volume-renaming" title="Permalink to this headline">¶</a></h3>
+<section id="atomic-volume-renaming">
+<h3>atomic volume renaming<a class="headerlink" href="#atomic-volume-renaming" title="Permalink to this headline"></a></h3>
 <p>The UBI volume handler has basic support for carrying out atomic
 volume renames by defining the <code class="docutils literal notranslate"><span class="pre">replaces</span></code> property, which must
 contain a valid UBI volume name. After successfully updating the image
@@ -357,14 +273,14 @@ volume replace functionality will ensure that this volume name always
 points to the currently valid volume.</p>
 <p>However, please note the following limitations:</p>
 <ul class="simple">
-<li>Currently the rename takes place after <em>each</em> image was installed
+<li><p>Currently the rename takes place after <em>each</em> image was installed
 successfully. Hence, it only makes sense to use this feature for
 images that are independent of the other installed images. A typical
 example is the bootloader. This behavior may be modified in the
 future to only carry out one atomic rename after all images were
-installed successfully.</li>
-<li>Atomic renames are only possible and permitted for volumes residing
-on the same UBI device.</li>
+installed successfully.</p></li>
+<li><p>Atomic renames are only possible and permitted for volumes residing
+on the same UBI device.</p></li>
 </ul>
 <p>There is a handler ubiswap that allow one to do an atomic swap for several
 ubi volume after all the images were flashed. This handler is a script
@@ -385,9 +301,9 @@ should be added in the section scripts.</p>
 <p>WARNING: if you use the property replaces on an ubi volume that is also
 used with the handler ubiswap, this ubi volume will be swapped twice.
 It’s probably not what you want …</p>
-</div>
-<div class="section" id="volume-auto-resize">
-<h3>volume auto resize<a class="headerlink" href="#volume-auto-resize" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="volume-auto-resize">
+<h3>volume auto resize<a class="headerlink" href="#volume-auto-resize" title="Permalink to this headline"></a></h3>
 <p>The UBI volume handler has support to auto resize before flashing an
 image with the property <code class="docutils literal notranslate"><span class="pre">auto-resize</span></code>. When this property is set
 on an image, the ubi volume is resized to fit exactly the image.</p>
@@ -402,9 +318,9 @@ on an image, the ubi volume is resized to fit exactly the image.</p>
 </pre></div>
 </div>
 <p>WARNING: when this property is used, the device must be defined.</p>
-</div>
-<div class="section" id="volume-always-remove">
-<h3>volume always remove<a class="headerlink" href="#volume-always-remove" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="volume-always-remove">
+<h3>volume always remove<a class="headerlink" href="#volume-always-remove" title="Permalink to this headline"></a></h3>
 <p>The UBI volume handler has support to always remove ubi volume
 before flashing with the property <code class="docutils literal notranslate"><span class="pre">always-remove</span></code>. When this property
 is set on an image, the ubi volume is always removed. This property
@@ -420,9 +336,9 @@ should be used with property <code class="docutils literal notranslate"><span cl
 <span class="p">}</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="size-properties">
-<h3>size properties<a class="headerlink" href="#size-properties" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="size-properties">
+<h3>size properties<a class="headerlink" href="#size-properties" title="Permalink to this headline"></a></h3>
 <p>Due to a limit in the Linux kernel API for UBI volumes, the size reserved to be
 written on disk should be declared before actually writing anything.
 Unfortunately, the size of an encrypted or compressed image is not known until
@@ -455,10 +371,10 @@ In this example, 104857600 is the size of the rootfs after the decryption: the
 encrypted size is by the way larger. The decompressed size is of the homefs is
 420000000.</p>
 <p>The sizes are bytes in decimal notation.</p>
-</div>
-</div>
-<div class="section" id="lua-handlers">
-<h2>Lua Handlers<a class="headerlink" href="#lua-handlers" title="Permalink to this headline">¶</a></h2>
+</section>
+</section>
+<section id="lua-handlers">
+<h2>Lua Handlers<a class="headerlink" href="#lua-handlers" title="Permalink to this headline"></a></h2>
 <p>In addition to the handlers written in C, it is possible to extend
 SWUpdate with handlers written in Lua that get loaded at SWUpdate
 startup. The Lua handler source code file may either be embedded
@@ -467,22 +383,32 @@ config option or has to be installed on the target system in Lua’s
 search path as <code class="docutils literal notranslate"><span class="pre">swupdate_handlers.lua</span></code> so that it can be loaded
 by the embedded Lua interpreter at run-time.</p>
 <p>In analogy to C handlers, the prototype for a Lua handler is</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">function</span> <span class="n">lua_handler</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
-    <span class="o">...</span>
-<span class="n">end</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>--- Lua Handler.
+--
+--- @param  image  img_type  Lua equivalent of `struct img_type`
+--- @return number           # 0 on success, 1 on error
+function lua_handler(image)
+    ...
+end
 </pre></div>
 </div>
 <p>where <code class="docutils literal notranslate"><span class="pre">image</span></code> is a Lua table (with attributes according to
 <a class="reference internal" href="sw-description.html#sw-description-attribute-reference"><span class="std std-ref">sw-description’s attribute reference</span></a>)
-that describes a single artifact to be processed by the handler.</p>
+that describes a single artifact to be processed by the handler
+(also see the Lua Handler Interface Specification in <code class="docutils literal notranslate"><span class="pre">handlers/swupdate.lua</span></code>).</p>
 <p>Note that dashes in the attributes’ names are replaced with
 underscores for the Lua domain to make them idiomatic, e.g.,
 <code class="docutils literal notranslate"><span class="pre">installed-directly</span></code> becomes <code class="docutils literal notranslate"><span class="pre">installed_directly</span></code> in the
 Lua domain.</p>
 <p>For a script handler written in Lua, the prototype is</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">function</span> <span class="n">lua_handler</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">scriptfn</span><span class="p">)</span>
-    <span class="o">...</span>
-<span class="n">end</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>--- Lua Handler.
+--
+--- @param  image     img_type  Lua equivalent of `struct img_type`
+--- @param  scriptfn  string    Type, one of `preinst` or `postinst`
+--- @return number              # 0 on success, 1 on error
+function lua_handler(image, scriptfn)
+    ...
+end
 </pre></div>
 </div>
 <p>where <code class="docutils literal notranslate"><span class="pre">scriptfn</span></code> is either <code class="docutils literal notranslate"><span class="pre">&quot;preinst&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;postinst&quot;</span></code>.</p>
@@ -502,19 +428,23 @@ called for images:</p>
 C handlers are available (as keys) in the table
 <code class="docutils literal notranslate"><span class="pre">swupdate.handler</span></code>. The following Lua code is an example of
 a simple handler chain-calling the <code class="docutils literal notranslate"><span class="pre">rawfile</span></code> C handler:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">function</span> <span class="n">lua_handler</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">swupdate</span><span class="o">.</span><span class="n">handler</span><span class="p">[</span><span class="s2">&quot;rawfile&quot;</span><span class="p">]</span> <span class="n">then</span>
-        <span class="n">swupdate</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;rawfile handler not available&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="mi">1</span>
-    <span class="n">end</span>
-    <span class="n">image</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="s2">&quot;/tmp/destination.path&quot;</span>
-    <span class="n">local</span> <span class="n">err</span><span class="p">,</span> <span class="n">msg</span> <span class="o">=</span> <span class="n">swupdate</span><span class="o">.</span><span class="n">call_handler</span><span class="p">(</span><span class="s2">&quot;rawfile&quot;</span><span class="p">,</span> <span class="n">image</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">err</span> <span class="o">~=</span> <span class="mi">0</span> <span class="n">then</span>
-        <span class="n">swupdate</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">string</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;Error chaining handlers: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">msg</span><span class="p">))</span>
-        <span class="k">return</span> <span class="mi">1</span>
-    <span class="n">end</span>
-    <span class="k">return</span> <span class="mi">0</span>
-<span class="n">end</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>--- Lua Handler.
+--
+--- @param  image  img_type  Lua equivalent of `struct img_type`
+--- @return number           # 0 on success, 1 on error
+function lua_handler(image)
+    if not swupdate.handler[&quot;rawfile&quot;] then
+        swupdate.error(&quot;rawfile handler not available&quot;)
+        return 1
+    end
+    image.path = &quot;/tmp/destination.path&quot;
+    local err, msg = swupdate.call_handler(&quot;rawfile&quot;, image)
+    if err ~= 0 then
+        swupdate.error(string.format(&quot;Error chaining handlers: %s&quot;, msg))
+        return 1
+    end
+    return 0
+end
 </pre></div>
 </div>
 <p>Note that when chaining handlers and calling a C handler for
@@ -537,14 +467,18 @@ to a file, which is passed as this method’s argument. On success,
 <code class="docutils literal notranslate"><span class="pre">image:copy2file()</span></code> returns <code class="docutils literal notranslate"><span class="pre">0</span></code> or <code class="docutils literal notranslate"><span class="pre">-1</span></code> plus an error
 message on failure. The following Lua code is an example of
 a simple handler calling <code class="docutils literal notranslate"><span class="pre">image:copy2file()</span></code>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">function</span> <span class="n">lua_handler</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
-    <span class="n">local</span> <span class="n">err</span><span class="p">,</span> <span class="n">msg</span> <span class="o">=</span> <span class="n">image</span><span class="p">:</span><span class="n">copy2file</span><span class="p">(</span><span class="s2">&quot;/tmp/destination.path&quot;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">err</span> <span class="o">~=</span> <span class="mi">0</span> <span class="n">then</span>
-        <span class="n">swupdate</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">string</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;Error calling copy2file: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">msg</span><span class="p">))</span>
-        <span class="k">return</span> <span class="mi">1</span>
-    <span class="n">end</span>
-    <span class="k">return</span> <span class="mi">0</span>
-<span class="n">end</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>--- Lua Handler.
+--
+--- @param  image  img_type  Lua equivalent of `struct img_type`
+--- @return number           # 0 on success, 1 on error
+function lua_handler(image)
+    local err, msg = image:copy2file(&quot;/tmp/destination.path&quot;)
+    if err ~= 0 then
+        swupdate.error(string.format(&quot;Error calling copy2file: %s&quot;, msg))
+        return 1
+    end
+    return 0
+end
 </pre></div>
 </div>
 <p>Beyond using <code class="docutils literal notranslate"><span class="pre">image:copy2file()</span></code> or chain-calling C handlers,
@@ -555,14 +489,18 @@ every chunk read, passing this chunk as parameter. On success,
 <code class="docutils literal notranslate"><span class="pre">0</span></code> is returned by <code class="docutils literal notranslate"><span class="pre">image:read()</span></code>. On error, <code class="docutils literal notranslate"><span class="pre">-1</span></code> plus an
 error message is returned. The following Lua code is an example
 of a simple handler printing the artifact’s content:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">function</span> <span class="n">lua_handler</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
-    <span class="n">err</span><span class="p">,</span> <span class="n">msg</span> <span class="o">=</span> <span class="n">image</span><span class="p">:</span><span class="n">read</span><span class="p">(</span><span class="n">function</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="nb">print</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="n">end</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">err</span> <span class="o">~=</span> <span class="mi">0</span> <span class="n">then</span>
-        <span class="n">swupdate</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">string</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;Error reading image: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">msg</span><span class="p">))</span>
-        <span class="k">return</span> <span class="mi">1</span>
-    <span class="n">end</span>
-    <span class="k">return</span> <span class="mi">0</span>
-<span class="n">end</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>--- Lua Handler.
+--
+--- @param  image  img_type  Lua equivalent of `struct img_type`
+--- @return number           # 0 on success, 1 on error
+function lua_handler(image)
+    err, msg = image:read(function(data) print(data) end)
+    if err ~= 0 then
+        swupdate.error(string.format(&quot;Error reading image: %s&quot;, msg))
+        return 1
+    end
+    return 0
+end
 </pre></div>
 </div>
 <p>Using the <code class="docutils literal notranslate"><span class="pre">image:read()</span></code> method, an artifact’s contents may be
@@ -573,14 +511,19 @@ described in its <code class="docutils literal notranslate"><span class="pre">im
 continue with the next artifact in the stream after the Lua handler
 returns. Chaining handlers, calling <code class="docutils literal notranslate"><span class="pre">image:copy2file()</span></code>, or using
 <code class="docutils literal notranslate"><span class="pre">image:read()</span></code> satisfies this requirement.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">swupdate</span></code> Lua module interface specification that details what
+functionality is made available to Lua handlers by SWUpdate’s
+<code class="docutils literal notranslate"><span class="pre">corelib/lua_interface.c</span></code> is found in <code class="docutils literal notranslate"><span class="pre">handlers/swupdate.lua</span></code>.
+It serves as reference, for mocking purposes, and type checking thanks
+to the EmmyLua-inspired annotations.</p>
 <p>Note that although the dynamic nature of Lua handlers would
 technically allow one to embed them into a to be processed <code class="docutils literal notranslate"><span class="pre">.swu</span></code>
 image, this is not implemented as it carries some security
 implications since the behavior of SWUpdate is changed
 dynamically.</p>
-</div>
-<div class="section" id="remote-handler">
-<h2>Remote handler<a class="headerlink" href="#remote-handler" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="remote-handler">
+<h2>Remote handler<a class="headerlink" href="#remote-handler" title="Permalink to this headline"></a></h2>
 <p>Remote handlers are thought for binding legacy installers
 without having the necessity to rewrite them in Lua. The remote
 handler forward the image to be installed to another process,
@@ -610,8 +553,8 @@ successful. Each zeromq message  from SWUpdate is a multi-part message split
 into two frames:</p>
 <blockquote>
 <div><ul class="simple">
-<li>first frame contains a string with a command.</li>
-<li>second frame contains data and can be of 0 bytes.</li>
+<li><p>first frame contains a string with a command.</p></li>
+<li><p>second frame contains data and can be of 0 bytes.</p></li>
 </ul>
 </div></blockquote>
 <p>There are currently just two possible commands: INIT and DATA. After
@@ -630,9 +573,9 @@ It is duty of the external process to take care of the amount of
 data transferred and to release resources when the last chunk
 is received. For each DATA message, the external process answers with a
 <em>ACK</em> or <em>NACK</em> message.</p>
-</div>
-<div class="section" id="swu-forwarder">
-<h2>SWU forwarder<a class="headerlink" href="#swu-forwarder" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="swu-forwarder">
+<h2>SWU forwarder<a class="headerlink" href="#swu-forwarder" title="Permalink to this headline"></a></h2>
 <p>The SWU forwarder handler can be used to update other systems where SWUpdate
 is running. It can be used in case of master / slaves systems, where the master
 is connected to the network and the “slaves” are hidden to the external world.
@@ -660,9 +603,9 @@ the SWU forwarder:</p>
         <span class="p">});</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="rdiff-handler">
-<h2>rdiff handler<a class="headerlink" href="#rdiff-handler" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="rdiff-handler">
+<h2>rdiff handler<a class="headerlink" href="#rdiff-handler" title="Permalink to this headline"></a></h2>
 <p>The rdiff handler adds support for applying binary delta patches generated by
 <a class="reference external" href="http://librsync.sourcefrog.net/">librsync’s</a> rdiff tool.</p>
 <p>Naturally, the smaller the difference between the diff’s source and target, the
@@ -721,9 +664,9 @@ attribute designates the <code class="docutils literal notranslate"><span class=
 Note that there’s no support for the optional <code class="docutils literal notranslate"><span class="pre">offset</span></code> attribute in the
 <code class="docutils literal notranslate"><span class="pre">rdiff_image</span></code> handler as there’s currently no apparent use case for it and
 skipping over unchanged content is handled well by the rdiff algorithm.</p>
-</div>
-<div class="section" id="ucfw-handler">
-<h2>ucfw handler<a class="headerlink" href="#ucfw-handler" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="ucfw-handler">
+<h2>ucfw handler<a class="headerlink" href="#ucfw-handler" title="Permalink to this headline"></a></h2>
 <p>This handler allows one to update the firmware on a microcontroller connected to
 the main controller via UART.
 Parameters for setup are passed via sw-description file.  Its behavior can be
@@ -733,48 +676,43 @@ in programming mode, after that the handler sends the data and waits for an ACK 
 microcontroller.</p>
 <p>The programming of the firmware shall be:</p>
 <ol class="arabic">
-<li><p class="first">Enter firmware update mode (bootloader)</p>
+<li><p>Enter firmware update mode (bootloader)</p>
 <blockquote>
 <div><ol class="arabic simple">
-<li>Set “reset line” to logical “low”</li>
-<li>Set “update line” to logical “low”</li>
-<li>Set “reset line” to logical “high”</li>
+<li><p>Set “reset line” to logical “low”</p></li>
+<li><p>Set “update line” to logical “low”</p></li>
+<li><p>Set “reset line” to logical “high”</p></li>
 </ol>
 </div></blockquote>
 </li>
-<li><p class="first">Send programming message</p>
-</li>
+<li><p>Send programming message</p></li>
 </ol>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$PROG;&lt;&lt;CS&gt;&gt;&lt;CR&gt;&lt;LF&gt;
 </pre></div>
 </div>
 <p>to the microcontroller.  (microcontroller will remain in programming state)</p>
 <ol class="arabic simple" start="3">
-<li>microcontroller confirms with</li>
+<li><p>microcontroller confirms with</p></li>
 </ol>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$READY;&lt;&lt;CS&gt;&gt;&lt;CR&gt;&lt;LF&gt;
 </pre></div>
 </div>
 <ol class="arabic" start="4">
-<li><p class="first">Data transmissions package based from mainboard to microcontroller package definition:</p>
+<li><p>Data transmissions package based from mainboard to microcontroller package definition:</p>
 <blockquote>
 <div><ul class="simple">
-<li>within a package the records are sent one after another without the end of line marker &lt;CR&gt;&lt;LF&gt;</li>
-<li>the package is completed with &lt;CR&gt;&lt;LF&gt;</li>
+<li><p>within a package the records are sent one after another without the end of line marker &lt;CR&gt;&lt;LF&gt;</p></li>
+<li><p>the package is completed with &lt;CR&gt;&lt;LF&gt;</p></li>
 </ul>
 </div></blockquote>
 </li>
-<li><p class="first">The microcontroller requests the next package with $READY;&lt;&lt;CS&gt;&gt;&lt;CR&gt;&lt;LF&gt;</p>
-</li>
-<li><p class="first">Repeat step 4 and 5 until the complete firmware is transmitted.</p>
-</li>
-<li><p class="first">The keypad confirms the firmware completion with $COMPLETED;&lt;&lt;CS&gt;&gt;&lt;CR&gt;&lt;LF&gt;</p>
-</li>
-<li><dl class="first docutils">
-<dt>Leave firmware update mode</dt>
-<dd><ol class="first last arabic simple">
-<li>Set “Update line” to logical “high”</li>
-<li>Perform a reset over the “reset line”</li>
+<li><p>The microcontroller requests the next package with $READY;&lt;&lt;CS&gt;&gt;&lt;CR&gt;&lt;LF&gt;</p></li>
+<li><p>Repeat step 4 and 5 until the complete firmware is transmitted.</p></li>
+<li><p>The keypad confirms the firmware completion with $COMPLETED;&lt;&lt;CS&gt;&gt;&lt;CR&gt;&lt;LF&gt;</p></li>
+<li><dl class="simple">
+<dt>Leave firmware update mode</dt><dd><ol class="arabic simple">
+<li><p>Set “Update line” to logical “high”</p></li>
+<li><p>Perform a reset over the “reset line”</p></li>
 </ol>
 </dd>
 </dl>
@@ -806,26 +744,26 @@ and prog gpios. They should be in this format:</p>
 <span class="p">);</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="ssbl-handler">
-<h2>SSBL Handler<a class="headerlink" href="#ssbl-handler" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="ssbl-handler">
+<h2>SSBL Handler<a class="headerlink" href="#ssbl-handler" title="Permalink to this headline"></a></h2>
 <p>This implements a way to switch two software sets using a duplicated structure saved on the
 flash (currently, only NOR flash is supported). Each of the two structures contains address
 and size of the image to be loaded by a first loader. A field contain the “age”, and it is
 incremented after each switch to show which is the active set.</p>
-<table border="1" class="docutils" id="id1">
-<caption><span class="caption-text">Structure of SSBL Admin</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">Structure of SSBL Admin</span><a class="headerlink" href="#id1" title="Permalink to this table"></a></caption>
 <colgroup>
-<col width="83%" />
-<col width="17%" />
+<col style="width: 83%" />
+<col style="width: 17%" />
 </colgroup>
-<tbody valign="top">
-<tr class="row-odd"><td>SSBL Magic Number (29 bit)Name</td>
-<td>Age (3 bit)</td>
+<tbody>
+<tr class="row-odd"><td><p>SSBL Magic Number (29 bit)Name</p></td>
+<td><p>Age (3 bit)</p></td>
 </tr>
-<tr class="row-even"><td colspan="2">Image Address Offset</td>
+<tr class="row-even"><td colspan="2"><p>Image Address Offset</p></td>
 </tr>
-<tr class="row-odd"><td colspan="2">Image Size</td>
+<tr class="row-odd"><td colspan="2"><p>Image Size</p></td>
 </tr>
 </tbody>
 </table>
@@ -848,43 +786,43 @@ the loader will check it and switch the software set.</p>
 <p>Properties in sw-description are all mandatory. They define where the SSBL Administration data
 are stored for both sets. Each properties is an array of two entries, containing values for each
 of the two SSBL administration.</p>
-<table border="1" class="docutils" id="id2">
-<caption><span class="caption-text">Properties for SSBL handler</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
+<table class="docutils align-default" id="id2">
+<caption><span class="caption-text">Properties for SSBL handler</span><a class="headerlink" href="#id2" title="Permalink to this table"></a></caption>
 <colgroup>
-<col width="17%" />
-<col width="13%" />
-<col width="69%" />
+<col style="width: 17%" />
+<col style="width: 13%" />
+<col style="width: 69%" />
 </colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Name</th>
-<th class="head">Type</th>
-<th class="head">Description</th>
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
 </tr>
 </thead>
-<tbody valign="top">
-<tr class="row-even"><td>device</td>
-<td>string</td>
-<td>MTD device where the SSBL Admin Header is stored</td>
+<tbody>
+<tr class="row-even"><td><p>device</p></td>
+<td><p>string</p></td>
+<td><p>MTD device where the SSBL Admin Header is stored</p></td>
 </tr>
-<tr class="row-odd"><td>offset</td>
-<td>hex</td>
-<td>Offset of SSBL header inside the MTD device</td>
+<tr class="row-odd"><td><p>offset</p></td>
+<td><p>hex</p></td>
+<td><p>Offset of SSBL header inside the MTD device</p></td>
 </tr>
-<tr class="row-even"><td>imageoffset</td>
-<td>hex</td>
-<td>Offset of the image to be loaded by a bootloader
-when this SSBL is set.</td>
+<tr class="row-even"><td><p>imageoffset</p></td>
+<td><p>hex</p></td>
+<td><p>Offset of the image to be loaded by a bootloader
+when this SSBL is set.</p></td>
 </tr>
-<tr class="row-odd"><td>imagesize</td>
-<td>hex</td>
-<td>Size of the image to be loaded by a bootloader
-when this SSBL is set.</td>
+<tr class="row-odd"><td><p>imagesize</p></td>
+<td><p>hex</p></td>
+<td><p>Size of the image to be loaded by a bootloader
+when this SSBL is set.</p></td>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="readback-handler">
-<h2>Readback Handler<a class="headerlink" href="#readback-handler" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="readback-handler">
+<h2>Readback Handler<a class="headerlink" href="#readback-handler" title="Permalink to this headline"></a></h2>
 <p>To verify that an image was written properly, this readback handler calculates
 the sha256 hash of a partition (or part of it) and compares it against a given
 hash value.</p>
@@ -903,48 +841,48 @@ hash value.</p>
 </pre></div>
 </div>
 <p>Properties <code class="docutils literal notranslate"><span class="pre">size</span></code> and <code class="docutils literal notranslate"><span class="pre">offset</span></code> are optional, all the other properties are mandatory.</p>
-<table border="1" class="docutils" id="id3">
-<caption><span class="caption-text">Properties for readback handler</span><a class="headerlink" href="#id3" title="Permalink to this table">¶</a></caption>
+<table class="docutils align-default" id="id3">
+<caption><span class="caption-text">Properties for readback handler</span><a class="headerlink" href="#id3" title="Permalink to this table"></a></caption>
 <colgroup>
-<col width="17%" />
-<col width="13%" />
-<col width="69%" />
+<col style="width: 17%" />
+<col style="width: 13%" />
+<col style="width: 69%" />
 </colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Name</th>
-<th class="head">Type</th>
-<th class="head">Description</th>
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
 </tr>
 </thead>
-<tbody valign="top">
-<tr class="row-even"><td>device</td>
-<td>string</td>
-<td>The partition which shall be verified.</td>
+<tbody>
+<tr class="row-even"><td><p>device</p></td>
+<td><p>string</p></td>
+<td><p>The partition which shall be verified.</p></td>
 </tr>
-<tr class="row-odd"><td>type</td>
-<td>string</td>
-<td>Identifier for the handler.</td>
+<tr class="row-odd"><td><p>type</p></td>
+<td><p>string</p></td>
+<td><p>Identifier for the handler.</p></td>
 </tr>
-<tr class="row-even"><td>sha256</td>
-<td>string</td>
-<td>Expected sha256 hash of the partition.</td>
+<tr class="row-even"><td><p>sha256</p></td>
+<td><p>string</p></td>
+<td><p>Expected sha256 hash of the partition.</p></td>
 </tr>
-<tr class="row-odd"><td>size</td>
-<td>string</td>
-<td>Data size (in bytes) to be verified.
+<tr class="row-odd"><td><p>size</p></td>
+<td><p>string</p></td>
+<td><p>Data size (in bytes) to be verified.
 If 0 or not set, the handler will get the
-partition size from the device.</td>
+partition size from the device.</p></td>
 </tr>
-<tr class="row-even"><td>offset</td>
-<td>string</td>
-<td>Offset (in bytes) to the start of the partition.
-If not set, default value 0 will be used.</td>
+<tr class="row-even"><td><p>offset</p></td>
+<td><p>string</p></td>
+<td><p>Offset (in bytes) to the start of the partition.
+If not set, default value 0 will be used.</p></td>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="rawcopy-handler">
-<h2>Rawcopy handler<a class="headerlink" href="#rawcopy-handler" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="rawcopy-handler">
+<h2>Rawcopy handler<a class="headerlink" href="#rawcopy-handler" title="Permalink to this headline"></a></h2>
 <p>The rawcopy handler copies one source to a destination. It is a script handler, and no artifact in the SWU is associated
 with the handler.  It can be used to copy configuration data, or parts that should be taken by the current installation.
 It requires the mandatory  property (<cite>copyfrom</cite>), while device contains the destination path.
@@ -962,9 +900,39 @@ is called twice.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
+</section>
+<section id="bootloader-handler">
+<h2>Bootloader handler<a class="headerlink" href="#bootloader-handler" title="Permalink to this headline"></a></h2>
+<p>The bootloader handler allows to set bootloader’s environment with a file. The file shold have the format:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Comments are allowed using the hash char</span>
+
+<span class="n">varname</span><span class="o">=</span><span class="n">value</span>
+</pre></div>
 </div>
-<div class="section" id="archive-handler">
-<h2>Archive handler<a class="headerlink" href="#archive-handler" title="Permalink to this headline">¶</a></h2>
+<p>Empty lines are skipped. This simplifies the update of the whole environment instead of setting each variable inside the
+“bootenv” section in sw-description. The property <em>nooverride</em> allows to skip variables that are already set in sw-description. If
+not set, variables set in bootenv are overwritten.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">images</span><span class="p">:</span> <span class="p">(</span>
+        <span class="p">{</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;uEnv.txt&quot;</span><span class="p">;</span>
+                <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;bootloader&quot;</span><span class="p">;</span>
+                <span class="n">properties</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="n">nooverride</span> <span class="o">=</span> <span class="s2">&quot;true&quot;</span><span class="p">;</span>
+                <span class="p">}</span>
+        <span class="p">}</span>
+<span class="p">);</span>
+
+<span class="n">bootenv</span><span class="p">:</span> <span class="p">(</span>
+<span class="p">{</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;bootenv01key&quot;</span><span class="p">;</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="s2">&quot;SOME VALUE&quot;</span><span class="p">;</span>
+<span class="p">});</span>
+</pre></div>
+</div>
+<p>In the example above, bootenv01key is not overwritten by a value in uEnv.txt because the flag “nooverride” is set.</p>
+</section>
+<section id="archive-handler">
+<h2>Archive handler<a class="headerlink" href="#archive-handler" title="Permalink to this headline"></a></h2>
 <p>The archive handler extracts an archive to a destination path.
 It supports whatever format libarchive has been compiled to support, for example even if swupdate
 itself has no direct support for xz it can be possible to extract tar.xz files with it.</p>
@@ -986,88 +954,88 @@ the destination path before extraction.</p>
 <span class="p">);</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="disk-partitioner">
-<h2>Disk partitioner<a class="headerlink" href="#disk-partitioner" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="disk-partitioner">
+<h2>Disk partitioner<a class="headerlink" href="#disk-partitioner" title="Permalink to this headline"></a></h2>
 <p>This handler creates or modifies partitions using the library libfdisk. Handler must be put into
 the <cite>partitions</cite> section of sw-description. Setup for each partition is put into the <cite>properties</cite> field
 of sw-description.
 After writing the partition table it may create a file system on selected partitions.
 (Available only if CONFIG_DISKFORMAT is set.)</p>
-<table border="1" class="docutils" id="id4">
-<caption><span class="caption-text">Properties for diskpart handler</span><a class="headerlink" href="#id4" title="Permalink to this table">¶</a></caption>
+<table class="docutils align-default" id="id4">
+<caption><span class="caption-text">Properties for diskpart handler</span><a class="headerlink" href="#id4" title="Permalink to this table"></a></caption>
 <colgroup>
-<col width="17%" />
-<col width="13%" />
-<col width="69%" />
+<col style="width: 17%" />
+<col style="width: 13%" />
+<col style="width: 69%" />
 </colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Name</th>
-<th class="head">Type</th>
-<th class="head">Description</th>
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
 </tr>
 </thead>
-<tbody valign="top">
-<tr class="row-even"><td>labeltype</td>
-<td>string</td>
-<td>“gpt” or “dos”</td>
+<tbody>
+<tr class="row-even"><td><p>labeltype</p></td>
+<td><p>string</p></td>
+<td><p>“gpt” or “dos”</p></td>
 </tr>
-<tr class="row-odd"><td>nolock</td>
-<td>string</td>
-<td>“true” or “false” (default=false)
+<tr class="row-odd"><td><p>nolock</p></td>
+<td><p>string</p></td>
+<td><p>“true” or “false” (default=false)
 This is like a force. If it is set, a lock failure
-will be ignored(lock will still be attempted).</td>
+will be ignored(lock will still be attempted).</p></td>
 </tr>
-<tr class="row-even"><td>noinuse</td>
-<td>string</td>
-<td>“true” or “false” (default=false)
+<tr class="row-even"><td><p>noinuse</p></td>
+<td><p>string</p></td>
+<td><p>“true” or “false” (default=false)
 If set, it does not require the device to be not
-in use (mounted, etc.)</td>
+in use (mounted, etc.)</p></td>
 </tr>
-<tr class="row-odd"><td>partition-X</td>
-<td>array</td>
-<td>Array of values belonging to the partition number X</td>
+<tr class="row-odd"><td><p>partition-X</p></td>
+<td><p>array</p></td>
+<td><p>Array of values belonging to the partition number X</p></td>
 </tr>
 </tbody>
 </table>
 <p>For each partition, an array of couples key=value must be given. The following keys are
 supported:</p>
-<table border="1" class="docutils" id="id5">
-<caption><span class="caption-text">Setup for a disk partition</span><a class="headerlink" href="#id5" title="Permalink to this table">¶</a></caption>
+<table class="docutils align-default" id="id5">
+<caption><span class="caption-text">Setup for a disk partition</span><a class="headerlink" href="#id5" title="Permalink to this table"></a></caption>
 <colgroup>
-<col width="17%" />
-<col width="13%" />
-<col width="69%" />
+<col style="width: 17%" />
+<col style="width: 13%" />
+<col style="width: 69%" />
 </colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Name</th>
-<th class="head">Type</th>
-<th class="head">Description</th>
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
 </tr>
 </thead>
-<tbody valign="top">
-<tr class="row-even"><td>size</td>
-<td>string</td>
-<td>Size of partition. K, M and G can be used for
-Kilobytes, Megabytes and Gigabytes.</td>
+<tbody>
+<tr class="row-even"><td><p>size</p></td>
+<td><p>string</p></td>
+<td><p>Size of partition. K, M and G can be used for
+Kilobytes, Megabytes and Gigabytes.</p></td>
 </tr>
-<tr class="row-odd"><td>start</td>
-<td>integer</td>
-<td>First sector for the partition</td>
+<tr class="row-odd"><td><p>start</p></td>
+<td><p>integer</p></td>
+<td><p>First sector for the partition</p></td>
 </tr>
-<tr class="row-even"><td>name</td>
-<td>string</td>
-<td>Name of the partition</td>
+<tr class="row-even"><td><p>name</p></td>
+<td><p>string</p></td>
+<td><p>Name of the partition</p></td>
 </tr>
-<tr class="row-odd"><td>type</td>
-<td>string</td>
-<td>Type of partition, it has two different meanings.
+<tr class="row-odd"><td><p>type</p></td>
+<td><p>string</p></td>
+<td><p>Type of partition, it has two different meanings.
 It is the hex code for DOS (MBR) partition table
-or it is the string identifier in case of GPT.</td>
+or it is the string identifier in case of GPT.</p></td>
 </tr>
-<tr class="row-even"><td>dostype</td>
-<td>string</td>
-<td>Type of DOS (MBR) partition entry when using a
+<tr class="row-even"><td><p>dostype</p></td>
+<td><p>string</p></td>
+<td><p>Type of DOS (MBR) partition entry when using a
 table with a “gpt” labeltype.
 Using this option will create a hybrid MBR table.
 It is the hex code for DOS (MBR) partition table.
@@ -1077,24 +1045,24 @@ dos table entry for initial bootstrapping.
 Note: A maximum of 3 partitions can have a dostype
 specified, this limit only applies to dos table
 entries and does not affect partitions without a
-dostype specified.</td>
+dostype specified.</p></td>
 </tr>
-<tr class="row-odd"><td>fstype</td>
-<td>string</td>
-<td>Optional filesystem type to be created on the
+<tr class="row-odd"><td><p>fstype</p></td>
+<td><p>string</p></td>
+<td><p>Optional filesystem type to be created on the
 partition. If no fstype key is given, no file
 will be created on the corresponding partition.
-vfat / ext2 / ext3 /ext4 file system is supported</td>
+vfat / ext2 / ext3 /ext4 file system is supported</p></td>
 </tr>
-<tr class="row-even"><td>partuuid</td>
-<td>string</td>
-<td>The partition UUID (GPT only). If omitted, a UUID
-will be generated automatically.</td>
+<tr class="row-even"><td><p>partuuid</p></td>
+<td><p>string</p></td>
+<td><p>The partition UUID (GPT only). If omitted, a UUID
+will be generated automatically.</p></td>
 </tr>
-<tr class="row-odd"><td>flag</td>
-<td>string</td>
-<td>The following flags are supported:
-Dos Partition : “boot” set bootflag</td>
+<tr class="row-odd"><td><p>flag</p></td>
+<td><p>string</p></td>
+<td><p>The following flags are supported:
+Dos Partition : “boot” set bootflag</p></td>
 </tr>
 </tbody>
 </table>
@@ -1139,9 +1107,9 @@ Dos Partition : “boot” set bootflag</td>
 <span class="p">}</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="toggleboot-handler">
-<h2>Toggleboot Handler<a class="headerlink" href="#toggleboot-handler" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="toggleboot-handler">
+<h2>Toggleboot Handler<a class="headerlink" href="#toggleboot-handler" title="Permalink to this headline"></a></h2>
 <p>This handler is a script handler. It turns on the bootflag for one of a disk partition
 if the partition table is DOS. It reports an error if the table is GPT.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">script</span><span class="p">:</span> <span class="p">(</span>
@@ -1154,9 +1122,53 @@ if the partition table is DOS. It reports an error if the table is GPT.</p>
 <span class="p">}</span>
 </pre></div>
 </div>
+</section>
+<section id="gpt-partition-installer">
+<h2>gpt partition installer<a class="headerlink" href="#gpt-partition-installer" title="Permalink to this headline"></a></h2>
+<p>There is a handler gptpart that allows writing an image into a gpt partition selected by
+the name. This handler do not modify the gpt partition (type, size, …), it just writes
+the image in the GPT partition.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">images</span><span class="p">:</span> <span class="p">(</span>
+        <span class="p">{</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;u-boot.bin&quot;</span><span class="p">;</span>
+                <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;gptpart&quot;</span><span class="p">;</span>
+                <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;/dev/vdb&quot;</span><span class="p">;</span>
+                <span class="n">volume</span> <span class="o">=</span> <span class="s2">&quot;u-boot-1&quot;</span><span class="p">;</span>
+                <span class="n">offset</span> <span class="o">=</span> <span class="s2">&quot;1024&quot;</span><span class="p">;</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+                <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;kernel.bin&quot;</span><span class="p">;</span>
+                <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;gptpart&quot;</span><span class="p">;</span>
+                <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;/dev/vdb&quot;</span><span class="p">;</span>
+                <span class="n">volume</span> <span class="o">=</span> <span class="s2">&quot;kernel-1&quot;</span><span class="p">;</span>
+        <span class="p">},</span>
+<span class="p">);</span>
+</pre></div>
 </div>
-<div class="section" id="diskformat-handler">
-<h2>Diskformat Handler<a class="headerlink" href="#diskformat-handler" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="gpt-partition-swap">
+<h2>gpt partition swap<a class="headerlink" href="#gpt-partition-swap" title="Permalink to this headline"></a></h2>
+<p>There is a handler gptswap that allow to swap gpt partitions after all the images were flashed.
+This handler only swap the name of the partition. It coud be usefull for a dual bank strategy.
+This handler is a script for the point of view of swupdate, so the node that provide it should
+be added in the section scripts.</p>
+<p>Simple example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">scripts</span><span class="p">:</span> <span class="p">(</span>
+        <span class="p">{</span>
+                <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;gptswap&quot;</span><span class="p">;</span>
+                <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;/dev/vdb&quot;</span><span class="p">;</span>
+                <span class="n">properties</span> <span class="o">=</span>
+                <span class="p">{</span>
+                        <span class="n">swap</span><span class="o">-</span><span class="mi">0</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">&quot;u-boot-0&quot;</span> <span class="p">,</span> <span class="s2">&quot;u-boot-1&quot;</span> <span class="p">];</span>
+                        <span class="n">swap</span><span class="o">-</span><span class="mi">1</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">&quot;kernel-0&quot;</span> <span class="p">,</span> <span class="s2">&quot;kernel-1&quot;</span> <span class="p">];</span>
+                <span class="p">};</span>
+        <span class="p">},</span>
+<span class="p">);</span>
+</pre></div>
+</div>
+</section>
+<section id="diskformat-handler">
+<h2>Diskformat Handler<a class="headerlink" href="#diskformat-handler" title="Permalink to this headline"></a></h2>
 <p>This handler checks if the device already has a file system of the specified
 type. (Available only if CONFIG_DISKFORMAT is set.)
 If the file system does not yet exist, it will be created.
@@ -1174,9 +1186,9 @@ by setting the property <code class="docutils literal notranslate"><span class="
 <span class="p">})</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="unique-uuid-handler">
-<h2>Unique UUID Handler<a class="headerlink" href="#unique-uuid-handler" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="unique-uuid-handler">
+<h2>Unique UUID Handler<a class="headerlink" href="#unique-uuid-handler" title="Permalink to this headline"></a></h2>
 <p>This handler checks if the device already has a filesystems with a provide UUID. This is helpful
 in case the bootloader chooses the device to boot from the UUID and not from the partition number.
 One use case is with the GRUB bootloader when GRUB_DISABLE_LINUX_UUID is not set, as usual on
@@ -1193,9 +1205,9 @@ found on the device. It is a partition handler and it runs before any image is i
 <span class="p">});</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="delta-update-handler">
-<h2>Delta Update Handler<a class="headerlink" href="#delta-update-handler" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="delta-update-handler">
+<h2>Delta Update Handler<a class="headerlink" href="#delta-update-handler" title="Permalink to this headline"></a></h2>
 <p>The handler processes a ZCHUNK header and finds which chunks should be downloaded
 after generating the corresponding header of the running artifact to be updated.
 The handler uses just a couple of attributes from the main setup, and gets more information
@@ -1214,66 +1226,66 @@ dd if=&lt;artifact&gt;.zck of=&lt;artifact&gt;.header bs=1 count=$((HSIZE))
 </pre></div>
 </div>
 <p>The resulting header file must be packed inside the SWU.</p>
-<table border="1" class="docutils" id="id6">
-<caption><span class="caption-text">Properties for delta update handler</span><a class="headerlink" href="#id6" title="Permalink to this table">¶</a></caption>
+<table class="docutils align-default" id="id6">
+<caption><span class="caption-text">Properties for delta update handler</span><a class="headerlink" href="#id6" title="Permalink to this table"></a></caption>
 <colgroup>
-<col width="17%" />
-<col width="17%" />
-<col width="67%" />
+<col style="width: 17%" />
+<col style="width: 17%" />
+<col style="width: 67%" />
 </colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Name</th>
-<th class="head">Type</th>
-<th class="head">Description</th>
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
 </tr>
 </thead>
-<tbody valign="top">
-<tr class="row-even"><td>url</td>
-<td>string</td>
-<td>This is the URL from where the handler will
+<tbody>
+<tr class="row-even"><td><p>url</p></td>
+<td><p>string</p></td>
+<td><p>This is the URL from where the handler will
 download the missing chunks.
-The server must support byte range header.</td>
+The server must support byte range header.</p></td>
 </tr>
-<tr class="row-odd"><td>source</td>
-<td>string</td>
-<td>name of the device or file to be used for
-the comparison.</td>
+<tr class="row-odd"><td><p>source</p></td>
+<td><p>string</p></td>
+<td><p>name of the device or file to be used for
+the comparison.</p></td>
 </tr>
-<tr class="row-even"><td>chain</td>
-<td>string</td>
-<td>this is the name (type) of the handler
+<tr class="row-even"><td><p>chain</p></td>
+<td><p>string</p></td>
+<td><p>this is the name (type) of the handler
 that is called after reassembling
-the artifact.</td>
+the artifact.</p></td>
 </tr>
-<tr class="row-odd"><td>max-ranges</td>
-<td>string</td>
-<td>Max number of ranges that a server can
+<tr class="row-odd"><td><p>max-ranges</p></td>
+<td><p>string</p></td>
+<td><p>Max number of ranges that a server can
 accept. Default value (150) should be ok
-for most servers.</td>
+for most servers.</p></td>
 </tr>
-<tr class="row-even"><td>zckloglevel</td>
-<td>string</td>
-<td>this sets the log level of the zcklib.
+<tr class="row-even"><td><p>zckloglevel</p></td>
+<td><p>string</p></td>
+<td><p>this sets the log level of the zcklib.
 Logs are intercepted by SWupdate and
 appear in SWUpdate’s log.
 Value is one of debug,info
-warn,error,none</td>
+warn,error,none</p></td>
 </tr>
-<tr class="row-odd"><td>debug-chunks</td>
-<td>string</td>
-<td>“true”, default is not set.
+<tr class="row-odd"><td><p>debug-chunks</p></td>
+<td><p>string</p></td>
+<td><p>“true”, default is not set.
 This activates more verbose debugging
 output and the list of all chunks is
 printed, and it reports if a chunk
-is downloaded  or copied from the source.</td>
+is downloaded  or copied from the source.</p></td>
 </tr>
-<tr class="row-even"><td>source-size</td>
-<td>string</td>
-<td>This limits the index of the source
+<tr class="row-even"><td><p>source-size</p></td>
+<td><p>string</p></td>
+<td><p>This limits the index of the source
 It is helpful in case of filesystem in much
 bigger partition. It has the value for the size
 or it can be set to “detect” and the handler
-will try to find the effective size of fs.</td>
+will try to find the effective size of fs.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1293,56 +1305,38 @@ will try to find the effective size of fs.</td>
 <span class="p">}</span>
 </pre></div>
 </div>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="mongoose.html" class="btn btn-neutral float-right" title="Mongoose daemon mode" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="encrypted_images.html" class="btn btn-neutral float-left" title="Symmetrically Encrypted Update Images" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="encrypted_images.html" class="btn btn-neutral float-left" title="Symmetrically Encrypted Update Images" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="mongoose.html" class="btn btn-neutral float-right" title="Mongoose daemon mode" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &copy; Copyright 2013-2022, Stefano Babic
-
-    </p>
+    <p>&#169; Copyright 2013-2022, Stefano Babic.</p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
-
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

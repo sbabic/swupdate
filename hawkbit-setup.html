@@ -1,73 +1,35 @@
-
-
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <title>Config for hawkBit under SSL/TLS using private CA / sub CA &mdash; Embedded Software Update Documentation 2022.05 documentation</title>
-  
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-  
-  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Config for hawkBit under SSL/TLS using private CA / sub CA &mdash; Embedded Software Update Documentation 2022.12 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
   
-  
-  
-
-  
-  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script type="text/javascript" src="_static/jquery.js"></script>
-        <script type="text/javascript" src="_static/underscore.js"></script>
-        <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="_static/language_data.js"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="SWUpdate: API for external programs" href="swupdate-ipc-interface.html" />
     <link rel="prev" title="Suricatta daemon mode" href="suricatta.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="index.html" class="icon icon-home"> Embedded Software Update Documentation
-          
-
-          
           </a>
-
-          
-            
-            
               <div class="version">
-                2022.05
+                2022.12
               </div>
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -75,17 +37,7 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Software Management on embedded systems</a></li>
 <li class="toctree-l1"><a class="reference internal" href="licensing.html">License</a></li>
@@ -128,99 +80,61 @@
 <li class="toctree-l1"><a class="reference internal" href="previous-releases.html">Documentation for previous releases</a></li>
 </ul>
 
-            
-          
         </div>
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">Embedded Software Update Documentation</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
-      <li><a href="index.html">Docs</a> &raquo;</li>
-        
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
       <li>Config for hawkBit under SSL/TLS using private CA / sub CA</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-            
             <a href="_sources/hawkbit-setup.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
-  <div class="section" id="config-for-hawkbit-under-ssl-tls-using-private-ca-sub-ca">
-<h1>Config for hawkBit under SSL/TLS using private CA / sub CA<a class="headerlink" href="#config-for-hawkbit-under-ssl-tls-using-private-ca-sub-ca" title="Permalink to this headline">¶</a></h1>
+             
+  <section id="config-for-hawkbit-under-ssl-tls-using-private-ca-sub-ca">
+<h1>Config for hawkBit under SSL/TLS using private CA / sub CA<a class="headerlink" href="#config-for-hawkbit-under-ssl-tls-using-private-ca-sub-ca" title="Permalink to this headline"></a></h1>
 <p>A user-contributed recipe based on hawkBit (0.2.0-SNAPSHOT) + swupdate (v2018.03)</p>
-<div class="section" id="purpose">
-<h2>Purpose<a class="headerlink" href="#purpose" title="Permalink to this headline">¶</a></h2>
+<section id="purpose">
+<h2>Purpose<a class="headerlink" href="#purpose" title="Permalink to this headline"></a></h2>
 <p>Use HTTPS on a hawkBit server to avoid server spoofing. Anonymous client connections are authorized.</p>
-</div>
-<div class="section" id="recipe">
-<h2>Recipe<a class="headerlink" href="#recipe" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="recipe">
+<h2>Recipe<a class="headerlink" href="#recipe" title="Permalink to this headline"></a></h2>
 <ol class="arabic simple">
-<li>On the PKI:</li>
+<li><p>On the PKI:</p></li>
 </ol>
 <blockquote>
 <div><ul class="simple">
-<li>Create a pkcs#12 (<code class="docutils literal notranslate"><span class="pre">.p12</span></code>) file, rolling server key, server, private CA, sub CA certs into a single file.</li>
-<li>Use a password on the server key you won’t be ashamed of.</li>
-<li>Also create a single <code class="docutils literal notranslate"><span class="pre">.pem</span></code> file for the private CA + sub-CA</li>
+<li><p>Create a pkcs#12 (<code class="docutils literal notranslate"><span class="pre">.p12</span></code>) file, rolling server key, server, private CA, sub CA certs into a single file.</p></li>
+<li><p>Use a password on the server key you won’t be ashamed of.</p></li>
+<li><p>Also create a single <code class="docutils literal notranslate"><span class="pre">.pem</span></code> file for the private CA + sub-CA</p></li>
 </ul>
 </div></blockquote>
 <ol class="arabic simple" start="2">
-<li>On the hawkBit host:</li>
+<li><p>On the hawkBit host:</p></li>
 </ol>
 <blockquote>
 <div><ul class="simple">
-<li>hawkBit uses the Java KeyStore to access credentials, but a JKS is not designed apparently to hold CA certs, which is a problem for private CAs. The workaround is to make it gulp an entire pkcs#12 file.</li>
-<li>It looks like a JKS like this cannot have a password different from the one protecting the <code class="docutils literal notranslate"><span class="pre">.p12</span></code>. Keytool also seems to have a little tendency to destruct the <code class="docutils literal notranslate"><span class="pre">.jks</span></code> if you change your mind and want to change the password… Basically do everything you need with openssl and use only keytool for generating the <code class="docutils literal notranslate"><span class="pre">.jks</span></code> file.</li>
+<li><p>hawkBit uses the Java KeyStore to access credentials, but a JKS is not designed apparently to hold CA certs, which is a problem for private CAs. The workaround is to make it gulp an entire pkcs#12 file.</p></li>
+<li><p>It looks like a JKS like this cannot have a password different from the one protecting the <code class="docutils literal notranslate"><span class="pre">.p12</span></code>. Keytool also seems to have a little tendency to destruct the <code class="docutils literal notranslate"><span class="pre">.jks</span></code> if you change your mind and want to change the password… Basically do everything you need with openssl and use only keytool for generating the <code class="docutils literal notranslate"><span class="pre">.jks</span></code> file.</p></li>
 </ul>
 <p>The following command imports a <code class="docutils literal notranslate"><span class="pre">.p12</span></code> into a “pkcs12 Java keystore”, keeping the same password:</p>
-<div class="code bash highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">keytool</span> <span class="o">-</span><span class="n">importkeystore</span> <span class="o">-</span><span class="n">srckeystore</span> <span class="n">hb</span><span class="o">-</span><span class="k">pass</span><span class="o">.</span><span class="n">p12</span> <span class="o">-</span><span class="n">srcstoretype</span> <span class="n">pkcs12</span> \
-        <span class="o">-</span><span class="n">destkeystore</span> <span class="n">hb</span><span class="o">-</span><span class="k">pass</span><span class="o">.</span><span class="n">jks</span> <span class="o">-</span><span class="n">deststoretype</span> <span class="n">pkcs12</span> \
-        <span class="o">-</span><span class="n">alias</span> <span class="mi">1</span> <span class="o">-</span><span class="n">deststorepass</span> <span class="o">&lt;</span><span class="n">password_of_p12</span><span class="o">&gt;</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>keytool -importkeystore -srckeystore hb-pass.p12 -srcstoretype pkcs12 <span class="se">\</span>
+        -destkeystore hb-pass.jks -deststoretype pkcs12 <span class="se">\</span>
+        -alias <span class="m">1</span> -deststorepass &lt;password_of_p12&gt;
 </pre></div>
 </div>
 <p>Then you need to adapt <code class="docutils literal notranslate"><span class="pre">application.properties</span></code> of the hawkBit server to make use of the keystore.
@@ -256,12 +170,12 @@ There are extra requirements to make hawkBit send artifacts via HTTPS.</p>
 </div>
 </div></blockquote>
 <ol class="arabic simple" start="3">
-<li>On the swupdate client host(s):</li>
+<li><p>On the swupdate client host(s):</p></li>
 </ol>
 <blockquote>
 <div><ul class="simple">
-<li>The client needs the private CA certificate(s) to authenticate the server.</li>
-<li>There is a setting in swupdate to specify the path to a single CA cert, not a directory. Beyond that, libcurl looks into <code class="docutils literal notranslate"><span class="pre">/etc/ssl/certs</span></code>. So we’re using a compound “CA chain” <code class="docutils literal notranslate"><span class="pre">.pem</span></code> file to hold both private CA and sub-CA in our preferred location.</li>
+<li><p>The client needs the private CA certificate(s) to authenticate the server.</p></li>
+<li><p>There is a setting in swupdate to specify the path to a single CA cert, not a directory. Beyond that, libcurl looks into <code class="docutils literal notranslate"><span class="pre">/etc/ssl/certs</span></code>. So we’re using a compound “CA chain” <code class="docutils literal notranslate"><span class="pre">.pem</span></code> file to hold both private CA and sub-CA in our preferred location.</p></li>
 </ul>
 <p>This is the relevant part of <code class="docutils literal notranslate"><span class="pre">/etc/swupdate/swupdate.conf</span></code>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">...</span>
@@ -278,56 +192,38 @@ There are extra requirements to make hawkBit send artifacts via HTTPS.</p>
 </pre></div>
 </div>
 </div></blockquote>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
-           
           </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="swupdate-ipc-interface.html" class="btn btn-neutral float-right" title="SWUpdate: API for external programs" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="suricatta.html" class="btn btn-neutral float-left" title="Suricatta daemon mode" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="suricatta.html" class="btn btn-neutral float-left" title="Suricatta daemon mode" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="swupdate-ipc-interface.html" class="btn btn-neutral float-right" title="SWUpdate: API for external programs" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
-  
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &copy; Copyright 2013-2022, Stefano Babic
-
-    </p>
+    <p>&#169; Copyright 2013-2022, Stefano Babic.</p>
   </div>
-  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
-
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>

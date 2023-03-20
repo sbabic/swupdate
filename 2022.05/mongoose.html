@@ -1,0 +1,336 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Mongoose daemon mode &mdash; Embedded Software Update Documentation 2022.05 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Suricatta daemon mode" href="suricatta.html" />
+    <link rel="prev" title="Handlers" href="handlers.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Embedded Software Update Documentation
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2022.05
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Software Management on embedded systems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="licensing.html">License</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="swupdate.html">SWUpdate: software update for embedded system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scenarios.html">Update strategy examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sw-description.html">SWUpdate: syntax and tags with the default parser</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed_images.html">Update images from verified source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="encrypted_images.html">Symmetrically Encrypted Update Images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="handlers.html">Handlers</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Mongoose daemon mode</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#startup">Startup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#example">Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#customize">Customize</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#develop">Develop</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#contribute">Contribute</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hawkbit-setup.html">Config for hawkBit under SSL/TLS using private CA / sub CA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-ipc-interface.html">SWUpdate: API for external programs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bindings.html">Language Bindings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bootloader_interface.html">Bootloader Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building-with-yocto.html">meta-swupdate: building with Yocto</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-best-practise.html">SWUpdate Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="delta-update.html">Delta Update with SWUpdate</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-client.html">swupdate-client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-progress.html">swupdate-progress</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">swupdate-ipc</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="help_and_support.html">Help and support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to SWUpdate</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project’s road-map</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="previous-releases.html">Documentation for previous releases</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Embedded Software Update Documentation</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Mongoose daemon mode</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/mongoose.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="mongoose-daemon-mode">
+<h1>Mongoose daemon mode<a class="headerlink" href="#mongoose-daemon-mode" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>Mongoose is a daemon mode of SWUpdate that provides a web server, web
+interface and web application.</p>
+<p>The web application in <code class="docutils literal notranslate"><span class="pre">web-app</span></code> uses the <a class="reference external" href="https://nodejs.org/en/">Node.js</a> package manager
+and <a class="reference external" href="https://gulpjs.com/">gulp</a> as build tool. It depends on <a class="reference external" href="https://getbootstrap.com/">Bootstrap 4</a>,
+<a class="reference external" href="https://fontawesome.com/">Font Awesome 5</a> and <a class="reference external" href="http://www.dropzonejs.com/">Dropzone.js</a>.</p>
+</div>
+<div class="section" id="startup">
+<h2>Startup<a class="headerlink" href="#startup" title="Permalink to this headline">¶</a></h2>
+<p>After having configured and compiled SWUpdate with enabled mongoose web
+server:</p>
+<div class="code bash highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">swupdate</span> <span class="o">--</span><span class="n">help</span>
+</pre></div>
+</div>
+<p>lists the mandatory and optional arguments to be provided to mongoose.
+As an example,</p>
+<div class="code bash highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">swupdate</span> <span class="o">-</span><span class="n">l</span> <span class="mi">5</span> <span class="o">-</span><span class="n">w</span> <span class="s1">&#39;-r ./examples/www/v2 -p 8080&#39;</span> <span class="o">-</span><span class="n">p</span> <span class="s1">&#39;reboot&#39;</span>
+</pre></div>
+</div>
+<p>runs SWUpdate in mongoose daemon mode with log-level <code class="docutils literal notranslate"><span class="pre">TRACE</span></code> and a web
+server at <a class="reference external" href="http://localhost:8080">http://localhost:8080</a>.</p>
+</div>
+<div class="section" id="example">
+<h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
+<p>The ready to use example of the web application in  the
+<code class="docutils literal notranslate"><span class="pre">examples/www/v2</span></code> directory uses a Public Domain <cite>background.jpg</cite>
+image from <a class="reference external" href="https://pixabay.com/de/leiterbahn-platine-technologie-3157431/">pixabay</a> with is released under the Creative Commons CC0
+license. The used <cite>favicon.png</cite> and <cite>logo.png</cite> images are made from the
+SWUpdate logo and therefore subject to the GNU General Public License
+version 2. You must comply to this license or replace the images with
+your own files.</p>
+</div>
+<div class="section" id="customize">
+<h2>Customize<a class="headerlink" href="#customize" title="Permalink to this headline">¶</a></h2>
+<p>You could customize the web application inside the <code class="docutils literal notranslate"><span class="pre">web-app</span></code> directory.
+Beside the replace of the <cite>favicon.png</cite>, <cite>logo.png</cite> and <cite>background.jpg</cite>
+images inside the <code class="docutils literal notranslate"><span class="pre">images</span></code> directory you could customize the Bootstrap
+colors and settings inside the <code class="docutils literal notranslate"><span class="pre">scss/bootstrap.scss</span></code> style sheet. The
+style sheet changes need a rebuild of the web application source code.</p>
+</div>
+<div class="section" id="develop">
+<h2>Develop<a class="headerlink" href="#develop" title="Permalink to this headline">¶</a></h2>
+<p>The development requires Node.js version 6 or greater and a prebuilt
+SWUpdate project with enabled mongoose web server and web application
+interface version 2 support.</p>
+<ol class="arabic">
+<li><p class="first">Enter the web application directory:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="o">./</span><span class="n">web</span><span class="o">-</span><span class="n">app</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Install the dependencies:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">npm</span> <span class="n">install</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Build the web application:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">npm</span> <span class="n">run</span> <span class="n">build</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Start the web application:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">../</span><span class="n">swupdate</span> <span class="o">-</span><span class="n">w</span> <span class="s1">&#39;-r ./dist -p 8080&#39;</span> <span class="o">-</span><span class="n">p</span> <span class="s1">&#39;echo reboot&#39;</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Test the web application:</p>
+<blockquote>
+<div><p><a class="reference external" href="http://localhost:8080/">http://localhost:8080/</a></p>
+</div></blockquote>
+</li>
+<li><p class="first">Pack the web application (optional):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">npm</span> <span class="n">run</span> <span class="n">package</span> <span class="o">--</span> <span class="o">--</span><span class="n">output</span> <span class="n">swupdate</span><span class="o">-</span><span class="n">www</span><span class="o">.</span><span class="n">tar</span><span class="o">.</span><span class="n">gz</span>
+</pre></div>
+</div>
+</li>
+</ol>
+</div>
+<div class="section" id="contribute">
+<h2>Contribute<a class="headerlink" href="#contribute" title="Permalink to this headline">¶</a></h2>
+<p>Please run the linter before any commit</p>
+<div class="code bash highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">npm</span> <span class="n">run</span> <span class="n">lint</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="suricatta.html" class="btn btn-neutral float-right" title="Suricatta daemon mode" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="handlers.html" class="btn btn-neutral float-left" title="Handlers" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013-2022, Stefano Babic
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -1,0 +1,330 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>swupdate-ipc &mdash; Embedded Software Update Documentation 2022.05 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Help and support" href="help_and_support.html" />
+    <link rel="prev" title="swupdate-progress" href="swupdate-progress.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Embedded Software Update Documentation
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                2022.05
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Software Management on embedded systems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="licensing.html">License</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="swupdate.html">SWUpdate: software update for embedded system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scenarios.html">Update strategy examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sw-description.html">SWUpdate: syntax and tags with the default parser</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed_images.html">Update images from verified source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="encrypted_images.html">Symmetrically Encrypted Update Images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="handlers.html">Handlers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mongoose.html">Mongoose daemon mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hawkbit-setup.html">Config for hawkBit under SSL/TLS using private CA / sub CA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-ipc-interface.html">SWUpdate: API for external programs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bindings.html">Language Bindings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bootloader_interface.html">Bootloader Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building-with-yocto.html">meta-swupdate: building with Yocto</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-best-practise.html">SWUpdate Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="delta-update.html">Delta Update with SWUpdate</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="swupdate-client.html">swupdate-client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-progress.html">swupdate-progress</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">swupdate-ipc</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#aes">aes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#setversion">setversion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#gethawkbit">gethawkbit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#sendtohawkbit">sendtohawkbit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#sysrestart">sysrestart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#synopsis">SYNOPSIS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#description">DESCRIPTION</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="help_and_support.html">Help and support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to SWUpdate</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project’s road-map</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="previous-releases.html">Documentation for previous releases</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Embedded Software Update Documentation</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>swupdate-ipc</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/swupdate-ipc.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="swupdate-ipc">
+<h1>swupdate-ipc<a class="headerlink" href="#swupdate-ipc" title="Permalink to this headline">¶</a></h1>
+<p>swupdate-ipc sends a specific command to SWUpdate. The following commands are
+enabled:</p>
+<div class="section" id="aes">
+<h2>aes<a class="headerlink" href="#aes" title="Permalink to this headline">¶</a></h2>
+<p>send a new aes key to SWUpdate</p>
+</div>
+<div class="section" id="setversion">
+<h2>setversion<a class="headerlink" href="#setversion" title="Permalink to this headline">¶</a></h2>
+<p>sends a range of versions that can be accepted.</p>
+</div>
+<div class="section" id="gethawkbit">
+<h2>gethawkbit<a class="headerlink" href="#gethawkbit" title="Permalink to this headline">¶</a></h2>
+<p>return status of the connection to Hawkbit.</p>
+</div>
+<div class="section" id="sendtohawkbit">
+<h2>sendtohawkbit<a class="headerlink" href="#sendtohawkbit" title="Permalink to this headline">¶</a></h2>
+<p>send data to the Hawkbit Server.  A typical use case is acknowledgement
+for activation by an application or operator after a new software has been installed.
+The tool can forward the result for the activation to the hawkBit server.</p>
+</div>
+<div class="section" id="sysrestart">
+<h2>sysrestart<a class="headerlink" href="#sysrestart" title="Permalink to this headline">¶</a></h2>
+<p>send a restart command after a network update</p>
+</div>
+<div class="section" id="synopsis">
+<h2>SYNOPSIS<a class="headerlink" href="#synopsis" title="Permalink to this headline">¶</a></h2>
+<p>swupdate-ipc &lt;cmd&gt; [option]</p>
+<p>Where cmd is one of the listed above.</p>
+</div>
+<div class="section" id="description">
+<h2>DESCRIPTION<a class="headerlink" href="#description" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>aes &lt;key&gt; &lt;ivt&gt;</dt>
+<dd>AES key to be used for decryption</dd>
+<dt>setversion &lt;min&gt; &lt;max&gt; &lt;current&gt;</dt>
+<dd>configure the accepted range of versions</dd>
+<dt>hawkbitcfg</dt>
+<dd>configuration for Hawkbit Module</dd>
+</dl>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd><span class="option">-h</span></kbd></td>
+<td>help</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-p</span></kbd></td>
+<td>allows one to set the polling time (in seconds)</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-e</span></kbd></td>
+<td>enable suricatta mode</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-d</span></kbd></td>
+<td>disable suricatta mode</td></tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>swupdate-sendtohawkbit &lt;action id&gt; &lt;status&gt; &lt;finished&gt; &lt;execution&gt; &lt;detail 1&gt; &lt;detail 2&gt; ..</dt>
+<dd>Send Acknolwedge to Hawkbit server after an update if SWUpdate is set to wait for.</dd>
+<dt>sysrestart</dt>
+<dd>Used with SWU handler, allow to perform a network restart</dd>
+</dl>
+<table class="docutils option-list" frame="void" rules="none">
+<col class="option" />
+<col class="description" />
+<tbody valign="top">
+<tr><td class="option-group">
+<kbd><span class="option">-r</span></kbd></td>
+<td>optionally reboot the target after a successful update</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-w</span></kbd></td>
+<td>waits for a SWUpdate connection instead of exit with error</td></tr>
+<tr><td class="option-group">
+<kbd><span class="option">-s <var>&lt;path&gt;</var></span></kbd></td>
+<td>path to progress IPC socket</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="help_and_support.html" class="btn btn-neutral float-right" title="Help and support" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="swupdate-progress.html" class="btn btn-neutral float-left" title="swupdate-progress" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2013-2022, Stefano Babic
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

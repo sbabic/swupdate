@@ -20,10 +20,15 @@ currently ``lua_swupdate.so.0.1``, is provided.
 Lua Language Binding
 --------------------
 
-The Lua language binding is realized in terms of the ``swupdate`` module that
-defines three bindings, namely for the control interface, the progress
+The Lua language binding is realized in terms of the ``lua_swupdate`` module
+that defines three bindings, namely for the control interface, the progress
 interface, and a convenience function yielding a table holding all local
 network interfaces including their IP addresses and submasks.
+
+The ``lua_swupdate`` Lua module interface specification that details what
+functionality is made available by ``bindings/lua_swupdate.c`` is found
+in ``bindings/lua_swupdate.lua``. It serves as reference, for mocking
+purposes, and type checking thanks to the EmmyLua-inspired annotations.
 
 Note that, depending on the filesystem location of the Lua binding's shared
 library, Lua's ``package.cpath`` may have to be adapted by setting the
@@ -35,7 +40,7 @@ instead of ``require('lua_swupdate')``.
 Control Interface
 .................
 
-The ``swupdate`` module's control interface binding conveniently makes
+The ``lua_swupdate`` module's control interface binding conveniently makes
 :doc:`SWUpdate's socket-based control API <swupdate-ipc>` available to pure Lua.
 
 The binding is captured in the ``swupdate_control`` object that is returned
@@ -86,7 +91,7 @@ The following example snippet illustrates how to use the control interface bindi
 Progress Interface
 ..................
 
-The ``swupdate`` module's progress interface binding conveniently makes
+The ``lua_swupdate`` module's progress interface binding conveniently makes
 :doc:`SWUpdate's socket-based progress API <progress>` available to pure Lua.
 
 The binding is captured in the ``swupdate_progress`` object that is returned
@@ -109,6 +114,6 @@ socket.
 IPv4 Interface
 ..............
 
-For convenience, the ``swupdate`` module provides the ``ipv4()`` method
+For convenience, the ``lua_swupdate`` module provides the ``ipv4()`` method
 returning a table holding the local network interfaces as the table's keys and
 their space-separated IP addresses plus subnet masks as respective values.

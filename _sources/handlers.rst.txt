@@ -298,13 +298,18 @@ In analogy to C handlers, the prototype for a Lua handler is
 
 ::
 
+        --- Lua Handler.
+        --
+        --- @param  image  img_type  Lua equivalent of `struct img_type`
+        --- @return number           # 0 on success, 1 on error
         function lua_handler(image)
             ...
         end
 
 where ``image`` is a Lua table (with attributes according to
 :ref:`sw-description's attribute reference <sw-description-attribute-reference>`)
-that describes a single artifact to be processed by the handler.
+that describes a single artifact to be processed by the handler
+(also see the Lua Handler Interface Specification in ``handlers/swupdate.lua``).
 
 Note that dashes in the attributes' names are replaced with
 underscores for the Lua domain to make them idiomatic, e.g.,
@@ -315,6 +320,11 @@ For a script handler written in Lua, the prototype is
 
 ::
 
+        --- Lua Handler.
+        --
+        --- @param  image     img_type  Lua equivalent of `struct img_type`
+        --- @param  scriptfn  string    Type, one of `preinst` or `postinst` 
+        --- @return number              # 0 on success, 1 on error
         function lua_handler(image, scriptfn)
             ...
         end
@@ -343,6 +353,10 @@ a simple handler chain-calling the ``rawfile`` C handler:
 
 ::
 
+        --- Lua Handler.
+        --
+        --- @param  image  img_type  Lua equivalent of `struct img_type`
+        --- @return number           # 0 on success, 1 on error
         function lua_handler(image)
             if not swupdate.handler["rawfile"] then
                 swupdate.error("rawfile handler not available")
@@ -381,6 +395,10 @@ a simple handler calling ``image:copy2file()``:
 
 ::
 
+        --- Lua Handler.
+        --
+        --- @param  image  img_type  Lua equivalent of `struct img_type`
+        --- @return number           # 0 on success, 1 on error
         function lua_handler(image)
             local err, msg = image:copy2file("/tmp/destination.path")
             if err ~= 0 then
@@ -401,6 +419,10 @@ of a simple handler printing the artifact's content:
 
 ::
 
+        --- Lua Handler.
+        --
+        --- @param  image  img_type  Lua equivalent of `struct img_type`
+        --- @return number           # 0 on success, 1 on error
         function lua_handler(image)
             err, msg = image:read(function(data) print(data) end)
             if err ~= 0 then
@@ -420,6 +442,13 @@ described in its ``image`` parameter so that SWUpdate can
 continue with the next artifact in the stream after the Lua handler
 returns. Chaining handlers, calling ``image:copy2file()``, or using
 ``image:read()`` satisfies this requirement.
+
+
+The ``swupdate`` Lua module interface specification that details what
+functionality is made available to Lua handlers by SWUpdate's
+``corelib/lua_interface.c`` is found in ``handlers/swupdate.lua``.
+It serves as reference, for mocking purposes, and type checking thanks
+to the EmmyLua-inspired annotations.
 
 
 Note that although the dynamic nature of Lua handlers would
@@ -800,6 +829,42 @@ is called twice.
         }
 
 
+Bootloader handler
+------------------
+
+The bootloader handler allows to set bootloader's environment with a file. The file shold have the format:
+
+::
+
+        # Comments are allowed using the hash char
+
+        varname=value
+
+Empty lines are skipped. This simplifies the update of the whole environment instead of setting each variable inside the
+"bootenv" section in sw-description. The property *nooverride* allows to skip variables that are already set in sw-description. If
+not set, variables set in bootenv are overwritten.
+
+
+::
+
+        images: (
+                {
+                        filename = "uEnv.txt";
+                        type = "bootloader";
+                        properties: {
+                                nooverride = "true";
+                        }
+                }
+        );
+
+        bootenv: (
+        {
+                name = "bootenv01key";
+                value = "SOME VALUE";
+        });
+
+In the example above, bootenv01key is not overwritten by a value in uEnv.txt because the flag "nooverride" is set.
+
 Archive handler
 ---------------
 
@@ -963,6 +1028,54 @@ if the partition table is DOS. It reports an error if the table is GPT.
            }
         }
 
+gpt partition installer
+-----------------------
+
+There is a handler gptpart that allows writing an image into a gpt partition selected by
+the name. This handler do not modify the gpt partition (type, size, ...), it just writes
+the image in the GPT partition.
+
+::
+
+	images: (
+		{
+			filename = "u-boot.bin";
+			type = "gptpart";
+			device = "/dev/vdb";
+			volume = "u-boot-1";
+			offset = "1024";
+		},
+		{
+			filename = "kernel.bin";
+			type = "gptpart";
+			device = "/dev/vdb";
+			volume = "kernel-1";
+		},
+	);
+
+gpt partition swap
+------------------
+
+There is a handler gptswap that allow to swap gpt partitions after all the images were flashed.
+This handler only swap the name of the partition. It coud be usefull for a dual bank strategy.
+This handler is a script for the point of view of swupdate, so the node that provide it should
+be added in the section scripts.
+
+Simple example:
+
+::
+
+	scripts: (
+		{
+			type = "gptswap";
+			device = "/dev/vdb";
+			properties =
+			{
+				swap-0 = [ "u-boot-0" , "u-boot-1" ];
+				swap-1 = [ "kernel-0" , "kernel-1" ];
+			};
+		},
+	);
 
 Diskformat Handler
 ------------------
