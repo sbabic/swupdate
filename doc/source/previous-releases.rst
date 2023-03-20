@@ -5,6 +5,7 @@
 Documentation for previous releases
 ===================================
 
+- `2022.05 <./2022.05/index.html>`_
 - `2021.11 <./2021.11/index.html>`_
 - `2021.04 <./2021.04/index.html>`_
 - `2020.11 <./2020.11/index.html>`_
