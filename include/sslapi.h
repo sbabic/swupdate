@@ -38,6 +38,7 @@
 #include <openssl/hmac.h>
 #include <openssl/aes.h>
 #include <openssl/opensslv.h>
+#include <openssl/cms.h>
 #elif defined(CONFIG_SSL_IMPL_WOLFSSL)
 #include <wolfssl/options.h>
 #include <wolfssl/openssl/bio.h>
@@ -50,12 +51,12 @@
 #include <wolfssl/openssl/hmac.h>
 #include <wolfssl/openssl/aes.h>
 #include <wolfssl/openssl/opensslv.h>
+#include <wolfssl/openssl/pkcs7.h>
 #endif
 
 #if defined(CONFIG_SSL_IMPL_OPENSSL) || defined(CONFIG_SSL_IMPL_WOLFSSL)
 
 #ifdef CONFIG_SIGALG_CMS
-#include <openssl/cms.h>
 
 static inline uint32_t SSL_X509_get_extension_flags(X509 *x)
 {

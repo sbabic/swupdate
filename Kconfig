@@ -415,6 +415,8 @@ choice
 	config SSL_IMPL_WOLFSSL
 		bool "wolfSSL (with OpenSSL compatibility layer)"
 		depends on HAVE_WOLFSSL
+		select CMS_IGNORE_CERTIFICATE_PURPOSE
+		select CMS_SKIP_UNKNOWN_SIGNERS
 
 	config SSL_IMPL_MBEDTLS
 		bool "mbedTLS"
@@ -451,7 +453,10 @@ choice
 	default SIGALG_RAWRSA
 	help
 	  Select if the signature algorithm for signed images is a raw RSA signature
-	  (following PKCS#1.5) or if it uses Cryptographic Message Syntax (CMS).
+	  (following PKCS#1.5) or if it uses Cryptographic Message Syntax (CMS) with
+	  OpenSSL/LibreSSL or PKCS#7 with wolfSSL.
+	  wolfSSL's PKCS#7 implementation can only deal with one signature and cannot
+	  deal with X509 purposes.
 
 	config SIGALG_RAWRSA
 		bool "RSA PKCS#1.5"
@@ -460,12 +465,12 @@ choice
 		bool "RSA PSS"
 
 	config SIGALG_CMS
-		bool "Cryptographic Message Syntax (CMS)"
-		depends on SSL_IMPL_OPENSSL
+		bool "Cryptographic Message Syntax (CMS) / PKCS#7"
+		depends on SSL_IMPL_OPENSSL || SSL_IMPL_WOLFSSL
 
 endchoice
 
-menu "CMS signature verification options"
+menu "CMS / PKCS#7 signature verification options"
 	depends on SIGALG_CMS
 
 config CMS_IGNORE_EXPIRED_CERTIFICATE

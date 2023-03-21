@@ -17,8 +17,10 @@ lib-$(CONFIG_SIGALG_RAWRSA)	+= swupdate_rsa_verify.o
 lib-$(CONFIG_SIGALG_RSAPSS)	+= swupdate_rsa_verify.o
 endif
 ifeq ($(CONFIG_SSL_IMPL_OPENSSL),y)
-# wolfSSL does not support CMS in the compatibility layer yet
 lib-$(CONFIG_SIGALG_CMS)	+= swupdate_cms_verify.o
+endif
+ifeq ($(CONFIG_SSL_IMPL_WOLFSSL),y)
+lib-$(CONFIG_SIGALG_CMS)	+= swupdate_pkcs7_verify.o
 endif
 ifeq ($(CONFIG_SSL_IMPL_MBEDTLS),y)
 lib-$(CONFIG_HASH_VERIFY)	+= verify_signature_mbedtls.o
