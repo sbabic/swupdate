@@ -43,7 +43,9 @@ endif
 tests-y += InvOptsNoImg
 tests-$(CONFIG_MONGOOSE) += InvOptsCheckWithWeb
 tests-$(CONFIG_SURICATTA) += InvOptsCheckWithSur
+ifneq ($(CONFIG_SSL_IMPL_WOLFSSL),y)
 tests-$(CONFIG_SIGALG_CMS) += InvSigNameCheck
+endif
 tests-$(CONFIG_SIGALG_CMS) += ValidSigNameCheck
 
 #

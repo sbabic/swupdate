@@ -93,7 +93,9 @@ static struct option long_options[] = {
 	{"key", required_argument, NULL, 'k'},
 	{"ca-path", required_argument, NULL, 'k'},
 	{"cert-purpose", required_argument, NULL, '1'},
+#if defined(CONFIG_SIGALG_CMS) && !defined(CONFIG_SSL_IMPL_WOLFSSL)
 	{"forced-signer-name", required_argument, NULL, '2'},
+#endif
 #endif
 #ifdef CONFIG_ENCRYPTED_IMAGES
 	{"key-aes", required_argument, NULL, 'K'},
@@ -149,7 +151,9 @@ static void usage(char *programname)
 		" -k, --key <public key file>    : file with public key to verify images\n"
 		"     --cert-purpose <purpose>   : set expected certificate purpose\n"
 		"                                  [emailProtection|codeSigning] (default: emailProtection)\n"
+#if defined(CONFIG_SIGALG_CMS) && !defined(CONFIG_SSL_IMPL_WOLFSSL)
 		"     --forced-signer-name <cn>  : set expected common name of signer certificate\n"
+#endif
 		"     --ca-path                  : path to the Certificate Authority (PEM)\n"
 #endif
 #ifdef CONFIG_ENCRYPTED_IMAGES
