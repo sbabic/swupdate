@@ -51,7 +51,7 @@ int save_state(update_state_t value)
 		msg.magic = IPC_MAGIC;
 		msg.type = SET_UPDATE_STATE;
 		msg.data.msg[0] = (char)value;
-		return (ipc_send_cmd(&msg));
+		return !(ipc_send_cmd(&msg) == 0 && msg.type == ACK);
 	} else {
 		/* Main process */
 		return do_save_state((char *)STATE_KEY, value_str);
