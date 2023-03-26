@@ -1095,9 +1095,9 @@ static int install_delta(struct img_type *img,
 cleanup:
 	if (zckSrc) zck_free(&zckSrc);
 	if (zckDst) zck_free(&zckDst);
-	close(dst_fd);
-	close(in_fd);
-	close(mem_fd);
+	if (dst_fd >= 0) close(dst_fd);
+	if (in_fd >= 0) close(in_fd);
+	if (mem_fd >= 0) close(mem_fd);
 	if (FIFO) {
 		unlink(FIFO);
 		free(FIFO);
