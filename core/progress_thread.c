@@ -72,7 +72,7 @@ static void send_progress_msg(void)
 		buf = &pprog->msg;
 		count = sizeof(pprog->msg);
 		while (count > 0) {
-			n = send(conn->sockfd, buf, count, MSG_NOSIGNAL);
+			n = send(conn->sockfd, buf, count, MSG_NOSIGNAL | MSG_DONTWAIT);
 			if (n <= 0) {
 				close(conn->sockfd);
 				SIMPLEQ_REMOVE(&pprog->conns, conn,
