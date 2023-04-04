@@ -36,6 +36,11 @@
 static void copy_handler(void);
 static void raw_copyimage_handler(void);
 
+static bool copy_single_file(const char *path)
+{
+
+}
+
 static int copy_image_file(struct img_type *img, void *data)
 {
 	int ret;
@@ -132,12 +137,6 @@ static int copy_image_file(struct img_type *img, void *data)
 	TRACE("Copying %lu from %s to %s", size, path, img->device);
 
 	free(path);
-
-	if (!size) {
-		ERROR("Size cannot be detected, please set it, exiting...");
-		close(fdin);
-		return -EFAULT;
-	}
 
 	if (pipe(pipes) < 0) {
 		ERROR("Could not create pipes for chained handler, existing...");
