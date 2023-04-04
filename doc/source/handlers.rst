@@ -806,25 +806,56 @@ Properties ``size`` and ``offset`` are optional, all the other properties are ma
     +-------------+----------+----------------------------------------------------+
 
 
-Rawcopy handler
+Copy handler
 ---------------
 
-The rawcopy handler copies one source to a destination. It is a script handler, and no artifact in the SWU is associated
+The copy handler copies one source to a destination. It is a script handler, and no artifact in the SWU is associated
 with the handler.  It can be used to copy configuration data, or parts that should be taken by the current installation.
 It requires the mandatory  property (`copyfrom`), while device contains the destination path. 
 The handler performs a byte copy, and it does not matter which is the source - it can be a file or a partition.
 An optional `type` field can set if the handler is active as pre or postinstall script. If not set, the handler
 is called twice.
 
+.. table:: Attributes for copy handler
+
+    +-------------+----------+----------------------------------------------------+
+    |  Name       |  Type    |  Description                                       |
+    +=============+==========+====================================================+
+    | device      | string   | If set, it is the destination.                     |
+    +-------------+----------+----------------------------------------------------+
+    | type        | string   | One of "preinstall" or "postinstall"               |
+    +-------------+----------+----------------------------------------------------+
+
+
+.. table:: Properties for copy handler
+
+    +-------------+----------+----------------------------------------------------+
+    |  Name       |  Type    |  Description                                       |
+    +=============+==========+====================================================+
+    | size        | string   | Data size (in bytes) to be copied.                 |
+    |             |          | If 0 or not set, the handler will try to find the  |
+    |             |          | size from the device.                              |
+    +-------------+----------+----------------------------------------------------+
+    | chain       | string   | Handler to be called to install the data read      |
+    |             |          | from the "copyfrom" source.                        |
+    +-------------+----------+----------------------------------------------------+
+    | recursive   | string   | Recursive copy if copyfrom is a directory          |
+    |             |          | ("true" or "false")                                |
+    +-------------+----------+----------------------------------------------------+
+    | create-     | string   | Create the destination path if it does not exist   |
+    | destination |          | ("true" or "false")                                |
+    +-------------+----------+----------------------------------------------------+
+
 ::
 
         scripts : (
                 {
                 device = "/dev/mmcblk2p1";
-                type = "rawcopy";
+                type = "copy";
                 properties : {
                         copyfrom = "/dev/mmcblk2p2";
                         type = "postinstall";
+                        chain = "raw";
                 }
         }
 
