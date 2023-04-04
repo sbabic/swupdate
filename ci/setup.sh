@@ -30,6 +30,7 @@ $_SUDO apt-get install -y \
     libconfig-dev \
     libarchive-dev \
     libjson-c-dev \
+    libyaml-dev \
     zlib1g-dev \
     git \
     uuid \
