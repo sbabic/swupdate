@@ -83,6 +83,8 @@ typedef void (*notifier) (RECOVERY_STATUS status, int error, int level, const ch
 void notify(RECOVERY_STATUS status, int error, int level, const char *msg);
 void notify_init(void);
 void notifier_set_color(int level, char *col);
+
+#define __FILENAME__ (__builtin_strrchr(__FILE__, '/') ? __builtin_strrchr(__FILE__, '/') + 1 : __FILE__)
 #define swupdate_notify(status, format, level, arg...) do { \
 	if (loglevel >= level) { \
 		char tmpbuf[NOTIFY_BUF_SIZE]; \
@@ -90,7 +92,7 @@ void notifier_set_color(int level, char *col);
 			if (loglevel >= DEBUGLEVEL) \
 				snprintf(tmpbuf, sizeof(tmpbuf), \
 				     	"ERROR %s : %s : %d : " format, \
-					       	__FILE__, \
+						__FILENAME__, \
 					       	__func__, \
 					       	__LINE__, \
 						## arg); \
