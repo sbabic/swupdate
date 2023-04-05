@@ -211,11 +211,11 @@ config SWUFORWARDER_HANDLER
 	select JSON
 	default n
 	help
-	  This allows to build a chain of updater. A
-	  SWU can contains other SWUs for other systems.
-	  The handler takes a list of URLs and forward the
+	  This allows one to build a chain of updater. A
+	  SWU can contain other SWUs for other systems.
+	  The handler takes a list of URLs and forwards the
 	  embedded SWU to the other devices using the
-	  Webserver REST API.
+	  webserver REST API.
 
 comment "swuforward handler needs json-c and libcurl"
 	depends on !HAVE_JSON_C || !HAVE_LIBCURL
@@ -228,10 +228,10 @@ config SSBLSWITCH
 	depends on MTD
 	default n
 	help
-	  This handler allows to switch between two software set
+	  This handler allows one to switch between two software sets
 	  based on an administration block stored in flash (CFI interface).
-	  It works like the switch of UBI and allow to switch in an atomic
-	  way between two software set. It can be used to reliable update
+	  It works like the switch of UBI and allows one to switch in an atomic
+	  way between two software sets. It can be used to reliably update
 	  a second stage bootloader.
 
 config UBIVOL

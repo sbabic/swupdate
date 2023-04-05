@@ -30,7 +30,7 @@
 #endif
 
 /*
- * There is a list of notifier. Each registered
+ * There is a list of notifiers. Each registered
  * notifier will receive the notification
  * and can process it.
  */
@@ -188,7 +188,7 @@ void notifier_set_color(int level, char *col)
 }
 
 /*
- * This allows to extend the list of notifier.
+ * This allows one to extend the list of notifiers.
  * One can register a new notifier and it will
  * receive any notification that is sent via
  * the notify() call

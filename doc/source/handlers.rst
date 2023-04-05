@@ -1057,8 +1057,8 @@ gpt partition swap
 ------------------
 
 There is a handler gptswap that allow to swap gpt partitions after all the images were flashed.
-This handler only swap the name of the partition. It coud be usefull for a dual bank strategy.
-This handler is a script for the point of view of swupdate, so the node that provide it should
+This handler only swaps the name of the partition. It coud be useful for a dual bank strategy.
+This handler is a script for the point of view of swupdate, so the node that provides it should
 be added in the section scripts.
 
 Simple example:
@@ -1083,7 +1083,7 @@ Diskformat Handler
 This handler checks if the device already has a file system of the specified
 type. (Available only if CONFIG_DISKFORMAT is set.)
 If the file system does not yet exist, it will be created.
-In case an existing file system shall be overwitten, this can be achieved
+In case an existing file system shall be overwritten, this can be achieved
 by setting the property ``force`` to ``true``.
 
 ::

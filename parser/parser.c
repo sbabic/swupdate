@@ -932,7 +932,7 @@ static int parser(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 		}
 	}
 	if (get_hw_revision(&swcfg->hw) < 0) {
-		TRACE("Hardware compatibiliy not found");
+		TRACE("Hardware compatibility not found");
 	}
 
 	/* Now parse the single elements */

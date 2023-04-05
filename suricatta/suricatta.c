@@ -68,9 +68,9 @@ static server_op_res_t suricatta_enable(ipc_message *msg)
 	else {
 	  /*
 	   * check if polling of server is requested via IPC (trigger)
-	   * This allows to force to check if an update is available
+	   * This allows the client to force to check if an update is available
 	   * on the server. This is useful in case the device is not always
-	   * online, and it just checks for update (and then update should run
+	   * online, and it just checks for updates (and then update should run
 	   * immediately) just when online.
 	   */
 	  json_data = json_get_path_key(
