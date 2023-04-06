@@ -119,6 +119,13 @@ void swupdate_progress_init(unsigned int nsteps) {
 	pthread_mutex_unlock(&pprog->lock);
 }
 
+void swupdate_progress_addstep(void) {
+	struct swupdate_progress *pprog = &progress;
+	pthread_mutex_lock(&pprog->lock);
+	pprog->msg.nsteps++;
+	pthread_mutex_unlock(&pprog->lock);
+}
+
 void swupdate_progress_update(unsigned int perc)
 {
 	struct swupdate_progress *pprog = &progress;

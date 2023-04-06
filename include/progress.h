@@ -17,6 +17,7 @@
  * as well as external use are defined in progress_ipc.h
  */
 void swupdate_progress_init(unsigned int nsteps);
+void swupdate_progress_addstep(void);
 void swupdate_progress_update(unsigned int perc);
 void swupdate_progress_inc_step(const char *image, const char *handler_name);
 void swupdate_progress_step_completed(void);
