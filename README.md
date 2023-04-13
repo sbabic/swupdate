@@ -95,6 +95,11 @@ The Mailing List is open without need to be registered.
 
 A web-interface is available [here](https://groups.google.com/g/swupdate).
 
+## Open Source Compliance
+
+SWUpdate was analyzed to be Open Source compliant. See [Open Source Compliance](https://github.com/Open-Source-Compliance/package-analysis/tree/main/analysed-packages/swupdate)
+for details.
+
 ## Contributing to the project
 
 Contributions are welcome !  You can submit your patches (or post questions
