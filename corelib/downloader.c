@@ -29,6 +29,7 @@
 static struct option long_options[] = {
     {"url", required_argument, NULL, 'u'},
     {"retries", required_argument, NULL, 'r'},
+    {"retrywait", required_argument, NULL, 'w'},
     {"timeout", required_argument, NULL, 't'},
     {"authentication", required_argument, NULL, 'a'},
     {NULL, 0, NULL, 0}};
@@ -81,6 +82,8 @@ static int download_settings(void *elem, void  __attribute__ ((__unused__)) *dat
 
 	get_field(LIBCFG_PARSER, elem, "retries",
 		&opt->retries);
+	get_field(LIBCFG_PARSER, elem, "retrywait",
+		&opt->retry_sleep);
 	get_field(LIBCFG_PARSER, elem, "timeout",
 		&opt->low_speed_timeout);
 
@@ -95,15 +98,17 @@ void download_print_help(void)
 	    "\t  -u, --url <url>      * <url> is a link to the .swu update image\n"
 	    "\t  -r, --retries          number of retries (resumed download) if connection\n"
 	    "\t                         is broken (0 means indefinitely retries) (default: %d)\n"
+	    "\t  -w, --retrywait      timeout to wait before retrying retries (default: %d)\n"
 	    "\t  -t, --timeout          timeout to check if a connection is lost (default: %d)\n"
 	    "\t  -a, --authentication   authentication information as username:password\n",
-	    DL_DEFAULT_RETRIES, DL_LOWSPEED_TIME);
+	    DL_DEFAULT_RETRIES, DL_LOWSPEED_TIME, CHANNEL_DEFAULT_RESUME_DELAY);
 }
 
 static channel_data_t channel_options = {
 	.source = SOURCE_DOWNLOADER,
 	.debug = false,
 	.retries = DL_DEFAULT_RETRIES,
+	.retry_sleep = CHANNEL_DEFAULT_RESUME_DELAY,
 	.low_speed_timeout = DL_LOWSPEED_TIME,
 	.headers_to_send = NULL,
 	.max_download_speed = 0, /* Unlimited download speed is default. */
@@ -126,11 +131,14 @@ int start_download(const char *fname, int argc, char *argv[])
 	/* reset to optind=1 to parse download's argument vector */
 	optind = 1;
 	int choice = 0;
-	while ((choice = getopt_long(argc, argv, "t:u:r:a:",
+	while ((choice = getopt_long(argc, argv, "t:u:w:r:a:",
 				     long_options, NULL)) != -1) {
 		switch (choice) {
 		case 't':
 			channel_options.low_speed_timeout = strtoul(optarg, NULL, 10);
+			break;
+		case 'w':
+			channel_options.retry_sleep = strtoul(optarg, NULL, 10);
 			break;
 		case 'u':
 			SETSTRING(channel_options.url, optarg);
