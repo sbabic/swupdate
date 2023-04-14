@@ -532,7 +532,7 @@ static channel_op_res_t channel_set_content_type(channel_t *this,
 		    asprintf(&accept, "Accept: %s",
 			    content)) {
 			result = CHANNEL_EINIT;
-			ERROR("OOM when setting Content-type.");
+			ERROR("OOM when setting Accept.");
 	}
 
 	if (result == CHANNEL_OK) {
