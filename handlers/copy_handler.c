@@ -283,6 +283,7 @@ static int copy_image_file(struct img_type *img, void *data)
 			ret = nftw(copyfrom, recurse_directory, 64, FTW_PHYS);
 
 		} else {
+			swupdate_progress_addstep();
 			ret = copy_single_file(copyfrom, size, img, chained_handler);
 		}
 	}
