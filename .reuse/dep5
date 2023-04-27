@@ -59,6 +59,10 @@ Files: web-app/package.json
 Copyright: 2018 Stefan Herbrechtsmeier <stefan.herbrechtsmeier@weidmueller.com>
 License: MIT
 
+Files: bindings/nodejs/package.json
+Copyright: 2023 Stefano Babic <stefano.babic@swupdate.org>
+License: MIT
+
 Files: examples/www/v2/css/dropzone.min.css
 Copyright: 2021 Matias Meno <m@tias.me>
 License: MIT

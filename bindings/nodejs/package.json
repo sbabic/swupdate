@@ -1,0 +1,17 @@
+{
+  "name": "swupdateprog",
+  "version": "1.0.0",
+  "description": "Node Module to connect to SWUpdate",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "SWUpdate"
+  ],
+  "author": "Stefano Babic <stefano.babic@swupdate.org>",
+  "license": "MIT",
+  "dependencies": {
+    "c-struct": "^0.0.5"
+  }
+}
