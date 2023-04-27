@@ -59,6 +59,16 @@ static struct swupdate_progress progress;
 /*
  * This must be called after acquiring the mutex
  * for the progress structure
+ * It is assumed that the listeners are reading
+ * the events and consume the messages. To avoid deadlocks,
+ * SWUpdate will try to send the message without blocking,
+ * and if send() returns EWOULDBLOCk, tries some times again
+ * with a 1 second delay.
+ * This is because SWUpdate could send a lot of events,
+ * and listeners cannot be scheduled at time. The delay just
+ * slow down the update when happens. If the message cannot be
+ * sent after retries, SWUpdate will consider the listener
+ * dead and removes it from the list.
  */
 static void send_progress_msg(void)
 {
@@ -67,12 +77,22 @@ static void send_progress_msg(void)
 	void *buf;
 	size_t count;
 	ssize_t n;
+	bool tryagain;
+	const int maxAttempts = 5;
 
 	SIMPLEQ_FOREACH_SAFE(conn, &pprog->conns, next, tmp) {
 		buf = &pprog->msg;
 		count = sizeof(pprog->msg);
+		errno = 0;
 		while (count > 0) {
-			n = send(conn->sockfd, buf, count, MSG_NOSIGNAL | MSG_DONTWAIT);
+			int attempt = 0;
+			do {
+				n = send(conn->sockfd, buf, count, MSG_NOSIGNAL | MSG_DONTWAIT);
+				attempt++;
+				tryagain = n <= 0 && (errno == EWOULDBLOCK || errno == EAGAIN);
+				if (tryagain)
+					sleep(1);
+			} while (tryagain && attempt < maxAttempts);
 			if (n <= 0) {
 				close(conn->sockfd);
 				SIMPLEQ_REMOVE(&pprog->conns, conn,
