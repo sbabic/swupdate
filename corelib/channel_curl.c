@@ -926,7 +926,6 @@ static channel_op_res_t setup_reply_buffer(CURL *handle, write_callback_t *wrdat
 		ERROR("Channel buffer reservation failed with OOM.");
 		return CHANNEL_ENOMEM;
 	}
-	wrdata->outdata->memory = 0;
 
 	if ((curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION,
 			      channel_callback_membuffer) != CURLE_OK) ||
