@@ -521,41 +521,26 @@ static channel_op_res_t channel_set_content_type(channel_t *this,
 	else
 		content = "application/json";
 
-	if (ENOMEM_ASPRINTF ==
-		    asprintf(&contenttype, "Content-Type: %s",
-			    content)) {
-			result = CHANNEL_EINIT;
+	if (ENOMEM_ASPRINTF == asprintf(&contenttype, "Content-Type: %s%s", content,
+		!strcmp(content, "application/text") ? "; charset=utf-8" : "")) {
 			ERROR("OOM when setting Content-type.");
-	}
-
-	if (ENOMEM_ASPRINTF ==
-		    asprintf(&accept, "Accept: %s",
-			    content)) {
 			result = CHANNEL_EINIT;
-			ERROR("OOM when setting Accept.");
-	}
-
-	if (result == CHANNEL_OK) {
-		if (((channel_curl->header = curl_slist_append(
-			  channel_curl->header, contenttype)) ==
-			     NULL) ||
-			((channel_curl->header = curl_slist_append(
-				  channel_curl->header, accept)) == NULL) ||
-			((channel_curl->header = curl_slist_append(
-				  channel_curl->header, "charsets: utf-8")) == NULL)) {
-			ERROR("Set channel header failed.");
-			result = CHANNEL_EINIT;
+	} else {
+		if ((channel_curl->header = curl_slist_append(channel_curl->header,
+			contenttype)) == NULL) {
+				ERROR("Setting channel header Content-type failed.");
+				result = CHANNEL_EINIT;
 		}
 	}
-	/*
-	 * Add default charset for application content
-	 */
-	if ((!strcmp(content, "application/json") || !strcmp(content, "application/text")) &&
-             (result == CHANNEL_OK)) {
-		if ((channel_curl->header = curl_slist_append(
-			channel_curl->header, "charsets: utf-8")) == NULL) {
-			ERROR("Set channel charset header failed.");
-			result = CHANNEL_EINIT;
+
+	if (ENOMEM_ASPRINTF == asprintf(&accept, "Accept: %s", content)) {
+		ERROR("OOM when setting Accept.");
+		result = CHANNEL_EINIT;
+	} else {
+		if ((channel_curl->header = curl_slist_append(channel_curl->header,
+			accept)) == NULL) {
+				ERROR("Setting channel header Accept failed.");
+				result = CHANNEL_EINIT;
 		}
 	}
 
