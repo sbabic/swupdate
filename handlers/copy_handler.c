@@ -74,24 +74,28 @@ static int copy_single_file(const char *path, ssize_t size, struct img_type *img
 	 * try to detect the size if was not set in sw-description
 	 */
 	if (!size) {
-		if (S_ISREG(statbuf.st_mode))
+		if (S_ISREG(statbuf.st_mode)) {
 			size = statbuf.st_size;
+		}
 		else if (S_ISBLK(statbuf.st_mode) && (ioctl(fdin, BLKGETSIZE64, &size) < 0)) {
 			ERROR("Cannot get size of Block Device %s", path);
+			size = -1;
 		} else if (S_ISCHR(statbuf.st_mode)) {
 			/* it is maybe a MTD device, just try */
 			ret = ioctl(fdin, MEMGETINFO, &mtdinfo);
-			if (!ret)
+			if (!ret) {
 				size = mtdinfo.size;
+			} else {
+				size = -1;
+			}
 		}
 	}
 
-	if (!size) {
+	if (size < 0) {
 		ERROR("Size cannot be detected for %s", path);
 		close(fdin);
 		return -ENODEV;
 	}
-
 
 	if (pipe(pipes) < 0) {
 		ERROR("Could not create pipes for chained handler, existing...");
