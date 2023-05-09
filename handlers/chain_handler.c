@@ -13,6 +13,7 @@
 #include <sys/ioctl.h>
 #include <fcntl.h>
 #include <pthread.h>
+#include <unistd.h>
 #include "chained_handler.h"
 #include "installer.h"
 #include "pctl.h"
