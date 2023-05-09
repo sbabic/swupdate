@@ -30,6 +30,12 @@
 #define WAIT_ANY (-1)
 #endif
 
+typedef struct {
+	int (*exec)(int argc, char **argv);
+	int argc;
+	char **argv;
+} bgtask;
+
 /* the array contains the pid of the subprocesses */
 #define MAX_PROCESSES	10
 static struct swupdate_task procs[MAX_PROCESSES];
@@ -240,12 +246,13 @@ void start_subprocess(sourcetype type, const char *name,
 }
 
 /*
- * run_system_cmd executes a shell script in background and intercepts
- * stdout and stderr of the script, writing then to TRACE and ERROR
- * This let the output of the scripts to be collected by SWUpdate
+ * run_cmd executes a shell script or an internal function in background
+ * in a separate process and intercepts stdout and stderr, writing then to
+ * TRACE and ERROR.
+ * This let the output of the scripts / functions to be collected by SWUpdate
  * tracing capabilities.
  */
-int run_system_cmd(const char *cmd)
+static int __run_cmd(const char *cmd, bgtask *fn)
 {
 	int ret = 0;
 	int const npipes = 4;
@@ -255,14 +262,33 @@ int run_system_cmd(const char *cmd)
 	int const PIPE_READ = 0;
 	int const PIPE_WRITE = 1;
 	int wstatus, i;
+	bool execute_function = !(cmd && strnlen(cmd, SWUPDATE_GENERAL_STRING_SIZE)) && fn;
 
-	if (!strnlen(cmd, SWUPDATE_GENERAL_STRING_SIZE))
-		return 0;
+	/*
+	 * There are two cases:
+	 * - an external command should be executed (cmd is not NULL)
+	 * - an internal SWUpdate function must be executed in bg process
+	 * Both cannot be executed, the external command has priority
+	 */
 
-	if (strnlen(cmd, SWUPDATE_GENERAL_STRING_SIZE) > SWUPDATE_GENERAL_STRING_SIZE) {
-		ERROR("Command string too long, skipping..");
-		/* do nothing */
-		return -EINVAL;
+	/*
+	 * Check parameter in case of external command or internal function
+	 * that should run in a separate process
+	 */
+	if (!execute_function) {
+		/*
+		 * If no cmd and function are passed, just return without error
+		 * like "nothing was successfully executed"
+		 */
+		if (!cmd)
+			return 0;
+		if (!strnlen(cmd, SWUPDATE_GENERAL_STRING_SIZE))
+			return 0;
+		if (strnlen(cmd, SWUPDATE_GENERAL_STRING_SIZE) > SWUPDATE_GENERAL_STRING_SIZE) {
+			ERROR("Command string too long, skipping..");
+			/* do nothing */
+			return -EINVAL;
+		}
 	}
 
 	/*
@@ -306,10 +332,15 @@ int run_system_cmd(const char *cmd)
 			close(pipes[i][PIPE_WRITE]);
 		}
 
-		ret = execl("/bin/sh", "sh", "-c", cmd, (char *)NULL);
-		if (ret) {
-			ERROR("Process %s cannot be started: %s", cmd, strerror(errno));
-			exit(1);
+		if (!execute_function) {
+			ret = execl("/bin/sh", "sh", "-c", cmd, (char *)NULL);
+			if (ret) {
+				ERROR("Process %s cannot be started: %s", cmd, strerror(errno));
+				exit(1);
+			}
+		} else {
+			ret = fn->exec(fn->argc, fn->argv);
+			exit(ret);
 		}
 	} else {
 		int fds[npipes];
@@ -397,12 +428,12 @@ int run_system_cmd(const char *cmd)
 
 		if (WIFEXITED(wstatus)) {
 			ret = WEXITSTATUS(wstatus);
-			TRACE("%s command returned %d", cmd, ret);
+			TRACE("%s command returned %d", cmd ? cmd : "", ret);
 		} else if (WIFSIGNALED(wstatus)) {
-			TRACE("(%s) killed by signal %d\n", cmd, WTERMSIG(wstatus));
+			TRACE("(%s) killed by signal %d\n", cmd ? : "", WTERMSIG(wstatus));
 			ret = -1;
 		} else {
-			TRACE("(%s) not exited nor killed!\n", cmd);
+			TRACE("(%s) not exited nor killed!\n", cmd ? cmd : "");
 			ret = -1;
 		}
 	}
@@ -410,6 +441,19 @@ int run_system_cmd(const char *cmd)
 	return ret;
 }
 
+int run_system_cmd(const char *cmd) {
+	return __run_cmd(cmd, NULL);
+}
+
+int run_function_background(void *fn, int argc, char **argv) {
+	bgtask bg;
+
+	bg.exec = fn;
+	bg.argc = argc;
+	bg.argv = argv;
+
+	return __run_cmd(NULL, &bg);
+}
 /*
  * The handler supervises the subprocesses
  * (Downloader, Webserver, Suricatta)

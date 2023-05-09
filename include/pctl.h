@@ -49,5 +49,6 @@ void sigchld_handler (int __attribute__ ((__unused__)) signum);
 int pctl_getfd_from_type(sourcetype s);
 const char *pctl_getname_from_type(sourcetype s);
 int run_system_cmd(const char *cmd);
+int run_function_background(void *fn, int argc, char **argv);
 
 #endif
