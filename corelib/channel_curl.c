@@ -314,7 +314,12 @@ channel_op_res_t channel_map_http_code(channel_t *this, long *http_response_code
 	}
 	switch (*http_response_code) {
 	case 0:   /* libcURL: no server response code has been received yet or file:// protocol */
-		curlrc = curl_easy_getinfo(channel_curl->handle, CURLINFO_PROTOCOL,
+		curlrc = curl_easy_getinfo(channel_curl->handle,
+				#if LIBCURL_VERSION_NUM >= 0x75500
+					   CURLINFO_SCHEME,
+				#else
+					   CURLINFO_PROTOCOL,
+				#endif
 					   &protocol);
 		if (curlrc == CURLE_OK && protocol == CURLPROTO_FILE) {
 			return CHANNEL_OK;
@@ -570,8 +575,15 @@ channel_op_res_t channel_set_options(channel_t *this, channel_data_t *channel_da
 			      channel_curl->header) != CURLE_OK) ||
 	    (curl_easy_setopt(channel_curl->handle, CURLOPT_MAXREDIRS, -1) !=
 	     CURLE_OK) ||
-	    (curl_easy_setopt(channel_curl->handle, CURLOPT_REDIR_PROTOCOLS,
-			      CURLPROTO_HTTP | CURLPROTO_HTTPS) != CURLE_OK) ||
+	    (curl_easy_setopt(channel_curl->handle,
+			#if LIBCURL_VERSION_NUM >= 0x75500
+			      CURLOPT_REDIR_PROTOCOLS_STR,
+			      "http,https"
+			#else
+			      CURLOPT_REDIR_PROTOCOLS,
+			      CURLPROTO_HTTP | CURLPROTO_HTTPS
+			#endif
+			) != CURLE_OK) ||
 	    (curl_easy_setopt(channel_curl->handle,
 			      CURLOPT_SSLKEY,
 			      channel_data->sslkey) != CURLE_OK) ||
@@ -1067,8 +1079,13 @@ static channel_op_res_t channel_put_method(channel_t *this, void *data)
 		goto cleanup_header;
 	}
 
-	if ((curl_easy_setopt(channel_curl->handle, CURLOPT_PUT, 1L) != CURLE_OK) ||
-	    (curl_easy_setopt(channel_curl->handle, CURLOPT_UPLOAD, 1L) != CURLE_OK)) {
+	if (curl_easy_setopt(channel_curl->handle,
+		#if LIBCURL_VERSION_NUM >= 0x70C01
+		    	CURLOPT_UPLOAD,
+		#else
+		    	CURLOPT_PUT,
+		#endif
+	 	1L) != CURLE_OK) {
 		ERROR("Set PUT channel method option failed.");
 		result = CHANNEL_EINIT;
 		goto cleanup_header;
@@ -1320,10 +1337,17 @@ channel_op_res_t channel_get_file(channel_t *this, void *data)
 			goto cleanup_file;
 		}
 
+	#if LIBCURL_VERSION_NUM >= 0x73700
+		curl_off_t bytes_downloaded;
+		CURLcode resdlprogress = curl_easy_getinfo(
+		    channel_curl->handle, CURLINFO_SIZE_DOWNLOAD_T,
+		    &bytes_downloaded);
+	#else
 		double bytes_downloaded;
 		CURLcode resdlprogress = curl_easy_getinfo(
 		    channel_curl->handle, CURLINFO_SIZE_DOWNLOAD,
 		    &bytes_downloaded);
+	#endif
 		if (resdlprogress != CURLE_OK) {
 			ERROR("Channel does not report bytes downloaded (%d): "
 			      "'%s'\n",
