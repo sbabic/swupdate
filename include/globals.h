@@ -22,6 +22,11 @@
 #define MAX_BOOT_SCRIPT_LINE_LENGTH	1024
 #define MAX_SEEK_STRING_SIZE	32
 
+/*
+ * swupdate uses SHA256 hashes
+ */
+#define SHA256_HASH_LENGTH	32
+
 /* These are fixed path to temporary files */
 #define SCRIPTS_DIR_SUFFIX	"scripts/"
 #define DATADST_DIR_SUFFIX	"datadst/"

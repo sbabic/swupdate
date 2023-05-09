@@ -69,7 +69,7 @@
 #include <termios.h>
 #include <gpiod.h>
 
-#include "swupdate.h"
+#include "swupdate_image.h"
 #include "handler.h"
 #include "util.h"
 

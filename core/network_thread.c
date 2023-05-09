@@ -30,6 +30,7 @@
 #include "installer.h"
 #include "installer_priv.h"
 #include "swupdate.h"
+#include "hw-compatibility.h"
 #include "pctl.h"
 #include "generated/autoconf.h"
 #include "state.h"

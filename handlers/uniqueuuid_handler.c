@@ -21,7 +21,7 @@
 #include <ctype.h>
 #include <blkid/blkid.h>
 #include <sys/types.h>
-#include "swupdate.h"
+#include "swupdate_image.h"
 #include "handler.h"
 #include "util.h"
 

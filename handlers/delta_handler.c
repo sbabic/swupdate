@@ -28,7 +28,6 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
-#include <swupdate.h>
 #include <handler.h>
 #include <signal.h>
 #include <zck.h>
@@ -43,6 +42,7 @@
 #include "installer.h"
 #include "zchunk_range.h"
 #include "chained_handler.h"
+#include "swupdate_image.h"
 
 #define DEFAULT_MAX_RANGES	150	/* Apache has default = 200 */
 

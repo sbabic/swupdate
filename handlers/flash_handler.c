@@ -25,8 +25,8 @@
 #include <sys/ioctl.h>
 
 #include <mtd/mtd-user.h>
-#include "swupdate.h"
 #include "handler.h"
+#include "swupdate_image.h"
 #include "util.h"
 #include "flash.h"
 #include "progress.h"

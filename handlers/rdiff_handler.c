@@ -19,7 +19,7 @@
 #if defined(__FreeBSD__)
 #include <sys/param.h>
 #endif
-#include "swupdate.h"
+#include "swupdate_image.h"
 #include "handler.h"
 #include "util.h"
 

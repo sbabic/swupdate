@@ -23,6 +23,7 @@
 #include "parselib.h"
 #include "swupdate_settings.h"
 #include "semver.h"
+#include "versions.h"
 
 /*
  * Read versions of components from a file, if provided

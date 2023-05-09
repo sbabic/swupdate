@@ -18,8 +18,8 @@
 #include <linux/fs.h>
 #endif
 
-#include "swupdate.h"
 #include "handler.h"
+#include "swupdate_image.h"
 #include "sslapi.h"
 #include "util.h"
 

@@ -10,6 +10,7 @@
 #ifndef _HANDLER_H
 #define _HANDLER_H
 
+struct img_type;
 typedef enum {
 	NONE,
 	PREINSTALL,

@@ -15,7 +15,7 @@
 #include <string.h>
 
 #include <mtd/mtd-user.h>
-#include "swupdate.h"
+#include "swupdate_image.h"
 #include "handler.h"
 #include "flash.h"
 #include "util.h"

@@ -31,6 +31,7 @@
 #include <zlib.h>
 #include <channel.h>
 #include <channel_curl.h>
+#include "swupdate_dict.h"
 #include "delta_handler.h"
 #include "delta_process.h"
 

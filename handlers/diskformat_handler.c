@@ -12,6 +12,7 @@
 #include <blkid/blkid.h>
 #include <fs_interface.h>
 #include "progress.h"
+#include "swupdate_image.h"
 
 void diskformat_handler(void);
 

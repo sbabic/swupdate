@@ -23,6 +23,8 @@
 #include "handler.h"
 #include "bootloader.h"
 #include "progress.h"
+#include "swupdate_image.h"
+#include "hw-compatibility.h"
 
 #define LUA_TYPE_PEMBSCR 1
 #define LUA_TYPE_HANDLER 2

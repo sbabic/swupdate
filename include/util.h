@@ -12,12 +12,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdbool.h>
 #if defined(__linux__)
 #include <linux/types.h>
 #endif
-#include "swupdate.h"
+#include "globals.h"
 #include "swupdate_status.h"
-#include "swupdate_settings.h"
+#include "swupdate_dict.h"
 #include "compat.h"
 
 #define NOTIFY_BUF_SIZE 	2048
@@ -31,6 +32,12 @@
 
 #define HWID_REGEXP_PREFIX	"#RE:"
 #define SWUPDATE_ALIGN(A,S)    (((A) + (S) - 1) & ~((S) - 1))
+
+#define BOOTVAR_TRANSACTION "recovery_status"
+
+struct img_type;
+struct imglist;
+struct hw_type;
 
 extern int loglevel;
 extern int exit_code;
@@ -47,6 +54,13 @@ typedef enum {
 	SERVER_UPDATE_CANCELED,
 	SERVER_ID_REQUESTED,
 } server_op_res_t;
+
+enum {
+  COMPRESSED_FALSE,
+  COMPRESSED_TRUE,
+  COMPRESSED_ZLIB,
+  COMPRESSED_ZSTD,
+};
 
 /*
  * loglevel is used into TRACE / ERROR
@@ -206,11 +220,8 @@ char *substring(const char *src, int first, int len);
 char *string_tolower(char *s);
 size_t snescape(char *dst, size_t n, const char *src);
 void freeargs (char **argv);
-int get_hw_revision(struct hw_type *hw);
-void get_sw_versions(swupdate_cfg_handle *handle, struct swupdate_cfg *sw);
 int compare_versions(const char* left_version, const char* right_version);
 int hwid_match(const char* rev, const char* hwrev);
-int check_hw_compatibility(struct swupdate_cfg *cfg);
 int count_elem_list(struct imglist *list);
 unsigned int count_string_array(const char **nodes);
 void free_string_array(char **nodes);

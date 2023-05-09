@@ -45,6 +45,7 @@
 #include "pctl.h"
 #include "state.h"
 #include "bootloader.h"
+#include "hw-compatibility.h"
 
 #define BUFF_SIZE	 4096
 #define PERCENT_LB_INDEX	4

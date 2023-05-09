@@ -14,8 +14,7 @@
 #include <errno.h>
 
 #include "generated/autoconf.h"
-#include "swupdate.h"
-#include "swupdate_dict.h"
+#include "swupdate_image.h"
 #include "handler.h"
 #include "util.h"
 #include "bootloader.h"

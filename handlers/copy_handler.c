@@ -26,7 +26,7 @@
 #endif
 
 #include <pctl.h>
-#include "swupdate.h"
+#include "swupdate_image.h"
 #include "progress.h"
 #include "handler.h"
 #include "util.h"

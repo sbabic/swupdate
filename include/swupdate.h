@@ -14,21 +14,7 @@
 #include "globals.h"
 #include "mongoose_interface.h"
 #include "swupdate_dict.h"
-
-#define BOOTVAR_TRANSACTION "recovery_status"
-
-/*
- * swupdate uses SHA256 hashes
- */
-#define SHA256_HASH_LENGTH	32
-
-typedef enum {
-	FLASH,
-	UBI,
-	FILEDEV,
-	PARTITION,
-	SCRIPT
-} imagetype_t;
+#include "swupdate_image.h"
 
 /*
  * this is used to indicate if a file
@@ -40,64 +26,6 @@ typedef enum {
 	SKIP_FILE,
 	INSTALL_FROM_STREAM
 } swupdate_file_t;
-
-typedef enum {
-	SKIP_NONE=0,
-	SKIP_SAME,
-	SKIP_HIGHER,
-	SKIP_SCRIPT
-} skip_t;
-
-enum {
-  COMPRESSED_FALSE,
-  COMPRESSED_TRUE,
-  COMPRESSED_ZLIB,
-  COMPRESSED_ZSTD,
-};
-
-struct sw_version {
-	char name[SWUPDATE_GENERAL_STRING_SIZE];
-	char version[SWUPDATE_GENERAL_STRING_SIZE];
-	int install_if_different;
-	int install_if_higher;
-	LIST_ENTRY(sw_version) next;
-};
-
-LIST_HEAD(swver, sw_version);
-
-struct img_type {
-	struct sw_version id;		/* This is used to compare versions */
-	char type[SWUPDATE_GENERAL_STRING_SIZE]; /* Handler name */
-	char fname[MAX_IMAGE_FNAME];	/* Filename in CPIO archive */
-	char volname[MAX_VOLNAME];	/* Useful for UBI	*/
-	char device[MAX_VOLNAME];	/* device associated with image if any */
-	char path[MAX_IMAGE_FNAME];	/* Path where image must be installed */
-	char mtdname[MAX_IMAGE_FNAME];	/* MTD device where image must be installed */
-	char type_data[SWUPDATE_GENERAL_STRING_SIZE];	/* Data for handler */
-	char extract_file[MAX_IMAGE_FNAME];
-	char filesystem[MAX_IMAGE_FNAME];
-	unsigned long long seek;
-	skip_t skip;
-	int provided;
-	int compressed;
-	int preserve_attributes; /* whether to preserve attributes in archives */
-	bool is_encrypted;
-	char ivt_ascii[33];
-	int install_directly;
-	int is_script;
-	int is_partitioner;
-	struct dict properties;
-	struct dict *bootloader; /* pointer to swupdate_cfg's bootloader dict for handlers to modify */
-	long long partsize;
-	int fdin;	/* Used for streaming file */
-	off_t offset;	/* offset in cpio file */
-	long long size;
-	unsigned int checksum;
-	unsigned char sha256[SHA256_HASH_LENGTH];	/* SHA-256 is 32 byte */
-	LIST_ENTRY(img_type) next;
-};
-
-LIST_HEAD(imglist, img_type);
 
 struct hw_type {
 	char boardname[SWUPDATE_GENERAL_STRING_SIZE];

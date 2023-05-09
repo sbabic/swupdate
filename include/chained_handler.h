@@ -5,7 +5,7 @@
  * SPDX-License-Identifier:     GPL-2.0-only
  */
 
-#include "swupdate.h"
+#include "swupdate_image.h"
 struct chain_handler_data {
 	struct img_type img;
 };

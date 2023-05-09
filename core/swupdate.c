@@ -48,6 +48,8 @@
 #include "pctl.h"
 #include "state.h"
 #include "bootloader.h"
+#include "versions.h"
+#include "hw-compatibility.h"
 
 #ifdef CONFIG_SYSTEMD
 #include <systemd/sd-daemon.h>

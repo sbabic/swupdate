@@ -16,8 +16,8 @@
 #include <errno.h>
 #include <string.h>
 
-#include "swupdate.h"
 #include "handler.h"
+#include "swupdate_image.h"
 #include "util.h"
 #include "pctl.h"
 

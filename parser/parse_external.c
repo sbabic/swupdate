@@ -15,6 +15,7 @@
 #include "generated/autoconf.h"
 #include "swupdate.h"
 #include "parsers.h"
+#include "hw-compatibility.h"
 
 #ifdef CONFIG_LUAEXTERNAL
 #include "lua.h"

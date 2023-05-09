@@ -29,12 +29,12 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
-#include <swupdate.h>
 #include <handler.h>
 #include <pthread.h>
 #include <util.h>
 #include <json-c/json.h>
 #include "parselib.h"
+#include "swupdate_image.h"
 #include "swuforward_handler.h"
 
 void swuforward_handler(void);

@@ -20,6 +20,7 @@
 #include "bsdqueue.h"
 #include "util.h"
 #include "swupdate.h"
+#include "hw-compatibility.h"
 #include "parselib.h"
 #include "parsers.h"
 #include "swupdate_dict.h"

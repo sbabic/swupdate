@@ -15,9 +15,9 @@
 #include <string.h>
 #include <zmq.h>
 
-#include <swupdate.h>
-#include <handler.h>
-#include <util.h>
+#include "handler.h"
+#include "util.h"
+#include "swupdate_image.h"
 
 #define MSG_FRAMES	2
 #define FRAME_CMD	0

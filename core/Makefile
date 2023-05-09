@@ -13,6 +13,7 @@ obj-y += swupdate.o \
 	 notifier.o \
 	 handler.o \
 	 bootloader.o \
+	 hw-compatibility.o \
 	 install_from_file.o \
 	 util.o \
 	 parser.o \

@@ -22,7 +22,7 @@
 #include <uuid/uuid.h>
 #include <dirent.h>
 #include <libgen.h>
-#include "swupdate.h"
+#include "swupdate_image.h"
 #include "handler.h"
 #include "util.h"
 #include "progress.h"
