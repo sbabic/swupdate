@@ -36,7 +36,7 @@ Running suricatta
 -----------------
 
 After having configured and compiled SWUpdate with enabled suricatta
-support,
+support for hawkBit,
 
 .. code::
 
@@ -52,6 +52,11 @@ when using hawkBit as server. As an example,
 runs SWUpdate in suricatta daemon mode with log-level ``TRACE``, polling
 a hawkBit instance at ``http://10.0.0.2:8080`` with tenant ``default``
 and device ID ``25``.
+
+If multiple server support is compiled in, the ``-S`` / ``--server``
+option or a ``server`` entry in the configuration file's ``[suricatta]``
+section selects the one to use at run-time. For convenience, when having
+support for just one server compiled-in, this is chosen automatically.
 
 
 Note that on startup when having installed an update, suricatta
@@ -112,13 +117,23 @@ to implement:
 
 .. code:: c
 
-    server_op_res_t server_has_pending_action(int *action_id);
-    server_op_res_t server_install_update(void);
-    server_op_res_t server_send_target_data(void);
-    unsigned int server_get_polling_interval(void);
-    server_op_res_t server_start(const char *cfgfname, int argc, char *argv[]);
-    server_op_res_t server_stop(void);
-    server_op_res_t server_ipc(int fd);
+    typedef struct {
+        server_op_res_t has_pending_action(int *action_id);
+        server_op_res_t install_update(void);
+        server_op_res_t send_target_data(void);
+        unsigned int get_polling_interval(void);
+        server_op_res_t start(const char *cfgfname, int argc, char *argv[]);
+        server_op_res_t stop(void);
+        server_op_res_t ipc(int fd);
+        void (*help)(void);
+    } server_t;
+
+These functions constituting a particular suricatta server implementation
+have to be registered for being selectable at run-time by calling
+``register_server()`` (see ``include/suricatta/server.h``) with
+a name and a ``server_t`` struct pointer implemented in a
+``__attribute__((constructor))`` marked function, see
+``suricatta/server_hawkbit.c`` as example.
 
 The type ``server_op_res_t`` is defined in ``include/suricatta/suricatta.h``.
 It represents the valid function return codes for a server's implementation.
@@ -133,10 +148,8 @@ one for hawkBit into the ``menu "Server"`` section is sufficient.
 
     config SURICATTA_HAWKBIT
         bool "hawkBit support"
-        depends on HAVE_LIBCURL
-        depends on HAVE_JSON_C
+        default y
         select JSON
-        select CURL
         help
           Support for hawkBit server.
           https://projects.eclipse.org/projects/iot.hawkbit
@@ -150,7 +163,7 @@ if ``SURICATTA_HAWKBIT`` was selected while configuring SWUpdate.
 .. code:: bash
 
     ifneq ($(CONFIG_SURICATTA_HAWKBIT),)
-    lib-$(CONFIG_SURICATTA) += server_hawkbit.o
+    obj-$(CONFIG_SURICATTA) += server_hawkbit.o
     endif
 
 
