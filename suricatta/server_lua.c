@@ -34,6 +34,7 @@
 #include <swupdate_settings.h>
 #include <swupdate_dict.h>
 #include "suricatta_private.h"
+#include "suricatta/server.h"
 
 #define CONFIG_SECTION "suricatta"
 
@@ -76,19 +77,6 @@ static channel_data_t channel_data_defaults = {
 	.nofollow = false,
 	.source = SOURCE_SURICATTA,
 };
-
-/*
- * Prototypes for "public" functions implementing the server
- * interface specified in include/suricatta/server.h.
- */
-void server_print_help(void);
-unsigned int server_get_polling_interval(void);
-server_op_res_t server_has_pending_action(int *action_id);
-server_op_res_t server_start(char *fname, int argc, char *argv[]);
-server_op_res_t server_stop(void);
-server_op_res_t server_install_update(void);
-server_op_res_t server_ipc(ipc_message *msg);
-server_op_res_t server_send_target_data(void);
 
 /* Global Lua state for this Suricatta Lua module implementation. */
 static lua_State *gL = NULL;
@@ -1827,7 +1815,7 @@ static int config_section_to_table(void *setting, void *data)
  * @param  argv   The array of arguments.
  * @return SERVER_OK, or, in case of errors, SERVER_EINIT or SERVER_EERR.
  */
-server_op_res_t server_start(char *fname, int argc, char *argv[])
+static server_op_res_t server_start(const char *fname, int argc, char *argv[])
 {
 	if (suricatta_lua_create() != SERVER_OK) {
 		suricatta_lua_destroy();
@@ -1873,7 +1861,7 @@ server_op_res_t server_start(char *fname, int argc, char *argv[])
  *
  * @return SERVER_OK or, in case of errors, any other from server_op_res_t.
  */
-server_op_res_t server_stop(void)
+static server_op_res_t server_stop(void)
 {
 	server_op_res_t result = map_lua_result(
 	    call_lua_func(gL, SURICATTA_FUNC_SERVER_STOP, 0));
@@ -1885,7 +1873,7 @@ server_op_res_t server_stop(void)
 /**
  * @brief Print the Suricatta Lua module's help text.
  */
-void server_print_help(void)
+static void server_print_help(void)
 {
 	if (suricatta_lua_create() != SERVER_OK) {
 		fprintf(stderr, "Error loading Suricatta Lua module.\n");
@@ -1908,7 +1896,7 @@ void server_print_help(void)
  *
  * @return Polling interval in seconds.
  */
-unsigned int server_get_polling_interval(void)
+static unsigned int server_get_polling_interval(void)
 {
 	int result = call_lua_func(gL, SURICATTA_FUNC_GET_POLLING_INTERVAL, 0);
 	return result >= 0 ? (unsigned int)result : CHANNEL_DEFAULT_POLLING_INTERVAL;
@@ -1923,7 +1911,7 @@ unsigned int server_get_polling_interval(void)
  *         in suricatta/suricatta.c, the others result in suricatta
  *         sleeping again.
  */
-server_op_res_t server_has_pending_action(int *action_id)
+static server_op_res_t server_has_pending_action(int *action_id)
 {
 	lua_pushnumber(gL, *action_id);
 	server_op_res_t result = map_lua_result(
@@ -1945,7 +1933,7 @@ server_op_res_t server_has_pending_action(int *action_id)
  *
  * @return SERVER_OK or, in case of errors, any other from server_op_res_t.
  */
-server_op_res_t server_install_update(void)
+static server_op_res_t server_install_update(void)
 {
 	return map_lua_result(call_lua_func(gL, SURICATTA_FUNC_INSTALL_UPDATE, 0));
 }
@@ -1956,7 +1944,7 @@ server_op_res_t server_install_update(void)
  *
  * @return SERVER_OK or, in case of errors, any other from server_op_res_t.
  */
-server_op_res_t server_send_target_data(void)
+static server_op_res_t server_send_target_data(void)
 {
 	return map_lua_result(call_lua_func(gL, SURICATTA_FUNC_SEND_TARGET_DATA, 0));
 }
@@ -1968,7 +1956,7 @@ server_op_res_t server_send_target_data(void)
  * @param  msg  IPC message.
  * @return SERVER_OK or, in case of errors, any other from server_op_res_t.
  */
-server_op_res_t server_ipc(ipc_message *msg)
+static server_op_res_t server_ipc(ipc_message *msg)
 {
 	lua_newtable(gL);
 	push_to_table(gL, "magic",      msg->magic);
@@ -2013,4 +2001,21 @@ server_op_res_t server_ipc(ipc_message *msg)
 		lua_pop(gL, 1);
 	}
 	return result;
+}
+
+static server_t server = {
+	.has_pending_action = &server_has_pending_action,
+	.install_update = &server_install_update,
+	.send_target_data = &server_send_target_data,
+	.get_polling_interval = &server_get_polling_interval,
+	.start = &server_start,
+	.stop = &server_stop,
+	.ipc = &server_ipc,
+	.help = &server_print_help,
+};
+
+__attribute__((constructor))
+static void register_server_lua(void)
+{
+	register_server("lua", &server);
 }

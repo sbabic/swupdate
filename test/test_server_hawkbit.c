@@ -118,7 +118,6 @@ update_state_t __wrap_get_state(void)
 	return mock_type(update_state_t);
 }
 
-extern server_op_res_t server_has_pending_action(int *action_id);
 static void test_server_has_pending_action(void **state)
 {
 	(void)state;
@@ -194,7 +193,7 @@ static void test_server_has_pending_action(void **state)
 		    json_tokener_parse(json_reply_no_update));
 	will_return(__wrap_channel_get, CHANNEL_OK);
 	assert_int_equal(SERVER_NO_UPDATE_AVAILABLE,
-			 server_has_pending_action(&action_id));
+		server_hawkbit_funcs.has_pending_action(&action_id));
 
 	/* Test Case: Update Action available && !STATE_INSTALLED. */
 	will_return(__wrap_channel_get,
@@ -205,7 +204,7 @@ static void test_server_has_pending_action(void **state)
 	will_return(__wrap_channel_get, CHANNEL_OK);
 	will_return(__wrap_get_state, STATE_NOT_AVAILABLE);
 	assert_int_equal(SERVER_UPDATE_AVAILABLE,
-			 server_has_pending_action(&action_id));
+		server_hawkbit_funcs.has_pending_action(&action_id));
 
 	/* Test Case: Update Action available && STATE_INSTALLED. */
 	will_return(__wrap_channel_get,
@@ -216,7 +215,7 @@ static void test_server_has_pending_action(void **state)
 	will_return(__wrap_channel_get, CHANNEL_OK);
 	will_return(__wrap_get_state, STATE_INSTALLED);
 	assert_int_equal(SERVER_NO_UPDATE_AVAILABLE,
-			 server_has_pending_action(&action_id));
+		server_hawkbit_funcs.has_pending_action(&action_id));
 
 	/* Test Case: Cancel Action available. */
 	will_return(__wrap_channel_get,
@@ -227,7 +226,8 @@ static void test_server_has_pending_action(void **state)
 	will_return(__wrap_channel_get, CHANNEL_OK);
 	will_return(__wrap_channel_put, CHANNEL_OK);
 	will_return(__wrap_save_state, 0);
-	assert_int_equal(SERVER_OK, server_has_pending_action(&action_id));
+	assert_int_equal(SERVER_OK,
+		server_hawkbit_funcs.has_pending_action(&action_id));
 }
 
 extern server_op_res_t server_set_polling_interval_json(json_object *json_root);
@@ -374,7 +374,6 @@ static void test_server_process_update_artifact(void **state)
 #endif
 }
 
-extern server_op_res_t server_install_update(void);
 static void test_server_install_update(void **state)
 {
 	(void)state;
@@ -496,7 +495,7 @@ static void test_server_install_update(void **state)
 	will_return(__wrap_channel_get, CHANNEL_OK);
 	will_return(__wrap_channel_put, CHANNEL_OK);
 	will_return(__wrap_channel_put, CHANNEL_OK);
-	server_install_update();
+	server_hawkbit_funcs.install_update();
 
 	/* Test Case: Update works. */
 	json_data_update_available =
@@ -523,7 +522,7 @@ static void test_server_install_update(void **state)
 	will_return(__wrap_channel_put, CHANNEL_OK);
 	//will_return(__wrap_save_state, SERVER_OK);
 	will_return(__wrap_channel_put, CHANNEL_OK);
-	assert_int_equal(SERVER_OK, server_install_update());
+	assert_int_equal(SERVER_OK, server_hawkbit_funcs.install_update());
 }
 
 static int server_hawkbit_setup(void **state)

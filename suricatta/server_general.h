@@ -29,4 +29,3 @@ typedef struct {
 	channel_t *channel;
 } server_general_t;
 
-extern server_general_t server_general;

@@ -10,6 +10,7 @@
 #include <state.h>
 #include <swupdate_dict.h>
 #include <channel.h>
+#include "suricatta/server.h"
 
 /* Have a queue for errors reported by installer */
 #define HAWKBIT_MAX_REPORTED_ERRORS	10
@@ -50,6 +51,8 @@ typedef struct {
 } server_hawkbit_t;
 
 extern server_hawkbit_t server_hawkbit;
+
+extern server_t server_hawkbit_funcs;
 
 static const struct {
 	const char *closed;
