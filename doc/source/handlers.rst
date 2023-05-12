@@ -985,7 +985,8 @@ supported:
    | fstype      | string   | Optional filesystem type to be created on the      |
    |             |          | partition. If no fstype key is given, no file      |
    |             |          | will be created on the corresponding partition.    |
-   |             |          | vfat / ext2 / ext3 /ext4 file system is supported  |
+   |             |          | vfat / ext2 / ext3 /ext4 / btrfs                   | 
+   |             |          | file system is supported                           | 
    +-------------+----------+----------------------------------------------------+
    | partuuid    | string   | The partition UUID (GPT only). If omitted, a UUID  |
    |             |          | will be generated automatically.			 |
@@ -1151,6 +1152,30 @@ found on the device. It is a partition handler and it runs before any image is i
                                    "18e12df1-d8e1-4283-8727-37727eb4261d"];
 		}
 	});
+
+BTRFS Handler
+-------------
+
+This handler is activated if support for BTRFS is on. It allows to created and delete subvolumes
+during an update.
+
+::
+
+	partitions: (
+	{
+		type = "btrfs";
+		device = "/dev/loop0p1";
+
+		properties: {
+			command = < one of create" or "delete" >
+			path = <path for the subvolume>;
+                        mount = "true" or missing;
+		}
+	})
+
+
+If `mount` is set, SWUpdate will mount the device and the path is appenden to the
+mountpoint used with mount. If device is already mounted, path is the absolute path.
 
 Delta Update Handler
 --------------------
