@@ -66,6 +66,10 @@ ifeq ($(HAVE_LIBEXT2FS),)
 export HAVE_LIBEXT2FS = y
 endif
 
+ifeq ($(HAVE_LIBBTRFS),)
+export HAVE_LIBBTRFS = y
+endif
+
 ifeq ($(HAVE_LIBSSL),)
 export HAVE_LIBSSL = y
 endif

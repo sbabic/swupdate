@@ -193,6 +193,10 @@ ifeq ($(CONFIG_EXT_FILESYSTEM),y)
 LDLIBS += ext2fs uuid blkid
 endif
 
+ifeq ($(CONFIG_BTRFS_FILESYSTEM),y)
+LDLIBS += mkfsbtrfs btrfs btrfsutil udev
+endif
+
 ifeq ($(CONFIG_UNIQUEUUID),y)
 LDLIBS += blkid
 endif

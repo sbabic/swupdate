@@ -33,6 +33,9 @@ static struct supported_filesystems fs[] = {
 	{"ext3", ext_mkfs_short},
 	{"ext4", ext_mkfs_short},
 #endif
+#if defined(CONFIG_BTRFS_FILESYSTEM)
+	{"btrfs", btrfs_mkfs},
+#endif
 };
 
 /*

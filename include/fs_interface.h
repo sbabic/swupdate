@@ -21,4 +21,7 @@ extern int ext_mkfs(const char *device_name, const char *fstype, unsigned long f
 		const char *volume_label);
 #endif
 
+#if defined (CONFIG_BTRFS_FILESYSTEM) 
+extern int btrfs_mkfs(const char *device_name, const char *fstype);
+#endif
 #endif

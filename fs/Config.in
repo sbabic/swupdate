@@ -18,4 +18,14 @@ config EXT_FILESYSTEM
 
 comment "EXT2 / EXT3 / EXT4 file system creation support needs libext2fs"
 	depends on !HAVE_LIBEXT2FS
+
+config BTRFS_FILESYSTEM
+	bool "BTRFS file system creation support"
+	depends on HAVE_LIBBTRFS
+	default n
+	help
+	  Enable support for creating BTRFS file systems.
+
+comment "BTRFS file system creation support needs libbtrfs libbtrfsutil"
+	depends on !HAVE_LIBBTRFS
 endif
