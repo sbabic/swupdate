@@ -28,4 +28,16 @@ config BTRFS_FILESYSTEM
 
 comment "BTRFS file system creation support needs libbtrfs libbtrfsutil"
 	depends on !HAVE_LIBBTRFS
+
+config BTRFS_FILESYSTEM_USELIBMKFS
+	bool "Use modified source from btrfs tool to be linked as lib"
+	depends on HAVE_LIBBTRFS
+	default n
+	help
+	  This requires at the moment a patched version of btrfs-tool to export
+	  mkfs.btrf as library.
+
+comment "BTRFS file system creation support needs libbtrfs libbtrfsutil"
+	depends on !HAVE_LIBBTRFS
+
 endif

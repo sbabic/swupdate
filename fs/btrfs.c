@@ -28,7 +28,6 @@ extern int mkfs_main(int argc, const char **argv);
 int btrfs_mkfs(const char *device_name, const char __attribute__ ((__unused__)) *fstype)
 {
 	int fd, ret;
-	int argc;
 	const char *argv[3] = { "mkfs.btrfs", "-f", NULL };
 
 	if (!device_name)
@@ -44,9 +43,21 @@ int btrfs_mkfs(const char *device_name, const char __attribute__ ((__unused__)) 
 
 	optind = 1;
 	argv[2] = device_name;
+
+#if defined(CONFIG_BTRFS_FILESYSTEM_USELIBMKFS)
+	int argc;
 	argc = 3;
-
 	ret = run_function_background(mkfs_main, argc, (char **)argv);
+#else
+	char *cmd;
 
+	if (asprintf(&cmd, "%s %s %s\n", argv[0], argv[1], argv[2]) == -1) {
+		ERROR("Error allocating memory");
+		return -ENOMEM;
+	}
+
+	ret = run_system_cmd(cmd);
+
+#endif
 	return ret;
 }
