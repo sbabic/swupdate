@@ -106,7 +106,7 @@ static void send_progress_msg(void)
 	}
 }
 
-static void _swupdate_download_update(unsigned int perc, unsigned long long totalbytes)
+static void _swupdate_download_update(unsigned int perc, unsigned long long totalbytes, sourcetype source)
 {
 	/*
 	 * TODO: totalbytes should be forwarded correctly
@@ -116,6 +116,7 @@ static void _swupdate_download_update(unsigned int perc, unsigned long long tota
 	pthread_mutex_lock(&pprog->lock);
 	if (perc != pprog->msg.dwl_percent) {
 		pprog->msg.status = DOWNLOAD;
+		pprog->msg.source = source;
 		pprog->msg.dwl_percent = perc;
 		pprog->msg.dwl_bytes = totalbytes;
 		send_progress_msg();
@@ -158,7 +159,7 @@ void swupdate_progress_update(unsigned int perc)
 	pthread_mutex_unlock(&pprog->lock);
 }
 
-void swupdate_download_update(unsigned int perc, unsigned long long totalbytes)
+void swupdate_download_update(unsigned int perc, unsigned long long totalbytes, sourcetype source)
 {
 	char	info[PRINFOSIZE];   		/* info */
 
@@ -172,13 +173,13 @@ void swupdate_download_update(unsigned int perc, unsigned long long totalbytes)
 		 * and decode them in the notifier, in this case
 		 * the progress_notifier
 		 */
-		snprintf(info, sizeof(info) - 1, "%d-%llu", perc, totalbytes);
+		snprintf(info, sizeof(info) - 1, "%d-%llu-%d", perc, totalbytes, source);
 		notify(PROGRESS, RECOVERY_DWL, TRACELEVEL, info);
 		return;
 	}
 
 	/* Called by main process, emit a progress message */
-	_swupdate_download_update(perc, totalbytes);
+	_swupdate_download_update(perc, totalbytes, source);
 }
 
 void swupdate_progress_inc_step(const char *image, const char *handler_name)

@@ -20,6 +20,7 @@
 #include <pthread.h>
 
 #include "bsdqueue.h"
+#include "swupdate_status.h"
 #include "util.h"
 #include "pctl.h"
 #include "progress.h"
@@ -351,15 +352,17 @@ static void progress_notifier (RECOVERY_STATUS status, int event, int level, con
 {
 	int dwl_percent = 0;
 	unsigned long long dwl_bytes = 0;
+	sourcetype source = SOURCE_UNKNOWN;
 	(void)level;
 
 	/* Check just in case a process want to send an info outside */
 	if (status != PROGRESS)
 	       return;
 
-	if (event == RECOVERY_DWL && (sscanf(msg, "%d-%llu", &dwl_percent, &dwl_bytes) == 2)) {
-		swupdate_download_update(dwl_percent, dwl_bytes);
-		return;
+	if (event == RECOVERY_DWL &&
+	    (sscanf(msg, "%d-%llu-%d", &dwl_percent, &dwl_bytes, (int *)&source) == 3)) {
+	       swupdate_download_update(dwl_percent, dwl_bytes, source);
+	       return;
 	}
 
 	swupdate_progress_info(status, event, msg);

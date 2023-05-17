@@ -59,6 +59,7 @@ typedef struct {
 typedef struct {
 	curl_off_t total_download_size;
 	uint8_t percent;
+	sourcetype source; /* SWUpdate module that triggered the download. */
 } download_callback_data_t;
 
 
@@ -455,7 +456,7 @@ static int channel_callback_xferinfo(void *p, curl_off_t dltotal, curl_off_t dln
 	DEBUG("Downloaded %d%% (%zu of %zu kB).", percent,
 		(size_t)dlnow / 1024,
 		(size_t)dltotal / 1024);
-	swupdate_download_update(percent, dltotal);
+	swupdate_download_update(percent, dltotal, data->source);
 
 	return 0;
 }
@@ -1200,6 +1201,8 @@ channel_op_res_t channel_get_file(channel_t *this, void *data)
 	}
 
 	download_callback_data_t download_data;
+	download_data.source = channel_data->source;
+
 	/*
 	 * In case of range do not ask the server for file size
 	 */

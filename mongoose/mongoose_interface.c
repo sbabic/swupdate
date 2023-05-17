@@ -10,6 +10,7 @@
  * SPDX-License-Identifier: GPL-2.0-only
  */
 
+#include "swupdate_status.h"
 #define _XOPEN_SOURCE 600  // For PATH_MAX on linux
 
 #include <stddef.h>
@@ -583,7 +584,7 @@ static void upload_handler(struct mg_connection *nc, int ev, void *ev_data,
 				break;
 			}
 
-			swupdate_download_update(0, mp->len);
+			swupdate_download_update(0, mp->len, SOURCE_WEBSERVER);
 
 			if (swupdate_file_setnonblock(fus->fd, true)) {
 				WARN("IPC cannot be set in non-blocking, fallback to block mode");
@@ -636,7 +637,7 @@ static void upload_handler(struct mg_connection *nc, int ev, void *ev_data,
 			percent = (uint8_t)(100.0 * ((double)fus->len / (double)mp->len));
 			if (percent != fus->percent) {
 				fus->percent = percent;
-				swupdate_download_update(fus->percent, mp->len);
+				swupdate_download_update(fus->percent, mp->len, SOURCE_WEBSERVER);
 			}
 
 			fus->last_io_time = mg_millis();
