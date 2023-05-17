@@ -1569,7 +1569,31 @@ static int suricatta_lua_module(lua_State *L)
 	lua_newtable(L);
 	luaL_setfuncs(L, lua_funcs_bootloader_env, 0);
 	lua_settable(L, -3);
+	lua_settable(L, -3);
 
+	lua_pushstring(L, "ipc");
+	lua_newtable(L);
+	lua_pushstring(L, "sourcetype");
+	lua_newtable(L);
+	push_to_table(L, "SOURCE_UNKNOWN", SOURCE_UNKNOWN);
+	push_to_table(L, "SOURCE_WEBSERVER", SOURCE_WEBSERVER);
+	push_to_table(L, "SOURCE_SURICATTA", SOURCE_SURICATTA);
+	push_to_table(L, "SOURCE_DOWNLOADER", SOURCE_DOWNLOADER);
+	push_to_table(L, "SOURCE_LOCAL", SOURCE_LOCAL);
+	push_to_table(L, "SOURCE_CHUNKS_DOWNLOADER", SOURCE_CHUNKS_DOWNLOADER);
+	lua_settable(L, -3);
+	lua_pushstring(L, "RECOVERY_STATUS");
+	lua_newtable(L);
+	push_to_table(L, "IDLE", IDLE);
+	push_to_table(L, "START", START);
+	push_to_table(L, "RUN", RUN);
+	push_to_table(L, "SUCCESS", SUCCESS);
+	push_to_table(L, "FAILURE", FAILURE);
+	push_to_table(L, "DOWNLOAD", DOWNLOAD);
+	push_to_table(L, "DONE", SUBPROCESS);
+	push_to_table(L, "SUBPROCESS", SUBPROCESS);
+	push_to_table(L, "PROGRESS", PROGRESS);
+	lua_settable(L, -3);
 	lua_settable(L, -3);
 
 	lua_pushstring(L, "status");

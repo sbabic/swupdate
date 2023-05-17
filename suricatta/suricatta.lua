@@ -386,4 +386,76 @@ suricatta.get_tmpdir = function() end
 suricatta.getversion = function() end
 
 
+--- SWUpdate IPC types and definitions.
+--
+--- @class suricatta.ipc
+suricatta.ipc = {}
+
+--- @enum suricatta.ipc.sourcetype
+--- Lua equivalent of `sourcetype` as in `include/swupdate_status.h`.
+suricatta.ipc.sourcetype = {
+    SOURCE_UNKNOWN           = 0,
+    SOURCE_WEBSERVER         = 1,
+    SOURCE_SURICATTA         = 2,
+    SOURCE_DOWNLOADER        = 3,
+    SOURCE_LOCAL             = 4,
+    SOURCE_CHUNKS_DOWNLOADER = 5
+}
+
+--- @enum suricatta.ipc.RECOVERY_STATUS
+--- Lua equivalent of `RECOVERY_STATUS` as in `include/swupdate_status.h`.
+suricatta.ipc.RECOVERY_STATUS = {
+    IDLE       = 0,
+    START      = 1,
+    RUN        = 2,
+    SUCCESS    = 3,
+    FAILURE    = 4,
+    DOWNLOAD   = 5,
+    DONE       = 6,
+    SUBPROCESS = 7,
+    PROGRESS   = 8
+}
+
+--- Lua-alike of `progress_msg` as in `include/progress_ipc.h`.
+--
+--- @class suricatta.ipc.progress_msg
+--- @field magic        number                         SWUpdate IPC magic number
+--- @field status       suricatta.ipc.RECOVERY_STATUS  Update status
+--- @field dwl_percent  number                         Percent of downloaded data
+--- @field nsteps       number                         Total steps count
+--- @field cur_step     number                         Current step
+--- @field cur_percent  number                         Percent in current step
+--- @field cur_image    string                         Name of the current image to be installed (max: 256 chars)
+--- @field hnd_name     string                         Name of the running handler (max: 64 chars)
+--- @field source       suricatta.ipc.sourcetype       The source that has triggered the update
+--- @field info         string                         Additional information about the installation (max: 2048 chars)
+--- @field jsoninfo     table                          If `info` is JSON, according Lua Table
+
+--- Lua enum of IPC commands as in `include/network_ipc.h`.
+--
+-- `CMD_ENABLE` is not passed through and hence not in `ipc_commands`
+-- as it's handled directly in `suricatta/suricatta.c`.
+--
+--- @type  {[string]: number}
+--- @class suricatta.ipc.ipc_commands
+--- @field ACTIVATION  number  0
+--- @field CONFIG      number  1
+--- @field GET_STATUS  number  3
+
+--- Lua-alike of `ipc_message` as in `include/network_ipc.h`.
+--
+-- Note: Some members are deliberately not passed through to the Lua
+-- realm such as `ipc_message.data.len` since that's transparently
+-- handled by the C-to-Lua bridge.
+-- Note: This is not a direct equivalent but rather a "sensible" selection
+-- as, e.g., the `json` field is not present in `struct ipc_message`.
+--
+--- @class suricatta.ipc.ipc_message
+--- @field magic     number                      SWUpdate IPC magic number
+--- @field commands  suricatta.ipc.ipc_commands  IPC commands
+--- @field cmd       number                      Command number, one of `ipc_commands`'s values
+--- @field msg       string                      String data sent via IPC
+--- @field json      table                       If `msg` is JSON, JSON as Lua Table
+
+
 return suricatta

@@ -252,49 +252,6 @@ end
 -- suricatta.server.register(check_cancel_callback, suricatta.server.CALLBACK_CHECK_CANCEL)
 
 
---- Lua equivalent of `sourcetype` as in `include/swupdate_status.h`.
---
---- @type table<string, number>
---- @class sourcetype
---- @field SOURCE_UNKNOWN            number  0
---- @field SOURCE_WEBSERVER          number  1
---- @field SOURCE_SURICATTA          number  2
---- @field SOURCE_DOWNLOADER         number  3
---- @field SOURCE_LOCAL              number  4
---- @field SOURCE_CHUNKS_DOWNLOADER  number  5
-
-
---- Lua equivalent of `RECOVERY_STATUS` as in `include/swupdate_status.h`.
---
---- @type table<string, number>
---- @class RECOVERY_STATUS
---- @field IDLE        number  0
---- @field START       number  1
---- @field RUN         number  2
---- @field SUCCESS     number  3
---- @field FAILURE     number  4
---- @field DOWNLOAD    number  5
---- @field DONE        number  6
---- @field SUBPROCESS  number  7
---- @field PROGRESS    number  8
-
-
---- Lua equivalent of `progress_msg` as in `include/progress_ipc.h`.
---
---- @class progress_msg
---- @field magic        number           SWUpdate IPC magic number
---- @field status       RECOVERY_STATUS  Update status
---- @field dwl_percent  number           Percent of downloaded data
---- @field nsteps       number           Total steps count
---- @field cur_step     number           Current step
---- @field cur_percent  number           Percent in current step
---- @field cur_image    string           Name of the current image to be installed
---- @field hnd_name     string           Name of the running handler
---- @field source       sourcetype       The source that has triggered the update
---- @field info         string           Additional information about the installation
---- @field jsoninfo     table            If `info` is JSON, according Lua Table
-
-
 --- Progress thread callback handling progress reporting to remote.
 --
 -- Deliberately just uploading the JSON content while not respecting
@@ -306,8 +263,8 @@ end
 -- is suspended in the call to suricatta.{install,download}(). While this is
 -- safe, both callback functions should take care not to starve each other.
 --
---- @param  message  progress_msg  The progress message
---- @return suricatta.status       # Suricatta return code
+--- @param  message  suricatta.ipc.progress_msg  The progress message
+--- @return suricatta.status                     # Suricatta return code
 function progress_callback(message)
     if not gs.channel.progress then
         return suricatta.status.OK
@@ -560,40 +517,13 @@ end
 suricatta.server.register(send_target_data, suricatta.server.SEND_TARGET_DATA)
 
 
---- Lua "enum" of IPC commands as in `include/network_ipc.h`
---
--- `CMD_ENABLE` is not passed through and hence not in `ipc_commands` as
--- it's handled directly in `suricatta/suricatta.c`.
---
---- @type  table<string, number>
---- @class ipc_commands
---- @field ACTIVATION  number  0
---- @field CONFIG      number  1
---- @field GET_STATUS  number  3
-
---- Lua-alike of `ipc_message` as in `include/network_ipc.h`
---
--- Note: Some members are deliberately not passed through to the Lua realm
--- such as `ipc_message.data.len` as that's handled by the C-to-Lua bridge
--- transparently.
--- Also, this is not a direct equivalent as, e.g., the `json` field is not
--- present in `struct ipc_message`, but rather it's a "sensible" selection.
---
---- @class ipc_message
---- @field magic     number        SWUpdate IPC magic number
---- @field commands  ipc_commands  IPC commands
---- @field cmd       number        Command number, one of `ipc_commands`'s values
---- @field msg       string        String data sent via IPC
---- @field json      table         If `msg` is JSON, JSON as Lua Table
-
-
 --- Handle IPC messages sent to Suricatta Lua module.
 --
 -- Lua counterpart of `server_op_res_t server_ipc(ipc_message *msg)`.
 --
---- @param  message  ipc_message  The IPC message sent
---- @return string                # IPC reply string
---- @return suricatta.status      # Suricatta return code
+--- @param  message  suricatta.ipc.ipc_message  The IPC message sent
+--- @return string                              # IPC JSON reply string
+--- @return suricatta.status                    # Suricatta return code
 function ipc(message)
     if not (message or {}).json then
         return escape([[{ "request": "IPC requests must be JSON formatted" }]], { ['"'] = '"' }),
