@@ -717,49 +717,45 @@ static int channel_do_operation(lua_State *L, channel_method_t op)
 	push_result(L, result);
 	lua_pushnumber(L, result);
 	lua_newtable(L);
-	if (op == CHANNEL_GET || channel_data.method == CHANNEL_POST ||
-	    channel_data.method == CHANNEL_PATCH) {
-		push_to_table(L, "http_response_code", channel_data.http_response_code);
-		push_to_table(L, "format",             channel_data.format);
-		#ifdef CONFIG_JSON
-		if (channel_data.format == CHANNEL_PARSE_JSON) {
-			lua_pushstring(L, "json_reply");
-			if (!channel_data.json_reply ||
-			    !json_to_table(L, channel_data.json_reply)) {
-				lua_pushnil(L);
-			}
-			lua_settable(L, -3);
-
-			if (channel_data.json_reply &&
-			    json_object_put(channel_data.json_reply) != 1) {
-				ERROR("JSON object should be freed but was not.");
-			}
+	push_to_table(L, "http_response_code", channel_data.http_response_code);
+	push_to_table(L, "format",             channel_data.format);
+	#ifdef CONFIG_JSON
+	if (channel_data.format == CHANNEL_PARSE_JSON) {
+		lua_pushstring(L, "json_reply");
+		if (!channel_data.json_reply ||
+			!json_to_table(L, channel_data.json_reply)) {
+			lua_pushnil(L);
 		}
-		#endif
-		if (channel_data.format == CHANNEL_PARSE_RAW) {
-			lua_pushstring(L, "raw_reply");
-			if (!channel_data.raw_reply) {
-				lua_pushnil(L);
-			} else {
-				lua_pushstring(L, channel_data.raw_reply);
-				free(channel_data.raw_reply);
-			}
-			lua_settable(L, -3);
-		}
+		lua_settable(L, -3);
 
-		lua_pushstring(L, "received_headers");
-		lua_newtable(L);
-		if (!LIST_EMPTY(channel_data.received_headers)) {
-			struct dict_entry *entry;
-			LIST_FOREACH(entry, channel_data.received_headers, next) {
-				lua_pushstring(L, dict_entry_get_key(entry));
-				lua_pushstring(L, dict_entry_get_value(entry));
-				lua_settable(L, -3);
-			}
+		if (channel_data.json_reply &&
+			json_object_put(channel_data.json_reply) != 1) {
+			ERROR("JSON object should be freed but was not.");
+		}
+	}
+	#endif
+	if (channel_data.format == CHANNEL_PARSE_RAW) {
+		lua_pushstring(L, "raw_reply");
+		if (!channel_data.raw_reply) {
+			lua_pushnil(L);
+		} else {
+			lua_pushstring(L, channel_data.raw_reply);
+			free(channel_data.raw_reply);
 		}
 		lua_settable(L, -3);
 	}
 
+	lua_pushstring(L, "received_headers");
+	lua_newtable(L);
+	if (!LIST_EMPTY(channel_data.received_headers)) {
+		struct dict_entry *entry;
+		LIST_FOREACH(entry, channel_data.received_headers, next) {
+			lua_pushstring(L, dict_entry_get_key(entry));
+			lua_pushstring(L, dict_entry_get_value(entry));
+			lua_settable(L, -3);
+		}
+	}
+	lua_settable(L, -3);
 	dict_drop_db(&header_send);
 	dict_drop_db(&header_receive);
 

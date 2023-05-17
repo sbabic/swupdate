@@ -342,6 +342,8 @@ channel_op_res_t channel_map_http_code(channel_t *this, long *http_response_code
 	case 429: /* Bad Request, i.e., too many requests. Try again later. */
 		return CHANNEL_EAGAIN;
 	case 200:
+	case 201:
+	case 204:
 	case 206:
 	case 226:
 		return CHANNEL_OK;
@@ -1103,7 +1105,7 @@ static channel_op_res_t channel_put_method(channel_t *this, void *data)
 
 	CURLcode curlrc = curl_easy_perform(channel_curl->handle);
 	if (curlrc != CURLE_OK) {
-		ERROR("Channel put operation failed (%d): '%s'", curlrc,
+		ERROR("Channel PUT operation failed (%d): '%s'", curlrc,
 		      curl_easy_strerror(curlrc));
 		result = channel_map_curl_error(curlrc);
 		goto cleanup_header;
@@ -1116,7 +1118,11 @@ static channel_op_res_t channel_put_method(channel_t *this, void *data)
 	if (channel_data->nocheckanswer)
 		goto cleanup_header;
 
-	channel_log_reply(result, channel_data, NULL);
+	channel_log_reply(result, channel_data, &outdata);
+
+	if (result == CHANNEL_OK) {
+	    result = parse_reply(channel_data, &outdata);
+	}
 
 cleanup_header:
 	outdata.memory != NULL ? free(outdata.memory) : (void)0;

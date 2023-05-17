@@ -1590,6 +1590,7 @@ static server_op_res_t server_send_target_data(void)
 	}
 
 	channel_data_reply.url = url;
+	channel_data_reply.format = CHANNEL_PARSE_NONE;
 	channel_data_reply.request_body = json_reply_string;
 	TRACE("URL=%s JSON=%s", channel_data_reply.url, channel_data_reply.request_body);
 	channel_data_reply.method = CHANNEL_PUT;

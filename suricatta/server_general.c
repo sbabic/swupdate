@@ -324,6 +324,9 @@ static void *server_progress_thread (void *data)
 		if (logbuffer) {
 			channel_data.request_body = logbuffer;
 			channel_data.method = CHANNEL_PUT;
+			/* .format is already specified in channel_data_defaults,
+			 * but being explicit doesn't hurt. */
+			channel_data.format = CHANNEL_PARSE_NONE;
 			channel_data.content_type = "application/text";
 			result = map_channel_retcode(channel->put(channel, (void *)&channel_data));
 			if (result != SERVER_OK)
