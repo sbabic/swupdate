@@ -5,6 +5,7 @@
 menuconfig SURICATTA
 	bool "Suricatta"
 	depends on HAVE_LIBCURL
+	select CHANNEL_CURL
 	help
 	  Suricatta is a daemon mode of SWUpdate.
 
@@ -34,17 +35,10 @@ endmenu
 
 menu "Server"
 
-choice
-	prompt "Server Type"
-	default SURICATTA_HAWKBIT
-	help
-	  Choose the server type. Currently, just hawkBit is
-	  supported.
-
 config SURICATTA_HAWKBIT
 	bool "hawkBit support"
+	default y
 	depends on HAVE_JSON_C
-	select CHANNEL_CURL
 	select JSON
 	help
 	  Support for hawkBit server.
@@ -55,9 +49,10 @@ comment "hawkBit support needs json-c"
 
 config SURICATTA_LUA
 	bool "Suricatta Lua module"
-	depends on HAVE_LIBCURL
 	depends on HAVE_LUA
-	select CHANNEL_CURL
+	depends on HAVE_JSON_C
+	select LUA
+	select JSON
 	help
 	  Support for Suricatta modules in Lua.
 
@@ -65,7 +60,10 @@ config SURICATTA_LUA
 	  provides JSON as Lua Tables to the Lua realm and
 	  enables channel result parsing to JSON per default.
 	  To enable, select 'libjson' in 'Parser Features'.
-	
+
+comment "Suricatta Lua module support needs Lua and json-c"
+	depends on !HAVE_LUA || !HAVE_JSON_C
+
 config EMBEDDED_SURICATTA_LUA
 	bool "Embed Suricatta Lua module in SWUpdate binary"
 	depends on SURICATTA_LUA
@@ -90,23 +88,17 @@ config EMBEDDED_SURICATTA_LUA_SOURCE
 	  Path to the Suricatta Lua module source code file to
 	  be embedded into the SWUpdate binary.
 
-comment "Suricatta Lua module support needs libcurl and Lua"
-	depends on !HAVE_LIBCURL || !HAVE_LUA
-
-comment "Suricatta Lua module JSON support needs json-c"
-	depends on SURICATTA_LUA && !JSON
-
 config SURICATTA_GENERAL
 	bool "General HTTP support"
 	depends on HAVE_JSON_C
-	select CHANNEL_CURL
 	select JSON
 	help
 	  Support for Simple HTTP coded server
 	  The server uses HTTP return codes to detect if an update
 	  is available. See documentation for more details.
 
-endchoice
+comment "General HTTP support needs json-c"
+	depends on !HAVE_JSON_C
 
 endmenu
 

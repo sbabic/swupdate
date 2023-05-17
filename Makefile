@@ -362,8 +362,8 @@ include $(srctree)/Makefile.flags
 # This allow a user to issue only 'make' to build a kernel including modules
 # Defaults to vmlinux, but the arch makefile usually adds further targets
 
-objs-y		:= core handlers bootloader
-libs-y		:= corelib mongoose parser suricatta fs
+objs-y		:= core handlers bootloader suricatta
+libs-y		:= corelib mongoose parser fs
 bindings-y	:= bindings
 tools-y		:= tools
 
