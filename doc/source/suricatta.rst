@@ -397,8 +397,8 @@ defaulting to ``ustate``. In addition, it captures the ``update_state_t`` enum v
 
 The function ``suricatta.pstate.save(state)`` requires one of ``suricatta.pstate``'s
 "enum" values as parameter and returns ``true``, or, in case of error, ``nil``.
-The function ``suricatta.pstate.get()`` returns ``true``, or, in case of error, ``nil``,
-plus one of ``suricatta.pstate``'s "enum" values in the former case.
+The function ``suricatta.pstate.get()`` returns one of ``suricatta.pstate``'s
+"enum" values or, in case of error, ``STATE_ERROR``.
 
 
 `suricatta.server`

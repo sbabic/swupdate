@@ -130,8 +130,7 @@ suricatta.pstate = {
 
 --- Get the current stored persistent state.
 --
---- @return boolean           # Whether operation was successful or not
---- @return suricatta.pstate  # Persistent state ID number
+--- @return number   # Persistent state ID number, suricatta.pstate.ERROR if unsuccessful
 suricatta.pstate.get = function() end
 
 --- Save persistent state information.

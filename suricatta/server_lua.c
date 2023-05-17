@@ -1458,20 +1458,13 @@ static int lua_bootloader_env_apply(lua_State *L)
 /**
  * @brief Get update state from persistent storage (bootloader).
  *
- * @return [Lua] True, or, in case of error, nil.
- *         [Lua] One of pstate's enum values.
+ * @return [Lua] One of pstate's enum values.
  */
 static int lua_pstate_get(lua_State *L)
 {
 	update_state_t state = get_state();
-	if (is_valid_state(state)) {
-		lua_pushboolean(L, true);
-		lua_pushinteger(L, (int)state);
-	} else {
-		lua_pushnil(L);
-		lua_pushnil(L);
-	}
-	return 2;
+	lua_pushinteger(L, is_valid_state(state) ? (int)state : STATE_ERROR);
+	return 1;
 }
 
 

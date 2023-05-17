@@ -171,8 +171,7 @@ gs = {
 function has_pending_action(action_id)
     action_id = action_id
     gs.polldelay.current = gs.polldelay.default
-    local _, pstate = suricatta.pstate.get()
-    if pstate == suricatta.pstate.INSTALLED then
+    if suricatta.pstate.get() == suricatta.pstate.INSTALLED then
         suricatta.notify.warn("An installed update is pending testing, not querying server.")
         return action_id, suricatta.status.NO_UPDATE_AVAILABLE
     end
