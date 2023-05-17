@@ -167,23 +167,23 @@ typedef struct {
 	 __builtin_choose_expr(__builtin_types_compatible_p( \
 		typeof(name), char*          ), lua_pushstring, \
 	 __builtin_choose_expr(__builtin_types_compatible_p( \
-		typeof(name), int            ), lua_pushnumber, \
+		typeof(name), int            ), lua_pushinteger, \
 	 (void)0)))(L, name) \
 	); \
 	(__builtin_choose_expr(__builtin_types_compatible_p( \
 		typeof(value), bool          ), lua_pushboolean, \
 	 __builtin_choose_expr(__builtin_types_compatible_p( \
-		typeof(value), unsigned int  ), lua_pushnumber, \
+		typeof(value), unsigned int  ), lua_pushinteger, \
 	 __builtin_choose_expr(__builtin_types_compatible_p( \
-		typeof(value), int           ), lua_pushnumber, \
+		typeof(value), int           ), lua_pushinteger, \
 	 __builtin_choose_expr(__builtin_types_compatible_p( \
-		typeof(value), long long     ), lua_pushnumber, \
+		typeof(value), long long     ), lua_pushinteger, \
 	 __builtin_choose_expr(__builtin_types_compatible_p( \
-		typeof(value), long          ), lua_pushnumber, \
+		typeof(value), long          ), lua_pushinteger, \
 	 __builtin_choose_expr(__builtin_types_compatible_p( \
 		typeof(value), double        ), lua_pushnumber, \
 	 __builtin_choose_expr(__builtin_types_compatible_p( \
-		typeof(value), channel_body_t), lua_pushnumber, \
+		typeof(value), channel_body_t), lua_pushinteger, \
 	 __builtin_choose_expr(__builtin_types_compatible_p( \
 		typeof(value), char[]         ), lua_pushstring, \
 	 __builtin_choose_expr(__builtin_types_compatible_p( \
@@ -299,8 +299,10 @@ static int json_push_to_table(lua_State *L, json_object *jsobj)
 		lua_pushboolean(L, json_object_get_boolean(jsobj));
 		break;
 	case json_type_double:
-	case json_type_int:
 		lua_pushnumber(L, json_object_get_int(jsobj));
+		break;
+	case json_type_int:
+		lua_pushinteger(L, json_object_get_int(jsobj));
 		break;
 	case json_type_null:
 		/* Lua has no notion of 'null', mimic it by an empty Table. */
@@ -348,7 +350,7 @@ static int json_to_table_callback(json_object *jsobj, int flags,
 	}
 	if (jsobj_index && !jsobj_key) {
 		/* Visiting array element: push to Lua "Array" Table part. */
-		lua_pushnumber(L, (int)*jsobj_index + 1);
+		lua_pushinteger(L, (int)*jsobj_index + 1);
 	} else {
 		/* Visiting object element: push to Lua "Dict" Table part. */
 		lua_pushstring(L, jsobj_key);
@@ -675,7 +677,7 @@ static int channel_do_operation(lua_State *L, channel_method_t op)
 	if (!udc->channel) {
 		ERROR("Called GET/PUT channel operation on a closed channel.");
 		lua_pushnil(L);
-		lua_pushnumber(L, SERVER_EINIT);
+		lua_pushinteger(L, SERVER_EINIT);
 		lua_newtable(L);
 		return 3;
 	}
@@ -715,7 +717,7 @@ static int channel_do_operation(lua_State *L, channel_method_t op)
 
 	/* Assemble result for passing back to the Lua realm. */
 	push_result(L, result);
-	lua_pushnumber(L, result);
+	lua_pushinteger(L, result);
 	lua_newtable(L);
 	push_to_table(L, "http_response_code", channel_data.http_response_code);
 	push_to_table(L, "format",             channel_data.format);
@@ -1146,7 +1148,7 @@ static void do_install(lua_State *L, int fdout)
 		result = iresult == FAILURE ? SERVER_EERR : SERVER_OK;
 	}
 	push_result(L, result);
-	lua_pushnumber(L, result);
+	lua_pushinteger(L, result);
 	lua_newtable(L);
 	if (ipc_journal) {
 		const char **iter = ipc_journal;
@@ -1162,7 +1164,7 @@ static void do_install(lua_State *L, int fdout)
 	goto done;
 error:
 	lua_pushnil(L);
-	lua_pushnumber(L, SERVER_EINIT);
+	lua_pushinteger(L, SERVER_EINIT);
 	lua_newtable(L);
 done:
 	if (callback_data.progress_msgq_lock) {
@@ -1219,7 +1221,7 @@ static int lua_suricatta_download(lua_State *L)
 		ERROR("Cannot open %s for writing.", luaL_checkstring(L, -1));
 		lua_pop(L, 2);
 		lua_pushnil(L);
-		lua_pushnumber(L, SERVER_EINIT);
+		lua_pushinteger(L, SERVER_EINIT);
 		lua_newtable(L);
 		return 3;
 	}
@@ -1464,7 +1466,7 @@ static int lua_pstate_get(lua_State *L)
 	update_state_t state = get_state();
 	if (is_valid_state(state)) {
 		lua_pushboolean(L, true);
-		lua_pushnumber(L, (int)state);
+		lua_pushinteger(L, (int)state);
 	} else {
 		lua_pushnil(L);
 		lua_pushnil(L);
@@ -1933,7 +1935,7 @@ static unsigned int server_get_polling_interval(void)
  */
 static server_op_res_t server_has_pending_action(int *action_id)
 {
-	lua_pushnumber(gL, *action_id);
+	lua_pushinteger(gL, *action_id);
 	server_op_res_t result = map_lua_result(
 	    call_lua_func(gL, SURICATTA_FUNC_HAS_PENDING_ACTION, 1));
 	if ((lua_gettop(gL) > 0) && (lua_isnumber(gL, -1))) {
