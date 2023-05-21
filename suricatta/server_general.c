@@ -32,7 +32,6 @@
 #include <curl/curl.h>
 #include "channel_curl.h"
 #include "state.h"
-#include "parselib.h"
 #include "swupdate_settings.h"
 #include "swupdate_dict.h"
 #include "server_general.h"
