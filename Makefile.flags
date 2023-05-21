@@ -198,7 +198,7 @@ LDLIBS += mkfsbtrfs
 endif
 
 ifeq ($(CONFIG_BTRFS_FILESYSTEM),y)
-LDLIBS += btrfs btrfsutil udev
+LDLIBS += btrfsutil udev
 endif
 
 ifeq ($(CONFIG_UNIQUEUUID),y)
