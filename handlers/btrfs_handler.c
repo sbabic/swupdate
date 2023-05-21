@@ -8,6 +8,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <util.h>
+#include <unistd.h>
 #include <blkid/blkid.h>
 #include <btrfsutil.h>
 #include "fs_interface.h"
