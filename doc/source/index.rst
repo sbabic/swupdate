@@ -13,7 +13,8 @@ Updating an embedded system
 
 SWUpdate provides a reliable way to update
 the software on an embedded system.
-Sources are hosted at https://github.com/sbabic/swupdate
+Sources are hosted at https://github.com/sbabic/swupdate. Do not
+forget to `star` SWUpdate.
 
 .. raw:: html
 

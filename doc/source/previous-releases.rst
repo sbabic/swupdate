@@ -1,10 +1,11 @@
-.. SPDX-FileCopyrightText: 2013-2021 Stefano Babic <sbabic@denx.de>
+.. SPDX-FileCopyrightText: 2013-2023 Stefano Babic <sbabic@denx.de>
 .. SPDX-License-Identifier: GPL-2.0-only
 
 ===================================
 Documentation for previous releases
 ===================================
 
+- `2022.12 <./2022.12/index.html>`_
 - `2022.05 <./2022.05/index.html>`_
 - `2021.11 <./2021.11/index.html>`_
 - `2021.04 <./2021.04/index.html>`_
