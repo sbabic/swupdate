@@ -61,7 +61,7 @@ swupdate-sendtohawkbit <action id> <status> <finished> <execution> <detail 1> <d
         Send Acknolwedge to Hawkbit server after an update if SWUpdate is set to wait for.
 
 sysrestart
-        Used with SWU handler, allow to perform a network restart
+        Used with SWU handler, allow one to perform a network restart
 
 -r
         optionally reboot the target after a successful update

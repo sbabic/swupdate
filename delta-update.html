@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Delta Update with SWUpdate &mdash; Embedded Software Update Documentation 2022.12 documentation</title>
+  <title>Delta Update with SWUpdate &mdash; Embedded Software Update Documentation 2023.05 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
@@ -28,7 +28,7 @@
             <a href="index.html" class="icon icon-home"> Embedded Software Update Documentation
           </a>
               <div class="version">
-                2022.12
+                2023.05
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -296,7 +296,7 @@ for the following handler.</p></li>
 </div></blockquote>
 <p>Because the delta handler requires to download more data, it must start a connection to the storage
 where the original ZCK is stored. This can lead to security issues, because handlers run with high
-priviliges because they write into the hardware. In fact, this breaks <cite>privilege separation</cite> that is
+privileges because they write into the hardware. In fact, this breaks <cite>privilege separation</cite> that is
 part of SWUpdate design.
 To avoid this, the delta handler does not download itself. A separate process, that can runs with different
 userid and groupid, is responsible for this. The handler sends a request to this process with a list of
@@ -363,7 +363,7 @@ slightly bigger.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2013-2022, Stefano Babic.</p>
+    <p>&#169; Copyright 2013-2023, Stefano Babic.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SWUpdate: software update for embedded system &mdash; Embedded Software Update Documentation 2022.12 documentation</title>
+  <title>SWUpdate: software update for embedded system &mdash; Embedded Software Update Documentation 2023.05 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
@@ -28,7 +28,7 @@
             <a href="index.html" class="icon icon-home"> Embedded Software Update Documentation
           </a>
               <div class="version">
-                2022.12
+                2023.05
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -750,42 +750,25 @@ Usage: <code class="docutils literal notranslate"><span class="pre">swupdate</sp
 <h4>Downloader command line parameters<a class="headerlink" href="#downloader-command-line-parameters" title="Permalink to this headline"></a></h4>
 <p>Example: <code class="docutils literal notranslate"><span class="pre">swupdate</span> <span class="pre">-d</span> <span class="pre">&quot;-u</span> <span class="pre">example.com&quot;</span></code></p>
 <p>Mandatory arguments are marked with ‘*’:</p>
-<table class="docutils align-default">
-<colgroup>
-<col style="width: 19%" />
-<col style="width: 15%" />
-<col style="width: 66%" />
-</colgroup>
-<thead>
-<tr class="row-odd"><th class="head"><p>Parameter</p></th>
-<th class="head"><p>Type</p></th>
-<th class="head"><p>Description</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p>-u &lt;url&gt;</p></td>
-<td><p>string</p></td>
-<td><p>* This is the URL where new software is
-pulled. URL is a link to a valid .swu image</p></td>
-</tr>
-<tr class="row-odd"><td><p>-r &lt;retries&gt;</p></td>
-<td><p>integer</p></td>
-<td><p>Number of retries before a download is
-considered broken. With “-r 0”, SWUpdate
-will not stop until a valid software is
-loaded.</p></td>
-</tr>
-<tr class="row-even"><td><p>-t &lt;timeout&gt;</p></td>
-<td><p>integer</p></td>
-<td><p>Timeout for connection lost
-downloader or Webserver</p></td>
-</tr>
-<tr class="row-odd"><td><p>-a &lt;usr:pwd&gt;</p></td>
-<td><p>string</p></td>
-<td><p>Send user and password for Basic Auth</p></td>
-</tr>
-</tbody>
-</table>
+<p>+————— +———-+——————————————–+
+|  Parameter     | Type     | Description                                |
++=============== +==========+============================================+
+| -u &lt;url&gt;       | string   | * This is the URL where new software is   |
+|                |          | pulled. URL is a link to a valid .swu image|
++————— +———-+——————————————–+
+| -r &lt;retries&gt;   | integer  | Number of retries before a download is     |
+|                |          | considered broken. With “-r 0”, SWUpdate   |
+|                |          | will not stop until a valid software is    |
+|                |          | loaded.                                    |
++————— +———-+——————————————–+
+| -w &lt;retrywait&gt; | integer  | Time to wait prior to retry and resume a   |
+|                |          | download (default: 5s).                    |
++————— +———-+——————————————–+
+| -t &lt;timeout&gt;   | integer  | Timeout for connection lost                |
+|                |          | downloader or Webserver                    |
++————— +———-+——————————————–+
+| -a &lt;usr:pwd&gt;   | string   | Send user and password for Basic Auth      |
++————— +———-+——————————————–+</p>
 </section>
 <section id="suricatta-command-line-parameters">
 <h4>Suricatta command line parameters<a class="headerlink" href="#suricatta-command-line-parameters" title="Permalink to this headline"></a></h4>
@@ -1118,7 +1101,7 @@ should inherit it, and add your own sw-description file to generate the image.</
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2013-2022, Stefano Babic.</p>
+    <p>&#169; Copyright 2013-2023, Stefano Babic.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

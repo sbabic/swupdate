@@ -581,22 +581,25 @@ Example: ``swupdate -d "-u example.com"``
 
 Mandatory arguments are marked with '\*':
 
-+-------------+----------+--------------------------------------------+
-|  Parameter  | Type     | Description                                |
-+=============+==========+============================================+
-| -u <url>    | string   | \* This is the URL where new software is   |
-|             |          | pulled. URL is a link to a valid .swu image|
-+-------------+----------+--------------------------------------------+
-| -r <retries>| integer  | Number of retries before a download is     |
-|             |          | considered broken. With "-r 0", SWUpdate   |
-|             |          | will not stop until a valid software is    |
-|             |          | loaded.                                    |
-+-------------+----------+--------------------------------------------+
-| -t <timeout>| integer  | Timeout for connection lost                |
-|             |          | downloader or Webserver                    |
-+-------------+----------+--------------------------------------------+
-| -a <usr:pwd>| string   | Send user and password for Basic Auth      |
-+-------------+----------+--------------------------------------------+
++--------------- +----------+--------------------------------------------+
+|  Parameter     | Type     | Description                                |
++=============== +==========+============================================+
+| -u <url>       | string   | \* This is the URL where new software is   |
+|                |          | pulled. URL is a link to a valid .swu image|
++--------------- +----------+--------------------------------------------+
+| -r <retries>   | integer  | Number of retries before a download is     |
+|                |          | considered broken. With "-r 0", SWUpdate   |
+|                |          | will not stop until a valid software is    |
+|                |          | loaded.                                    |
++--------------- +----------+--------------------------------------------+
+| -w <retrywait> | integer  | Time to wait prior to retry and resume a   |
+|                |          | download (default: 5s).                    |
++--------------- +----------+--------------------------------------------+
+| -t <timeout>   | integer  | Timeout for connection lost                |
+|                |          | downloader or Webserver                    |
++--------------- +----------+--------------------------------------------+
+| -a <usr:pwd>   | string   | Send user and password for Basic Auth      |
++--------------- +----------+--------------------------------------------+
 
 Suricatta command line parameters
 .................................

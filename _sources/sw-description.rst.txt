@@ -23,7 +23,7 @@ for an explanation of basic types.
 The whole description must be contained in the sw-description file itself:
 using of the #include directive is not allowed by SWUpdate.
 
-The following example explains better the implemented tags:
+The following example explains the implemented tags:
 
 ::
 

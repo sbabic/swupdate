@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SWUpdate: API for external programs &mdash; Embedded Software Update Documentation 2022.12 documentation</title>
+  <title>SWUpdate: API for external programs &mdash; Embedded Software Update Documentation 2023.05 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
@@ -28,7 +28,7 @@
             <a href="index.html" class="icon icon-home"> Embedded Software Update Documentation
           </a>
               <div class="version">
-                2022.12
+                2023.05
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -376,8 +376,7 @@ way as described in <a class="reference internal" href="#install-api"><span clas
 </section>
 <section id="websocket-api">
 <h3>WebSocket API<a class="headerlink" href="#websocket-api" title="Permalink to this headline"></a></h3>
-<p>The integrated Webserver exposes a WebSocket API. The WebSocket protocol specification defines ws (WebSocket) and wss (WebSocket Secure) as two new uniform resource identifier (URI) schemes that are used for unencrypted and encrypted con
-nections, respectively and both of them are supported by SWUpdate.
+<p>The integrated Webserver exposes a WebSocket API. The WebSocket protocol specification defines ws (WebSocket) and wss (WebSocket Secure) as two new uniform resource identifier (URI) schemes that are used for unencrypted and encrypted connections, respectively and both of them are supported by SWUpdate.
 A WebSocket provides full-duplex communication but it is used in SWUpdate to send events to an external host after
 each change in the update process. The Webserver sends JSON formatted responses as results of internal events.</p>
 <p>The response contains the field type, that defines which event is sent.</p>
@@ -418,6 +417,8 @@ each change in the update process. The Webserver sends JSON formatted responses 
 <span class="n">START</span>
 <span class="n">RUN</span>
 <span class="n">SUCCESS</span>
+<span class="n">FAILURE</span>
+<span class="n">DONE</span>
 </pre></div>
 </div>
 <p>Example:</p>
@@ -545,7 +546,7 @@ each change in the update process. The Webserver sends JSON formatted responses 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2013-2022, Stefano Babic.</p>
+    <p>&#169; Copyright 2013-2023, Stefano Babic.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

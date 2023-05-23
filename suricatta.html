@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Suricatta daemon mode &mdash; Embedded Software Update Documentation 2022.12 documentation</title>
+  <title>Suricatta daemon mode &mdash; Embedded Software Update Documentation 2023.05 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
@@ -28,7 +28,7 @@
             <a href="index.html" class="icon icon-home"> Embedded Software Update Documentation
           </a>
               <div class="version">
-                2022.12
+                2023.05
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -62,6 +62,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#suricatta-pstate"><cite>suricatta.pstate</cite></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#suricatta-server"><cite>suricatta.server</cite></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#suricatta-channel"><cite>suricatta.channel</cite></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#suricatta-bootloader"><cite>suricatta.bootloader</cite></a></li>
 </ul>
 </li>
 </ul>
@@ -140,7 +141,7 @@ of C.</p>
 <section id="running-suricatta">
 <h2>Running suricatta<a class="headerlink" href="#running-suricatta" title="Permalink to this headline"></a></h2>
 <p>After having configured and compiled SWUpdate with enabled suricatta
-support,</p>
+support for hawkBit,</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">swupdate</span> <span class="o">--</span><span class="n">help</span>
 </pre></div>
 </div>
@@ -152,6 +153,10 @@ when using hawkBit as server. As an example,</p>
 <p>runs SWUpdate in suricatta daemon mode with log-level <code class="docutils literal notranslate"><span class="pre">TRACE</span></code>, polling
 a hawkBit instance at <code class="docutils literal notranslate"><span class="pre">http://10.0.0.2:8080</span></code> with tenant <code class="docutils literal notranslate"><span class="pre">default</span></code>
 and device ID <code class="docutils literal notranslate"><span class="pre">25</span></code>.</p>
+<p>If multiple server support is compiled in, the <code class="docutils literal notranslate"><span class="pre">-S</span></code> / <code class="docutils literal notranslate"><span class="pre">--server</span></code>
+option or a <code class="docutils literal notranslate"><span class="pre">server</span></code> entry in the configuration file’s <code class="docutils literal notranslate"><span class="pre">[suricatta]</span></code>
+section selects the one to use at run-time. For convenience, when having
+support for just one server compiled-in, this is chosen automatically.</p>
 <p>Note that on startup when having installed an update, suricatta
 tries to report the update status to its upstream server, e.g.,
 hawkBit, prior to entering the main loop awaiting further updates.
@@ -198,15 +203,24 @@ functions for opening, closing, fetching, and sending data over
 the channel.</p>
 <p><code class="docutils literal notranslate"><span class="pre">include/suricatta/server.h</span></code> describes the functionality a server has
 to implement:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="n">server_op_res_t</span><span class="w"> </span><span class="nf">server_has_pending_action</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="n">action_id</span><span class="p">);</span><span class="w"></span>
-<span class="n">server_op_res_t</span><span class="w"> </span><span class="nf">server_install_update</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span><span class="w"></span>
-<span class="n">server_op_res_t</span><span class="w"> </span><span class="nf">server_send_target_data</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span><span class="w"></span>
-<span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">server_get_polling_interval</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span><span class="w"></span>
-<span class="n">server_op_res_t</span><span class="w"> </span><span class="nf">server_start</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">cfgfname</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">argv</span><span class="p">[]);</span><span class="w"></span>
-<span class="n">server_op_res_t</span><span class="w"> </span><span class="nf">server_stop</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span><span class="w"></span>
-<span class="n">server_op_res_t</span><span class="w"> </span><span class="nf">server_ipc</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">fd</span><span class="p">);</span><span class="w"></span>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">server_op_res_t</span><span class="w"> </span><span class="nf">has_pending_action</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="n">action_id</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">server_op_res_t</span><span class="w"> </span><span class="nf">install_update</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">server_op_res_t</span><span class="w"> </span><span class="nf">send_target_data</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">get_polling_interval</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">server_op_res_t</span><span class="w"> </span><span class="nf">start</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">cfgfname</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">argv</span><span class="p">[]);</span><span class="w"></span>
+<span class="w">    </span><span class="n">server_op_res_t</span><span class="w"> </span><span class="nf">stop</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">server_op_res_t</span><span class="w"> </span><span class="nf">ipc</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">fd</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">help</span><span class="p">)(</span><span class="kt">void</span><span class="p">);</span><span class="w"></span>
+<span class="p">}</span><span class="w"> </span><span class="n">server_t</span><span class="p">;</span><span class="w"></span>
 </pre></div>
 </div>
+<p>These functions constituting a particular suricatta server implementation
+have to be registered for being selectable at run-time by calling
+<code class="docutils literal notranslate"><span class="pre">register_server()</span></code> (see <code class="docutils literal notranslate"><span class="pre">include/suricatta/server.h</span></code>) with
+a name and a <code class="docutils literal notranslate"><span class="pre">server_t</span></code> struct pointer implemented in a
+<code class="docutils literal notranslate"><span class="pre">__attribute__((constructor))</span></code> marked function, see
+<code class="docutils literal notranslate"><span class="pre">suricatta/server_hawkbit.c</span></code> as example.</p>
 <p>The type <code class="docutils literal notranslate"><span class="pre">server_op_res_t</span></code> is defined in <code class="docutils literal notranslate"><span class="pre">include/suricatta/suricatta.h</span></code>.
 It represents the valid function return codes for a server’s implementation.</p>
 <p>In addition to implementing the particular channel and server, the
@@ -216,10 +230,8 @@ configuration. In the simplest case, adding an option like the following
 one for hawkBit into the <code class="docutils literal notranslate"><span class="pre">menu</span> <span class="pre">&quot;Server&quot;</span></code> section is sufficient.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>config SURICATTA_HAWKBIT
     bool <span class="s2">&quot;hawkBit support&quot;</span>
-    depends on HAVE_LIBCURL
-    depends on HAVE_JSON_C
+    default y
     <span class="k">select</span> JSON
-    <span class="k">select</span> CURL
     <span class="nb">help</span>
       Support <span class="k">for</span> hawkBit server.
       https://projects.eclipse.org/projects/iot.hawkbit
@@ -231,7 +243,7 @@ the SWUpdate binary, e.g., for the hawkBit example implementation, the
 following lines add <code class="docutils literal notranslate"><span class="pre">server_hawkbit.o</span></code> to the resulting SWUpdate binary
 if <code class="docutils literal notranslate"><span class="pre">SURICATTA_HAWKBIT</span></code> was selected while configuring SWUpdate.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ifneq <span class="o">(</span><span class="k">$(</span>CONFIG_SURICATTA_HAWKBIT<span class="k">)</span>,<span class="o">)</span>
-lib-<span class="k">$(</span>CONFIG_SURICATTA<span class="k">)</span> +<span class="o">=</span> server_hawkbit.o
+obj-<span class="k">$(</span>CONFIG_SURICATTA<span class="k">)</span> +<span class="o">=</span> server_hawkbit.o
 endif
 </pre></div>
 </div>
@@ -472,8 +484,8 @@ environment variable <code class="docutils literal notranslate"><span class="pre
 defaulting to <code class="docutils literal notranslate"><span class="pre">ustate</span></code>. In addition, it captures the <code class="docutils literal notranslate"><span class="pre">update_state_t</span></code> enum values.</p>
 <p>The function <code class="docutils literal notranslate"><span class="pre">suricatta.pstate.save(state)</span></code> requires one of <code class="docutils literal notranslate"><span class="pre">suricatta.pstate</span></code>’s
 “enum” values as parameter and returns <code class="docutils literal notranslate"><span class="pre">true</span></code>, or, in case of error, <code class="docutils literal notranslate"><span class="pre">nil</span></code>.
-The function <code class="docutils literal notranslate"><span class="pre">suricatta.pstate.get()</span></code> returns <code class="docutils literal notranslate"><span class="pre">true</span></code>, or, in case of error, <code class="docutils literal notranslate"><span class="pre">nil</span></code>,
-plus one of <code class="docutils literal notranslate"><span class="pre">suricatta.pstate</span></code>’s “enum” values in the former case.</p>
+The function <code class="docutils literal notranslate"><span class="pre">suricatta.pstate.get()</span></code> returns one of <code class="docutils literal notranslate"><span class="pre">suricatta.pstate</span></code>’s
+“enum” values or, in case of error, <code class="docutils literal notranslate"><span class="pre">STATE_ERROR</span></code>.</p>
 </section>
 <section id="suricatta-server">
 <h3><cite>suricatta.server</cite><a class="headerlink" href="#suricatta-server" title="Permalink to this headline"></a></h3>
@@ -556,6 +568,39 @@ the response body.</p>
 <p>More examples of how to use a channel can be found in the example suricatta Lua
 module <code class="docutils literal notranslate"><span class="pre">examples/suricatta/swupdate_suricatta.lua</span></code>.</p>
 </section>
+<section id="suricatta-bootloader">
+<h3><cite>suricatta.bootloader</cite><a class="headerlink" href="#suricatta-bootloader" title="Permalink to this headline"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">suricatta.bootloader</span></code> table exposes SWUpdate’s bootloader environment
+modification functions to suricatta Lua modules.</p>
+<p>The enum-like table <code class="docutils literal notranslate"><span class="pre">suricatta.bootloader.bootloaders</span></code> holds the bootloaders
+SWUpdate supports, i.e.</p>
+<blockquote>
+<div><div class="highlight-lua notranslate"><div class="highlight"><pre><span></span><span class="n">suricatta</span><span class="p">.</span><span class="n">bootloader</span><span class="p">.</span><span class="n">bootloaders</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">EBG</span>   <span class="o">=</span> <span class="s2">&quot;ebg&quot;</span><span class="p">,</span>
+    <span class="n">NONE</span>  <span class="o">=</span> <span class="s2">&quot;none&quot;</span><span class="p">,</span>
+    <span class="n">GRUB</span>  <span class="o">=</span> <span class="s2">&quot;grub&quot;</span><span class="p">,</span>
+    <span class="n">UBOOT</span> <span class="o">=</span> <span class="s2">&quot;uboot&quot;</span><span class="p">,</span>
+<span class="p">},</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>The function <code class="docutils literal notranslate"><span class="pre">suricatta.bootloader.get()</span></code> returns the currently selected
+bootloader in terms of a <code class="docutils literal notranslate"><span class="pre">suricatta.bootloader.bootloaders</span></code> field value.</p>
+<p>The function <code class="docutils literal notranslate"><span class="pre">suricatta.bootloader.is(name)</span></code> takes one of
+<code class="docutils literal notranslate"><span class="pre">suricatta.bootloader.bootloaders</span></code>’s field values as <code class="docutils literal notranslate"><span class="pre">name</span></code> and returns
+<code class="docutils literal notranslate"><span class="pre">true</span></code> if it is the currently selected bootloader, <code class="docutils literal notranslate"><span class="pre">false</span></code> otherwise.</p>
+<p>The functions in the <code class="docutils literal notranslate"><span class="pre">suricatta.bootloader.env</span></code> table interact with the
+currently selected bootloader’s environment:</p>
+<p>The function <code class="docutils literal notranslate"><span class="pre">suricatta.bootloader.env.get(variable)</span></code> retrieves the value
+associated to <code class="docutils literal notranslate"><span class="pre">variable</span></code> from the bootloader’s environment.</p>
+<p>The function <code class="docutils literal notranslate"><span class="pre">suricatta.bootloader.env.set(variable,</span> <span class="pre">value)</span></code> sets the
+bootloader environment’s key <code class="docutils literal notranslate"><span class="pre">variable</span></code> to <code class="docutils literal notranslate"><span class="pre">value</span></code>.</p>
+<p>The function <code class="docutils literal notranslate"><span class="pre">suricatta.bootloader.env.unset(variable)</span></code> deletes the bootloader
+environment’s key <code class="docutils literal notranslate"><span class="pre">variable</span></code>.</p>
+<p>The function <code class="docutils literal notranslate"><span class="pre">suricatta.bootloader.env.apply(filename)</span></code> applies
+all key=value lines of a local file <code class="docutils literal notranslate"><span class="pre">filename</span></code> to the currently selected
+bootloader’s environment.</p>
+</section>
 </section>
 </section>
 
@@ -570,7 +615,7 @@ module <code class="docutils literal notranslate"><span class="pre">examples/sur
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2013-2022, Stefano Babic.</p>
+    <p>&#169; Copyright 2013-2023, Stefano Babic.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

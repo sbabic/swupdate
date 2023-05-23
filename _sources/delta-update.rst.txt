@@ -200,7 +200,7 @@ The delta handler has in short the following duties:
 
 Because the delta handler requires to download more data, it must start a connection to the storage
 where the original ZCK is stored. This can lead to security issues, because handlers run with high
-priviliges because they write into the hardware. In fact, this breaks `privilege separation` that is
+privileges because they write into the hardware. In fact, this breaks `privilege separation` that is
 part of SWUpdate design.
 To avoid this, the delta handler does not download itself. A separate process, that can runs with different
 userid and groupid, is responsible for this. The handler sends a request to this process with a list of

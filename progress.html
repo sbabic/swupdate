@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Getting information on running update &mdash; Embedded Software Update Documentation 2022.12 documentation</title>
+  <title>Getting information on running update &mdash; Embedded Software Update Documentation 2023.05 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
@@ -28,7 +28,7 @@
             <a href="index.html" class="icon icon-home"> Embedded Software Update Documentation
           </a>
               <div class="version">
-                2022.12
+                2023.05
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -128,6 +128,7 @@ the update process with the following data (see include/progress_ipc.h):</p>
         <span class="n">unsigned</span> <span class="nb">int</span>    <span class="n">magic</span><span class="p">;</span>          <span class="o">/*</span> <span class="n">Magic</span> <span class="n">Number</span> <span class="o">*/</span>
         <span class="n">unsigned</span> <span class="nb">int</span>    <span class="n">status</span><span class="p">;</span>         <span class="o">/*</span> <span class="n">Update</span> <span class="n">Status</span> <span class="p">(</span><span class="n">Running</span><span class="p">,</span> <span class="n">Failure</span><span class="p">)</span> <span class="o">*/</span>
         <span class="n">unsigned</span> <span class="nb">int</span>    <span class="n">dwl_percent</span><span class="p">;</span>    <span class="o">/*</span> <span class="o">%</span> <span class="n">downloaded</span> <span class="n">data</span> <span class="o">*/</span>
+        <span class="n">unsigned</span> <span class="n">long</span> <span class="n">long</span> <span class="n">dwl_bytes</span><span class="p">;</span>   <span class="o">/*</span> <span class="n">total</span> <span class="n">of</span> <span class="nb">bytes</span> <span class="n">to</span> <span class="n">be</span> <span class="n">downloaded</span> <span class="o">*/</span>
         <span class="n">unsigned</span> <span class="nb">int</span>    <span class="n">nsteps</span><span class="p">;</span>         <span class="o">/*</span> <span class="n">No</span><span class="o">.</span> <span class="n">total</span> <span class="n">of</span> <span class="n">steps</span> <span class="o">*/</span>
         <span class="n">unsigned</span> <span class="nb">int</span>    <span class="n">cur_step</span><span class="p">;</span>       <span class="o">/*</span> <span class="n">Current</span> <span class="n">step</span> <span class="n">index</span> <span class="o">*/</span>
         <span class="n">unsigned</span> <span class="nb">int</span>    <span class="n">cur_percent</span><span class="p">;</span>    <span class="o">/*</span> <span class="o">%</span> <span class="ow">in</span> <span class="n">current</span> <span class="n">step</span> <span class="o">*/</span>
@@ -145,6 +146,7 @@ the update process with the following data (see include/progress_ipc.h):</p>
 <li><p><em>magic</em> is not yet used, it could be added for simply verification of the frame.</p></li>
 <li><p><em>status</em> is one of the values in swupdate_status.h (START, RUN, SUCCESS, FAILURE, DOWNLOAD, DONE).</p></li>
 <li><p><em>dwl_percent</em> is the percentage of downloaded data when status = DOWNLOAD.</p></li>
+<li><p><em>dwl_bytes</em> is the total number of bytes that are to be downloaded.</p></li>
 <li><p><em>nsteps</em> is the total number of installers (handlers) to be run.</p></li>
 <li><p><em>cur_step</em> is the index of the running handler. cur_step is in the range 1..nsteps</p></li>
 <li><p><em>cur_percent</em> is the percentage of work done inside the current handler. This is useful
@@ -173,7 +175,7 @@ on the console and drives “psplash” to draw a progress bar on a display.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2013-2022, Stefano Babic.</p>
+    <p>&#169; Copyright 2013-2023, Stefano Babic.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
