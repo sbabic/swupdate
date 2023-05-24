@@ -562,7 +562,8 @@ void *network_thread (void *data)
 						cleanum_msg_list();
 
 						/* Wake-up the installer */
-						pthread_cond_signal(&stream_wkup);
+						stream_wkup = true;
+						pthread_cond_signal(&stream_cond);
 					} else {
 						msg.type = NACK;
 						memset(msg.data.msg, 0, sizeof(msg.data.msg));

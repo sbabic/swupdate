@@ -68,9 +68,9 @@ static pthread_t network_thread_id;
  * reception of an install request
  *
  */
-
+bool stream_wkup = false;
 pthread_mutex_t stream_mutex = PTHREAD_MUTEX_INITIALIZER;
-pthread_cond_t stream_wkup = PTHREAD_COND_INITIALIZER;
+pthread_cond_t stream_cond = PTHREAD_COND_INITIALIZER;
 
 static struct installer inst;
 
@@ -535,7 +535,10 @@ void *network_initializer(void *data)
 
 		/* wait for someone to issue an install request */
 		pthread_mutex_lock(&stream_mutex);
-		pthread_cond_wait(&stream_wkup, &stream_mutex);
+		while (stream_wkup != true) {
+			pthread_cond_wait(&stream_cond, &stream_mutex);
+		}
+		stream_wkup = false;
 		inst.status = RUN;
 		pthread_mutex_unlock(&stream_mutex);
 		notify(START, RECOVERY_NO_ERROR, INFOLEVEL, "Software Update started !");

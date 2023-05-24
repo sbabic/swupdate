@@ -13,6 +13,7 @@ void *network_initializer(void *data);
 void *network_thread(void *data);
 int listener_create(const char *path, int type);
 
+extern bool stream_wkup;
 extern pthread_mutex_t stream_mutex;
-extern pthread_cond_t stream_wkup;
+extern pthread_cond_t stream_cond;
 #endif
