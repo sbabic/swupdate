@@ -612,11 +612,9 @@ void *network_thread (void *data)
 					break;
 				}
 
-				/* Get first notification from the queue */
-				pthread_mutex_lock(&msglock);
-				notification = SIMPLEQ_FIRST(&notifymsgs);
-
 				/* Send notify history */
+				pthread_mutex_lock(&msglock);
+				ret = 0;
 				SIMPLEQ_FOREACH_SAFE(notification, &notifymsgs, next, tmp) {
 					memset(msg.data.msg, 0, sizeof(msg.data.msg));
 
@@ -628,11 +626,14 @@ void *network_thread (void *data)
 
 					ret = write_notify_msg(&msg, ctrlconnfd);
 					if (ret < 0) {
-						pthread_mutex_unlock(&msglock);
-						ERROR("Error write notify history on socket ctrl");
-						close(ctrlconnfd);
 						break;
 					}
+				}
+				if (ret < 0) {
+					pthread_mutex_unlock(&msglock);
+					ERROR("Error write notify history on socket ctrl");
+					close(ctrlconnfd);
+					break;
 				}
 
 				/*
