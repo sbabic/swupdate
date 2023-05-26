@@ -213,7 +213,7 @@ int parse(struct swupdate_cfg *sw, const char *descfile)
 	 */
 	if (sw->no_downgrading) {
 		if (compare_versions(sw->version, sw->minimum_version) < 0) {
-			ERROR("No downgrading allowed: new version %s <= installed %s",
+			ERROR("No downgrading allowed: new version %s < installed %s",
 				sw->version, sw->minimum_version);
 			return -EPERM;
 		}
@@ -226,7 +226,7 @@ int parse(struct swupdate_cfg *sw, const char *descfile)
 	 */
 	if (sw->check_max_version) {
 		if (compare_versions(sw->version, sw->maximum_version) > 0) {
-			ERROR("Max version set: new version %s >= max allowed %s",
+			ERROR("Max version set: new version %s > max allowed %s",
 				sw->version, sw->maximum_version);
 			return -EPERM;
 		}
