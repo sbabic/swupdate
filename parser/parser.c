@@ -976,11 +976,7 @@ int parse_cfg (struct swupdate_cfg *swcfg, const char *filename)
 	/* Read the file. If there is an error, report it and exit. */
 	DEBUG("Parsing config file %s", filename);
 	if(config_read_file(&cfg, filename) != CONFIG_TRUE) {
-		printf("%s ", config_error_file(&cfg));
-		printf("%d ", config_error_line(&cfg));
-		printf("%s ", config_error_text(&cfg));
-
-		fprintf(stderr, "%s:%d - %s\n", config_error_file(&cfg),
+		ERROR("%s:%d - %s\n", config_error_file(&cfg),
 			config_error_line(&cfg), config_error_text(&cfg));
 		config_destroy(&cfg);
 		return -1;
