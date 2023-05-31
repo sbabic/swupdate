@@ -152,8 +152,8 @@ static int install_raw_file(struct img_type *img,
 {
 	char path[255];
 	char tmp_path[255];
-	int fdout;
-	int ret = 0;
+	int fdout = -1;
+	int ret = -1;
 	int use_mount = (strlen(img->device) && strlen(img->filesystem)) ? 1 : 0;
 	char* DATADST_DIR = alloca(strlen(get_tmpdir())+strlen(DATADST_DIR_SUFFIX)+1);
 	sprintf(DATADST_DIR, "%s%s", get_tmpdir(), DATADST_DIR_SUFFIX);
@@ -174,7 +174,7 @@ static int install_raw_file(struct img_type *img,
 		if (snprintf(path, sizeof(path), "%s%s",
 					 DATADST_DIR, img->path) >= (int)sizeof(path)) {
 			ERROR("Path too long: %s%s", DATADST_DIR, img->path);
-			return -1;
+			goto cleanup;
 		}
 	} else {
 		if (snprintf(path, sizeof(path), "%s", img->path) >= (int)sizeof(path)) {
@@ -186,7 +186,8 @@ static int install_raw_file(struct img_type *img,
 	if (strtobool(dict_get_value(&img->properties, "atomic-install"))) {
 		if (snprintf(tmp_path, sizeof(tmp_path), "%s.tmp", path) >= (int)sizeof(tmp_path)) {
 			ERROR("Temp path too long: %s.tmp", img->path);
-			return -1;
+			ret = -1;
+			goto cleanup;
 		}
 	}
 	else {
@@ -196,43 +197,55 @@ static int install_raw_file(struct img_type *img,
 
 	if (strtobool(dict_get_value(&img->properties, "create-destination"))) {
 		TRACE("Creating path %s", path);
-		fdout = mkpath(dirname(strdupa(path)), 0755);
-		if (fdout < 0) {
+		ret = mkpath(dirname(strdupa(path)), 0755);
+		if (ret < 0) {
 			ERROR("I cannot create path %s: %s", path, strerror(errno));
-			return -1;
+			goto cleanup;
 		}
 	}
 
 	fdout = openfileoutput(tmp_path);
-	if (fdout < 0)
-		return fdout;
+	if (fdout < 0) {
+		ret = -1;
+		goto cleanup;
+	}
 	if (!img_check_free_space(img, fdout)) {
-		return -ENOSPC;
+		ret = -ENOSPC;
+		goto cleanup;
 	}
 
 	ret = copyimage(&fdout, img, NULL);
-	if (ret< 0) {
+	if (ret < 0) {
 		ERROR("Error copying extracted file");
+		goto cleanup;
 	}
 
-	if(fsync(fdout)) {
+	if (fsync(fdout)) {
 		ERROR("Error writing %s to disk: %s", tmp_path, strerror(errno));
-		return -1;
+		ret = -1;
+		goto cleanup;
 	}
 
 	close(fdout);
+	fdout = 0;
 
 	if (strtobool(dict_get_value(&img->properties, "atomic-install"))) {
 		TRACE("Renaming file %s to %s", tmp_path, path);
-		if(rename(tmp_path, path)) {
+		if (rename(tmp_path, path)) {
 			ERROR("Error renaming %s to %s: %s", tmp_path, path, strerror(errno));
-			return -1;
+			ret = -1;
+			goto cleanup;
 		}
 	}
 
-	if (use_mount) {
+	ret = 0;
+
+cleanup:
+	if (fdout > 0)
+		close(fdout);
+
+	if (use_mount)
 		swupdate_umount(DATADST_DIR);
-	}
 
 	return ret;
 }
