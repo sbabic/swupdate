@@ -323,7 +323,7 @@ For a script handler written in Lua, the prototype is
         --- Lua Handler.
         --
         --- @param  image     img_type  Lua equivalent of `struct img_type`
-        --- @param  scriptfn  string    Type, one of `preinst` or `postinst` 
+        --- @param  scriptfn  string    Type, one of `preinst` or `postinst`
         --- @return number              # 0 on success, 1 on error
         function lua_handler(image, scriptfn)
             ...
@@ -811,7 +811,7 @@ Copy handler
 
 The copy handler copies one source to a destination. It is a script handler, and no artifact in the SWU is associated
 with the handler.  It can be used to copy configuration data, or parts that should be taken by the current installation.
-It requires the mandatory  property (`copyfrom`), while device contains the destination path. 
+It requires the mandatory  property (`copyfrom`), while device contains the destination path.
 The handler performs a byte copy, and it does not matter which is the source - it can be a file or a partition.
 An optional `type` field can set if the handler is active as pre or postinstall script. If not set, the handler
 is called twice.
@@ -985,14 +985,18 @@ supported:
    | fstype      | string   | Optional filesystem type to be created on the      |
    |             |          | partition. If no fstype key is given, no file      |
    |             |          | will be created on the corresponding partition.    |
-   |             |          | vfat / ext2 / ext3 /ext4 / btrfs                   | 
-   |             |          | file system is supported                           | 
+   |             |          | vfat / ext2 / ext3 /ext4 / btrfs                   |
+   |             |          | file system is supported                           |
    +-------------+----------+----------------------------------------------------+
    | partuuid    | string   | The partition UUID (GPT only). If omitted, a UUID  |
-   |             |          | will be generated automatically.			 |
+   |             |          | will be generated automatically.                   |
    +-------------+----------+----------------------------------------------------+
    | flag        | string   | The following flags are supported:                 |
-   |             |          | Dos Partition : "boot" set bootflag		 |
+   |             |          | Dos Partition : "boot" set bootflag                |
+   +-------------+----------+----------------------------------------------------+
+   | force       | string   | If set to "true", existing file-system shall be    |
+   |             |          | overwritten uncoditionally.                        |
+   |             |          | Default value is "false".                          |
    +-------------+----------+----------------------------------------------------+
 
 

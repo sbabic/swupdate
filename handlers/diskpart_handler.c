@@ -62,6 +62,7 @@ enum partfield {
 	PART_DOSTYPE,
 	PART_UUID,
 	PART_FLAG,
+	PART_FORCE
 };
 
 const char *fields[] = {
@@ -73,6 +74,7 @@ const char *fields[] = {
 	[PART_DOSTYPE] = "dostype",
 	[PART_UUID] = "partuuid",
 	[PART_FLAG] = "flag",
+	[PART_FORCE] = "force",
 };
 
 struct partition_data {
@@ -86,6 +88,7 @@ struct partition_data {
 	char partuuid[UUID_STR_LEN];
 	int explicit_size;
 	unsigned long flags;
+	int force;
 	LIST_ENTRY(partition_data) next;
 };
 LIST_HEAD(listparts, partition_data);
@@ -1215,6 +1218,7 @@ static int diskpart(struct img_type *img,
 		part->partno = LIBFDISK_INIT_UNDEF(part->partno);
 		part->start = LIBFDISK_INIT_UNDEF(part->start);
 		part->size = LIBFDISK_INIT_UNDEF(part->size);
+		part->force = 0;
 
 		part->partno = strtoul(entry->key  + strlen("partition-"), NULL, 10);
 		while (elem) {
@@ -1269,6 +1273,10 @@ static int diskpart(struct img_type *img,
 							goto handler_exit;
 						}
 						part->flags |= DOS_FLAG_ACTIVE;
+						break;
+					case PART_FORCE:
+						part->force = strcmp(equal, "true") == 0;
+						TRACE("Force flag explicitly mentioned, value %d", part->force);
 						break;
 					}
 				}
@@ -1417,7 +1425,7 @@ handler_release:
 			device = fdisk_partname(path, partno);
 			free(path);
 
-			if (!createtable->parent) {
+			if (!createtable->parent && !part->force) {
 				/* Check if file system exists */
 				ret = diskformat_fs_exists(device, part->fstype);
 
