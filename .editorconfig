@@ -25,3 +25,8 @@ tab_width = 8
 [*.cfg]
 indent_style = tab
 indent_size = 8
+
+# Defaults of https://github.com/JohnnyMorganz/StyLua
+[*.lua]
+indent_size = 4
+indent_style = space
