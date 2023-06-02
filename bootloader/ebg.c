@@ -195,6 +195,10 @@ static char *do_env_get(const char *name)
 
 static int create_new_environment(void)
 {
+	if (inflight) {
+		DEBUG("Reusing already created new environment.");
+		return 0;
+	}
 	uint32_t revision = _env_to_uint32(_env_get(EBGENV_REVISION));
 	uint8_t in_progress = (uint8_t)_env_to_uint32(_env_get(EBGENV_IN_PROGRESS));
 	if ((revision == UINT_MAX) || (in_progress == UINT8_MAX)) {
