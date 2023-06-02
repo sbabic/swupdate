@@ -17,12 +17,18 @@
 -- luacheck: no max line length
 -- luacheck: no unused args
 
+-- Note: Definitions prefixed with `---` are not part of the SWUpdate functionality
+-- exposed to the Lua realm but instead are `typedef`-alikes returned by a function
+-- of the SWUpdate Suricatta Lua Module. Nonetheless, they are in the suricatta
+-- "namespace" for avoiding name clashes and, not least, convenience.
+
+--- SWUpdate Suricatta Binding.
+--
+--- @class suricatta
 local suricatta = {}
 
-
---- Lua equivalent of `server_op_res_t` enum as in `include/util.h`.
---
 --- @enum suricatta.status
+--- Lua equivalent of `server_op_res_t` enum as in `include/util.h`.
 suricatta.status = {
     OK                  = 0,
     EERR                = 1,
@@ -39,10 +45,10 @@ suricatta.status = {
 
 --- SWUpdate notify function bindings.
 --
--- Translates to `notify(string.format(message, ...))`, see
--- `corelib/lua_interface.c`.
+-- Translates to `notify(string.format(message, ...))`,
+-- @see `corelib/lua_interface.c`
 --
---- @type table<string, function>
+--- @class suricatta.notify
 suricatta.notify = {
     --- @type fun(message: string, ...: any)
     error    = function(message, ...) end,
@@ -63,15 +69,15 @@ suricatta.notify = {
 --
 --- @class suricatta.bootloader
 suricatta.bootloader = {
-    --- Bootloaders supported by SWUpdate.
-    --
     --- @enum suricatta.bootloader.bootloaders
+    --- Bootloaders supported by SWUpdate.
     bootloaders = {
         EBG   = "ebg",
         NONE  = "none",
         GRUB  = "grub",
         UBOOT = "uboot",
     },
+
     --- Operations on the currently set bootloader's environment.
     --
     --- @class suricatta.bootloader.env
@@ -117,7 +123,7 @@ suricatta.bootloader.env.apply = function(filename) end
 
 --- SWUpdate's persistent state IDs as in `include/state.h` and reverse-lookup.
 --
---- @enum suricatta.pstate
+--- @class suricatta.pstate
 suricatta.pstate = {
     OK            = string.byte('0'), [string.byte('0')] = "OK",
     INSTALLED     = string.byte('1'), [string.byte('1')] = "INSTALLED",
@@ -136,15 +142,15 @@ suricatta.pstate.get = function() end
 
 --- Save persistent state information.
 --
---- @param  state  suricatta.pstate  Persistent state ID number
---- @return boolean                  # Whether operation was successful or not
+--- @param  state  number  Persistent state ID number
+--- @return boolean | nil  # True on success, nil on error
 suricatta.pstate.save = function(state) end
 
 
 
 --- Function registry IDs for Lua suricatta functions.
 --
---- @enum suricatta.server
+--- @class suricatta.server
 suricatta.server = {
     HAS_PENDING_ACTION    = 0,
     INSTALL_UPDATE        = 1,
@@ -160,25 +166,46 @@ suricatta.server = {
 
 --- Register a Lua function as Suricatta interface implementation.
 --
---- @param  function_p  function          Function to register for `purpose`
---- @param  purpose     suricatta.server  Suricatta interface function implemented
---- @return boolean                       # Whether operation was successful or not
+--- @param  function_p  function   Function to register for `purpose`
+--- @param  purpose     number     Suricatta interface function implemented (one of suricatta.server's enums)
+--- @return boolean                # Whether operation was successful or not
 suricatta.server.register = function(function_p, purpose) end
 
 
+--- Channel result table.
+--
+-- Result in return of a channel operation.
+--
+--- @class suricatta.channel_operation_result
+--- @field http_response_code  number
+--- @field format              suricatta.channel.content
+--- @field json_reply          table | nil   Table if `format` was `suricatta.channel.content.JSON`
+--- @field raw_reply           string | nil  Table if `format` was `suricatta.channel.content.RAW`
+--- @field received_headers    table<string, string> | nil
+
+
+--- Options and methods on the opened channel.
+--
+-- Table as returned by `suricatta.channel.open()`.
+--
+--- @class suricatta.open_channel
+--- @field options  suricatta.channel.options                                                                               Channel creation-time set options as in `include/channel_curl.h`.
+--- @field get      fun(options: suricatta.channel.options): boolean, suricatta.status, suricatta.channel_operation_result  Channel get operation
+--- @field put      fun(options: suricatta.channel.options): boolean, suricatta.status, suricatta.channel_operation_result  Channel put operation
+--- @field close    fun()                                                                                                   Channel close operation
+
+--- @class suricatta.channel
 suricatta.channel = {
-    --- Content type passed over the channel as in `include/channel_curl.h`.
-    --
     --- @enum suricatta.channel.content
+    --- Content type passed over the channel as in `include/channel_curl.h`.
     content = {
         NONE = 0,
         JSON = 1,
         RAW  = 2,
     },
 
-    --- Transfer method to use over channel as in `include/channel_curl.h`.
-    --
     --- @enum suricatta.channel.method
+    --- Transfer method to use over channel as in `include/channel_curl.h`.
     method = {
         GET   = 0,
         POST  = 1,
@@ -216,117 +243,27 @@ suricatta.channel = {
     --- @field nofollow            boolean  `CURLOPT_FOLLOWLOCATION` - follow HTTP 3xx redirects
     --- @field max_download_speed  string   `CURLOPT_MAX_RECV_SPEED_LARGE` - rate limit data download speed
     --- @field headers_to_send     table<string, string>  Header to send
-    options = {
-        url                = "",
-        cached_file        = "",
-        auth               = "",
-        request_body       = "",
-        iface              = "",
-        dry_run            = false,
-        cafile             = "",
-        sslkey             = "",
-        sslcert            = "",
-        ciphers            = "",
-        proxy              = "",
-        info               = "",
-        auth_token         = "",
-        content_type       = "",
-        retry_sleep        = 5,
-        method             = 0,
-        retries            = 5,
-        low_speed_timeout  = 300,
-        connection_timeout = 300,
-        format             = 2,
-        debug              = false,
-        usessl             = false,
-        strictssl          = false,
-        nocheckanswer      = false,
-        nofollow           = true,
-        max_download_speed = "",
-        headers_to_send    = {},
-    },
+    options = {},
 
     --- Open a new channel.
     --
     --- @param  options  suricatta.channel.options  Channel default options overridable per operation
     --- @return boolean                             # Whether operation was successful or not
-    --- @return table                               # Options of and operations on the opened channel
-    open = function(options)
-        --- Returned channel instance, on successful open.
-        --
-        --- @type  table<string, any>
-        --- @class channel
-        --- @field options  suricatta.channel.options  Channel creation-time set options
-        --- @field get      function                   Channel get operation
-        --- @field put      function                   Channel put operation
-        --- @field close    function                   Channel close operation
-        return true, {
-
-            --- Channel creation-time set options as in `include/channel_curl.h`.
-            --
-            --- @type suricatta.channel.options
-            options = {},
-
-            --- Execute get operation over channel.
-            --
-            --- @param  options_get  suricatta.channel.options  Channel options for get operation
-            --- @return boolean           # Whether operation was successful or not
-            --- @return suricatta.status  # Suricatta return code
-            --- @return table             # Operation results
-            get = function(options_get)
-                return true, suricatta.status.OK, {
-                    --- @type number
-                    http_response_code = nil,
-                    --- @type suricatta.channel.content
-                    format             = nil,
-                    --- @type table | nil
-                    json_reply         = nil, -- if request method was `suricatta.channel.content.JSON`
-                    --- @type string | nil
-                    raw_reply          = nil, -- if request method was `suricatta.channel.content.RAW`
-                    --- @type table<string, string> | nil
-                    received_headers   = nil,
-                }
-            end,
-
-            --- Execute put operation over channel.
-            --
-            --- @param  options_put  suricatta.channel.options  Channel options for put operation
-            --- @return boolean           # Whether operation was successful or not
-            --- @return suricatta.status  # Suricatta return code
-            --- @return table             # Operation results
-            put = function(options_put)
-                return true, suricatta.status.OK, {
-                    --- @type number
-                    http_response_code = nil,
-                    --- @type suricatta.channel.content
-                    format             = nil,
-                    --- @type table | nil
-                    json_reply         = nil, -- if request method was `suricatta.channel.content.JSON`
-                    --- @type string | nil
-                    raw_reply          = nil, -- if request method was `suricatta.channel.content.RAW`
-                    --- @type table<string, string> | nil
-                    received_headers   = nil,
-                }
-            end,
-
-            --- Close channel.
-            close = function() end,
-        }
-    end,
+    --- @return suricatta.open_channel              # Options of and operations on the opened channel
+    open = function(options) end,
 }
 
 
---- @type  table<string, any>
---- @class suricatta.op_channel
+--- Channel and Options Table to use for an operation.
 --
 -- Channel to use for the download / installation operation as returned by `suricatta.channel.open()`
 -- plus channel options overriding the defaults per operation (@see suricatta.channel.options)
 -- and specific options to the download / installation operation, e.g., `drain_messages`.
 --
---- @field channel          channel                    Channel table as returned by `suricatta.channel.open()`
+--- @class suricatta.operation_channel
+--- @field channel          suricatta.open_channel     Channel table as returned by `suricatta.channel.open()`
 --- @field drain_messages?  boolean                    Whether to flush all progress messages or only those while in-flight operation (default)
 --- @field ∈?               suricatta.channel.options  Channel options to override for this operation
-
 
 --- Install an update artifact from remote server or local file.
 --
@@ -336,10 +273,10 @@ suricatta.channel = {
 -- Note that this file is to be deleted, if applicable, from the Lua realm.
 --
 --- @see suricatta.download
---- @param  install_channel  suricatta.op_channel  Channel to use for the download+installation operation
---- @return boolean                # Whether operation was successful or not
---- @return suricatta.status       # Suricatta return code
---- @return table<number, string>  # Error messages, if any
+--- @param  install_channel  suricatta.operation_channel  Channel to use for the download+installation operation
+--- @return boolean                                       # Whether operation was successful or not
+--- @return suricatta.status                              # Suricatta return code
+--- @return table<number, string>                         # Error messages, if any
 suricatta.install = function(install_channel) end
 
 --- Download an update artifact from remote server.
@@ -349,17 +286,17 @@ suricatta.install = function(install_channel) end
 -- an appropriate `install_channel` Table's `url` field.
 --
 --- @see suricatta.install
---- @param  download_channel  suricatta.op_channel  Channel to use for the download operation
---- @param  localpath         string                Path where to store the downloaded artifact to
---- @return boolean                # Whether operation was successful or not
---- @return suricatta.status       # Suricatta return code
---- @return table<number, string>  # Error messages, if any
+--- @param  download_channel  suricatta.operation_channel  Channel to use for the download operation
+--- @param  localpath         string                       Path where to store the downloaded artifact to
+--- @return boolean                                        # Whether operation was successful or not
+--- @return suricatta.status                               # Suricatta return code
+--- @return table<number, string>                          # Error messages, if any
 suricatta.download = function(download_channel, localpath) end
 
 
 --- Sleep for a number of seconds.
 --
--- Call SLEEP(3) via C realm.
+-- Call `SLEEP(3)` via C realm.
 --
 --- @param seconds number  # Number of seconds to sleep
 suricatta.sleep = function(seconds) end
@@ -382,7 +319,7 @@ suricatta.get_tmpdir = function() end
 
 --- Get SWUpdate version.
 --
---- @return suricatta.version  # Table with 'version' and 'patchlevel' fields
+--- @return suricatta.version  # Table with `version` and `patchlevel` fields
 suricatta.getversion = function() end
 
 

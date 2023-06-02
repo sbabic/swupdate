@@ -84,9 +84,9 @@ end
 -- The default substitutions table is suitable for escaping
 -- to proper JSON.
 --
---- @param  str      string                The JSON string to be escaped
---- @param  substs?  table<string,string>  Substitutions to apply
---- @return string                         # The escaped JSON string
+--- @param  str      string  The JSON string to be escaped
+--- @param  substs?  table   Substitutions to apply
+--- @return string           # The escaped JSON string
 function escape(str, substs)
     local escapes = '[%z\1-\31"\\]'
     if not substs then
@@ -145,10 +145,10 @@ jobtype = {
 --- Configuration for the General Purpose HTTP Server.
 --
 --- @class gs
---- @field channel         table<string, channel>     Channels used in this module
---- @field channel_config  suricatta.channel.options  Channel options (defaults, shadowed by config file, shadowed by command line arguments)
---- @field job             job                        Current job information
---- @field polldelay       table                      Default and temporary delay between two server poll operations in seconds
+--- @field channel         table<string, suricatta.open_channel>  Channels used in this module
+--- @field channel_config  suricatta.channel.options              Channel options (defaults, shadowed by config file, shadowed by command line arguments)
+--- @field job             job                                    Current job information
+--- @field polldelay       table                                  Default and temporary delay between two server poll operations in seconds
 gs = {
     channel        = {},
     channel_config = {},
@@ -403,13 +403,14 @@ suricatta.server.register(install_update, suricatta.server.INSTALL_UPDATE)
 --
 -- Lua counterpart of `void server_print_help(void)`.
 --
---- @param  defaults  suricatta.channel.options  Compile-time channel default options ∪ { polldelay = CHANNEL_DEFAULT_POLLING_INTERVAL }
---- @return suricatta.status                     # Suricatta return code
+--- @param  defaults  suricatta.channel.options|table  Default options
+--- @return suricatta.status                           # Suricatta return code
 function print_help(defaults)
     defaults = defaults or {}
-    io.stdout:write(string.format("\t  -u <URL>          * URL to the server instance, e.g., http://localhost:8080\n"))
-    io.stdout:write(string.format("\t  -i <string>       * The device ID.\n"))
-    io.stdout:write(string.format("\t  -p <int>          Polling delay (default: %ds).\n", defaults.polldelay))
+    local stdout = io.output()
+    stdout:write(string.format("\t  -u <URL>          * URL to the server instance, e.g., http://localhost:8080\n"))
+    stdout:write(string.format("\t  -i <string>       * The device ID.\n"))
+    stdout:write(string.format("\t  -p <int>          Polling delay (default: %ds).\n", defaults.polldelay))
     return suricatta.status.OK
 end
 suricatta.server.register(print_help, suricatta.server.PRINT_HELP)
@@ -441,7 +442,8 @@ function server_start(defaults, argv, fconfig)
             gs.polldelay.default = tonumber(arg)
         elseif opt == ":" then
             io.stderr:write("Missing argument.")
-            print_help(defaults)
+            -- Note: .polldelay is in fconfig
+            print_help(setmetatable((defaults or {}), { __index = fconfig }))
             return suricatta.status.EINIT
         end
     end
