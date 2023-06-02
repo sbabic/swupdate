@@ -190,6 +190,31 @@ static void fill_progress_bar(char *bar, size_t size, unsigned int percent)
 	memset(&bar[filled_len], '-', remain);
 }
 
+static void reboot_device(void)
+{
+	sleep(5);
+	sync();
+	if (reboot(LINUX_REBOOT_CMD_RESTART) < 0) { /* Should never happen. */
+		fprintf(stdout, "Please reset the board.\n");
+	}
+}
+
+static void run_post_script(char *script, struct progress_msg *msg)
+{
+	char *cmd;
+	if (asprintf(&cmd, "%s %s", script,
+		     msg->status == SUCCESS ?
+		     "SUCCESS" : "FAILURE") == -1) {
+		fprintf(stderr, "OOM calling post-exec script\n");
+		return;
+	}
+	int ret = system(cmd);
+	if (ret) {
+		fprintf(stdout, "Executed %s with error : %d\n", cmd, ret);
+	}
+	free(cmd);
+}
+
 int main(int argc, char **argv)
 {
 	int connfd;
@@ -206,7 +231,6 @@ int main(int argc, char **argv)
 	int opt_r = 0;
 	int opt_p = 0;
 	int c;
-	int ret;
 	char *script = NULL;
 	bool wait_update = true;
 
@@ -360,34 +384,49 @@ int main(int argc, char **argv)
 							  ? "SUCCESS"
 							  : "FAILURE");
 			if (script) {
-				char *cmd;
-				if (asprintf(&cmd, "%s %s", script,
-						msg.status == SUCCESS ?
-						"SUCCESS" : "FAILURE") == -1) {
-					fprintf(stderr, "OOM calling post-exec script\n");
-				} else {
-					ret = system(cmd);
-					if (ret) {
-						fprintf(stdout, "Executed %s with error : %d\n", cmd, ret);
-					}
-					free(cmd);
-				}
+				run_post_script(script, &msg);
 			}
 			resetterm();
+		#if !defined(CONFIG_SURICATTA_WFX)
 			if (psplash_ok)
 				psplash_progress(psplash_pipe_path, &msg);
 			psplash_ok = 0;
 			if ((msg.status == SUCCESS) && (msg.cur_step > 0) && opt_r) {
-				sleep(5);
-				sync();
-				if (reboot(LINUX_REBOOT_CMD_RESTART) < 0) { /* It should never happen */
-					fprintf(stdout, "Please reset the board.\n");
-				}
+				reboot_device();
 			}
+		#else
+			if (msg.status == SUCCESS) {
+				fprintf(stdout, "\nWaiting for activation.\n");
+				char *buf = alloca(PSPLASH_MSG_SIZE);
+				snprintf(buf, PSPLASH_MSG_SIZE - 1, "MSG Waiting for activation.");
+				psplash_write_fifo(psplash_pipe_path, buf);
+			}
+			if (msg.status == FAILURE) {
+				if (psplash_ok)
+					psplash_progress(psplash_pipe_path, &msg);
+				psplash_ok = 0;
+			}
+		#endif
 			wait_update = true;
 			break;
 		case DONE:
 			fprintf(stdout, "\nDONE.\n\n");
+			break;
+		case PROGRESS:
+			#if defined(CONFIG_SURICATTA_WFX)
+			if (strcasestr(msg.info, "\"state\": \"ACTIVATING\"") &&
+			    strcasestr(msg.info, "\"progress\": 100")) {
+				msg.status = SUCCESS;
+				if (psplash_ok)
+					psplash_progress(psplash_pipe_path, &msg);
+				psplash_ok = 0;
+				if (opt_r && strcasestr(msg.info, "firmware")) {
+					reboot_device();
+					break;
+				}
+				fprintf(stdout, "Don't know how to activate this update, doing nothing.\n");
+			}
+			#endif
 			break;
 		default:
 			break;
