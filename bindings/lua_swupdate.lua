@@ -12,6 +12,7 @@
 
 --]]
 
+---@diagnostic disable: missing-return
 ---@diagnostic disable: unused-local
 -- luacheck: no unused args
 
