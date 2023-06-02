@@ -319,7 +319,7 @@ static void console_notifier (RECOVERY_STATUS status, int error, int level, cons
 
 	fprintf(level == ERRORLEVEL ? stderr : stdout,
 			" : %s %s%s\n", current, msg ? msg : "", console_ansi_colors ? "\x1b[0m" : "");
-	fflush(stdout);
+	fflush(level == ERRORLEVEL ? stderr : stdout);
 }
 
 /*
