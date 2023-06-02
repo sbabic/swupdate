@@ -49,10 +49,11 @@ comment "hawkBit support needs json-c"
 
 config SURICATTA_LUA
 	bool "Suricatta Lua module"
-	depends on HAVE_LUA
 	depends on HAVE_JSON_C
-	select LUA
+	depends on HAVE_LUA
+	select CHANNEL_CURL
 	select JSON
+	select LUA
 	help
 	  Support for Suricatta modules in Lua.
 
@@ -61,13 +62,17 @@ config SURICATTA_LUA
 	  enables channel result parsing to JSON per default.
 	  To enable, select 'libjson' in 'Parser Features'.
 
-comment "Suricatta Lua module support needs Lua and json-c"
-	depends on !HAVE_LUA || !HAVE_JSON_C
+config SURICATTA_WFX
+	bool "wfx support"
+	depends on SURICATTA_LUA
+	select EMBEDDED_SURICATTA_LUA
+	help
+	  Support for wfx server.
+	  https://www.github.com/siemens/wfx
 
 config EMBEDDED_SURICATTA_LUA
 	bool "Embed Suricatta Lua module in SWUpdate binary"
 	depends on SURICATTA_LUA
-	default n
 	help
 	  Embed the Suricatta Lua module source code file into
 	  the SWUpdate binary.
@@ -83,7 +88,8 @@ config EMBEDDED_SURICATTA_LUA
 config EMBEDDED_SURICATTA_LUA_SOURCE
 	string "Suricatta Lua module file"
 	depends on EMBEDDED_SURICATTA_LUA
-	default "swupdate_suricatta.lua"
+	default "swupdate_suricatta.lua" if !SURICATTA_WFX
+	default "suricatta/server_wfx.lua" if SURICATTA_WFX
 	help
 	  Path to the Suricatta Lua module source code file to
 	  be embedded into the SWUpdate binary.
@@ -102,7 +108,13 @@ comment "General HTTP support needs json-c"
 
 endmenu
 
-endif
+comment "hawkBit & Suricatta Lua module support needs json-c"
+	depends on !HAVE_JSON_C
+
+comment "Suricatta Lua module support needs Lua"
+	depends on !HAVE_LUA
 
 comment "Suricatta daemon support needs libcurl"
 	depends on !HAVE_LIBCURL
+
+endif

@@ -29,7 +29,7 @@ config JSON
 	depends on HAVE_JSON_C
 	help
 	  Use json-c to parse the configuration file.
-	  Also required for suricatta's hawkBit Server support.
+	  Also required for suricatta server support.
 
 comment "JSON config parser support needs json-c"
 	depends on !HAVE_JSON_C
