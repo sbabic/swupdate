@@ -181,7 +181,7 @@ this is purely a convenience shortcut for the installation of a Lua Suricatta mo
 as described in `Support for Suricatta Modules in Lua`_.
 
 .. _wfx:  https://github.com/siemens/wfx
-.. _Device Artifact Update:  https://github.com/siemens/wfx/workflow/dau/
+.. _Device Artifact Update:  https://github.com/siemens/wfx/tree/main/workflow/dau
 
 
 Job Definition
@@ -278,8 +278,8 @@ transition execution functions in ``suricatta/server_wfx.lua`` -- or taking it a
 inspiration and creating a new wfx Lua Suricatta module as described in `Support
 for Suricatta Modules in Lua`_.
 
-.. _wfx.workflow.dau.phased:  https://github.com/siemens/wfx/workflow/dau/wfx.workflow.dau.phased.yml
-.. _wfx.workflow.dau.direct:  https://github.com/siemens/wfx/workflow/dau/wfx.workflow.dau.direct.yml
+.. _wfx.workflow.dau.phased:  https://github.com/siemens/wfx/blob/main/workflow/dau/wfx.workflow.dau.phased.yml
+.. _wfx.workflow.dau.direct:  https://github.com/siemens/wfx/blob/main/workflow/dau/wfx.workflow.dau.direct.yml
 
 
 Update Activation
