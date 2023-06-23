@@ -204,7 +204,7 @@ example (see ``job.definition.json_schema`` in ``suricatta/server_wfx.lua``):
             {
                 "name": "Example Device Firmware Artifact",
                 "version": "1.1",
-                "uri": "http://localhost:8080/download/example_artifact.swu",
+                "uri": "http://localhost:8080/download/example_artifact.swu"
             }
         ]
     }
