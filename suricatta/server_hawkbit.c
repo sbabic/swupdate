@@ -1553,6 +1553,7 @@ static server_op_res_t server_send_target_data(void)
 	{
 		"id": "%s",
 		"time": "%s",
+		"mode" : "replace",
 		"status": {
 			"result": {
 				"finished": "%s"
