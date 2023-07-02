@@ -108,7 +108,7 @@ Dropzone.options.dropzone = {
   timeout: 0,
   clickable: true,
   acceptedFiles: '.swu',
-  maxFilesize: 4096
+  maxFilesize: 0
 }
 
 window.onload = function () {
