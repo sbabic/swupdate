@@ -11,6 +11,8 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <errno.h>
+#include <fcntl.h>
+#include <poll.h>
 #ifdef CONFIG_GUNZIP
 #include <zlib.h>
 #endif
@@ -96,25 +98,46 @@ static int fill_buffer(int fd, unsigned char *buf, unsigned int nbytes, unsigned
  * Read padding that could exists between the cpio trailer and the end-of-file.
  * cpio aligns the file to 512 bytes
  */
-void extract_padding(int fd, unsigned long *offset)
+void extract_padding(int fd)
 {
     int padding;
     ssize_t len;
 	unsigned char buf[512];
+    int old_flags;
+    struct pollfd pfd;
+    int retval;
 
-    if (fd < 0 || !offset)
+    if (fd < 0)
         return;
 
-    padding = (512 - (*offset % 512)) % 512;
-    if (padding) {
-        TRACE("Expecting %d padding bytes at end-of-file", padding);
+    old_flags = fcntl(fd, F_GETFL);
+    if (old_flags < 0)
+        return;
+    fcntl(fd, F_SETFL, old_flags | O_NONBLOCK);
+
+    pfd.fd = fd;
+    pfd.events = POLLIN;
+
+    padding = 512;
+
+    TRACE("Expecting up to 512 padding bytes at end-of-file");
+    do {
+        retval = poll(&pfd, 1, 1000);
+        if (retval < 0) {
+            DEBUG("Failure while waiting on fd %d: %s", fd, strerror(errno));
+            fcntl(fd, F_SETFL, old_flags);
+            return;
+        }
         len = read(fd, buf, padding);
         if (len < 0) {
             DEBUG("Failure while reading padding %d: %s", fd, strerror(errno));
+            fcntl(fd, F_SETFL, old_flags);
             return;
         }
-    }
+        padding -= len;
+    } while (len > 0 && padding > 0);
 
+    fcntl(fd, F_SETFL, old_flags);
     return;
 }
 

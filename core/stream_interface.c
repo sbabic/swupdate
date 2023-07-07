@@ -205,7 +205,7 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 				 * to 512 bytes from the socket until the
 				 * client stops writing
 			 	 */
-				extract_padding(fd, &offset);
+				extract_padding(fd);
 				status = STREAM_END;
 				break;
 			}
