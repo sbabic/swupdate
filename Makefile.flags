@@ -225,11 +225,17 @@ endif
 ifeq ($(CONFIG_BOOTLOADER_EBG),y)
 LDLIBS += ebgenv
 endif
+ifeq ($(CONFIG_BOOTLOADER_CBOOT),y)
+LDLIBS += tegra-boot-tools
+endif
 else
 ifeq ($(CONFIG_UBOOT),y)
 LDLIBS += dl
 endif
 ifeq ($(CONFIG_BOOTLOADER_EBG),y)
+LDLIBS += dl
+endif
+ifeq ($(CONFIG_BOOTLOADER_CBOOT),y)
 LDLIBS += dl
 endif
 endif
@@ -246,6 +252,8 @@ else ifeq ($(CONFIG_BOOTLOADER_DEFAULT_UBOOT),y)
 KBUILD_CPPFLAGS += -DBOOTLOADER_DEFAULT="uboot"
 else ifeq ($(CONFIG_BOOTLOADER_DEFAULT_EBG),y)
 KBUILD_CPPFLAGS += -DBOOTLOADER_DEFAULT="ebg"
+else ifeq ($(CONFIG_BOOTLOADER_DEFAULT_CBOOT),y)
+KBUILD_CPPFLAGS += -DBOOTLOADER_DEFAULT="cboot"
 else
 KBUILD_CPPFLAGS += -DBOOTLOADER_DEFAULT="none"
 endif

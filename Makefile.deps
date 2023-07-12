@@ -50,6 +50,10 @@ ifeq ($(HAVE_LIBEBGENV),)
 export HAVE_LIBEBGENV = y
 endif
 
+ifeq ($(HAVE_LIBTEGRABOOT_TOOLS),)
+export HAVE_LIBTEGRABOOT_TOOLS = y
+endif
+
 ifeq ($(HAVE_LIBZEROMQ),)
 export HAVE_LIBZEROMQ = y
 endif

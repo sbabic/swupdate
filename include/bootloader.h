@@ -12,6 +12,7 @@
 #define BOOTLOADER_NONE  "none"
 #define BOOTLOADER_GRUB  "grub"
 #define BOOTLOADER_UBOOT "uboot"
+#define BOOTLOADER_CBOOT "cboot"
 
 #define load_symbol(handle, container, fname) \
 	*(void**)(container) = dlsym(handle, fname); \

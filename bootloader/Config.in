@@ -63,6 +63,19 @@ config GRUBENV_PATH
 	help
 	  Provide path to GRUB environment block file
 
+config BOOTLOADER_CBOOT
+	bool "NVIDIA Tegra Cboot"
+	depends on HAVE_LIBTEGRABOOT_TOOLS
+	help
+	  Support for NVIDIA's cboot used on some Tegra platform. Tegra
+	  uses different bootloader, depending on the SOC and on the release
+	  provided by vendor. Some SOCs (associated with some releases) are still
+	  using U-Boot (Jetson Nano, TX, TX2), some of them are using Cboot (Xavier),
+	  and some of them rely on UEFI. This adds support for cboot.
+
+comment "Cboot needs libtegra-boot-tools"
+	depends on !HAVE_LIBTEGRABOOT_TOOLS
+
 endmenu
 
 choice
@@ -97,6 +110,12 @@ config BOOTLOADER_DEFAULT_GRUB
 	depends on BOOTLOADER_GRUB
 	help
 	  Use GRUB as default bootloader interface.
+
+config BOOTLOADER_DEFAULT_CBOOT
+	bool "Cboot"
+	depends on BOOTLOADER_CBOOT
+	help
+	  Use NVIDIA Cboot as default bootloader interface.
 
 config BOOTLOADER_DEFAULT_NONE
 	bool "Environment in RAM"
