@@ -79,6 +79,8 @@ Talks about SWUpdate
        - Delta OTA Update with SWUpdate by Stefano Babic, ELCE 2022
          `Slides  Delta OTA Update with SWUpdate <https://elinux.org/images/9/98/Delta_OTA_Update_with_SWUpdate_-_ELCE_2022.pdf>`_,
          `Video Delta OTA Update with SWUpdate <https://www.youtube.com/watch?v=noURP22fJhs>`_
+       - Ligthning Talk: SWUpdate Over CAN Bus - Can it ? by Stefano Babic, EOSS 2023
+         `Video SWUpdate Over CAN Bus <https://www.youtube.com/watch?v=OU7MuX2sPUU&t=59s>`_
 
 Useful references
 =================
