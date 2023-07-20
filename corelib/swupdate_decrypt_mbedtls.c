@@ -103,7 +103,9 @@ int swupdate_DECRYPT_final(struct swupdate_digest *dgst, unsigned char *buf,
 
 	error = mbedtls_cipher_finish(&dgst->mbedtls_cipher_context, buf, &olen);
 	if (error) {
+#ifndef CONFIG_ENCRYPTED_IMAGES_HARDEN_LOGGING
 		ERROR("mbedtls_cipher_finish: %d", error);
+#endif
 		return -EFAULT;
 	}
 	*outlen = olen;

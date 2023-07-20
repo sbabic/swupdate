@@ -657,8 +657,10 @@ static int __swupdate_copy(int fdin, unsigned char *inbuf, void *out, size_t nby
 			hash_to_ascii(hash, hashstring);
 			hash_to_ascii(md_value, newhashstring);
 
+#ifndef CONFIG_ENCRYPTED_IMAGES_HARDEN_LOGGING
 			ERROR("HASH mismatch : %s <--> %s",
 				hashstring, newhashstring);
+#endif
 			ret = -EFAULT;
 			goto copyfile_exit;
 		}

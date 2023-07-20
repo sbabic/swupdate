@@ -509,6 +509,20 @@ config ENCRYPTED_SW_DESCRIPTION
 	  if this is set. It is a compile time option, and mix of plain and
 	  encrypted sw-descriptions is not possible.
 
+config ENCRYPTED_IMAGES_HARDEN_LOGGING
+	bool "Harden logging for encrypted images"
+	default n
+	depends on ENCRYPTED_IMAGES
+	help
+	  This option addresses a theoretical weakness of the AES-CBC encryption in
+	  combination with streamed images. An adversary can target each 16-byte
+	  block of encrypted data within an image and decrypt it, if they can apply a
+	  huge amount of manipulated firmware updates and observe the logged
+	  messages. On average, 2048 update attempts are needed for each block.
+	  Select if this scenario poses a risk. If set, log messages related to a
+	  hash mismatch and errors in the decryption finalization (padding) of a
+	  streamed image are suppressed.
+
 config PKCS11
 	bool "Enable PKCS#11 cryptographic operations"
 	default n
