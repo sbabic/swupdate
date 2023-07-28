@@ -9,6 +9,7 @@
 #define _SWUPDATE_SSL_H
 
 #include <stdint.h>
+#include "util.h"
 
 #define SHA_DEFAULT	"sha256"
 
@@ -197,11 +198,14 @@ int swupdate_DECRYPT_final(struct swupdate_digest *dgst, unsigned char *buf,
 				int *outlen);
 void swupdate_DECRYPT_cleanup(struct swupdate_digest *dgst);
 #else
-/*
- * Note: macro for swupdate_DECRYPT_init is
- * just to avoid compiler warnings
- */
-#define swupdate_DECRYPT_init(key, keylen, iv) (((key != NULL) | (ivt != NULL)) ? NULL : NULL)
+UNUSED static inline struct swupdate_digest *swupdate_DECRYPT_init(
+		unsigned char UNUSED *key,
+		char UNUSED keylen,
+		unsigned char UNUSED *iv)
+{
+	ERROR("SWUpdate was built without support for encrypted images");
+	return NULL;
+}
 #define swupdate_DECRYPT_update(p, buf, len, cbuf, inlen) (-1)
 #define swupdate_DECRYPT_final(p, buf, len) (-1)
 #define swupdate_DECRYPT_cleanup(p)

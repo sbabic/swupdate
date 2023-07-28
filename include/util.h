@@ -151,6 +151,7 @@ void notifier_set_color(int level, char *col);
 
 
 #define IS_STR_EQUAL(s,s1) (s && s1 && !strcmp(s,s1))
+#define UNUSED __attribute__((__unused__))
 
 #define LG_16 4
 #define FROM_HEX(f) from_ascii (f, sizeof f, LG_16)
