@@ -141,6 +141,12 @@ while test "$LDLIBS"; do
     all_needed=true
     last_needed=false
     for one in $LDLIBS; do
+	if [ "$one" = "pthread" ]; then
+		# always link against pthread since this detection mechanism
+		# tends to remove it even though it's needed at runtime, see
+		# e.g. `strings lua_swupdate.so.0.1`.
+		continue
+	fi
 	without_one=`echo " $LDLIBS " | sed "s/ $one / /g" | xargs`
 	# "lib1 lib2 lib3" -> "-llib1 -llib2 -llib3"
 	l_list=`echo "$without_one" | sed -e 's/ / -l/g' -e 's/^/-l/' -e 's/^-l$//'`
