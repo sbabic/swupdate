@@ -156,8 +156,8 @@ void swupdate_create_directory(const char* path) {
 		return;
 	}
 	if (mkdir(dpath, 0777)) {
-		WARN("Directory %s cannot be created due to : %s",
-			 path, strerror(errno));
+		WARN("Directory %s cannot be created: %s",
+			 dpath, strerror(errno));
 	}
 	free(dpath);
 }
