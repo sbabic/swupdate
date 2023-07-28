@@ -438,7 +438,6 @@ quiet_cmd_shared = LD      $@
       "$(KBUILD_CFLAGS) $(CFLAGS_swupdate)" \
       "$(LDFLAGS) $(EXTRA_LDFLAGS) $(LDFLAGS_swupdate) -L$(objtree)" \
       "$(2)" \
-	  "" \
 	  "$(LDLIBS)"
 
 lua_swupdate.so.0.1: $(bindings-libs) ${swupdate-ipc-lib}
