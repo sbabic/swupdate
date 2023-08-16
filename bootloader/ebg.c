@@ -113,8 +113,8 @@ static char *_env_get(const char *name)
 	 * value's size in bytes, the second call, with an accordingly
 	 * sized buffer, yields the actual value.
 	 */
-	size_t size = libebg.env_get(&ebgenv, (char *)name, NULL);
-	if (size == 0) {
+	int size = libebg.env_get(&ebgenv, (char *)name, NULL);
+	if (size <= 0) {
 		WARN("Cannot find key %s", name);
 		return NULL;
 	}
