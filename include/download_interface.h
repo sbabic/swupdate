@@ -12,7 +12,7 @@
 /*
  * This is used by swupdate to start the Downloader Process
  */
-int start_download(const char *cfgfname, int argc, char *argv[]);
+int start_download_server(const char *cfgfname, int argc, char *argv[]);
 
 void download_print_help(void);
 

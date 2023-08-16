@@ -889,7 +889,7 @@ int main(int argc, char **argv)
 		read_settings_user_id(&handle, "download", &uid, &gid);
 		start_subprocess(SOURCE_DOWNLOADER, "download", uid, gid,
 				 cfgfname, dwlac,
-				 dwlav, start_download);
+				 dwlav, start_download_server);
 		freeargs(dwlav);
 	}
 #endif

@@ -117,7 +117,7 @@ static channel_data_t channel_options = {
 	.headers = NULL,
 };
 
-int start_download(const char *fname, int argc, char *argv[])
+int start_download_server(const char *fname, int argc, char *argv[])
 {
 	if (fname) {
 		swupdate_cfg_handle handle;
