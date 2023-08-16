@@ -545,3 +545,27 @@ const char *pctl_getname_from_type(sourcetype s)
 
 	return "";
 }
+
+void *ipc_thread_fn(void *data)
+{
+	fd_set readfds;
+	int retval;
+	server_ipc_fn fn = (server_ipc_fn)data;
+
+	while (1) {
+		FD_ZERO(&readfds);
+		FD_SET(sw_sockfd, &readfds);
+		retval = select(sw_sockfd + 1, &readfds, NULL, NULL, NULL);
+
+		if (retval < 0) {
+			TRACE("IPC awakened because of: %s", strerror(errno));
+			return 0;
+		}
+
+		if (retval && FD_ISSET(sw_sockfd, &readfds)) {
+			if (fn(sw_sockfd) != SERVER_OK) {
+				DEBUG("Handling IPC failed!");
+			}
+		}
+	}
+}

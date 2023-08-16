@@ -219,29 +219,6 @@ int suricatta_wait(int seconds)
 	return 0;
 }
 
-static void *ipc_thread(void __attribute__ ((__unused__)) *data)
-{
-	fd_set readfds;
-	int retval;
-
-	while (1) {
-		FD_ZERO(&readfds);
-		FD_SET(sw_sockfd, &readfds);
-		retval = select(sw_sockfd + 1, &readfds, NULL, NULL, NULL);
-
-		if (retval < 0) {
-			TRACE("Suricatta IPC awakened because of: %s", strerror(errno));
-			return 0;
-		}
-
-		if (retval && FD_ISSET(sw_sockfd, &readfds)) {
-			if (suricatta_ipc(sw_sockfd) != SERVER_OK) {
-				DEBUG("Handling IPC failed!");
-			}
-		}
-	}
-}
-
 int start_suricatta(const char *cfgfname, int argc, char *argv[])
 {
 	int action_id;
@@ -331,7 +308,7 @@ int start_suricatta(const char *cfgfname, int argc, char *argv[])
 	/*
 	 * Start ipc thread here, because the following server.start might block
 	 */
-	start_thread(ipc_thread, NULL);
+	start_thread(ipc_thread_fn, suricatta_ipc);
 
 	/*
 	 * Now start a specific implementation of the server
