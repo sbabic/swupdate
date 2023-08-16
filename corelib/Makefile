@@ -34,5 +34,5 @@ lib-$(CONFIG_SIGALG_RSAPSS)	+= swupdate_rsa_verify_mbedtls.o
 endif
 lib-$(CONFIG_LIBCONFIG)		+= swupdate_settings.o \
 				   parsing_library_libconfig.o
-lib-$(CONFIG_JSON)		+= parsing_library_libjson.o
+lib-$(CONFIG_JSON)		+= parsing_library_libjson.o server_utils.o
 lib-$(CONFIG_CHANNEL_CURL)	+= channel_curl.o

@@ -22,7 +22,7 @@
 #include <pthread.h>
 #include "suricatta/suricatta.h"
 #include "suricatta/server.h"
-#include "suricatta_private.h"
+#include "server_utils.h"
 #include "parselib.h"
 #include "channel.h"
 #include "channel_curl.h"

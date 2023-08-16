@@ -13,8 +13,7 @@
 #include <parselib.h>
 #include <swupdate_settings.h>
 #include <channel_curl.h>
-#include "suricatta/suricatta.h"
-#include "suricatta_private.h"
+#include "server_utils.h"
 
 void suricatta_channel_settings(void *elem, channel_data_t *chan)
 {
