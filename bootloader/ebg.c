@@ -121,7 +121,7 @@ static char *_env_get(const char *name)
 
 	char *value = malloc(size);
 	if (value == NULL) {
-		ERROR("Error allocating memory");
+		ERROR("Error allocating %d bytes of memory to get '%s'", size, name);
 		return NULL;
 	}
 
