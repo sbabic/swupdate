@@ -131,6 +131,12 @@ static char *_env_get(const char *name)
 		free(value);
 		return NULL;
 	}
+	/* ensure value is null-terminated (string) */
+	if (value[size - 1] != '\0') {
+		ERROR("Cannot handle value of key %s", name);
+		free(value);
+		return NULL;
+	}
 	return value;
 }
 
