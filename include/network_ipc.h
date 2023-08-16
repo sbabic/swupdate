@@ -50,7 +50,8 @@ enum {
 	CMD_ACTIVATION,	/* this returns the answer if a SW can be activated */
 	CMD_CONFIG,
 	CMD_ENABLE,	/* Enable or disable suricatta mode */
-	CMD_GET_STATUS
+	CMD_GET_STATUS,
+	CMD_SET_DOWNLOAD_URL
 };
 
 enum run_type {

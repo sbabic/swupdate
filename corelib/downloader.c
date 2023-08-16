@@ -60,6 +60,15 @@ static RECOVERY_STATUS download_from_url(channel_data_t* channel_data)
 	}
 	channel->close(channel);
 	free(channel);
+
+	if (result != FAILURE) {
+		ipc_message msg;
+		msg.data.procmsg.len = 0;
+		if (ipc_postupdate(&msg) != 0 || msg.type != ACK) {
+			result = FAILURE;
+		}
+	}
+
 	return result;
 }
 
@@ -156,13 +165,6 @@ int start_download_server(const char *fname, int argc, char *argv[])
 	}
 
 	RECOVERY_STATUS result = download_from_url(&channel_options);
-	if (result != FAILURE) {
-		ipc_message msg;
-		msg.data.procmsg.len = 0;
-		if (ipc_postupdate(&msg) != 0 || msg.type != ACK) {
-			result = FAILURE;
-		}
-	}
 
 	if (channel_options.url != NULL) {
 		free(channel_options.url);
