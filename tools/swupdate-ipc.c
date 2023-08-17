@@ -93,6 +93,15 @@ static void usage_monitor(const char *program) {
 		);
 }
 
+static void usage_dwlurl(const char *program) {
+	fprintf(stdout,"\t %s \n", program);
+	fprintf(stdout,
+		"\t\t-u, --url <url>         : URL to be passed to the downloader\n"
+		"\t\t-c, --userpassword user:pass : user / password to be used to download\n"
+		"\t\t-h, --help              : print this help and exit\n"
+		);
+}
+
 /*
  * Utility functions called by subcommands
  */
@@ -197,6 +206,79 @@ static int hawkbitcfg(cmd_t  __attribute__((__unused__)) *cmd, int argc, char *a
 		msg.data.procmsg.len = strnlen(buf, size);
 		send_msg(&msg);
 	}
+
+	exit(0);
+}
+
+static struct option dwlurl_options[] = {
+	{"help", no_argument, NULL, 'h'},
+	{"url", required_argument, NULL, 'u'},
+	{"userpassword", required_argument, NULL, 'c'},
+	{NULL, 0, NULL, 0}
+};
+
+
+static int dwlurl(cmd_t  __attribute__((__unused__)) *cmd, int argc, char *argv[]) {
+	ipc_message msg;
+	size_t size, len;
+	char *buf;
+	int c;
+	int opt_u = 0, opt_c = 0;
+	char *url = NULL, *user = NULL;
+
+	memset(&msg, 0, sizeof(msg));
+	msg.data.procmsg.source = SOURCE_DOWNLOADER;
+	msg.type = SWUPDATE_SUBPROCESS;
+	msg.data.procmsg.cmd = CMD_SET_DOWNLOAD_URL;
+
+	size = sizeof(msg.data.procmsg.buf);
+	buf = msg.data.procmsg.buf;
+
+	/* Process options with getopt */
+	while ((c = getopt_long(argc, argv, "u:c:",
+				dwlurl_options, NULL)) != EOF) {
+		switch (c) {
+		case 'u':
+			opt_u = 1;
+			if (url) free(url);
+			url = strdup(optarg);
+			break;
+		case 'c':
+			opt_c = 1;
+			if (user) free(user);
+			user = strdup(optarg);
+			break;
+		}
+	}
+
+	/*
+	 * Build a json string with the command line parameters
+	 * do not check anything, let SWUpdate
+	 * doing the checks
+	 * An error or a NACK is returned in
+	 * case of failure
+	 */
+	if (!opt_u) { /*this is mandatory */
+		fprintf(stderr, "url is mandatory, skipping..\n");
+		exit(1);
+	}
+	len = snprintf(buf, size, "{ \"url\": \"%s\"", url);
+	if (len == size) {
+		fprintf(stderr, "URL is too long : %s\n", url);
+		exit(1);
+	}
+	if (opt_c) {
+		len += snprintf(buf + len, size - len, ", \"userpassword\" : \"%s\" }",
+				user);
+	} else {
+		len += snprintf(buf + len, size - len, "}");
+	}
+	if (len == size) {
+		fprintf(stderr, "URL + credentials too long, not supported\n");
+		exit(1);
+	}
+	msg.data.procmsg.len = len;
+	send_msg(&msg);
 
 	exit(0);
 }
@@ -690,6 +772,7 @@ cmd_t commands[] = {
 	{"gethawkbit", gethawkbitstatus, usage_gethawkbitstatus},
 	{"sysrestart", sysrestart, usage_sysrestart},
 	{"monitor", monitor, usage_monitor},
+	{"dwlurl", dwlurl, usage_dwlurl},
 	{NULL, NULL, NULL}
 };
 
