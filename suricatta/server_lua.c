@@ -33,7 +33,7 @@
 #include <bootloader.h>
 #include <swupdate_settings.h>
 #include <swupdate_dict.h>
-#include "suricatta_private.h"
+#include "server_utils.h"
 #include "suricatta/server.h"
 
 #define CONFIG_SECTION "suricatta"
