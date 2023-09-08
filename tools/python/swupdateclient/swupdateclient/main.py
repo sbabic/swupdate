@@ -46,10 +46,12 @@ class ColorFormatter(logging.Formatter):
     }
 
     def format(self, record):
-        return logging.Formatter(colored(
-            "%(levelname)s:%(name)s:%(message)s",
-            self.COLORS[record.levelno],
-            attrs=self.ATTRIBUTES[record.levelno])
+        return logging.Formatter(
+            colored(
+                "%(levelname)s:%(name)s:%(message)s",
+                self.COLORS[record.levelno],
+                attrs=self.ATTRIBUTES[record.levelno],
+            )
         ).format(record)
 
 
@@ -59,7 +61,15 @@ class SWUpdater:
     url_upload = "http://{}:{}{}/upload"
     url_status = "ws://{}:{}{}/ws"
 
-    def __init__(self, path_image, host_name, port=8080, route="", logger=None, log_level=logging.DEBUG):
+    def __init__(
+        self,
+        path_image,
+        host_name,
+        port=8080,
+        route="",
+        logger=None,
+        log_level=logging.DEBUG,
+    ):
         self._image = path_image
         self._host_name = host_name
         self._port = port
@@ -99,9 +109,7 @@ class SWUpdater:
                     if data["type"] != "message":
                         continue
 
-                    self._logger.log(
-                        LOGGING_MAPPING[data["level"]],
-                        data["text"])
+                    self._logger.log(LOGGING_MAPPING[data["level"]], data["text"])
 
                     if "SWUPDATE successful" in data["text"]:
                         return True
@@ -130,8 +138,8 @@ class SWUpdater:
 
             if response.status_code != 200:
                 self._logger.error(
-                    "Cannot upload software image: %s",
-                    response.status_code)
+                    "Cannot upload software image: %s", response.status_code
+                )
                 return False
 
             self._logger.info(
@@ -168,7 +176,7 @@ class SWUpdater:
         return asyncio.run(self.start_tasks(timeout))
 
 
-def client (args: List[str]) -> None:
+def client(args: List[str]) -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("swu_file", help="Path to swu image")
     parser.add_argument("host_name", help="Host name")
@@ -178,7 +186,7 @@ def client (args: List[str]) -> None:
         help="Name of the API route (e.g. /ROUTE)",
         type=str,
         default="",
-        nargs="?"
+        nargs="?",
     )
     parser.add_argument(
         "--timeout",
@@ -188,13 +196,20 @@ def client (args: List[str]) -> None:
         nargs="?",
     )
     parser.add_argument(
-        "--log-level", help="change log level (error, info, warning, debug)",
-        type=str, metavar="[LEVEL]",
-        choices=["error", "info", "warning", "debug"], default="debug"
+        "--log-level",
+        help="change log level (error, info, warning, debug)",
+        type=str,
+        metavar="[LEVEL]",
+        choices=["error", "info", "warning", "debug"],
+        default="debug",
     )
     parser.add_argument(
-        "--color", help="colorize messages (auto, always or never)", type=str,
-        metavar="[WHEN]", choices=["auto", "always", "never"], default="auto"
+        "--color",
+        help="colorize messages (auto, always or never)",
+        type=str,
+        metavar="[WHEN]",
+        choices=["auto", "always", "never"],
+        default="auto",
     )
 
     args = parser.parse_args()
@@ -210,11 +225,14 @@ def client (args: List[str]) -> None:
         args.host_name,
         args.port,
         args.route,
-        log_level=args.log_level.upper())
+        log_level=args.log_level.upper(),
+    )
     updater.update(timeout=args.timeout)
+
 
 def main():
     client(sys.argv[1:])
+
 
 if __name__ == "__main__":
     main()
