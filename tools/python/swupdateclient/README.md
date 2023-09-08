@@ -21,12 +21,12 @@ pipenv install
 
 ### pip
 ```
-swupdateclient <path-to-swu> <host_name> [port]
+swupdateclient <path-to-swu> <host_name> [port] [route]
 ```
 
 ### pipenv
 ```
-pipenv run swupdateclient <path-to-swu> <host_name> [port]
+pipenv run swupdateclient <path-to-swu> <host_name> [port] [route]
 ```
 
 
