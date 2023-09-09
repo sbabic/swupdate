@@ -1180,7 +1180,7 @@ These attributes are used for an embedded-script:
 
 ::
 
-		embedded-script = "<Lua code">
+		embedded-script = "<Lua code>"
 
 It must be taken into account that the parser has already run and usage of double quotes can
 interfere with the parser. For this reason, each double quote in the script must be escaped.
