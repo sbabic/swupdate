@@ -58,17 +58,20 @@ static struct ubi_part *search_volume_global(const char *str)
  * @vol2: pointer to ubi_vol_info pointer. Will be set to point to the
  *	  to-be-replaced volume in case a volume is found and the
  *	  request is legal. Otherwise it is set to NULL.
+ * @rename: pointer to new target volume name pointer.
  *
  * Return: 0 if replace valid or no replace found. Otherwise <0.
  */
 static int check_replace(struct img_type *img,
 			 struct ubi_vol_info *vol1,
-			 struct ubi_vol_info **vol2)
+			 struct ubi_vol_info **vol2,
+			 char **rename)
 {
 	char *tmpvol_name;
 	struct ubi_part *tmpvol;
 
 	*vol2 = NULL;
+	*rename = NULL;
 	tmpvol_name = dict_get_value(&img->properties, "replaces");
 
 	if (tmpvol_name == NULL)
@@ -77,8 +80,9 @@ static int check_replace(struct img_type *img,
 	tmpvol = search_volume_global(tmpvol_name);
 
 	if (!tmpvol) {
-		ERROR("replace: unable to find a volume %s", tmpvol_name);
-		return -1;
+		INFO("replace: unable to find a volume %s, will rename", tmpvol_name);
+		*rename = tmpvol_name;
+		return 0;
 	}
 
 	/* check whether on same device */
@@ -129,6 +133,34 @@ static int swap_volnames(libubi_t libubi,
 }
 
 /**
+ * rename_vol - rename the given volume
+ * @vol: volume
+ * @name: new volume name
+ *
+ * Return: 0 if OK, <0 otherwise
+ */
+static int rename_vol(libubi_t libubi,
+			 struct ubi_vol_info *vol,
+			 char *name)
+{
+	struct ubi_rnvol_req rnvol;
+	char masternode[64];
+
+	snprintf(masternode, sizeof(masternode),
+		 "/dev/ubi%d", vol->dev_num);
+
+	TRACE("replace: rename UBI volume %s to %s on %s",
+	      vol->name, name, masternode);
+
+	rnvol.ents[0].vol_id = vol->vol_id;
+	rnvol.ents[0].name_len = strlen(name);
+	strlcpy(rnvol.ents[0].name, name, sizeof(rnvol.ents[0].name));
+	rnvol.count = 1;
+
+	return ubi_rnvols(libubi, masternode, &rnvol);
+}
+
+/**
  * check_ubi_alwaysremove - check the property always-remove for this image
  * @img: image information
  *
@@ -147,6 +179,7 @@ static int update_volume(libubi_t libubi, struct img_type *img,
 	char node[64];
 	int err;
 	char sbuf[128];
+	char *rn_vol;
 	struct ubi_vol_info *repl_vol;
 
 	bytes = get_output_size(img, true);
@@ -184,7 +217,7 @@ static int update_volume(libubi_t libubi, struct img_type *img,
 	}
 
 	/* check replace property */
-	if(check_replace(img, vol, &repl_vol))
+	if(check_replace(img, vol, &repl_vol, &rn_vol))
 		return -1;
 
 	fdout = open(node, O_RDWR);
@@ -215,6 +248,11 @@ static int update_volume(libubi_t libubi, struct img_type *img,
 		if(err)
 			ERROR("replace: failed to swap volume names %s<->%s: %d",
 			      vol->name, repl_vol->name, err);
+	} else if (rn_vol) {
+		err = rename_vol(libubi, vol, rn_vol);
+		if(err)
+			ERROR("replace: failed to rename %s to %s: %d",
+			      vol->name, rn_vol, err);
 	}
 
 	close(fdout);
