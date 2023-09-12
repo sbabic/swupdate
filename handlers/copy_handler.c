@@ -266,7 +266,7 @@ static int copy_image_file(struct img_type *img, void *data)
 	/*
 	 * Check for recursive copy
 	 */
-	TRACE("Copying %lu from %s to %s", size, copyfrom, img->device);
+	TRACE("Copying %zu from %s to %s", size, copyfrom, img->device);
 
 	recursive = strtobool(dict_get_value(&img->properties, "recursive"));
 	createdest = strtobool(dict_get_value(&img->properties, "create-destination"));
