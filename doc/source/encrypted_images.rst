@@ -99,3 +99,10 @@ containing at least the elements of this example:
 ::
 
         pkcs11:slot-id=42;id=%CA%FE%BA%BE?pin-value=1234&module-path=/usr/lib/libsofthsm2.so 65D793B87B6724BB27954C7664F15FF3
+
+The encryption key can be imported to the PKCS#11 token by using ``pkcs11-tool`` as follow:
+
+::
+
+        echo -n "390ad54490a4a5f53722291023c19e08ffb5c4677a59e958c96ffa6e641df040" |  xxd -p -r > swupdate-aes-key.bin
+        pkcs11-tool --module /usr/lib/libsofthsm2.so --slot 0x42 --login --write-object swupdate-aes-key.bin  --id CAFEBABE --label swupdate-aes-key  --type secrkey --key-type AES:32
