@@ -393,6 +393,12 @@ static int l_copy2file(lua_State *L)
 	uint32_t checksum = 0;
 
 	table2image(L, &img);
+	if (check_same_file(img.fdin, fdout)) {
+		lua_pop(L, 1);
+		lua_pushinteger(L, -1);
+		lua_pushstring(L, "Output file path is same as input file temporary path");
+		goto copyfile_exit;
+	}
 	int ret = copyfile(img.fdin,
 				 &fdout,
 				 img.size,

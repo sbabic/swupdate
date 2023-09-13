@@ -230,6 +230,7 @@ int read_lines_notify(int fd, char *buf, int buf_size, int *buf_offset,
 		      LOGLEVEL level);
 long long get_output_size(struct img_type *img, bool strict);
 bool img_check_free_space(struct img_type *img, int fd);
+bool check_same_file(int fd1, int fd2);
 
 /* Decryption key functions */
 int load_decryption_key(char *fname);
