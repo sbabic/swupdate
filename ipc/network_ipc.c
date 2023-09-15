@@ -43,7 +43,7 @@ static int prepare_ipc(void) {
 	int connfd;
 	struct sockaddr_un servaddr;
 
-	connfd = socket(AF_LOCAL, SOCK_STREAM, 0);
+	connfd = socket(AF_LOCAL, SOCK_STREAM | SOCK_CLOEXEC, 0);
 	if (connfd < 0)
 		return -1;
 
