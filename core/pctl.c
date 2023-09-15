@@ -136,7 +136,7 @@ static int spawn_process(struct swupdate_task *task,
 	/*
 	 * Create the pipe to exchange data with the child
 	 */
-	if (socketpair(AF_UNIX, SOCK_STREAM, 0, sockfd) < 0) {
+	if (socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, sockfd) < 0) {
 		ERROR("socketpair fails : %s", strerror(errno));
 		return -1;
 	}
