@@ -8,11 +8,13 @@
 #ifndef _UTIL_H
 #define _UTIL_H
 
+#include <fcntl.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <sys/time.h>
 #if defined(__linux__)
 #include <linux/types.h>
 #endif
