@@ -270,6 +270,11 @@ static int mg_http_multipart_continue_wait_for_chunk(struct mg_connection *c) {
 
 static void mg_http_multipart_continue(struct mg_connection *c) {
 	struct mg_http_multipart_stream *mp_stream = c->pfn_data;
+
+	if(mp_stream == NULL) {
+		return;
+	}
+
 	while (1) {
 		switch (mp_stream->state) {
 			case MPS_BEGIN: {
