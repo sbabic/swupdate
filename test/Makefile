@@ -38,6 +38,9 @@ targets   += $(addsuffix .o,   $(tests-y))
 ifneq ($(CONFIG_EXTRA_LDFLAGS),)
 EXTRA_LDFLAGS += $($(STRIP) $(subst ",,$(CONFIG_EXTRA_LDFLAGS)))#"))
 endif
+ifneq ($(CONFIG_EMBEDDED_SURICATTA_LUA),)
+EXTRA_LDFLAGS += -Wl,--format=binary -Wl,$(CONFIG_EMBEDDED_SURICATTA_LUA_SOURCE) -Wl,--format=default
+endif
 
 ## transfer __wrap_*() functions to according linker flags via rudimentary regex awk parsing,
 ## e.g. __wrap_channel_get becomes -Wl,--wrap=channel_get.
