@@ -7,6 +7,15 @@
 
 /* global $, Dropzone, WebSocket */
 
+const StatusEnum = {
+  IDLE: 'IDLE',
+  START: 'START',
+  RUN: 'RUN',
+  SUCCESS: 'SUCCESS',
+  FAILURE: 'FAILURE',
+  DONE: 'DONE'
+};
+
 function restart () {
   $.post('restart', {}, function (data) {
     showRestart()
@@ -39,20 +48,20 @@ function updateStatus (status) {
   $('#swu-run').hide()
 
   switch (status) {
-    case 'IDLE':
+    case StatusEnum.IDLE:
       $('#swu-idle').show()
       break
-    case 'START':
-    case 'RUN':
+    case StatusEnum.START:
+    case StatusEnum.RUN:
       $('#swu-run').show()
       break
-    case 'SUCCESS':
+    case StatusEnum.SUCCESS:
       $('#swu-success').show()
       break
-    case 'FAILURE':
+    case StatusEnum.FAILURE:
       $('#swu-failure').show()
       break
-    case 'DONE':
+    case StatusEnum.DONE:
       $('#swu-done').show()
       break
     default:
@@ -71,20 +80,20 @@ var updateProgressBarStatus = (function (status) {
     $('#swu-progress-run').hide()
 
     switch (status) {
-      case 'START':
+      case StatusEnum.START:
         updateProgressBar(0, '', '')
         break
-      case 'RUN':
+      case StatusEnum.RUN:
         $('#swu-progress-bar').addClass('progress-bar-animated')
         $('#swu-progress-spinner')
           .addClass('fa-spinner fa-spin')
         $('#swu-progress-run').show()
         break
-      case 'SUCCESS':
+      case StatusEnum.SUCCESS:
         $('#swu-progress-bar')
           .addClass('bg-success')
         break
-      case 'FAILURE':
+      case StatusEnum.FAILURE:
         if (s !== 'START' || s !== 'RUN') { updateProgressBar(0, '', '') }
         $('#swu-progress-bar')
           .addClass('bg-danger')
@@ -121,7 +130,7 @@ window.onload = function () {
   var ws = new WebSocket(protocol + '//' + window.location.host + window.location.pathname.replace(/\/[^\/]*$/, '') + '/ws')
 
   ws.onopen = function (event) {
-    updateStatus('IDLE')
+    updateStatus(StatusEnum.IDLE)
   }
 
   ws.onclose = function (event) {
