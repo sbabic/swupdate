@@ -16,6 +16,10 @@ const StatusEnum = {
   DONE: 'DONE'
 };
 
+function isStatusInEnum(status){
+  return (status in StatusEnum)
+}
+
 function restart () {
   $.post('restart', {}, function (data) {
     showRestart()
@@ -41,6 +45,7 @@ function tryReload () {
 }
 
 function updateStatus (status) {
+  if(!isStatusInEnum(status)) return;
   $('#swu-idle').hide()
   $('#swu-success').hide()
   $('#swu-failure').hide()
@@ -73,6 +78,7 @@ var updateProgressBarStatus = (function (status) {
   var s = ''
 
   return function (status) {
+    if(!isStatusInEnum(status)) return;
     $('#swu-progress-bar')
       .removeClass('bg-danger bg-success progress-bar-animated')
     $('#swu-progress-spinner')
