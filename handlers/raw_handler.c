@@ -244,10 +244,11 @@ cleanup:
 	if (fdout > 0)
 		close(fdout);
 
-	if (use_mount)
+	if (use_mount) {
 		ret = swupdate_umount(DATADST_DIR);
 		if (ret)
 			WARN("Can't unmount path %s: %s", DATADST_DIR, strerror(errno));
+	}
 
 	return ret;
 }
