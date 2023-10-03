@@ -39,14 +39,20 @@ static struct {
 
 static int bootloader_initialize(struct uboot_ctx **ctx)
 {
-	if (libuboot.initialize(ctx, NULL) < 0) {
-		ERROR("Error: environment not initialized");
-		return -ENODEV;
-	}
-	if (libuboot.read_config(*ctx, CONFIG_UBOOT_FWENV) < 0) {
-		ERROR("Configuration file %s wrong or corrupted", CONFIG_UBOOT_FWENV);
+	int ret;
+	const char *namespace = NULL;
+
+	ret = libuboot_read_config_ext(ctx, CONFIG_UBOOT_FWENV);
+	if (ret) {
+		ERROR("Cannot initialize environment from %s", CONFIG_UBOOT_FWENV);
 		return -EINVAL;
 	}
+
+	namespace = libuboot_namespace_from_dt();
+
+	if (namespace)
+		*ctx = libuboot_get_namespace(*ctx, namespace);
+
 	if (libuboot.open(*ctx) < 0) {
 		WARN("Cannot read environment, using default");
 		if (libuboot.load_file(*ctx, CONFIG_UBOOT_DEFAULTENV) < 0) {
