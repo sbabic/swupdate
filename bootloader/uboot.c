@@ -42,9 +42,9 @@ static int bootloader_initialize(struct uboot_ctx **ctx)
 	int ret;
 	const char *namespace = NULL;
 
-	ret = libuboot_read_config_ext(ctx, CONFIG_UBOOT_FWENV);
+	ret = libuboot_read_config_ext(ctx, get_fwenv_config());
 	if (ret) {
-		ERROR("Cannot initialize environment from %s", CONFIG_UBOOT_FWENV);
+		ERROR("Cannot initialize environment from %s", get_fwenv_config());
 		return -EINVAL;
 	}
 

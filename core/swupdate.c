@@ -321,6 +321,13 @@ static int read_globals_settings(void *elem, void *data)
 	get_field(LIBCFG_PARSER, elem, "syslog", &sw->syslog_enabled);
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
 				"no-downgrading", sw->minimum_version);
+	tmp[0] = '\0';
+	GET_FIELD_STRING(LIBCFG_PARSER, elem,
+				"fwenv-config-location", tmp);
+	if (strlen(tmp)) {
+		set_fwenv_config(tmp);
+		tmp[0] = '\0';
+	}
 	if (strlen(sw->minimum_version))
 		sw->no_downgrading = true;
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
