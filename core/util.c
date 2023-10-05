@@ -53,6 +53,12 @@ struct decryption_key {
 
 static struct decryption_key *aes_key = NULL;
 
+/*
+ * Configuration file for fw_env.config
+ */
+
+static char *fwenv_config = NULL;
+
 char *sdup(const char *str) {
 	char *p;
 	if ((p = (char *) malloc(strlen(str) + 1)) != NULL) {
@@ -572,6 +578,27 @@ int set_aes_ivt(const char *ivt)
 
 	return 0;
 }
+
+const char *get_fwenv_config(void) {
+	if (!fwenv_config)
+#if defined(CONFIG_UBOOT)
+		return CONFIG_UBOOT_FWENV;
+#else
+		return NULL;
+#endif
+	return fwenv_config;
+}
+
+void set_fwenv_config(const char *fname) {
+	if (!fname)
+		return;
+
+	if (fwenv_config)
+		free(fwenv_config);
+
+	fwenv_config = strdup(fname);
+}
+
 
 char** string_split(const char* in, const char d)
 {

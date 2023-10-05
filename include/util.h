@@ -234,6 +234,10 @@ long long get_output_size(struct img_type *img, bool strict);
 bool img_check_free_space(struct img_type *img, int fd);
 bool check_same_file(int fd1, int fd2);
 
+/* location for libubootenv configuration file */
+const char *get_fwenv_config(void);
+void set_fwenv_config(const char *fname);
+
 /* Decryption key functions */
 int load_decryption_key(char *fname);
 unsigned char *get_aes_key(void);
