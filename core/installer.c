@@ -155,10 +155,9 @@ static int extract_scripts(struct imglist *head)
 	return 0;
 }
 
-static int update_bootloader_env(struct swupdate_cfg *cfg, const char *script)
+static int prepare_var_script(struct dict *dict, const char *script)
 {
 	int fd;
-	int ret = 0;
 	struct dict_entry *bootvar;
 	char buf[MAX_BOOT_SCRIPT_LINE_LENGTH];
 
@@ -166,7 +165,7 @@ static int update_bootloader_env(struct swupdate_cfg *cfg, const char *script)
 	if (fd < 0)
 		return -1;
 
-	LIST_FOREACH(bootvar, &cfg->bootloader, next) {
+	LIST_FOREACH(bootvar, dict, next) {
 		char *key = dict_entry_get_key(bootvar);
 		char *value = dict_entry_get_value(bootvar);
 
@@ -180,6 +179,17 @@ static int update_bootloader_env(struct swupdate_cfg *cfg, const char *script)
 		}
 	}
 	close(fd);
+
+	return 0;
+}
+
+static int update_bootloader_env(struct swupdate_cfg *cfg, const char *script)
+{
+	int ret = 0;
+
+	ret = prepare_var_script(&cfg->bootloader, script);
+	if (ret)
+		return ret;
 
 	if ((ret = bootloader_apply_list(script)) < 0) {
 		ERROR("Bootloader-specific error %d updating its environment", ret);
