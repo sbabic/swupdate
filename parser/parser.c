@@ -224,6 +224,11 @@ static bool get_common_fields(parsertype p, void *cfg, struct swupdate_cfg *swcf
 		}
 	}
 
+	if((setting = find_node(p, cfg, "namespace-for-vars", swcfg)) != NULL) {
+		GET_FIELD_STRING(p, setting, NULL, swcfg->namespace_for_vars);
+		TRACE("Namespaced used to store SWUpdate's vars: %s", swcfg->namespace_for_vars);
+	}
+
 	return true;
 }
 
@@ -719,6 +724,82 @@ static int parse_bootloader(parsertype p, void *cfg, struct swupdate_cfg *swcfg,
 	return _parse_bootloader(p, cfg, setting, nodes, swcfg, L);
 }
 
+static int _parse_vars(parsertype p, void *cfg, void *setting, const char **nodes, struct swupdate_cfg *swcfg, lua_State *L)
+{
+	void *elem;
+	int count, i, skip, err;
+	struct img_type dummy;
+
+	if (setting == NULL) {
+		return 0;
+	}
+
+	count = get_array_length(p, setting);
+
+	for(i = (count - 1); i >= 0; --i) {
+		elem = get_elem_from_idx(p, setting, i);
+
+		if (!elem)
+			continue;
+
+		if (exist_field_string(p, elem, "ref")) {
+			err = parser_follow_link(p, cfg, elem, nodes, swcfg, _parse_bootloader, L);
+			if (err)
+				return err;
+			continue;
+		}
+
+		/*
+		 * dummy is just used for hooks
+		 */
+		memset(&dummy, 0, sizeof(dummy));
+
+		/*
+		 * Check for mandatory field
+		 */
+		if (!exist_field_string(p, elem, "name")) {
+		    ERROR("vars must have name field");
+		    return -1;
+		}
+
+		/*
+		 * Call directly get_field_string with size 0
+		 * to let allocate the place for the strings
+		 */
+		GET_FIELD_STRING(p, elem, "name", dummy.id.name);
+		GET_FIELD_STRING(p, elem, "value", dummy.id.version);
+		skip = run_embscript(p, elem, &dummy, L, swcfg->embscript);
+		if (skip < 0)
+			return -1;
+		if (skip)
+			continue;
+
+		/*
+		 * Store the variable in dictionary
+		 */
+		dict_set_value(&swcfg->vars, dummy.id.name, dummy.id.version);
+
+		TRACE("SWUpdate var: %s = %s",
+		       dummy.id.name,
+		       dict_get_value(&swcfg->vars, dummy.id.name));
+	}
+
+	return 0;
+}
+
+static int parse_vars(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lua_State *L)
+{
+	void *setting;
+	const char *nodes[MAX_PARSED_NODES];
+
+	setting = find_node_and_path(p, cfg, "vars", swcfg, nodes);
+
+	if (!setting)
+		return 0;
+
+	return _parse_vars(p, cfg, setting, nodes, swcfg, L);
+}
+
 static int _parse_images(parsertype p, void *cfg, void *setting, const char **nodes, struct swupdate_cfg *swcfg, lua_State *L)
 {
 	void *elem;
@@ -941,7 +1022,8 @@ static int parser(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 		parse_files(p, cfg, swcfg, L) ||
 		parse_images(p, cfg, swcfg, L) ||
 		parse_scripts(p, cfg, swcfg, L) ||
-		parse_bootloader(p, cfg, swcfg, L);
+		parse_bootloader(p, cfg, swcfg, L) ||
+		parse_vars(p, cfg, swcfg, L);
 
 	/*
 	 * Move the partitions at the beginning to be processed

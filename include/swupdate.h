@@ -65,6 +65,7 @@ struct swupdate_cfg {
 	char current_version[SWUPDATE_GENERAL_STRING_SIZE];
 	char mtdblacklist[SWUPDATE_GENERAL_STRING_SIZE];
 	char forced_signer_name[SWUPDATE_GENERAL_STRING_SIZE];
+	char namespace_for_vars[SWUPDATE_GENERAL_STRING_SIZE];
 	bool syslog_enabled;
 	bool no_downgrading;
 	bool no_reinstalling;
@@ -81,6 +82,7 @@ struct swupdate_cfg {
 	struct imglist scripts;
 	struct imglist bootscripts;
 	struct dict bootloader;
+	struct dict vars;
 	struct dict accepted_set;
 	struct proclist extprocs;
 	void *dgst;	/* Structure for signed images */
