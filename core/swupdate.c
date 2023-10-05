@@ -314,6 +314,8 @@ static int read_globals_settings(void *elem, void *data)
 				"postupdatecmd", sw->postupdatecmd);
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
 				"preupdatecmd", sw->preupdatecmd);
+	GET_FIELD_STRING(LIBCFG_PARSER, elem,
+				"namespace-vars", sw->namespace_for_vars);
 	get_field(LIBCFG_PARSER, elem, "verbose", &sw->verbose);
 	get_field(LIBCFG_PARSER, elem, "loglevel", &sw->loglevel);
 	get_field(LIBCFG_PARSER, elem, "syslog", &sw->syslog_enabled);
