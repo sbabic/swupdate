@@ -126,9 +126,15 @@ static bootloader uboot = {
 	.apply_list = &do_apply_list
 };
 
+/*
+ * libubootenv is not only used as interface to U-Boot.
+ * It is also used to save SWUpdate's persistent variables that
+ * survives after a restart of the device but should not be
+ * considered by the bootloader. That requires libubootenv
+ * is always linked.
+ */
 static bootloader* probe(void)
 {
-#if defined(BOOTLOADER_STATIC_LINKED)
 	libuboot.open = libuboot_open;
 	libuboot.close = libuboot_close;
 	libuboot.exit = libuboot_exit;
@@ -138,23 +144,6 @@ static bootloader* probe(void)
 	libuboot.load_file = libuboot_load_file;
 	libuboot.set_env = libuboot_set_env;
 	libuboot.env_store = libuboot_env_store;
-#else
-	void* handle = dlopen("libubootenv.so.0", RTLD_NOW | RTLD_GLOBAL);
-	if (!handle) {
-		return NULL;
-	}
-
-	(void)dlerror();
-	load_symbol(handle, &libuboot.open, "libuboot_open");
-	load_symbol(handle, &libuboot.close, "libuboot_close");
-	load_symbol(handle, &libuboot.exit, "libuboot_exit");
-	load_symbol(handle, &libuboot.initialize, "libuboot_initialize");
-	load_symbol(handle, &libuboot.get_env, "libuboot_get_env");
-	load_symbol(handle, &libuboot.read_config, "libuboot_read_config");
-	load_symbol(handle, &libuboot.load_file, "libuboot_load_file");
-	load_symbol(handle, &libuboot.set_env, "libuboot_set_env");
-	load_symbol(handle, &libuboot.env_store, "libuboot_env_store");
-#endif
 	return &uboot;
 }
 

@@ -106,7 +106,7 @@ export SYSROOT=$(CONFIG_SYSROOT)
 endif
 
 # Links always pthread
-LDLIBS += pthread
+LDLIBS += pthread ubootenv
 # lua
 ifneq ($(CONFIG_LUA),)
 LDFLAGS_swupdate += -Wl,-E
@@ -219,9 +219,6 @@ endif
 
 
 ifeq ($(CONFIG_BOOTLOADER_STATIC_LINKED),y)
-ifeq ($(CONFIG_UBOOT),y)
-LDLIBS += ubootenv
-endif
 ifeq ($(CONFIG_BOOTLOADER_EBG),y)
 LDLIBS += ebgenv
 endif
