@@ -86,7 +86,6 @@ static int do_env_unset(const char *name)
 	return do_env_set(name, NULL);
 }
 
-
 static int do_apply_list(const char *filename)
 {
 	int ret;
