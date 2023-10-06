@@ -124,6 +124,23 @@ void get_value_json(json_object *e, void *dest)
 	}
 }
 
+bool is_field_numeric_json(json_object *e, const char *path)
+{
+	enum json_type type;
+	json_object *fld = NULL;
+
+	if (path) {
+		if (!json_object_object_get_ex(e, path, &fld))
+			return false;
+	} else {
+		fld = e;
+	}
+
+	type = json_object_get_type(fld);
+	return type == json_type_int ||
+	       type == json_type_double;
+}
+
 void get_field_json(json_object *e, const char *path, void *dest)
 {
 	json_object *fld = NULL;

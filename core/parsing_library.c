@@ -120,6 +120,20 @@ void get_field_string_with_size(parsertype p, void *e, const char *path, char *d
 	}
 }
 
+bool is_field_numeric(parsertype p, void *e, const char *path)
+{
+	switch (p) {
+	case LIBCFG_PARSER:
+		return is_field_numeric_cfg((config_setting_t *)e, path);
+	case JSON_PARSER:
+		return is_field_numeric_json((json_object *)e, path);
+	default:
+		(void)e;
+		(void)path;
+	}
+	return false;
+}
+
 void get_field(parsertype p, void *e, const char *path, void *dest)
 {
 	switch (p) {

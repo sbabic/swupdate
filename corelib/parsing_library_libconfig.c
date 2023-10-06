@@ -71,6 +71,26 @@ void iterate_field_libconfig(config_setting_t *e, iterate_callback cb, void *dat
 	}
 }
 
+bool is_field_numeric_cfg(config_setting_t *e, const char *path)
+{
+	config_setting_t *elem;
+	int type;
+
+	if (path)
+		elem = config_setting_lookup(e, path);
+	else
+		elem = e;
+
+	if (!elem)
+		return false;
+
+	type = config_setting_type(elem);
+
+	return type == CONFIG_TYPE_INT ||
+	       type == CONFIG_TYPE_INT64 ||
+	       type == CONFIG_TYPE_FLOAT;
+}
+
 void get_field_cfg(config_setting_t *e, const char *path, void *dest)
 {
 	config_setting_t *elem;
