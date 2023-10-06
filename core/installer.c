@@ -32,6 +32,7 @@
 #include "bootloader.h"
 #include "progress.h"
 #include "pctl.h"
+#include "swupdate_vars.h"
 
 /*
  * function returns:
@@ -162,8 +163,10 @@ static int prepare_var_script(struct dict *dict, const char *script)
 	char buf[MAX_BOOT_SCRIPT_LINE_LENGTH];
 
 	fd = openfileoutput(script);
-	if (fd < 0)
+	if (fd < 0) {
+		ERROR("Temporary file %s cannot be opened for writing", script);
 		return -1;
+	}
 
 	LIST_FOREACH(bootvar, dict, next) {
 		char *key = dict_entry_get_key(bootvar);
@@ -192,6 +195,21 @@ static int update_bootloader_env(struct swupdate_cfg *cfg, const char *script)
 		return ret;
 
 	if ((ret = bootloader_apply_list(script)) < 0) {
+		ERROR("Bootloader-specific error %d updating its environment", ret);
+	}
+
+	return ret;
+}
+
+static int update_swupdate_vars(struct swupdate_cfg *cfg, const char *script)
+{
+	int ret = 0;
+
+	ret = prepare_var_script(&cfg->vars, script);
+	if (ret)
+		return ret;
+
+	if ((ret = swupdate_vars_apply_list(script, cfg->namespace_for_vars)) < 0) {
 		ERROR("Bootloader-specific error %d updating its environment", ret);
 	}
 	return ret;
@@ -371,10 +389,18 @@ int install_images(struct swupdate_cfg *sw)
 		return ret;
 	}
 
+	char* script = alloca(strlen(TMPDIR)+strlen(BOOT_SCRIPT_SUFFIX)+1);
+	sprintf(script, "%s%s", TMPDIR, BOOT_SCRIPT_SUFFIX);
+
+	if (!LIST_EMPTY(&sw->vars)) {
+		ret = update_swupdate_vars(sw, script);
+		if (ret) {
+			return ret;
+		}
+	}
+
 	if (!LIST_EMPTY(&sw->bootloader)) {
-		char* bootscript = alloca(strlen(TMPDIR)+strlen(BOOT_SCRIPT_SUFFIX)+1);
-		sprintf(bootscript, "%s%s", TMPDIR, BOOT_SCRIPT_SUFFIX);
-		ret = update_bootloader_env(sw, bootscript);
+		ret = update_bootloader_env(sw, script);
 		if (ret) {
 			return ret;
 		}
@@ -446,7 +472,11 @@ void cleanup_files(struct swupdate_cfg *software) {
 		}
 	}
 
+	/*
+	 * drop environment databases
+	 */
 	dict_drop_db(&software->bootloader);
+	dict_drop_db(&software->vars);
 
 	if (asprintf(&fn, "%s%s", TMPDIR, BOOT_SCRIPT_SUFFIX) != ENOMEM_ASPRINTF) {
 		remove_sw_file(fn);

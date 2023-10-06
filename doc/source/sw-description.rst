@@ -948,6 +948,34 @@ For backward compatibility with previously built `.swu` images, the
 "uboot" group name is still supported as an alias. However, its usage
 is deprecated.
 
+SWUpdate persistent variables
+-----------------------------
+
+Not all updates require to inform the bootloader about the update, and in many cases a
+reboot is not required. There are also cases where changing bootloader's environment
+is unwanted due to restriction for security.
+SWUpdate needs then some information after new software is running to understand if
+everything is fine or some actions like a fallback are needed. SWUpdate can store
+such as information in variables (like shell variables), that can be stored persistently.
+The library `libubootenv` provide a way for saving such kind as database in a power-cut safe mode.
+It uses the algorythm originally implemented in the U-Boot bootloader. It is then guaranteed
+that the system will always have a valid instance of the environment. The library supports multiple
+environment databases at the same time, identifies with `namespaces`.
+SWUpdate should be configured to set the namespace used for own variables. This is done by setting
+the attribute *namespace-vars* in the runtime configuration file (swupdate.cfg). See also
+example/configuration/swupdate.cfg for details.
+
+The format is the same used with bootloader for single variable:
+
+	vars: (
+		{
+			name = <Variable name>;
+			value = <Variable value>;
+		}
+	)
+
+SWUpdate will set these variables all at once like the bootloader variables. These environment
+is stored just before writing the bootloader environment, that is always the last step in an update.
 
 Board specific settings
 -----------------------
