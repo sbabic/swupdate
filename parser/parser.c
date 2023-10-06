@@ -398,8 +398,6 @@ static int parse_common_attributes(parsertype p, void *elem, struct img_type *im
 	GET_FIELD_STRING(p, elem, "mtdname", image->mtdname);
 	GET_FIELD_STRING(p, elem, "filesystem", image->filesystem);
 	GET_FIELD_STRING(p, elem, "type", image->type);
-	get_field(p, elem, "offset", &offset);
-	GET_FIELD_STRING(p, elem, "offset", seek_str);
 	GET_FIELD_STRING(p, elem, "data", image->type_data);
 	get_hash_value(p, elem, image->sha256);
 
@@ -407,9 +405,11 @@ static int parse_common_attributes(parsertype p, void *elem, struct img_type *im
 	 * offset can be set as number or string. As string,
 	 * multiplier suffixes are allowed
 	 */
-	if (offset)
+	if (is_field_numeric(p, elem, "offset")) {
+		get_field(p, elem, "offset", &offset);
 		image->seek = offset;
-	else {
+	} else {
+		GET_FIELD_STRING(p, elem, "offset", seek_str);
 		/* convert the offset handling multiplicative suffixes */
 		image->seek = ustrtoull(seek_str, NULL, 0);
 		if (errno){

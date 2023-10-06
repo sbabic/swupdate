@@ -54,6 +54,7 @@ void *get_node_libconfig(config_t *cfg, const char **nodes);
 #define get_field_cfg(e, path, dest)
 #define find_root_libconfig(cfg, nodes, depth)		(NULL)
 #define get_node_libconfig(cfg, nodes)		(NULL)
+#define is_field_numeric_cfg(e, path)	(false)
 #endif
 
 #ifdef CONFIG_JSON
@@ -85,6 +86,7 @@ void *get_node_json(json_object *root, const char **nodes);
 #define json_object_array_length(a)	(0)
 #define find_root_json(root, nodes, depth)	(NULL)
 #define get_node_json(root, nodes)	(NULL)
+#define is_field_numeric_json(e, path)	(false)
 #endif
 
 bool is_field_numeric(parsertype p, void *e, const char *path);
