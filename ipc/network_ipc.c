@@ -1,7 +1,6 @@
 /*
- * (C) Copyright 2008-2017
- * Stefano Babic, DENX Software Engineering, sbabic@denx.de.
- * 	on behalf of ifm electronic GmbH
+ * (C) Copyright 2013-2023
+ * Stefano Babic <stefano.babic@swupdate.org>
  *
  * SPDX-License-Identifier:     LGPL-2.1-or-later
  */
