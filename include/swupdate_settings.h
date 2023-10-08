@@ -1,12 +1,11 @@
 /*
- * (C) Copyright 2016
- * Stefano Babic, DENX Software Engineering, sbabic@denx.de.
+ * (C) Copyright 2016-2023
+ * Stefano Babic <stefano.babic@swupdate.org>
  *
  * SPDX-License-Identifier:     GPL-2.0-only
  */
 
-#ifndef _SWUPDATE_SETTINGS_H
-#define _SWUPDATE_SETTINGS_H
+#pragma once
 
 #include <unistd.h>
 
@@ -68,6 +67,4 @@ static inline int settings_into_dict(void __attribute__ ((__unused__)) *settings
 {
 	return -1;
 }
-#endif
-
 #endif

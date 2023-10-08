@@ -1,13 +1,12 @@
 /*
  * (C) Copyright 2013
- * Stefano Babic, DENX Software Engineering, sbabic@denx.de.
+ * Stefano Babic <stefano.babic@swupdate.org>
  *
  * SPDX-License-Identifier:     GPL-2.0-only
  */
 
 
-#ifndef _INSTALLER_H
-#define _INSTALLER_H
+#pragma once
 
 #include <stdbool.h>
 #include "swupdate.h"
@@ -23,5 +22,3 @@ int install_from_file(const char *filename, bool check);
 int postupdate(struct swupdate_cfg *swcfg, const char *info);
 int preupdatecmd(struct swupdate_cfg *swcfg);
 void cleanup_files(struct swupdate_cfg *software);
-
-#endif

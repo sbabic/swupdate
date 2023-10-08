@@ -1,12 +1,11 @@
 /*
- * (C) Copyright 2012-2016
- * Stefano Babic, DENX Software Engineering, sbabic@denx.de.
+ * (C) Copyright 2012-2023
+ * Stefano Babic <stefano.babic@swupdate.org>
  *
  * SPDX-License-Identifier:     GPL-2.0-only
  */
 
-#ifndef _UTIL_H
-#define _UTIL_H
+#pragma once
 
 #include <fcntl.h>
 #include <stdint.h>
@@ -272,4 +271,3 @@ int swupdate_umount(const char *dir);
 
 /* Date / Time utilities */
 char *swupdate_time_iso8601(struct timeval *tv);
-#endif

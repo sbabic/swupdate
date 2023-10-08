@@ -1,12 +1,11 @@
 /*
- * (C) Copyright 2016
- * Stefano Babic, DENX Software Engineering, sbabic@denx.de.
+ * (C) Copyright 2016-2023
+ * Stefano Babic <stefano.babic@swupdate.org>
  *
  * SPDX-License-Identifier:     GPL-2.0-only
  */
 
-#ifndef _SWDICT_H
-#define _SWDICT_H
+#pragma once
 
 #include <bsdqueue.h>
 
@@ -35,5 +34,3 @@ int dict_insert_value(struct dict *dictionary, const char *key, const char *valu
 void dict_remove(struct dict *dictionary, const char *key);
 void dict_drop_db(struct dict *dictionary);
 int dict_parse_script(struct dict *dictionary, const char *script);
-
-#endif

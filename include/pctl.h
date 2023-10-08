@@ -1,12 +1,11 @@
 /*
- * (C) Copyright 2016
- * Stefano Babic, DENX Software Engineering, sbabic@denx.de.
+ * (C) Copyright 2016-2023
+ * Stefano Babic <stefano.babic@swupdate.org>
  *
  * SPDX-License-Identifier:     GPL-2.0-only
  */
 
-#ifndef _SWUPDATE_PCTL_H
-#define _SWUPDATE_PCTL_H
+#pragma once
 
 #include <swupdate_status.h>
 #include <sys/types.h>
@@ -54,5 +53,3 @@ int pctl_getfd_from_type(sourcetype s);
 const char *pctl_getname_from_type(sourcetype s);
 int run_system_cmd(const char *cmd);
 int run_function_background(void *fn, int argc, char **argv);
-
-#endif

@@ -5,8 +5,7 @@
  * SPDX-License-Identifier:     GPL-2.0-only
  */
 
-#ifndef _SWUPDATE_SSL_H
-#define _SWUPDATE_SSL_H
+#pragma once
 
 #include <stdint.h>
 #include "util.h"
@@ -221,6 +220,3 @@ UNUSED static inline struct swupdate_digest *swupdate_DECRYPT_init(
 #define SSL_PURPOSE_CODE_SIGN  -1
 #define SSL_PURPOSE_DEFAULT -1
 #endif
-
-#endif
-

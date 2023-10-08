@@ -1,6 +1,6 @@
 /*
  * (C) Copyright 2021
- * Stefano Babic, sbabic@denx.de.
+ * Stefano Babic <stefano.babic@swupdate.org>
  *
  * SPDX-License-Identifier:     GPL-2.0-only
  */

@@ -1,12 +1,11 @@
 /*
- * (C) Copyright 2012-2014
- * Stefano Babic, DENX Software Engineering, sbabic@denx.de.
+ * (C) Copyright 2013-2023
+ * Stefano Babic <stefano.babic@swupdate.org>
  *
  * SPDX-License-Identifier:     GPL-2.0-only
  */
 
-#ifndef _SWUPDATE_H
-#define _SWUPDATE_H
+#pragma once
 
 #include <sys/types.h>
 #include <stdbool.h>
@@ -111,5 +110,3 @@ struct swupdate_cfg {
 int cpio_scan(int fd, struct swupdate_cfg *cfg, off_t start);
 struct swupdate_cfg *get_swupdate_cfg(void);
 void free_image(struct img_type *img);
-
-#endif

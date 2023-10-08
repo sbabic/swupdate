@@ -1,14 +1,11 @@
 /*
- * (C) Copyright 2013
- * Stefano Babic, DENX Software Engineering, sbabic@denx.de.
- * 	on behalf of ifm electronic GmbH
+ * (C) Copyright 2013-2023
+ * Stefano Babic <stefano.babic@swupdate.org>
  *
  * SPDX-License-Identifier:     GPL-2.0-only
  */
 
-#ifndef _LUA_UTIL_H
-#define _LUA_UTIL_H
-
+#pragma once
 #ifdef CONFIG_LUA
 #include "lua.h"
 #include "lauxlib.h"
@@ -91,7 +88,4 @@ static inline int lua_parser_fn(lua_State __attribute__ ((__unused__)) *L,
 			 const char __attribute__ ((__unused__)) *fcn,
 			 struct img_type __attribute__ ((__unused__)) *img) { return -1; }
 static inline int lua_handlers_init(void) { return 0; }
-#endif
-
-
 #endif

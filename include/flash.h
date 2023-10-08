@@ -1,13 +1,12 @@
 /*
  * (C) Copyright 2014
- * Stefano Babic, DENX Software Engineering, sbabic@denx.de.
+ * Stefano Babic <stefano.babic@swupdate.org>
  *
  * SPDX-License-Identifier:     GPL-2.0-only
  */
 
 
-#ifndef _FLASH_PART_H
-#define _FLASH_PART_H
+#pragma once
 
 #include <stdint.h>
 #include <libmtd.h>
@@ -58,5 +57,3 @@ struct flash_description *get_flash_info(void);
 #define isNand(flash, index) \
 	(flash->mtd_info[index].mtd.type == MTD_NANDFLASH || \
 	 flash->mtd_info[index].mtd.type == MTD_MLCNANDFLASH)
-
-#endif

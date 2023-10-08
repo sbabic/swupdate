@@ -1,12 +1,11 @@
 /*
- * (C) Copyright 2016
- * Stefano Babic, DENX Software Engineering, sbabic@denx.de.
+ * (C) Copyright 2016-2023
+ * Stefano Babic <stefano.babic@swupdate.org>
  *
  * SPDX-License-Identifier:     GPL-2.0-only
  */
 
-#ifndef _PARSE_LIBRARY_H
-#define _PARSE_LIBRARY_H
+#pragma once
 
 #include <assert.h>
 #include <stdbool.h>
@@ -112,6 +111,3 @@ bool set_find_path(const char **nodes, const char *newpath, char **tmp);
 	d[0] = '\0'; \
 	GET_FIELD_STRING(p, e, name, d); \
 } while (0)
-
-
-#endif

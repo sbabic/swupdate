@@ -5,8 +5,7 @@
  * SPDX-License-Identifier:     LGPL-2.1-or-later
  */
 
-#ifndef _PROGRESS_IPC_H
-#define _PROGRESS_IPC_H
+#pragma once
 
 #include <stdbool.h>
 #include <swupdate_status.h>
@@ -54,6 +53,4 @@ int progress_ipc_receive(int *connfd, struct progress_msg *msg);
 
 #ifdef __cplusplus
 }   // extern "C"
-#endif
-
 #endif

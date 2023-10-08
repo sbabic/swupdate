@@ -1,14 +1,12 @@
 /*
  * (C) Copyright 2012-2013
- * Stefano Babic, DENX Software Engineering, sbabic@denx.de.
- * 	on behalf of ifm electronic GmbH
+ * Stefano Babic <stefano.babic@swupdate.org>
  *
  * SPDX-License-Identifier:     GPL-2.0-only
  */
 
 
-#ifndef _HANDLER_H
-#define _HANDLER_H
+#pragma once
 
 struct img_type;
 typedef enum {
@@ -58,5 +56,3 @@ struct installer_handler *find_handler(struct img_type *img);
 void print_registered_handlers(void);
 struct installer_handler *get_next_handler(void);
 unsigned int get_handler_mask(struct img_type *img);
-
-#endif

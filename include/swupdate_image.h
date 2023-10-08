@@ -1,12 +1,11 @@
 /*
  * (C) Copyright 2023
- * Stefano Babic, sbabic@denx.de.
+ * Stefano Babic <stefano.babic@swupdate.org>
  *
  * SPDX-License-Identifier:     GPL-2.0-only
  */
 
-#ifndef _SWUPDATE_IMAGE_H
-#define _SWUPDATE_IMAGE_H
+#pragma once
 
 #include <sys/types.h>
 #include <stdbool.h>
@@ -72,6 +71,3 @@ struct img_type {
 };
 
 LIST_HEAD(imglist, img_type);
-
-#endif
-

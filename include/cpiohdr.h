@@ -1,6 +1,6 @@
 /*
  * (C) Copyright 2016
- * Stefano Babic, DENX Software Engineering, sbabic@denx.de.
+ * Stefano Babic <stefano.babic@swupdate.org>
  *
  * SPDX-License-Identifier:     GPL-2.0-only
  */
@@ -11,8 +11,7 @@
  * but just what is needed by swupdate
  */
 
-#ifndef _CPIOHDR_SWUPD_H
-#define _CPIOHDR_SWUPD_H
+#pragma once
 
 /* Global swupdate defines */
 #include <stdbool.h>
@@ -61,5 +60,3 @@ int extract_cpio_header(int fd, struct filehdr *fhdr, unsigned long *offset);
 int extract_img_from_cpio(int fd, unsigned long offset, struct filehdr *fdh);
 void extract_padding(int fd);
 bool swupdate_verify_chksum(const uint32_t chk1, struct filehdr *fhdr);
-
-#endif
