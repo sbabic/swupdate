@@ -183,7 +183,7 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 				return -1;
 			}
 
-			if (check_hw_compatibility(software)) {
+			if (check_hw_compatibility(&software->hw, &software->hardware)) {
 				ERROR("SW not compatible with hardware");
 				return -1;
 			}

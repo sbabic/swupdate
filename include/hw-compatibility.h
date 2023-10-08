@@ -8,9 +8,18 @@
 #ifndef _SWUPDATE_HW_COMPATIBILITY_H
 #define _SWUPDATE_HW_COMPATIBILITY_H
 
-#include "swupdate.h"
+#include "bsdqueue.h"
+#include "globals.h"
 
-int check_hw_compatibility(struct swupdate_cfg *cfg);
+struct hw_type {
+	char boardname[SWUPDATE_GENERAL_STRING_SIZE];
+	char revision[SWUPDATE_GENERAL_STRING_SIZE];
+	LIST_ENTRY(hw_type) next;
+};
+
+LIST_HEAD(hwlist, hw_type);
+
+int check_hw_compatibility(struct hw_type *hwt, struct hwlist *hardware);
 int get_hw_revision(struct hw_type *hw);
 
 #endif

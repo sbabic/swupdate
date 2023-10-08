@@ -10,7 +10,6 @@
 #include <unistd.h>
 #include <errno.h>
 #include "util.h"
-#include "swupdate.h"
 #include "hw-compatibility.h"
 
 /*
@@ -18,19 +17,19 @@
  * in the sw-description file
  */
 #ifdef CONFIG_HW_COMPATIBILITY
-int check_hw_compatibility(struct swupdate_cfg *cfg)
+int check_hw_compatibility(struct hw_type *hwt, struct hwlist *hardware)
 {
 	struct hw_type *hw;
 	int ret;
 
-	ret = get_hw_revision(&cfg->hw);
+	ret = get_hw_revision(hwt);
 	if (ret < 0)
 		return -1;
 
-	TRACE("Hardware %s Revision: %s", cfg->hw.boardname, cfg->hw.revision);
-	LIST_FOREACH(hw, &cfg->hardware, next) {
+	TRACE("Hardware %s Revision: %s", hwt->boardname, hwt->revision);
+	LIST_FOREACH(hw, hardware, next) {
 		if (hw &&
-		    (!hwid_match(hw->revision, cfg->hw.revision))) {
+		    (!hwid_match(hw->revision, hwt->revision))) {
 			TRACE("Hardware compatibility verified");
 			return 0;
 		}
@@ -39,8 +38,7 @@ int check_hw_compatibility(struct swupdate_cfg *cfg)
 	return -1;
 }
 #else
-int check_hw_compatibility(struct swupdate_cfg
-		__attribute__ ((__unused__)) *cfg)
+int check_hw_compatibility(struct hw_type __attribute__ ((__unused__)) *hwt, struct hwlist __attribute__ ((__unused__)) *hardware)
 {
 	return 0;
 }

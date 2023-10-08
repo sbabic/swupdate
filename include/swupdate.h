@@ -15,6 +15,7 @@
 #include "mongoose_interface.h"
 #include "swupdate_dict.h"
 #include "swupdate_image.h"
+#include "hw-compatibility.h"
 
 /*
  * this is used to indicate if a file
@@ -26,14 +27,6 @@ typedef enum {
 	SKIP_FILE,
 	INSTALL_FROM_STREAM
 } swupdate_file_t;
-
-struct hw_type {
-	char boardname[SWUPDATE_GENERAL_STRING_SIZE];
-	char revision[SWUPDATE_GENERAL_STRING_SIZE];
-	LIST_ENTRY(hw_type) next;
-};
-
-LIST_HEAD(hwlist, hw_type);
 
 struct extproc {
 	char name[SWUPDATE_GENERAL_STRING_SIZE];
