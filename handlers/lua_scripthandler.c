@@ -15,7 +15,7 @@
 #include <errno.h>
 #include <string.h>
 
-#include "swupdate.h"
+#include "swupdate_image.h"
 #include "handler.h"
 #include "lua.h"
 #include "lauxlib.h"
