@@ -17,7 +17,6 @@
 #include "generated/autoconf.h"
 #include "bsdqueue.h"
 #include "util.h"
-#include "swupdate.h"
 #include "parselib.h"
 
 void get_value_libconfig(const config_setting_t *e, void *dest)

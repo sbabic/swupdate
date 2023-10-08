@@ -17,7 +17,6 @@
 #include "generated/autoconf.h"
 #include "bsdqueue.h"
 #include "util.h"
-#include "swupdate.h"
 #include "parselib.h"
 
 #define MAX_URL_LENGTH 2048
