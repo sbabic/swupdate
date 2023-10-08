@@ -9,7 +9,6 @@
 #include <stddef.h>
 
 #include <fs_interface.h>
-#include <swupdate.h>
 #include <util.h>
 
 #include "ff.h"
