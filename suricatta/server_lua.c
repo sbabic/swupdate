@@ -27,7 +27,6 @@
 #include <progress_ipc.h>
 #include <channel.h>
 #include <channel_curl.h>
-#include <swupdate.h>
 #include <parselib.h>
 #include <state.h>
 #include <bootloader.h>
