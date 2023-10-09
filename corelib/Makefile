@@ -11,7 +11,7 @@ lib-$(CONFIG_HASH_VERIFY)	+= verify_signature.o
 ifeq ($(CONFIG_PKCS11),y)
 lib-$(CONFIG_ENCRYPTED_IMAGES)	+= swupdate_decrypt_pkcs11.o
 else
-lib-$(CONFIG_ENCRYPTED_IMAGES)	+= swupdate_decrypt.o
+lib-$(CONFIG_ENCRYPTED_IMAGES)	+= swupdate_decrypt_openssl.o
 endif
 lib-$(CONFIG_SIGALG_RAWRSA)	+= swupdate_rsa_verify.o
 lib-$(CONFIG_SIGALG_RSAPSS)	+= swupdate_rsa_verify.o
