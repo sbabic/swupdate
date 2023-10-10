@@ -1675,7 +1675,7 @@ static int server_hawkbit_settings(void *elem, void  __attribute__ ((__unused__)
 	get_field(LIBCFG_PARSER, elem, "initial-report-resend-period",
 		&server_hawkbit.initial_report_resend_period);
 
-	suricatta_channel_settings(elem, &channel_data_defaults);
+	channel_settings(elem, &channel_data_defaults);
 
 	get_field(LIBCFG_PARSER, elem, "usetokentodwl",
 		&server_hawkbit.usetokentodwl);

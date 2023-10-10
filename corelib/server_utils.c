@@ -15,7 +15,7 @@
 #include <channel_curl.h>
 #include "server_utils.h"
 
-void suricatta_channel_settings(void *elem, channel_data_t *chan)
+void channel_settings(void *elem, channel_data_t *chan)
 {
 	char tmp[128];
 

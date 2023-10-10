@@ -594,7 +594,7 @@ static int server_general_settings(void *elem, void  __attribute__ ((__unused__)
 	get_field(LIBCFG_PARSER, elem, "polldelay",
 		&server_general.polling_interval);
 
-	suricatta_channel_settings(elem, &channel_data_defaults);
+	channel_settings(elem, &channel_data_defaults);
 
 	return 0;
 }
