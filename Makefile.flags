@@ -302,3 +302,7 @@ endif
 # (we stole scripts/checkstack.pl from the kernel... thanks guys!)
 # Reduced from 20k to 16k in 1.9.0.
 FLTFLAGS += -s 16000
+
+ifeq ($(CONFIG_SIGALG_GPG),y)
+LDLIBS += gpgme
+endif

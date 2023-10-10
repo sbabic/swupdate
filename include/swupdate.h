@@ -88,6 +88,8 @@ struct swupdate_cfg {
 	void *dgst;	/* Structure for signed images */
 	struct swupdate_parms parms;
 	const char *embscript;
+	char gpg_home_directory[SWUPDATE_GENERAL_STRING_SIZE];
+	char gpgme_protocol[SWUPDATE_GENERAL_STRING_SIZE];
 };
 
 #define SEARCH_FILE(img, list, found, offs) do { \

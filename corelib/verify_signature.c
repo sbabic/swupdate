@@ -174,6 +174,10 @@ int swupdate_dgst_init(struct swupdate_cfg *sw, const char *keyfile)
 	}
 #endif
 
+#elif defined(CONFIG_SIGALG_GPG)
+	dgst->gpg_home_directory = sw->gpg_home_directory;
+	dgst->gpgme_protocol = sw->gpgme_protocol;
+	dgst->verbose = sw->verbose;
 #else
 	TRACE("public key / cert %s ignored, you need to set SIGALG", keyfile);
 #endif

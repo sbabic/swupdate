@@ -430,7 +430,6 @@ choice
 	config SSL_IMPL_MBEDTLS
 		bool "mbedTLS"
 		depends on HAVE_MBEDTLS
-
 endchoice
 
 
@@ -477,6 +476,8 @@ choice
 		bool "Cryptographic Message Syntax (CMS) / PKCS#7"
 		depends on SSL_IMPL_OPENSSL || SSL_IMPL_WOLFSSL
 
+	config SIGALG_GPG
+		bool "GPG signing"
 endchoice
 
 menu "CMS / PKCS#7 signature verification options"

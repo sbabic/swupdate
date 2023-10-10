@@ -156,6 +156,11 @@ struct swupdate_digest {
 #elif defined(CONFIG_ENCRYPTED_IMAGES)
 	mbedtls_cipher_context_t mbedtls_cipher_context;
 #endif /* CONFIG_PKCS11 */
+#ifdef CONFIG_SIGALG_GPG
+	char *gpg_home_directory;
+	int verbose
+	char *gpgme_protocol;
+#endif
 };
 
 #else /* CONFIG_SSL_IMPL */

@@ -150,6 +150,7 @@ static void usage(char *programname)
 		" -l, --loglevel <level>         : logging level\n"
 		" -L, --syslog                   : enable syslog logger\n"
 #ifdef CONFIG_SIGNED_IMAGES
+#ifndef CONFIG_SIGALG_GPG
 		" -k, --key <public key file>    : file with public key to verify images\n"
 		"     --cert-purpose <purpose>   : set expected certificate purpose\n"
 		"                                  [emailProtection|codeSigning] (default: emailProtection)\n"
@@ -157,6 +158,7 @@ static void usage(char *programname)
 		"     --forced-signer-name <cn>  : set expected common name of signer certificate\n"
 #endif
 		"     --ca-path                  : path to the Certificate Authority (PEM)\n"
+#endif
 #endif
 #ifdef CONFIG_ENCRYPTED_IMAGES
 		" -K, --key-aes <key file>       : the file contains the symmetric key to be used\n"
@@ -347,6 +349,10 @@ static int read_globals_settings(void *elem, void *data)
 
 	char software_select[SWUPDATE_GENERAL_STRING_SIZE] = "";
 	GET_FIELD_STRING(LIBCFG_PARSER, elem, "select", software_select);
+	GET_FIELD_STRING(LIBCFG_PARSER, elem,
+				"gpg-home-dir", sw->gpg_home_directory);
+	GET_FIELD_STRING(LIBCFG_PARSER, elem,
+				"gpgme-protocol", sw->gpgme_protocol);
 	if (software_select[0] != '\0') {
 		/* by convention, errors in a configuration section are ignored */
 		(void)parse_image_selector(software_select, sw);
@@ -479,8 +485,10 @@ int main(int argc, char **argv)
 	strcat(main_options, "H:");
 #endif
 #ifdef CONFIG_SIGNED_IMAGES
+#ifndef CONFIG_SIGALG_GPG
 	strcat(main_options, "k:");
 	public_key_mandatory = 1;
+#endif
 #endif
 #ifdef CONFIG_ENCRYPTED_IMAGES
 	strcat(main_options, "K:");
@@ -755,6 +763,19 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
+#ifdef CONFIG_SIGALG_GPG
+	if (!strlen(swcfg.gpg_home_directory)) {
+		fprintf(stderr,
+			 "Error: SWUpdate is built for signed images, provide a GnuPG home directory.\n");
+		exit(EXIT_FAILURE);
+	}
+	if (!strlen(swcfg.gpgme_protocol)) {
+		fprintf(stderr,
+			"Error: SWUpdate is built for signed images, please specify GnuPG protocol.\n");
+		exit(EXIT_FAILURE);
+	}
+#endif
+
 	if (opt_c && !opt_i) {
 		fprintf(stderr,
 			"Error: Checking local images requires -i <file>.\n");
@@ -776,7 +797,7 @@ int main(int argc, char **argv)
 
 	swupdate_crypto_init();
 
-	if (strlen(swcfg.publickeyfname)) {
+	if (strlen(swcfg.publickeyfname) || strlen(swcfg.gpg_home_directory)) {
 		if (swupdate_dgst_init(&swcfg, swcfg.publickeyfname)) {
 			fprintf(stderr,
 				 "Error: Crypto cannot be initialized.\n");
