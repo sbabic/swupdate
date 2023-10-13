@@ -101,3 +101,13 @@ int swupdate_vars_apply_list(const char *filename, const char *namespace)
 
 	return ret;
 }
+
+bool swupdate_set_default_namespace(const char *namespace)
+{
+	if (namespace_default)
+		free(namespace_default);
+
+	namespace_default = strdup(namespace);
+
+	return namespace_default != NULL;
+}

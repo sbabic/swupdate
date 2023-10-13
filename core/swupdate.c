@@ -50,6 +50,7 @@
 #include "bootloader.h"
 #include "versions.h"
 #include "hw-compatibility.h"
+#include "swupdate_vars.h"
 
 #ifdef CONFIG_SYSTEMD
 #include <systemd/sd-daemon.h>
@@ -318,6 +319,11 @@ static int read_globals_settings(void *elem, void *data)
 				"preupdatecmd", sw->preupdatecmd);
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
 				"namespace-vars", sw->namespace_for_vars);
+	if (strlen(sw->namespace_for_vars)) {
+		if (!swupdate_set_default_namespace(sw->namespace_for_vars))
+			WARN("Default Namaspace for SWUpdate vars cannot be set, possible side-effects");
+	}
+
 	get_field(LIBCFG_PARSER, elem, "verbose", &sw->verbose);
 	get_field(LIBCFG_PARSER, elem, "loglevel", &sw->loglevel);
 	get_field(LIBCFG_PARSER, elem, "syslog", &sw->syslog_enabled);
