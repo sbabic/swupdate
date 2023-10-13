@@ -35,6 +35,7 @@
 #define INITIAL_STATUS_REPORT_WAIT_DELAY 10
 
 #define JSON_OBJECT_FREED 1
+#define SERVER_NAME "hawkbit"
 
 static struct option long_options[] = {
     {"tenant", required_argument, NULL, 't'},
@@ -1147,6 +1148,7 @@ server_op_res_t server_process_update_artifact(int action_id,
 
 		static const char* const update_info = STRINGIFY(
 		{
+		"server": "%s",
 		"update": "%s",
 		"part": "%s",
 		"version": "%s",
@@ -1156,6 +1158,7 @@ server_op_res_t server_process_update_artifact(int action_id,
 		);
 		if (ENOMEM_ASPRINTF ==
 		    asprintf(&channel_data.info, update_info,
+			    SERVER_NAME,
 			    update_action,
 			    part,
 			    version,
@@ -2161,5 +2164,5 @@ server_t server_hawkbit_funcs = {
 __attribute__((constructor))
 static void register_server_hawkbit(void)
 {
-	register_server("hawkbit", &server_hawkbit_funcs);
+	register_server(SERVER_NAME, &server_hawkbit_funcs);
 }
