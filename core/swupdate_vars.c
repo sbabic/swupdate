@@ -17,10 +17,12 @@
 #include <dirent.h>
 #include "generated/autoconf.h"
 #include "util.h"
-#include "dlfcn.h"
-#include "bootloader.h"
+#include "pctl.h"
+#include <network_ipc.h>
 
 #include "swupdate_vars.h"
+
+char *namespace_default = NULL;
 
 static inline void libuboot_cleanup(struct uboot_ctx *ctx)
 {
@@ -32,8 +34,11 @@ int swupdate_vars_initialize(struct uboot_ctx **ctx, const char *namespace)
 {
 	int ret;
 
-	if (!namespace)
-		return -EINVAL;
+	if (!namespace || !strlen(namespace)) {
+		if(!namespace_default)
+			return -EINVAL;
+		namespace = namespace_default;
+	}
 
 	ret = libuboot_read_config_ext(ctx, get_fwenv_config());
 	if (ret) {
@@ -50,7 +55,7 @@ int swupdate_vars_initialize(struct uboot_ctx **ctx, const char *namespace)
 	return 0;
 }
 
-char *swupdate_vars_get(const char *name, const char *namespace)
+static char *__swupdate_vars_get(const char *name, const char *namespace)
 {
 	int ret;
 	struct uboot_ctx *ctx = NULL;
@@ -65,7 +70,32 @@ char *swupdate_vars_get(const char *name, const char *namespace)
 	return value;
 }
 
-int swupdate_vars_set(const char *name, const char *value, const char *namespace)
+char *swupdate_vars_get(const char *name, const char *namespace)
+{
+	if (!name)
+		return NULL;
+
+	if (pid == getpid())
+	{
+		ipc_message msg;
+		memset(&msg, 0, sizeof(msg));
+
+		msg.type = GET_SWUPDATE_VARS;
+		if (namespace)
+			strlcpy(msg.data.vars.varnamespace, namespace, sizeof(msg.data.vars.varnamespace));
+		strlcpy(msg.data.vars.varname, name, sizeof(msg.data.vars.varname));
+
+		if (ipc_send_cmd(&msg) || msg.type == NACK) {
+			ERROR("Failed to get variable %s", name);
+			return NULL;
+		}
+		return strdup (msg.data.vars.varvalue);
+	}
+
+	return __swupdate_vars_get(name, namespace);
+}
+
+static int __swupdate_vars_set(const char *name, const char *value, const char *namespace)
 {
 	int ret;
 	struct uboot_ctx *ctx = NULL;
@@ -81,6 +111,28 @@ int swupdate_vars_set(const char *name, const char *value, const char *namespace
 	return ret;
 }
 
+int swupdate_vars_set(const char *name, const char *value, const char *namespace)
+{
+	ipc_message msg;
+
+	if (!name)
+		return -EINVAL;
+
+	if (pid == getpid()) {
+		memset(&msg, 0, sizeof(msg));
+		msg.magic = IPC_MAGIC;
+		msg.type = SET_SWUPDATE_VARS;
+		if (namespace)
+			strlcpy(msg.data.vars.varnamespace, namespace, sizeof(msg.data.vars.varnamespace));
+		strlcpy(msg.data.vars.varname, name, sizeof(msg.data.vars.varname));
+		if (value)
+			strlcpy(msg.data.vars.varvalue, value, sizeof(msg.data.vars.varvalue));
+		return !(ipc_send_cmd(&msg) == 0 && msg.type == ACK);
+	}
+
+	return __swupdate_vars_set(name, value, namespace);
+}
+
 int swupdate_vars_unset(const char *name, const char *namespace)
 {
 	return swupdate_vars_set(name, NULL, namespace);
@@ -91,6 +143,10 @@ int swupdate_vars_apply_list(const char *filename, const char *namespace)
 	int ret;
 	struct uboot_ctx *ctx = NULL;
 
+	if (pid == getpid()) {
+		ERROR("This function can be called only by core !");
+		return -EINVAL;
+	}
 	ret = swupdate_vars_initialize(&ctx, namespace);
 	if (!ret) {
 		libuboot_load_file(ctx, filename);
