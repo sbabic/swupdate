@@ -1234,6 +1234,7 @@ channel_op_res_t channel_get_file(channel_t *this, void *data)
 		if (channel_data->info) {
 			strncpy(req.info, channel_data->info,
 				sizeof(req.info) - 1 );
+			req.len = strlen(channel_data->info);
 		}
 		for (int retries = 3; retries >= 0; retries--) {
 			file_handle = ipc_inst_start_ext( &req, sizeof(struct swupdate_request));
