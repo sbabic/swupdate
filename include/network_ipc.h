@@ -37,7 +37,9 @@ typedef enum {
 	REQ_INSTALL_EXT,
 	SET_VERSIONS_RANGE,
 	NOTIFY_STREAM,
-	GET_HW_REVISION
+	GET_HW_REVISION,
+	SET_SWUPDATE_VARS,
+	GET_SWUPDATE_VARS,
 } msgtype;
 
 /*
@@ -119,6 +121,11 @@ typedef union {
 		char boardname[256];
 		char revision[256];
 	} revisions;
+	struct {
+		char varnamespace[256];
+		char varname[256];
+		char varvalue[256];
+	} vars;
 } msgdata;
 	
 typedef struct {
