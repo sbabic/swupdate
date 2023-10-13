@@ -31,6 +31,7 @@
 #include "parselib.h"
 #include "swupdate_settings.h"
 #include "swupdate_dict.h"
+#include "swupdate_vars.h"
 
 #define INITIAL_STATUS_REPORT_WAIT_DELAY 10
 
@@ -854,6 +855,24 @@ static server_op_res_t handle_feedback(int action_id, server_op_res_t result,
 	return SERVER_UPDATE_AVAILABLE;
 }
 
+static void get_action_id_from_env(int *action_id)
+{
+	/*
+	 * Retrieve the action_id if SWUpdate stored it
+	 * during the update
+	 * The current action_id on the server can be different if the operator
+	 * cancelled a rollout and started a new one while SWUpdate was
+	 * restarting.
+	 * Get the acction_id that corresponds to the done update if it was
+	 * stored.
+	 */
+	char *action_str = swupdate_vars_get("action_id", NULL);
+	if (action_str) {
+		*action_id = ustrtoull(action_str, NULL, 10);
+		TRACE("Stored action_id from previous run: %d", *action_id);
+		free(action_str);
+	}
+}
 
 server_op_res_t server_handle_initial_state(update_state_t stateovrrd)
 {
@@ -900,11 +919,17 @@ server_op_res_t server_handle_initial_state(update_state_t stateovrrd)
 	server_op_res_t result;
 
 	/*
-	 * Retrieving current action id
+	 * Try to retrieve current action id
 	 */
+
 	channel_data_t channel_data = channel_data_defaults;
-	result =
-	    server_get_deployment_info(server_hawkbit.channel, &channel_data, &action_id);
+	result = server_get_deployment_info(server_hawkbit.channel,
+						    &channel_data, &action_id);
+
+	/*
+	 * Get action_id from env, if any
+	 */
+	get_action_id_from_env(&action_id);
 
 	result = handle_feedback(action_id, result, state, reply_result,
 				 reply_execution, 1, &reply_message);
@@ -1061,6 +1086,17 @@ server_op_res_t server_process_update_artifact(int action_id,
 	    json_object_array_length(json_data_artifact);
 	int json_data_artifact_installed = 0;
 	json_object *json_data_artifact_item = NULL;
+
+	char *action_id_str;
+	if (asprintf(&action_id_str, "%d", action_id) == ENOMEM_ASPRINTF) {
+		ERROR("OOM reached when saving action_id");
+		return SERVER_EERR;
+	}
+	if (swupdate_vars_set("action_id", action_id_str, NULL)) {
+		WARN("Action_id cannot be stored, do yourself");
+	}
+	free(action_id_str);
+
 	for (int json_data_artifact_count = 0;
 	     json_data_artifact_count < json_data_artifact_max;
 	     json_data_artifact_count++) {
@@ -1955,12 +1991,18 @@ static server_op_res_t server_activation_ipc(ipc_message *msg)
 
 	json_object *json_data = json_get_path_key(
 	    json_root, (const char *[]){"id", NULL});
-	if (json_data == NULL) {
-		ERROR("Got malformed JSON: Could not find action id");
-		DEBUG("Got JSON: %s", json_object_to_json_string(json_data));
+
+	int action_id = -1;
+	if (json_data) {
+		action_id = json_object_get_int(json_data);
+	} else {
+		get_action_id_from_env(&action_id);
+	}
+
+	if (action_id < 0) {
+		ERROR("No action_id passed into JSON message and no action:_id in env");
 		return SERVER_EERR;
 	}
-	int action_id = json_object_get_int(json_data);
 
 	json_data = json_get_path_key(
 	    json_root, (const char *[]){"status", NULL});
