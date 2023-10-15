@@ -443,7 +443,7 @@ static int __swupdate_copy(int fdin, unsigned char *inbuf, void *out, size_t nby
 	unsigned int md_len = 0;
 	unsigned char *aes_key = NULL;
 	unsigned char *ivt = NULL;
-	unsigned char ivtbuf[16];
+	unsigned char ivtbuf[AES_BLK_SIZE];
 
 	struct InputState input_state = {
 		.fdin = fdin,
@@ -514,7 +514,11 @@ static int __swupdate_copy(int fdin, unsigned char *inbuf, void *out, size_t nby
 
 	if (encrypted) {
 		aes_key = get_aes_key();
-		if (imgivt && strlen(imgivt) && !ascii_to_bin(ivtbuf, sizeof(ivtbuf), imgivt)) {
+		if (imgivt && strlen(imgivt)) {
+			if(ascii_to_bin(ivtbuf, sizeof(ivtbuf), imgivt)) {
+				ERROR("invalid image ivt length");
+				return -EINVAL;
+			}
 			ivt = ivtbuf;
 		} else
 			ivt = get_aes_ivt();
