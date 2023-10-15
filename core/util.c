@@ -563,22 +563,6 @@ int set_aes_key(const char *key, const char *ivt)
 	return 0;
 }
 
-int set_aes_ivt(const char *ivt)
-{
-	int ret;
-
-	if (!aes_key)
-		return -EFAULT;
-
-	ret = ascii_to_bin(aes_key->ivt, sizeof(aes_key->ivt), ivt);
-
-	if (ret) {
-		return -EINVAL;
-	}
-
-	return 0;
-}
-
 const char *get_fwenv_config(void) {
 	if (!fwenv_config)
 #if defined(CONFIG_UBOOT)

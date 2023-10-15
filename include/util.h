@@ -244,7 +244,6 @@ unsigned char *get_aes_key(void);
 char get_aes_keylen(void);
 unsigned char *get_aes_ivt(void);
 int set_aes_key(const char *key, const char *ivt);
-int set_aes_ivt(const char *ivt);
 
 /* Getting global information */
 int get_install_info(sourcetype *source, char *buf, size_t len);
