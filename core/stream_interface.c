@@ -660,6 +660,15 @@ void *network_initializer(void *data)
 			update_transaction_state(software, STATE_IN_PROGRESS);
 
 			notify(RUN, RECOVERY_NO_ERROR, INFOLEVEL, "Installation in progress");
+
+			/*
+			 * if this update is signalled to be without reboot (On the Fly),
+			 * send a notification via progress for processes responsible for booting
+			 */
+			if (!software->reboot_required) {
+				swupdate_progress_info(RUN, CAUSE_REBOOT_MODE , "{ \"reboot-mode\" : \"no-reboot\"}");
+			}
+
 			ret = install_images(software);
 			if (ret != 0) {
 				update_transaction_state(software, STATE_FAILED);
@@ -704,6 +713,38 @@ void *network_initializer(void *data)
 		pthread_mutex_unlock(&stream_mutex);
 		TRACE("Main thread sleep again !");
 		notify(IDLE, RECOVERY_NO_ERROR, INFOLEVEL, "Waiting for requests...");
+
+		/*
+		 * Last step, if no restart is required,
+		 * SWUpdate can send automatically the feedback.
+		 * They are running on separate processes and should first
+		 * know that the update is completed.
+		 * It seems safe enough to wait uncoditionally for some
+		 * time, enough to let all SWUpdate's processes to be scheduled,
+		 * before sending the IPC message
+		 */
+		if (req->source == SOURCE_SURICATTA &&
+		    /*simple check without JSON */ strstr(req->info, "hawkbit") &&
+		    !software->reboot_required) {
+			ipc_message msg;
+			size_t size = sizeof(msg.data.procmsg.buf);
+			char *buf = msg.data.procmsg.buf;
+			memset(&msg, 0, sizeof(msg));
+			msg.magic = IPC_MAGIC;
+			msg.data.procmsg.source = SOURCE_SURICATTA;
+			msg.data.procmsg.cmd = CMD_ACTIVATION;
+			msg.type = SWUPDATE_SUBPROCESS;
+			snprintf(buf, size, "{ \"status\" : \"%s\", \"finished\" : \"%s\" ,\"execution\" : \"%s\" ,\"details\" : [ ]}",
+				"1",
+				inst.last_install == SUCCESS ? "success" : "failure",
+				"closed"
+				 );
+			sleep(2);
+			TRACE("SEND CONCLUSION TO HAWKBIT");
+			ipc_send_cmd(&msg);
+		}
+
+
 	}
 
 	pthread_exit((void *)0);

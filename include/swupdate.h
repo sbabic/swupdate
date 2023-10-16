@@ -70,6 +70,7 @@ struct swupdate_cfg {
 	bool no_reinstalling;
 	bool no_transaction_marker;
 	bool no_state_marker;
+	bool reboot_required;
 	bool check_max_version;
 	int verbose;
 	int loglevel;
