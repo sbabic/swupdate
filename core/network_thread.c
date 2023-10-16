@@ -694,7 +694,7 @@ void *network_thread (void *data)
 				break;
 			case SET_SWUPDATE_VARS:
 				msg.type = swupdate_vars_set(msg.data.vars.varname,
-						  msg.data.vars.varvalue,
+						  strlen(msg.data.vars.varvalue) ? msg.data.vars.varvalue : NULL,
 						  msg.data.vars.varnamespace) == 0 ? ACK : NACK;
 				break;
 			case GET_SWUPDATE_VARS:
@@ -703,6 +703,7 @@ void *network_thread (void *data)
 				memset(msg.data.vars.varvalue, 0, sizeof(msg.data.vars.varvalue));
 				if (varvalue) {
 					strlcpy(msg.data.vars.varvalue, varvalue, sizeof(msg.data.vars.varvalue));
+					free(varvalue);
 					msg.type = ACK;
 				} else
 					msg.type = NACK;
