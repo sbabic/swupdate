@@ -265,7 +265,7 @@ int parse(struct swupdate_cfg *sw, const char *descfile)
 	if (asprintf(&versioninfo, "{\"VERSION\" : \"%s\"}", sw->version) == ENOMEM_ASPRINTF)
 		ERROR("OOM sending version info");
 	else {
-		swupdate_progress_info(RUN, 0, versioninfo);
+		swupdate_progress_info(RUN, NONE, versioninfo);
 		free(versioninfo);
 	}
 
