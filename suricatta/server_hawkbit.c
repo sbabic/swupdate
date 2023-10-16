@@ -868,8 +868,14 @@ static void get_action_id_from_env(int *action_id)
 	 */
 	char *action_str = swupdate_vars_get("action_id", NULL);
 	if (action_str) {
-		*action_id = ustrtoull(action_str, NULL, 10);
-		TRACE("Stored action_id from previous run: %d", *action_id);
+		int tmp = ustrtoull(action_str, NULL, 10);
+		/*
+		 * action_id = 0 is invalid, then check it
+		 */
+		if (tmp > 0) {
+			*action_id = tmp;
+			TRACE("Retrieve action_id from previous run: %d", *action_id);
+		}
 		free(action_str);
 	}
 }
@@ -936,6 +942,11 @@ server_op_res_t server_handle_initial_state(update_state_t stateovrrd)
 
 	if (result != SERVER_UPDATE_AVAILABLE)
 		return result;
+
+	/*
+	 * Everything fine, reset action_id if any
+	 */
+	swupdate_vars_set("action_id", NULL, NULL);
 
 	/* NOTE (Re-)setting STATE_KEY=STATE_OK == '0' instead of deleting it
 	 *      as it may be required for the switchback/recovery U-Boot logics.
