@@ -884,6 +884,33 @@ environment variable "ustate" (default) to `STATE_INSTALLED=1` or
 globally via the `-m` option to SWUpdate or per `sw-description` via the
 boolean switch "bootloader_state_marker".
 
+reboot flag
+-----------
+
+It is possible to signal that a reboot for a specific update is not required.
+This information is evaluated by SWUpdate just to inform a backend about the
+transaction result. If a postinstall script (icommand line parameter -p) is 
+passed at the startup to perform a reboot, it will be executed anyway because
+SWUpdate cannot know the nature of this script.
+
+SWUpdate sends this information to the progress interface and it is duty of the
+listeners to interprete the information. The attribute is a boolean:
+
+::
+
+        reboot = false;
+
+Attribute belongs to the general section, where also version belongs. It is
+not required to activate the flag with `reboot = true` because it is the
+default behavior, so just disabling makes sense.
+
+The tool `swupdate-progress` interprets the flag: if it was started with
+reboot support (-r parameter), it checks if a "no-reboot" message is received
+and disables to reboot the device for this specific update. When the transaction
+completes, the reboot feature is activated again in case a new update will require to
+reboot the device. This allows to have on the fly updates, where not the whole
+software is updated and a reboot is not required.
+
 bootloader
 ----------
 
@@ -1393,6 +1420,9 @@ There are 4 main sections inside sw-description:
    +-------------+----------+------------+---------------------------------------+
    | description | string   |            | user-friendly description of the      |
    |             |          |            | swupdate archive (any string)         |
+   +-------------+----------+------------+---------------------------------------+
+   | reboot      | bool     |            | allows to disable reboot for the      |
+   |             |          |            | current running update                |
    +-------------+----------+------------+---------------------------------------+
    | install-if\ | bool     | images     | flag                                  |
    | -different  |          | files      | if set, name and version are          |
