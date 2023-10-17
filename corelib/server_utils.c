@@ -15,9 +15,10 @@
 #include <channel_curl.h>
 #include "server_utils.h"
 
-void channel_settings(void *elem, channel_data_t *chan)
+int channel_settings(void *elem, void *data)
 {
 	char tmp[128];
+	channel_data_t *chan = (channel_data_t *)data;
 
 	get_field(LIBCFG_PARSER, elem, "retry",
 		&chan->retries);
@@ -48,6 +49,8 @@ void channel_settings(void *elem, channel_data_t *chan)
 	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "interface", tmp);
 	if (strlen(tmp))
 		SETSTRING(chan->iface, tmp);
+
+	return 0;
 }
 
 server_op_res_t map_channel_retcode(channel_op_res_t response)
