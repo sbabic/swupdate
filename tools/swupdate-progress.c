@@ -233,6 +233,7 @@ int main(int argc, char **argv)
 	int c;
 	char *script = NULL;
 	bool wait_update = true;
+	bool disable_reboot = false;
 
 	/* Process options with getopt */
 	while ((c = getopt_long(argc, argv, "cwprhs:e:q",
@@ -321,7 +322,11 @@ int main(int argc, char **argv)
 					fprintf(stdout, "LOCAL\n\n");
 					break;
 				}
+				/*
+				 * Reset per update variables
+				 */
 				curstep = 0;
+				disable_reboot = false;
 				wait_update = false;
 			}
 		}
@@ -330,11 +335,30 @@ int main(int argc, char **argv)
 		 * Be sure that string in message are Null terminated
 		 */
 		if (msg.infolen > 0) {
+			char *reboot_mode;
+			int n, cause;
+
 			if (msg.infolen >= sizeof(msg.info) - 1) {
 				msg.infolen = sizeof(msg.info) - 1;
 			}
 			msg.info[msg.infolen] = '\0';
-			fprintf(stdout, "INFO : %s\r", msg.info);
+			fprintf(stdout, "INFO : %s\n", msg.info);
+
+			/*
+			 * Check for no-reboot mode
+			 * Just do a simple parsing for now. If more messages
+			 * will be added, JSON lib should be linked.
+			 */
+			n = sscanf(msg.info, "{\"%d\": { \"reboot-mode\" : \"%m[-a-z]\"}}",
+				   &cause, &reboot_mode);
+			if (n == 2) {
+				if (cause == CAUSE_REBOOT_MODE) {
+					if (!strcmp(reboot_mode, "no-reboot")) {
+						disable_reboot = true;
+					}
+				}
+				free(reboot_mode);
+			}
 		}
 		msg.cur_image[sizeof(msg.cur_image) - 1] = '\0';
 
@@ -391,7 +415,7 @@ int main(int argc, char **argv)
 			if (psplash_ok)
 				psplash_progress(psplash_pipe_path, &msg);
 			psplash_ok = 0;
-			if ((msg.status == SUCCESS) && (msg.cur_step > 0) && opt_r) {
+			if ((msg.status == SUCCESS) && (msg.cur_step > 0) && opt_r && !disable_reboot) {
 				reboot_device();
 			}
 		#else
@@ -420,7 +444,7 @@ int main(int argc, char **argv)
 				if (psplash_ok)
 					psplash_progress(psplash_pipe_path, &msg);
 				psplash_ok = 0;
-				if (opt_r && strcasestr(msg.info, "firmware")) {
+				if (opt_r && !disable_reboot && strcasestr(msg.info, "firmware")) {
 					reboot_device();
 					break;
 				}
