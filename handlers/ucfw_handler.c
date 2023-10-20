@@ -111,8 +111,18 @@ struct handler_priv {
 	unsigned int nbytes;
 };
 
-static int switch_mode(struct handler_priv *priv, int mode)
-{
+static void free_gpios(struct handler_priv *priv) {
+	if (priv->prog.chip && (priv->prog.chip != priv->reset.chip)){
+		gpiod_chip_close(priv->prog.chip);
+		priv->reset.chip = NULL;
+	}
+	if (priv->reset.chip) {
+		gpiod_chip_close(priv->reset.chip);
+		priv->reset.chip = NULL;
+	}
+}
+
+static int register_gpios(struct handler_priv *priv){
 	int ret = 0;
 	int status;
 
@@ -145,37 +155,51 @@ static int switch_mode(struct handler_priv *priv, int mode)
 		ERROR("Cannot request reset line");
 		goto freegpios;
 	}
-	status = gpiod_line_request_output(priv->prog.line, PROG_CONSUMER, mode);
+	status = gpiod_line_request_output(priv->prog.line, PROG_CONSUMER, 0);
 	if (status) {
 		ret  =-ENODEV;
 		ERROR("Cannot request prog line");
 		goto freegpios;
 	}
 
+	return ret;
+freegpios:
+	free_gpios(priv);
+	return ret;
+}
+
+static int switch_mode(struct handler_priv *priv, int mode)
+{
+	int ret = 0;
+	if (!priv->reset.line || !priv->prog.line) return -ENODEV;
+
 	/*
 	 * A reset is always done
 	 */
-	gpiod_line_set_value(priv->reset.line, 0);
+	ret = gpiod_line_set_value(priv->reset.line, 0);
+	if (ret){
+		ERROR("unable to set reset to 0");
+		return ret;
+	}
 
 	/* Set programming mode */
-	gpiod_line_set_value(priv->prog.line, mode);
+	ret = gpiod_line_set_value(priv->prog.line, mode);
+	if (ret){
+		ERROR("unable to set prog to %i",mode);
+		return ret;
+	}
 
 	usleep(20000);
 
 	/* Remove reset */
-	gpiod_line_set_value(priv->reset.line, 1);
+	ret = gpiod_line_set_value(priv->reset.line, 1);
+	if (ret){
+		ERROR("unable to set reset to 1");
+		return ret;
+	}
 
 	usleep(20000);
 
-freegpios:
-	if (priv->prog.chip && (priv->prog.chip != priv->reset.chip)){
-		gpiod_chip_close(priv->prog.chip);
-		priv->reset.chip = NULL;
-	}
-	if (priv->reset.chip) {
-		gpiod_chip_close(priv->reset.chip);
-		priv->reset.chip = NULL;
-	}
 	return ret;
 }
 
@@ -383,6 +407,11 @@ static int prepare_update(struct handler_priv *priv,
 	char msg[128];
 	int len;
 
+	ret = register_gpios(priv);
+	if (ret < 0) {
+		return -ENODEV;
+	}
+
 	ret = switch_mode(priv, MODE_PROG);
 	if (ret < 0) {
 		return -ENODEV;
@@ -454,6 +483,7 @@ static int finish_update(struct handler_priv *priv)
 
 	close(priv->fduart);
 	ret = switch_mode(priv, MODE_NORMAL);
+	free_gpios(priv);
 	if (ret < 0) {
 		return -ENODEV;
 	}
