@@ -91,6 +91,8 @@ struct mode_setup {
 	char gpiodev[SWUPDATE_GENERAL_STRING_SIZE];
 	unsigned int offset;
 	bool active_low;
+	struct gpiod_chip *chip;
+	struct gpiod_line *line;
 };
 
 enum {
@@ -109,30 +111,27 @@ struct handler_priv {
 	unsigned int nbytes;
 };
 
-
 static int switch_mode(struct handler_priv *priv, int mode)
 {
-	struct gpiod_chip *chipreset, *chipprog;
-	struct gpiod_line *linereset, *lineprog;
 	int ret = 0;
 	int status;
 
-	chipreset = gpiod_chip_open(priv->reset.gpiodev);
+	priv->reset.chip = gpiod_chip_open(priv->reset.gpiodev);
 	if (strcmp(priv->reset.gpiodev, priv->prog.gpiodev))
-		chipprog = gpiod_chip_open(priv->prog.gpiodev);
+		priv->prog.chip = gpiod_chip_open(priv->prog.gpiodev);
 	else
-		chipprog = chipreset;
+		priv->prog.chip = priv->reset.chip;
 
-	if (!chipreset || !chipprog) {
+	if (!priv->reset.chip || !priv->prog.chip) {
 		ERROR("Cannot open gpio driver");
 		ret  =-ENODEV;
 		goto freegpios;
 	}
 
-	linereset = gpiod_chip_get_line(chipreset, priv->reset.offset);
-	lineprog = gpiod_chip_get_line(chipprog, priv->prog.offset);
+	priv->reset.line = gpiod_chip_get_line(priv->reset.chip, priv->reset.offset);
+	priv->prog.line = gpiod_chip_get_line(priv->prog.chip, priv->prog.offset);
 
-	if (!linereset || !lineprog) {
+	if (!priv->reset.line || !priv->prog.line) {
 		ERROR("Cannot get requested GPIOs: %d on %s and %d on %s",
 			priv->reset.offset, priv->reset.gpiodev,
 			priv->prog.offset, priv->prog.gpiodev);
@@ -140,13 +139,13 @@ static int switch_mode(struct handler_priv *priv, int mode)
 		goto freegpios;
 	}
 
-	status = gpiod_line_request_output(linereset, RESET_CONSUMER, 0);
+	status = gpiod_line_request_output(priv->reset.line, RESET_CONSUMER, 0);
 	if (status) {
 		ret  =-ENODEV;
 		ERROR("Cannot request reset line");
 		goto freegpios;
 	}
-	status = gpiod_line_request_output(lineprog, PROG_CONSUMER, mode);
+	status = gpiod_line_request_output(priv->prog.line, PROG_CONSUMER, mode);
 	if (status) {
 		ret  =-ENODEV;
 		ERROR("Cannot request prog line");
@@ -156,22 +155,27 @@ static int switch_mode(struct handler_priv *priv, int mode)
 	/*
 	 * A reset is always done
 	 */
-	gpiod_line_set_value(linereset, 0);
+	gpiod_line_set_value(priv->reset.line, 0);
 
 	/* Set programming mode */
-	gpiod_line_set_value(lineprog, mode);
+	gpiod_line_set_value(priv->prog.line, mode);
 
 	usleep(20000);
 
 	/* Remove reset */
-	gpiod_line_set_value(linereset, 1);
+	gpiod_line_set_value(priv->reset.line, 1);
 
 	usleep(20000);
 
 freegpios:
-	if (chipreset) gpiod_chip_close(chipreset);
-	if (chipprog && (chipprog != chipreset)) gpiod_chip_close(chipprog);
-
+	if (priv->prog.chip && (priv->prog.chip != priv->reset.chip)){
+		gpiod_chip_close(priv->prog.chip);
+		priv->reset.chip = NULL;
+	}
+	if (priv->reset.chip) {
+		gpiod_chip_close(priv->reset.chip);
+		priv->reset.chip = NULL;
+	}
 	return ret;
 }
 
@@ -449,8 +453,7 @@ static int finish_update(struct handler_priv *priv)
 	int ret;
 
 	close(priv->fduart);
-	ret = switch_mode(priv->reset.gpiodev, priv->reset.offset,
-			  priv->prog.gpiodev, priv->prog.offset, MODE_NORMAL);
+	ret = switch_mode(priv, MODE_NORMAL);
 	if (ret < 0) {
 		return -ENODEV;
 	}
