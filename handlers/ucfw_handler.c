@@ -109,16 +109,17 @@ struct handler_priv {
 	unsigned int nbytes;
 };
 
-static int switch_mode(char *devreset, int resoffset, char *devprog, int progoffset, int mode)
+
+static int switch_mode(struct handler_priv *priv, int mode)
 {
 	struct gpiod_chip *chipreset, *chipprog;
 	struct gpiod_line *linereset, *lineprog;
 	int ret = 0;
 	int status;
 
-	chipreset = gpiod_chip_open(devreset);
-	if (strcmp(devreset, devprog))
-		chipprog = gpiod_chip_open(devprog);
+	chipreset = gpiod_chip_open(priv->reset.gpiodev);
+	if (strcmp(priv->reset.gpiodev, priv->prog.gpiodev))
+		chipprog = gpiod_chip_open(priv->prog.gpiodev);
 	else
 		chipprog = chipreset;
 
@@ -128,13 +129,13 @@ static int switch_mode(char *devreset, int resoffset, char *devprog, int progoff
 		goto freegpios;
 	}
 
-	linereset = gpiod_chip_get_line(chipreset, resoffset);
-	lineprog = gpiod_chip_get_line(chipprog, progoffset);
+	linereset = gpiod_chip_get_line(chipreset, priv->reset.offset);
+	lineprog = gpiod_chip_get_line(chipprog, priv->prog.offset);
 
 	if (!linereset || !lineprog) {
 		ERROR("Cannot get requested GPIOs: %d on %s and %d on %s",
-			resoffset, devreset,
-			progoffset, devprog);
+			priv->reset.offset, priv->reset.gpiodev,
+			priv->prog.offset, priv->prog.gpiodev);
 		ret  =-ENODEV;
 		goto freegpios;
 	}
@@ -378,8 +379,7 @@ static int prepare_update(struct handler_priv *priv,
 	char msg[128];
 	int len;
 
-	ret = switch_mode(priv->reset.gpiodev, priv->reset.offset,
-			  priv->prog.gpiodev, priv->prog.offset, MODE_PROG);
+	ret = switch_mode(priv, MODE_PROG);
 	if (ret < 0) {
 		return -ENODEV;
 	}
