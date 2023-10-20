@@ -80,6 +80,14 @@
 #define PROG_CONSUMER	RESET_CONSUMER
 #define DEFAULT_TIMEOUT 2
 
+/*
+ * Use GPIOD_LINE_BULK_MAX_LINES in order to determine,
+ * whether this is compiled using libgpio v1 or v2.
+ */
+#ifdef GPIOD_LINE_BULK_MAX_LINES
+#define USE_GPIOD_API_V1
+#endif
+
 void ucfw_handler(void);
 
 /*
@@ -91,8 +99,12 @@ struct mode_setup {
 	char gpiodev[SWUPDATE_GENERAL_STRING_SIZE];
 	unsigned int offset;
 	bool active_low;
+#ifdef USE_GPIOD_API_V1
 	struct gpiod_chip *chip;
 	struct gpiod_line *line;
+#else
+	struct gpiod_line_request *request;
+#endif
 };
 
 enum {
@@ -111,6 +123,7 @@ struct handler_priv {
 	unsigned int nbytes;
 };
 
+#ifdef USE_GPIOD_API_V1
 static void free_gpios(struct handler_priv *priv) {
 	if (priv->prog.chip && (priv->prog.chip != priv->reset.chip)){
 		gpiod_chip_close(priv->prog.chip);
@@ -202,6 +215,150 @@ static int switch_mode(struct handler_priv *priv, int mode)
 
 	return ret;
 }
+
+#else
+/* Implementation for LIBGPIOD V2 api*/
+
+static void free_gpios(struct handler_priv *priv) {
+	if(priv->reset.request){
+		gpiod_line_request_release(priv->reset.request);
+		priv->reset.request = NULL;
+	}
+	if(priv->prog.request){
+		gpiod_line_request_release(priv->prog.request);
+		priv->prog.request = NULL;
+	}
+}
+
+static int register_gpios(struct handler_priv *priv) {
+	struct gpiod_line_settings *settings;
+	struct gpiod_request_config *req_cfg;
+	struct gpiod_line_config *reset_cfg, *prog_cfg;
+	struct gpiod_chip *chip;
+	int ret = 0;
+
+	settings = gpiod_line_settings_new();
+	if (!settings) {
+		ERROR("Unable to allocate line settings");
+		return -ENODEV;
+	}
+	gpiod_line_settings_set_direction(settings, GPIOD_LINE_DIRECTION_OUTPUT);
+
+	req_cfg = gpiod_request_config_new();
+	if (!req_cfg) {
+		ERROR("Unable to allocate the request config structure");
+		ret  =-ENODEV;
+		goto freesettings;
+	}
+	gpiod_request_config_set_consumer(req_cfg, RESET_CONSUMER);
+
+	reset_cfg = gpiod_line_config_new();
+	if (!reset_cfg) {
+		ERROR("Unable to allocate the reset line config structure");
+		ret  =-ENODEV;
+		goto freerequestconfig;
+	}
+	ret = gpiod_line_config_add_line_settings(reset_cfg, &priv->reset.offset, 1, settings);
+	if (ret) {
+		ERROR("Unable to add reset line settings");
+		goto freeresetconfig;
+	}
+
+	prog_cfg = gpiod_line_config_new();
+	if (!prog_cfg) {
+		ERROR("Unable to allocate the prog line config structure");
+		ret  =-ENODEV;
+		goto freeresetconfig;
+	}
+
+	ret = gpiod_line_config_add_line_settings(prog_cfg, &priv->prog.offset, 1, settings);
+	if (ret) {
+		ERROR("Unable to add reset line settings");
+		goto freeprogconfig;
+	}
+
+	TRACE("Request lines for reset");
+	chip = gpiod_chip_open(priv->reset.gpiodev);
+	if (!chip) {
+		ERROR("Unable to open chip '%s'",priv->reset.gpiodev);
+		ret  =-ENODEV;
+		goto freeprogconfig;
+	}
+
+	priv->reset.request = gpiod_chip_request_lines(chip, req_cfg, reset_cfg);
+	gpiod_chip_close(chip);
+	if (!priv->reset.request) {
+		ERROR("Unable to request lines on chip '%s'", priv->reset.gpiodev);
+		goto freeprogconfig;
+	}
+
+	TRACE("Request lines for prog");
+	chip = gpiod_chip_open(priv->prog.gpiodev);
+	if (!chip) {
+		ERROR("Unable to open chip '%s'", priv->prog.gpiodev);
+		ret  =-ENODEV;
+		goto freelinerequest;
+	}
+
+	priv->prog.request = gpiod_chip_request_lines(chip, req_cfg, prog_cfg);
+	gpiod_chip_close(chip);
+	if (!priv->prog.request) {
+		ERROR("unable to request lines on chip '%s'", priv->prog.gpiodev);
+		ret  =-ENODEV;
+	}
+
+	goto freeprogconfig; // clean up everything except for the gpiod_line_requests
+
+freelinerequest:
+	gpiod_line_request_release(priv->reset.request);
+	priv->reset.request = NULL;
+freeprogconfig:
+	gpiod_line_config_free(prog_cfg);
+freeresetconfig:
+	gpiod_line_config_free(reset_cfg);
+freerequestconfig:
+	gpiod_request_config_free(req_cfg);
+freesettings:
+	gpiod_line_settings_free(settings);
+	return ret;
+}
+
+
+static int switch_mode(struct handler_priv *priv, int mode)
+{
+
+	int ret = 0;
+
+	/*
+	 * A reset is always done
+	 */
+	ret = gpiod_line_request_set_value(priv->reset.request, priv->reset.offset, 0);
+	if (ret){
+		ERROR("Unable to set reset to 0");
+		return ret;
+	}
+
+	/* Set programming mode */
+	ret = gpiod_line_request_set_value(priv->prog.request, priv->prog.offset, mode);
+	if (ret){
+		ERROR("Unable to set prog to %i", mode);
+		return ret;
+	}
+
+	usleep(20000);
+
+	/* Remove reset */
+	ret = gpiod_line_request_set_value(priv->reset.request, priv->reset.offset, 1);
+	if (ret){
+		ERROR("Unable to set reset to 1");
+		return ret;
+	}
+
+	usleep(20000);
+
+	return ret;
+}
+#endif
 
 static bool verify_chksum(char *buf, unsigned int *size)
 {
