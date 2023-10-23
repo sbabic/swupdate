@@ -56,13 +56,14 @@ class ColorFormatter(logging.Formatter):
 class SWUpdater:
     """Python helper class for SWUpdate"""
 
-    url_upload = "http://{}:{}/upload"
-    url_status = "ws://{}:{}/ws"
+    url_upload = "http://{}:{}{}/upload"
+    url_status = "ws://{}:{}{}/ws"
 
-    def __init__(self, path_image, host_name, port=8080, logger=None, log_level=logging.DEBUG):
+    def __init__(self, path_image, host_name, port=8080, path="", logger=None, log_level=logging.DEBUG):
         self._image = path_image
         self._host_name = host_name
         self._port = port
+        self._path = path
         if logger is not None:
             self._logger = logger
         else:
@@ -76,7 +77,7 @@ class SWUpdater:
         self._logger.info("Waiting for messages on websocket connection")
         try:
             async with websockets.connect(
-                self.url_status.format(self._host_name, self._port)
+                self.url_status.format(self._host_name, self._port, self._path)
             ) as websocket:
                 while True:
                     try:
@@ -112,7 +113,7 @@ class SWUpdater:
 
     def sync_upload(self, swu_file, timeout):
         return requests.post(
-            self.url_upload.format(self._host_name, self._port),
+            self.url_upload.format(self._host_name, self._port, self._path),
             files={"file": swu_file},
             headers={"Cache-Control": "no-cache"},
             timeout=timeout,
@@ -173,6 +174,13 @@ def client (args: List[str]) -> None:
     parser.add_argument("host_name", help="Host name")
     parser.add_argument("port", help="Port", type=int, default=8080, nargs="?")
     parser.add_argument(
+        "path",
+        help="Name of the webserver-path (e.g. /PATH)",
+        type=str,
+        default="",
+        nargs="?"
+    )
+    parser.add_argument(
         "--timeout",
         help="Timeout for the whole swupdate process",
         type=int,
@@ -201,6 +209,7 @@ def client (args: List[str]) -> None:
         args.swu_file,
         args.host_name,
         args.port,
+        args.route,
         log_level=args.log_level.upper())
     updater.update(timeout=args.timeout)
 
