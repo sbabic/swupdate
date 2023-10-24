@@ -994,6 +994,8 @@ example/configuration/swupdate.cfg for details.
 
 The format is the same used with bootloader for single variable:
 
+::
+
 	vars: (
 		{
 			name = <Variable name>;

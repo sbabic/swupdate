@@ -300,6 +300,7 @@ any modification using nano or vim will only corrupt the file, and grub will not
 
 You can create a grubenv file using these commands for instance:
 ::
+
         GRUBENV="/path/to/grubenv"
         grub-editenv $GRUBENV create
         grub-editenv $GRUBENV set rootfs=2
@@ -311,6 +312,7 @@ When the grubenv file is created, grub should be configured to use it.
 This configuration should be in the configuration file grub.cfg.
 Here is an example of grub.cfg that loads the environment file before booting:
 ::
+
         # Take a kernel and a rootfs by default in case grubenv is corrupted
         rootfs=1
         kernel=1
