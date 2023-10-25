@@ -7,6 +7,15 @@
 #pragma once
 
 /**
+ * \brief create or attach to socket at path
+ * 
+ * \param path absolute path to socket file
+ * \param type socket type of socket()
+ * \return fd on success, -1 on error
+*/
+int listener_create(const char *path, int type);
+
+/**
  * \brief initialize unlink functionality for sockets
  * 
  * Call this function before \c register_socket_unlink

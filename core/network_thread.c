@@ -36,12 +36,6 @@
 #include "state.h"
 #include "swupdate_vars.h"
 
-#ifdef CONFIG_SYSTEMD
-#include <systemd/sd-daemon.h>
-#endif
-
-#define LISTENQ	1024
-
 #define NUM_CACHED_MESSAGES 100
 #define DEFAULT_INTERNAL_TIMEOUT 60
 
@@ -220,61 +214,6 @@ static void network_notifier(RECOVERY_STATUS status, int error, int level, const
 	send_notify_msg(&ipcmsg);
 
 	pthread_mutex_unlock(&msglock);
-}
-
-int listener_create(const char *path, int type)
-{
-	struct sockaddr_un servaddr;
-	int listenfd = -1;
-
-#ifdef CONFIG_SYSTEMD
-	if (sd_booted()) {
-		for (int fd = SD_LISTEN_FDS_START; fd < SD_LISTEN_FDS_START + sd_listen_fds(0); fd++) {
-			if (sd_is_socket_unix(fd, SOCK_STREAM, 1, path, 0)) {
-				listenfd = fd;
-				break;
-			}
-		}
-		if (listenfd == -1) {
-			TRACE("got no socket at %s from systemd", path);
-		} else {
-			TRACE("got socket fd=%d at %s from systemd", listenfd, path);
-		}
-	}
-#endif
-
-	if (listenfd == -1) {
-		TRACE("creating socket at %s", path);
-		listenfd = socket(AF_LOCAL, type, 0);
-		if (listenfd < 0) {
-			return -1;
-		}
-		unlink(path);
-		bzero(&servaddr, sizeof(servaddr));
-		servaddr.sun_family = AF_LOCAL;
-		strlcpy(servaddr.sun_path, path, sizeof(servaddr.sun_path) - 1);
-		if(register_socket_unlink(path) != 0){
-			ERROR("Out of memory, skipping...");
-			return -1;
-		}
-		if (bind(listenfd,  (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0) {
-			close(listenfd);
-			return -1;
-		}
-
-		if (chmod(path,  S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH) < 0)
-			WARN("chmod cannot be set on socket, error %s", strerror(errno));
-	}
-
-	if (fcntl(listenfd, F_SETFD, FD_CLOEXEC) < 0)
-		WARN("Could not set %d as cloexec: %s", listenfd, strerror(errno));
-
-	if (type == SOCK_STREAM)
-		if (listen(listenfd, LISTENQ) < 0) {
-			close(listenfd);
-			return -1;
-		}
-	return listenfd;
 }
 
 static void cleanum_msg_list(void)

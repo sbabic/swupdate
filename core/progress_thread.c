@@ -28,7 +28,7 @@
 #include "util.h"
 #include "pctl.h"
 #include "network_ipc.h"
-#include "network_interface.h"
+#include "network_utils.h"
 #include <progress.h>
 #include "generated/autoconf.h"
 
