@@ -42,6 +42,7 @@ static void usage(void) {
 		" -d : ask the server to only perform a dry run\n"
 		" -e <software>,<mode> : Select software images set and source\n"
 		"                        Ex.: stable,main\n"
+		" -s <path>            : path to swupdate IPC socket\n"
 		" -q : go quiet, resets verbosity\n"
 		" -v : go verbose, essentially print upgrade status messages from server\n"
 		" -p : ask the server to run post-update commands if upgrade succeeds\n"
@@ -55,6 +56,8 @@ bool dry_run = false;
 bool run_postupdate = false;
 int end_status = EXIT_SUCCESS;
 char *software_set = NULL, *running_mode = NULL;
+char *socketpath = NULL;
+extern char* SOCKET_CTRL_PATH;
 
 static pthread_mutex_t mymutex;
 static pthread_cond_t cv_end = PTHREAD_COND_INITIALIZER;
@@ -164,6 +167,14 @@ static int send_file(const char* filename) {
 	return end_status;
 }
 
+/*
+ * Cleanup internal state and exit with exit code
+ */
+static void __attribute__ ((__noreturn__)) cleanup_and_exit(int status){
+	free(socketpath);
+	socketpath = NULL;
+	exit(status);
+}
 
 /*
  * Simple example, it does nothing but calling the library
@@ -175,7 +186,7 @@ int main(int argc, char *argv[]) {
 	pthread_mutex_init(&mymutex, NULL);
 
 	/* parse command line options */
-	while ((c = getopt(argc, argv, "dhqvpe:")) != EOF) {
+	while ((c = getopt(argc, argv, "dhqvpe:s:")) != EOF) {
 		switch (c) {
 		case 'd':
 			dry_run = true;
@@ -193,7 +204,7 @@ int main(int argc, char *argv[]) {
 			pos = strchr(optarg, ',');
 			if (pos == NULL) {
 				fprintf(stderr, "Wrong selection %s\n", optarg);
-				exit (EXIT_FAILURE);
+				cleanup_and_exit(EXIT_FAILURE);
 			}
 			*pos++ = '\0';
 			software_set = optarg;
@@ -201,6 +212,14 @@ int main(int argc, char *argv[]) {
 			break;
 		case 'p':
 			run_postupdate = true;
+			break;
+		case 's':
+			socketpath = strdup(optarg);
+			if(!socketpath) {
+				fprintf(stderr, "Out of memory\n");
+				cleanup_and_exit(EXIT_FAILURE);
+			}
+			SOCKET_CTRL_PATH = socketpath;
 			break;
 		default:
 			usage();
@@ -212,13 +231,13 @@ int main(int argc, char *argv[]) {
 
 	if (argc == 0 || (argc == 1 && strcmp(argv[0], "-") == 0)) {
 		fprintf(stdout, "no input given, reading from STDIN...\n");
-		if (send_file(NULL)) exit(1);
+		if (send_file(NULL)) cleanup_and_exit(EXIT_FAILURE);
 	} else {
 		for (int i = 0; i < argc; i++) {
-			if (send_file(argv[i])) exit(1);
+			if (send_file(argv[i])) cleanup_and_exit(EXIT_FAILURE);
 		}
 	}
 
-	exit(0);
+	cleanup_and_exit(EXIT_SUCCESS);
 }
 

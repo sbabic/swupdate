@@ -18,9 +18,9 @@
 #include "compat.h"
 
 #ifdef CONFIG_SOCKET_CTRL_PATH
-static char* SOCKET_CTRL_PATH = (char*)CONFIG_SOCKET_CTRL_PATH;
+char* SOCKET_CTRL_PATH = (char*)CONFIG_SOCKET_CTRL_PATH;
 #else
-static char* SOCKET_CTRL_PATH = NULL;
+char* SOCKET_CTRL_PATH = NULL;
 #endif
 
 #define SOCKET_CTRL_DEFAULT  "sockinstctrl"
