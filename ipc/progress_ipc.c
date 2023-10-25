@@ -26,11 +26,14 @@ char *SOCKET_PROGRESS_PATH = NULL;
 
 char *get_prog_socket(void) {
 	if (!SOCKET_PROGRESS_PATH || !strlen(SOCKET_PROGRESS_PATH)) {
-		const char *tmpdir = getenv("TMPDIR");
-		if (!tmpdir)
-			tmpdir = "/tmp";
-
-		if (asprintf(&SOCKET_PROGRESS_PATH, "%s/%s", tmpdir, SOCKET_PROGRESS_DEFAULT) == -1)
+		const char *socketdir = getenv("RUNTIME_DIRECTORY");
+		if(!socketdir){
+			socketdir = getenv("TMPDIR");
+		}
+		if(!socketdir){
+			socketdir = "/tmp";
+		}
+		if (asprintf(&SOCKET_PROGRESS_PATH, "%s/%s", socketdir, SOCKET_PROGRESS_DEFAULT) == -1)
 			return (char *)"/tmp/"SOCKET_PROGRESS_DEFAULT;
 	}
 

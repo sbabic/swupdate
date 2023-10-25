@@ -273,6 +273,9 @@ int main(int argc, char **argv)
 		
 	if (opt_p) {
 		rundir = getenv("PSPLASH_FIFO_DIR");
+		if(!rundir){
+			rundir = getenv("RUNTIME_DIRECTORY");
+		}
 		if (!rundir)
 			rundir = "/run";
 		snprintf(psplash_pipe_path, sizeof(psplash_pipe_path), "%s/psplash_fifo", rundir);

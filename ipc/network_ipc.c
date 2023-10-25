@@ -27,11 +27,13 @@ char* SOCKET_CTRL_PATH = NULL;
 
 char *get_ctrl_socket(void) {
 	if (!SOCKET_CTRL_PATH || !strlen(SOCKET_CTRL_PATH)) {
-		const char *tmpdir = getenv("TMPDIR");
-		if (!tmpdir)
-			tmpdir = "/tmp";
-
-		if (asprintf(&SOCKET_CTRL_PATH, "%s/%s", tmpdir, SOCKET_CTRL_DEFAULT) == -1)
+		const char *socketdir = getenv("RUNTIME_DIRECTORY");
+		if(!socketdir){
+			socketdir = getenv("TMPDIR");
+		}
+		if (!socketdir)
+			socketdir = "/tmp";
+		if (asprintf(&SOCKET_CTRL_PATH, "%s/%s", socketdir, SOCKET_CTRL_DEFAULT) == -1)
 			return (char *)"/tmp/"SOCKET_CTRL_DEFAULT;
 	}
 
