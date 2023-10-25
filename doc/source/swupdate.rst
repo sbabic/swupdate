@@ -740,6 +740,8 @@ may look like the following starting SWUpdate in suricatta daemon mode:
 
 	[Service]
 	Type=notify
+	RuntimeDirectory=swupdate
+	RuntimeDirectoryPreserve=yes
 	ExecStart=/usr/bin/swupdate -u '-t default -u http://localhost -i 25'
 
 	[Install]
@@ -758,23 +760,22 @@ activation, an accompanying systemd socket unit file
 	Documentation=https://sbabic.github.io/swupdate
 
 	[Socket]
-	ListenStream=/tmp/sockinstctrl
-	ListenStream=/tmp/swupdateprog
+	ListenStream=/run/swupdate/sockinstctrl
+	ListenStream=/run/swupdate/swupdateprog
 
 	[Install]
 	WantedBy=sockets.target
 
 On ``swupdate.socket`` being started, systemd creates the socket
 files and hands them over to SWUpdate when it starts. So, for
-example, when talking to ``/tmp/swupdateprog``, systemd starts
-``swupdate.service`` and hands-over the socket files. The socket
-files are also handed over on a "regular" start of SWUpdate via
-``systemctl start swupdate.service``.
+example, when talking to ``/run/swupdate/swupdateprog``, systemd
+starts ``swupdate.service`` and hands-over the socket files. The
+socket files are also handed over on a "regular" start of SWUpdate
+via ``systemctl start swupdate.service``.
 
-Note that the socket paths in the two ``ListenStream=`` directives
-have to match the socket paths ``CONFIG_SOCKET_CTRL_PATH`` and
-``CONFIG_SOCKET_PROGRESS_PATH`` in SWUpdate's configuration.
-Here, the default socket path configuration is depicted.
+Note, that all dependent services need to access the swupdate
+sockets via the paths specified in the ``swupdate.socket`` systemd
+unit.
 
 .. _systemd: https://www.freedesktop.org/wiki/Software/systemd/
 
