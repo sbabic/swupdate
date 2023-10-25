@@ -970,9 +970,7 @@ int main(int argc, char **argv)
 	}
 
 #ifdef CONFIG_SYSTEMD
-	if (sd_booted()) {
-		sd_notify(0, "READY=1");
-	}
+	sd_notify(0, "READY=1");
 #endif
 
 	/*
