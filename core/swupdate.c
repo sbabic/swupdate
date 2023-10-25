@@ -39,6 +39,7 @@
 #include "mongoose_interface.h"
 #include "download_interface.h"
 #include "network_ipc.h"
+#include "network_utils.h"
 #include "sslapi.h"
 #include "suricatta/suricatta.h"
 #include "delta_process.h"
@@ -885,6 +886,9 @@ int main(int argc, char **argv)
 	 *  Start daemon if just a check is required
 	 *  SWUpdate will exit after the check
 	 */
+	if(init_socket_unlink_handler() != 0){
+		TRACE("Cannot setup socket cleanup on exit, sockets won't be unlinked.");
+	}
 	network_daemon = start_thread(network_initializer, &swcfg);
 
 	start_thread(progress_bar_thread, NULL);

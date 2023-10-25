@@ -252,20 +252,6 @@ void swupdate_progress_done(const char *info)
 	pthread_mutex_unlock(&pprog->lock);
 }
 
-static void unlink_socket(void)
-{
-#ifdef CONFIG_SYSTEMD
-	if (sd_booted()) {
-		/*
-		 * There were socket fds handed-over by systemd,
-		 * so don't delete the socket file.
-		 */
-		return;
-	}
-#endif
-	unlink(get_prog_socket());
-}
-
 void *progress_bar_thread (void __attribute__ ((__unused__)) *data)
 {
 	int listen, connfd;
@@ -282,11 +268,6 @@ void *progress_bar_thread (void __attribute__ ((__unused__)) *data)
 	if (listen < 0 ) {
 		ERROR("Error creating IPC socket %s, exiting.", get_prog_socket());
 		exit(2);
-	}
-
-	if (atexit(unlink_socket) != 0) {
-		TRACE("Cannot setup socket cleanup on exit, %s won't be unlinked.",
-			get_prog_socket());
 	}
 
 	thread_ready();

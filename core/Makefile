@@ -21,6 +21,7 @@ obj-y += swupdate.o \
 	 state.o \
 	 syslog.o \
 	 installer.o \
+	 network_utils.o \
 	 network_thread.o \
 	 stream_interface.o \
 	 progress_thread.o \

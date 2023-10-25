@@ -26,6 +26,7 @@
 #include "util.h"
 #include "network_ipc.h"
 #include "network_interface.h"
+#include "network_utils.h"
 #include "installer.h"
 #include "installer_priv.h"
 #include "swupdate.h"
@@ -252,7 +253,10 @@ int listener_create(const char *path, int type)
 		bzero(&servaddr, sizeof(servaddr));
 		servaddr.sun_family = AF_LOCAL;
 		strlcpy(servaddr.sun_path, path, sizeof(servaddr.sun_path) - 1);
-
+		if(register_socket_unlink(path) != 0){
+			ERROR("Out of memory, skipping...");
+			return -1;
+		}
 		if (bind(listenfd,  (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0) {
 			close(listenfd);
 			return -1;
@@ -309,20 +313,6 @@ static void empty_pipe(int fd)
 		if (read(fd, &msg, sizeof(msg)) < 0)
 			break;
 	} while (1);
-}
-
-static void unlink_socket(void)
-{
-#ifdef CONFIG_SYSTEMD
-	if (sd_booted()) {
-		/*
-		 * There were socket fds handed-over by systemd,
-		 * so don't delete the socket file.
-		 */
-		return;
-	}
-#endif
-	unlink(get_ctrl_socket());
 }
 
 static void send_subprocess_reply(
@@ -471,11 +461,6 @@ void *network_thread (void *data)
 	if (ctrllisten < 0 ) {
 		ERROR("Error creating IPC control socket");
 		exit(2);
-	}
-
-	if (atexit(unlink_socket) != 0) {
-		TRACE("Cannot setup socket cleanup on exit, %s won't be unlinked.",
-			  get_ctrl_socket());
 	}
 
 	thread_ready();
