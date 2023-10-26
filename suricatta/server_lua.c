@@ -903,7 +903,7 @@ static void *progress_offloader_thread(void *data)
 
 			(void)pthread_mutex_lock(thread_data->lua_lock);
 			lua_newtable(thread_data->L);
-			push_to_table(thread_data->L, "magic",       message->magic);
+			push_to_table(thread_data->L, "apiversion",  message->apiversion);
 			push_to_table(thread_data->L, "status",      message->status);
 			push_to_table(thread_data->L, "dwl_percent", message->dwl_percent);
 			push_to_table(thread_data->L, "nsteps",      message->nsteps);

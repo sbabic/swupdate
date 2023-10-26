@@ -747,10 +747,10 @@ static int monitor(cmd_t  __attribute__((__unused__)) *cmd, int argc, char *argv
 		msg.hnd_name[sizeof(msg.hnd_name) - 1] = '\0';
 		msg.cur_image[sizeof(msg.cur_image) - 1] = '\0';
 
-		fprintf(stdout, "[{ \"magic\": %d, \"status\": %u, \"dwl_percent\": %u, \"dwl_bytes\": %llu"
+		fprintf(stdout, "[{ \"apiversion\": 0x%x, \"status\": %u, \"dwl_percent\": %u, \"dwl_bytes\": %llu"
 				", \"nsteps\": %u, \"cur_step\": %u, \"cur_percent\": %u, \"cur_image\": \"%s\""
 				", \"hnd_name\": \"%s\", \"source\": %u, \"infolen\": %u }",
-				msg.magic, msg.status, msg.dwl_percent,
+				msg.apiversion, msg.status, msg.dwl_percent,
 				msg.dwl_bytes, msg.nsteps, msg.cur_step,
 				msg.cur_percent, msg.cur_image, msg.hnd_name,
 				msg.source, msg.infolen);

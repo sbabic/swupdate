@@ -24,11 +24,33 @@ extern "C" {
 extern char* SOCKET_PROGRESS_PATH;
 
 /*
+ * Versioning of API
+ * it is defined as
+ * bits 31..24 : unused, set to 0
+ * bits 23..16 : Major Version
+ * bits 15..8  : Minor version
+ * bits 7..0   : small changes not relevant for compatibility
+ *
+ * The following policy is followed:
+ * - changes in minor version mean that the API was enhanced and it has
+ *   new features, but it is compatible with the older. It is suggested
+ *   that clients are updated, but they still work.
+ * - changes in major mean an incompatibility and clients do not work anymore
+ */
+
+#define PROGRESS_API_MAJOR	1
+#define PROGRESS_API_MINOR	0
+#define PROGRESS_API_PATCH	0
+
+#define PROGRESS_API_VERSION 	((PROGRESS_API_MAJOR & 0xFFFF) << 16 | \
+				(PROGRESS_API_MINOR & 0xFF) << 8 | \
+				(PROGRESS_API_PATCH & 0xFF))
+/*
  * Message sent via progress socket.
  * Data is sent in LE if required.
  */
 struct progress_msg {
-	unsigned int	magic;		/* Magic Number */
+	unsigned int	apiversion;	/* API Version for compatibility check */
 	RECOVERY_STATUS	status;		/* Update Status (Running, Failure) */
 	unsigned int	dwl_percent;	/* % downloaded data */
 	unsigned long long dwl_bytes;   /* total of bytes to be downloaded */

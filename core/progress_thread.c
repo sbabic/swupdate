@@ -81,6 +81,7 @@ static void send_progress_msg(void)
 	bool tryagain;
 	const int maxAttempts = 5;
 
+	pprog->msg.apiversion = PROGRESS_API_VERSION;
 	SIMPLEQ_FOREACH_SAFE(conn, &pprog->conns, next, tmp) {
 		buf = &pprog->msg;
 		count = sizeof(pprog->msg);
@@ -130,6 +131,7 @@ void swupdate_progress_init(unsigned int nsteps) {
 	struct swupdate_progress *pprog = &progress;
 	pthread_mutex_lock(&pprog->lock);
 
+	pprog->msg.apiversion = PROGRESS_API_VERSION;
 	pprog->msg.nsteps = nsteps;
 	pprog->msg.cur_step = 0;
 	pprog->msg.status = START;

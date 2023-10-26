@@ -85,6 +85,13 @@ int progress_ipc_receive(int *connfd, struct progress_msg *msg) {
 	if (ret == -1 && (errno == EAGAIN || errno == EINTR))
 		return 0;
 
+	/*
+	 * size of message can vary if the API version does not match
+	 * First check it to return a correct error, else it always
+	 * return -1.
+	 */
+	if (ret > sizeof(msg->apiversion) && (msg->apiversion != PROGRESS_API_VERSION))
+		return -EBADMSG;
 	if (ret != sizeof(*msg)) {
 		close(*connfd);
 		*connfd = -1;
