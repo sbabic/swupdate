@@ -760,6 +760,9 @@ int swupdate_mount(const char *device, const char *dir, const char *fstype)
 	return nmount(iov, iovlen, mntflags);
 #else
 	/* Not implemented for this OS, no specific errno. */
+	(void)device;
+	(void)dir;
+	(void)fstype;
 	errno = 0;
 	return -1;
 #endif
@@ -774,6 +777,7 @@ int swupdate_umount(const char *dir)
 	return unmount(dir, mntflags);
 #else
 	/* Not implemented for this OS, no specific errno. */
+	(void)dir;
 	errno = 0;
 	return -1;
 #endif
