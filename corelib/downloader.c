@@ -9,6 +9,7 @@
 #include <errno.h>
 #include <getopt.h>
 #include <json-c/json.h>
+#include <signal.h>
 
 #include "util.h"
 #include "network_ipc.h"
@@ -266,6 +267,7 @@ int start_download_server(const char *fname, int argc, char *argv[])
 	 * it is safe to call ipc_thread_fn() directly without spawning
 	 * a new thread. Function dows not return
 	 */
+	signal(SIGPIPE, SIG_IGN);
 	ipc_thread_fn(download_server_ipc);
 
 	/*
