@@ -310,13 +310,19 @@ static int flash_write_nor(int mtdnum, struct img_type *img)
 
 	long long size = get_output_size(img, true);
 	if (size < 0) {
-		ERROR("Failed to determine output size, bailing out.");
-		return -1;
+		INFO("decompression-size not set, erasing whole flash device %s\n",
+			img->device);
+		if (flash_erase(mtdnum)) {
+			ERROR("Failed to erase %s", img->device);
+			return -1;
+		}
 	}
-	if (flash_erase_sector(mtdnum, img->seek, size)) {
-		ERROR("Failed to erase sectors on /dev/mtd%d (start: %llu, size: %lld)",
-			mtdnum, img->seek, size);
-		return -1;
+	else {
+		if (flash_erase_sector(mtdnum, img->seek, size)) {
+			ERROR("Failed to erase sectors on /dev/mtd%d (start: %llu, size: %lld)",
+				mtdnum, img->seek, size);
+			return -1;
+		}
 	}
 
 	snprintf(mtd_device, sizeof(mtd_device), "/dev/mtd%d", mtdnum);
