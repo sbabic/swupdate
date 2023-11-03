@@ -359,6 +359,13 @@ suricatta.ipc.RECOVERY_STATUS = {
     PROGRESS   = 8
 }
 
+--- @enum suricatta.ipc.progress_cause
+--- Lua equivalent of `progress_cause_t` as in `include/progress_ipc.h`.
+suricatta.ipc.progress_cause = {
+    CAUSE_NONE        = 0,
+    CAUSE_REBOOT_MODE = 1,
+}
+
 --- Lua-alike of `progress_msg` as in `include/progress_ipc.h`.
 --
 --- @class suricatta.ipc.progress_msg

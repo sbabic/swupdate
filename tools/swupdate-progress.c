@@ -270,7 +270,7 @@ int main(int argc, char **argv)
 			break;
 		}
 	}
-		
+
 	if (opt_p) {
 		rundir = getenv("PSPLASH_FIFO_DIR");
 		if(!rundir){
@@ -326,10 +326,9 @@ int main(int argc, char **argv)
 					break;
 				}
 				/*
-				 * Reset per update variables
+				 * Reset some per update variables prior to update.
 				 */
 				curstep = 0;
-				disable_reboot = false;
 				wait_update = false;
 			}
 		}
@@ -351,6 +350,7 @@ int main(int argc, char **argv)
 			 * Check for no-reboot mode
 			 * Just do a simple parsing for now. If more messages
 			 * will be added, JSON lib should be linked.
+			 * NOTE: Until then, the exact string format is imperative!
 			 */
 			n = sscanf(msg.info, "{\"%d\": { \"reboot-mode\" : \"%m[-a-z]\"}}",
 				   &cause, &reboot_mode);
@@ -414,46 +414,52 @@ int main(int argc, char **argv)
 				run_post_script(script, &msg);
 			}
 			resetterm();
-		#if !defined(CONFIG_SURICATTA_WFX)
-			if (psplash_ok)
+
+			if (psplash_ok && msg.status == FAILURE) {
 				psplash_progress(psplash_pipe_path, &msg);
-			psplash_ok = 0;
+				psplash_ok = 0;
+			}
+			if (psplash_ok && disable_reboot) {
+				fprintf(stdout,
+					"\nReboot disabled or waiting for activation.\n");
+				char *buf = alloca(PSPLASH_MSG_SIZE);
+				snprintf(buf, PSPLASH_MSG_SIZE - 1,
+					 "MSG Reboot disabled or waiting for activation.");
+				psplash_write_fifo(psplash_pipe_path, buf);
+			}
+
 			if ((msg.status == SUCCESS) && (msg.cur_step > 0) && opt_r && !disable_reboot) {
 				reboot_device();
 			}
-		#else
-			if (msg.status == SUCCESS) {
-				fprintf(stdout, "\nWaiting for activation.\n");
-				char *buf = alloca(PSPLASH_MSG_SIZE);
-				snprintf(buf, PSPLASH_MSG_SIZE - 1, "MSG Waiting for activation.");
-				psplash_write_fifo(psplash_pipe_path, buf);
-			}
-			if (msg.status == FAILURE) {
-				if (psplash_ok)
-					psplash_progress(psplash_pipe_path, &msg);
-				psplash_ok = 0;
-			}
-		#endif
+			/*
+			 * Reset per update variables after update.
+			 */
+			disable_reboot = false;
 			wait_update = true;
 			break;
 		case DONE:
 			fprintf(stdout, "\nDONE.\n\n");
 			break;
 		case PROGRESS:
-			#if defined(CONFIG_SURICATTA_WFX)
-			if (strcasestr(msg.info, "\"state\": \"ACTIVATING\"") &&
+			/*
+			 * Could also check for "source": <sourcetype> as sent
+			 * by wfx but that's left for later when we have full
+			 * JSON support here.
+			 */
+			if (strcasestr(msg.info, "\"module\": \"wfx\"") &&
+			    strcasestr(msg.info, "\"state\": \"ACTIVATING\"") &&
 			    strcasestr(msg.info, "\"progress\": 100")) {
-				msg.status = SUCCESS;
-				if (psplash_ok)
+				if (psplash_ok) {
+					msg.status = SUCCESS;
 					psplash_progress(psplash_pipe_path, &msg);
-				psplash_ok = 0;
-				if (opt_r && !disable_reboot && strcasestr(msg.info, "firmware")) {
+					psplash_ok = 0;
+				}
+				if (opt_r && strcasestr(msg.info, "firmware")) {
 					reboot_device();
 					break;
 				}
-				fprintf(stdout, "Don't know how to activate this update, doing nothing.\n");
+				fprintf(stdout, "\nDon't know how to activate this update, doing nothing.\n");
 			}
-			#endif
 			break;
 		default:
 			break;

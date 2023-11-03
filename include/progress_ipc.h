@@ -16,7 +16,7 @@ extern "C" {
 
 #define PRINFOSIZE	2048
 
-	typedef enum progress_cause {
+typedef enum progress_cause {
 	CAUSE_NONE,
 	CAUSE_REBOOT_MODE,
 } progress_cause_t;

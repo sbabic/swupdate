@@ -1214,13 +1214,15 @@ end
 local function send_progress_activation_msg(job)
     suricatta.notify.progress(M.utils.string
         .escape([[
-    {
-        "state": "ACTIVATING",
-        "progress": 100,
-        "message": "%s"
-    }
-    ]])
-        :format(table.concat(job.definition.type, ":")))
+        {
+            "source": %s,
+            "module": "wfx",
+            "state": "ACTIVATING",
+            "progress": 100,
+            "message": "%s"
+        }
+        ]])
+        :format(suricatta.ipc.sourcetype.SOURCE_SURICATTA, table.concat(job.definition.type, ":")))
 end
 
 --- Helper function to set persistent bootloader state.
@@ -1458,6 +1460,9 @@ M.job.workflow.dispatch:set(
         if not M.channel.progress then
             suricatta.notify.warn("Cannot initialize progress reporting channel, won't send progress.")
         end
+
+        suricatta.notify.progress(M.utils.string.escape([[{"%s": { "reboot-mode" : "no-reboot"}}]])
+            :format(suricatta.ipc.progress_cause.CAUSE_REBOOT_MODE))
 
         suricatta.notify.debug(
             "%s Version '%s' (Type: %s).",
