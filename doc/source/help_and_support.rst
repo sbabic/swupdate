@@ -83,7 +83,7 @@ Talks about SWUpdate
          `Video SWUpdate Over CAN Bus <https://www.youtube.com/watch?v=OU7MuX2sPUU&t=59s>`_
        - Best Practices with SWUpdate by Stefano Babic, Embedded Recipes 2023
          `Slides Best Practices with SWUpdate <https://drive.google.com/file/d/1pbMtFH6IkztpsgvL6GJ54Fs7hPu7tPBf/view?usp=drive_link>`_,
-         `Video Best Practices with SWUpdate <https://youtu.be/HXG0pItl1hk?t=20670>`_
+         `Video Best Practices with SWUpdate <https://www.youtube.com/watch?v=SXzfDa8HEss&list=PLwnbCeeZfQ_Mi7gjUpLZxXGOcEBS_K8kH&index=7&pp=iAQB>`_
 
 Useful references
 =================
