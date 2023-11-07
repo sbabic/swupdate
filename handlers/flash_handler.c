@@ -310,8 +310,14 @@ static int flash_write_nor(int mtdnum, struct img_type *img)
 
 	long long size = get_output_size(img, true);
 	if (size < 0) {
-		ERROR("Failed to determine output size, bailing out.");
-		return -1;
+		size = get_mtd_size(mtdnum);
+		if (size < 0) {
+			ERROR("Could not get MTD %d device size", mtdnum);
+			return -ENODEV;
+		}
+
+		WARN("decompression-size not set, erasing flash device %s from %lld to %lld",
+			img->device, img->seek, size);
 	}
 	if (flash_erase_sector(mtdnum, img->seek, size)) {
 		ERROR("Failed to erase sectors on /dev/mtd%d (start: %llu, size: %lld)",

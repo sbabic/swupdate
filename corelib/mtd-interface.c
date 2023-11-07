@@ -217,6 +217,20 @@ int get_mtd_from_name(const char *s)
 	return -1;
 }
 
+long long get_mtd_size(int mtdnum)
+{
+	struct flash_description *flash = get_flash_info();
+	struct mtd_dev_info dev_info;
+
+	int err = mtd_get_dev_info1(flash->libmtd, mtdnum, &dev_info);
+	if (err != 0) {
+		ERROR("Could not get MTD %d info: %d, %d", mtdnum, err, errno);
+		return -ENODEV;
+	}
+
+	return dev_info.size;
+}
+
 void ubi_init(void)
 {
 	struct flash_description *nand = get_flash_info();
