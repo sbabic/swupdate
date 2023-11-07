@@ -204,11 +204,9 @@ config SHELLSCRIPTHANDLER
 config SWUFORWARDER_HANDLER
 	bool "SWU forwarder"
 	depends on HAVE_LIBCURL
-	depends on HAVE_JSON_C
 	depends on HAVE_LIBWEBSOCKETS
 	depends on HAVE_URIPARSER
 	select CHANNEL_CURL
-	select JSON
 	default n
 	help
 	  This allows one to build a chain of updater. A
@@ -217,8 +215,8 @@ config SWUFORWARDER_HANDLER
 	  embedded SWU to the other devices using the
 	  webserver REST API.
 
-comment "swuforward handler needs json-c and libcurl"
-	depends on !HAVE_JSON_C || !HAVE_LIBCURL
+comment "swuforward handler needs libcurl"
+	depends on !HAVE_LIBCURL
 
 comment "swuforward handler needs websockets and uriparser"
 	depends on !HAVE_LIBWEBSOCKETS || !HAVE_URIPARSER

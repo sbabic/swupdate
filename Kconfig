@@ -109,10 +109,6 @@ config HAVE_P11KIT
 	bool
 	option env="HAVE_P11KIT"
 
-config HAVE_JSON_C
-	bool
-	option env="HAVE_JSON_C"
-
 config HAVE_LIBWEBSOCKETS
 	bool
 	option env="HAVE_LIBWEBSOCKETS"

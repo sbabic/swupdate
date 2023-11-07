@@ -31,8 +31,6 @@
 #define NODEROOT (!strlen(CONFIG_PARSERROOT) ? \
 			"software" : CONFIG_PARSERROOT)
 
-#if defined(CONFIG_LIBCONFIG) || defined(CONFIG_JSON)
-
 typedef int (*parse_element)(parsertype p,
 		void *cfg, void *start, const char **nodes,
 		struct swupdate_cfg *swcfg, lua_State *L);
@@ -1056,7 +1054,6 @@ static int parser(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 
 	return ret;
 }
-#endif
 
 #ifdef CONFIG_LIBCONFIG
 int parse_cfg (struct swupdate_cfg *swcfg, const char *filename)
@@ -1093,8 +1090,6 @@ int parse_cfg (struct swupdate_cfg __attribute__ ((__unused__)) *swcfg,
 	return -1;
 }
 #endif
-
-#ifdef CONFIG_JSON
 
 #define JSON_OBJECT_FREED 1
 
@@ -1159,10 +1154,3 @@ int parse_json(struct swupdate_cfg *swcfg, const char *filename)
 
 	return ret;
 }
-#else
-int parse_json(struct swupdate_cfg __attribute__ ((__unused__)) *swcfg,
-		const char __attribute__ ((__unused__)) *filename)
-{
-	return -1;
-}
-#endif

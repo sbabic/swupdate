@@ -38,26 +38,19 @@ menu "Server"
 config SURICATTA_HAWKBIT
 	bool "hawkBit support"
 	default y
-	depends on HAVE_JSON_C
-	select JSON
 	help
 	  Support for hawkBit server.
 	  https://projects.eclipse.org/projects/iot.hawkbit
 
-comment "hawkBit support needs json-c"
-	depends on !HAVE_JSON_C
-
 config SURICATTA_LUA
 	bool "Suricatta Lua module"
-	depends on HAVE_JSON_C
 	depends on HAVE_LUA
 	select CHANNEL_CURL
-	select JSON
 	select LUA
 	help
 	  Support for Suricatta modules in Lua.
 
-	  The optional JSON support for Suricatta Lua modules
+	  The JSON support for Suricatta Lua modules
 	  provides JSON as Lua Tables to the Lua realm and
 	  enables channel result parsing to JSON per default.
 	  To enable, select 'libjson' in 'Parser Features'.
@@ -96,20 +89,12 @@ config EMBEDDED_SURICATTA_LUA_SOURCE
 
 config SURICATTA_GENERAL
 	bool "General HTTP support"
-	depends on HAVE_JSON_C
-	select JSON
 	help
 	  Support for Simple HTTP coded server
 	  The server uses HTTP return codes to detect if an update
 	  is available. See documentation for more details.
 
-comment "General HTTP support needs json-c"
-	depends on !HAVE_JSON_C
-
 endmenu
-
-comment "hawkBit & Suricatta Lua module support needs json-c"
-	depends on !HAVE_JSON_C
 
 comment "Suricatta Lua module support needs Lua"
 	depends on !HAVE_LUA

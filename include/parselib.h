@@ -56,7 +56,6 @@ void *get_node_libconfig(config_t *cfg, const char **nodes);
 #define is_field_numeric_cfg(e, path)	(false)
 #endif
 
-#ifdef CONFIG_JSON
 #include <json-c/json.h>
 
 bool is_field_numeric_json(json_object *e, const char *path);
@@ -73,20 +72,6 @@ json_object *json_get_path_key(json_object *json_root, const char **json_path);
 char *json_get_data_url(json_object *json_root, const char *key);
 void *find_root_json(json_object *root, const char **nodes, unsigned int depth);
 void *get_node_json(json_object *root, const char **nodes);
-
-#else
-#define find_node_json(a, b, c)		(NULL)
-#define get_field_string_json(e, path)  (NULL)
-#define get_child_json(e, name)		(NULL)
-#define iterate_field_json(e, cb, data)	{ }
-#define get_field_json(e, path, dest)
-#define json_object_object_get_ex(a,b,c) (0)
-#define json_object_array_get_idx(a, b)	(0)
-#define json_object_array_length(a)	(0)
-#define find_root_json(root, nodes, depth)	(NULL)
-#define get_node_json(root, nodes)	(NULL)
-#define is_field_numeric_json(e, path)	(false)
-#endif
 
 bool is_field_numeric(parsertype p, void *e, const char *path);
 const char *get_field_string(parsertype p, void *e, const char *path);

@@ -2,7 +2,9 @@
 #
 # SPDX-License-Identifier:     GPL-2.0-only
 
-lib-y				+= multipart_parser.o
+lib-y				+= multipart_parser.o \
+				   parsing_library_libjson.o \
+				   server_utils.o
 lib-$(CONFIG_DOWNLOAD)		+= downloader.o
 lib-$(CONFIG_MTD)		+= mtd-interface.o
 lib-$(CONFIG_LUA)		+= lua_interface.o lua_compat.o
@@ -35,5 +37,4 @@ endif
 lib-$(CONFIG_SIGALG_GPG)	+= swupdate_gpg_verify.o
 lib-$(CONFIG_LIBCONFIG)		+= swupdate_settings.o \
 				   parsing_library_libconfig.o
-lib-$(CONFIG_JSON)		+= parsing_library_libjson.o server_utils.o
 lib-$(CONFIG_CHANNEL_CURL)	+= channel_curl.o

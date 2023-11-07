@@ -27,9 +27,7 @@
 #include "channel.h"
 #include "channel_curl.h"
 #include "progress.h"
-#ifdef CONFIG_JSON
 #include <json-c/json.h>
-#endif
 
 #define SPEED_LOW_BYTES_SEC 8
 #define SPEED_LOW_TIME_SEC 300
@@ -945,7 +943,6 @@ static channel_op_res_t parse_reply(channel_data_t *channel_data, output_data_t 
 		return CHANNEL_ENOMEM;
 	}
 
-#ifdef CONFIG_JSON
 	if (channel_data->format == CHANNEL_PARSE_JSON) {
 		assert(channel_data->json_reply == NULL);
 		enum json_tokener_error json_res;
@@ -963,7 +960,7 @@ static channel_op_res_t parse_reply(channel_data_t *channel_data, output_data_t 
 			return CHANNEL_EBADMSG;
 		}
 	}
-#endif
+
 	if (channel_data->format == CHANNEL_PARSE_RAW) {
 		/* strndup is strnlen + malloc + memcpy, seems more appropriate than just malloc + memcpy. */
 		if ((channel_data->raw_reply = strndup(chunk->memory, chunk->size)) == NULL) {

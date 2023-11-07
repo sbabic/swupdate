@@ -17,22 +17,10 @@ comment "Default config parser support needs libconfig"
 
 config PARSERROOT
 	string "Name of root node"
-	depends on LIBCONFIG || JSON
 	help
 	  For compatibility reasons, the root node
 	  can be set to something else as "software".
 	  In most case you do not need to set it.
-
-config JSON
-	bool "libjson"
-	default n
-	depends on HAVE_JSON_C
-	help
-	  Use json-c to parse the configuration file.
-	  Also required for suricatta server support.
-
-comment "JSON config parser support needs json-c"
-	depends on !HAVE_JSON_C
 
 config LUAEXTERNAL
 	bool "lua"

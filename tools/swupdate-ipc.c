@@ -31,6 +31,7 @@
 #include <netdb.h>
 #include <pthread.h>
 #include <getopt.h>
+#include <json-c/json.h>
 
 #include "network_ipc.h"
 #include <progress_ipc.h>
@@ -351,8 +352,6 @@ static int sendtohawkbit(cmd_t *cmd, int argc, char *argv[]) {
 	return 0;
 }
 
-#if defined(CONFIG_JSON)
-#include <json-c/json.h>
 static int gethawkbitstatus(cmd_t  __attribute__((__unused__)) *cmd,
 			    int  __attribute__((__unused__)) argc,
 			    char  __attribute__((__unused__)) *argv[]) {
@@ -388,14 +387,6 @@ static int gethawkbitstatus(cmd_t  __attribute__((__unused__)) *cmd,
 	}
 
 }
-#else
-static int gethawkbitstatus(cmd_t __attribute__((__unused__)) *cmd,
-			    int __attribute__((__unused__)) argc,
-			    char **argv) {
-	fprintf(stderr, "%s: JSON not available, exiting..\n", argv[1]);
-	return 1;
-}
-#endif
 
 static int sendaes(cmd_t *cmd, int argc, char *argv[]) {
 	char *key, *ivt;

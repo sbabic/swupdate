@@ -106,7 +106,7 @@ export SYSROOT=$(CONFIG_SYSROOT)
 endif
 
 # Links always pthread
-LDLIBS += pthread ubootenv
+LDLIBS += pthread ubootenv json-c
 # lua
 ifneq ($(CONFIG_LUA),)
 LDFLAGS_swupdate += -Wl,-E
@@ -142,11 +142,6 @@ endif
 # libarchive
 ifeq ($(CONFIG_ARCHIVE),y)
 LDLIBS += archive
-endif
-
-# json-c
-ifeq ($(CONFIG_JSON),y)
-LDLIBS += json-c
 endif
 
 ifeq ($(CONFIG_SSL_IMPL_OPENSSL),y)

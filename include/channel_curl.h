@@ -7,9 +7,7 @@
 
 #pragma once
 #include "util.h"
-#ifdef CONFIG_JSON
 #include <json-c/json.h>
-#endif
 #include <stdio.h>
 #include <stdbool.h>
 #include "swupdate_status.h"
@@ -42,9 +40,7 @@ typedef struct {
 	char *auth;
 	char *request_body;
 	char *iface;
-#ifdef CONFIG_JSON
 	json_object *json_reply;
-#endif
 	char *raw_reply;
 	bool dry_run;
 	char *cafile;

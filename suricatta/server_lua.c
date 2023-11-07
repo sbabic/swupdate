@@ -18,9 +18,7 @@
 #include <lualib.h>
 #include <lua_util.h>
 
-#ifdef CONFIG_JSON
 #include <json-c/json_visit.h>
-#endif
 
 #include <util.h>
 #include <network_ipc.h>
@@ -62,11 +60,7 @@ static channel_data_t channel_data_defaults = {
 	.retry_sleep = CHANNEL_DEFAULT_RESUME_DELAY,
 	.retries = CHANNEL_DEFAULT_RESUME_TRIES,
 	.low_speed_timeout = 300,
-#ifdef CONFIG_JSON
-	.format = CHANNEL_PARSE_JSON,
-#else
-	.format = CHANNEL_PARSE_RAW,
-#endif
+	.format = CHANNEL_PARSE_JSON, /* just default, it can be overwritten */
 	.debug = false,
 #ifdef CONFIG_SURICATTA_SSL
 	.usessl = true,
@@ -273,8 +267,6 @@ typedef struct {
 					     get_from_table_3(__VA_ARGS__) \
 					     )
 
-
-#ifdef CONFIG_JSON
 /**
  * @brief Push the Lua equivalent of a JSON type to Table on stack top.
  *
@@ -378,8 +370,6 @@ static bool json_to_table(lua_State *L, json_object *json_root)
 	}
 	return true;
 }
-#endif
-
 
 /**
  * @brief Push true or nil to Lua stack according to result argument.
@@ -720,7 +710,6 @@ static int channel_do_operation(lua_State *L, channel_method_t op)
 	lua_newtable(L);
 	push_to_table(L, "http_response_code", channel_data.http_response_code);
 	push_to_table(L, "format",             channel_data.format);
-	#ifdef CONFIG_JSON
 	if (channel_data.format == CHANNEL_PARSE_JSON) {
 		lua_pushstring(L, "json_reply");
 		if (!channel_data.json_reply ||
@@ -734,7 +723,6 @@ static int channel_do_operation(lua_State *L, channel_method_t op)
 			ERROR("JSON object should be freed but was not.");
 		}
 	}
-	#endif
 	if (channel_data.format == CHANNEL_PARSE_RAW) {
 		lua_pushstring(L, "raw_reply");
 		if (!channel_data.raw_reply) {
@@ -913,7 +901,6 @@ static void *progress_offloader_thread(void *data)
 			push_to_table(thread_data->L, "hnd_name",    (char*)message->hnd_name);
 			push_to_table(thread_data->L, "source",      message->source);
 			push_to_table(thread_data->L, "info",        (char*)message->info);
-			#ifdef CONFIG_JSON
 			if (message->infolen > 0) {
 				lua_pushstring(thread_data->L, "jsoninfo");
 				struct json_object *json_root = json_tokener_parse(
@@ -927,7 +914,6 @@ static void *progress_offloader_thread(void *data)
 				}
 				lua_settable(thread_data->L, -3);
 			}
-			#endif
 			STAILQ_REMOVE_HEAD(&thread_data->progress_msgq, entries);
 			free(qitem);
 			(void)pthread_mutex_unlock(thread_data->progress_msgq_lock);
@@ -1985,7 +1971,6 @@ static server_op_res_t server_ipc(ipc_message *msg)
 	lua_pushstring(gL, "msg");
 	lua_pushlstring(gL, (char *)msg->data.procmsg.buf, msg->data.procmsg.len);
 	lua_settable(gL, -3);
-	#ifdef CONFIG_JSON
 	if (msg->data.procmsg.len > 0) {
 		lua_pushstring(gL, "json");
 		struct json_object *json_root = json_tokener_parse(msg->data.procmsg.buf);
@@ -1998,7 +1983,6 @@ static server_op_res_t server_ipc(ipc_message *msg)
 			ERROR("JSON object should be freed but was not.");
 		}
 	}
-	#endif
 	server_op_res_t result = map_lua_result(call_lua_func(gL, SURICATTA_FUNC_IPC, 1));
 	msg->type = result == SERVER_OK ? ACK : NACK;
 	msg->data.procmsg.len = 0;
