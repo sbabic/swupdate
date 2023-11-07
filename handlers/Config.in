@@ -116,17 +116,9 @@ config LUASCRIPTHANDLER
 	  Handler to be called for pre- and post scripts
 	  written in Lua.
 
-config HANDLER_IN_LUA
-	bool "Handlers in Lua"
-	depends on LUASCRIPTHANDLER
-	default n
-	help
-	  Allow to write own handlers in Lua.
-	  They are loaded at the start-up.
-
 config EMBEDDED_LUA_HANDLER
 	bool "Embed Lua handler in SWUpdate binary"
-	depends on HANDLER_IN_LUA
+	depends on LUA
 	default n
 	help
 	  Embed the Lua handler source code file into the

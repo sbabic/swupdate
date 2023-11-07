@@ -63,16 +63,13 @@ struct stat_fields {
 	stat_push_function push;
 };
 
-#ifdef CONFIG_HANDLER_IN_LUA
 static int l_register_handler( lua_State *L );
 static int l_call_handler(lua_State *L);
-#endif
 static void image2table(lua_State* L, struct img_type *img);
 static void table2image(lua_State* L, struct img_type *img);
 static void update_table(lua_State* L, struct img_type *img);
 static int luaopen_swupdate(lua_State *L);
 
-#ifdef CONFIG_HANDLER_IN_LUA
 static bool is_type(lua_State *L, uintptr_t type)
 {
 	lua_getglobal(L, "SWUPDATE_LUA_TYPE");
@@ -80,7 +77,6 @@ static bool is_type(lua_State *L, uintptr_t type)
 	lua_pop(L, 1);
 	return ret;
 }
-#endif
 
 static void lua_dump_table(lua_State *L, char *str, struct img_type *img, const char *key)
 {
@@ -190,7 +186,6 @@ void LUAstackDump(lua_State *L)
 	}
 }
 
-#ifdef CONFIG_HANDLER_IN_LUA
 static void lua_report_exception(lua_State *L)
 {
 	const char *s = lua_tostring(L, -1);
@@ -205,7 +200,6 @@ static void lua_report_exception(lua_State *L)
 		s += len;
 	} while (*s++);
 }
-#endif
 
 int run_lua_script(const char *script, const char *function, char *parms)
 {
@@ -373,7 +367,6 @@ static void lua_number_to_img(struct img_type *img, const char *key,
 		img->skip = (unsigned int)val;
 }
 
-#ifdef CONFIG_HANDLER_IN_LUA
 static int l_copy2file(lua_State *L)
 {
 	luaL_checktype(L, 1, LUA_TTABLE);
@@ -502,7 +495,6 @@ static int l_istream_read(lua_State* L)
 	lua_pushnil(L);
 	return 2;
 }
-#endif
 
 static void update_table(lua_State* L, struct img_type *img)
 {
@@ -570,7 +562,6 @@ static void update_table(lua_State* L, struct img_type *img)
 		}
 		lua_settable(L, -3);
 
-#ifdef CONFIG_HANDLER_IN_LUA
 		if (is_type(L, LUA_TYPE_HANDLER)) {
 			lua_pushstring(L, "copy2file");
 			lua_pushcfunction(L, &l_copy2file);
@@ -580,7 +571,6 @@ static void update_table(lua_State* L, struct img_type *img)
 			lua_pushcfunction(L, &l_istream_read);
 			lua_settable(L, -3);
 		}
-#endif
 
 		lua_getfield(L, -1, "_private");
         LUA_PUSH_IMG_NUMBER(img, "offset", offset);
@@ -594,7 +584,6 @@ static void update_table(lua_State* L, struct img_type *img)
 	}
 }
 
-#ifdef CONFIG_HANDLER_IN_LUA
 #if LUA_VERSION_NUM > 501
 static int l_istream_fclose(lua_State *L)
 {
@@ -602,7 +591,6 @@ static int l_istream_fclose(lua_State *L)
 	lua_pushboolean(L, true);
 	return 1;
 }
-#endif
 #endif
 
 static void image2table(lua_State* L, struct img_type *img)
@@ -631,7 +619,6 @@ static void image2table(lua_State* L, struct img_type *img)
 
 		update_table(L, img);
 
-#ifdef CONFIG_HANDLER_IN_LUA
 		if (is_type(L, LUA_TYPE_HANDLER)) {
 			lua_getfield(L, -1, "_private");
 			lua_pushstring(L, "istream");
@@ -648,7 +635,6 @@ static void image2table(lua_State* L, struct img_type *img)
 			lua_settable(L, -3);
 			lua_pop(L, 1);
 		}
-#endif
 	}
 }
 
@@ -682,7 +668,6 @@ static void table2image(lua_State* L, struct img_type *img) {
 		lua_getfield(L, -1, "_private");
 		lua_getfield(L, -1, "offset");
 		img->offset = (off_t)luaL_checknumber(L, -1);
-#ifdef CONFIG_HANDLER_IN_LUA
 		if (is_type(L, LUA_TYPE_HANDLER)) {
 			lua_pop(L, 1);
 			lua_getfield(L, -1, "istream");
@@ -693,7 +678,6 @@ static void table2image(lua_State* L, struct img_type *img) {
 				img->fdin = fileno(lstream->f);
 			}
 		}
-#endif
 		lua_pop(L,2);
 	}
 }
@@ -940,7 +924,6 @@ static int l_get_selection(lua_State *L) {
 }
 
 
-#ifdef CONFIG_HANDLER_IN_LUA
 static int l_get_tmpdir(lua_State *L)
 {
 	lua_pushstring(L, get_tmpdir());
@@ -959,7 +942,6 @@ static int l_progress_update(lua_State *L)
 	swupdate_progress_update((unsigned int) percent);
 	return 0;
 }
-#endif
 
 static int l_get_hw(lua_State *L)
 {
@@ -1213,7 +1195,6 @@ static const luaL_Reg l_swupdate_bootenv[] = {
         { NULL, NULL }
 };
 
-#ifdef CONFIG_HANDLER_IN_LUA
 static const luaL_Reg l_swupdate_handler[] = {
         { "register_handler", l_register_handler },
         { "call_handler", l_call_handler },
@@ -1222,7 +1203,6 @@ static const luaL_Reg l_swupdate_handler[] = {
 	{ "progress_update", l_progress_update },
         { NULL, NULL }
 };
-#endif
 
 /**
  * @brief function to register the swupdate package in the Lua Stack
@@ -1257,7 +1237,6 @@ static int luaopen_swupdate(lua_State *L)
 	lua_push_enum(L, "PARTLABEL", ROOT_DEV_PARTLABEL);
 	lua_settable(L, -3);
 
-#ifdef CONFIG_HANDLER_IN_LUA
 	if (is_type(L, LUA_TYPE_HANDLER)) {
 		/* register handler-specific functions to swupdate module table. */
 		luaL_setfuncs(L, l_swupdate_handler, 0);
@@ -1283,12 +1262,10 @@ static int luaopen_swupdate(lua_State *L)
 		}
 		lua_settable(L, -3);
 	}
-#endif
 
 	return 1;
 }
 
-#ifdef CONFIG_HANDLER_IN_LUA
 static lua_State *gL = NULL;
 
 /**
@@ -1516,9 +1493,6 @@ int lua_handlers_init(void)
 
 	return ret;
 }
-#else
-int lua_handlers_init(void) {return 0;}
-#endif
 
 lua_State *lua_parser_init(const char *buf, struct dict *bootenv)
 {
