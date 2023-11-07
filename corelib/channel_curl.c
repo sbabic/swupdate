@@ -605,6 +605,16 @@ channel_op_res_t channel_set_options(channel_t *this, channel_data_t *channel_da
 		goto cleanup;
 	}
 
+	/*
+	 * If connection is via unix socket, set it
+	 */
+	if (channel_data->unix_socket &&
+		(curl_easy_setopt(channel_curl->handle, CURLOPT_UNIX_SOCKET_PATH,
+		 channel_data->unix_socket) != CURLE_OK)) {
+		result = CHANNEL_EINIT;
+		goto cleanup;
+	}
+
 	/* Check if sslkey or sslcert strings contains a pkcs11 URI
 	 * and set curl engine and types accordingly
 	 */

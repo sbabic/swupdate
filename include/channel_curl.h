@@ -36,6 +36,7 @@ typedef enum {
 
 typedef struct {
 	char *url;
+	char *unix_socket;
 	char *cached_file;
 	char *auth;
 	char *request_body;
