@@ -12,11 +12,9 @@
 #include <stdbool.h>
 #include "swupdate_status.h"
 
-/* Curl Channel Implementation Private Header File.
+/** Curl Channel Implementation Header File.
  *
- * This is a "private" header for testability, i.e., the declarations and
- * definitions herein should be used by code employing the curl channel
- * (e.g. server_hawkbit.c) and unit tests only.
+ * This is the specific channel implementation using libcurl.
  */
 
 typedef enum {
@@ -27,6 +25,10 @@ typedef enum {
 	CHANNEL_DELETE,
 } channel_method_t;
 
+/*
+ * format for a response: the channel can just transfer
+ * or try to parse the answer with a specific format
+ */
 typedef enum {
 	CHANNEL_PARSE_NONE,
 	CHANNEL_PARSE_JSON,
@@ -35,13 +37,19 @@ typedef enum {
 
 #define USE_PROXY_ENV (char *)0x11
 
+/*
+ * Structure to configure the connection and to
+ * exchange data.
+ * This is passed to the channel methods (defined in channel.h)
+ * to set up the connection.
+ */
 typedef struct {
-	char *url;
-	char *unix_socket;
-	char *cached_file;
+	char *url;		/* URL for connection */
+	char *unix_socket;	/* if set, the UNIX Socket is taken for local connection */
+	char *cached_file;	/* Retrieve file from cached file before getting from network */ 
 	char *auth;
-	char *request_body;
-	char *iface;
+	char *request_body;	/* Buffer for the answer */
+	char *iface;		/* Set a specific interface */
 	json_object *json_reply;
 	char *raw_reply;
 	bool dry_run;
