@@ -70,14 +70,15 @@ static size_t curl_read_data(char *buffer, size_t size, size_t nmemb, void *user
 		nbytes = nmemb * size;
 
 	nbytes = read(conn->fifo[0], buffer, nbytes);
-	if (nbytes == -1 && errno == EAGAIN) {
-		TRACE("No data, try again");
-		nbytes = 0;
-	}
 
 	if (nbytes < 0) {
-		ERROR("Cannot read from FIFO");
-		return CURL_READFUNC_ABORT;
+		if (errno == EAGAIN) {
+			TRACE("No data, try again");
+			nbytes = 0;
+		} else {
+			ERROR("Cannot read from FIFO");
+			return CURL_READFUNC_ABORT;
+		}
 	}
 
 	nmemb = nbytes / size;
