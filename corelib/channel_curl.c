@@ -60,6 +60,13 @@ typedef struct {
 	sourcetype source; /* SWUpdate module that triggered the download. */
 } download_callback_data_t;
 
+static const char *method_desc[] = {
+	[CHANNEL_GET] = "GET",
+	[CHANNEL_POST] = "POST",
+	[CHANNEL_PUT] = "PUT",
+	[CHANNEL_PATCH] = "PATCH",
+	[CHANNEL_DELETE] = "DELETE"
+};
 
 /* Prototypes for "internal" functions */
 /* Note that they're not `static` so that they're callable from unit tests. */
@@ -994,82 +1001,6 @@ static channel_op_res_t channel_post_method(channel_t *this, void *data, int met
 
 	channel_op_res_t result = CHANNEL_OK;
 	channel_data_t *channel_data = (channel_data_t *)data;
-	output_data_t outdata = {};
-	write_callback_t wrdata = { .this = this, .channel_data = channel_data, .outdata = &outdata };
-
-	if ((result = channel_set_content_type(this, channel_data)) !=
-	    CHANNEL_OK) {
-		ERROR("Set content-type option failed.");
-		goto cleanup_header;
-	}
-
-	if ((result = channel_set_options(this, channel_data)) != CHANNEL_OK) {
-		ERROR("Set channel option failed.");
-		goto cleanup_header;
-	}
-
-	if ((result = setup_reply_buffer(channel_curl->handle, &wrdata)) != CHANNEL_OK) {
-		goto cleanup_header;
-	}
-
-	CURLcode curl_result;
-	if (method == CHANNEL_PATCH) {
-		curl_result = curl_easy_setopt(channel_curl->handle, CURLOPT_CUSTOMREQUEST, "PATCH");
-	} else {
-		curl_result = curl_easy_setopt(channel_curl->handle, CURLOPT_POST, 1L);
-	}
-	if (curl_result != CURLE_OK) {
-		result = CHANNEL_EINIT;
-		ERROR("Set POST/PATCH channel method option failed.");
-		goto cleanup_header;
-	}
-	if (curl_easy_setopt(channel_curl->handle, CURLOPT_POSTFIELDS, channel_data->request_body) != CURLE_OK) {
-		result = CHANNEL_EINIT;
-		ERROR("Set POST/PATCH channel data option failed.");
-		goto cleanup_header;
-	}
-	if (channel_data->debug) {
-		TRACE("POSTed/PATCHed to %s: %s", channel_data->url, channel_data->request_body);
-	}
-
-	CURLcode curlrc = curl_easy_perform(channel_curl->handle);
-	if (curlrc != CURLE_OK) {
-		ERROR("Channel POST/PATCH operation failed (%d): '%s'", curlrc,
-		      curl_easy_strerror(curlrc));
-		result = channel_map_curl_error(curlrc);
-		goto cleanup_header;
-	}
-
-	channel_log_effective_url(this);
-
-	result = channel_map_http_code(this, &channel_data->http_response_code);
-
-	if (channel_data->nocheckanswer)
-		goto cleanup_header;
-
-	channel_log_reply(result, channel_data, &outdata);
-
-	if (result == CHANNEL_OK) {
-	    result = parse_reply(channel_data, &outdata);
-	}
-
-cleanup_header:
-	outdata.memory != NULL ? free(outdata.memory) : (void)0;
-	curl_easy_reset(channel_curl->handle);
-	curl_slist_free_all(channel_curl->header);
-	channel_curl->header = NULL;
-
-	return result;
-}
-
-static channel_op_res_t channel_put_method(channel_t *this, void *data)
-{
-	channel_curl_t *channel_curl = this->priv;
-	assert(data != NULL);
-	assert(channel_curl->handle != NULL);
-
-	channel_op_res_t result = CHANNEL_OK;
-	channel_data_t *channel_data = (channel_data_t *)data;
 	channel_data->offs = 0;
 	output_data_t outdata = {};
 	write_callback_t wrdata = { .this = this, .channel_data = channel_data, .outdata = &outdata };
@@ -1089,31 +1020,48 @@ static channel_op_res_t channel_put_method(channel_t *this, void *data)
 		goto cleanup_header;
 	}
 
-	if (curl_easy_setopt(channel_curl->handle,
-		#if LIBCURL_VERSION_NUM >= 0x70C01
-		    	CURLOPT_UPLOAD,
-		#else
-		    	CURLOPT_PUT,
-		#endif
-	 	1L) != CURLE_OK) {
-		ERROR("Set PUT channel method option failed.");
+	CURLcode curl_result;
+	switch (method)  {
+	case CHANNEL_PATCH:
+	case CHANNEL_POST:
+		if (method == CHANNEL_PATCH)
+			curl_result = curl_easy_setopt(channel_curl->handle, CURLOPT_CUSTOMREQUEST, "PATCH");
+		else
+			curl_result = curl_easy_setopt(channel_curl->handle, CURLOPT_POST, 1L);
+
+		curl_result |= curl_easy_setopt(channel_curl->handle,
+					       CURLOPT_POSTFIELDS,
+					       channel_data->request_body);
+		break;
+
+	case CHANNEL_PUT:
+		curl_result = curl_easy_setopt(channel_curl->handle,
+						#if LIBCURL_VERSION_NUM >= 0x70C01
+						CURLOPT_UPLOAD,
+						#else
+						CURLOPT_PUT,
+						#endif
+						1L) ||
+			curl_easy_setopt(channel_curl->handle, CURLOPT_READFUNCTION, put_read_callback) ||
+			curl_easy_setopt(channel_curl->handle, CURLOPT_INFILESIZE_LARGE,
+					(curl_off_t)strlen(channel_data->request_body)) ||
+			curl_easy_setopt(channel_curl->handle, CURLOPT_READDATA, channel_data);
+		break;
+	}
+
+	if (curl_result != CURLE_OK) {
 		result = CHANNEL_EINIT;
+		ERROR("Set %s channel method option failed.", method_desc[method]);
 		goto cleanup_header;
 	}
 
-	if ((curl_easy_setopt(channel_curl->handle, CURLOPT_READFUNCTION, put_read_callback) !=
-		CURLE_OK) ||
-	   (curl_easy_setopt(channel_curl->handle, CURLOPT_INFILESIZE_LARGE,
-			     (curl_off_t)strlen(channel_data->request_body)) != CURLE_OK) ||
-	   (curl_easy_setopt(channel_curl->handle, CURLOPT_READDATA, channel_data) !=
-			CURLE_OK)) {
-		ERROR("Set channel option failed.");
-		goto cleanup_header;
+	if (channel_data->debug) {
+		TRACE("%s to %s: %s", method_desc[method], channel_data->url, channel_data->request_body);
 	}
 
 	CURLcode curlrc = curl_easy_perform(channel_curl->handle);
 	if (curlrc != CURLE_OK) {
-		ERROR("Channel PUT operation failed (%d): '%s'", curlrc,
+		ERROR("Channel %s operation failed (%d): '%s'", method_desc[method], curlrc,
 		      curl_easy_strerror(curlrc));
 		result = channel_map_curl_error(curlrc);
 		goto cleanup_header;
@@ -1150,7 +1098,6 @@ channel_op_res_t channel_put(channel_t *this, void *data)
 	channel_data->http_response_code = 0;
 	switch (channel_data->method) {
 	case CHANNEL_PUT:
-		return channel_put_method(this, data);
 	case CHANNEL_POST:
 	case CHANNEL_PATCH:
 		return channel_post_method(this, data, channel_data->method);
