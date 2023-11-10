@@ -1,0 +1,18 @@
+# SPDX-FileCopyrightText: 2021 Weidmueller Interface GmbH & Co. KG
+#
+# SPDX-License-Identifier: GPL-2.0-only
+
+menu "Update containers"
+
+config DOCKER
+	bool "Support Docker REST API"
+	depends on HAVE_LIBCURL
+	default n
+	help
+	  Add native support for container. This implements a part of the REST API,
+	  what is required to install new images.
+
+comment "Docker support needs libcurl"
+	depends on !HAVE_LIBCURL
+
+endmenu

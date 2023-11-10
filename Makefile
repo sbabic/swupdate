@@ -363,7 +363,7 @@ include $(srctree)/Makefile.flags
 # Defaults to vmlinux, but the arch makefile usually adds further targets
 
 objs-y		:= core handlers bootloader suricatta
-libs-y		:= corelib mongoose parser fs
+libs-y		:= corelib mongoose parser fs containers
 bindings-y	:= bindings
 tools-y		:= tools
 
