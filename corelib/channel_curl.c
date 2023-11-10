@@ -889,7 +889,7 @@ cleanup:
 	return result;
 }
 
-static size_t put_read_callback(void *ptr, size_t size, size_t nmemb, void *data)
+static size_t read_callback(void *ptr, size_t size, size_t nmemb, void *data)
 {
 	channel_data_t *channel_data = (channel_data_t *)data;
 	unsigned int bytes;
@@ -1042,7 +1042,7 @@ static channel_op_res_t channel_post_method(channel_t *this, void *data, int met
 						CURLOPT_PUT,
 						#endif
 						1L) ||
-			curl_easy_setopt(channel_curl->handle, CURLOPT_READFUNCTION, put_read_callback) ||
+			curl_easy_setopt(channel_curl->handle, CURLOPT_READFUNCTION, read_callback) ||
 			curl_easy_setopt(channel_curl->handle, CURLOPT_INFILESIZE_LARGE,
 					(curl_off_t)strlen(channel_data->request_body)) ||
 			curl_easy_setopt(channel_curl->handle, CURLOPT_READDATA, channel_data);
