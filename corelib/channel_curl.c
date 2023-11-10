@@ -892,19 +892,41 @@ cleanup:
 static size_t read_callback(void *ptr, size_t size, size_t nmemb, void *data)
 {
 	channel_data_t *channel_data = (channel_data_t *)data;
-	unsigned int bytes;
-	size_t n;
+	ssize_t bytes;
+	size_t n = 0;
+	int ret;
 
-	/* Check data to be sent */
-	bytes = strlen(channel_data->request_body) - channel_data->offs;
+	/*
+	 * Check if data is stored in a buffer or should be read
+	 * form the input pipe
+	 */
+	if (channel_data->request_body) {
+		/* Check data to be sent */
+		bytes = strlen(channel_data->request_body) - channel_data->offs;
 
-	if (!bytes)
-		return 0;
+		if (!bytes)
+			return 0;
 
-	n = min(bytes, size * nmemb);
+		n = min(bytes, size * nmemb);
 
-	memcpy(ptr, &channel_data->request_body[channel_data->offs], n);
-	channel_data->offs += n;
+		memcpy(ptr, &channel_data->request_body[channel_data->offs], n);
+		channel_data->offs += n;
+	} else {
+		bytes = nmemb * size;
+		ret = read(channel_data->read_fifo, ptr, bytes);
+		if (ret < 0) {
+			if (errno == EAGAIN) {
+				TRACE("READ EAGAIN");
+				bytes = 0;
+			} else {
+				ERROR("Cannot read from FIFO");
+				return CURL_READFUNC_ABORT;
+			}
+		} else
+			bytes = ret;
+
+		n = bytes / nmemb;
+	}
 
 	return n;
 }
@@ -993,6 +1015,16 @@ static channel_op_res_t parse_reply(channel_data_t *channel_data, output_data_t 
 	return CHANNEL_OK;
 }
 
+static CURLcode channel_set_read_callback(channel_curl_t *handle, channel_data_t *channel_data)
+{
+
+	return curl_easy_setopt(handle, CURLOPT_READFUNCTION, read_callback) ||
+		(channel_data->request_body ?
+			curl_easy_setopt(handle, CURLOPT_INFILESIZE_LARGE,
+				(curl_off_t)strlen(channel_data->request_body)) : 0) ||
+		curl_easy_setopt(handle, CURLOPT_READDATA, channel_data);
+}
+
 static channel_op_res_t channel_post_method(channel_t *this, void *data, int method)
 {
 	channel_curl_t *channel_curl = this->priv;
@@ -1032,6 +1064,8 @@ static channel_op_res_t channel_post_method(channel_t *this, void *data, int met
 		curl_result |= curl_easy_setopt(channel_curl->handle,
 					       CURLOPT_POSTFIELDS,
 					       channel_data->request_body);
+		if (channel_data->read_fifo)
+			curl_result |= channel_set_read_callback(channel_curl->handle, channel_data);
 		break;
 
 	case CHANNEL_PUT:
@@ -1041,11 +1075,7 @@ static channel_op_res_t channel_post_method(channel_t *this, void *data, int met
 						#else
 						CURLOPT_PUT,
 						#endif
-						1L) ||
-			curl_easy_setopt(channel_curl->handle, CURLOPT_READFUNCTION, read_callback) ||
-			curl_easy_setopt(channel_curl->handle, CURLOPT_INFILESIZE_LARGE,
-					(curl_off_t)strlen(channel_data->request_body)) ||
-			curl_easy_setopt(channel_curl->handle, CURLOPT_READDATA, channel_data);
+						1L) || channel_set_read_callback(channel_curl->handle, channel_data);
 		break;
 	}
 

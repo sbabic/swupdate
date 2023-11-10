@@ -68,6 +68,11 @@ typedef struct {
 	bool nofollow;
 	size_t (*dwlwrdata)(char *streamdata, size_t size, size_t nmemb,
 				   void *data);
+	/*
+	 * read_fifo is used as alternative to request_body buffer to push data
+	 * in case of large data. This lets push a stream instead of a buffer.
+	 */
+	int read_fifo;
 	size_t (*headers)(char *streamdata, size_t size, size_t nmemb,
 				   void *data);
 	struct swupdate_digest *dgst;
