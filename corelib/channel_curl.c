@@ -1074,6 +1074,10 @@ static channel_op_res_t channel_post_method(channel_t *this, void *data, int met
 			curl_result |= channel_set_read_callback(channel_curl->handle, channel_data);
 		break;
 
+	case CHANNEL_DELETE:
+		curl_result = curl_easy_setopt(channel_curl->handle, CURLOPT_CUSTOMREQUEST, "DELETE");
+		break;
+
 	case CHANNEL_PUT:
 		curl_result = curl_easy_setopt(channel_curl->handle,
 						#if LIBCURL_VERSION_NUM >= 0x70C01
@@ -1136,6 +1140,7 @@ channel_op_res_t channel_put(channel_t *this, void *data)
 	case CHANNEL_PUT:
 	case CHANNEL_POST:
 	case CHANNEL_PATCH:
+	case CHANNEL_DELETE:
 		return channel_post_method(this, data, channel_data->method);
 	default:
 		TRACE("Channel method (POST, PUT, PATCH) is not set !");
