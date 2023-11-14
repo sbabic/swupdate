@@ -25,6 +25,7 @@ struct channel {
 	channel_op_res_t (*get)(channel_t *this, void *data);
 	channel_op_res_t (*get_file)(channel_t *this, void *data);
 	channel_op_res_t (*put)(channel_t *this, void *data);
+	channel_op_res_t (*put_file)(channel_t *this, void *data);
 	char *(*get_redirect_url)(channel_t *this);
 	void *priv;
 };
