@@ -61,6 +61,7 @@ typedef struct {
 	char *info;
 	char *auth_token;
 	const char *content_type;
+	const char *accept_content_type;
 	unsigned int retry_sleep;
 	unsigned int offs;
 	unsigned int method;

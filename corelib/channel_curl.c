@@ -548,6 +548,8 @@ static channel_op_res_t channel_set_content_type(channel_t *this,
 		}
 	}
 
+	if (channel_data->accept_content_type)
+		content = channel_data->accept_content_type;
 	if (ENOMEM_ASPRINTF == asprintf(&accept, "Accept: %s", content)) {
 		ERROR("OOM when setting Accept.");
 		result = CHANNEL_EINIT;
