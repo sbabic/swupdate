@@ -87,6 +87,7 @@ static channel_op_res_t channel_open(channel_t *this, void *cfg);
 static channel_op_res_t channel_get(channel_t *this, void *data);
 static channel_op_res_t channel_get_file(channel_t *this, void *data);
 static channel_op_res_t channel_put(channel_t *this, void *data);
+static channel_op_res_t channel_put_file(channel_t *this, void *data);
 channel_op_res_t channel_curl_init(void);
 channel_t *channel_new(void);
 
@@ -120,6 +121,7 @@ channel_t *channel_new(void)
 		newchan->get = &channel_get;
 		newchan->get_file = &channel_get_file;
 		newchan->put = &channel_put;
+		newchan->put_file = &channel_put_file;
 		newchan->get_redirect_url = &channel_get_redirect_url;
 	}
 
@@ -889,12 +891,11 @@ cleanup:
 	return result;
 }
 
-static size_t read_callback(void *ptr, size_t size, size_t nmemb, void *data)
+static size_t read_callback(char *ptr, size_t size, size_t nmemb, void *data)
 {
 	channel_data_t *channel_data = (channel_data_t *)data;
-	ssize_t bytes;
+	ssize_t nbytes;
 	size_t n = 0;
-	int ret;
 
 	/*
 	 * Check if data is stored in a buffer or should be read
@@ -902,30 +903,34 @@ static size_t read_callback(void *ptr, size_t size, size_t nmemb, void *data)
 	 */
 	if (channel_data->request_body) {
 		/* Check data to be sent */
-		bytes = strlen(channel_data->request_body) - channel_data->offs;
+		nbytes = strlen(channel_data->request_body) - channel_data->offs;
 
-		if (!bytes)
+		if (!nbytes)
 			return 0;
 
-		n = min(bytes, size * nmemb);
+		n = min(nbytes, size * nmemb);
 
 		memcpy(ptr, &channel_data->request_body[channel_data->offs], n);
 		channel_data->offs += n;
 	} else {
-		bytes = nmemb * size;
-		ret = read(channel_data->read_fifo, ptr, bytes);
-		if (ret < 0) {
+		if (nmemb * size > channel_data->upload_filesize)
+			nbytes =  channel_data->upload_filesize;
+		else
+			nbytes = nmemb * size;
+
+		nbytes = read(channel_data->read_fifo, ptr, nbytes);
+		if (nbytes < 0) {
 			if (errno == EAGAIN) {
 				TRACE("READ EAGAIN");
-				bytes = 0;
+				nbytes = 0;
 			} else {
 				ERROR("Cannot read from FIFO");
 				return CURL_READFUNC_ABORT;
 			}
-		} else
-			bytes = ret;
+		}
 
-		n = bytes / nmemb;
+		n = nbytes / size;
+		channel_data->upload_filesize -= nbytes;
 	}
 
 	return n;
@@ -1019,9 +1024,8 @@ static CURLcode channel_set_read_callback(channel_curl_t *handle, channel_data_t
 {
 
 	return curl_easy_setopt(handle, CURLOPT_READFUNCTION, read_callback) ||
-		(channel_data->request_body ?
-			curl_easy_setopt(handle, CURLOPT_INFILESIZE_LARGE,
-				(curl_off_t)strlen(channel_data->request_body)) : 0) ||
+		curl_easy_setopt(handle, CURLOPT_INFILESIZE_LARGE,
+				  channel_data->request_body ? (curl_off_t)strlen(channel_data->request_body) : (curl_off_t)channel_data->upload_filesize) ||
 		curl_easy_setopt(handle, CURLOPT_READDATA, channel_data);
 }
 
@@ -1052,7 +1056,7 @@ static channel_op_res_t channel_post_method(channel_t *this, void *data, int met
 		goto cleanup_header;
 	}
 
-	CURLcode curl_result;
+	CURLcode curl_result = CURLE_OK;
 	switch (method)  {
 	case CHANNEL_PATCH:
 	case CHANNEL_POST:
@@ -1135,6 +1139,95 @@ channel_op_res_t channel_put(channel_t *this, void *data)
 		TRACE("Channel method (POST, PUT, PATCH) is not set !");
 		return CHANNEL_EINIT;
 	}
+}
+
+channel_op_res_t channel_put_file(channel_t *this, void *data)
+{
+	CURLcode curl_result = CURLE_OK;
+	channel_curl_t *channel_curl = this->priv;
+	assert(data != NULL);
+	assert(channel_curl->handle != NULL);
+
+	channel_op_res_t result = CHANNEL_OK;
+	channel_data_t *channel_data = (channel_data_t *)data;
+	channel_data->offs = 0;
+	output_data_t outdata = {};
+	write_callback_t wrdata = { .this = this, .channel_data = channel_data, .outdata = &outdata };
+
+	if ((result = channel_set_content_type(this, channel_data)) !=
+	    CHANNEL_OK) {
+		ERROR("Set content-type option failed.");
+		goto cleanup_header;
+	}
+
+	if ((result = channel_set_options(this, channel_data)) != CHANNEL_OK) {
+		ERROR("Set channel option failed.");
+		goto cleanup_header;
+	}
+
+	if ((result = setup_reply_buffer(channel_curl->handle, &wrdata)) != CHANNEL_OK) {
+		goto cleanup_header;
+	}
+
+	if (!channel_data->method)
+		channel_data->method = CHANNEL_POST;
+
+	switch (channel_data->method)  {
+	case CHANNEL_PATCH:
+	case CHANNEL_POST:
+		if (channel_data->method == CHANNEL_PATCH)
+			curl_result |= curl_easy_setopt(channel_curl->handle, CURLOPT_CUSTOMREQUEST, "PATCH");
+		else
+			curl_result |= curl_easy_setopt(channel_curl->handle, CURLOPT_POST, 1L);
+
+		break;
+
+	case CHANNEL_PUT:
+		curl_result |= curl_easy_setopt(channel_curl->handle,
+						#if LIBCURL_VERSION_NUM >= 0x70C01
+						CURLOPT_UPLOAD,
+						#else
+						CURLOPT_PUT,
+						#endif
+						1L);
+		break;
+	}
+
+	curl_result |= channel_set_read_callback(channel_curl->handle, channel_data);
+	if (curl_result != CURLE_OK) {
+		result = CHANNEL_EINIT;
+		ERROR("Set %s channel method option failed.", method_desc[channel_data->method]);
+		goto cleanup_header;
+	}
+
+	CURLcode curlrc = curl_easy_perform(channel_curl->handle);
+	if (curlrc != CURLE_OK) {
+		ERROR("Channel %s operation failed (%d): '%s'", method_desc[channel_data->method], curlrc,
+		      curl_easy_strerror(curlrc));
+		result = channel_map_curl_error(curlrc);
+		goto cleanup_header;
+	}
+
+	channel_log_effective_url(this);
+
+	result = channel_map_http_code(this, &channel_data->http_response_code);
+
+	if (channel_data->nocheckanswer)
+		goto cleanup_header;
+
+	channel_log_reply(result, channel_data, &outdata);
+
+	if (result == CHANNEL_OK) {
+	    result = parse_reply(channel_data, &outdata);
+	}
+
+cleanup_header:
+	outdata.memory != NULL ? free(outdata.memory) : (void)0;
+	curl_easy_reset(channel_curl->handle);
+	curl_slist_free_all(channel_curl->header);
+	channel_curl->header = NULL;
+
+	return result;
 }
 
 channel_op_res_t channel_get_file(channel_t *this, void *data)

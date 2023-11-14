@@ -90,6 +90,7 @@ typedef struct {
 	struct dict *headers_to_send;
 	struct dict *received_headers;
 	unsigned int max_download_speed;
+	size_t	upload_filesize;
 	char *range; /* Range request for get_file in any */
 	void *user;
 } channel_data_t;
