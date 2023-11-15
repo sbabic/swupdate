@@ -989,6 +989,9 @@ static channel_op_res_t parse_reply(channel_data_t *channel_data, output_data_t 
 		return CHANNEL_ENOMEM;
 	}
 
+	if (!chunk->size)
+		return CHANNEL_OK;
+
 	if (channel_data->format == CHANNEL_PARSE_JSON) {
 		assert(channel_data->json_reply == NULL);
 		enum json_tokener_error json_res;
