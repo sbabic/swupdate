@@ -59,6 +59,7 @@ struct swupdate_cfg {
 	char mtdblacklist[SWUPDATE_GENERAL_STRING_SIZE];
 	char forced_signer_name[SWUPDATE_GENERAL_STRING_SIZE];
 	char namespace_for_vars[SWUPDATE_GENERAL_STRING_SIZE];
+	void *lua_state;
 	bool syslog_enabled;
 	bool no_downgrading;
 	bool no_reinstalling;

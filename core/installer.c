@@ -33,6 +33,7 @@
 #include "progress.h"
 #include "pctl.h"
 #include "swupdate_vars.h"
+#include "lua_util.h"
 
 /*
  * function returns:
@@ -478,6 +479,13 @@ void cleanup_files(struct swupdate_cfg *software) {
 	dict_drop_db(&software->bootloader);
 	dict_drop_db(&software->vars);
 
+	/*
+	 * Drop Lua State if instantiated
+	 */
+	if (software->lua_state) {
+		lua_exit(software->lua_state);
+		software->lua_state = NULL;
+	}
 	if (asprintf(&fn, "%s%s", TMPDIR, BOOT_SCRIPT_SUFFIX) != ENOMEM_ASPRINTF) {
 		remove_sw_file(fn);
 		free(fn);

@@ -1022,15 +1022,24 @@ static int parser(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 		swcfg->embscript = get_field_string(p, scriptnode, NULL);
 	}
 
+	L = lua_init(&swcfg->bootloader);
+
 	if (swcfg->embscript) {
+		if (!L) {
+			ERROR("Required embedded script but no Lua not available");
+			return -1;
+		}
 		if (loglevel >= DEBUGLEVEL)
 			TRACE("Found Lua Software:\n%s", swcfg->embscript);
-		L = lua_parser_init(swcfg->embscript, &swcfg->bootloader);
-		if (!L) {
+		if (lua_load_buffer(L, swcfg->embscript)) {
 			ERROR("Required embedded script that cannot be loaded");
+			lua_close(L);
 			return -1;
 		}
 	}
+
+	swcfg->lua_state = L;
+
 	if (get_hw_revision(&swcfg->hw) < 0) {
 		TRACE("Hardware compatibility not found");
 	}
@@ -1048,9 +1057,6 @@ static int parser(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 	 * before other images
 	 */
 	parse_partitions(p, cfg, swcfg, L);
-
-	if (L)
-		lua_parser_exit(L);
 
 	if (LIST_EMPTY(&swcfg->images) &&
 	    LIST_EMPTY(&swcfg->scripts) &&

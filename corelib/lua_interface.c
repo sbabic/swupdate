@@ -1500,7 +1500,7 @@ int lua_handlers_init(void)
 	return ret;
 }
 
-lua_State *lua_parser_init(const char *buf, struct dict *bootenv)
+lua_State *lua_init(struct dict *bootenv)
 {
 	lua_State *L = luaL_newstate(); /* opens Lua */
 
@@ -1516,14 +1516,18 @@ lua_State *lua_parser_init(const char *buf, struct dict *bootenv)
 	luaL_setfuncs(L, l_swupdate_bootenv, 1);
 	lua_pop(L, 1); /* remove unused copy left on stack */
 
+	return L;
+}
+
+int lua_load_buffer(lua_State *L, const char *buf)
+{
 	if (luaL_loadstring(L, buf) || lua_pcall(L, 0, 0, 0)) {
 		LUAstackDump(L);
-		ERROR("ERROR preparing Lua embedded script in parser");
-		lua_close(L);
-		return NULL;
+		ERROR("ERROR loading Lua code");
+		return 1;
 	}
 
-	return L;
+	return 0;
 }
 
 int lua_parser_fn(lua_State *L, const char *fcn, struct img_type *img)
