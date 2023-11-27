@@ -29,6 +29,7 @@ $_SUDO apt-get install -y \
     liblua5.2-dev \
     libconfig-dev \
     libarchive-dev \
+    libbtrfsutil-dev \
     libjson-c-dev \
     libyaml-dev \
     zlib1g-dev \
