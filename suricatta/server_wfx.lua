@@ -2039,7 +2039,7 @@ function M.suricatta_funcs.server_start(defaults, argv, fconfig)
         elseif opt == ":" then
             io.stderr:write("ERROR: Missing argument.\n")
             -- Note: .polldelay is in fconfig, make defaults __index it as well.
-            M.print_help(setmetatable((defaults or {}), { __index = fconfig }))
+            M.suricatta_funcs.print_help(setmetatable((defaults or {}), { __index = fconfig }))
             return suricatta.status.EINIT
         end
     end
