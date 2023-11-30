@@ -2015,7 +2015,23 @@ function M.suricatta_funcs.server_start(defaults, argv, fconfig)
         elseif opt == "i" then
             configuration.id = tostring(arg)
         elseif opt == "y" then
-            configuration.proxy = tostring(arg)
+            if not arg then
+                io.stderr:write("ERROR: proxy parameter is not a valid string.\n")
+                return suricatta.status.EINIT
+            end
+            configuration.proxy = tostring(arg):gsub('["\']', '')
+            if #configuration.proxy == 0 then
+                configuration.proxy = suricatta.channel.USE_PROXY_ENV
+                if
+                    not os.getenv("http_proxy")
+                    and not os.getenv("https_proxy")
+                    and not os.getenv("HTTPS_PROXY")
+                    and not os.getenv("ALL_PROXY")
+                then
+                    io.stderr:write("ERROR: Should use proxy but no proxy environment variables nor proxy URL set.\n")
+                    return suricatta.status.EINIT
+                end
+            end
         elseif opt == "p" then
             configuration.polldelay = tonumber(arg) or configuration.polldelay
         elseif opt == "r" then

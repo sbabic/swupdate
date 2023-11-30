@@ -196,6 +196,12 @@ suricatta.server.register = function(function_p, purpose) end
 
 --- @class suricatta.channel
 suricatta.channel = {
+
+    -- Lua-alike of proxy environment variable usage marker as in `include/channel_curl.h`.
+    -- An empty `proxy` string means to use proxy environment variables.
+    -- @type string
+    USE_PROXY_ENV = "",
+
     --- @enum suricatta.channel.content
     --- Content type passed over the channel as in `include/channel_curl.h`.
     content = {

@@ -526,7 +526,11 @@ static void channel_push_options(lua_State *L, channel_data_t *channel_data)
 	push_to_table(L, "sslkey",             channel_data->sslkey);
 	push_to_table(L, "sslcert",            channel_data->sslcert);
 	push_to_table(L, "ciphers",            channel_data->ciphers);
-	push_to_table(L, "proxy",              channel_data->proxy);
+	if (channel_data->proxy && channel_data->proxy == USE_PROXY_ENV) {
+		push_to_table(L, "proxy",      "");
+	} else {
+		push_to_table(L, "proxy",      channel_data->proxy);
+	}
 	push_to_table(L, "info",               channel_data->info);
 	push_to_table(L, "auth_token",         channel_data->auth_token);
 	push_to_table(L, "content_type",       channel_data->content_type);
@@ -568,7 +572,6 @@ static void channel_set_options(lua_State *L, channel_data_t *channel_data)
 	get_from_table(L, "sslkey",             channel_data->sslkey, COPY_DEST);
 	get_from_table(L, "sslcert",            channel_data->sslcert, COPY_DEST);
 	get_from_table(L, "ciphers",            channel_data->ciphers, COPY_DEST);
-	get_from_table(L, "proxy",              channel_data->proxy, COPY_DEST);
 	get_from_table(L, "info",               channel_data->info, COPY_DEST);
 	get_from_table(L, "auth_token",         channel_data->auth_token, COPY_DEST);
 	get_from_table(L, "content_type",       channel_data->content_type, COPY_DEST);
@@ -589,6 +592,14 @@ static void channel_set_options(lua_State *L, channel_data_t *channel_data)
 		channel_data->max_download_speed = (unsigned int)ustrtoull(max_download_speed, NULL, 10);
 		free(max_download_speed);
 	}
+	lua_getfield(L, -1, "proxy");
+	if (lua_isstring(L, -1)) {
+		channel_data->proxy = strnlen(lua_tostring(L, -1), 1) > 0
+			? strdup(lua_tostring(L, -1)) : USE_PROXY_ENV;
+	} else {
+		channel_data->proxy = NULL;
+	}
+	lua_pop(L, 1);
 }
 
 
@@ -613,7 +624,9 @@ static void channel_free_options(channel_data_t *channel_data)
 	free(channel_data->sslkey);
 	free(channel_data->sslcert);
 	free(channel_data->ciphers);
-	free(channel_data->proxy);
+	if (channel_data->proxy && channel_data->proxy != USE_PROXY_ENV) {
+		free(channel_data->proxy);
+	}
 	free(channel_data->info);
 }
 
@@ -1618,6 +1631,10 @@ static int suricatta_lua_module(lua_State *L)
 
 	lua_pushstring(L, "options");
 	channel_push_options(L, &channel_data_defaults);
+	lua_settable(L, -3);
+
+	lua_pushstring(L, "USE_PROXY_ENV");
+	lua_pushstring(L, "");
 	lua_settable(L, -3);
 
 	lua_pushstring(L, "content");
