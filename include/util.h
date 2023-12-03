@@ -17,6 +17,7 @@
 #if defined(__linux__)
 #include <linux/types.h>
 #endif
+#include <sys/types.h>
 #include "globals.h"
 #include "swupdate_status.h"
 #include "swupdate_dict.h"
