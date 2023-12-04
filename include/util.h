@@ -207,8 +207,6 @@ int copyfile(int fdin, void *out, size_t nbytes, unsigned long *offs,
 int copyimage(void *out, struct img_type *img, writeimage callback);
 int copybuffer(unsigned char *inbuf, void *out, size_t nbytes, int compressed,
 	unsigned char *hash, bool encrypted, const char *imgivt, writeimage callback);
-off_t extract_next_file(int fd, int fdout, off_t start, int compressed,
-			int encrypted, char *ivt, unsigned char *hash);
 int openfileoutput(const char *filename);
 int mkpath(char *dir, mode_t mode);
 int swupdate_file_setnonblock(int fd, bool block);

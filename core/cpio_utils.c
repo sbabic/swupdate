@@ -805,52 +805,6 @@ int extract_img_from_cpio(int fd, unsigned long offset, struct filehdr *fdh)
 	return 0;
 }
 
-off_t extract_next_file(int fd, int fdout, off_t start, int compressed,
-		int encrypted, char *ivt, unsigned char *hash)
-{
-	int ret;
-	struct filehdr fdh;
-	uint32_t checksum = 0;
-	unsigned long offset = start;
-
-	ret = lseek(fd, offset, SEEK_SET);
-	if (ret < 0) {
-		ERROR("CPIO file corrupted : %s",
-		strerror(errno));
-		return ret;
-	}
-
-	ret = extract_cpio_header(fd, &fdh, &offset);
-	if (ret) {
-		ERROR("CPIO Header wrong");
-		return ret;
-	}
-
-	ret = lseek(fd, offset, SEEK_SET);
-	if (ret < 0) {
-		ERROR("CPIO file corrupted : %s", strerror(errno));
-		return ret;
-	}
-
-	ret = copyfile(fd, &fdout, fdh.size, &offset, 0, 0, compressed, &checksum, hash, encrypted, ivt, NULL);
-	if (ret < 0) {
-		ERROR("Error copying extracted file");
-		return ret;
-	}
-
-	TRACE("Copied file:\n\tfilename %s\n\tsize %u\n\tchecksum 0x%lx %s",
-		fdh.filename,
-		(unsigned int)fdh.size,
-		(unsigned long)checksum,
-		(checksum == fdh.chksum) ? "VERIFIED" : "WRONG");
-
-	if (!swupdate_verify_chksum(checksum, &fdh)) {
-		return -EINVAL;
-	}
-
-	return offset;
-}
-
 int cpio_scan(int fd, struct swupdate_cfg *cfg, off_t start)
 {
 	struct filehdr fdh;
