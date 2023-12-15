@@ -520,6 +520,23 @@ unsigned char *get_aes_ivt(void) {
 	return aes_key->ivt;
 }
 
+bool is_hex_str(const char *ascii) {
+	unsigned int i, size;
+
+	if (!ascii)
+		return false;
+
+	size = strlen(ascii);
+	if (!size)
+		return false;
+
+	for (i = 0;  i < size; ++i) {
+		if (!isxdigit(ascii[i]))
+			return false;
+	}
+	return true;
+}
+
 int set_aes_key(const char *key, const char *ivt)
 {
 	int ret;
@@ -532,6 +549,11 @@ int set_aes_key(const char *key, const char *ivt)
 		aes_key = (struct decryption_key *)calloc(1, sizeof(*aes_key));
 		if (!aes_key)
 			return -ENOMEM;
+	}
+
+	if (strlen(ivt) != (AES_BLK_SIZE*2) || !is_hex_str(ivt)) {
+		ERROR("Invalid ivt");
+		return -EINVAL;
 	}
 
 	ret = ascii_to_bin(aes_key->ivt, sizeof(aes_key->ivt), ivt);
@@ -551,12 +573,15 @@ int set_aes_key(const char *key, const char *ivt)
 		aes_key->keylen = keylen / 2;
 		break;
 	default:
+		ERROR("Invalid aes_key length");
 		return -EINVAL;
 	}
+	ret |= !is_hex_str(key);
 	ret |= ascii_to_bin(aes_key->key, aes_key->keylen, key);
 #endif
 
 	if (ret) {
+		ERROR("Invalid aes_key");
 		return -EINVAL;
 	}
 

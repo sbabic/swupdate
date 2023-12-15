@@ -163,6 +163,7 @@ int ascii_to_hash(unsigned char *hash, const char *s);
 int ascii_to_bin(unsigned char *dest, size_t dstlen, const char *src);
 void hash_to_ascii(const unsigned char *hash, char *s);
 int IsValidHash(const unsigned char *hash);
+bool is_hex_str(const char *ascii);
 
 #ifndef typeof
 #define typeof __typeof__
