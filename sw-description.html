@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SWUpdate: syntax and tags with the default parser &mdash; Embedded Software Update Documentation 2023.05 documentation</title>
+  <title>SWUpdate: syntax and tags with the default parser &mdash; Embedded Software Update Documentation 2023.12 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
@@ -28,7 +28,7 @@
             <a href="index.html" class="icon icon-home"> Embedded Software Update Documentation
           </a>
               <div class="version">
-                2023.05
+                2023.12
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -63,7 +63,9 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#update-transaction-and-status-marker">Update Transaction and Status Marker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#reboot-flag">reboot flag</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#bootloader">bootloader</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#swupdate-persistent-variables">SWUpdate persistent variables</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#board-specific-settings">Board specific settings</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#software-collections-and-operation-modes">Software collections and operation modes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#versioning-schemas-in-swupdate">Versioning schemas in SWUpdate</a><ul>
@@ -914,6 +916,28 @@ environment variable “ustate” (default) to <cite>STATE_INSTALLED=1</cite> or
 globally via the <cite>-m</cite> option to SWUpdate or per <cite>sw-description</cite> via the
 boolean switch “bootloader_state_marker”.</p>
 </section>
+<section id="reboot-flag">
+<h2>reboot flag<a class="headerlink" href="#reboot-flag" title="Permalink to this headline"></a></h2>
+<p>It is possible to signal that a reboot for a specific update is not required.
+This information is evaluated by SWUpdate just to inform a backend about the
+transaction result. If a postinstall script (icommand line parameter -p) is
+passed at the startup to perform a reboot, it will be executed anyway because
+SWUpdate cannot know the nature of this script.</p>
+<p>SWUpdate sends this information to the progress interface and it is duty of the
+listeners to interprete the information. The attribute is a boolean:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">reboot</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Attribute belongs to the general section, where also version belongs. It is
+not required to activate the flag with <cite>reboot = true</cite> because it is the
+default behavior, so just disabling makes sense.</p>
+<p>The tool <cite>swupdate-progress</cite> interprets the flag: if it was started with
+reboot support (-r parameter), it checks if a “no-reboot” message is received
+and disables to reboot the device for this specific update. When the transaction
+completes, the reboot feature is activated again in case a new update will require to
+reboot the device. This allows to have on the fly updates, where not the whole
+software is updated and a reboot is not required.</p>
+</section>
 <section id="bootloader">
 <h2>bootloader<a class="headerlink" href="#bootloader" title="Permalink to this headline"></a></h2>
 <p>There are two ways to update the bootloader (currently U-Boot, GRUB, and
@@ -964,6 +988,33 @@ bootloader handler for adjusting the environment.</p>
 <p>For backward compatibility with previously built <cite>.swu</cite> images, the
 “uboot” group name is still supported as an alias. However, its usage
 is deprecated.</p>
+</section>
+<section id="swupdate-persistent-variables">
+<h2>SWUpdate persistent variables<a class="headerlink" href="#swupdate-persistent-variables" title="Permalink to this headline"></a></h2>
+<p>Not all updates require to inform the bootloader about the update, and in many cases a
+reboot is not required. There are also cases where changing bootloader’s environment
+is unwanted due to restriction for security.
+SWUpdate needs then some information after new software is running to understand if
+everything is fine or some actions like a fallback are needed. SWUpdate can store
+such as information in variables (like shell variables), that can be stored persistently.
+The library <cite>libubootenv</cite> provide a way for saving such kind as database in a power-cut safe mode.
+It uses the algorythm originally implemented in the U-Boot bootloader. It is then guaranteed
+that the system will always have a valid instance of the environment. The library supports multiple
+environment databases at the same time, identifies with <cite>namespaces</cite>.
+SWUpdate should be configured to set the namespace used for own variables. This is done by setting
+the attribute <em>namespace-vars</em> in the runtime configuration file (swupdate.cfg). See also
+example/configuration/swupdate.cfg for details.</p>
+<p>The format is the same used with bootloader for single variable:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">vars</span><span class="p">:</span> <span class="p">(</span>
+        <span class="p">{</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">Variable</span> <span class="n">name</span><span class="o">&gt;</span><span class="p">;</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">Variable</span> <span class="n">value</span><span class="o">&gt;</span><span class="p">;</span>
+        <span class="p">}</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>SWUpdate will set these variables all at once like the bootloader variables. These environment
+is stored just before writing the bootloader environment, that is always the last step in an update.</p>
 </section>
 <section id="board-specific-settings">
 <h2>Board specific settings<a class="headerlink" href="#board-specific-settings" title="Permalink to this headline"></a></h2>
@@ -1160,7 +1211,7 @@ of conditions where some parameters are known just by the target at runtime. The
 script is global to all sections, but it can contain several functions that can be specific
 for each entry in the sw-description file.</p>
 <p>These attributes are used for an embedded-script:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">embedded</span><span class="o">-</span><span class="n">script</span> <span class="o">=</span> <span class="s2">&quot;&lt;Lua code&quot;</span><span class="o">&gt;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">embedded</span><span class="o">-</span><span class="n">script</span> <span class="o">=</span> <span class="s2">&quot;&lt;Lua code&gt;&quot;</span>
 </pre></div>
 </div>
 <p>It must be taken into account that the parser has already run and usage of double quotes can
@@ -1395,7 +1446,13 @@ sw-versions</p></td>
 <td><p>user-friendly description of the
 swupdate archive (any string)</p></td>
 </tr>
-<tr class="row-even"><td><p>install-if-different</p></td>
+<tr class="row-even"><td><p>reboot</p></td>
+<td><p>bool</p></td>
+<td></td>
+<td><p>allows to disable reboot for the
+current running update</p></td>
+</tr>
+<tr class="row-odd"><td><p>install-if-different</p></td>
 <td><p>bool</p></td>
 <td><p>images
 files</p></td>
@@ -1404,7 +1461,7 @@ if set, name and version are
 compared with the entries in
 sw-versions</p></td>
 </tr>
-<tr class="row-odd"><td><p>install-if-higher</p></td>
+<tr class="row-even"><td><p>install-if-higher</p></td>
 <td><p>bool</p></td>
 <td><p>images
 files</p></td>
@@ -1413,7 +1470,7 @@ if set, name and version are
 compared with the entries in
 sw-versions</p></td>
 </tr>
-<tr class="row-even"><td><p>encrypted</p></td>
+<tr class="row-odd"><td><p>encrypted</p></td>
 <td><p>bool</p></td>
 <td><p>images
 files
@@ -1423,7 +1480,7 @@ if set, file is encrypted
 and must be decrypted before
 installing.</p></td>
 </tr>
-<tr class="row-odd"><td><p>ivt</p></td>
+<tr class="row-even"><td><p>ivt</p></td>
 <td><p>string</p></td>
 <td><p>images
 files
@@ -1435,7 +1492,7 @@ IVT to avoid attacker can guess the
 the key.
 It is an ASCII string of 32 chars</p></td>
 </tr>
-<tr class="row-even"><td><p>data</p></td>
+<tr class="row-odd"><td><p>data</p></td>
 <td><p>string</p></td>
 <td><p>images
 files
@@ -1443,7 +1500,7 @@ scripts</p></td>
 <td><p>This is used to pass arbitrary data
 to a handler.</p></td>
 </tr>
-<tr class="row-odd"><td><p>sha256</p></td>
+<tr class="row-even"><td><p>sha256</p></td>
 <td><p>string</p></td>
 <td><p>images
 files
@@ -1452,25 +1509,25 @@ scripts</p></td>
 Used for verification of signed
 images.</p></td>
 </tr>
-<tr class="row-even"><td><p>embedded-script</p></td>
+<tr class="row-odd"><td><p>embedded-script</p></td>
 <td><p>string</p></td>
 <td></td>
 <td><p>Lua code that is embedded in the
 sw-description file.</p></td>
 </tr>
-<tr class="row-odd"><td><p>offset</p></td>
+<tr class="row-even"><td><p>offset</p></td>
 <td><p>string</p></td>
 <td><p>images</p></td>
 <td><p>Optional destination offset</p></td>
 </tr>
-<tr class="row-even"><td><p>hook</p></td>
+<tr class="row-odd"><td><p>hook</p></td>
 <td><p>string</p></td>
 <td><p>images
 files</p></td>
 <td><p>The name of the function (Lua) to be
 called when the entry is parsed.</p></td>
 </tr>
-<tr class="row-odd"><td><p>mtdname</p></td>
+<tr class="row-even"><td><p>mtdname</p></td>
 <td><p>string</p></td>
 <td><p>images</p></td>
 <td><p>name of the MTD to update. Used only

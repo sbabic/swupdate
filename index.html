@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Updating an embedded system &mdash; Embedded Software Update Documentation 2023.05 documentation</title>
+  <title>Updating an embedded system &mdash; Embedded Software Update Documentation 2023.12 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
@@ -27,7 +27,7 @@
             <a href="#" class="icon icon-home"> Embedded Software Update Documentation
           </a>
               <div class="version">
-                2023.05
+                2023.12
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -155,7 +155,9 @@ forget to <cite>star</cite> SWUpdate.</p>
 <li class="toctree-l2"><a class="reference internal" href="sw-description.html#files">Files</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sw-description.html#scripts">Scripts</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sw-description.html#update-transaction-and-status-marker">Update Transaction and Status Marker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sw-description.html#reboot-flag">reboot flag</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sw-description.html#bootloader">bootloader</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sw-description.html#swupdate-persistent-variables">SWUpdate persistent variables</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sw-description.html#board-specific-settings">Board specific settings</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sw-description.html#software-collections-and-operation-modes">Software collections and operation modes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="sw-description.html#versioning-schemas-in-swupdate">Versioning schemas in SWUpdate</a></li>
@@ -173,6 +175,7 @@ forget to <cite>star</cite> SWUpdate.</p>
 <li class="toctree-l2"><a class="reference internal" href="signed_images.html#tool-to-generate-keys-certificates">Tool to generate keys / certificates</a></li>
 <li class="toctree-l2"><a class="reference internal" href="signed_images.html#usage-with-rsa-pkcs-1-5-or-rsa-pss">Usage with RSA PKCS#1.5 or RSA PSS</a></li>
 <li class="toctree-l2"><a class="reference internal" href="signed_images.html#usage-with-certificates-and-cms">Usage with certificates and CMS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="signed_images.html#usage-with-gnu-pg">Usage with GNU PG</a></li>
 <li class="toctree-l2"><a class="reference internal" href="signed_images.html#building-a-signed-swu-image">Building a signed SWU image</a></li>
 <li class="toctree-l2"><a class="reference internal" href="signed_images.html#example-for-sw-description-with-signed-image">Example for sw-description with signed image</a></li>
 <li class="toctree-l2"><a class="reference internal" href="signed_images.html#running-swupdate-with-signed-images">Running SWUpdate with signed images</a></li>
@@ -210,6 +213,13 @@ forget to <cite>star</cite> SWUpdate.</p>
 <li class="toctree-l2"><a class="reference internal" href="handlers.html#btrfs-handler">BTRFS Handler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="handlers.html#delta-update-handler">Delta Update Handler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="handlers.html#memory-issue-with-zchunk">Memory issue with zchunk</a></li>
+<li class="toctree-l2"><a class="reference internal" href="handlers.html#docker-handlers">Docker handlers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="handlers.html#docker-load-image">Docker Load Image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="handlers.html#docker-remove-image">Docker Remove Image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="handlers.html#docker-delete-unused-images">Docker Delete Unused Images</a></li>
+<li class="toctree-l2"><a class="reference internal" href="handlers.html#docker-container-create">Docker: container create</a></li>
+<li class="toctree-l2"><a class="reference internal" href="handlers.html#docker-remove-container">Docker Remove Container</a></li>
+<li class="toctree-l2"><a class="reference internal" href="handlers.html#docker-start-stop-containers">Docker : Start / Stop containers</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="mongoose.html">Mongoose daemon mode</a><ul>
@@ -225,6 +235,7 @@ forget to <cite>star</cite> SWUpdate.</p>
 <li class="toctree-l2"><a class="reference internal" href="suricatta.html#introduction">Introduction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="suricatta.html#running-suricatta">Running suricatta</a></li>
 <li class="toctree-l2"><a class="reference internal" href="suricatta.html#the-suricatta-interface">The Suricatta Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="suricatta.html#support-for-wfx">Support for wfx</a></li>
 <li class="toctree-l2"><a class="reference internal" href="suricatta.html#support-for-general-purpose-http-server">Support for general purpose HTTP server</a></li>
 <li class="toctree-l2"><a class="reference internal" href="suricatta.html#support-for-suricatta-modules-in-lua">Support for Suricatta Modules in Lua</a></li>
 </ul>
@@ -260,6 +271,7 @@ forget to <cite>star</cite> SWUpdate.</p>
 <li class="toctree-l2"><a class="reference internal" href="building-with-yocto.html#overview">Overview</a></li>
 <li class="toctree-l2"><a class="reference internal" href="building-with-yocto.html#what-about-libubootenv">What about libubootenv ?</a></li>
 <li class="toctree-l2"><a class="reference internal" href="building-with-yocto.html#the-swupdate-class">The swupdate class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="building-with-yocto.html#what-about-grub">What about grub ?</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="swupdate-best-practise.html">SWUpdate Best Practice</a><ul>

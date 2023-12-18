@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Suricatta daemon mode &mdash; Embedded Software Update Documentation 2023.05 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+    <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Config for hawkBit under SSL/TLS using private CA / sub CA" href="hawkbit-setup.html" />
+    <link rel="prev" title="Mongoose daemon mode" href="mongoose.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> Embedded Software Update Documentation
+          </a>
+              <div class="version">
+                2023.05
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Software Management on embedded systems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="licensing.html">License</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="swupdate.html">SWUpdate: software update for embedded system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scenarios.html">Update strategy examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sw-description.html">SWUpdate: syntax and tags with the default parser</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed_images.html">Update images from verified source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="encrypted_images.html">Symmetrically Encrypted Update Images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="handlers.html">Handlers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mongoose.html">Mongoose daemon mode</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Suricatta daemon mode</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-suricatta">Running suricatta</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-suricatta-interface">The Suricatta Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#support-for-general-purpose-http-server">Support for general purpose HTTP server</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#support-for-suricatta-modules-in-lua">Support for Suricatta Modules in Lua</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#suricatta"><cite>suricatta</cite></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#suricatta-status"><cite>suricatta.status</cite></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#suricatta-notify"><cite>suricatta.notify</cite></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#suricatta-pstate"><cite>suricatta.pstate</cite></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#suricatta-server"><cite>suricatta.server</cite></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#suricatta-channel"><cite>suricatta.channel</cite></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#suricatta-bootloader"><cite>suricatta.bootloader</cite></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="hawkbit-setup.html">Config for hawkBit under SSL/TLS using private CA / sub CA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-ipc-interface.html">SWUpdate: API for external programs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bindings.html">Language Bindings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bootloader_interface.html">Bootloader Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building-with-yocto.html">meta-swupdate: building with Yocto</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-best-practise.html">SWUpdate Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="delta-update.html">Delta Update with SWUpdate</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-client.html">swupdate-client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-progress.html">swupdate-progress</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">swupdate-ipc</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="help_and_support.html">Help and support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to SWUpdate</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project’s road-map</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="previous-releases.html">Documentation for previous releases</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Embedded Software Update Documentation</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Suricatta daemon mode</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/suricatta.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="suricatta-daemon-mode">
+<h1>Suricatta daemon mode<a class="headerlink" href="#suricatta-daemon-mode" title="Permalink to this headline"></a></h1>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline"></a></h2>
+<p>Suricatta is – like mongoose – a daemon mode of SWUpdate, hence the
+name suricatta (engl. meerkat) as it belongs to the mongoose family.</p>
+<p>Suricatta regularly polls a remote server for updates, downloads, and
+installs them. Thereafter, it reboots the system and reports the update
+status to the server, based on an update state variable currently stored
+in bootloader’s environment ensuring persistent storage across reboots. Some
+U-Boot script logics or U-Boot’s <code class="docutils literal notranslate"><span class="pre">bootcount</span></code> feature may be utilized
+to alter this update state variable, e.g., by setting it to reflect
+failure in case booting the newly flashed root file system has failed
+and a switchback had to be performed.</p>
+<p>Suricatta is designed to be extensible in terms of the servers supported
+as described in Section <a class="reference internal" href="#the-suricatta-interface">The Suricatta Interface</a>. Currently,
+support for the <a class="reference external" href="https://projects.eclipse.org/projects/iot.hawkbit">hawkBit</a> server is implemented via the <a class="reference external" href="http://sp.apps.bosch-iot-cloud.com/documentation/developerguide/apispecifications/directdeviceintegrationapi.html">hawkBit Direct
+Device Integration API</a> alongside a simple general purpose HTTP server.
+The support for suricatta modules written in Lua is not a particular server
+support implementation but rather an option for writing such in Lua instead
+of C.</p>
+</section>
+<section id="running-suricatta">
+<h2>Running suricatta<a class="headerlink" href="#running-suricatta" title="Permalink to this headline"></a></h2>
+<p>After having configured and compiled SWUpdate with enabled suricatta
+support for hawkBit,</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">swupdate</span> <span class="o">--</span><span class="n">help</span>
+</pre></div>
+</div>
+<p>lists the mandatory and optional arguments to be provided to suricatta
+when using hawkBit as server. As an example,</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./swupdate -l <span class="m">5</span> -u <span class="s1">&#39;-t default -u http://10.0.0.2:8080 -i 25&#39;</span>
+</pre></div>
+</div>
+<p>runs SWUpdate in suricatta daemon mode with log-level <code class="docutils literal notranslate"><span class="pre">TRACE</span></code>, polling
+a hawkBit instance at <code class="docutils literal notranslate"><span class="pre">http://10.0.0.2:8080</span></code> with tenant <code class="docutils literal notranslate"><span class="pre">default</span></code>
+and device ID <code class="docutils literal notranslate"><span class="pre">25</span></code>.</p>
+<p>If multiple server support is compiled in, the <code class="docutils literal notranslate"><span class="pre">-S</span></code> / <code class="docutils literal notranslate"><span class="pre">--server</span></code>
+option or a <code class="docutils literal notranslate"><span class="pre">server</span></code> entry in the configuration file’s <code class="docutils literal notranslate"><span class="pre">[suricatta]</span></code>
+section selects the one to use at run-time. For convenience, when having
+support for just one server compiled-in, this is chosen automatically.</p>
+<p>Note that on startup when having installed an update, suricatta
+tries to report the update status to its upstream server, e.g.,
+hawkBit, prior to entering the main loop awaiting further updates.
+If this initial report fails, e.g., because of a not (yet) configured
+network or a currently unavailable hawkBit server, SWUpdate may exit
+with an according error code. This behavior allows one to, for example,
+try several upstream servers sequentially.
+If suricatta should keep retrying until the update status is reported
+to its upstream server irrespective of the error conditions, this has
+to be realized externally in terms of restarting SWUpdate on exit.</p>
+<p>After an update has been performed, an agent listening on the progress
+interface may execute post-update actions, e.g., a reboot, on receiving
+<code class="docutils literal notranslate"><span class="pre">DONE</span></code>.
+Additionally, a post-update command specified in the configuration file or
+given by the <code class="docutils literal notranslate"><span class="pre">-p</span></code> command line option can be executed.</p>
+<p>Note that at least a restart of SWUpdate has to be performed as post-update
+action since only then suricatta tries to report the update status to its
+upstream server. Otherwise, succinct update actions announced by the
+upstream server are skipped with an according message until a restart of
+SWUpdate has happened in order to not install the same update again.</p>
+</section>
+<section id="the-suricatta-interface">
+<h2>The Suricatta Interface<a class="headerlink" href="#the-suricatta-interface" title="Permalink to this headline"></a></h2>
+<p>Support for servers other than hawkBit or the general purpose HTTP server can be
+realized by implementing the “interfaces” described in <code class="docutils literal notranslate"><span class="pre">include/channel.h</span></code> and
+<code class="docutils literal notranslate"><span class="pre">include/suricatta/server.h</span></code>, the latter either in C or in Lua.
+The channel interface abstracts a particular connection to the server, e.g.,
+HTTP-based in case of hawkBit. The server interface defines the logics to poll
+and install updates. See <code class="docutils literal notranslate"><span class="pre">corelib/channel_curl.c</span></code> / <code class="docutils literal notranslate"><span class="pre">include/channel_curl.h</span></code>
+and <code class="docutils literal notranslate"><span class="pre">suricatta/server_hawkbit.{c,h}</span></code> for an example implementation in C targeted
+towards hawkBit.</p>
+<p><code class="docutils literal notranslate"><span class="pre">include/channel.h</span></code> describes the functionality a channel
+has to implement:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="nc">channel</span><span class="w"> </span><span class="n">channel_t</span><span class="p">;</span><span class="w"></span>
+<span class="k">struct</span><span class="w"> </span><span class="nc">channel</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="p">...</span><span class="w"></span>
+<span class="p">};</span><span class="w"></span>
+
+<span class="n">channel_t</span><span class="w"> </span><span class="o">*</span><span class="nf">channel_new</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span><span class="w"></span>
+</pre></div>
+</div>
+<p>which sets up and returns a <code class="docutils literal notranslate"><span class="pre">channel_t</span></code> struct with pointers to
+functions for opening, closing, fetching, and sending data over
+the channel.</p>
+<p><code class="docutils literal notranslate"><span class="pre">include/suricatta/server.h</span></code> describes the functionality a server has
+to implement:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="k">struct</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">server_op_res_t</span><span class="w"> </span><span class="nf">has_pending_action</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="n">action_id</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">server_op_res_t</span><span class="w"> </span><span class="nf">install_update</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">server_op_res_t</span><span class="w"> </span><span class="nf">send_target_data</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="kt">unsigned</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">get_polling_interval</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">server_op_res_t</span><span class="w"> </span><span class="nf">start</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">cfgfname</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">argv</span><span class="p">[]);</span><span class="w"></span>
+<span class="w">    </span><span class="n">server_op_res_t</span><span class="w"> </span><span class="nf">stop</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="n">server_op_res_t</span><span class="w"> </span><span class="nf">ipc</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">fd</span><span class="p">);</span><span class="w"></span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="n">help</span><span class="p">)(</span><span class="kt">void</span><span class="p">);</span><span class="w"></span>
+<span class="p">}</span><span class="w"> </span><span class="n">server_t</span><span class="p">;</span><span class="w"></span>
+</pre></div>
+</div>
+<p>These functions constituting a particular suricatta server implementation
+have to be registered for being selectable at run-time by calling
+<code class="docutils literal notranslate"><span class="pre">register_server()</span></code> (see <code class="docutils literal notranslate"><span class="pre">include/suricatta/server.h</span></code>) with
+a name and a <code class="docutils literal notranslate"><span class="pre">server_t</span></code> struct pointer implemented in a
+<code class="docutils literal notranslate"><span class="pre">__attribute__((constructor))</span></code> marked function, see
+<code class="docutils literal notranslate"><span class="pre">suricatta/server_hawkbit.c</span></code> as example.</p>
+<p>The type <code class="docutils literal notranslate"><span class="pre">server_op_res_t</span></code> is defined in <code class="docutils literal notranslate"><span class="pre">include/suricatta/suricatta.h</span></code>.
+It represents the valid function return codes for a server’s implementation.</p>
+<p>In addition to implementing the particular channel and server, the
+<code class="docutils literal notranslate"><span class="pre">suricatta/Config.in</span></code> file has to be adapted to include a new option
+so that the new implementation becomes selectable in SWUpdate’s
+configuration. In the simplest case, adding an option like the following
+one for hawkBit into the <code class="docutils literal notranslate"><span class="pre">menu</span> <span class="pre">&quot;Server&quot;</span></code> section is sufficient.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>config SURICATTA_HAWKBIT
+    bool <span class="s2">&quot;hawkBit support&quot;</span>
+    default y
+    <span class="k">select</span> JSON
+    <span class="nb">help</span>
+      Support <span class="k">for</span> hawkBit server.
+      https://projects.eclipse.org/projects/iot.hawkbit
+</pre></div>
+</div>
+<p>Having included the new server implementation into the configuration,
+edit <code class="docutils literal notranslate"><span class="pre">suricatta/Makefile</span></code> to specify the implementation’s linkage into
+the SWUpdate binary, e.g., for the hawkBit example implementation, the
+following lines add <code class="docutils literal notranslate"><span class="pre">server_hawkbit.o</span></code> to the resulting SWUpdate binary
+if <code class="docutils literal notranslate"><span class="pre">SURICATTA_HAWKBIT</span></code> was selected while configuring SWUpdate.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ifneq <span class="o">(</span><span class="k">$(</span>CONFIG_SURICATTA_HAWKBIT<span class="k">)</span>,<span class="o">)</span>
+obj-<span class="k">$(</span>CONFIG_SURICATTA<span class="k">)</span> +<span class="o">=</span> server_hawkbit.o
+endif
+</pre></div>
+</div>
+</section>
+<section id="support-for-general-purpose-http-server">
+<h2>Support for general purpose HTTP server<a class="headerlink" href="#support-for-general-purpose-http-server" title="Permalink to this headline"></a></h2>
+<p>This is a very simple backend that uses standard HTTP response codes to signal if
+an update is available. There are closed source backends implementing this interface,
+but because the interface is very simple interface, this server type is also suitable
+for implementing an own backend server. For inspiration, there’s a simple (mock)
+server implementation available in <code class="docutils literal notranslate"><span class="pre">examples/suricatta/server_general.py</span></code>.</p>
+<p>The API consists of a GET with Query parameters to inform the server about the installed version.
+The query string has the format:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>http(s)://&lt;base URL&gt;?param1=val1&amp;param2=value2...
+</pre></div>
+</div>
+<p>As examples for parameters, the device can send its serial number, MAC address and the running version of the software.
+It is duty of the backend to interpret this - SWUpdate just takes them from the “identify” section of
+the configuration file and encodes the URL.</p>
+<p>The server answers with the following return codes:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 13%" />
+<col style="width: 15%" />
+<col style="width: 71%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>HTTP Code</p></th>
+<th class="head"><p>Text</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>302</p></td>
+<td><p>Found</p></td>
+<td><p>A new software is available at URL in the Location header</p></td>
+</tr>
+<tr class="row-odd"><td><p>400</p></td>
+<td><p>Bad Request</p></td>
+<td><p>Some query parameters are missing or in wrong format</p></td>
+</tr>
+<tr class="row-even"><td><p>403</p></td>
+<td><p>Forbidden</p></td>
+<td><p>Client certificate not valid</p></td>
+</tr>
+<tr class="row-odd"><td><p>404</p></td>
+<td><p>Not found</p></td>
+<td><p>No update is available for this device</p></td>
+</tr>
+<tr class="row-even"><td><p>503</p></td>
+<td><p>Unavailable</p></td>
+<td><p>An update is available but server can’t handle another
+update process now.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Server’s answer can contain the following headers:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 18%" />
+<col style="width: 10%" />
+<col style="width: 72%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Header’s name</p></th>
+<th class="head"><p>Codes</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Retry-after</p></td>
+<td><p>503</p></td>
+<td><p>Contains a number which tells the device how long to wait
+until ask the next time for updates. (Seconds)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Content-MD5</p></td>
+<td><p>302</p></td>
+<td><p>Contains the checksum of the update file which is available
+under the url of location header</p></td>
+</tr>
+<tr class="row-even"><td><p>Location</p></td>
+<td><p>302</p></td>
+<td><p>URL where the update file can be downloaded.</p></td>
+</tr>
+</tbody>
+</table>
+<p>The device can send logging data to the server. Any information is transmitted in a HTTP
+PUT request with the data as plain string in the message body. The Content-Type Header
+need to be set to text/plain.</p>
+<p>The URL for the logging can be set as separate URL in the configuration file or via
+–logurl command line parameter:</p>
+<p>The device sends data in a CSV format (Comma Separated Values). The format is:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">value1</span><span class="p">,</span><span class="n">value2</span><span class="p">,</span><span class="o">...</span>
+</pre></div>
+</div>
+<p>The format can be specified in the configuration file. A <em>format</em> For each <em>event</em> can be set.
+The supported events are:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 11%" />
+<col style="width: 69%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Event</p></th>
+<th class="head" colspan="2"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>check</p></td>
+<td colspan="2"><p>dummy. It could send an event each time the server is
+polled.</p></td>
+</tr>
+<tr class="row-odd"><td><p>started</p></td>
+<td colspan="2"><p>A new software is found and SWUpdate starts to install it</p></td>
+</tr>
+<tr class="row-even"><td><p>success</p></td>
+<td colspan="2"><p>A new software was successfully installed</p></td>
+</tr>
+<tr class="row-odd"><td><p>fail</p></td>
+<td colspan="2"><p>Failure by installing the new software</p></td>
+</tr>
+</tbody>
+</table>
+<p>The <cite>general server</cite> has an own section inside the configuration file. As example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">gservice</span> <span class="o">=</span>
+<span class="p">{</span>
+        <span class="n">url</span>             <span class="o">=</span> <span class="o">....</span><span class="p">;</span>
+        <span class="n">logurl</span>          <span class="o">=</span> <span class="p">;</span>
+        <span class="n">logevent</span> <span class="p">:</span> <span class="p">(</span>
+                <span class="p">{</span><span class="n">event</span> <span class="o">=</span> <span class="s2">&quot;check&quot;</span><span class="p">;</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;#2,date,fw,hw,sp&quot;</span><span class="p">},</span>
+                <span class="p">{</span><span class="n">event</span> <span class="o">=</span> <span class="s2">&quot;started&quot;</span><span class="p">;</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;#12,date,fw,hw,sp&quot;</span><span class="p">},</span>
+                <span class="p">{</span><span class="n">event</span> <span class="o">=</span> <span class="s2">&quot;success&quot;</span><span class="p">;</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;#13,date,fw,hw,sp&quot;</span><span class="p">},</span>
+                <span class="p">{</span><span class="n">event</span> <span class="o">=</span> <span class="s2">&quot;fail&quot;</span><span class="p">;</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;#14,date,fw,hw,sp&quot;</span><span class="p">}</span>
+        <span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><cite>date</cite> is a special field and it is interpreted as localtime in RFC 2822 format. Each
+Comma Separated field is looked up inside the <cite>identify</cite> section in the configuration
+file, and if a match is found the substitution occurs. In case of no match, the field
+is sent as it is. For example, if the identify section has the following values:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">identify</span> <span class="p">:</span> <span class="p">(</span>
+        <span class="p">{</span> <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;sp&quot;</span><span class="p">;</span> <span class="n">value</span> <span class="o">=</span> <span class="s2">&quot;333&quot;</span><span class="p">;</span> <span class="p">},</span>
+        <span class="p">{</span> <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;hw&quot;</span><span class="p">;</span> <span class="n">value</span> <span class="o">=</span> <span class="s2">&quot;ipse&quot;</span><span class="p">;</span> <span class="p">},</span>
+        <span class="p">{</span> <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;fw&quot;</span><span class="p">;</span> <span class="n">value</span> <span class="o">=</span> <span class="s2">&quot;1.0&quot;</span><span class="p">;</span> <span class="p">}</span>
+<span class="p">);</span>
+</pre></div>
+</div>
+<p>with the events set as above, the formatted text in case of “success” will be:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Formatted</span> <span class="n">log</span><span class="p">:</span> <span class="c1">#13,Mon, 17 Sep 2018 10:55:18 CEST,1.0,ipse,333</span>
+</pre></div>
+</div>
+</section>
+<section id="support-for-suricatta-modules-in-lua">
+<h2>Support for Suricatta Modules in Lua<a class="headerlink" href="#support-for-suricatta-modules-in-lua" title="Permalink to this headline"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">server_lua.c</span></code> C-to-Lua bridge enables writing suricatta modules in Lua. It
+provides the infrastructure in terms of the interface to SWUpdate “core” to the Lua
+realm, enabling the “business logic” such as handling update flows and communicating
+with backend server APIs to be modeled in Lua. To the Lua realm, the <code class="docutils literal notranslate"><span class="pre">server_lua.c</span></code>
+C-to-Lua bridge provides the same functionality as the other suricatta modules
+written in C have, realizing a separation of means and control. Effectively, it lifts
+the interface outlined in Section <a class="reference internal" href="#the-suricatta-interface">The Suricatta Interface</a> to the Lua realm.</p>
+<p>As an example server implementation, see <code class="docutils literal notranslate"><span class="pre">examples/suricatta/server_general.py</span></code> for
+a simple (mock) server of a backend that’s modeled after the “General Purpose HTTP
+Server” (cf. Section <a class="reference internal" href="#support-for-general-purpose-http-server">Support for general purpose HTTP server</a>). The matching Lua
+suricatta module is found in <code class="docutils literal notranslate"><span class="pre">examples/suricatta/swupdate_suricatta.lua</span></code>. Place it in
+Lua’s path so that a <code class="docutils literal notranslate"><span class="pre">require(&quot;swupdate_suricatta&quot;)</span></code> can load it or embed it into the
+SWUpdate binary by enabling <code class="docutils literal notranslate"><span class="pre">CONFIG_EMBEDDED_SURICATTA_LUA</span></code> and setting
+<code class="docutils literal notranslate"><span class="pre">CONFIG_EMBEDDED_SURICATTA_LUA_SOURCE</span></code> accordingly.</p>
+<p>The interface specification in terms of a Lua (suricatta) module is found in
+<code class="docutils literal notranslate"><span class="pre">suricatta/suricatta.lua</span></code>.</p>
+<section id="suricatta">
+<h3><cite>suricatta</cite><a class="headerlink" href="#suricatta" title="Permalink to this headline"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">suricatta</span></code> table is the module’s main table housing the exposed functions and
+definitions via the sub-tables described below.
+In addition, the main functions <code class="docutils literal notranslate"><span class="pre">suricatta.install()</span></code> and <code class="docutils literal notranslate"><span class="pre">suricatta.download()</span></code>
+as well as the convenience functions <code class="docutils literal notranslate"><span class="pre">suricatta.getversion()</span></code>, <code class="docutils literal notranslate"><span class="pre">suricatta.sleep()</span></code>,
+and <code class="docutils literal notranslate"><span class="pre">suricatta.get_tmpdir()</span></code> are exposed:</p>
+<p>The function <code class="docutils literal notranslate"><span class="pre">suricatta.install(install_channel)</span></code> installs an update artifact from
+a remote server or a local file. The <code class="docutils literal notranslate"><span class="pre">install_channel</span></code> table parameter designates
+the channel to be used for accessing the artifact plus channel options diverging
+from the defaults set at channel creation time. For example, an <code class="docutils literal notranslate"><span class="pre">install_channel</span></code>
+table may look like this:</p>
+<div class="highlight-lua notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="n">channel</span> <span class="o">=</span> <span class="n">chn</span><span class="p">,</span> <span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://artifacts.io/update.swu&quot;</span> <span class="p">}</span>
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">chn</span></code> is the return value of a call to <code class="docutils literal notranslate"><span class="pre">channel.open()</span></code>. The other table
+attributes, like <code class="docutils literal notranslate"><span class="pre">url</span></code> in this example, are channel options diverging from or
+omitted while channel creation time, see <a class="reference internal" href="#suricatta-channel"><span class="std std-ref">suricatta.channel</span></a>. For installing
+a local file, an <code class="docutils literal notranslate"><span class="pre">install_channel</span></code> table may look like this:</p>
+<div class="highlight-lua notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="n">channel</span> <span class="o">=</span> <span class="n">chn</span><span class="p">,</span> <span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;file:///path/to/file.swu&quot;</span> <span class="p">}</span>
+</pre></div>
+</div>
+<p>The function <code class="docutils literal notranslate"><span class="pre">suricatta.download(download_channel,</span> <span class="pre">localpath)</span></code> just downloads an
+update artifact. The parameter <code class="docutils literal notranslate"><span class="pre">download_channel</span></code> is as for <code class="docutils literal notranslate"><span class="pre">suricatta.install()</span></code>.
+The parameter <code class="docutils literal notranslate"><span class="pre">localpath</span></code> designates the output path for the artifact. The
+<code class="docutils literal notranslate"><span class="pre">suricatta.get_tmpdir()</span></code> function (see below) is in particular useful for this case
+to supply a temporary download location as <code class="docutils literal notranslate"><span class="pre">localpath</span></code>. A just downloaded artifact
+may be installed later using <code class="docutils literal notranslate"><span class="pre">suricata.install()</span></code> with an appropriate <code class="docutils literal notranslate"><span class="pre">file://</span></code>
+URL, realizing a deferred installation.</p>
+<p>Both, <code class="docutils literal notranslate"><span class="pre">suricatta.install()</span></code> and <code class="docutils literal notranslate"><span class="pre">suricatta.download()</span></code> return <code class="docutils literal notranslate"><span class="pre">true</span></code>, or, in
+case of error, <code class="docutils literal notranslate"><span class="pre">nil</span></code>, a <code class="docutils literal notranslate"><span class="pre">suricatta.status</span></code> value, and a table with messages in
+case of errors, else an empty table.</p>
+<div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>The function <code class="docutils literal notranslate"><span class="pre">suricatta.getversion()</span></code> returns a table with SWUpdate’s <code class="docutils literal notranslate"><span class="pre">version</span></code>
+and <code class="docutils literal notranslate"><span class="pre">patchlevel</span></code> fields. This information can be used to determine API
+(in-)compatibility of the Lua suricatta module with the SWUpdate version running it.</p>
+<p>The function <code class="docutils literal notranslate"><span class="pre">suricatta.sleep(seconds)</span></code> is a wrapper around <cite>SLEEP(3)</cite> for, e.g.,
+implementing a REST API call retry mechanism after a number of given seconds have
+elapsed.</p>
+<p>The function <code class="docutils literal notranslate"><span class="pre">suricatta.get_tmpdir()</span></code> returns the path to SWUpdate’s temporary
+working directory where, e.g., the <code class="docutils literal notranslate"><span class="pre">suricatta.download()</span></code> function may place the
+downloaded artifacts.</p>
+</section>
+<section id="suricatta-status">
+<h3><cite>suricatta.status</cite><a class="headerlink" href="#suricatta-status" title="Permalink to this headline"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">suricatta.status</span></code> table exposes the <code class="docutils literal notranslate"><span class="pre">server_op_res_t</span></code> enum values defined in
+<code class="docutils literal notranslate"><span class="pre">include/util.h</span></code> to the Lua realm.</p>
+</section>
+<section id="suricatta-notify">
+<h3><cite>suricatta.notify</cite><a class="headerlink" href="#suricatta-notify" title="Permalink to this headline"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">suricatta.notify</span></code> table provides the usual logging functions to the Lua
+suricatta module matching their uppercase-named pendants available in the C realm.</p>
+<p>One notable exception is <code class="docutils literal notranslate"><span class="pre">suricatta.notify.progress(message)</span></code> which dispatches the
+message to the progress interface (see <a class="reference internal" href="progress.html"><span class="doc">Getting information on running update</span></a>). Custom progress client
+implementations listening and acting on custom progress messages can be realized
+using this function.</p>
+<p>All notify functions return <code class="docutils literal notranslate"><span class="pre">nil</span></code>.</p>
+</section>
+<section id="suricatta-pstate">
+<h3><cite>suricatta.pstate</cite><a class="headerlink" href="#suricatta-pstate" title="Permalink to this headline"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">suricatta.pstate</span></code> table provides a binding to SWUpdate’s (persistent) state
+handling functions defined in <code class="docutils literal notranslate"><span class="pre">include/state.h</span></code>, however, limited to the bootloader
+environment variable <code class="docutils literal notranslate"><span class="pre">STATE_KEY</span></code> defined by <code class="docutils literal notranslate"><span class="pre">CONFIG_UPDATE_STATE_BOOTLOADER</span></code> and
+defaulting to <code class="docutils literal notranslate"><span class="pre">ustate</span></code>. In addition, it captures the <code class="docutils literal notranslate"><span class="pre">update_state_t</span></code> enum values.</p>
+<p>The function <code class="docutils literal notranslate"><span class="pre">suricatta.pstate.save(state)</span></code> requires one of <code class="docutils literal notranslate"><span class="pre">suricatta.pstate</span></code>’s
+“enum” values as parameter and returns <code class="docutils literal notranslate"><span class="pre">true</span></code>, or, in case of error, <code class="docutils literal notranslate"><span class="pre">nil</span></code>.
+The function <code class="docutils literal notranslate"><span class="pre">suricatta.pstate.get()</span></code> returns one of <code class="docutils literal notranslate"><span class="pre">suricatta.pstate</span></code>’s
+“enum” values or, in case of error, <code class="docutils literal notranslate"><span class="pre">STATE_ERROR</span></code>.</p>
+</section>
+<section id="suricatta-server">
+<h3><cite>suricatta.server</cite><a class="headerlink" href="#suricatta-server" title="Permalink to this headline"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">suricatta.server</span></code> table provides the sole function
+<code class="docutils literal notranslate"><span class="pre">suricatta.server.register(function_p,</span> <span class="pre">purpose)</span></code>. It registers a Lua function
+“pointed” to by <code class="docutils literal notranslate"><span class="pre">function_p</span></code> for the purpose <code class="docutils literal notranslate"><span class="pre">purpose</span></code> which is defined by
+<code class="docutils literal notranslate"><span class="pre">suricatta.server</span></code>’s “enum” values. Those enum values correspond to the functions
+defined in the interface outlined in the Section on <a class="reference internal" href="#the-suricatta-interface">The Suricatta Interface</a>.</p>
+<p>In addition to these functions, the two callback functions <code class="docutils literal notranslate"><span class="pre">CALLBACK_PROGRESS</span></code> and
+<code class="docutils literal notranslate"><span class="pre">CALLBACK_CHECK_CANCEL</span></code> can be registered optionally: The former can be used to upload
+progress information to the server while the latter serves as <code class="docutils literal notranslate"><span class="pre">dwlwrdata</span></code> function
+(see <code class="docutils literal notranslate"><span class="pre">include/channel_curl.h</span></code>) to decide on whether an installation should be aborted
+while the download phase.</p>
+<p>For details on the (callback) functions and their signatures, see the interface
+specification <code class="docutils literal notranslate"><span class="pre">suricatta/suricatta.lua</span></code> and the documented example Lua suricatta
+module found in <code class="docutils literal notranslate"><span class="pre">examples/suricatta/swupdate_suricatta.lua</span></code>.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">suricatta.server.register()</span></code> function returns <code class="docutils literal notranslate"><span class="pre">true</span></code>, or, in case of error,
+<code class="docutils literal notranslate"><span class="pre">nil</span></code>.</p>
+</section>
+<section id="suricatta-channel">
+<span id="id1"></span><h3><cite>suricatta.channel</cite><a class="headerlink" href="#suricatta-channel" title="Permalink to this headline"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">suricatta.channel</span></code> table captures channel handling for suricatta Lua modules.
+The single function <code class="docutils literal notranslate"><span class="pre">suricatta.channel.open(options)</span></code> creates and opens a channel
+to a server. Its single parameter <code class="docutils literal notranslate"><span class="pre">options</span></code> is a table specifying the channel’s
+default options such as <cite>proxy</cite>, <cite>retries</cite>, <cite>usessl</cite>, <cite>strictssl</cite>, or
+<cite>headers_to_send</cite>. For convenience, options that may change per request such as
+<cite>url</cite>, <cite>content-type</cite>, or <cite>headers_to_send</cite> may be set as defaults on channel
+creation time while being selectively overruled on a per request basis. The channel
+options currently supported to be set are listed in the <code class="docutils literal notranslate"><span class="pre">suricatta.channel.options</span></code>
+table. In essence, the <code class="docutils literal notranslate"><span class="pre">options</span></code> parameter table is the Lua table equivalent of
+<code class="docutils literal notranslate"><span class="pre">include/channel_curl.h</span></code>’s <code class="docutils literal notranslate"><span class="pre">channel_data_t</span></code>.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">suricatta.channel.open(options)</span></code> function returns a channel table which is
+either passed to the <code class="docutils literal notranslate"><span class="pre">suricatta.install()</span></code> and <code class="docutils literal notranslate"><span class="pre">suricatta.download()</span></code> functions
+or used directly for communication with a server. More specifically, it has the three
+functions</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">get(options)</span></code> for retrieving information from the server,</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">put(options)</span></code> for sending information to the server, and</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">close()</span></code> for closing the channel.</p></li>
+</ul>
+<p>The <code class="docutils literal notranslate"><span class="pre">get()</span></code> and <code class="docutils literal notranslate"><span class="pre">put()</span></code> functions’ single parameter <code class="docutils literal notranslate"><span class="pre">options</span></code> is a per-request
+channel option table as described above.</p>
+<p>The functions <code class="docutils literal notranslate"><span class="pre">get()</span></code> and <code class="docutils literal notranslate"><span class="pre">put()</span></code> return <code class="docutils literal notranslate"><span class="pre">true</span></code>, or, in case of error, <code class="docutils literal notranslate"><span class="pre">nil</span></code>,
+a <code class="docutils literal notranslate"><span class="pre">suricatta.status</span></code> value, and an operation result table.
+The latter contains the fields:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">http_response_code</span></code> carrying the HTTP error code,</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">format</span></code> as one of <code class="docutils literal notranslate"><span class="pre">suricatta.channel.content</span></code>’s options,</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">raw_reply</span></code> if <code class="docutils literal notranslate"><span class="pre">options</span></code> contained <code class="docutils literal notranslate"><span class="pre">format</span> <span class="pre">=</span> <span class="pre">suricatta.channel.content.RAW</span></code>,</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">json_reply</span></code> if <code class="docutils literal notranslate"><span class="pre">options</span></code> contained <code class="docutils literal notranslate"><span class="pre">format</span> <span class="pre">=</span> <span class="pre">suricatta.channel.content.JSON</span></code>, and</p></li>
+<li><p>the HTTP headers received in the <code class="docutils literal notranslate"><span class="pre">received_headers</span></code> table, if any.</p></li>
+</ul>
+<p>The <code class="docutils literal notranslate"><span class="pre">suricatta.channel.content</span></code> “enum” table defines the “format”, i.e., the response
+body content type and whether to parse it or not:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">NONE</span></code> means the response body is discarded.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RAW</span></code> means the raw server’s reply is available as <code class="docutils literal notranslate"><span class="pre">raw_reply</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">JSON</span></code> means the server’s JSON reply is parsed into a Lua table and available
+as <code class="docutils literal notranslate"><span class="pre">json_reply</span></code>.</p></li>
+</ul>
+<p>The <code class="docutils literal notranslate"><span class="pre">suricatta.channel.method</span></code> “enum” table defines the HTTP method to use for
+a request issued with the <code class="docutils literal notranslate"><span class="pre">put(options)</span></code> function, i.e., <cite>POST</cite>, <cite>PATCH</cite>, or <cite>PUT</cite> as
+specified in the <code class="docutils literal notranslate"><span class="pre">options</span></code> parameter table via the <code class="docutils literal notranslate"><span class="pre">method</span></code> attribute.
+In addition to the HTTP method, the request body’s content is set with the
+<code class="docutils literal notranslate"><span class="pre">request_body</span></code> attribute in the <code class="docutils literal notranslate"><span class="pre">options</span></code> parameter table.</p>
+<p>As a contrived example, consider the following call to a channel’s <code class="docutils literal notranslate"><span class="pre">put()</span></code> function</p>
+<div class="highlight-lua notranslate"><div class="highlight"><pre><span></span><span class="p">...</span>
+<span class="kd">local</span> <span class="n">res</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">channel</span><span class="p">.</span><span class="n">put</span><span class="p">({</span>
+        <span class="n">url</span>          <span class="o">=</span> <span class="nb">string.format</span><span class="p">(</span><span class="s2">&quot;%s/%s&quot;</span><span class="p">,</span> <span class="n">base_url</span><span class="p">,</span> <span class="n">device_id</span><span class="p">),</span>
+        <span class="n">content_type</span> <span class="o">=</span> <span class="s2">&quot;application/json&quot;</span><span class="p">,</span>
+        <span class="n">method</span>       <span class="o">=</span> <span class="n">suricatta</span><span class="p">.</span><span class="n">channel</span><span class="p">.</span><span class="n">method</span><span class="p">.</span><span class="n">PATCH</span><span class="p">,</span>
+        <span class="n">format</span>       <span class="o">=</span> <span class="n">suricatta</span><span class="p">.</span><span class="n">channel</span><span class="p">.</span><span class="n">content</span><span class="p">.</span><span class="n">NONE</span><span class="p">,</span>
+        <span class="n">request_body</span> <span class="o">=</span> <span class="s2">&quot;{ ... }&quot;</span>
+    <span class="p">})</span>
+<span class="p">...</span>
+</pre></div>
+</div>
+<p>that issues a HTTP <cite>PATCH</cite> to some URL with a JSON content without having interest in
+the response body.</p>
+<p>More examples of how to use a channel can be found in the example suricatta Lua
+module <code class="docutils literal notranslate"><span class="pre">examples/suricatta/swupdate_suricatta.lua</span></code>.</p>
+</section>
+<section id="suricatta-bootloader">
+<h3><cite>suricatta.bootloader</cite><a class="headerlink" href="#suricatta-bootloader" title="Permalink to this headline"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">suricatta.bootloader</span></code> table exposes SWUpdate’s bootloader environment
+modification functions to suricatta Lua modules.</p>
+<p>The enum-like table <code class="docutils literal notranslate"><span class="pre">suricatta.bootloader.bootloaders</span></code> holds the bootloaders
+SWUpdate supports, i.e.</p>
+<blockquote>
+<div><div class="highlight-lua notranslate"><div class="highlight"><pre><span></span><span class="n">suricatta</span><span class="p">.</span><span class="n">bootloader</span><span class="p">.</span><span class="n">bootloaders</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">EBG</span>   <span class="o">=</span> <span class="s2">&quot;ebg&quot;</span><span class="p">,</span>
+    <span class="n">NONE</span>  <span class="o">=</span> <span class="s2">&quot;none&quot;</span><span class="p">,</span>
+    <span class="n">GRUB</span>  <span class="o">=</span> <span class="s2">&quot;grub&quot;</span><span class="p">,</span>
+    <span class="n">UBOOT</span> <span class="o">=</span> <span class="s2">&quot;uboot&quot;</span><span class="p">,</span>
+<span class="p">},</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>The function <code class="docutils literal notranslate"><span class="pre">suricatta.bootloader.get()</span></code> returns the currently selected
+bootloader in terms of a <code class="docutils literal notranslate"><span class="pre">suricatta.bootloader.bootloaders</span></code> field value.</p>
+<p>The function <code class="docutils literal notranslate"><span class="pre">suricatta.bootloader.is(name)</span></code> takes one of
+<code class="docutils literal notranslate"><span class="pre">suricatta.bootloader.bootloaders</span></code>’s field values as <code class="docutils literal notranslate"><span class="pre">name</span></code> and returns
+<code class="docutils literal notranslate"><span class="pre">true</span></code> if it is the currently selected bootloader, <code class="docutils literal notranslate"><span class="pre">false</span></code> otherwise.</p>
+<p>The functions in the <code class="docutils literal notranslate"><span class="pre">suricatta.bootloader.env</span></code> table interact with the
+currently selected bootloader’s environment:</p>
+<p>The function <code class="docutils literal notranslate"><span class="pre">suricatta.bootloader.env.get(variable)</span></code> retrieves the value
+associated to <code class="docutils literal notranslate"><span class="pre">variable</span></code> from the bootloader’s environment.</p>
+<p>The function <code class="docutils literal notranslate"><span class="pre">suricatta.bootloader.env.set(variable,</span> <span class="pre">value)</span></code> sets the
+bootloader environment’s key <code class="docutils literal notranslate"><span class="pre">variable</span></code> to <code class="docutils literal notranslate"><span class="pre">value</span></code>.</p>
+<p>The function <code class="docutils literal notranslate"><span class="pre">suricatta.bootloader.env.unset(variable)</span></code> deletes the bootloader
+environment’s key <code class="docutils literal notranslate"><span class="pre">variable</span></code>.</p>
+<p>The function <code class="docutils literal notranslate"><span class="pre">suricatta.bootloader.env.apply(filename)</span></code> applies
+all key=value lines of a local file <code class="docutils literal notranslate"><span class="pre">filename</span></code> to the currently selected
+bootloader’s environment.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="mongoose.html" class="btn btn-neutral float-left" title="Mongoose daemon mode" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="hawkbit-setup.html" class="btn btn-neutral float-right" title="Config for hawkBit under SSL/TLS using private CA / sub CA" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2013-2023, Stefano Babic.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

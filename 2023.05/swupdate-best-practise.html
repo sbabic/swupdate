@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SWUpdate Best Practice &mdash; Embedded Software Update Documentation 2023.05 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+    <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Delta Update with SWUpdate" href="delta-update.html" />
+    <link rel="prev" title="meta-swupdate: building with Yocto" href="building-with-yocto.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> Embedded Software Update Documentation
+          </a>
+              <div class="version">
+                2023.05
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Software Management on embedded systems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="licensing.html">License</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="swupdate.html">SWUpdate: software update for embedded system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scenarios.html">Update strategy examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sw-description.html">SWUpdate: syntax and tags with the default parser</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed_images.html">Update images from verified source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="encrypted_images.html">Symmetrically Encrypted Update Images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="handlers.html">Handlers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mongoose.html">Mongoose daemon mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hawkbit-setup.html">Config for hawkBit under SSL/TLS using private CA / sub CA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-ipc-interface.html">SWUpdate: API for external programs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bindings.html">Language Bindings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bootloader_interface.html">Bootloader Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building-with-yocto.html">meta-swupdate: building with Yocto</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">SWUpdate Best Practice</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#update-concept">Update Concept</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#reduce-dependencies-to-minimum">Reduce dependencies to minimum</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#make-a-risk-analysis">Make a risk analysis</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#swupdate-builtin-configuration">SWUpdate builtin configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#swupdate-startup">SWUpdate startup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#write-sw-description">Write sw-description</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#use-oe-variables-as-much-as-possible">Use OE variables as much as possible</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#deliver-your-scripts-instead-of-relying-on-them-being-installed">Deliver your scripts instead of relying on them being installed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#prefer-lua-to-shell-scripts">Prefer Lua to shell scripts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#use-installed-directly-when-possible">Use installed-directly when possible</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#always-enable-sha256-verification">Always enable sha256 verification</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#always-set-the-type-attribute">Always set the “type” attribute</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#do-not-rely-on-install-order">Do not rely on install order</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#do-not-drop-atomicity">Do not drop atomicity !</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#plan-to-have-a-rescue-system">Plan to have a rescue system</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="delta-update.html">Delta Update with SWUpdate</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-client.html">swupdate-client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-progress.html">swupdate-progress</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">swupdate-ipc</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="help_and_support.html">Help and support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to SWUpdate</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Project’s road-map</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="previous-releases.html">Documentation for previous releases</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Embedded Software Update Documentation</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>SWUpdate Best Practice</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/swupdate-best-practise.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="swupdate-best-practice">
+<h1>SWUpdate Best Practice<a class="headerlink" href="#swupdate-best-practice" title="Permalink to this headline"></a></h1>
+<p>This is intended as general rule to integrate SWUpdate into a custom project.</p>
+<p>SWUpdate is an update agent and it is thought to be a framework. This means it is highly
+configurable and SWUpdate should be configured to fit into a project, not
+vice versa. SWUpdate makes just a few requirements on the system and it has no fixed update schema.
+There is no restriction on how many partitions or which storage you are using.
+In some more complex cases, the update depends on a lot of conditions,
+and SWUpdate can run differently according to the <cite>mode</cite> a device is started in.
+Think about SWUpdate not being a ready-to-use updater but a framework, and hence you should first
+write a meaningful:</p>
+<section id="update-concept">
+<h2>Update Concept<a class="headerlink" href="#update-concept" title="Permalink to this headline"></a></h2>
+<p>Take your time and write first an update concept for your device.  It is not wasted time.
+You have to imagine conditions when an update is not working, and try to write
+down the use cases when an update can fail and how the device can be restored.
+SWUpdate installs new software, but a successful update means that the new software
+is started and runs flawlessly. The interface with the bootloader (or the one that starts the
+software) must be checked in details.
+A successful update means:</p>
+<ul class="simple">
+<li><p>SWUpdate runs successfully,</p></li>
+<li><p>the device reboots,</p></li>
+<li><p>the bootloader can start the new software, and</p></li>
+<li><p>the new software runs, makes some consistency checks, and declares that the transaction (that is from old to new software) is terminated.</p></li>
+</ul>
+<p>This means that some coordination between the bootloader and the update agent is necessary.
+In most cases, this is done via persistent variables that are available to both
+SWUpdate and the bootloader. SWUpdate has two built-in variables:</p>
+<ul class="simple">
+<li><p><em>recovery_status</em>: this is set when SWUpdate starts to write to the device, and it is
+unset after the installation completed with success or it is set to <cite>failed</cite> in case
+of error. A bootloader can use it to check if an update was interrupted.
+This is a must in case a single copy of the software is on the device.</p></li>
+<li><p><em>ustate</em>: this triggers a state machine. SWUpdate sets it to <cite>1</cite> (INSTALL) after an update.
+The bootloader can use it to check whether a new software must be tested.
+The bootloader should implement a counter mechanism to check how many times it tried to start
+a new software. When a threshold is reached, the bootloader should declare the new software
+as buggy, and proceed with a fallback in case the old software is available.</p></li>
+</ul>
+<p>A <em>fallback</em> is always initiated by the bootloader, because it knows
+if the new software is running. It should toggle the copies and start the old software set.
+To communicate this to user space and to SWUpdate, the bootloader sets the <cite>ustate</cite> variable to
+<cite>3</cite> (FAILED). SWUpdate uses this information in case the result must be forwarded to an external server (like a backend).
+There is a time window when a fallback can take place. In fact, after a reboot and some attempts,
+the update transaction is declared successful or failed, and later a new update can be executed.
+When a new update runs, the status of the stand-by copy is unknown, because it could be
+the result of an interrupted update. Running an incomplete software can lead to unpredictable
+results and must be strongly avoided.
+A common pattern for a toggling in the bootloader is:</p>
+<ul class="simple">
+<li><p><cite>ustate</cite> is not set or set to <cite>0</cite> (no update pending). The bootloader runs the configured
+copy and won’t ever toggle. In case of failure, a rescue system can be started if available.</p></li>
+<li><p><cite>ustate</cite> is set to  <cite>1</cite> (INSTALLED): the new software is under test. The bootloader initiates
+a fallback if the new software is not running and sets <cite>ustate</cite> to <cite>3</cite> (FAILED). If the new software runs,
+it is the duty of user space (often SWUpdate or the init script for SWUpdate) to reset <cite>ustate</cite>
+to <cite>0</cite>. Note that resetting the variable is project specific, and it could be set as last
+action after having sufficiently checked that the new software is running. This includes
+performing in the application a database migration, starting communicating with peers, whatever.</p></li>
+</ul>
+<p>A possible diagram is shown in next picture - it is not supposed to work with any project, but it gives an idea
+how fallback is working together with the bootloaders.</p>
+<img alt="_images/statemachine.png" src="_images/statemachine.png" />
+<p>Check in advance which security topics are relevant for your project. This includes:</p>
+<ul class="simple">
+<li><p>signed images (SWU is verified before installing), and then which crypto mechanism is used
+(RSA keys, certificates, PKI)</p></li>
+<li><p>encryption for artifacts</p></li>
+<li><p>under which user and group SWUpdate and other components are allowed to run.
+Set user id and group id if not <cite>root</cite> in <cite>swupdate.cfg</cite>.</p></li>
+<li><p>if any version can be installed or if you forbid a downgrade, and then be sure to pass
+the range of versions you allow via <cite>–M</cite>, <cite>-R</cite> and <cite>–max-version</cite>.</p></li>
+<li><p>hardware-software compatibility check and how your device knows which hardware
+revision is running.</p></li>
+</ul>
+<section id="reduce-dependencies-to-minimum">
+<h3>Reduce dependencies to minimum<a class="headerlink" href="#reduce-dependencies-to-minimum" title="Permalink to this headline"></a></h3>
+<p>An update should be possible in any condition. Even if the system is degraded or in a bad shape,
+if an update can work, the device can be functional again without returning it back to the
+factory.
+SWUpdate is thought to be self contained: that means it does not make use of external
+tools. If your system is degraded and filesystems get corrupted, there are less chances to restore it
+if the update calls external tools. SWUpdate is started at boot time and there are good chances
+it succeeds even if your system has some (software) flaws.
+Be careful to make an update depending on your application or try to reduce the dependencies.
+In fact, the application is updated often and an introduction of new bugs can make the device no
+longer updatable. Take the dependencies under control, and if you have any, be sure that the
+update is still working. You can fix any bugs if the update works, but not anymore if the device
+cannot be updated.</p>
+</section>
+<section id="make-a-risk-analysis">
+<h3>Make a risk analysis<a class="headerlink" href="#make-a-risk-analysis" title="Permalink to this headline"></a></h3>
+<p>A more accurate analysis brings less surprises in the field. Think twice about what you want to update,
+which components should be updated, and the risks of updating a single point of failure.
+Very often, this means the bootloader. Compare risks and benefits: it happens in many projects that
+having the possibility (with some risk) to update the bootloader is better that returning the devices
+back to service. A cost / benefits analysis should be part of the integration of the update agent.</p>
+</section>
+</section>
+<section id="swupdate-builtin-configuration">
+<h2>SWUpdate builtin configuration<a class="headerlink" href="#swupdate-builtin-configuration" title="Permalink to this headline"></a></h2>
+<p>SWUpdate has a compile time configuration. The default configuration delivered with <cite>meta-swupdate</cite>
+is not suitable for most projects. The easy way to check configuration in Yocto is to run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">bitbake</span> <span class="o">-</span><span class="n">c</span> <span class="n">menuconfig</span> <span class="n">swupdate</span>
+</pre></div>
+</div>
+<p>Outside Yocto, just run in SWUpdate’s sources:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">make</span> <span class="n">menuconfig</span>
+</pre></div>
+</div>
+<p>Check security, bootloader, and which handlers should be installed. They depend strongly on
+your project.
+If you build with OE, add a <cite>swupdate_%.bbappend</cite> to one of your layers, and put the resulting
+configuration file as <cite>defconfig</cite> that can be fetched.
+Please review the following configuration:</p>
+<ul class="simple">
+<li><p>Security settings</p></li>
+<li><p>Interfaces required (where the software is coming from). Disable the interface you do not need.</p></li>
+<li><p>Handlers required for your project. Disable what you do not need, but consider if
+you could need some of them in future. As example, you can safely disable <em>ubivol</em> if
+you do not use raw NAND, but you can let <em>archive</em> enabled if you plan to install artifacts
+from tarballs in future.</p></li>
+<li><p>It is highly recommended to enable Lua to extend runtime behavior.</p></li>
+</ul>
+</section>
+<section id="swupdate-startup">
+<h2>SWUpdate startup<a class="headerlink" href="#swupdate-startup" title="Permalink to this headline"></a></h2>
+<p>An easy way to start SWUpdate is provided only with meta-swupdate and Yocto. A generic SystemV init script or a
+systemd unit for SWUpdate are executing a script <cite>swupdate.sh</cite>, that is delivered together with the SWUpdate
+binaries.
+The script goes through <cite>/etc/swupdate/conf.d/</cite> and sources all found files. The integrator can use
+a set of predefined variables to configure SWUpdate’s command line parameters.</p>
+<ul class="simple">
+<li><p><em>SWUPDATE_WEBSERVER_ARGS</em> : This string is passed if the webserver must be started. It consists of the webserver
+specific parameters. If this variable is set, the script will add <cite>-w</cite> to the list of parameters.
+Note: meta-swupdate contains a default configuration for SWUPDATE_WEBSERVER_ARGS, that uses /www as document root
+for the Website and default port 8080.</p></li>
+<li><p><em>SWUPDATE_SURICATTA_ARGS</em> : Suricatta (backend) specific parameters. There is no default.</p></li>
+<li><p><em>SWUPDATE_ARGS</em> : Parameters not belonging to Webserver or Suricatta.</p></li>
+</ul>
+<p>Note that <cite>swupdate.sh</cite> sources the files in sorted order, so it is possible to override the variables
+with a configuration file whose filename is loaded at the end. Preferred style is to use SystemV like
+names, for example <cite>10-webserver</cite>, <cite>11-suricatta</cite>, and so on.</p>
+</section>
+<section id="write-sw-description">
+<h2>Write sw-description<a class="headerlink" href="#write-sw-description" title="Permalink to this headline"></a></h2>
+<p><cite>sw-description</cite> is the central file that describes a new software release and how a release must be installed.
+It should be a consequence of the update concept. There is not a single right way. SWUpdate heavily
+uses ‘selections’ and links to extract just one part of the whole <cite>sw-description</cite>, that
+can be used for different situations and different ways to run the device. One use case for
+selections is to implement the dual-copy (often referred to as A/B) mode: one selection contains instructions
+for one copy, the other for the second copy. Which copy is the stand-by must be detected
+before running SWUpdate and passed via the <cite>-e &lt;selection,mode&gt;</cite> switch.
+Other methods set up a link to the standby storage (like <cite>/dev/standby</cite>) during boot. Or the standby
+device can be detected at runtime with an <cite>embedded-script</cite>, as part of <cite>sw-description</cite>, with Lua code.
+Please note that for the last case, SWUpdate is extended with functions exported to the Lua context that
+simplify the detection. SWUpdate exports a <cite>getroot()</cite> function that returns type and value for the device used
+as rootfs. See SWUpdate documentation for a complete list of functions exported by SWUpdate that can be
+used in Lua. An embedded Lua script must just start with</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">require</span> <span class="p">(</span><span class="s1">&#39;swupdate&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>to make use of them.</p>
+<section id="use-oe-variables-as-much-as-possible">
+<h3>Use OE variables as much as possible<a class="headerlink" href="#use-oe-variables-as-much-as-possible" title="Permalink to this headline"></a></h3>
+<p>meta-swupdate replaces a special construct in <cite>sw-description</cite> with the values of build variables.
+The recognized construct in <cite>sw-description</cite> is delimited by <em>&#64;&#64;</em>, that is <em>&#64;&#64;VARIABLE-NAME&#64;&#64;</em>.
+The exception (for compatibility reasons) is the automatic generation of <cite>sha256</cite>. The syntax in that case
+is :</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sha256</span> <span class="o">=</span> <span class="s2">&quot;$swupdate_get_sha256(&lt;name of artifact&gt;)&quot;</span>
+</pre></div>
+</div>
+<p>You can again use variable substitution for artifact names. Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sha256</span> <span class="o">=</span> <span class="s2">&quot;$swupdate_get_sha256(@@SYSTEM_IMAGE@@-@@MACHINE@@@@SWUPDATE_IMAGES_FSTYPES[@@SYSTEM_IMAGE@@]@@)&quot;</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Please note that each variable is double delimited (at the beginning and at the end) by <cite>&#64;&#64;</cite>.</p>
+</section>
+<section id="deliver-your-scripts-instead-of-relying-on-them-being-installed">
+<h3>Deliver your scripts instead of relying on them being installed<a class="headerlink" href="#deliver-your-scripts-instead-of-relying-on-them-being-installed" title="Permalink to this headline"></a></h3>
+<p>You have the freedom to call any tools during an update. However, take care if you are using
+some tools from the running rootfs / current software. This implies that the current software is running
+flawlessly, as well as the tools you are calling. And this may not always be the case.</p>
+</section>
+<section id="prefer-lua-to-shell-scripts">
+<h3>Prefer Lua to shell scripts<a class="headerlink" href="#prefer-lua-to-shell-scripts" title="Permalink to this headline"></a></h3>
+<p>Shell scripts are very popular, and they are often used even when they are not strictly required.
+They can raise security issues. In fact, take as example a simple
+shell script. Goal of rootkits is often the shell, because taking control of the shell
+means to control the whole device. If the shell is compromised, the whole system is compromised.
+Running a shell script means that SWUpdate should call “fork” followed by an “exec”. This means
+also that many resources are duplicated in the child process, and it could cause a further
+problem if system is getting rid of resources.
+A better approach is to use Lua and to deliver the scripts inside the SWU. In fact, the Lua
+interpreter is linked to SWUpdate and runs in context of the SWUpdate process without forking
+a child process. Shell is not involved at all. Of course, Lua scripts should be written
+to be self-contained, too, and executing external tools should be done only if unavoidable.</p>
+</section>
+<section id="use-installed-directly-when-possible">
+<h3>Use installed-directly when possible<a class="headerlink" href="#use-installed-directly-when-possible" title="Permalink to this headline"></a></h3>
+<p>SWUpdate can be enabled for zero-copy (or streaming mode), that is the incoming SWU is analyzed on the fly and it is
+installed by the associated handler without any temporary copy. If this is not set, SWUpdate creates
+a temporary copy in <cite>$TMPDIR</cite> before passing it to the handlers. Note that <cite>$TMPDIR</cite> generally points to
+a RAMDISK and storing files there reduces the amount of memory available for the application.
+It makes sense to disable the flag in case the artifact is a single point of failure.
+A typical example could be the bootloader (not duplicated on the devices), and if the SWU
+is corrupted or the connection gets broken, the board is left in a bricked state. It makes sense
+then to download the whole artifact before installing.</p>
+</section>
+<section id="always-enable-sha256-verification">
+<h3>Always enable sha256 verification<a class="headerlink" href="#always-enable-sha256-verification" title="Permalink to this headline"></a></h3>
+<p>The SWU image is a CPIO archive with CRC (new ASCII format), but the check in CPIO is very
+weak. Do not trust it, but enable sha256 for each artifact.</p>
+</section>
+<section id="always-set-the-type-attribute">
+<h3>Always set the “type” attribute<a class="headerlink" href="#always-set-the-type-attribute" title="Permalink to this headline"></a></h3>
+<p>SWUpdate sets some default handler if the type is not set. Do not use it, but set explicitly
+the type (that is, which handler should install the artifact) in <cite>sw-description</cite>.</p>
+</section>
+<section id="do-not-rely-on-install-order">
+<h3>Do not rely on install order<a class="headerlink" href="#do-not-rely-on-install-order" title="Permalink to this headline"></a></h3>
+<p>SWUpdate does not require that artifacts are put into the CPIO in a specific order. The exception is
+<cite>sw-description</cite>, that must be the first file in a SWU. Avoid dependencies inside the SWU, that is an artifact
+that can be installed only after another one was installed before. If you really need it, for example if
+you want to install a file into a filesystem provided as image, disable <cite>installed-directy</cite> for the file
+and enable it for the filesystem image.</p>
+</section>
+<section id="do-not-drop-atomicity">
+<h3>Do not drop atomicity !<a class="headerlink" href="#do-not-drop-atomicity" title="Permalink to this headline"></a></h3>
+<p>SWUpdate guarantees atomicity as long as you don’t do something that simply breaks it. As example,
+think about the bootloader’s environment. In an <cite>sw-description</cite>, there is a specific section where
+the environment can be set, adding / modifying / deleting variables. SWUpdate does not change
+single variables, but generates the resulting new environment for the supported bootloader and
+this is written in one shot in a way (for U-Boot / EFIBootguard, not for GRUB) that is power-cut safe.
+You can of course change the environment in a postinstall script, like in the following way (for U-Boot):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fw_setenv</span> <span class="n">var1</span> <span class="n">val1</span>
+<span class="n">fw_setenv</span> <span class="n">var2</span> <span class="n">val2</span>
+<span class="n">fw_setenv</span> <span class="n">var3</span> <span class="n">val3</span>
+<span class="n">fw_setenv</span> <span class="n">var4</span> <span class="n">val4</span>
+<span class="n">fw_setenv</span> <span class="n">var5</span> <span class="n">val5</span>
+</pre></div>
+</div>
+<p>If a power cut happens during two calls of fw_setenv, the environment is in an intermediate state and this
+can brick the device.</p>
+</section>
+</section>
+<section id="plan-to-have-a-rescue-system">
+<h2>Plan to have a rescue system<a class="headerlink" href="#plan-to-have-a-rescue-system" title="Permalink to this headline"></a></h2>
+<p>Even if you have a double-copy setup, something can go wrong. Plan to have a rescue system (swupdate-image in meta-swupdate)
+and to install it on a separate storage than the main system, if it is possible. This helps when the main
+storage is corrupted, and the device can be restored in the field without returning it back to the factory.
+Plan to update the rescue system as well: it is software, too, and its bugs should be fixed, too.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="building-with-yocto.html" class="btn btn-neutral float-left" title="meta-swupdate: building with Yocto" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="delta-update.html" class="btn btn-neutral float-right" title="Delta Update with SWUpdate" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2013-2023, Stefano Babic.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

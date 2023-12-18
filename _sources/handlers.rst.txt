@@ -323,7 +323,7 @@ For a script handler written in Lua, the prototype is
         --- Lua Handler.
         --
         --- @param  image     img_type  Lua equivalent of `struct img_type`
-        --- @param  scriptfn  string    Type, one of `preinst` or `postinst` 
+        --- @param  scriptfn  string    Type, one of `preinst` or `postinst`
         --- @return number              # 0 on success, 1 on error
         function lua_handler(image, scriptfn)
             ...
@@ -811,7 +811,7 @@ Copy handler
 
 The copy handler copies one source to a destination. It is a script handler, and no artifact in the SWU is associated
 with the handler.  It can be used to copy configuration data, or parts that should be taken by the current installation.
-It requires the mandatory  property (`copyfrom`), while device contains the destination path. 
+It requires the mandatory  property (`copyfrom`), while device contains the destination path.
 The handler performs a byte copy, and it does not matter which is the source - it can be a file or a partition.
 An optional `type` field can set if the handler is active as pre or postinstall script. If not set, the handler
 is called twice.
@@ -985,14 +985,18 @@ supported:
    | fstype      | string   | Optional filesystem type to be created on the      |
    |             |          | partition. If no fstype key is given, no file      |
    |             |          | will be created on the corresponding partition.    |
-   |             |          | vfat / ext2 / ext3 /ext4 / btrfs                   | 
-   |             |          | file system is supported                           | 
+   |             |          | vfat / ext2 / ext3 /ext4 / btrfs                   |
+   |             |          | file system is supported                           |
    +-------------+----------+----------------------------------------------------+
    | partuuid    | string   | The partition UUID (GPT only). If omitted, a UUID  |
-   |             |          | will be generated automatically.			 |
+   |             |          | will be generated automatically.                   |
    +-------------+----------+----------------------------------------------------+
    | flag        | string   | The following flags are supported:                 |
-   |             |          | Dos Partition : "boot" set bootflag		 |
+   |             |          | Dos Partition : "boot" set bootflag                |
+   +-------------+----------+----------------------------------------------------+
+   | force       | string   | If set to "true", existing file-system shall be    |
+   |             |          | overwritten uncoditionally.                        |
+   |             |          | Default value is "false".                          |
    +-------------+----------+----------------------------------------------------+
 
 
@@ -1270,3 +1274,148 @@ Zchunk creates a temporary file with all chunks in /tmp, that is at the end conc
 header and written to the destination file. This means that an amount of memory equal to the
 partition (SWUpdate does not compress the chunks) is required. This was solved with later version
 of Zchunk - check inside zchunk code if ZCK_NO_WRITE is supported.
+
+Docker handlers
+----------------
+
+To improve containers update, a docker set of handlers implements part of the API to communicate
+with the docker daemon. Podman (another container solution) has a compatibility layer for
+docker REST API and could be used as well, but SWUpdate is currently not checking if a podman
+daemon must be started.
+
+Goal of these handlers is just to provice the few API to update images and start containers - it
+does not implement the full API.
+
+Docker Load Image
+-----------------
+
+This handler allow to load an image without copying temporarily and push it to the docker daemon.
+It implements the /images/load entry point., and it is implemented as "image" handler. The file
+should be in a format accepted by docker.
+
+::
+
+        images: (
+                filename = "docker-image.tar"
+                type = "docker_imageload";
+                installed-directly = true;
+        )
+
+The handler checks return value (JSON message) from the daemon, and returns with success if the image
+is added.
+
+In case the file must be decompressed, SWUpdate requires the size of the decompressed image to be
+passed to the daemon:
+
+
+::
+
+        images: (
+        {
+                filename = "alpine.tar.gz";
+                type = "docker_imageload";
+                installed-directly = true;
+                compressed = "zlib";
+                properties: {
+                     decompressed-size = "5069312";
+                };
+        });
+
+
+Docker Remove Image
+-------------------
+
+It is implemented as script (post install). 
+Example:
+
+::
+
+	scripts: ( {
+		type = "docker_imagedelete";
+		properties: {
+			name = "alpine:3.4";
+		};
+	});
+
+Docker Delete Unused Images
+---------------------------
+
+It is implemented as script (post install). 
+Example:
+
+::
+
+	scripts: ( {
+		type = "docker_imageprune";
+	});
+
+
+Docker: container create
+------------------------
+
+It is implemented as post-install script. The script itself is the json file passed
+to the daemon to configure and set the container. The container is just created, not started.
+
+For example, having this hello-world.json file:
+
+::
+
+        {
+                "Image": "hello-world",
+                "HostConfig": {
+                        "RestartPolicy": {
+                                "Name": "always"
+                        },
+                "AutoRemove": false
+                }
+        }
+
+Creating the container can be done in sw-description with:
+
+::
+
+	scripts: ( {
+	        filename = "hello-world.json";
+		type = "docker_containercreate";
+		properties: {
+			name = "helloworld"; /* Name of container */
+		}
+	});
+
+Docker Remove Container
+-----------------------
+
+It is implemented as script (post install). 
+Example:
+
+::
+
+	scripts: ( {
+		type = "docker_containerdelete";
+		properties: {
+			name = "helloworld";
+		};
+	});
+
+Docker : Start / Stop containers
+--------------------------------
+
+Examples:
+
+::
+
+	scripts: ( {
+		type = "docker_containerstart";
+		properties: {
+			name = "helloworld";
+		};
+	});
+       
+::
+
+	scripts: ( {
+		type = "docker_containerstop";
+		properties: {
+			name = "helloworld";
+		};
+	});

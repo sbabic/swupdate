@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Project’s road-map &mdash; Embedded Software Update Documentation 2023.05 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+    <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Documentation for previous releases" href="previous-releases.html" />
+    <link rel="prev" title="Contributing to SWUpdate" href="contributing.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> Embedded Software Update Documentation
+          </a>
+              <div class="version">
+                2023.05
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Software Management on embedded systems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="licensing.html">License</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="swupdate.html">SWUpdate: software update for embedded system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scenarios.html">Update strategy examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sw-description.html">SWUpdate: syntax and tags with the default parser</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed_images.html">Update images from verified source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="encrypted_images.html">Symmetrically Encrypted Update Images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="handlers.html">Handlers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mongoose.html">Mongoose daemon mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hawkbit-setup.html">Config for hawkBit under SSL/TLS using private CA / sub CA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-ipc-interface.html">SWUpdate: API for external programs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bindings.html">Language Bindings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bootloader_interface.html">Bootloader Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building-with-yocto.html">meta-swupdate: building with Yocto</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-best-practise.html">SWUpdate Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="delta-update.html">Delta Update with SWUpdate</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-client.html">swupdate-client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-progress.html">swupdate-progress</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">swupdate-ipc</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="help_and_support.html">Help and support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to SWUpdate</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Project’s road-map</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#main-goal">Main goal</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#core-features">Core features</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#support-for-further-compressors">Support for further compressors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#support-for-openwrt">Support for OpenWRT</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#selective-downloading">Selective downloading</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#software-software-compatibility">Software-Software compatibility</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#parser">Parser</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#fetcher-and-interfaces">Fetcher and interfaces</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#downloader">Downloader</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#tools-and-utilities">Tools and utilities</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#self-contained-tool-to-generate-update-packages-swu">Self contained tool to generate Update Packages (SWU)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#lua">Lua</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#handlers">Handlers:</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#new-handlers">New Handlers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#handlers-installable-as-plugin-at-runtime">Handlers installable as plugin at runtime</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#support-for-btrfs-snapshot">Support for BTRFS snapshot</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#security">Security</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#support-for-evaluation-boards">Support for evaluation boards</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#back-end-support-suricatta-mode">Back-end support (suricatta mode)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#back-end-responsiveness-for-ipc">Back-end: responsiveness for IPC</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#back-end-check-before-installing">Back-end: check before installing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#back-end-hawkbit-offline-support">Back-end: hawkBit Offline support</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#back-end-support-for-generic-down-loader">Back-end: support for generic down-loader</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#back-end-support-for-mender">Back-end: support for Mender</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#support-for-multiple-servers-simultaneously">Support for multiple Servers simultaneously</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#test-and-continuous-integration">Test and Continuous Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#documentation">Documentation</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="previous-releases.html">Documentation for previous releases</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Embedded Software Update Documentation</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Project’s road-map</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/roadmap.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="project-s-road-map">
+<h1>Project’s road-map<a class="headerlink" href="#project-s-road-map" title="Permalink to this headline"></a></h1>
+<p>Please take into account that most of the items here are <em>proposals</em>.
+I get some ideas talking with customers, some ideas are my own thoughts.
+There is no plan when these features will be implemented - this depends
+if there will be contribution to the project in terms of patches or
+financial contributions to develop a feature.</p>
+<p>Thanks again to all companies that have supported my work up now and to
+everybody who has contributed to the project, let me bring SWUpdate
+to the current status !</p>
+<section id="main-goal">
+<h2>Main goal<a class="headerlink" href="#main-goal" title="Permalink to this headline"></a></h2>
+<p>First goal is to reach a quite big audience, making
+SWUpdate suitable for a large number of products.
+This will help to build a community around the project
+itself.</p>
+</section>
+<section id="core-features">
+<h2>Core features<a class="headerlink" href="#core-features" title="Permalink to this headline"></a></h2>
+<section id="support-for-further-compressors">
+<h3>Support for further compressors<a class="headerlink" href="#support-for-further-compressors" title="Permalink to this headline"></a></h3>
+<p>SWUpdate supports image compressed with following formats: zlib, zstd. This is
+a compromise between compression rate and speed to decompress the single artifact.
+To reduce bandwidth or for big images, a stronger compressor could help.
+Adding a new compressor must be careful done because it changes the core of
+handling an image.</p>
+</section>
+<section id="support-for-openwrt">
+<h3>Support for OpenWRT<a class="headerlink" href="#support-for-openwrt" title="Permalink to this headline"></a></h3>
+<p>OpenWRT is used on many routers and has its own way for updating that is not power-cut safe.</p>
+</section>
+<section id="selective-downloading">
+<h3>Selective downloading<a class="headerlink" href="#selective-downloading" title="Permalink to this headline"></a></h3>
+<p>Bandwidth can be saved not only via delta, but identifying which part of the SWu must be
+loaded and skipping the rest. For example, SWUpdate can detect the versions for artifact before
+downloading them and ask the servers to send just the relevant artifacts.</p>
+</section>
+<section id="software-software-compatibility">
+<h3>Software-Software compatibility<a class="headerlink" href="#software-software-compatibility" title="Permalink to this headline"></a></h3>
+<p>SWUpdate has from the early stage a hardware to software compatibility check. In case
+software is split in several components (like OS and application), it is desirable to have
+a sort of software compatibility check. For example, SWUpdate verifies if a component
+(like an application) is compatible with a runningOS and reject the update in case of
+mismatch.</p>
+</section>
+</section>
+<section id="parser">
+<h2>Parser<a class="headerlink" href="#parser" title="Permalink to this headline"></a></h2>
+<p>SWUpdate supports two parsers : libconfig and JSON. It would be nice if tools can
+be used to convert from one format to the other one. Currently, due to some specialties
+in libconfig, a manual conversion is still required.</p>
+</section>
+<section id="fetcher-and-interfaces">
+<h2>Fetcher and interfaces<a class="headerlink" href="#fetcher-and-interfaces" title="Permalink to this headline"></a></h2>
+<section id="downloader">
+<h3>Downloader<a class="headerlink" href="#downloader" title="Permalink to this headline"></a></h3>
+<p>The downloader is a one-shot command: when -d is set, SWUpdate loads the SWU from the provided
+URL. This behavior is high requested and must be even supported in future, but another
+use case is to run the downloader as daemon (like suricatta) and checks if a new SWU is
+available at the specified URL. It should be as an alternative server for suricatta and
+this allows to control it via IPC (enable/disable/trigger).</p>
+</section>
+</section>
+<section id="tools-and-utilities">
+<h2>Tools and utilities<a class="headerlink" href="#tools-and-utilities" title="Permalink to this headline"></a></h2>
+<section id="self-contained-tool-to-generate-update-packages-swu">
+<h3>Self contained tool to generate Update Packages (SWU)<a class="headerlink" href="#self-contained-tool-to-generate-update-packages-swu" title="Permalink to this headline"></a></h3>
+<p>Generation of SWUs is fully supported inside OE via meta-swupdate, but there is no
+support at all with other buildsystems (Buildroot, Debian). The user have a not preordered
+bunch of programs and scripts to generate the SWU, and mostly they are not generic enough.
+It will be interesting to create a <cite>buildswu</cite> tool, running on host system, that can create
+form a configuration a SWU. The tool must support all features, that means it should be able
+to pack artfact, generate sw-description from templates, sign the SWU, encrypt the artifact,
+etc.</p>
+</section>
+</section>
+<section id="lua">
+<h2>Lua<a class="headerlink" href="#lua" title="Permalink to this headline"></a></h2>
+<ul class="simple">
+<li><p>API between SWUpdate and Lua is poorly documented.</p></li>
+<li><p>Extend Lua to load modules at startup with functions that are globally visible
+and can be used by own Lua scripts or by the embedded-script in sw-description.</p></li>
+<li><p>Store in SWUpdate’s repo Lua libraries and common functions to be reused by projects.</p></li>
+</ul>
+</section>
+<section id="handlers">
+<h2>Handlers:<a class="headerlink" href="#handlers" title="Permalink to this headline"></a></h2>
+<section id="new-handlers">
+<h3>New Handlers<a class="headerlink" href="#new-handlers" title="Permalink to this headline"></a></h3>
+<p>Users develop own custom handlers - I just enforce and encourage everyone
+to send them and discuss how to integrate custom handler in mainline.</p>
+<dl class="simple">
+<dt>Some ideas for new handlers:</dt><dd><ul class="simple">
+<li><p>FPGA updater for FPGA with Flash</p></li>
+<li><p>Package handler to install packages (ipk, deb)
+Packages can be inserted into the SWU and the atomicity is
+guaranteed by SWUpdate.</p></li>
+<li><p>Lua handlers should be added if possible to the project
+to show how to solve custom install.</p></li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="handlers-installable-as-plugin-at-runtime">
+<h3>Handlers installable as plugin at runtime<a class="headerlink" href="#handlers-installable-as-plugin-at-runtime" title="Permalink to this headline"></a></h3>
+<p>The project supports Lua as script language for pre- and postinstall
+script. It will be easy to add a way for installing a handler at run-time
+written in Lua, allowing to expand SWUpdate to the cases not covered
+in the design phase of a product.</p>
+<p>Of course, this issue is related to the security features: it must be
+ensured that only verified handlers can be added to the system to avoid
+that malware can get the control of the target.</p>
+<p>Current release supports verified images. That means that a handler
+written in Lua could be now be part of the compound image, because
+a unauthenticated handler cannot run.</p>
+</section>
+<section id="support-for-btrfs-snapshot">
+<h3>Support for BTRFS snapshot<a class="headerlink" href="#support-for-btrfs-snapshot" title="Permalink to this headline"></a></h3>
+<p>BTRFS supports subvolume and delta backup for volumes - supporting subvolumes is a way
+to move the delta approach to filesystems, while SWUpdate should apply the deltas
+generated by BTRFS utilities.</p>
+</section>
+</section>
+<section id="security">
+<h2>Security<a class="headerlink" href="#security" title="Permalink to this headline"></a></h2>
+<ul class="simple">
+<li><p>add support for asymmetryc decryption</p></li>
+</ul>
+</section>
+<section id="support-for-evaluation-boards">
+<h2>Support for evaluation boards<a class="headerlink" href="#support-for-evaluation-boards" title="Permalink to this headline"></a></h2>
+<p>meta-swupdate-boards contains examples with evaluation boards.
+Currently, there are examples using Beaglebone Black,
+Raspberri PI 3 and Wandboard. The repo is a community driven project:
+patches welcome.</p>
+</section>
+<section id="back-end-support-suricatta-mode">
+<h2>Back-end support (suricatta mode)<a class="headerlink" href="#back-end-support-suricatta-mode" title="Permalink to this headline"></a></h2>
+<section id="back-end-responsiveness-for-ipc">
+<h3>Back-end: responsiveness for IPC<a class="headerlink" href="#back-end-responsiveness-for-ipc" title="Permalink to this headline"></a></h3>
+<p>Suricatta is implemented as process that launches functions for the selected module.
+This means that the IPC does not answer if Suricatta is doing something, specially if it is
+downloading and upgrading the system. This can be enhanced adding a separate thread for IPC and of course
+all required synchronization with the main modules.</p>
+</section>
+<section id="back-end-check-before-installing">
+<h3>Back-end: check before installing<a class="headerlink" href="#back-end-check-before-installing" title="Permalink to this headline"></a></h3>
+<p>In some cases (for example, where bandwidth is important), it is better to check
+if an update must be installed instead of installing and performs checks later.
+If SWUpdate provides a way to inform a checker if an update can be accepted
+before downloading, a download is only done when it is really necessary.</p>
+</section>
+<section id="back-end-hawkbit-offline-support">
+<h3>Back-end: hawkBit Offline support<a class="headerlink" href="#back-end-hawkbit-offline-support" title="Permalink to this headline"></a></h3>
+<p>There are several discussions on hawkBit’s ML about how to synchronize
+an offline update (done locally or via the internal Web-server) with
+the hawkBit’s server. Currently, hawkBit thinks to be the only one
+deploying software. hawkBit DDI API should be extended, and afterwards
+changes must be implemented in SWUpdate.</p>
+</section>
+<section id="back-end-support-for-generic-down-loader">
+<h3>Back-end: support for generic down-loader<a class="headerlink" href="#back-end-support-for-generic-down-loader" title="Permalink to this headline"></a></h3>
+<p>SWUpdate in down-loader mode works as one-shot: it simply try to download a SWU
+from a URL. For simple applications, it could be moved into <cite>suricatta</cite> to detect
+if a new version is available before downloading and installing.</p>
+</section>
+<section id="back-end-support-for-mender">
+<h3>Back-end: support for Mender<a class="headerlink" href="#back-end-support-for-mender" title="Permalink to this headline"></a></h3>
+<p>There was several discussion how to make a stronger collaboration between
+different update solution and a proposal discussed previously is to use SWUpdate as client
+to upgrade from a Mender server, see <a class="reference external" href="https://elinux.org/images/0/0c/BoF_secure_ota_linux.pdf">BOF at ELCE 2017</a></p>
+</section>
+<section id="support-for-multiple-servers-simultaneously">
+<h3>Support for multiple Servers simultaneously<a class="headerlink" href="#support-for-multiple-servers-simultaneously" title="Permalink to this headline"></a></h3>
+<p>Currently, suricatta’s server backends are a mutually exclusive
+compile-time choice. There is no interest to have multiple OTA at the same time.
+This feature won’t be implemented and I will remove this from roadmap if no
+interest will be waked up.</p>
+</section>
+</section>
+<section id="test-and-continuous-integration">
+<h2>Test and Continuous Integration<a class="headerlink" href="#test-and-continuous-integration" title="Permalink to this headline"></a></h2>
+<p>The number of configurations and features in SWUpdate is steadily increasing and
+it becomes urgent to find a way to test all incoming patch to fix regression issues.
+One step in this direction is the support for Travis build - a set of configuration
+files is stored with the project and should help to find fast breakages in the build.
+More in this direction must be done to perform test on targets. A suitable test framework
+should be found. Scope is to have a “SWUpdate factory” where patches are fast integrated
+and tested on real hardware.</p>
+</section>
+<section id="documentation">
+<h2>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline"></a></h2>
+<p>Documentation is a central point in SWUpdate - maintaining it up to date is a must in this project.
+Help from any user fixing wrong sentence, bad english, adding missing topics is high
+appreciated.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="contributing.html" class="btn btn-neutral float-left" title="Contributing to SWUpdate" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="previous-releases.html" class="btn btn-neutral float-right" title="Documentation for previous releases" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2013-2023, Stefano Babic.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

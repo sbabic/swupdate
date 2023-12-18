@@ -53,16 +53,20 @@ selected via menuconfig. Currently, the following mechanisms are implemented:
 - RSA Public / private key. The private key belongs to the build system,
   while the public key must be installed on the target.
 - CMS using certificates
+- GPG key signing
 
-Key or certificate is passed to SWUpdate with the `-k` parameter.
+For RSA and CMS algorithms, key or certificate is passed to SWUpdate
+with the `-k` parameter.
 
 Tool to generate keys / certificates
 ------------------------------------
 
-The `openssl` tool is used to generate the keys. This is part of the
-OpenSSL project. A complete documentation can be found at
+For RSA and CMS signing, the `openssl` tool is used to generate the keys.
+This is part of the OpenSSL project. A complete documentation can be found at
 the `openSSL Website <https://www.openssl.org/docs/manmaster/man1/openssl.html>`_.
 
+For GPG, `gpg` can be used to generate the keys and to sign the images. A complete
+documentation can be found at the `GnuPG Website <https://www.gnupg.org>`_.
 
 Usage with RSA PKCS#1.5 or RSA PSS
 ----------------------------------
@@ -158,6 +162,42 @@ Signing the image is simple as in the previous case:
                 -inkey mycert.key.pem -outform DER -nosmimecap -binary
 
 
+Usage with GNU PG
+-----------------
+
+Generating a new keypair
+........................
+
+
+First, a primary keypair needs to be generated
+
+::
+	gpg --gen-key
+
+The generated keys can be listed as follows
+
+::
+	gpg -k
+
+Check the documentation for more information about parameters.
+
+How to sign with gpg
+.....................
+
+Signing the image is very simple:
+
+::
+	gpg --batch --output sw-description.sig
+		--detach-sig sw-description
+
+For an alternative GnuPG home directory, and if there are multiple keypairs,
+the following can be used to specify. In this example, the GnuPG home directory
+is in GPG_HOMEDIR, while the signing key is found in GPG_KEY.
+
+::
+	gpg --batch --homedir "${GPG_HOMEDIR}" --default-key "${GPG_KEY}" --output sw-description.sig
+		--detach-sig sw-description
+
 Building a signed SWU image
 ---------------------------
 
@@ -187,6 +227,9 @@ A simple script to create a signed image can be:
 	elif if [ x"$MODE" == "xRSA-PSS" ]; then
 	    openssl dgst -sha256 -sign priv.pem -sigopt rsa_padding_mode:pss \
 	        -sigopt rsa_pss_saltlen:-2 sw-description > sw-description.sig
+	elif if [ x"$MODE" == "xGPG" ]; then
+            gpg --batch --homedir "${GPG_HOME_DIR}" --default-key "${GPG_KEY}" \
+                --output sw-description.sig --detach-sig sw-description
         else
             openssl cms -sign -in  sw-description -out sw-description.sig -signer mycert.cert.pem \
                 -inkey mycert.key.pem -outform DER -nosmimecap -binary
@@ -233,5 +276,30 @@ Running SWUpdate with signed images
 
 Verification is activated by setting CONFIG_SIGNED_IMAGES in SWUpdate's configuration.
 If activated, SWUpdate will always check the compound image. For security reasons,
-it is not possible to disable the check at runtime. The -k parameter (public key file)
-is mandatory and the program stops if the public key is not passed.
+it is not possible to disable the check at runtime.
+
+For RSA and CMS signing, the -k parameter (public key file) is mandatory and the program stops 
+if the public key is not passed.
+
+For GPG signing, CONFIG_SIGALG_GPG needs to be enabled. The GPG key will
+need to be imported to the device's GnuPG home directory. To do this, the
+key will need to be exported:
+
+::
+        gpg --export <keyid> --output <public key>
+
+You can then copy it onto the device and import it into your public keyring:
+
+::
+        gpg --import <public key>
+
+To verify that the key has been imported successfully:
+
+::
+        gpg --list-keys
+
+SWUpdate will need need to be configured with the following parameters:
+
+::
+        GnuPG Home directory: gpg-home-dir in swupdate.cfg
+        GPGME Protocol: gpgme-protocol in swupdate.cfg: openpgp or cms

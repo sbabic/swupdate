@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Handlers &mdash; Embedded Software Update Documentation 2023.05 documentation</title>
+  <title>Handlers &mdash; Embedded Software Update Documentation 2023.12 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
@@ -28,7 +28,7 @@
             <a href="index.html" class="icon icon-home"> Embedded Software Update Documentation
           </a>
               <div class="version">
-                2023.05
+                2023.12
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -78,6 +78,13 @@
 <li class="toctree-l2"><a class="reference internal" href="#btrfs-handler">BTRFS Handler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#delta-update-handler">Delta Update Handler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#memory-issue-with-zchunk">Memory issue with zchunk</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#docker-handlers">Docker handlers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#docker-load-image">Docker Load Image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#docker-remove-image">Docker Remove Image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#docker-delete-unused-images">Docker Delete Unused Images</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#docker-container-create">Docker: container create</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#docker-remove-container">Docker Remove Container</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#docker-start-stop-containers">Docker : Start / Stop containers</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="mongoose.html">Mongoose daemon mode</a></li>
@@ -1130,6 +1137,12 @@ will be generated automatically.</p></td>
 <td><p>The following flags are supported:
 Dos Partition : “boot” set bootflag</p></td>
 </tr>
+<tr class="row-even"><td><p>force</p></td>
+<td><p>string</p></td>
+<td><p>If set to “true”, existing file-system shall be
+overwritten uncoditionally.
+Default value is “false”.</p></td>
+</tr>
 </tbody>
 </table>
 <p>GPT example:</p>
@@ -1399,6 +1412,127 @@ Zchunk creates a temporary file with all chunks in /tmp, that is at the end conc
 header and written to the destination file. This means that an amount of memory equal to the
 partition (SWUpdate does not compress the chunks) is required. This was solved with later version
 of Zchunk - check inside zchunk code if ZCK_NO_WRITE is supported.</p>
+</section>
+<section id="docker-handlers">
+<h2>Docker handlers<a class="headerlink" href="#docker-handlers" title="Permalink to this headline"></a></h2>
+<p>To improve containers update, a docker set of handlers implements part of the API to communicate
+with the docker daemon. Podman (another container solution) has a compatibility layer for
+docker REST API and could be used as well, but SWUpdate is currently not checking if a podman
+daemon must be started.</p>
+<p>Goal of these handlers is just to provice the few API to update images and start containers - it
+does not implement the full API.</p>
+</section>
+<section id="docker-load-image">
+<h2>Docker Load Image<a class="headerlink" href="#docker-load-image" title="Permalink to this headline"></a></h2>
+<p>This handler allow to load an image without copying temporarily and push it to the docker daemon.
+It implements the /images/load entry point., and it is implemented as “image” handler. The file
+should be in a format accepted by docker.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">images</span><span class="p">:</span> <span class="p">(</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;docker-image.tar&quot;</span>
+        <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;docker_imageload&quot;</span><span class="p">;</span>
+        <span class="n">installed</span><span class="o">-</span><span class="n">directly</span> <span class="o">=</span> <span class="n">true</span><span class="p">;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>The handler checks return value (JSON message) from the daemon, and returns with success if the image
+is added.</p>
+<p>In case the file must be decompressed, SWUpdate requires the size of the decompressed image to be
+passed to the daemon:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">images</span><span class="p">:</span> <span class="p">(</span>
+<span class="p">{</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;alpine.tar.gz&quot;</span><span class="p">;</span>
+        <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;docker_imageload&quot;</span><span class="p">;</span>
+        <span class="n">installed</span><span class="o">-</span><span class="n">directly</span> <span class="o">=</span> <span class="n">true</span><span class="p">;</span>
+        <span class="n">compressed</span> <span class="o">=</span> <span class="s2">&quot;zlib&quot;</span><span class="p">;</span>
+        <span class="n">properties</span><span class="p">:</span> <span class="p">{</span>
+             <span class="n">decompressed</span><span class="o">-</span><span class="n">size</span> <span class="o">=</span> <span class="s2">&quot;5069312&quot;</span><span class="p">;</span>
+        <span class="p">};</span>
+<span class="p">});</span>
+</pre></div>
+</div>
+</section>
+<section id="docker-remove-image">
+<h2>Docker Remove Image<a class="headerlink" href="#docker-remove-image" title="Permalink to this headline"></a></h2>
+<p>It is implemented as script (post install).
+Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">scripts</span><span class="p">:</span> <span class="p">(</span> <span class="p">{</span>
+        <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;docker_imagedelete&quot;</span><span class="p">;</span>
+        <span class="n">properties</span><span class="p">:</span> <span class="p">{</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;alpine:3.4&quot;</span><span class="p">;</span>
+        <span class="p">};</span>
+<span class="p">});</span>
+</pre></div>
+</div>
+</section>
+<section id="docker-delete-unused-images">
+<h2>Docker Delete Unused Images<a class="headerlink" href="#docker-delete-unused-images" title="Permalink to this headline"></a></h2>
+<p>It is implemented as script (post install).
+Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">scripts</span><span class="p">:</span> <span class="p">(</span> <span class="p">{</span>
+        <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;docker_imageprune&quot;</span><span class="p">;</span>
+<span class="p">});</span>
+</pre></div>
+</div>
+</section>
+<section id="docker-container-create">
+<h2>Docker: container create<a class="headerlink" href="#docker-container-create" title="Permalink to this headline"></a></h2>
+<p>It is implemented as post-install script. The script itself is the json file passed
+to the daemon to configure and set the container. The container is just created, not started.</p>
+<p>For example, having this hello-world.json file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+        <span class="s2">&quot;Image&quot;</span><span class="p">:</span> <span class="s2">&quot;hello-world&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;HostConfig&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;RestartPolicy&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;Name&quot;</span><span class="p">:</span> <span class="s2">&quot;always&quot;</span>
+                <span class="p">},</span>
+        <span class="s2">&quot;AutoRemove&quot;</span><span class="p">:</span> <span class="n">false</span>
+        <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Creating the container can be done in sw-description with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">scripts</span><span class="p">:</span> <span class="p">(</span> <span class="p">{</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;hello-world.json&quot;</span><span class="p">;</span>
+        <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;docker_containercreate&quot;</span><span class="p">;</span>
+        <span class="n">properties</span><span class="p">:</span> <span class="p">{</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;helloworld&quot;</span><span class="p">;</span> <span class="o">/*</span> <span class="n">Name</span> <span class="n">of</span> <span class="n">container</span> <span class="o">*/</span>
+        <span class="p">}</span>
+<span class="p">});</span>
+</pre></div>
+</div>
+</section>
+<section id="docker-remove-container">
+<h2>Docker Remove Container<a class="headerlink" href="#docker-remove-container" title="Permalink to this headline"></a></h2>
+<p>It is implemented as script (post install).
+Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">scripts</span><span class="p">:</span> <span class="p">(</span> <span class="p">{</span>
+        <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;docker_containerdelete&quot;</span><span class="p">;</span>
+        <span class="n">properties</span><span class="p">:</span> <span class="p">{</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;helloworld&quot;</span><span class="p">;</span>
+        <span class="p">};</span>
+<span class="p">});</span>
+</pre></div>
+</div>
+</section>
+<section id="docker-start-stop-containers">
+<h2>Docker : Start / Stop containers<a class="headerlink" href="#docker-start-stop-containers" title="Permalink to this headline"></a></h2>
+<p>Examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">scripts</span><span class="p">:</span> <span class="p">(</span> <span class="p">{</span>
+        <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;docker_containerstart&quot;</span><span class="p">;</span>
+        <span class="n">properties</span><span class="p">:</span> <span class="p">{</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;helloworld&quot;</span><span class="p">;</span>
+        <span class="p">};</span>
+<span class="p">});</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">scripts</span><span class="p">:</span> <span class="p">(</span> <span class="p">{</span>
+        <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;docker_containerstop&quot;</span><span class="p">;</span>
+        <span class="n">properties</span><span class="p">:</span> <span class="p">{</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;helloworld&quot;</span><span class="p">;</span>
+        <span class="p">};</span>
+<span class="p">});</span>
+</pre></div>
+</div>
 </section>
 </section>
 

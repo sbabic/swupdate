@@ -167,6 +167,184 @@ if ``SURICATTA_HAWKBIT`` was selected while configuring SWUpdate.
     endif
 
 
+Support for wfx
+---------------
+
+The `wfx`_ server is supported by the Lua Suricatta module
+``suricatta/server_wfx.lua`` (cf. Section `Support for Suricatta Modules in Lua`_).
+Specifically, it implements a binding to the `Device Artifact Update`_ (DAU) workflow
+family.
+
+If enabled via ``CONFIG_SURICATTA_WFX``, the wfx Lua Suricatta module is embedded
+into the SWUpdate binary so that no extra deployment steps are required. Note that
+this is purely a convenience shortcut for the installation of a Lua Suricatta module
+as described in `Support for Suricatta Modules in Lua`_.
+
+.. _wfx:  https://github.com/siemens/wfx
+.. _Device Artifact Update:  https://github.com/siemens/wfx/tree/main/workflow/dau
+
+
+Job Definition
+..............
+
+As being a general purpose workflow executor, wfx doesn't impose a particular job
+definition nor schema, except that it's in JSON format. Instead, the job definition
+is a contract between the operator creating jobs, each possibly following a different
+workflow, and the client(s) executing those jobs in lock-step with the wfx.
+
+The wfx Lua Suricatta module understands job definitions as in the following
+example (see ``job.definition.json_schema`` in ``suricatta/server_wfx.lua``):
+
+.. code:: json
+
+    {
+        "version": "1.0",
+        "type": ["firmware", "dummy"],
+        "artifacts": [
+            {
+                "name": "Example Device Firmware Artifact",
+                "version": "1.1",
+                "uri": "http://localhost:8080/download/example_artifact.swu"
+            }
+        ]
+    }
+
+The ``type`` list field allows to label update jobs. Labels are sent ``:``-concatenated
+to the progress interface on `Update Activation`_. The only predefined label ``firmware``
+instructs the wfx Lua Suricatta module to record an installed update to the bootloader
+environment (see :doc:`bootloader_interface`).
+Within the artifacts list, only the ``uri`` field is strictly required for each artifact
+while the fields ``name`` and ``version`` are used for informational purposes, if provided.
+Further fields, including top-level fields, are ignored on purpose and may be freely used,
+e.g., to enrich the job definition with metadata for update management.
+
+Since wfx is not concerned with the job definition except for conveying it to the
+client (i.e. SWUpdate), it can be adapted to specific needs by feeding a different
+job definition into the wfx on job creation and adapting the verification and job
+handling methods in the wfx Lua Suricatta module's ``job.definition = {...}`` Table.
+
+
+Workflows
+.........
+
+The two Device Artifact Update (DAU) workflows `wfx.workflow.dau.direct`_ and
+`wfx.workflow.dau.phased`_ are supported by the wfx Lua Suricatta module.
+Hint: Use wfx's ``wfx-viewer`` command line tool to visualize the  YAML
+workflows in SVG or PlantUML format.
+
+
+For each transition in a workflow for which the ``eligible`` field contains
+``CLIENT``, e.g.,
+
+.. code:: yaml
+
+    transitions:
+      - from: <FROM_STATE>
+        to: <TO_STATE>
+        eligible: CLIENT
+
+there has to be a matching transition execution function defined in the wfx Lua
+Suricatta module. It executes the client actions to go from state ``<FROM_STATE>``
+to state ``<TO_STATE>`` and finally sends the new job status to the wfx, updating it:
+
+.. code:: lua
+
+    job.workflow.dispatch:set(
+        "<FROM_STATE>",
+        "<TO_STATE>",
+        --- @param  self  job.workflow.transition
+        --- @param  job   job
+        --- @return transition.result
+        function(self, job)
+            if not job.status
+                :set({
+                    state = self.to.name, -- resolves to `<TO_STATE>`
+                    message = ("[%s] <TO_STATE> reached"):format(self.to.name),
+                    progress = 100,
+                })
+                :send() then
+                -- Do not try to execute further transitions, yield to wfx.
+                return transition.result.FAIL_YIELD
+            end
+            return transition.result.COMPLETED
+        end
+    )
+
+See ``suricatta/server_wfx.lua`` for examples of such transition execution functions.
+
+
+New or adapted workflows are supported by appropriately defining/modifying the
+transition execution functions in ``suricatta/server_wfx.lua`` -- or taking it as
+inspiration and creating a new wfx Lua Suricatta module as described in `Support
+for Suricatta Modules in Lua`_.
+
+.. _wfx.workflow.dau.phased:  https://github.com/siemens/wfx/blob/main/workflow/dau/wfx.workflow.dau.phased.yml
+.. _wfx.workflow.dau.direct:  https://github.com/siemens/wfx/blob/main/workflow/dau/wfx.workflow.dau.direct.yml
+
+
+Update Activation
+.................
+
+The Device Artifact Update (DAU) workflows offer a dedicated activation step in
+the update steps sequence to decouple artifact installation and activation times
+so to not, e.g., upon a power-cut, prematurely test-boot into the new firmware
+after installation until the activation is actually due.
+
+When the activation step is executed, the wfx Lua Suricatta module sends a progress
+message (see :doc:`progress`) upon which a progress client executes or schedules
+activation measures. For example, the following JSON is sent as the progress
+message's ``.info`` field on activation of the `Job Definition`_ example given above:
+
+.. code:: json
+
+    {
+        "state": "ACTIVATING",
+        "progress": 100,
+        "message": "firmware:dummy"
+    }
+
+The progress message's ``.status`` is ``PROGRESS``, see ``tools/swupdate-progress.c``
+for details on how a progress client can be implemented.
+
+**Note:** The activation message may be sent multiple times if the update activation
+is pending, namely on each wfx poll operation and if a new update job is enqueued
+while the current one is not activated.
+
+Because of the (predefined) ``firmware`` label present, the progress client should
+initiate or schedule a reboot of the device in order to test-boot the new firmware.
+Also because of the ``firmware`` label present, the wfx Lua Suricatta module records
+the installed update to the bootloader environment. If this label was missing, no such
+recording would've been made which is suitable for, e.g., configuration or
+application updates.
+
+In order for the this mechanism to work, SWUpdate must not record the update to the
+bootloader environment after it has installed it or, in case of configuration or
+application updates, must not touch the bootloader environment at all (see the
+Sections `Update Transaction and Status Marker` and `bootloader` in
+:doc:`sw-description`).
+
+Hence, for firmware updates requiring a test-boot into the new firmware, the
+following properties should be set in the ``.swu`` file's ``sw-description``:
+
+.. code::
+
+    software =
+    {
+        bootloader_transaction_marker = true;
+        bootloader_state_marker = false;
+        ...
+
+For configuration or application updates, the following properties apply:
+
+.. code::
+
+    software =
+    {
+        bootloader_transaction_marker = false;
+        bootloader_state_marker = false;
+        ...
+
+
 Support for general purpose HTTP server
 ---------------------------------------
 

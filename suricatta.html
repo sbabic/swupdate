@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Suricatta daemon mode &mdash; Embedded Software Update Documentation 2023.05 documentation</title>
+  <title>Suricatta daemon mode &mdash; Embedded Software Update Documentation 2023.12 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
@@ -28,7 +28,7 @@
             <a href="index.html" class="icon icon-home"> Embedded Software Update Documentation
           </a>
               <div class="version">
-                2023.05
+                2023.12
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -54,6 +54,12 @@
 <li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#running-suricatta">Running suricatta</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#the-suricatta-interface">The Suricatta Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#support-for-wfx">Support for wfx</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#job-definition">Job Definition</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#workflows">Workflows</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#update-activation">Update Activation</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#support-for-general-purpose-http-server">Support for general purpose HTTP server</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#support-for-suricatta-modules-in-lua">Support for Suricatta Modules in Lua</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#suricatta"><cite>suricatta</cite></a></li>
@@ -247,6 +253,147 @@ obj-<span class="k">$(</span>CONFIG_SURICATTA<span class="k">)</span> +<span cla
 endif
 </pre></div>
 </div>
+</section>
+<section id="support-for-wfx">
+<h2>Support for wfx<a class="headerlink" href="#support-for-wfx" title="Permalink to this headline"></a></h2>
+<p>The <a class="reference external" href="https://github.com/siemens/wfx">wfx</a> server is supported by the Lua Suricatta module
+<code class="docutils literal notranslate"><span class="pre">suricatta/server_wfx.lua</span></code> (cf. Section <a class="reference internal" href="#support-for-suricatta-modules-in-lua">Support for Suricatta Modules in Lua</a>).
+Specifically, it implements a binding to the <a class="reference external" href="https://github.com/siemens/wfx/tree/main/workflow/dau">Device Artifact Update</a> (DAU) workflow
+family.</p>
+<p>If enabled via <code class="docutils literal notranslate"><span class="pre">CONFIG_SURICATTA_WFX</span></code>, the wfx Lua Suricatta module is embedded
+into the SWUpdate binary so that no extra deployment steps are required. Note that
+this is purely a convenience shortcut for the installation of a Lua Suricatta module
+as described in <a class="reference internal" href="#support-for-suricatta-modules-in-lua">Support for Suricatta Modules in Lua</a>.</p>
+<section id="job-definition">
+<h3>Job Definition<a class="headerlink" href="#job-definition" title="Permalink to this headline"></a></h3>
+<p>As being a general purpose workflow executor, wfx doesn’t impose a particular job
+definition nor schema, except that it’s in JSON format. Instead, the job definition
+is a contract between the operator creating jobs, each possibly following a different
+workflow, and the client(s) executing those jobs in lock-step with the wfx.</p>
+<p>The wfx Lua Suricatta module understands job definitions as in the following
+example (see <code class="docutils literal notranslate"><span class="pre">job.definition.json_schema</span></code> in <code class="docutils literal notranslate"><span class="pre">suricatta/server_wfx.lua</span></code>):</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1.0&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;firmware&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;dummy&quot;</span><span class="p">],</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;artifacts&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"></span>
+<span class="w">        </span><span class="p">{</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Example Device Firmware Artifact&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1.1&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">            </span><span class="nt">&quot;uri&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;http://localhost:8080/download/example_artifact.swu&quot;</span><span class="w"></span>
+<span class="w">        </span><span class="p">}</span><span class="w"></span>
+<span class="w">    </span><span class="p">]</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">type</span></code> list field allows to label update jobs. Labels are sent <code class="docutils literal notranslate"><span class="pre">:</span></code>-concatenated
+to the progress interface on <a class="reference internal" href="#update-activation">Update Activation</a>. The only predefined label <code class="docutils literal notranslate"><span class="pre">firmware</span></code>
+instructs the wfx Lua Suricatta module to record an installed update to the bootloader
+environment (see <a class="reference internal" href="bootloader_interface.html"><span class="doc">Bootloader Interface</span></a>).
+Within the artifacts list, only the <code class="docutils literal notranslate"><span class="pre">uri</span></code> field is strictly required for each artifact
+while the fields <code class="docutils literal notranslate"><span class="pre">name</span></code> and <code class="docutils literal notranslate"><span class="pre">version</span></code> are used for informational purposes, if provided.
+Further fields, including top-level fields, are ignored on purpose and may be freely used,
+e.g., to enrich the job definition with metadata for update management.</p>
+<p>Since wfx is not concerned with the job definition except for conveying it to the
+client (i.e. SWUpdate), it can be adapted to specific needs by feeding a different
+job definition into the wfx on job creation and adapting the verification and job
+handling methods in the wfx Lua Suricatta module’s <code class="docutils literal notranslate"><span class="pre">job.definition</span> <span class="pre">=</span> <span class="pre">{...}</span></code> Table.</p>
+</section>
+<section id="workflows">
+<h3>Workflows<a class="headerlink" href="#workflows" title="Permalink to this headline"></a></h3>
+<p>The two Device Artifact Update (DAU) workflows <a class="reference external" href="https://github.com/siemens/wfx/blob/main/workflow/dau/wfx.workflow.dau.direct.yml">wfx.workflow.dau.direct</a> and
+<a class="reference external" href="https://github.com/siemens/wfx/blob/main/workflow/dau/wfx.workflow.dau.phased.yml">wfx.workflow.dau.phased</a> are supported by the wfx Lua Suricatta module.
+Hint: Use wfx’s <code class="docutils literal notranslate"><span class="pre">wfx-viewer</span></code> command line tool to visualize the  YAML
+workflows in SVG or PlantUML format.</p>
+<p>For each transition in a workflow for which the <code class="docutils literal notranslate"><span class="pre">eligible</span></code> field contains
+<code class="docutils literal notranslate"><span class="pre">CLIENT</span></code>, e.g.,</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">transitions</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">from</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;FROM_STATE&gt;</span><span class="w"></span>
+<span class="w">    </span><span class="nt">to</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;TO_STATE&gt;</span><span class="w"></span>
+<span class="w">    </span><span class="nt">eligible</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">CLIENT</span><span class="w"></span>
+</pre></div>
+</div>
+<p>there has to be a matching transition execution function defined in the wfx Lua
+Suricatta module. It executes the client actions to go from state <code class="docutils literal notranslate"><span class="pre">&lt;FROM_STATE&gt;</span></code>
+to state <code class="docutils literal notranslate"><span class="pre">&lt;TO_STATE&gt;</span></code> and finally sends the new job status to the wfx, updating it:</p>
+<div class="highlight-lua notranslate"><div class="highlight"><pre><span></span><span class="n">job</span><span class="p">.</span><span class="n">workflow</span><span class="p">.</span><span class="n">dispatch</span><span class="p">:</span><span class="n">set</span><span class="p">(</span>
+    <span class="s2">&quot;&lt;FROM_STATE&gt;&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;&lt;TO_STATE&gt;&quot;</span><span class="p">,</span>
+    <span class="c1">--- @param  self  job.workflow.transition</span>
+    <span class="c1">--- @param  job   job</span>
+    <span class="c1">--- @return transition.result</span>
+    <span class="kr">function</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">job</span><span class="p">)</span>
+        <span class="kr">if</span> <span class="ow">not</span> <span class="n">job</span><span class="p">.</span><span class="n">status</span>
+            <span class="p">:</span><span class="n">set</span><span class="p">({</span>
+                <span class="n">state</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="n">to</span><span class="p">.</span><span class="n">name</span><span class="p">,</span> <span class="c1">-- resolves to `&lt;TO_STATE&gt;`</span>
+                <span class="n">message</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;[%s] &lt;TO_STATE&gt; reached&quot;</span><span class="p">):</span><span class="n">format</span><span class="p">(</span><span class="n">self</span><span class="p">.</span><span class="n">to</span><span class="p">.</span><span class="n">name</span><span class="p">),</span>
+                <span class="n">progress</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
+            <span class="p">})</span>
+            <span class="p">:</span><span class="n">send</span><span class="p">()</span> <span class="kr">then</span>
+            <span class="c1">-- Do not try to execute further transitions, yield to wfx.</span>
+            <span class="kr">return</span> <span class="n">transition</span><span class="p">.</span><span class="n">result</span><span class="p">.</span><span class="n">FAIL_YIELD</span>
+        <span class="kr">end</span>
+        <span class="kr">return</span> <span class="n">transition</span><span class="p">.</span><span class="n">result</span><span class="p">.</span><span class="n">COMPLETED</span>
+    <span class="kr">end</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>See <code class="docutils literal notranslate"><span class="pre">suricatta/server_wfx.lua</span></code> for examples of such transition execution functions.</p>
+<p>New or adapted workflows are supported by appropriately defining/modifying the
+transition execution functions in <code class="docutils literal notranslate"><span class="pre">suricatta/server_wfx.lua</span></code> – or taking it as
+inspiration and creating a new wfx Lua Suricatta module as described in <a class="reference internal" href="#support-for-suricatta-modules-in-lua">Support
+for Suricatta Modules in Lua</a>.</p>
+</section>
+<section id="update-activation">
+<h3>Update Activation<a class="headerlink" href="#update-activation" title="Permalink to this headline"></a></h3>
+<p>The Device Artifact Update (DAU) workflows offer a dedicated activation step in
+the update steps sequence to decouple artifact installation and activation times
+so to not, e.g., upon a power-cut, prematurely test-boot into the new firmware
+after installation until the activation is actually due.</p>
+<p>When the activation step is executed, the wfx Lua Suricatta module sends a progress
+message (see <a class="reference internal" href="progress.html"><span class="doc">Getting information on running update</span></a>) upon which a progress client executes or schedules
+activation measures. For example, the following JSON is sent as the progress
+message’s <code class="docutils literal notranslate"><span class="pre">.info</span></code> field on activation of the <a class="reference internal" href="#job-definition">Job Definition</a> example given above:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;state&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ACTIVATING&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;progress&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">100</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;firmware:dummy&quot;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p>The progress message’s <code class="docutils literal notranslate"><span class="pre">.status</span></code> is <code class="docutils literal notranslate"><span class="pre">PROGRESS</span></code>, see <code class="docutils literal notranslate"><span class="pre">tools/swupdate-progress.c</span></code>
+for details on how a progress client can be implemented.</p>
+<p><strong>Note:</strong> The activation message may be sent multiple times if the update activation
+is pending, namely on each wfx poll operation and if a new update job is enqueued
+while the current one is not activated.</p>
+<p>Because of the (predefined) <code class="docutils literal notranslate"><span class="pre">firmware</span></code> label present, the progress client should
+initiate or schedule a reboot of the device in order to test-boot the new firmware.
+Also because of the <code class="docutils literal notranslate"><span class="pre">firmware</span></code> label present, the wfx Lua Suricatta module records
+the installed update to the bootloader environment. If this label was missing, no such
+recording would’ve been made which is suitable for, e.g., configuration or
+application updates.</p>
+<p>In order for the this mechanism to work, SWUpdate must not record the update to the
+bootloader environment after it has installed it or, in case of configuration or
+application updates, must not touch the bootloader environment at all (see the
+Sections <cite>Update Transaction and Status Marker</cite> and <cite>bootloader</cite> in
+<a class="reference internal" href="sw-description.html"><span class="doc">SWUpdate: syntax and tags with the default parser</span></a>).</p>
+<p>Hence, for firmware updates requiring a test-boot into the new firmware, the
+following properties should be set in the <code class="docutils literal notranslate"><span class="pre">.swu</span></code> file’s <code class="docutils literal notranslate"><span class="pre">sw-description</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">software</span> <span class="o">=</span>
+<span class="p">{</span>
+    <span class="n">bootloader_transaction_marker</span> <span class="o">=</span> <span class="n">true</span><span class="p">;</span>
+    <span class="n">bootloader_state_marker</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<p>For configuration or application updates, the following properties apply:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">software</span> <span class="o">=</span>
+<span class="p">{</span>
+    <span class="n">bootloader_transaction_marker</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
+    <span class="n">bootloader_state_marker</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+</section>
 </section>
 <section id="support-for-general-purpose-http-server">
 <h2>Support for general purpose HTTP server<a class="headerlink" href="#support-for-general-purpose-http-server" title="Permalink to this headline"></a></h2>

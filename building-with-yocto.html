@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>meta-swupdate: building with Yocto &mdash; Embedded Software Update Documentation 2023.05 documentation</title>
+  <title>meta-swupdate: building with Yocto &mdash; Embedded Software Update Documentation 2023.12 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
@@ -28,7 +28,7 @@
             <a href="index.html" class="icon icon-home"> Embedded Software Update Documentation
           </a>
               <div class="version">
-                2023.05
+                2023.12
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -68,6 +68,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#simplified-version-for-just-image">Simplified version for just image</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#what-about-grub">What about grub ?</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="swupdate-best-practise.html">SWUpdate Best Practice</a></li>
@@ -355,6 +356,51 @@ inherit swupdate-image</p>
 </dd>
 </dl>
 </section>
+</section>
+<section id="what-about-grub">
+<h2>What about grub ?<a class="headerlink" href="#what-about-grub" title="Permalink to this headline"></a></h2>
+<p>In order to use swupdate with grub, swupdate needs to be configured to use grub. Some of
+the imporatant configurations are <strong>CONFIG_GRUBENV_PATH=”/path/to/grubenv”</strong>,
+where <strong>“/path/to/grubenv”</strong> is thepath to grub environment.
+Example: “/boot/EFI/BOOT/grubenv”.</p>
+<p>The grubenv file should be created using grub-editenv tool, because it is a <strong>1024-byte file</strong>, therefore,
+any modification using nano or vim will only corrupt the file, and grub will not be able to use it.</p>
+<p>You can create a grubenv file using these commands for instance:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>GRUBENV=&quot;/path/to/grubenv&quot;
+grub-editenv $GRUBENV create
+grub-editenv $GRUBENV set rootfs=2
+grub-editenv $GRUBENV set kernel=2
+</pre></div>
+</div>
+<p>grub-editenv is a tool that is integrated to yocto.</p>
+<p>When the grubenv file is created, grub should be configured to use it.
+This configuration should be in the configuration file grub.cfg.
+Here is an example of grub.cfg that loads the environment file before booting:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span># Take a kernel and a rootfs by default in case grubenv is corrupted
+rootfs=1
+kernel=1
+serial --unit=0 --speed=115200 --word=8 --parity=no --stop=1
+default=boot
+# set timeout to zero to boot without timeout
+timeout=0
+# load grubenv the environment file that contains the value of rootfs and kernel variables
+load_env -f &quot;/path/to/grubenv&quot;
+# detect which memory contains 5 partitions
+for i in 1 2 3 4 5; do  if [ -d (hd${i},gpt5)/ ]; then drive=${i};fi ; done
+# detect which rootfs should we boot with
+if [ ${rootfs} = &quot;1&quot; ]; then rootfs_part=4 ; elif [ ${rootfs} = &quot;2&quot; ]; then rootfs_part=5 ; fi
+# detect which kernel should we boot with
+if [ ${kernel} = &quot;1&quot; ]; then kernel_part=&quot;(hd${drive},gpt2)&quot; ; elif [ ${kernel} = &quot;2&quot; ]; then kernel_part=&quot;(hd${drive},gpt3)&quot; ; fi
+
+# The menuentry that is used to boot (more can be added if it is wanted)
+menuentry &#39;boot&#39;{
+linux ${kernel_part}/bzImage root=/dev/mmcblk1p${rootfs_part} rw rootwait quiet console=ttyS2,115200 console=tty0 panic=5
+}
+</pre></div>
+</div>
+<p>The grub.cfg above is merely an example, and can be modified as the user wants to,
+as long as it loads the environment variables,and it boots correctly using these environment
+variables.</p>
 </section>
 </section>
 

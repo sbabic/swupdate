@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Symmetrically Encrypted Update Images &mdash; Embedded Software Update Documentation 2023.05 documentation</title>
+  <title>Symmetrically Encrypted Update Images &mdash; Embedded Software Update Documentation 2023.12 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
     <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
@@ -28,7 +28,7 @@
             <a href="index.html" class="icon icon-home"> Embedded Software Update Documentation
           </a>
               <div class="version">
-                2023.05
+                2023.12
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -180,6 +180,11 @@ symmetric key file generated above to SWUpdate.</p>
 configuration. The key file has to have a PKCS#11 URL instead of the key then,
 containing at least the elements of this example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>pkcs11:slot-id=42;id=%CA%FE%BA%BE?pin-value=1234&amp;module-path=/usr/lib/libsofthsm2.so 65D793B87B6724BB27954C7664F15FF3
+</pre></div>
+</div>
+<p>The encryption key can be imported to the PKCS#11 token by using <code class="docutils literal notranslate"><span class="pre">pkcs11-tool</span></code> as follow:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">echo</span> <span class="o">-</span><span class="n">n</span> <span class="s2">&quot;390ad54490a4a5f53722291023c19e08ffb5c4677a59e958c96ffa6e641df040&quot;</span> <span class="o">|</span>  <span class="n">xxd</span> <span class="o">-</span><span class="n">p</span> <span class="o">-</span><span class="n">r</span> <span class="o">&gt;</span> <span class="n">swupdate</span><span class="o">-</span><span class="n">aes</span><span class="o">-</span><span class="n">key</span><span class="o">.</span><span class="n">bin</span>
+<span class="n">pkcs11</span><span class="o">-</span><span class="n">tool</span> <span class="o">--</span><span class="n">module</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">libsofthsm2</span><span class="o">.</span><span class="n">so</span> <span class="o">--</span><span class="n">slot</span> <span class="mh">0x42</span> <span class="o">--</span><span class="n">login</span> <span class="o">--</span><span class="n">write</span><span class="o">-</span><span class="nb">object</span> <span class="n">swupdate</span><span class="o">-</span><span class="n">aes</span><span class="o">-</span><span class="n">key</span><span class="o">.</span><span class="n">bin</span>  <span class="o">--</span><span class="nb">id</span> <span class="n">CAFEBABE</span> <span class="o">--</span><span class="n">label</span> <span class="n">swupdate</span><span class="o">-</span><span class="n">aes</span><span class="o">-</span><span class="n">key</span>  <span class="o">--</span><span class="nb">type</span> <span class="n">secrkey</span> <span class="o">--</span><span class="n">key</span><span class="o">-</span><span class="nb">type</span> <span class="n">AES</span><span class="p">:</span><span class="mi">32</span>
 </pre></div>
 </div>
 </section>
