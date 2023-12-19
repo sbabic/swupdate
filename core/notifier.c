@@ -449,7 +449,7 @@ static void *notifier_thread (void __attribute__ ((__unused__)) *data)
 		errno = 0;
 		if (bind(serverfd, (const struct sockaddr *) &notify_server,
 			sizeof(struct sockaddr_un)) < 0) {
-			if (errno == EADDRINUSE && attempt < 10) {
+			if (errno == EADDRINUSE && attempt < 9) {
 				attempt++;
 				/*
 				 * Start increasing the socket as
