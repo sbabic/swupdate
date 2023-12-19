@@ -1848,7 +1848,9 @@ static server_op_res_t server_start(const char *fname, int argc, char *argv[])
 			}
 			if (channel_data_defaults.proxy == NULL) {
 				if ((getenv("http_proxy") == NULL) &&
-				    (getenv("all_proxy") == NULL)) {
+				    (getenv("https_proxy") == NULL) &&
+				    (getenv("HTTPS_PROXY") == NULL) &&
+				    (getenv("ALL_PROXY") == NULL)) {
 					ERROR("Should use proxy but no "
 					      "proxy environment "
 					      "variables nor proxy URL "
