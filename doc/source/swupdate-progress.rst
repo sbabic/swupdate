@@ -32,6 +32,8 @@ after an update.
         path to progress IPC socket in case the default is not taken
 -w
         waits for a SWUpdate connection instead of exit with error
+-q
+        don't print progress bar
 -h
         print a help
         
