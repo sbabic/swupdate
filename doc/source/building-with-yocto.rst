@@ -178,47 +178,23 @@ For example, to automatically set the version tag:
 Automatic versions in sw-description
 ------------------------------------
 
-By setting the version tag in the update file to `@SWU_AUTO_VERSION` it is
+By setting the version tag in the update file to `$swupdate_get_pkgvar(<package-name>)` it is
 automatically replaced with `PV` from BitBake's package-data-file for the package
-matching the name of the provided filename tag.
+matching the name of the provided <package-name> tag.
 For example, to set the version tag to `PV` of package `u-boot`:
 
 ::
 
-        filename = "u-boot";
-        ...
-        version = "@SWU_AUTO_VERSION";
-
-Since the filename can differ from package name (deployed with another name or
-the file is a container for the real package) you can append the correct package
-name to the tag: `@SWU_AUTO_VERSION:<package-name>`.
-For example, to set the version tag of the file `packed-bootloader` to `PV` of
-package `u-boot`:
-
-::
-
-        filename = "packed-bootloader";
-        ...
-        version = "@SWU_AUTO_VERSION:u-boot";
+        version = "$swupdate_get_pkgvar(u-boot)";
 
 To automatically insert the value of a variable from BitBake's package-data-file
 different to `PV` (e.g. `PKGV`) you can append the variable name to the tag:
-`@SWU_AUTO_VERSION@<package-data-variable>`.
+`$swupdate_get_pkgvar(<package-name>@<package-data-variable>)`
 For example, to set the version tag to `PKGV` of package `u-boot`:
 
 ::
 
-        filename = "u-boot";
-        ...
-        version = "@SWU_AUTO_VERSION@PKGV";
-
-Or combined with a different package name:
-
-::
-
-        filename = "packed-bootloader";
-        ...
-        version = "@SWU_AUTO_VERSION:u-boot@PKGV";
+        version = "$swupdate_get_pkgvar(u-bootPKGV)";
 
 Using checksum for version
 --------------------------
