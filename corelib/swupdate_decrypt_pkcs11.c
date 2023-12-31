@@ -49,6 +49,7 @@ struct swupdate_digest *swupdate_DECRYPT_init(unsigned char *uri,
 	if (err) {
 		msg = p11_kit_uri_message(err);
 		ERROR("PKCS#11 URI: %s", msg);
+		free(dgst);
 		return NULL;
 	}
 
