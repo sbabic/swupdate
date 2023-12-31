@@ -48,7 +48,10 @@ static void RHset_payload(struct RHmsg *self, const void *body, size_t size)
 {
     zmq_msg_t *msg = &self->frame[FRAME_BODY];
     zmq_msg_init_size(msg, size);
-    memcpy (zmq_msg_data(msg), body, size);
+    if ((body != NULL) && (size > 0))
+    {
+        memcpy (zmq_msg_data(msg), body, size);
+    }
 }
 
 static int RHmsg_send_cmd(struct RHmsg *self, void *request)
