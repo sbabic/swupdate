@@ -108,6 +108,11 @@ struct swupdate_digest {
 #else
 	EVP_CIPHER_CTX *ctxdec;
 #endif
+#ifdef CONFIG_SIGALG_GPG
+	char *gpg_home_directory;
+	int verbose;
+	char *gpgme_protocol;
+#endif
 };
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
@@ -159,7 +164,7 @@ struct swupdate_digest {
 #endif /* CONFIG_PKCS11 */
 #ifdef CONFIG_SIGALG_GPG
 	char *gpg_home_directory;
-	int verbose
+	int verbose;
 	char *gpgme_protocol;
 #endif
 };
