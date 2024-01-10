@@ -2,7 +2,8 @@
 #
 # SPDX-License-Identifier:     GPL-2.0-only
 
-lib-y				+= multipart_parser.o \
+lib-y				+= emmc_utils.o \
+				   multipart_parser.o \
 				   parsing_library_libjson.o \
 				   server_utils.o
 lib-$(CONFIG_DOWNLOAD)		+= downloader.o

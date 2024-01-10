@@ -14,6 +14,7 @@ obj-$(CONFIG_BTRFS_FILESYSTEM) += btrfs_handler.o
 obj-$(CONFIG_COPY) += copy_handler.o
 obj-$(CONFIG_CFI)	+= flash_handler.o
 obj-$(CONFIG_DELTA)	+= delta_handler.o delta_downloader.o zchunk_range.o
+obj-$(CONFIG_EMMC_HANDLER)	+= emmc_csd_handler.o
 obj-$(CONFIG_DISKFORMAT_HANDLER)	+= diskformat_handler.o
 obj-$(CONFIG_DISKPART)	+= diskpart_handler.o
 obj-$(CONFIG_UNIQUEUUID)	+= uniqueuuid_handler.o

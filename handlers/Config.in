@@ -140,6 +140,17 @@ config EMBEDDED_LUA_HANDLER_SOURCE
 	  Path to the Lua handler source code file to be
 	  embedded into the SWUpdate binary.
 
+
+config EMMC_HANDLER
+	bool "eMMC handler"
+	default n
+	help
+	  This handler allows to switch the boot partitions via
+	  the eMMC internal CSD register. One common use case is to 
+	  upgrade the bootloader, using the two hardware partitions
+	  with a dual-copy concept. This guarantees that the upgrade
+	  is power-cut safe.
+
 config RAW
 	bool "raw"
 	default n
