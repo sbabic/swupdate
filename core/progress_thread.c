@@ -24,7 +24,6 @@
 
 #include "swupdate.h"
 #include <handler.h>
-#include "swupdate_status.h"
 #include "util.h"
 #include "pctl.h"
 #include "network_ipc.h"
@@ -122,7 +121,6 @@ static void _swupdate_download_update(unsigned int perc, unsigned long long tota
 		pprog->msg.dwl_percent = perc;
 		pprog->msg.dwl_bytes = totalbytes;
 		send_progress_msg();
-		pprog->msg.source = SOURCE_UNKNOWN;
 	}
 	pthread_mutex_unlock(&pprog->lock);
 }
