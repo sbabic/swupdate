@@ -710,6 +710,7 @@ void *network_initializer(void *data)
 
 		pthread_mutex_lock(&stream_mutex);
 		inst.status = IDLE;
+		inst.req.source = SOURCE_UNKNOWN;
 		pthread_mutex_unlock(&stream_mutex);
 		TRACE("Main thread sleep again !");
 		notify(IDLE, RECOVERY_NO_ERROR, INFOLEVEL, "Waiting for requests...");
@@ -779,13 +780,17 @@ void get_install_running_mode(char *buf, size_t len)
  * The data is not locked because it is retrieve
  * at different times
  */
-int get_install_info(sourcetype *source, char *buf, size_t len)
+int get_install_info(char *buf, size_t len)
 {
 	len = min(len - 1, strlen(inst.req.info));
 	strncpy(buf, inst.req.info, len);
-	*source = inst.req.source;
 
 	return len;
+}
+
+sourcetype get_install_source(void)
+{
+	return inst.req.source;
 }
 
 void set_version_range(const char *minversion,

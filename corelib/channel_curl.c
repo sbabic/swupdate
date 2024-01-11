@@ -463,7 +463,7 @@ static int channel_callback_xferinfo(void *p, curl_off_t dltotal, curl_off_t dln
 	DEBUG("Downloaded %d%% (%zu of %zu kB).", percent,
 		(size_t)dlnow / 1024,
 		(size_t)dltotal / 1024);
-	swupdate_download_update(percent, dltotal, data->source);
+	swupdate_download_update(percent, dltotal);
 
 	return 0;
 }

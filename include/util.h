@@ -245,7 +245,8 @@ unsigned char *get_aes_ivt(void);
 int set_aes_key(const char *key, const char *ivt);
 
 /* Getting global information */
-int get_install_info(sourcetype *source, char *buf, size_t len);
+int get_install_info(char *buf, size_t len);
+sourcetype  get_install_source(void);
 void get_install_swset(char *buf, size_t len);
 void get_install_running_mode(char *buf, size_t len);
 char *get_root_device(void);

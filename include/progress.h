@@ -24,6 +24,6 @@ void swupdate_progress_end(RECOVERY_STATUS status);
 void swupdate_progress_done(const char *info);
 void swupdate_progress_info(RECOVERY_STATUS status, int cause, const char *msg);
 
-void swupdate_download_update(unsigned int perc, unsigned long long totalbytes, sourcetype source);
+void swupdate_download_update(unsigned int perc, unsigned long long totalbytes);
 
 void *progress_bar_thread (void *data);

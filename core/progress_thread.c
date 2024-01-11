@@ -85,6 +85,7 @@ static void send_progress_msg(void)
 		buf = &pprog->msg;
 		count = sizeof(pprog->msg);
 		errno = 0;
+		pprog->msg.source = get_install_source();
 		while (count > 0) {
 			int attempt = 0;
 			do {
@@ -107,7 +108,7 @@ static void send_progress_msg(void)
 	}
 }
 
-static void _swupdate_download_update(unsigned int perc, unsigned long long totalbytes, sourcetype source)
+static void _swupdate_download_update(unsigned int perc, unsigned long long totalbytes)
 {
 	/*
 	 * TODO: totalbytes should be forwarded correctly
@@ -117,7 +118,6 @@ static void _swupdate_download_update(unsigned int perc, unsigned long long tota
 	pthread_mutex_lock(&pprog->lock);
 	if (perc != pprog->msg.dwl_percent) {
 		pprog->msg.status = DOWNLOAD;
-		pprog->msg.source = source;
 		pprog->msg.dwl_percent = perc;
 		pprog->msg.dwl_bytes = totalbytes;
 		send_progress_msg();
@@ -133,9 +133,10 @@ void swupdate_progress_init(unsigned int nsteps) {
 	pprog->msg.nsteps = nsteps;
 	pprog->msg.cur_step = 0;
 	pprog->msg.status = START;
-	pprog->msg.cur_percent = 0;
-	pprog->msg.infolen = get_install_info(&pprog->msg.source, pprog->msg.info,
+		pprog->msg.cur_percent = 0;
+	pprog->msg.infolen = get_install_info(pprog->msg.info,
 						sizeof(pprog->msg.info));
+	pprog->msg.source = get_install_source();
 	send_progress_msg();
 	/* Info is just an event, reset it after sending */
 	pprog->msg.infolen = 0;
@@ -161,7 +162,7 @@ void swupdate_progress_update(unsigned int perc)
 	pthread_mutex_unlock(&pprog->lock);
 }
 
-void swupdate_download_update(unsigned int perc, unsigned long long totalbytes, sourcetype source)
+void swupdate_download_update(unsigned int perc, unsigned long long totalbytes)
 {
 	char	info[PRINFOSIZE];   		/* info */
 
@@ -175,13 +176,13 @@ void swupdate_download_update(unsigned int perc, unsigned long long totalbytes, 
 		 * and decode them in the notifier, in this case
 		 * the progress_notifier
 		 */
-		snprintf(info, sizeof(info) - 1, "%d-%llu-%d", perc, totalbytes, source);
+		snprintf(info, sizeof(info) - 1, "%d-%llu", perc, totalbytes);
 		notify(PROGRESS, RECOVERY_DWL, TRACELEVEL, info);
 		return;
 	}
 
 	/* Called by main process, emit a progress message */
-	_swupdate_download_update(perc, totalbytes, source);
+	_swupdate_download_update(perc, totalbytes);
 }
 
 void swupdate_progress_inc_step(const char *image, const char *handler_name)

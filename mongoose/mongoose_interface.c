@@ -584,7 +584,7 @@ static void upload_handler(struct mg_connection *nc, int ev, void *ev_data,
 				break;
 			}
 
-			swupdate_download_update(0, mp->len, SOURCE_WEBSERVER);
+			swupdate_download_update(0, mp->len);
 
 			if (swupdate_file_setnonblock(fus->fd, true)) {
 				WARN("IPC cannot be set in non-blocking, fallback to block mode");
@@ -637,7 +637,7 @@ static void upload_handler(struct mg_connection *nc, int ev, void *ev_data,
 			percent = (uint8_t)(100.0 * ((double)fus->len / (double)mp->len));
 			if (percent != fus->percent) {
 				fus->percent = percent;
-				swupdate_download_update(fus->percent, mp->len, SOURCE_WEBSERVER);
+				swupdate_download_update(fus->percent, mp->len);
 			}
 
 			fus->last_io_time = mg_millis();
