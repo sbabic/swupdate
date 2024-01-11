@@ -220,7 +220,7 @@ static bool get_common_fields(parsertype p, void *cfg, struct swupdate_cfg *swcf
 		get_field(p, setting, NULL, &swcfg->reboot_required);
 	}
 
-	TRACE("rebot_required %d", swcfg->reboot_required);
+	TRACE("reboot_required %d", swcfg->reboot_required);
 
 	/*
 	 * Check if SWU should be cached
