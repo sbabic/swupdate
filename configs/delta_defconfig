@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023 Stefano Babic <sbabic@denx.de>
+# SPDX-FileCopyrightText: 2023 Stefano Babic <stefano.babic@swupdate.org>
 # SPDX-License-Identifier: CC0-1.0
 CONFIG_HW_COMPATIBILITY=y
 # CONFIG_MTD is not set

@@ -1,4 +1,4 @@
 # SPDX-License-Identifier: MIT
-# Copyright (C) Stefano Babic <sbabic@denx.de>
+# Copyright (C) Stefano Babic <stefano.babic@swupdate.org>
 # Put structs here that should be constant
 __dummy__

@@ -1,6 +1,6 @@
 /*
  * (C) Copyright 2019
- * Stefano Babic, DENX Software Engineering, sbabic@denx.de.
+ * Stefano Babic, stefano.babic@swupdate.org.
  * (C) Copyright 2023
  * Bastian Germann
  *

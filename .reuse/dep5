@@ -1,6 +1,6 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: SWUpdate
-Upstream-Contact: Stefano Babic <sbabic@denx.de>
+Upstream-Contact: Stefano Babic <stefano.babic@swupdate.org>
 Source: https://github.com/sbabic/swupdate
 
 Files: examples/www/v2/css/fontawesome.min.css
@@ -36,7 +36,7 @@ Copyright: 2016 Andres Babic <andres.babic@gmail.com>
 License: CC-BY-SA-4.0
 
 Files: examples/description/sw-description-json
-Copyright: 2013-2021 Stefano Babic <sbabic@denx.de>
+Copyright: 2013-2021 Stefano Babic <stefano.babic@swupdate.org>
 License: CC0-1.0
 
 Files: examples/www/v2/images/background.jpg
@@ -84,5 +84,5 @@ Copyright: Free Software Foundation, Inc.
 License: GPL-2.0-only
 
 Files: doc/source/images/*
-Copyright: 2013-2021 Stefano Babic <sbabic@denx.de>
+Copyright: 2013-2021 Stefano Babic <stefano.babic@swupdate.org>
 License: GPL-2.0-only

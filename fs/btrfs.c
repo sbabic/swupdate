@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Stefano Babic, sbabic@denx.de
+ * Copyright (C) 2023 Stefano Babic, stefano.babic@swupdate.org
  *
  * SPDX-License-Identifier:     GPL-2.0-only
  */

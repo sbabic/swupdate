@@ -1,5 +1,5 @@
 <!--
-SPDX-FileCopyrightText: 2013 Stefano Babic <sbabic@denx.de>
+SPDX-FileCopyrightText: 2013 Stefano Babic <stefano.babic@swupdate.org>
 
 SPDX-License-Identifier: GPL-2.0-only
 -->

@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2018 Stefano Babic <sbabic@denx.de>
+# SPDX-FileCopyrightText: 2018 Stefano Babic <stefano.babic@swupdate.org>
 # SPDX-FileCopyrightText: 2021 Blueye Robotics AS
 #
 # SPDX-License-Identifier:     GPL-2.0-only

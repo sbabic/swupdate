@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: 2023 Stefano Babic <sbabic@denx.de>
+# SPDX-FileCopyrightText: 2023 Stefano Babic <stefano.babic@swupdate.org>
 #
 # SPDX-License-Identifier:     GPL-2.0-only
 from setuptools import setup, find_packages

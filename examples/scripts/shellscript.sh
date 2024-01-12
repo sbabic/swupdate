@@ -1,5 +1,5 @@
 #!/bin/sh
-# SPDX-FileCopyrightText: 2021 Stefano Babic <sbabic@denx.de>
+# SPDX-FileCopyrightText: 2021 Stefano Babic <stefano.babic@swupdate.org>
 # SPDX-License-Identifier: CC0-1.0
 
 #example type = "shellscript";

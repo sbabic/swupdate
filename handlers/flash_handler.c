@@ -1,6 +1,6 @@
 /*
  * (C) Copyright 2014-2016
- * Stefano Babic, DENX Software Engineering, sbabic@denx.de.
+ * Stefano Babic, stefano.babic@swupdate.org.
  *
  * Hamming code from
  * https://github.com/martinezjavier/writeloader

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Stefano Babic, sbabic@denx.de
+ * Copyright (C) 2021 Stefano Babic, stefano.babic@swupdate.org
  *
  * The code is mostly taken and modified from
  * mke2fs.c - Make a ext2fs filesystem.
