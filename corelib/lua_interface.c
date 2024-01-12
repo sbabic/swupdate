@@ -973,6 +973,22 @@ l_get_hw_exit:
 	return 1;
 }
 
+static int l_get_emmc_bootpart(lua_State *L)
+{
+	const char *device = luaL_checkstring(L, 1);
+	int active = -1, fd;
+
+	if (device) {
+		fd = open(device, O_RDONLY);
+		if (fd) {
+			active = emmc_get_active_bootpart(fd);
+			close(fd);
+		}
+	}
+	lua_pushinteger(L, active);
+	return 1;
+}
+
 static void lua_push_enum(lua_State *L, const char *name, int value)
 {
 	lua_pushstring(L, name);
@@ -1194,6 +1210,7 @@ static const luaL_Reg l_swupdate[] = {
         { "get_hw", l_get_hw },
         { "getversion", lua_get_swupdate_version },
         { "progress", lua_notify_progress },
+        { "emmcbootpart", l_get_emmc_bootpart },
         { NULL, NULL }
 };
 
