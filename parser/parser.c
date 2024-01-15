@@ -403,6 +403,22 @@ static int run_embscript(parsertype p, void *elem, struct img_type *img,
 	return lua_parser_fn(L, embfcn, img);
 }
 
+static void get_ivt_value(parsertype p, void *elem, char *ivt_ascii)
+{
+	size_t ivtlen;
+	const char *s = NULL;
+
+	s = get_field_string(p, elem, "ivt");
+	if (s) {
+		ivtlen = strnlen(s, SWUPDATE_GENERAL_STRING_SIZE);
+		if (ivtlen != (AES_BLK_SIZE * 2)) {
+			ERROR("Invalid ivt length");
+			return;
+		}
+		strncpy(ivt_ascii, s, ivtlen);
+	}
+}
+
 static int parse_common_attributes(parsertype p, void *elem, struct img_type *image, struct swupdate_cfg *cfg)
 {
 	char seek_str[MAX_SEEK_STRING_SIZE];
@@ -466,7 +482,7 @@ static int parse_common_attributes(parsertype p, void *elem, struct img_type *im
 	GET_FIELD_BOOL(p, elem, "install-if-different", &image->id.install_if_different);
 	GET_FIELD_BOOL(p, elem, "install-if-higher", &image->id.install_if_higher);
 	GET_FIELD_BOOL(p, elem, "encrypted", &image->is_encrypted);
-	GET_FIELD_STRING(p, elem, "ivt", image->ivt_ascii);
+	get_ivt_value(p, elem, image->ivt_ascii);
 
 	if (is_image_installed(&cfg->installed_sw_list, image)) {
 		image->skip = SKIP_SAME;
