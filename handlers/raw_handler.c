@@ -153,6 +153,7 @@ static int install_raw_file(struct img_type *img,
 	char tmp_path[255];
 	int fdout = -1;
 	int ret = -1;
+	int cleanup_ret;
 	int use_mount = (strlen(img->device) && strlen(img->filesystem)) ? 1 : 0;
 	char* DATADST_DIR = alloca(strlen(get_tmpdir())+strlen(DATADST_DIR_SUFFIX)+1);
 	sprintf(DATADST_DIR, "%s%s", get_tmpdir(), DATADST_DIR_SUFFIX);
@@ -244,12 +245,12 @@ cleanup:
 		close(fdout);
 
 	if (use_mount) {
-		ret = swupdate_umount(DATADST_DIR);
-		if (ret)
+		cleanup_ret = swupdate_umount(DATADST_DIR);
+		if (cleanup_ret)
 			WARN("Can't unmount path %s: %s", DATADST_DIR, strerror(errno));
 	}
 
-	return ret;
+	return (ret ? ret : cleanup_ret);
 }
 
 __attribute__((constructor))
