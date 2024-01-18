@@ -1296,10 +1296,11 @@ should be in a format accepted by docker.
 ::
 
         images: (
+	{
                 filename = "docker-image.tar"
                 type = "docker_imageload";
                 installed-directly = true;
-        )
+        });
 
 The handler checks return value (JSON message) from the daemon, and returns with success if the image
 is added.
