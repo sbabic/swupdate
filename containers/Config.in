@@ -8,6 +8,7 @@ config DOCKER
 	bool "Support Docker REST API"
 	depends on HAVE_LIBCURL
 	default n
+	select CHANNEL_CURL
 	help
 	  Add native support for container. This implements a part of the REST API,
 	  what is required to install new images.
