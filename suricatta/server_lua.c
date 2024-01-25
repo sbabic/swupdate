@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <pthread.h>
+#include <sys/stat.h>
 
 #include <lua.h>
 #include <lauxlib.h>
