@@ -19,7 +19,6 @@
 #include <sys/un.h>
 #include <sys/select.h>
 #include <sys/reboot.h>
-#include <linux/reboot.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <pthread.h>
@@ -194,7 +193,7 @@ static void reboot_device(void)
 {
 	sleep(5);
 	sync();
-	if (reboot(LINUX_REBOOT_CMD_RESTART) < 0) { /* Should never happen. */
+	if (reboot(RB_AUTOBOOT) < 0) { /* Should never happen. */
 		fprintf(stdout, "Please reset the board.\n");
 	}
 }
