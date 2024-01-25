@@ -12,7 +12,10 @@
 #include <errno.h>
 #include <time.h>
 #include <sys/stat.h>
+#if defined(__linux__)
 #include <sys/sysmacros.h>
+#endif
+#include <sys/types.h>
 
 #include "lua.h"
 #include "lauxlib.h"
