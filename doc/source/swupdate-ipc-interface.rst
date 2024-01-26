@@ -286,6 +286,18 @@ Install API
 
 This initiates an update: the initiator sends the request and start to stream the SWU in the same
 way as described in :ref:`install_api`.
+The ``POST /upload`` request contains:
+
+- the SWU file in its body
+- the following header field
+
+    ``Content-Type: multipart/form-data; boundary...``
+
+For example to stream the SWU file and start the update procedure using ``curl``:
+
+::
+
+        curl -F file=@update_file.swu http://host:8080/upload
 
 Restart API
 -----------
