@@ -204,18 +204,13 @@ static void lua_report_exception(lua_State *L)
 	} while (*s++);
 }
 
-int run_lua_script(const char *script, const char *function, char *parms)
+int run_lua_script(lua_State *L, const char *script, const char *function, char *parms)
 {
 	int ret;
 	const char *output;
 
-	lua_State *L = luaL_newstate(); /* opens Lua */
-	luaL_openlibs(L); /* opens the standard libraries */
-	luaL_requiref(L, "swupdate", luaopen_swupdate, 1 );
-
 	if (luaL_loadfile(L, script)) {
 		ERROR("ERROR loading %s", script);
-		lua_close(L);
 		return -1;
 	}
 
@@ -224,13 +219,11 @@ int run_lua_script(const char *script, const char *function, char *parms)
 		LUAstackDump(L);
 		ERROR("ERROR preparing Lua script %s %d",
 			script, ret);
-		lua_close(L);
 		return -1;
 	}
 
 	lua_getglobal(L, function);
 	if(!lua_isfunction(L,lua_gettop(L))) {
-		lua_close(L);
 		TRACE("Script : no %s in %s script, exiting", function, script);
 		return 0;
 	}
@@ -241,7 +234,6 @@ int run_lua_script(const char *script, const char *function, char *parms)
 	if (lua_pcall(L, 1, 2, 0)) {
 		LUAstackDump(L);
 		ERROR("ERROR Calling Lua script %s", script);
-		lua_close(L);
 		return -1;
 	}
 
@@ -256,8 +248,6 @@ int run_lua_script(const char *script, const char *function, char *parms)
 		output = lua_tostring(L, -1);
 		TRACE("Script output: %s script end", output);
 	}
-
-	lua_close(L);
 
 	return ret;
 }

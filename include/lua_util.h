@@ -20,7 +20,7 @@ typedef enum {
 } root_dev_type;
 
 void LUAstackDump (lua_State *L);
-int run_lua_script(const char *script, const char *function, char *parms);
+int run_lua_script(lua_State *L, const char *script, const char *function, char *parms);
 lua_State *lua_init(struct dict *bootenv);
 int lua_load_buffer(lua_State *L, const char *buf);
 int lua_parser_fn(lua_State *L, const char *fcn, struct img_type *img);

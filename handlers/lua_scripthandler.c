@@ -29,12 +29,19 @@ static int start_lua_script(struct img_type *img, void *data)
 	int ret;
 	const char *fnname;
 	struct script_handler_data *script_data;
-
+	lua_State *L;
 	const char* tmp = get_tmpdirscripts();
 	char filename[MAX_IMAGE_FNAME + strlen(tmp) + 2 + strlen(img->type_data)];
 
 	if (!data)
 		return -1;
+
+	L = lua_init(img->bootloader);
+
+	if (!L) {
+		ERROR("Lua state cannot be instantiated");
+		return -1;
+	}
 
 	script_data = data;
 
@@ -54,10 +61,11 @@ static int start_lua_script(struct img_type *img, void *data)
 		"%s%s", tmp, img->fname);
 	TRACE("Calling Lua %s", filename);
 
-	ret = run_lua_script(filename, fnname, img->type_data);
+	ret = run_lua_script(L, filename, fnname, img->type_data);
+
+	lua_close(L);
 
 	return ret;
-
 }
 
  __attribute__((constructor))
