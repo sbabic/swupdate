@@ -153,7 +153,7 @@ static int install_raw_file(struct img_type *img,
 	char tmp_path[255];
 	int fdout = -1;
 	int ret = -1;
-	int cleanup_ret;
+	int cleanup_ret = 0;
 	int use_mount = (strlen(img->device) && strlen(img->filesystem)) ? 1 : 0;
 	char* DATADST_DIR = alloca(strlen(get_tmpdir())+strlen(DATADST_DIR_SUFFIX)+1);
 	sprintf(DATADST_DIR, "%s%s", get_tmpdir(), DATADST_DIR_SUFFIX);
