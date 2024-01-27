@@ -906,6 +906,9 @@ static int l_set_bootenv(lua_State *L) {
 	const char *name = luaL_checkstring(L, 1);
 	const char *value = luaL_checkstring(L, 2);
 
+	if (!bootenv)
+		return -1;
+
 	if (name && strlen(name))
 		dict_set_value(bootenv, name, value ? value : "");
 	lua_pop(L, 2);
