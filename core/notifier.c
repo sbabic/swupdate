@@ -236,9 +236,12 @@ void notify(RECOVERY_STATUS status, int error, int level, const char *msg)
 				strlcpy(notifymsg.buf, msg, sizeof(notifymsg.buf) - 1);
 			else
 				notifymsg.buf[0] = '\0';
-			sendto(notifyfd, &notifymsg, sizeof(notifymsg), 0,
-			      (struct sockaddr *) &notify_server,
-				sizeof(struct sockaddr_un));
+			if (-1 == sendto(notifyfd, &notifymsg, sizeof(notifymsg), 0,
+					 (struct sockaddr *)&notify_server,
+					 sizeof(struct sockaddr_un))) {
+				fprintf(stderr, "notify() failed with error %d: %s\n",
+					errno, strerror(errno));
+			}
 		}
 	} else { /* Main process */
 		pthread_mutex_lock(&clients_mutex);
