@@ -28,16 +28,6 @@
 #include "swupdate_image.h"
 #include "docker_interface.h"
 
-void docker_loadimage_handler(void);
-void docker_deleteimage_handler(void);
-void docker_pruneimage_handler(void);
-void docker_createcontainer_handler(void);
-void docker_deletecontainer_handler(void);
-void docker_container_start_handler(void);
-void docker_container_stop_handler(void);
-
-typedef server_op_res_t (*docker_fn)(const char *name);
-
 #define FIFO_THREAD_READ	0
 #define FIFO_HND_WRITE		1
 
@@ -154,10 +144,11 @@ handler_exit:
 }
 
 /*
- * Implementation POST /container/create
+ * Docker API requires one parameter and maybe a JSON file used as configuration.
+ * Pass to the docker client the properties (only name is checked) and a JSON file if
+ * present. This is the script itself and not an "artifact image".
  */
-static int docker_create_container(struct img_type *img,
-	void __attribute__ ((__unused__)) *data)
+static int docker_send_cmd_with_setup(struct img_type *img, void *data, docker_services_t service)
 {
 	struct script_handler_data *script_data = data;
 	char *script = NULL;
@@ -172,7 +163,6 @@ static int docker_create_container(struct img_type *img,
 	if (!script_data || script_data->scriptfn != POSTINSTALL)
 		return 0;
 
-
 	if (asprintf(&script, "%s%s", get_tmpdirscripts(), img->fname) == ENOMEM_ASPRINTF) {
 		ERROR("OOM when creating script path");
 		return -ENOMEM;
@@ -181,14 +171,17 @@ static int docker_create_container(struct img_type *img,
 	if (stat(script, &sb) == -1) {
 		ERROR("stat fails on %s", script);
 		result = -EFAULT;
-		goto create_container_exit;
+		goto send_to_docker_exit;
 	}
 
+	/*
+	 * Load the script / JSON config in memory
+	 */
 	fd = open(script, O_RDONLY);
 	if (fd < 0) {
 		ERROR("%s cannot be opened, exiting..", script);
 		result = -EFAULT;
-		goto create_container_exit;
+		goto send_to_docker_exit;
 	}
 
 	buf = (char *)malloc(sb.st_size);
@@ -196,7 +189,7 @@ static int docker_create_container(struct img_type *img,
 		ERROR("OOM creating buffer for reading %s of %ld bytes",
 		      script, sb.st_size);
 		result =  -ENOMEM;
-		goto create_container_exit;
+		goto send_to_docker_exit;
 	}
 
 	ssize_t n = read(fd, buf, sb.st_size);
@@ -204,16 +197,32 @@ static int docker_create_container(struct img_type *img,
 		ERROR("Script %s cannot be read, return value %ld != %ld",
 		      script, n, sb.st_size);
 		result = -EFAULT;
-		goto create_container_exit;
+		goto send_to_docker_exit;
 	}
 
+	/*
+	 * Check for a "name" properties - this is mandatory
+	 * when a resource is deleted
+	 */
 	char *name = dict_get_value(&img->properties, "name");
 
-	TRACE("DOCKER CREATE CONTAINER");
+	/*
+	 * Retrieve which function is responsible for a service
+	 */
+	docker_fn fn = docker_fn_lookup(service);
 
-	result = docker_container_create(name, buf);
+	/*
+	 * Call docker internal client
+	 */
+	if (fn) {
+		result = fn(name, buf);
+	} else {
+		result = -EINVAL;
+		ERROR("Service %d not supported", service);
+	}
 
-create_container_exit:
+send_to_docker_exit:
+	/* cleanup and exit */
 	free(script);
 	free(buf);
 	if (fd > 0) close(fd);
@@ -223,11 +232,14 @@ create_container_exit:
 }
 
 /*
- * Implementation DELETE /container/{id}
+ * Simple service without configuration file
+ * Just lokup for the client function and call it
  */
-static int docker_query(struct img_type *img, void *data, docker_fn fn)
+static int docker_query(struct img_type *img, void *data, docker_services_t service)
 {
 	struct script_handler_data *script_data = data;
+	docker_fn fn;
+
 	/*
 	 * Call only in case of postinstall
 	 */
@@ -241,52 +253,85 @@ static int docker_query(struct img_type *img, void *data, docker_fn fn)
 		return -EINVAL;
 	}
 
-	return fn(name);
+	fn = docker_fn_lookup(service);
+
+	if (!fn) {
+		ERROR("Docker service %d nbot supported", service);
+		return -EINVAL;
+	}
+	return fn(name, NULL);
+}
+
+/* Docker service wrappers */
+static int container_create(struct img_type *img, void *data)
+{
+	return docker_send_cmd_with_setup(img, data, DOCKER_CONTAINER_CREATE);
 }
 
 static int container_delete(struct img_type *img, void *data)
 {
-	return docker_query(img, data, docker_container_remove);
+	return docker_query(img, data, DOCKER_CONTAINER_DELETE);
 }
 
 static int image_delete(struct img_type *img, void *data)
 {
-	return docker_query(img, data, docker_image_remove);
+	return docker_query(img, data, DOCKER_IMAGE_DELETE);
 }
 
 static int image_prune(struct img_type *img, void *data)
 {
-	return docker_query(img, data, docker_image_prune);
+	return docker_query(img, data, DOCKER_IMAGE_PRUNE);
 }
-
 
 static int container_start(struct img_type *img, void *data)
 {
-	return docker_query(img, data, docker_container_start);
+	return docker_query(img, data, DOCKER_CONTAINER_START);
+}
+
+static int network_create(struct img_type *img, void *data)
+{
+	return docker_send_cmd_with_setup(img, data, DOCKER_NETWORKS_CREATE);
+}
+
+static int network_delete(struct img_type *img, void *data)
+{
+	return docker_query(img, data, DOCKER_NETWORKS_DELETE);
+}
+
+static int volume_create(struct img_type *img, void *data)
+{
+	return docker_send_cmd_with_setup(img, data, DOCKER_VOLUMES_CREATE);
+}
+
+static int volume_delete(struct img_type *img, void *data)
+{
+	return docker_query(img, data, DOCKER_VOLUMES_DELETE);
 }
 
 
 static int container_stop(struct img_type *img, void *data)
 {
-	return docker_query(img, data, docker_container_stop);
+	return docker_query(img, data, DOCKER_CONTAINER_STOP);
 }
 
+/* Handlers entry points */
+
 __attribute__((constructor))
-void docker_loadimage_handler(void)
+static void docker_loadimage_handler(void)
 {
 	register_handler("docker_imageload", docker_install_image,
 				IMAGE_HANDLER, NULL);
 }
 
 __attribute__((constructor))
-void docker_deleteimage_handler(void)
+static void docker_deleteimage_handler(void)
 {
 	register_handler("docker_imagedelete", image_delete,
 				SCRIPT_HANDLER | NO_DATA_HANDLER, NULL);
 }
 
 __attribute__((constructor))
-void docker_pruneimage_handler(void)
+static void docker_pruneimage_handler(void)
 {
 	register_handler("docker_imageprune", image_prune,
 				SCRIPT_HANDLER | NO_DATA_HANDLER, NULL);
@@ -294,29 +339,57 @@ void docker_pruneimage_handler(void)
 
 
 __attribute__((constructor))
-void docker_createcontainer_handler(void)
+static void docker_createcontainer_handler(void)
 {
-	register_handler("docker_containercreate", docker_create_container,
+	register_handler("docker_containercreate", container_create,
 				SCRIPT_HANDLER, NULL);
 }
 
 __attribute__((constructor))
-void docker_deletecontainer_handler(void)
+static void docker_deletecontainer_handler(void)
 {
 	register_handler("docker_containerdelete", container_delete,
 				SCRIPT_HANDLER | NO_DATA_HANDLER, NULL);
 }
 
 __attribute__((constructor))
-void docker_container_start_handler(void)
+static void docker_container_start_handler(void)
 {
 	register_handler("docker_containerstart", container_start,
 				SCRIPT_HANDLER | NO_DATA_HANDLER, NULL);
 }
 
 __attribute__((constructor))
-void docker_container_stop_handler(void)
+static void docker_container_stop_handler(void)
 {
 	register_handler("docker_containerstart", container_stop,
+				SCRIPT_HANDLER | NO_DATA_HANDLER, NULL);
+}
+
+__attribute__((constructor))
+static void docker_createnetwork_handler(void)
+{
+	register_handler("docker_networkcreate", network_create,
+				SCRIPT_HANDLER, NULL);
+}
+
+__attribute__((constructor))
+static void docker_deletenetwork_handler(void)
+{
+	register_handler("docker_networkdelete", network_delete,
+				SCRIPT_HANDLER | NO_DATA_HANDLER, NULL);
+}
+
+__attribute__((constructor))
+static void docker_createvolume_handler(void)
+{
+	register_handler("docker_volumecreate", volume_create,
+				SCRIPT_HANDLER, NULL);
+}
+
+__attribute__((constructor))
+static void docker_deletevolume_handler(void)
+{
+	register_handler("docker_volumedelete", volume_delete,
 				SCRIPT_HANDLER | NO_DATA_HANDLER, NULL);
 }

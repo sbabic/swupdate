@@ -27,16 +27,33 @@
 typedef struct {
 	const char *url;
 	channel_method_t method;
+	docker_fn func;
+	const char *desc;
 } docker_api_t;
 
+static server_op_res_t docker_container_create(const char *name, const char *setup);
+static server_op_res_t docker_image_remove(const char *name, const char *setup);
+static server_op_res_t docker_image_prune(const char *name, const char *setup);
+static server_op_res_t docker_container_remove(const char *name, const char *setup);
+static server_op_res_t docker_container_start(const char *name, const char *setup);
+static server_op_res_t docker_container_stop(const char *name, const char *setup);
+static server_op_res_t docker_volumes_create(const char *name, const char *setup);
+static server_op_res_t docker_volumes_remove(const char *name, const char *setup);
+static server_op_res_t docker_networks_create(const char *name, const char *setup);
+static server_op_res_t docker_networks_remove(const char *name, const char *setup);
+
 docker_api_t docker_api[] = {
-	[DOCKER_IMAGE_LOAD] = {"/images/load", CHANNEL_POST},
-	[DOCKER_IMAGE_DELETE] = {"/images/%s", CHANNEL_DELETE},
-	[DOCKER_IMAGE_PRUNE] = {"/images/prune", CHANNEL_POST},
-	[DOCKER_CONTAINER_CREATE] = {"/containers/create", CHANNEL_POST},
-	[DOCKER_CONTAINER_DELETE] = {"/containers/%s", CHANNEL_DELETE},
-	[DOCKER_CONTAINER_START] = {"/containers/%s/start", CHANNEL_POST},
-	[DOCKER_CONTAINER_STOP] = {"/containers/%s/stop", CHANNEL_POST},
+	[DOCKER_IMAGE_LOAD] = {"/images/load", CHANNEL_POST, NULL, "load image"},
+	[DOCKER_IMAGE_DELETE] = {"/images/%s", CHANNEL_DELETE, docker_image_remove, "remove image"},
+	[DOCKER_IMAGE_PRUNE] = {"/images/prune", CHANNEL_POST, docker_image_prune, "prune images"},
+	[DOCKER_CONTAINER_CREATE] = {"/containers/create", CHANNEL_POST, docker_container_create, "create container"},
+	[DOCKER_CONTAINER_DELETE] = {"/containers/%s", CHANNEL_DELETE, docker_container_remove, "remove container"},
+	[DOCKER_CONTAINER_START] = {"/containers/%s/start", CHANNEL_POST, docker_container_start, "start container"},
+	[DOCKER_CONTAINER_STOP] = {"/containers/%s/stop", CHANNEL_POST, docker_container_stop, "stop container"},
+	[DOCKER_VOLUMES_CREATE] = {"/volumes/create", CHANNEL_POST, docker_volumes_create, "create volume"},
+	[DOCKER_VOLUMES_DELETE] = {"/volumes/%s", CHANNEL_DELETE, docker_volumes_remove, "remove volume"},
+	[DOCKER_NETWORKS_CREATE] = {"/networks/create", CHANNEL_POST, docker_networks_create, "create network"},
+	[DOCKER_NETWORKS_DELETE] = {"/networks/%s", CHANNEL_DELETE, docker_networks_remove, "remove network"},
 };
 
 static channel_data_t channel_data_defaults = {.debug = true,
@@ -110,6 +127,53 @@ static server_op_res_t evaluate_docker_answer(json_object *json_reply)
 	return SERVER_EBADMSG;
 }
 
+static server_op_res_t docker_send_request(docker_services_t service, char *url, const char *setup)
+{
+	channel_t *channel;
+	channel_op_res_t ch_response;
+	server_op_res_t result = SERVER_OK;
+	channel_data_t channel_data = channel_data_defaults;
+
+	channel_data.url = url;
+	channel_data.method = docker_api[service].method;
+
+	channel = docker_prepare_channel(&channel_data);
+	if (!channel) {
+		return SERVER_EERR;
+	}
+
+	if (setup)
+		channel_data.request_body = (char *)setup;
+
+	ch_response = channel->put(channel, &channel_data);
+
+	if ((result = map_channel_retcode(ch_response)) !=
+	    SERVER_OK) {
+		channel->close(channel);
+		free(channel);
+		return SERVER_EERR;
+	}
+
+	channel->close(channel);
+	free(channel);
+
+	return result;
+}
+
+static server_op_res_t docker_simple_post(docker_services_t service, const char *name, const char *setup)
+{
+	char url[256];
+
+	docker_prepare_url(service, url, sizeof(url));
+	if (name) {
+		char *tmp=strdup(url);
+		snprintf(url, sizeof(url), tmp, name);
+		free(tmp);
+	}
+
+	return docker_send_request(service, url, setup);
+}
+
 server_op_res_t docker_image_load(int fd, size_t len)
 {
 	channel_t *channel;
@@ -157,87 +221,87 @@ server_op_res_t docker_image_load(int fd, size_t len)
 	return evaluate_docker_answer(channel_data.json_reply);
 }
 
-static server_op_res_t docker_send_request(docker_services_t service, char *url, char *setup)
-{
-	channel_t *channel;
-	channel_op_res_t ch_response;
-	server_op_res_t result = SERVER_OK;
-	channel_data_t channel_data = channel_data_defaults;
+docker_fn docker_fn_lookup(docker_services_t service) {
 
-	channel_data.url = url;
-	channel_data.method = docker_api[service].method;
-
-	channel = docker_prepare_channel(&channel_data);
-	if (!channel) {
-		return SERVER_EERR;
+	switch (service) {
+		case DOCKER_IMAGE_LOAD:
+		case DOCKER_IMAGE_DELETE:
+		case DOCKER_IMAGE_PRUNE:
+		case DOCKER_CONTAINER_CREATE:
+		case DOCKER_CONTAINER_DELETE:
+		case DOCKER_CONTAINER_START:
+		case DOCKER_CONTAINER_STOP:
+		case DOCKER_VOLUMES_CREATE:
+		case DOCKER_VOLUMES_DELETE:
+		case DOCKER_NETWORKS_CREATE:
+		case DOCKER_NETWORKS_DELETE:
+			break;
+		default:
+			return NULL;
 	}
 
-	if (setup)
-		channel_data.request_body = setup;
-
-	ch_response = channel->put(channel, &channel_data);
-
-	if ((result = map_channel_retcode(ch_response)) !=
-	    SERVER_OK) {
-		channel->close(channel);
-		free(channel);
-		return SERVER_EERR;
-	}
-
-	channel->close(channel);
-	free(channel);
-
-	return result;
+	return docker_api[service].func;
 }
 
-static server_op_res_t docker_simple_post(docker_services_t service, const char *name)
+static server_op_res_t docker_send_with_parms(docker_services_t service, const char *name, const char *setup)
 {
 	char url[256];
 
-	docker_prepare_url(service, url, sizeof(url));
-	if (name) {
-		char *tmp=strdup(url);
-		snprintf(url, sizeof(url), tmp, name);
-		free(tmp);
-	}
-
-	return docker_send_request(service, url, NULL);
-}
-
-server_op_res_t docker_container_create(const char *name, char *setup)
-{
-	char url[256];
-	
 	if (name) {
 		snprintf(url, sizeof(url), "%s%s?name=%s",
-			 docker_base_url(), docker_api[DOCKER_CONTAINER_CREATE].url, name);
+			 docker_base_url(), docker_api[service].url, name);
 	} else
-		docker_prepare_url(DOCKER_CONTAINER_CREATE, url, sizeof(url));
+		docker_prepare_url(service, url, sizeof(url));
 
-	return docker_send_request(DOCKER_CONTAINER_CREATE, url, setup);
+	return docker_send_request(service, url, setup);
 }
 
-server_op_res_t docker_container_remove(const char *name)
+static server_op_res_t docker_container_create(const char *name, const char *setup)
 {
-	return docker_simple_post(DOCKER_CONTAINER_DELETE, name);
+	return docker_send_with_parms(DOCKER_CONTAINER_CREATE, name, setup);
 }
 
-server_op_res_t docker_container_start(const char *name)
+static server_op_res_t docker_container_remove(const char *name, const char *setup)
 {
-	return docker_simple_post(DOCKER_CONTAINER_START, name);
+	return docker_simple_post(DOCKER_CONTAINER_DELETE, name, setup);
 }
 
-server_op_res_t docker_container_stop(const char *name)
+static server_op_res_t docker_container_start(const char *name, const char *setup)
 {
-	return docker_simple_post(DOCKER_CONTAINER_STOP, name);
+	return docker_simple_post(DOCKER_CONTAINER_START, name, setup);
 }
 
-server_op_res_t docker_image_remove(const char *name)
+static server_op_res_t docker_container_stop(const char *name, const char *setup)
 {
-	return docker_simple_post(DOCKER_IMAGE_DELETE, name);
+	return docker_simple_post(DOCKER_CONTAINER_STOP, name, setup);
 }
 
-server_op_res_t docker_image_prune(const char *name)
+static server_op_res_t docker_image_remove(const char *name, const char *setup)
 {
-	return docker_simple_post(DOCKER_IMAGE_PRUNE, name);
+	return docker_simple_post(DOCKER_IMAGE_DELETE, name, setup);
+}
+
+static server_op_res_t docker_image_prune(const char *name, const char *setup)
+{
+	return docker_simple_post(DOCKER_IMAGE_PRUNE, name, setup);
+}
+
+static server_op_res_t docker_volumes_create(const char __attribute__ ((__unused__)) *name, const char *setup)
+{
+	return docker_send_with_parms(DOCKER_VOLUMES_CREATE, NULL, setup);
+}
+
+static server_op_res_t docker_volumes_remove(const char *name, const char *setup)
+{
+	return docker_simple_post(DOCKER_VOLUMES_DELETE, name, setup);
+}
+
+static server_op_res_t docker_networks_create(const char __attribute__ ((__unused__)) *name, const char *setup)
+{
+	return docker_send_with_parms(DOCKER_NETWORKS_CREATE, NULL, setup);
+}
+
+static server_op_res_t docker_networks_remove(const char *name, const char *setup)
+{
+	return docker_simple_post(DOCKER_NETWORKS_DELETE, name, setup);
 }
