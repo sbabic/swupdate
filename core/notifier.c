@@ -370,21 +370,13 @@ static void progress_notifier (RECOVERY_STATUS status, int event, int level, con
 
 #if defined(__FreeBSD__)
 static char* socket_path = NULL;
-static void unlink_socket(void)
+static void unlink_notifier_socket(void)
 {
-	if (socket_path) {
-		unlink(socket_path);
+	if (socket_path != NULL) {
+		(void)unlink(socket_path);
 		free(socket_path);
+		socket_path = NULL;
 	}
-}
-
-static void setup_socket_cleanup(struct sockaddr_un *addr)
-{
-	socket_path = strndup(addr->sun_path, sizeof(addr->sun_path));
-	if (atexit(unlink_socket) != 0) {
-		TRACE("Cannot setup socket cleanup on exit, %s won't be unlinked.", socket_path);
-	}
-	unlink(socket_path);
 }
 #endif
 
@@ -405,10 +397,21 @@ static void addr_init(struct sockaddr_un *addr, const char *path)
 	/*
 	 * Use filesystem-backed sockets on FreeBSD although this interface
 	 * is internal as there are no Linux-like abstract sockets.
+	 *
+	 * Note: $RUNTIME_DIRECTORY is not native to FreeBSD but for
+	 * consistency with Linux and containment, try to use it.
 	 */
-	strncpy(addr->sun_path, CONFIG_SOCKET_NOTIFIER_DIRECTORY, sizeof(addr->sun_path));
-	strncat(addr->sun_path, path,
-			sizeof(addr->sun_path)-strlen(CONFIG_SOCKET_NOTIFIER_DIRECTORY));
+	const char *socketdir = getenv("RUNTIME_DIRECTORY");
+	if(!socketdir){
+		socketdir = getenv("TMPDIR");
+	}
+	if (!socketdir) {
+		socketdir = "/tmp";
+	}
+	if (snprintf(addr->sun_path, sizeof(addr->sun_path), "%s/%s", socketdir, path) < 0) {
+		fprintf(stderr, "Error creating notifier socket, exiting.");
+		exit(2);
+	}
 #else
 	ERROR("Undetected OS, probably sockets won't function as expected.");
 #endif
@@ -438,10 +441,6 @@ static void *notifier_thread (void __attribute__ ((__unused__)) *data)
 		fprintf(stderr, "Could not set %d as cloexec: %s", serverfd, strerror(errno));
 	}
 
-#if defined(__FreeBSD__)
-	setup_socket_cleanup(&notify_server);
-#endif
-
 	int len_socket_name = strlen(&notify_server.sun_path[1]);
 
 	do {
@@ -456,13 +455,22 @@ static void *notifier_thread (void __attribute__ ((__unused__)) *data)
 				 */
 				notify_server.sun_path[len_socket_name + 1] = '0' + attempt;
 			} else {
-				fprintf(stderr, "Error binding notifier socket: %s, exiting.\n", strerror(errno));
+				fprintf(stderr,
+					"Error binding notifier socket %s: %s, exiting.\n",
+					(char *)&notify_server.sun_path[0], strerror(errno));
 				close(serverfd);
 				exit(2);
 			}
 		} else
 			break;
 	} while (1);
+
+#if defined(__FreeBSD__)
+	socket_path = strndup(&notify_server.sun_path[0], sizeof(notify_server.sun_path));
+	if (atexit(unlink_notifier_socket) != 0) {
+		TRACE("Cannot setup socket cleanup on exit, %s won't be unlinked.", socket_path);
+	}
+#endif
 
 	thread_ready();
 	do {
@@ -513,9 +521,6 @@ void notify_init(void)
 		char buf[60];
 		snprintf(buf, sizeof(buf), "Notify%d", pid);
 		addr_init(&notify_client, buf);
-#if defined(__FreeBSD__)
-		setup_socket_cleanup(&notify_client);
-#endif
 		notifyfd = socket(AF_UNIX, SOCK_DGRAM, 0);
 
 		if (notifyfd < 0) {
@@ -534,6 +539,13 @@ void notify_init(void)
 			close(notifyfd);
 			return;
 		}
+#if defined(__FreeBSD__)
+		/*
+		 * Note: atexit(unlink_socket) "callback" is inherited from parent,
+		 * reuse it, but with this child's socket_path.
+		 */
+		socket_path = strndup(&notify_client.sun_path[0], sizeof(notify_client.sun_path));
+#endif
 	} else {
 		/*
 		 * If this is the main process, start setting the name of the

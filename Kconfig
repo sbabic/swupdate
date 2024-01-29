@@ -223,14 +223,6 @@ config SOCKET_PROGRESS_PATH
 	help
 	  Path to the socket progress information is sent to.
 
-config SOCKET_NOTIFIER_DIRECTORY
-	string "SWUpdate notifier socket directory"
-	depends on HAVE_FREEBSD
-	default "/tmp/"
-	help
-	  Path to SWUpdate's notifier sockets on FreeBSD as
-	  Linux-like abstract sockets are not available.
-
 endmenu
 
 config MTD
