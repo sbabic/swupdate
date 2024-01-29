@@ -378,6 +378,33 @@ static void unlink_notifier_socket(void)
 		socket_path = NULL;
 	}
 }
+
+static void set_socket_bufsize(int fd, int whichbuf, int size)
+{
+	/* Round size up to next ^2 ... */
+	int bufsize = 1;
+	while (bufsize < size) {
+		bufsize <<= 1;
+	}
+	/* ... and add some headroom. */
+	bufsize *= 4;
+	socklen_t buflen = sizeof(bufsize);
+	int res = setsockopt(fd, SOL_SOCKET, whichbuf, &bufsize, sizeof(bufsize));
+	if (res == -1) {
+		fprintf(stderr, "Error %d setsockopt %d=%d:%s\n",
+		errno, whichbuf, bufsize, strerror(errno));
+	}
+	int effective_bufsize = 0;
+	res = getsockopt(fd, SOL_SOCKET, whichbuf, &effective_bufsize, &buflen);
+	if (res == -1) {
+		fprintf(stderr, "Error %d getsockopt %d:%s\n",
+			errno, whichbuf, strerror(errno));
+	}
+	if (effective_bufsize < bufsize) {
+		WARN("Notifier socket buffer is %d, expected: %d.",
+		     effective_bufsize, bufsize);
+	}
+}
 #endif
 
 /*
@@ -440,6 +467,11 @@ static void *notifier_thread (void __attribute__ ((__unused__)) *data)
 	if (fcntl(serverfd, F_SETFD, FD_CLOEXEC) < 0) {
 		fprintf(stderr, "Could not set %d as cloexec: %s", serverfd, strerror(errno));
 	}
+
+#if defined(__FreeBSD__)
+	set_socket_bufsize(serverfd, SO_SNDBUF, sizeof(struct notify_ipc_msg));
+	set_socket_bufsize(serverfd, SO_RCVBUF, sizeof(struct notify_ipc_msg));
+#endif
 
 	int len_socket_name = strlen(&notify_server.sun_path[1]);
 
@@ -530,6 +562,11 @@ void notify_init(void)
 
 		if (fcntl(notifyfd, F_SETFD, FD_CLOEXEC) < 0)
 			WARN("Could not set %d as cloexec: %s", notifyfd, strerror(errno));
+
+#if defined(__FreeBSD__)
+		set_socket_bufsize(notifyfd, SO_SNDBUF, sizeof(struct notify_ipc_msg));
+		set_socket_bufsize(notifyfd, SO_RCVBUF, sizeof(struct notify_ipc_msg));
+#endif
 
 		if (bind(notifyfd, (const struct sockaddr *) &notify_client,
 			sizeof(struct sockaddr_un)) < 0) {
