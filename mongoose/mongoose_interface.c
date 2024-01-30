@@ -363,7 +363,7 @@ static void broadcast_callback(struct mg_connection *nc, int ev,
 	if (ev == MG_EV_READ) {
 		struct mg_connection *t;
 		for (t = nc->mgr->conns; t != NULL; t = t->next) {
-			if (t->data[0] != 'W') continue;
+			if (!t->is_websocket) continue;
 			mg_ws_send(t,(char *)nc->recv.buf, nc->recv.len, WEBSOCKET_OP_TEXT);
 		}
 		mg_iobuf_del(&nc->recv, 0, nc->recv.len);
@@ -671,7 +671,6 @@ static void websocket_handler(struct mg_connection *nc, void *ev_data)
 {
 	struct mg_http_message *hm = (struct mg_http_message *) ev_data;
 	mg_ws_upgrade(nc, hm, NULL);
-	nc->data[0] = 'W';
 }
 
 static void ev_handler(struct mg_connection *nc, int ev, void *ev_data, void *fn_data)
