@@ -360,6 +360,7 @@ static void restart_handler(struct mg_connection *nc, void *ev_data)
 static void broadcast_callback(struct mg_connection *nc, int ev,
 		void __attribute__ ((__unused__)) *ev_data, void __attribute__ ((__unused__)) *fn_data)
 {
+	static uint64_t last_io_time = 0;
 	if (ev == MG_EV_READ) {
 		struct mg_connection *t;
 		for (t = nc->mgr->conns; t != NULL; t = t->next) {
@@ -367,6 +368,16 @@ static void broadcast_callback(struct mg_connection *nc, int ev,
 			mg_ws_send(t,(char *)nc->recv.buf, nc->recv.len, WEBSOCKET_OP_TEXT);
 		}
 		mg_iobuf_del(&nc->recv, 0, nc->recv.len);
+		last_io_time = mg_millis();
+	} else if (ev == MG_EV_POLL) {
+		struct mg_connection *t;
+		uint64_t now = *((uint64_t *)ev_data);
+		if (now < last_io_time + 20000) return;
+		for (t = nc->mgr->conns; t != NULL; t = t->next) {
+			if (!t->is_websocket) continue;
+			mg_ws_send(t, "", 0, WEBSOCKET_OP_PING);
+		}
+		last_io_time = now;
 	}
 }
 
