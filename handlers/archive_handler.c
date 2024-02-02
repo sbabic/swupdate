@@ -107,7 +107,11 @@ extract(void *p)
 	 *  https://github.com/libarchive/libarchive/wiki/Filenames
 	 */
 	archive_locale = newlocale(LC_CTYPE_MASK, "", (locale_t)0);
-	old_locale = uselocale(archive_locale);
+	if (archive_locale == 0) {
+		ERROR("newlocale(): %s", strerror(errno));
+	} else {
+		old_locale = uselocale(archive_locale);
+	}
 #endif
 
 	a = archive_read_new();
@@ -210,8 +214,10 @@ out:
 	free(FIFO);
 
 #ifdef CONFIG_LOCALE
-	uselocale(old_locale);
-	freelocale(archive_locale);
+	if (archive_locale != 0) {
+		uselocale(old_locale);
+		freelocale(archive_locale);
+	}
 #endif
 	data->exitval = exitval;
 	pthread_exit(NULL);
