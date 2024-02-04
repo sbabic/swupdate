@@ -129,7 +129,8 @@ other fields as:
         - *dry_run* : one of RUN_DEFAULT (set from command line), RUN_DRYRUN, RUN_INSTALL.
         - *info, len* : a variable length data that can be forwarded to the progress
           interface. The installer in SWUpdate does not evaluate it.
-        - *software_set* and *running_mode* : this allows one to set the `selection` for the update.
+        - *software_set* and *running_mode* : this allows one to set the `selection` for the update,
+          it should be accepted by swupdate (-q, --accepted-select option when swupdate is launched).
 
 Functions to set AES keys
 -------------------------

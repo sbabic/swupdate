@@ -573,6 +573,11 @@ Command line parameters
 +-------------+----------+--------------------------------------------+
 | -p <cmd>    | string   | Execute post-update command.               |
 +-------------+----------+--------------------------------------------+
+| -q <sel>    | string   | List for software images set and source    |
+|             |          |             that are accepted via IPC      |
+|             |          |             Ex.: stable,main               |
+|             |          |             it can be set multiple times   |
++-------------+----------+--------------------------------------------+
 
 Downloader command line parameters
 ..................................
