@@ -381,6 +381,11 @@ static int is_image_higher(struct swver *sw_ver_list,
     return false;
 }
 
+static void set_img_globals(struct img_type *img, struct swupdate_cfg *sw)
+{
+	img->bootloader = &sw->bootloader;
+}
+
 static int run_embscript(parsertype p, void *elem, struct img_type *img,
 			 lua_State *L, const char *embscript)
 {
@@ -597,6 +602,8 @@ static int _parse_scripts(parsertype p, void *cfg, void *setting, const char **n
 		script->is_script = 1;
 
 		add_properties(p, elem, script);
+
+		set_img_globals(script, swcfg);
 
 		skip = run_embscript(p, elem, script, L, swcfg->embscript);
 		if (skip < 0) {
@@ -863,7 +870,7 @@ static int _parse_images(parsertype p, void *cfg, void *setting, const char **no
 
 		add_properties(p, elem, image);
 
-		image->bootloader = &swcfg->bootloader;
+		set_img_globals(image, swcfg);
 
 		skip = run_embscript(p, elem, image, L, swcfg->embscript);
 		if (skip < 0) {
@@ -959,7 +966,7 @@ static int _parse_files(parsertype p, void *cfg, void *setting, const char **nod
 
 		add_properties(p, elem, file);
 
-		file->bootloader = &swcfg->bootloader;
+		set_img_globals(file, swcfg);
 
 		skip = run_embscript(p, elem, file, L, swcfg->embscript);
 		if (skip < 0) {
