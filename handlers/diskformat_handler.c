@@ -35,7 +35,7 @@ static int diskformat(struct img_type *img,
 
 	char *force = dict_get_value(&img->properties, "force");
 
-	if (force != NULL && strcmp(force, "true") == 0) {
+	if (force != NULL && strtobool(force)) {
 		; /* Skip file system exists check */
 	} else {
 		/* Check if file system exists */

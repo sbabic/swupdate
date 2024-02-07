@@ -1275,7 +1275,7 @@ static int diskpart(struct img_type *img,
 						part->flags |= DOS_FLAG_ACTIVE;
 						break;
 					case PART_FORCE:
-						part->force = strcmp(equal, "true") == 0;
+						part->force = strtobool(equal);
 						TRACE("Force flag explicitly mentioned, value %d", part->force);
 						break;
 					}

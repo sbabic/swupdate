@@ -43,7 +43,7 @@ static int btrfs(struct img_type *img,
 		ERROR("Wrong operation of btrfs filesystem: %s", cmd);
 		return -EINVAL;
 	}
-	bool tomount = IS_STR_EQUAL(dict_get_value(&img->properties, "mount"), "true");
+	bool tomount = strtobool(dict_get_value(&img->properties, "mount"));
 	if (tomount) {
 		if (!strlen(img->device)) {
 			ERROR("btrfs must be mounted, no device set");

@@ -672,8 +672,7 @@ static int get_gpio_from_property(struct dict_list *prop, struct mode_setup *gpi
 					return -EINVAL;
 				break;
 			case 2:
-				if (!strcmp(s, "true"))
-					gpio->active_low = true;
+				gpio->active_low = strtobool(s);
 				break;
 			}
 
@@ -731,7 +730,7 @@ static int install_uc_firmware_image(struct img_type *img,
 	properties = dict_get_list(&img->properties, "debug");
 	if (properties) {
 		entry = LIST_FIRST(properties);
-		if (entry && !strcmp(entry->value, "true"))
+		if (entry && strtobool(entry->value))
 			hnd_data.debug = true;
 	}
 
