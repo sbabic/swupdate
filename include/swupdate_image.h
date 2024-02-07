@@ -12,6 +12,7 @@
 #include "bsdqueue.h"
 #include "globals.h"
 #include "swupdate_dict.h"
+#include "lua_util.h"
 
 typedef enum {
 	FLASH,
@@ -60,7 +61,14 @@ struct img_type {
 	int is_script;
 	int is_partitioner;
 	struct dict properties;
-	struct dict *bootloader; /* pointer to swupdate_cfg's bootloader dict for handlers to modify */
+
+	/*
+	 * Pointers to global structures
+	 * that are alive during an installation. They can be used by handlers
+	 */
+	struct dict *bootloader;/* pointer to swupdate_cfg's bootloader dict for handlers to modify */
+	lua_State *L;		/* pointer to swupdate_cfg's LUa state created by parser */
+
 	long long partsize;
 	int fdin;	/* Used for streaming file */
 	off_t offset;	/* offset in cpio file */
