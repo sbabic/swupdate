@@ -36,7 +36,14 @@ static int start_lua_script(struct img_type *img, void *data)
 	if (!data)
 		return -1;
 
-	L = lua_init(img->bootloader);
+	bool global  = strtobool(dict_get_value(&img->properties, "global-state"));
+
+	if (global) {
+		TRACE("Executing with global state");
+		L = img->L;
+	} else {
+		L = lua_init(img->bootloader);
+	}
 
 	if (!L) {
 		ERROR("Lua state cannot be instantiated");
@@ -63,7 +70,8 @@ static int start_lua_script(struct img_type *img, void *data)
 
 	ret = run_lua_script(L, filename, fnname, img->type_data);
 
-	lua_close(L);
+	if (!global)
+		lua_close(L);
 
 	return ret;
 }
