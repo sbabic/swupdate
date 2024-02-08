@@ -151,19 +151,30 @@ int parse(struct swupdate_cfg *sw, const char *descfile)
 		return ret;
 
 #endif
+	char *errors[ARRAY_SIZE(parsers)] = {0};
 	for (unsigned int i = 0; i < ARRAY_SIZE(parsers); i++) {
 		current = parsers[i];
 
-		ret = current(sw, descfile);
+		ret = current(sw, descfile, &errors[i]);
 
 		if (ret == 0)
 			break;
 	}
 
 	if (ret != 0) {
+		for (unsigned int i = 0; i < ARRAY_SIZE(parsers); i++) {
+			if (errors[i] != NULL) {
+				ERROR("%s", errors[i]);
+				free(errors[i]);
+			}
+		}
 		ERROR("no parser available to parse " SW_DESCRIPTION_FILENAME "!");
 		return ret;
 	}
+
+	for (unsigned int i = 0; i < ARRAY_SIZE(parsers); i++)
+		if (errors[i] != NULL)
+			free(errors[i]);
 
 	ret = check_handler_list(&sw->scripts, SCRIPT_HANDLER, IS_SCRIPT, "scripts");
 	ret |= check_handler_list(&sw->images, IMAGE_HANDLER | FILE_HANDLER, IS_IMAGE_FILE,

@@ -1070,7 +1070,7 @@ static int parser(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 }
 
 #ifdef CONFIG_LIBCONFIG
-int parse_cfg (struct swupdate_cfg *swcfg, const char *filename)
+int parse_cfg(struct swupdate_cfg *swcfg, const char *filename, char **error)
 {
 	config_t cfg;
 	parsertype p = LIBCFG_PARSER;
@@ -1082,8 +1082,11 @@ int parse_cfg (struct swupdate_cfg *swcfg, const char *filename)
 	/* Read the file. If there is an error, report it and exit. */
 	DEBUG("Parsing config file %s", filename);
 	if(config_read_file(&cfg, filename) != CONFIG_TRUE) {
-		ERROR("%s:%d - %s\n", config_error_file(&cfg),
-			config_error_line(&cfg), config_error_text(&cfg));
+		if (asprintf(error, "%s:%d - %s\n", config_error_file(&cfg),
+			     config_error_line(&cfg), config_error_text(&cfg)) == ENOMEM_ASPRINTF) {
+			ERROR("OOM when caching error");
+			return -ENOMEM;
+		}
 		config_destroy(&cfg);
 		return -1;
 	}
@@ -1098,8 +1101,9 @@ int parse_cfg (struct swupdate_cfg *swcfg, const char *filename)
 	return ret;
 }
 #else
-int parse_cfg (struct swupdate_cfg __attribute__ ((__unused__)) *swcfg,
-		const char __attribute__ ((__unused__)) *filename)
+int parse_cfg(struct swupdate_cfg __attribute__((__unused__)) *swcfg,
+	      const char __attribute__((__unused__)) *filename,
+	      char __attribute__((__unused__)) **error)
 {
 	return -1;
 }
@@ -1107,7 +1111,7 @@ int parse_cfg (struct swupdate_cfg __attribute__ ((__unused__)) *swcfg,
 
 #define JSON_OBJECT_FREED 1
 
-int parse_json(struct swupdate_cfg *swcfg, const char *filename)
+int parse_json(struct swupdate_cfg *swcfg, const char *filename, char **error)
 {
 	int fd, ret;
 	struct stat stbuf;
@@ -1148,7 +1152,10 @@ int parse_json(struct swupdate_cfg *swcfg, const char *filename)
 
 	cfg = json_tokener_parse(string);
 	if (!cfg) {
-		ERROR("JSON File corrupted");
+		if (asprintf(error, "JSON File corrupted") == ENOMEM_ASPRINTF) {
+			ERROR("OOM when caching error");
+			return -ENOMEM;
+		}
 		free(string);
 		return -1;
 	}

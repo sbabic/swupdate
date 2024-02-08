@@ -104,7 +104,8 @@ static void sw_append_stream(struct img_type *img, const char *key,
 		img->id.install_if_higher = 1;
 }
 
-int parse_external(struct swupdate_cfg *software, const char *filename)
+int parse_external(struct swupdate_cfg *software, const char *filename,
+		   char __attribute__((__unused__)) **error)
 {
 	int ret;
 	unsigned int nstreams;
@@ -200,8 +201,9 @@ int parse_external(struct swupdate_cfg *software, const char *filename)
 }
 #else
 
-int parse_external(struct swupdate_cfg __attribute__ ((__unused__)) *software,
-			const char __attribute__ ((__unused__)) *filename)
+int parse_external(struct swupdate_cfg __attribute__((__unused__)) *software,
+		   const char __attribute__((__unused__)) *filename,
+		   char __attribute__((__unused__)) **error)
 {
 	return -1;
 }
