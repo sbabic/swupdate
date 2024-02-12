@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <inttypes.h>
 #include <stdbool.h>
 
 #include <getopt.h>
@@ -938,9 +939,9 @@ int start_mongoose(const char *cfgfname, int argc, char *argv[])
 	start_thread(broadcast_message_thread, NULL);
 	start_thread(broadcast_progress_thread, NULL);
 
-	mg_snprintf(buf, sizeof(buf), "%I", 4, &nc->loc);
-	INFO("Mongoose web server version %s with pid %d started on [%s] with web root [%s]",
-		MG_VERSION, getpid(), buf, s_http_server_opts.root_dir);
+	mg_snprintf(buf, sizeof(buf), "%I", 4, &nc->loc.ip);
+	INFO("Mongoose web server v%s with PID %d listening on %s:%" PRIu16 " and serving %s",
+		MG_VERSION, getpid(), buf, mg_ntohs(nc->loc.port), s_http_server_opts.root_dir);
 
 	while (s_signo == 0)
 		mg_mgr_poll(&mgr, 100);
