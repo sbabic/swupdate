@@ -9,10 +9,18 @@
 #pragma once
 
 struct img_type;
+
+/*
+ * Identify the type of a script
+ * A script can contain functions for several of these
+ * entries. For example, it can contain both a pre- and post-
+ * install functions.
+ */
 typedef enum {
 	NONE,
-	PREINSTALL,
-	POSTINSTALL
+	PREINSTALL,	/* Script runs as preinstall */
+	POSTINSTALL,	/* Script runs a postinstall */
+	POSTFAILURE	/* Script called in case update fails */
 } script_fn ;
 
 /*
