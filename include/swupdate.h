@@ -36,12 +36,6 @@ struct extproc {
 
 LIST_HEAD(proclist, extproc);
 
-enum {
-	SCRIPT_NONE,
-	SCRIPT_PREINSTALL,
-	SCRIPT_POSTINSTALL
-};
-
 struct swupdate_parms {
 	bool dry_run;
 	char software_set[SWUPDATE_GENERAL_STRING_SIZE];
