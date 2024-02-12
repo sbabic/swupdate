@@ -21,4 +21,5 @@ int install_single_image(struct img_type *img, bool dry_run);
 int install_from_file(const char *filename, bool check);
 int postupdate(struct swupdate_cfg *swcfg, const char *info);
 int preupdatecmd(struct swupdate_cfg *swcfg);
+int run_prepost_scripts(struct imglist *list, script_fn type);
 void cleanup_files(struct swupdate_cfg *software);

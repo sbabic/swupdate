@@ -216,7 +216,7 @@ static int update_swupdate_vars(struct swupdate_cfg *cfg, const char *script)
 	return ret;
 }
 
-static int run_prepost_scripts(struct imglist *list, script_fn type)
+int run_prepost_scripts(struct imglist *list, script_fn type)
 {
 	int ret;
 	struct img_type *img;
