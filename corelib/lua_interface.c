@@ -204,27 +204,35 @@ static void lua_report_exception(lua_State *L)
 	} while (*s++);
 }
 
-int run_lua_script(lua_State *L, const char *script, const char *function, char *parms)
+int run_lua_script(lua_State *L, const char *script, bool load, const char *function, char *parms)
 {
 	int ret;
 	const char *output;
 
-	if (!function || !L)
+	if (!L) {
+		ERROR("Lua script must be executed, but no valid Lua state was set");
 		return -EINVAL;
+	}
 
-	if (script) {
+	if (load) {
+		TRACE("Loading Lua %s script", script);
 		if (luaL_loadfile(L, script)) {
 			ERROR("ERROR loading %s", script);
 			return -1;
 		}
+
+		ret = lua_pcall(L, 0, 0, 0);
+		if (ret) {
+			LUAstackDump(L);
+			ERROR("ERROR preparing Lua script %s %d",
+				script, ret);
+			return -1;
+		}
 	}
 
-	ret = lua_pcall(L, 0, 0, 0);
-	if (ret) {
-		LUAstackDump(L);
-		ERROR("ERROR preparing Lua script %s %d",
-			script, ret);
-		return -1;
+	if (!function) {
+		WARN("Script was loaded, no function was set to be executed !");
+		return 0;
 	}
 
 	lua_getglobal(L, function);

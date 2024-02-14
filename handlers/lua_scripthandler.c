@@ -24,10 +24,21 @@
 
 static void lua_handler(void);
 
+struct fn_names {
+	const char *property_name;	/* Name of property in sw-description */
+	const char *def_fn;		/* Default name function if property is not set */
+};
+
+const struct fn_names fn_property_names[] = {
+	[PREINSTALL] = {"preinstall", "preinst"},
+	[POSTINSTALL] = {"postinstall", "postinst"},
+	[POSTFAILURE] = {"postfailure", "postfailure"}
+};
+
 static int start_lua_script(struct img_type *img, void *data)
 {
 	int ret;
-	const char *fnname;
+	const char *fnname = NULL;
 	struct script_handler_data *script_data;
 	lua_State *L;
 	const char* tmp = get_tmpdirscripts();
@@ -36,8 +47,29 @@ static int start_lua_script(struct img_type *img, void *data)
 	if (!data)
 		return -1;
 
+	script_data = data;
+
+	/*
+	 * A little paranoid, thios shouln't happen
+	 */
+	if (script_data->scriptfn < PREINSTALL || script_data->scriptfn > POSTFAILURE)
+		return -EINVAL;
+
 	bool global  = strtobool(dict_get_value(&img->properties, "global-state"));
 
+	/*
+	 * Note: if global is set, functions should be unique
+	 * The name of function should be set inside the script
+	 */
+	fnname = dict_get_value(&img->properties, fn_property_names[script_data->scriptfn].property_name);
+
+	if (!fnname && !global) {
+		fnname = fn_property_names[script_data->scriptfn].def_fn;
+	}
+
+	/*
+	 * Assign the Lua state
+	 */
 	if (global) {
 		TRACE("Executing with global state");
 		L = img->L;
@@ -50,34 +82,51 @@ static int start_lua_script(struct img_type *img, void *data)
 		return -1;
 	}
 
-	script_data = data;
+	/*
+	 * In case of global, loads the script just once. Check if a function is already
+	 * present. An Overwrite is excluded by design. All functions should be unique.
+	 */
 
-	switch (script_data->scriptfn) {
-	case PREINSTALL:
-		fnname = dict_get_value(&img->properties, "preinstall");
-		if (!fnname)
-			fnname="preinst";
-		break;
-	case POSTINSTALL:
-		fnname = dict_get_value(&img->properties, "postinstall");
-		if (!fnname)
-			fnname="postinst";
-		break;
-	case POSTFAILURE:
-		fnname = dict_get_value(&img->properties, "postfailure");
-		if (!fnname)
-			fnname="postfailure";
-		break;
-	default:
-		/* no error, simply no call */
-		return 0;
+	bool load_script = true;
+
+	if (global) {
+		if (script_data->scriptfn == PREINSTALL) {
+			for (int i = PREINSTALL; i <= POSTINSTALL; i++) {
+				const char *fn = fn_property_names[script_data->scriptfn].property_name;
+				if (!fn)
+					continue;
+				lua_getglobal(L, fn);
+				if(lua_isfunction(L,lua_gettop(L))) {
+					ERROR("Function %s already defined, functions must be unique", fn);
+					return -1;
+				}
+			}
+		} else {
+			/*
+			 * Script was already loaded, skip it
+			 */
+			load_script = false;
+		}
 	}
 
+	/*
+	 * Trace what should be done
+	 */
 	snprintf(filename, sizeof(filename),
 		"%s%s", tmp, img->fname);
-	TRACE("Calling Lua %s with %s", filename, fnname);
+	TRACE("%s: Calling Lua %s with %s",
+	      fn_property_names[script_data->scriptfn].property_name,
+	      filename,
+	      fnname ? fnname : "no function, just loaded");
 
-	ret = run_lua_script(L, filename, fnname, img->type_data);
+	/*
+	 * In case no function is selected and we run in global,
+	 * script was already loaded and there is nothing to do
+	 */
+	if (global && !fnname && !load_script)
+		return 0;
+
+	ret = run_lua_script(L, filename, load_script, fnname, img->type_data);
 
 	if (!global)
 		lua_close(L);
