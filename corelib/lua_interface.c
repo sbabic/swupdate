@@ -209,9 +209,14 @@ int run_lua_script(lua_State *L, const char *script, const char *function, char 
 	int ret;
 	const char *output;
 
-	if (luaL_loadfile(L, script)) {
-		ERROR("ERROR loading %s", script);
-		return -1;
+	if (!function || !L)
+		return -EINVAL;
+
+	if (script) {
+		if (luaL_loadfile(L, script)) {
+			ERROR("ERROR loading %s", script);
+			return -1;
+		}
 	}
 
 	ret = lua_pcall(L, 0, 0, 0);
