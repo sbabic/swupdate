@@ -829,6 +829,14 @@ SWUpdate scans for all scripts and calls them before installing the images.
 If the data attribute is defined, its value is passed as the last argument(s)
 to the script.
 
+Note that cannot be ensured that preinstall scripts run before an artifact is
+installed in streaming mode. In fact, if streaming is activated, the artifact must
+be installed as soon as it is received from network because there is no temporary
+copy. Because there is no fix order in the SWU, an artifact can be packed before any
+script in the SWU. The right way is to write an "embedded-script" in Lua inside
+sw-description: because it becomes part of sw-description, it runs when sw-description is
+parsed and before any handler runs, even before a partition handler.
+
 postinstall
 ...........
 
