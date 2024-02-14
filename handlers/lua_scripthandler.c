@@ -75,7 +75,7 @@ static int start_lua_script(struct img_type *img, void *data)
 
 	snprintf(filename, sizeof(filename),
 		"%s%s", tmp, img->fname);
-	TRACE("Calling Lua %s", filename);
+	TRACE("Calling Lua %s with %s", filename, fnname);
 
 	ret = run_lua_script(L, filename, fnname, img->type_data);
 
