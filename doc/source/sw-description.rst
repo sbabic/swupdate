@@ -897,7 +897,7 @@ reboot flag
 
 It is possible to signal that a reboot for a specific update is not required.
 This information is evaluated by SWUpdate just to inform a backend about the
-transaction result. If a postinstall script (icommand line parameter -p) is 
+transaction result. If a postinstall script (command line parameter -p) is
 passed at the startup to perform a reboot, it will be executed anyway because
 SWUpdate cannot know the nature of this script.
 
