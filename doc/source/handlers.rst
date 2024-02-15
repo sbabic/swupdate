@@ -457,6 +457,84 @@ image, this is not implemented as it carries some security
 implications since the behavior of SWUpdate is changed
 dynamically.
 
+Shell script handler
+--------------------
+
+This handler allows to run a shell script thta is packed into the SWU. Please note
+that running a shell script opens a set of different security issues. Shell scripts
+are supported due to their large acceptance, but you should prefer Lua Scripts.
+
+SWUpdate will run the binary shell "/bin/sh" to execute the script.
+
+Lua script handler
+------------------
+
+A Lua Script handler runs a script in Lua language. There are two possible ways to run the
+script:
+
+        - local: the script runs in own (isolated) Lua state that is created for the script.
+          The script has access only to function defined inside the script or functions
+          provided by external libraries, like the internal swupdate library called via
+          "require(swupdate)".
+        - global: SWUpdate create a Lua state at the beginning of an Update and this is
+          valid until the update is terminated. In this case, the script has access to any function
+          and structure that was defined during the update. For example, a function
+          can be defined inside sw-description, and the script can call it.
+
+As default, each script runs in isolated / local Lua state. If the property "global-state" is set,
+then the common LUa state used for each Update transaction is taken.
+
+Scripts ran in isolated context in previous versions. SWUpdate allocates a new
+Lua state, and import the basic libraries before loading the script. A
+script is then isolated, but it cannot access to function already
+loaded, or it is not possible to reuse functions from 2 or more scripts.
+
+With the introduction of a per installation Lua state, Lua scripts can
+call functions already defined in previous scripts, or defined in
+sw-description. Because when a script is loaded, existing functions with the same name are overwritten,
+it was decided that functions in scripts must be unique, that is each function should be declared just
+once during an installation process.
+
+This means that for global state, sw-description should contain the name of the function for each step
+(pre- , postinstall or postfailure) that should be called: the names preinst, postinst and postfailure are
+still valid in case the script runs with isolated state.
+
+This allows also to load a script without executing if no functions are defined, and functions in the script
+can be called by later scripts.
+
+Note that the handler will load the script in case of global state just once during the "preinstall" call.
+Later, it is assumed that functions will be already available.
+
+
+Example:
+
+::
+
+	scripts: (
+		{
+                        filename = "testscript.lua";
+                        type = "lua";
+                        properties: {
+				global-state = "true";
+                                preinstall = "pretest1";
+			}
+		},
+		{
+			filename = "test2script.lua";
+			type = "lua";
+			properties: {
+				global-state = "true";
+                                postinstall = "posttest2";
+                                postfailure = "failure";
+			}
+		}
+
+Two scripts are defined. Both are using the global Lua state.
+Functions in test2script can find and run functions defined in testscript.lua,
+because both are belonging to the same context. When preinstall scripts are called, only the function
+"pretest1" from the first script is called, because no function name is defined for this step with
+the following scripts.
+
 Remote handler
 --------------
 
@@ -1326,7 +1404,7 @@ passed to the daemon:
 Docker Remove Image
 -------------------
 
-It is implemented as script (post install). 
+It is implemented as script (post install).
 Example:
 
 ::
@@ -1341,7 +1419,7 @@ Example:
 Docker Delete Unused Images
 ---------------------------
 
-It is implemented as script (post install). 
+It is implemented as script (post install).
 Example:
 
 ::
@@ -1386,7 +1464,7 @@ Creating the container can be done in sw-description with:
 Docker Remove Container
 -----------------------
 
-It is implemented as script (post install). 
+It is implemented as script (post install).
 Example:
 
 ::
@@ -1411,7 +1489,7 @@ Examples:
 			name = "helloworld";
 		};
 	});
-       
+
 ::
 
 	scripts: ( {
