@@ -54,10 +54,19 @@ static int start_lua_script(struct img_type *img, void *data)
 
 	switch (script_data->scriptfn) {
 	case PREINSTALL:
-		fnname="preinst";
+		fnname = dict_get_value(&img->properties, "preinstall");
+		if (!fnname)
+			fnname="preinst";
 		break;
 	case POSTINSTALL:
-		fnname="postinst";
+		fnname = dict_get_value(&img->properties, "postinstall");
+		if (!fnname)
+			fnname="postinst";
+		break;
+	case POSTFAILURE:
+		fnname = dict_get_value(&img->properties, "postfailure");
+		if (!fnname)
+			fnname="postfailure";
 		break;
 	default:
 		/* no error, simply no call */

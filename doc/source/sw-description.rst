@@ -759,7 +759,9 @@ with an error if the result is <> 0.
 They are copied into a temporary directory before execution and their name must
 be unique inside the same cpio archive.
 
-If no type is given, SWUpdate default to "lua".
+If no type is given, SWUpdate default to "lua". Please note that running a shell script
+opens a set of different security issues, check also chapter "Best practise".
+
 
 Lua
 ...
@@ -790,11 +792,23 @@ called before installing the images.
 
 	function postinst()
 
+
 SWUpdate scans for all scripts and check for a postinst function. It is
 called after installing the images.
 
+::
+
+	function postfailure()
+
+Only in case an update fails, SWUpdate scans for all scripts and check
+for a postfailure function. This could be useful in case it is necessary
+to restore a previous state, for example, in case the application was
+stop, it should run again.
+
 shellscript
 ...........
+
+SWUpdate will run the binary shell "/bin/sh" to execute the script.
 
 ::
 
@@ -805,9 +819,9 @@ shellscript
 		}
 	);
 
-Shell scripts are called via system command.
+Shell scripts are called by forking the process and running the shell as /bin/sh.
 SWUpdate scans for all scripts and calls them before and after installing
-the images. SWUpdate passes 'preinst' or 'postinst' as first argument to
+the images. SWUpdate passes 'preinst', 'postinst' or 'postfailure' as first argument to
 the script.
 If the data attribute is defined, its value is passed as the last argument(s)
 to the script.

@@ -674,6 +674,19 @@ void *network_initializer(void *data)
 				update_transaction_state(software, STATE_FAILED);
 				notify(FAILURE, RECOVERY_ERROR, ERRORLEVEL, "Installation failed !");
 				inst.last_install = FAILURE;
+
+				/*
+				 * Try to run all POSTFAILURE scripts,
+				 * their result does not change the state that remains FAILURE
+				 * Goal is to restore to the state before update was started
+				 * if this is needed. This is a best case attempt, ERRORs
+				 * are just logged.
+				 */
+				if (!software->parms.dry_run) {
+					if (run_prepost_scripts(&software->scripts, POSTFAILURE)) {
+						WARN("execute POST FAILURE scripts return error, ignoring..");
+					}
+				}
 			} else {
 				/*
 				 * Clear the recovery variable to indicate to bootloader

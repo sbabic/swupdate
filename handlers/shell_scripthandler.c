@@ -63,6 +63,9 @@ static int start_shell_script(struct img_type *img, void *data)
 	case POSTINSTALL:
 		fnname="postinst";
 		break;
+	case POSTFAILURE:
+		fnname="failure";
+		break;
 	default:
 		/* no error, simply no call */
 		return 0;
