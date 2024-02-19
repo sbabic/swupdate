@@ -514,8 +514,8 @@ static int __swupdate_copy(int fdin, unsigned char *inbuf, void *out, size_t nby
 
 	if (encrypted) {
 		aes_key = get_aes_key();
-		if (imgivt) {
-			if (!strlen(imgivt) || !is_hex_str(imgivt) || ascii_to_bin(ivtbuf, sizeof(ivtbuf), imgivt)) {
+		if (imgivt && strlen(imgivt)) {
+			if (!is_hex_str(imgivt) || ascii_to_bin(ivtbuf, sizeof(ivtbuf), imgivt)) {
 				ERROR("Invalid image ivt");
 				return -EINVAL;
 			}
