@@ -20,7 +20,6 @@
 
 #include "handler.h"
 #include "swupdate_image.h"
-#include "sslapi.h"
 #include "util.h"
 
 void readback_handler(void);
