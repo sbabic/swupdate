@@ -81,8 +81,11 @@ void luaL_pushresult(luaL_Buffer_52 *B);
 
 #else
 
+struct img_type;
+
 #define lua_State void
 #define lua_exit(L)
+#define lua_close(L)
 static inline lua_State *lua_init(struct dict __attribute__ ((__unused__)) *bootenv) { return NULL;}
 static inline int lua_load_buffer(lua_State __attribute__ ((__unused__)) *L, 
 					const char __attribute__ ((__unused__)) *buf) {return 1;}
