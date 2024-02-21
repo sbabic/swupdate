@@ -233,6 +233,7 @@ int main(int argc, char **argv)
 	char *script = NULL;
 	bool wait_update = true;
 	bool disable_reboot = false;
+	bool redirected = false;
 
 	/* Process options with getopt */
 	while ((c = getopt_long(argc, argv, "cwprhs:e:q",
@@ -280,6 +281,8 @@ int main(int argc, char **argv)
 		snprintf(psplash_pipe_path, sizeof(psplash_pipe_path), "%s/psplash_fifo", rundir);
 	}
 	connfd = -1;
+	redirected = !isatty(fileno(stdout));
+
 	while (1) {
 		if (connfd < 0) {
 			connfd = progress_ipc_connect(opt_w);
@@ -385,6 +388,8 @@ int main(int argc, char **argv)
 						bar,
 						msg.cur_step, msg.nsteps, msg.cur_percent,
 						msg.cur_image, msg.dwl_percent, msg.dwl_bytes);
+					if (redirected)
+						fprintf(stdout, "\n");
 					fflush(stdout);
 				}
 
