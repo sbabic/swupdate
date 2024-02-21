@@ -463,7 +463,7 @@ M.transition = {
 --- @field mtime        string           Date and time (ISO8601) when the job was last modified
 --- @field stime        string           Date and time (ISO8601) when the job was created
 --- @field status       job.status       Job Status Information
---- @field tags         string[]         Job tags
+--- @field tags         string[]         Job tags (unused)
 --- @field workflow     job.workflow     Job's Workflow
 M.job = setmetatable({}, {
     --- @param  self     job  This job instance
@@ -648,8 +648,8 @@ function M.job.status:set(status)
 end
 
 --- @class retry_settings
---- @field retries      number  Number of (re-)tries
---- @field retry_sleep  number  Number of seconds between retries
+--- @field retries      number | nil  Number of (re-)tries
+--- @field retry_sleep  number | nil  Number of seconds between retries
 
 --- Send job status information and update job with response.
 --
@@ -660,8 +660,9 @@ end
 --- @return boolean                         # `true` if job status information sent, `false` on error
 function M.job.status:send(chan, retry)
     chan = chan or M.channel.main
-    local retries = (retry or {}).retries or chan.options.retries
-    local retry_sleep = (retry or {}).retry_sleep or chan.options.retry_sleep
+    -- Last resort defaults as in `include/channel.h`
+    local retries = (retry or {}).retries or chan.options.retries or 5
+    local retry_sleep = (retry or {}).retry_sleep or chan.options.retry_sleep or 5
     local msg = tostring(self)
     return M.utils.do_retry(retries, retry_sleep, function()
         local res, _, data = chan.put {
@@ -733,14 +734,14 @@ M.job.workflow = {
     --- @field description  string                 Description of the transition
     --- @field eligible     transition.eligibles   Actor that may execute the transition
     --- @field execute      dispatch_fn            Transition execution function
-
-    --- Transition execution function Dispatch.
-    --
-    -- Table holding transition execution functions and their access functions.
-    --
-    --- @class job.workflow.dispatch
-    dispatch = {},
 }
+
+--- Transition execution function Dispatch.
+--
+-- Table holding transition execution functions and their access functions.
+--
+--- @class job.workflow.dispatch
+M.job.workflow.dispatch = {}
 
 --- Get a transition execution function.
 --
@@ -1112,7 +1113,7 @@ function M.job.definition:update(chan)
     end)
 end
 
---- Augment job Definition with meta functionality.
+--- Prepare and Check Job definition.
 --
 --- @return boolean  # `true` if preparation succeeded, `false` otherwise
 function M.job.definition:prepare()
@@ -1196,6 +1197,7 @@ local function sync_job_status(status)
     local transition = status[1]
     local job = status[2]
     return job.status
+        ---@diagnostic disable-next-line: missing-fields
         :set({
             state = status.state or transition.to.name,
             message = status.message or "",
@@ -2124,7 +2126,7 @@ function M.suricatta_funcs.server_start(defaults, argv, fconfig)
     local url = ("%s/swagger.json"):format(M.channel.main.options.url)
     suricatta.notify.debug("Suricatta querying %q", url)
     repeat
-        res, _, data = M.channel.main.get { url = url }
+        local res, _, data = M.channel.main.get { url = url }
         if not res then
             suricatta.notify.warn(
                 "Got HTTP error code %d, sleeping %d seconds ...",
