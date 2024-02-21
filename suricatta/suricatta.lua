@@ -77,11 +77,6 @@ suricatta.bootloader = {
         GRUB  = "grub",
         UBOOT = "uboot",
     },
-
-    --- Operations on the currently set bootloader's environment.
-    --
-    --- @class suricatta.bootloader.env
-    env = {}
 }
 
 --- Get currently set bootloader's name.
@@ -94,6 +89,11 @@ suricatta.bootloader.get = function() end
 --- @param  name     suricatta.bootloader.bootloaders  Name of bootloader to test for being currently selected
 --- @return boolean                                    # True if `name` is currently set bootloader, false otherwise
 suricatta.bootloader.is = function(name) end
+
+--- Operations on the currently set bootloader's environment.
+--
+--- @class suricatta.bootloader.env
+suricatta.bootloader.env = {}
 
 --- Get value of a bootloader environment variable.
 --
@@ -222,33 +222,33 @@ suricatta.channel = {
     --- Channel options as in `include/channel_curl.h`.
     --
     --- @class suricatta.channel.options
-    --- @field url                 string   `CURLOPT_URL` - URL for this transfer
-    --- @field cached_file         string   Resume download from cached file at path
-    --- @field auth                string   `CURLOPT_USERPWD` - user name and password to use in authentication
-    --- @field request_body        string   Data to send to server for `PUT` and `POST`
-    --- @field iface               string   `CURLOPT_INTERFACE` - source interface for outgoing traffic
-    --- @field dry_run             boolean  `swupdate_request`'s dry_run field as in `include/network_ipc.h`
-    --- @field cafile              string   `CURLOPT_CAINFO` - path to Certificate Authority (CA) bundle
-    --- @field sslkey              string   `CURLOPT_SSLKEY` - private key file for TLS and SSL client cert
-    --- @field sslcert             string   `CURLOPT_SSLCERT` - SSL client certificate
-    --- @field ciphers             string   `CURLOPT_SSL_CIPHER_LIST` - ciphers to use for TLS
-    --- @field proxy               string   `CURLOPT_PROXY` - proxy to use
-    --- @field info                string   `swupdate_request`'s info field as in `include/network_ipc.h`
-    --- @field auth_token          string   String appended to Header
-    --- @field content_type        string   `Content-Type:` and `Accept:` appended to Header
-    --- @field retry_sleep         number   Time to wait prior to retry and resume a download
-    --- @field method              suricatta.channel.method  Channel transfer method to use
-    --- @field retries             number   Maximal download attempt count
-    --- @field low_speed_timeout   number   `CURLOPT_LOW_SPEED_TIME` - low speed limit time period
-    --- @field connection_timeout  number   `CURLOPT_CONNECTTIMEOUT` - timeout for the connect phase
-    --- @field format              suricatta.channel.content  Content type passed over the channel
-    --- @field debug               boolean  Set channel debug logging
-    --- @field usessl              boolean  Enable SSL hash sum calculation
-    --- @field strictssl           boolean  `CURLOPT_SSL_VERIFYHOST` + `CURLOPT_SSL_VERIFYPEER`
-    --- @field nocheckanswer       boolean  Whether the reply is interpreted/logged and tried to be parsed
-    --- @field nofollow            boolean  `CURLOPT_FOLLOWLOCATION` - follow HTTP 3xx redirects
-    --- @field max_download_speed  string   `CURLOPT_MAX_RECV_SPEED_LARGE` - rate limit data download speed
-    --- @field headers_to_send     table<string, string>  Header to send
+    --- @field url                 string | nil   `CURLOPT_URL` - URL for this transfer
+    --- @field cached_file         string | nil   Resume download from cached file at path
+    --- @field auth                string | nil   `CURLOPT_USERPWD` - user name and password to use in authentication
+    --- @field request_body        string | nil   Data to send to server for `PUT` and `POST`
+    --- @field iface               string | nil   `CURLOPT_INTERFACE` - source interface for outgoing traffic
+    --- @field dry_run             boolean | nil  `swupdate_request`'s dry_run field as in `include/network_ipc.h`
+    --- @field cafile              string | nil   `CURLOPT_CAINFO` - path to Certificate Authority (CA) bundle
+    --- @field sslkey              string | nil   `CURLOPT_SSLKEY` - private key file for TLS and SSL client cert
+    --- @field sslcert             string | nil   `CURLOPT_SSLCERT` - SSL client certificate
+    --- @field ciphers             string | nil   `CURLOPT_SSL_CIPHER_LIST` - ciphers to use for TLS
+    --- @field proxy               string | nil   `CURLOPT_PROXY` - proxy to use
+    --- @field info                string | nil   `swupdate_request`'s info field as in `include/network_ipc.h`
+    --- @field auth_token          string | nil   String appended to Header
+    --- @field content_type        string | nil   `Content-Type:` and `Accept:` appended to Header
+    --- @field retry_sleep         number | nil   Time to wait prior to retry and resume a download
+    --- @field method              suricatta.channel.method | nil  Channel transfer method to use
+    --- @field retries             number | nil   Maximal download attempt count
+    --- @field low_speed_timeout   number | nil   `CURLOPT_LOW_SPEED_TIME` - low speed limit time period
+    --- @field connection_timeout  number | nil   `CURLOPT_CONNECTTIMEOUT` - timeout for the connect phase
+    --- @field format              suricatta.channel.content | nil  Content type passed over the channel
+    --- @field debug               boolean | nil  Set channel debug logging
+    --- @field usessl              boolean | nil  Enable SSL hash sum calculation
+    --- @field strictssl           boolean | nil  `CURLOPT_SSL_VERIFYHOST` + `CURLOPT_SSL_VERIFYPEER`
+    --- @field nocheckanswer       boolean | nil  Whether the reply is interpreted/logged and tried to be parsed
+    --- @field nofollow            boolean | nil  `CURLOPT_FOLLOWLOCATION` - follow HTTP 3xx redirects
+    --- @field max_download_speed  string | nil   `CURLOPT_MAX_RECV_SPEED_LARGE` - rate limit data download speed
+    --- @field headers_to_send     table<string, string> | nil  Header to send
     options = {},
 
     --- Open a new channel.
@@ -267,9 +267,9 @@ suricatta.channel = {
 -- and specific options to the download / installation operation, e.g., `drain_messages`.
 --
 --- @class suricatta.operation_channel
---- @field channel          suricatta.open_channel     Channel table as returned by `suricatta.channel.open()`
---- @field drain_messages?  boolean                    Whether to flush all progress messages or only those while in-flight operation (default)
---- @field ∈?               suricatta.channel.options  Channel options to override for this operation
+--- @field channel          suricatta.open_channel           Channel table as returned by `suricatta.channel.open()`
+--- @field drain_messages   boolean  | nil                   Whether to flush all progress messages or only those while in-flight operation (default)
+--- @field ∈                suricatta.channel.options | nil  Channel options to override for this operation
 
 --- Install an update artifact from remote server or local file.
 --
