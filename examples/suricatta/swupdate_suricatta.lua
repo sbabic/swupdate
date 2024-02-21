@@ -137,9 +137,9 @@ jobtype = {
 --- A Job.
 --
 --- @class job
---- @field md5  string    MD5 sum of the artifact
---- @field url  string    URL of the artifact
---- @field typ  job.type  Type of job
+--- @field md5  string | nil    MD5 sum of the artifact
+--- @field url  string | nil    URL of the artifact
+--- @field typ  job.type | nil  Type of job
 
 
 --- Configuration for the General Purpose HTTP Server.
@@ -476,7 +476,7 @@ function server_stop()
     gs.channel_config = {}
     for channel, _ in pairs(gs.channel) do
         gs.channel[channel].close()
-        gs.channel[channel] = {}
+        gs.channel[channel] = nil
     end
     return suricatta.status.OK
 end
