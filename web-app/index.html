@@ -32,11 +32,11 @@
       <a class="navbar-brand" href="#">
         <img class="d-inline-block align-top" src="images/logo.png" alt="">
       </a>
-      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarText">
-        <ul class="navbar-nav ml-auto">
+        <ul class="navbar-nav ms-auto">
           <li class="nav-item">
             <a id="swu-restart" class="nav-link" href="#"><i class="fas fa-sync"></i> Restart System</a>
           </li>
@@ -48,15 +48,21 @@
   <!-- Use Bootstrap Grid Container -->
   <div class="container">
     <!-- Header -->
-    <div class="jumbotron my-3">
-      <h1 class="display-4"><span class="text-primary">SW</span>Update</h1>
-      <p class="lead">Software update for embedded systems</p>
-      <p>Upload a software image below, or restart the system at the top right corner.</p>
+    <div class="row my-3">
+      <div class="col">
+        <div class="card opacity-75">
+          <div class="card-header pb-0">
+            <h1 class="display-4"><span class="text-primary">SW</span>Update</h1>
+            <p class="lead">Software update for embedded systems</p>
+            <p>Upload a software image below, or restart the system at the top right corner.</p>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="row my-3">
       <div class="col">
-        <div class="card">
+        <div class="card opacity-75">
           <div class="card-header pb-0">
             <h5><i class="fas fa-wrench"></i> Software Update</h5>
           </div>
@@ -87,12 +93,12 @@
             </div>
 
             <!-- Progress -->
-            <i id="swu-progress-spinner" class="fas"></i>
+            <i id="swu-progress-spinner" class="spinner-border invisible" role="status"></i>
             <strong id="swu-progress-run" style="display: none;">Updating:</strong>
             <span id="swu-progress-name"></span>
             <span id="swu-progress-value" class="float-right"></span>
-            <div class="progress">
-              <div id="swu-progress-bar" class="progress-bar progress-bar-striped" role="progressbar"></div>
+            <div class="progress" role="progressbar">
+              <div id="swu-progress-bar" class="progress-bar progress-bar-striped" style="height: 1.5rem"></div>
             </div>
           </div>
         </div>
@@ -102,9 +108,9 @@
     <!-- Messages -->
     <div class="row my-3">
       <div class="col">
-        <div class="card">
+        <div class="card opacity-75">
           <div class="card-header" id="headingMessages">
-            <a class="h5 collapsed" data-toggle="collapse" href="#collapseMessages" aria-expanded="false" aria-controls="collapseMessages">
+            <a class="h5 collapsed" data-bs-toggle="collapse" data-bs-target="#collapseMessages" aria-expanded="false" aria-controls="collapseMessages">
               <i class="fas"></i> Messages
             </a>
           </div>
@@ -116,16 +122,12 @@
     </div>
 
     <!-- Restart -->
-    <div id="swu-restart-modal" class="modal fade" tabindex="-1" role="dialog">
-      <div class="modal-dialog modal-dialog-centered" role="document">
+    <div id="swu-restart-modal" class="modal fade" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-          <div class="modal-body p-3 mb-2">
-            <div class="media">
-              <i class="fas fa-spinner fa-spin fa-3x align-self-center mr-3"></i>
-              <div class="media-body align-self-center">
-                <h5 class="mt-0 mb-0">The system will restart. Please be patient, as restarting takes about one minute.</h5>
-              </div>
-            </div>
+          <div class="modal-body">
+            <i class="spinner-border" role="status"></i>
+            <h5>The system will restart. Please be patient, as restarting takes about one minute.</h5>
           </div>
         </div>
       </div>

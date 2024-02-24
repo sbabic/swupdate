@@ -23,10 +23,10 @@ body {
   width: 220px;
 }
 
-[data-toggle="collapse"] i:before {
+[data-bs-toggle="collapse"] i:before {
   content: "\f139";
 }
 
-[data-toggle="collapse"].collapsed i:before {
+[data-bs-toggle="collapse"].collapsed i:before {
   content: "\f13a";
 }

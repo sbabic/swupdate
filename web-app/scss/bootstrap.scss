@@ -5,14 +5,4 @@
  * SPDX-License-Identifier: MIT
  */
 
-$theme-colors: (
-);
-
-$transparent: rgba(255, 255, 255, .75);
-
-$jumbotron-bg: $transparent;
-$card-bg: $transparent;
-
-$progress-height: 1.5rem !default;
-
 @import 'node_modules/bootstrap/scss/bootstrap';

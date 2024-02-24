@@ -5,7 +5,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-/* global $, Dropzone, WebSocket */
+/* global $, Dropzone, WebSocket, bootstrap */
 
 const StatusEnum = {
   IDLE: 'IDLE',
@@ -27,7 +27,8 @@ function restart () {
 }
 
 function showRestart () {
-  $('#swu-restart-modal').modal({ backdrop: 'static', keyboard: false })
+  const restartModal = new bootstrap.Modal('#swu-restart-modal', { backdrop: 'static', keyboard: false })
+  restartModal.show()
   window.setTimeout(tryReload, 3000)
 }
 
@@ -82,7 +83,8 @@ const updateProgressBarStatus = (function (status) {
     $('#swu-progress-bar')
       .removeClass('bg-danger bg-success progress-bar-animated')
     $('#swu-progress-spinner')
-      .removeClass('fa-spinner fa-spin')
+      .addClass('invisible')
+      .removeClass('visible')
     $('#swu-progress-run').hide()
 
     switch (status) {
@@ -92,7 +94,8 @@ const updateProgressBarStatus = (function (status) {
       case StatusEnum.RUN:
         $('#swu-progress-bar').addClass('progress-bar-animated')
         $('#swu-progress-spinner')
-          .addClass('fa-spinner fa-spin')
+          .removeClass('invisible')
+          .addClass('visible')
         $('#swu-progress-run').show()
         break
       case StatusEnum.SUCCESS:
