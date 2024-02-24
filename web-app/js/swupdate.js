@@ -133,7 +133,7 @@ window.onload = function () {
 
   if (window.location.protocol === 'https:') { protocol = 'wss:' } else { protocol = 'ws:' }
 
-  var ws = new WebSocket(protocol + '//' + window.location.host + window.location.pathname.replace(/\/[^\/]*$/, '') + '/ws')
+  var ws = new WebSocket(protocol + '//' + window.location.host + window.location.pathname.replace(/\/[^/]*$/, '') + '/ws')
 
   ws.onopen = function (event) {
     updateStatus(StatusEnum.IDLE)
