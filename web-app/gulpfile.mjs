@@ -5,20 +5,22 @@
  * SPDX-License-Identifier: MIT
  */
 
-const cleanCSS = require('gulp-clean-css')
-const del = require('del')
-const gulp = require('gulp')
-const gzip = require('gulp-gzip')
-const imagemin = require('gulp-imagemin')
-const filter = require('gulp-filter')
-const htmlmin = require('gulp-htmlmin')
-const minify = require('gulp-minify')
-const rename = require('gulp-rename')
-const replace = require('gulp-replace')
-const sass = require('gulp-sass')(require('sass'))
-const tar = require('gulp-tar')
-const useref = require('gulp-useref')
-const minimist = require('minimist')
+import cleanCSS from 'gulp-clean-css'
+import { deleteAsync } from 'del'
+import gulp from 'gulp'
+import gzip from 'gulp-gzip'
+import imagemin from 'gulp-imagemin'
+import filter from 'gulp-filter'
+import htmlmin from 'gulp-htmlmin'
+import minify from 'gulp-minify'
+import rename from 'gulp-rename'
+import replace from 'gulp-replace'
+import * as dartSass from 'sass'
+import gulpSass from 'gulp-sass'
+import tar from 'gulp-tar'
+import useref from 'gulp-useref'
+import minimist from 'minimist'
+const sass = gulpSass(dartSass)
 
 const knownOptions = {
   string: 'output',
@@ -122,7 +124,7 @@ gulp.task('package', function () {
 })
 
 gulp.task('clean', function () {
-  return del('dist/**', { force: true })
+  return deleteAsync(['dist/**'])
 })
 
 gulp.task('build', gulp.series('clean', gulp.parallel('copy-css', 'copy-js', 'copy-fonts', 'sass', 'minify-css', 'minify-js', 'minify-html', 'resize-images')))
