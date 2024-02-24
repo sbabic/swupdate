@@ -14,9 +14,9 @@ const StatusEnum = {
   SUCCESS: 'SUCCESS',
   FAILURE: 'FAILURE',
   DONE: 'DONE'
-};
+}
 
-function isStatusInEnum(status){
+function isStatusInEnum (status) {
   return (status in StatusEnum)
 }
 
@@ -45,7 +45,7 @@ function tryReload () {
 }
 
 function updateStatus (status) {
-  if(!isStatusInEnum(status)) return;
+  if (!isStatusInEnum(status)) return
   $('#swu-idle').hide()
   $('#swu-success').hide()
   $('#swu-failure').hide()
@@ -74,11 +74,11 @@ function updateStatus (status) {
   }
 }
 
-var updateProgressBarStatus = (function (status) {
-  var s = ''
+const updateProgressBarStatus = (function (status) {
+  let s = ''
 
   return function (status) {
-    if(!isStatusInEnum(status)) return;
+    if (!isStatusInEnum(status)) return
     $('#swu-progress-bar')
       .removeClass('bg-danger bg-success progress-bar-animated')
     $('#swu-progress-spinner')
@@ -127,13 +127,13 @@ Dropzone.options.dropzone = {
 }
 
 window.onload = function () {
-  var protocol
+  let protocol
 
   $('#swu-restart').click(restart)
 
   if (window.location.protocol === 'https:') { protocol = 'wss:' } else { protocol = 'ws:' }
 
-  var ws = new WebSocket(protocol + '//' + window.location.host + window.location.pathname.replace(/\/[^/]*$/, '') + '/ws')
+  const ws = new WebSocket(protocol + '//' + window.location.host + window.location.pathname.replace(/\/[^/]*$/, '') + '/ws')
 
   ws.onopen = function (event) {
     updateStatus(StatusEnum.IDLE)
@@ -144,28 +144,32 @@ window.onload = function () {
   }
 
   ws.onmessage = function (event) {
-    var msg = JSON.parse(event.data)
+    const msg = JSON.parse(event.data)
 
     switch (msg.type) {
-      case 'message':
-        var p = $('<p></p>')
+      case 'message': {
+        const p = $('<p></p>')
         p.text(msg.text)
         p.addClass('mb-1')
         if (msg.level <= 3) { p.addClass('text-danger') }
         $('#messages').append(p)
         break
-      case 'status':
+      }
+      case 'status': {
         updateStatus(msg.status)
         updateProgressBarStatus(msg.status)
         break
-      case 'source':
+      }
+      case 'source': {
         break
-      case 'step':
-        var percent = Math.round((100 * (Number(msg.step) - 1) + Number(msg.percent)) / Number(msg.number))
-        var value = percent + '%' + ' (' + msg.step + ' of ' + msg.number + ')'
+      }
+      case 'step': {
+        const percent = Math.round((100 * (Number(msg.step) - 1) + Number(msg.percent)) / Number(msg.number))
+        const value = percent + '%' + ' (' + msg.step + ' of ' + msg.number + ')'
 
         updateProgressBar(percent, msg.name, value)
         break
+      }
     }
   }
 }

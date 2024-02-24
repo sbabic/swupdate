@@ -5,27 +5,27 @@
  * SPDX-License-Identifier: MIT
  */
 
-var cleanCSS = require('gulp-clean-css')
-var del = require('del')
-var gulp = require('gulp')
-var gzip = require('gulp-gzip')
-var imagemin = require('gulp-imagemin')
-var filter = require('gulp-filter')
-var htmlmin = require('gulp-htmlmin')
-var minify = require('gulp-minify')
-var rename = require('gulp-rename')
-var replace = require('gulp-replace')
-var sass = require('gulp-sass')(require('sass'))
-var tar = require('gulp-tar')
-var useref = require('gulp-useref')
-var minimist = require('minimist')
+const cleanCSS = require('gulp-clean-css')
+const del = require('del')
+const gulp = require('gulp')
+const gzip = require('gulp-gzip')
+const imagemin = require('gulp-imagemin')
+const filter = require('gulp-filter')
+const htmlmin = require('gulp-htmlmin')
+const minify = require('gulp-minify')
+const rename = require('gulp-rename')
+const replace = require('gulp-replace')
+const sass = require('gulp-sass')(require('sass'))
+const tar = require('gulp-tar')
+const useref = require('gulp-useref')
+const minimist = require('minimist')
 
-var knownOptions = {
+const knownOptions = {
   string: 'output',
   default: { output: 'swupdate-www' }
 }
 
-var options = minimist(process.argv.slice(2), knownOptions)
+const options = minimist(process.argv.slice(2), knownOptions)
 
 gulp.task('sass', async function () {
   return gulp.src('scss/*.scss')
@@ -114,7 +114,7 @@ gulp.task('resize-images', async function () {
 })
 
 gulp.task('package', function () {
-  var name = options.output.replace('.tar', '').replace('.gz', '')
+  const name = options.output.replace('.tar', '').replace('.gz', '')
   return gulp.src('dist/**')
     .pipe(tar(name + '.tar'))
     .pipe(gzip())
