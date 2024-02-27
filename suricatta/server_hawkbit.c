@@ -57,6 +57,7 @@ static struct option long_options[] = {
     {"server", required_argument, NULL, 'S'},
 	{"connection-timeout", required_argument, NULL, 's'},
 	{"custom-http-header", required_argument, NULL, 'a'},
+	{"identify", required_argument, NULL, '3'},
 	{"max-download-speed", required_argument, NULL, 'l'},
     {NULL, 0, NULL, 0}};
 
@@ -1692,6 +1693,7 @@ static void server_print_help(void)
 	    "\t  -s, --connection-timeout Set the server connection timeout (default: 300s).\n"
 	    "\t  -a, --custom-http-header <name> <value> Set custom HTTP header, "
 	    "appended to every HTTP request being sent.\n"
+	    "\t  --identify <name> <value> Set custom device attributes for Suricatta.\n"
 	    "\t  -n, --max-download-speed <limit>  Set download speed limit.\n"
 	    "\t                                    Example: -n 100k; -n 1M; -n 100; -n 1G\n",
 	    CHANNEL_DEFAULT_POLLING_INTERVAL, CHANNEL_DEFAULT_RESUME_TRIES,
@@ -1887,6 +1889,15 @@ static server_op_res_t server_start(const char *fname, int argc, char *argv[])
 				return SERVER_EINIT;
 
 			if (dict_insert_value(&server_hawkbit.httpheaders,
+						optarg,
+						argv[optind++]) < 0)
+				return SERVER_EINIT;
+			break;
+		case '3':
+			if (optind >= argc)
+				return SERVER_EINIT;
+
+			if (dict_insert_value(&server_hawkbit.configdata,
 						optarg,
 						argv[optind++]) < 0)
 				return SERVER_EINIT;
