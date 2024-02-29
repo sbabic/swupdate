@@ -978,13 +978,19 @@ static int l_get_emmc_bootpart(lua_State *L)
 	const char *device = luaL_checkstring(L, 1);
 	int active = -1, fd;
 
-	if (device) {
-		fd = open(device, O_RDONLY);
-		if (fd) {
-			active = emmc_get_active_bootpart(fd);
-			close(fd);
-		}
+	if (!device) {
+		lua_pushnil(L);
+		return 1;
 	}
+
+	fd = open(device, O_RDONLY);
+	if (fd < 0) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	active = emmc_get_active_bootpart(fd);
+	close(fd);
 	lua_pushinteger(L, active);
 	return 1;
 }
