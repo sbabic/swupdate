@@ -293,6 +293,7 @@ static int install_remote_swu(struct img_type *img,
 	struct dict_list_elem *url;
 	struct dict_list *urls;
 	int index = 0;
+	const char *fn_parse_answer = NULL;
 	pthread_attr_t attr;
 	int thread_ret = -1;
 
@@ -315,6 +316,17 @@ static int install_remote_swu(struct img_type *img,
 	if (!urls) {
 		ERROR("SWU to be forwarded, but not remote URLs found ");
 		return -EINVAL;
+	}
+
+	/*
+	 * Check if a custom function is set to parse the
+	 * answer form the Webserver
+	 */
+	fn_parse_answer = dict_get_value(&img->properties, "parser-function");
+	if (fn_parse_answer && !img->L) {
+		ERROR("Custom parser requires to enable Lua, exiting..");
+		ret = FAILURE;
+		goto handler_exit;
 	}
 
 	/* Reset list of connections */
@@ -344,9 +356,14 @@ static int install_remote_swu(struct img_type *img,
 			goto handler_exit;
 		}
 
+		/*
+		 * Set parameters to each connection structure
+		 */
 		conn->url = url->value;
 		conn->total_bytes = img->size;
 		conn->SWUpdateStatus = IDLE;
+		conn->L = img->L;
+		conn->fnparser = fn_parse_answer;
 
 		LIST_INSERT_HEAD(&priv.conns, conn, next);
 

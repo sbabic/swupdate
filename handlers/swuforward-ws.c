@@ -35,16 +35,47 @@ struct wsconn {
 
 #define TEXTRANGE_TO_STR(f)	(f.first == NULL ? NULL : substring(f.first, 0, f.afterLast - f.first))
 
-static int callback_ws_swupdate(struct lws *wsi, enum lws_callback_reasons reason,
-				      void *user, void *in, size_t len)
+static void swupdate_web_answer(struct wsconn *ws, void *in, size_t len)
 {
-	struct wsconn *ws = (struct wsconn *)user;
 	struct json_tokener *json_tokenizer;
 	enum json_tokener_error json_res;
 	struct json_object *json_root;
 
-	switch (reason) {
+	json_tokenizer = json_tokener_new();
 
+	do {
+		json_root = json_tokener_parse_ex(
+			json_tokenizer, in, len);
+	} while ((json_res = json_tokener_get_error(json_tokenizer)) ==
+		json_tokener_continue);
+	if (json_res != json_tokener_success) {
+		ERROR("Error while parsing answer from %s returned JSON data: %s",
+			ws ? ws->conn->url : "", json_tokener_error_desc(json_res));
+	} else {
+		const char *reply_result = json_get_value(json_root, "type");
+		if (reply_result && !strcmp(reply_result, "status")) {
+			const char *status = json_get_value(json_root, "status");
+			if (!strcmp(status, "SUCCESS"))
+				ws->conn->SWUpdateStatus = SUCCESS;
+			if (!strcmp(status, "FAILURE"))
+				ws->conn->SWUpdateStatus = FAILURE;
+			TRACE("Change status on %s : %s", ws->conn->url,
+				status);
+		}
+		if (reply_result && !strcmp(reply_result, "message")) {
+			const char *text = json_get_value(json_root, "text");
+			TRACE("%s : %s", ws->conn->url, text);
+		}
+	}
+	json_tokener_free(json_tokenizer);
+}
+
+static int callback_ws_swupdate(struct lws *wsi, enum lws_callback_reasons reason,
+				      void *user, void *in, size_t len)
+{
+	struct wsconn *ws = (struct wsconn *)user;
+
+	switch (reason) {
 	/* because we are protocols[0] ... */
 	case LWS_CALLBACK_CLIENT_CONNECTION_ERROR:
 		ERROR("WS Client Connection Error to : %s", ws->conn->url);
@@ -58,33 +89,45 @@ static int callback_ws_swupdate(struct lws *wsi, enum lws_callback_reasons reaso
 		break;
 
 	case LWS_CALLBACK_CLIENT_RECEIVE:
-		json_tokenizer = json_tokener_new();
-
-		do {
-			json_root = json_tokener_parse_ex(
-				json_tokenizer, in, len);
-		} while ((json_res = json_tokener_get_error(json_tokenizer)) ==
-			json_tokener_continue);
-		if (json_res != json_tokener_success) {
-			ERROR("Error while parsing answer from %s returned JSON data: %s",
-				ws ? ws->conn->url : "", json_tokener_error_desc(json_res));
-		} else {
-			const char *reply_result = json_get_value(json_root, "type");
-			if (reply_result && !strcmp(reply_result, "status")) {
-				const char *status = json_get_value(json_root, "status");
-				if (!strcmp(status, "SUCCESS"))
-					ws->conn->SWUpdateStatus = SUCCESS;
-				if (!strcmp(status, "FAILURE"))
+		/*
+		 * If it is not connected to SWUpdate's Webserver
+		 * call a custom Lua function that should be loaded
+		 * in advance
+		 */
+		if (ws->conn->fnparser && strlen(ws->conn->fnparser)) {
+			/*
+			 * First convert the incoming data
+			 * to a "data" stucture (string)
+			 * that is passed to the script.
+			 * Raw / Binary data aren't supported
+			 */
+			char *data = (char *) calloc(1, len + 1);
+			if (!data) {
+				ERROR("OOM when allocating buffer for Lua Custom Script");
+				ws->conn->SWUpdateStatus = FAILURE;
+			} else {
+				int ret;
+				memcpy(data, in, len);
+				ret = lua_handler_fn(ws->conn->L, ws->conn->fnparser, data);
+				switch (ret) {
+				case RUN:
+					break;
+				case FAILURE:
 					ws->conn->SWUpdateStatus = FAILURE;
-				TRACE("Change status on %s : %s", ws->conn->url,
-					status);
+					break;
+				case SUCCESS:
+					ws->conn->SWUpdateStatus = SUCCESS;
+					break;
+				default:
+					WARN("Error parsing answer from Webserver, %d", ret);
+					ws->conn->SWUpdateStatus = FAILURE;
+					break;
+				}
+				free(data);
 			}
-			if (reply_result && !strcmp(reply_result, "message")) {
-				const char *text = json_get_value(json_root, "text");
-				TRACE("%s : %s", ws->conn->url, text);
-			}
+		} else {
+			swupdate_web_answer(ws, in, len);
 		}
-		json_tokener_free(json_tokenizer);
 		break;
 
 	case LWS_CALLBACK_CLIENT_CLOSED:

@@ -12,6 +12,7 @@
 #include "bsdqueue.h"
 #include "channel_curl.h"
 #include "channel.h"
+#include "lua_util.h"
 
 /*
  * The Webserver in SWUpdate expets a custom header
@@ -52,6 +53,8 @@ struct curlconn {
 	size_t total_bytes;	/* size of SWU image */
 	int fifo[2];		/* Pipe for IPC */
 	char *url;		/* URL for forwarding */
+	const char *fnparser;	/* Parser for the answer via ws */
+	lua_State *L;		/* Required if fnparser is set */
 	bool gotMsg;		/* set if the remote board has sent a new msg */
 	RECOVERY_STATUS SWUpdateStatus;	/* final status of update */
 	channel_op_res_t response;

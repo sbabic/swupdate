@@ -1608,7 +1608,6 @@ int lua_handler_fn(lua_State *L, const char *fcn, const char *parms)
 		TRACE("Script : no %s in script, exiting", fcn);
 		return -1;
 	}
-	TRACE("Prepared to run %s", fcn);
 
 	/*
 	 * passing arguments
@@ -1629,7 +1628,8 @@ int lua_handler_fn(lua_State *L, const char *fcn, const char *parms)
 
 	lua_pop(L, 1); /* clear stack */
 
-	TRACE("Script returns %d", ret);
+	if (loglevel >= DEBUGLEVEL)
+		TRACE("Script returns %d", ret);
 
 	return ret;
 }
