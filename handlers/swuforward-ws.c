@@ -143,7 +143,7 @@ int swuforward_ws_connect(struct curlconn *conn) {
 	if (!ws->context) {
 		free(ws);
 		ERROR("lws init failed");
-		return EFAULT;
+		return -EFAULT;
 	}
 
 	memset(&i, 0, sizeof i);
