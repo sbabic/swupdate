@@ -627,6 +627,49 @@ the SWU forwarder:
 			};
 		});
 
+The SWU forwarder can be used as generic uploader to an URL. This is requires to enable Lua support.
+The back channel should still run via Websocket, if the connected server should communicate a progress status.
+The handler allows to link an own Lua code that is able to parse the incoming data, and
+report an error. The `properties field` should contain the name of the Lua function that
+should be called to parse the answer from the remote system. Note that the data passed to Lua
+is converted to a string (and null terminated).
+
+::
+
+	images: (
+		{
+			filename = "image.swu";
+			type = "swuforward";
+
+			properties: {
+				url = ["http://192.168.178.41", "http://192.168.178.42];
+                                parser-function = "parse_answer";
+			};
+		});
+
+The parser function should be already loaded. The Lua function receives as input a string with the data
+received via the Websocket back channel. The function will read the data and return a single scalar value
+of swupdate_status, that is one of swupdate.RECOVERY_STATUS.*.
+Example:
+
+::
+
+	function parse_answer(s)
+		if string.match (s, 'SUCCESS') then
+			return swupdate.RECOVERY_STATUS.SUCCESS
+		end
+		if string.match (s, 'FAILURE') then
+			return swupdate.RECOVERY_STATUS.FAILURE
+		end
+
+		return swupdate.RECOVERY_STATUS.RUN
+
+	end";
+
+The handler evaluates the return value, and stops when one of SUCCESS or FAILURE is returned.
+
+If no parser-function is passed, the handler will run the internal parser used to connect
+remote SWUpdate systems, and expects to see a JSON message sent by the Mongoose Webserver.
 
 rdiff handler
 -------------
