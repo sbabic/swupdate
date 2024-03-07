@@ -160,10 +160,18 @@ int swuforward_ws_connect(struct curlconn *conn) {
 		i.port = strtoul(tmp, NULL, 10);
 		free(tmp);
 	}
+
+	/*
+	 * Check for a valid address before ask for
+	 * connection
+	 */
+	if (!i.address) {
+		ERROR("Malformed URL, exiting: %s", posturl);
+		return -EINVAL;
+	}
+
 	lws_client_connect_via_info(&i);
 	free((void *)i.address);
-
-	//uriFreeUriMembersA(&uri);
 
 	return 0;
 }
