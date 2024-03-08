@@ -483,6 +483,7 @@ void cleanup_files(struct swupdate_cfg *software) {
 	 * Drop Lua State if instantiated
 	 */
 	if (software->lua_state) {
+		unregister_session_handlers();
 		lua_exit(software->lua_state);
 		software->lua_state = NULL;
 	}

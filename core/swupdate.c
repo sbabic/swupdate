@@ -854,7 +854,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-	lua_handlers_init();
+	lua_handlers_init(NULL);
 
 	if(!get_hw_revision(&swcfg.hw))
 		INFO("Running on %s Revision %s", swcfg.hw.boardname, swcfg.hw.revision);

@@ -1320,56 +1320,65 @@ static int l_handler_wrapper(struct img_type *img, void *data,
 	int res = 0;
 	lua_Number result;
 	int l_func_ref;
+	lua_State *L;
+	struct installer_handler *hnd;
+	hnd = find_handler(img);
 
-	if (!gL || !img || !data) {
+	if (!gL || !img || !data || !hnd) {
 		return -1;
 	}
 
+	if (hnd->noglobal) {
+		L = img->L;
+	} else {
+		L = gL;
+	}
+
 	if (img->bootloader) {
-		lua_getglobal(gL, "swupdate");
-		if (!lua_istable(gL, -1)) {
+		lua_getglobal(L, "swupdate");
+		if (!lua_istable(L, -1)) {
 			ERROR("Lua stack corrupted.");
 			return -1;
 		}
-		struct dict **udbootenv = lua_newuserdata(gL, sizeof(struct dict*));
+		struct dict **udbootenv = lua_newuserdata(L, sizeof(struct dict*));
 		*udbootenv = img->bootloader;
-		luaL_setfuncs(gL, l_swupdate_bootenv, 1);
-		lua_pop(gL, 1);
+		luaL_setfuncs(L, l_swupdate_bootenv, 1);
+		lua_pop(L, 1);
 	}
 
 	l_func_ref = *((int*)data);
 	/* get the callback function */
-	lua_rawgeti(gL, LUA_REGISTRYINDEX, l_func_ref );
-	image2table(gL, img);
+	lua_rawgeti(L, LUA_REGISTRYINDEX, l_func_ref );
+	image2table(L, img);
 
 	switch (scriptfn) {
 	case PREINSTALL:
-		lua_pushstring(gL, "preinst");
+		lua_pushstring(L, "preinst");
 		break;
 	case POSTINSTALL:
-		lua_pushstring(gL, "postinst");
+		lua_pushstring(L, "postinst");
 		break;
 	default:
-		lua_pushnil(gL);
+		lua_pushnil(L);
 		break;
 	}
 
-	if (LUA_OK != (res = lua_pcall(gL, 2, 1, 0))) {
+	if (LUA_OK != (res = lua_pcall(L, 2, 1, 0))) {
 		ERROR("Error %d while executing the Lua callback: %s",
-			  res, lua_tostring(gL, -1));
-		lua_pop(gL, 1);
+			  res, lua_tostring(L, -1));
+		lua_pop(L, 1);
 		return -1;
 	}
 
 	 /* retrieve result */
-	if (!lua_isnumber(gL, -1)) {
+	if (!lua_isnumber(L, -1)) {
 		ERROR("Lua Handler must return a number");
-		lua_pop(gL, 1);
+		lua_pop(L, 1);
 		return -1;
 	}
 
-	result = lua_tonumber(gL, -1);
-	lua_pop(gL, 1);
+	result = lua_tonumber(L, -1);
+	lua_pop(L, 1);
 	TRACE("[Lua handler] returned: %d",(int)result);
 
 	return (int) result;
@@ -1398,6 +1407,8 @@ static int l_other_handler_wrapper(struct img_type *img, void *data)
  */
 static int l_register_handler( lua_State *L ) {
 	int *l_func_ref = malloc(sizeof(int));
+	handler_type_t lifetime = GLOBAL_HANDLER;
+
 	if(!l_func_ref) {
 		ERROR("Lua handler: unable to allocate memory");
 		lua_pop(L, 2);
@@ -1423,16 +1434,35 @@ static int l_register_handler( lua_State *L ) {
 		}
 
 		const char *handler_desc = luaL_checkstring(L, 1);
+
+		/*
+		 * Check if the handler must be registered globally
+		 * or just during the update
+		 */
+		if (L != gL) {
+			lifetime = SESSION_HANDLER;
+		}
 		/* store the callback function in registry */
 		*l_func_ref = luaL_ref (L, LUA_REGISTRYINDEX);
 		/* cleanup stack */
 		lua_pop (L, 1);
 
-		register_handler(handler_desc,
+		switch (lifetime) {
+		case GLOBAL_HANDLER:
+			register_handler(handler_desc,
 				 (mask & SCRIPT_HANDLER) ?
 				 l_script_handler_wrapper :
 				 l_other_handler_wrapper,
 				 mask, l_func_ref);
+			break;
+		case SESSION_HANDLER:
+			register_session_handler(handler_desc,
+				 (mask & SCRIPT_HANDLER) ?
+				 l_script_handler_wrapper :
+				 l_other_handler_wrapper,
+				 mask, l_func_ref);
+			break;
+		}
 		return 0;
 	}
 }
@@ -1486,7 +1516,7 @@ call_handler_exit:
 	return 2;
 }
 
-int lua_handlers_init(void)
+int lua_handlers_init(lua_State *L)
 {
 	static const char location[] =
 #if defined(CONFIG_EMBEDDED_LUA_HANDLER)
@@ -1496,26 +1526,29 @@ int lua_handlers_init(void)
 #endif
 	int ret = -1;
 
-	gL = luaL_newstate();
-	if (gL) {
+	if (!L) {
+		gL = luaL_newstate();
+		L = gL;
+	}
+	if (L) {
 		/* prime gL as LUA_TYPE_HANDLER */
-		lua_pushlightuserdata(gL, (void*)LUA_TYPE_HANDLER);
-		lua_setglobal(gL, "SWUPDATE_LUA_TYPE");
+		lua_pushlightuserdata(L, (void*)LUA_TYPE_HANDLER);
+		lua_setglobal(L, "SWUPDATE_LUA_TYPE");
 		/* load standard libraries */
-		luaL_openlibs(gL);
-		luaL_requiref( gL, "swupdate", luaopen_swupdate, 1 );
-		lua_pop(gL, 1); /* remove unused copy left on stack */
+		luaL_openlibs(L);
+		luaL_requiref(L, "swupdate", luaopen_swupdate, 1 );
+		lua_pop(L, 1); /* remove unused copy left on stack */
 		/* try to load Lua handlers for the swupdate system */
 #if defined(CONFIG_EMBEDDED_LUA_HANDLER)
-		ret = (luaL_loadbuffer(gL, EMBEDDED_LUA_SRC_START, EMBEDDED_LUA_SRC_END-EMBEDDED_LUA_SRC_START, "LuaHandler") ||
-		       lua_pcall(gL, 0, LUA_MULTRET, 0));
+		ret = (luaL_loadbuffer(L, EMBEDDED_LUA_SRC_START, EMBEDDED_LUA_SRC_END-EMBEDDED_LUA_SRC_START, "LuaHandler") ||
+		       lua_pcall(L, 0, LUA_MULTRET, 0));
 #else
-		ret = luaL_dostring(gL, "require (\"swupdate_handlers\")");
+		ret = luaL_dostring(L, "require (\"swupdate_handlers\")");
 #endif
 		if (ret != 0) {
 			INFO("%s Lua handler(s) not found.", location);
-			lua_report_exception(gL);
-			lua_pop(gL, 1);
+			lua_report_exception(L);
+			lua_pop(L, 1);
 		} else {
 			INFO("%s Lua handler(s) found and loaded.", location);
 		}
@@ -1541,6 +1574,8 @@ lua_State *lua_init(struct dict *bootenv)
 	*udbootenv = bootenv;
 	luaL_setfuncs(L, l_swupdate_bootenv, 1);
 	lua_pop(L, 1); /* remove unused copy left on stack */
+
+	lua_handlers_init(L);
 
 	return L;
 }

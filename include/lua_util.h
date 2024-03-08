@@ -25,7 +25,7 @@ lua_State *lua_init(struct dict *bootenv);
 int lua_load_buffer(lua_State *L, const char *buf);
 int lua_parser_fn(lua_State *L, const char *fcn, struct img_type *img);
 int lua_handler_fn(lua_State *L, const char *fcn, const char *parms);
-int lua_handlers_init(void);
+int lua_handlers_init(lua_State *L);
 
 int lua_notify_trace(lua_State *L);
 int lua_notify_error(lua_State *L);
@@ -109,5 +109,5 @@ static inline int lua_parser_fn(lua_State __attribute__ ((__unused__)) *L,
 static inline int lua_handler_fn(lua_State __attribute__ ((__unused__)) *L,
 			 const char __attribute__ ((__unused__)) *fcn,
 			 const char __attribute__ ((__unused__)) *parms) { return -1; }
-static inline int lua_handlers_init(void) { return 0; }
+static inline int lua_handlers_init(lua_State __attribute__ ((__unused__)) *L) { return 0; }
 #endif
