@@ -24,6 +24,7 @@ int run_lua_script(lua_State *L, const char *script, bool load, const char *func
 lua_State *lua_init(struct dict *bootenv);
 int lua_load_buffer(lua_State *L, const char *buf);
 int lua_parser_fn(lua_State *L, const char *fcn, struct img_type *img);
+int lua_handler_fn(lua_State *L, const char *fcn, const char *parms);
 int lua_handlers_init(void);
 
 int lua_notify_trace(lua_State *L);
@@ -37,11 +38,24 @@ int lua_get_swupdate_version(lua_State *L);
 
 #define lua_exit(L) lua_close((lua_State *)L)
 
+#if !defined(LUA_VERSION_NUM) || LUA_VERSION_NUM  < 503
+static inline int lua_isinteger (lua_State *L, int index) {
+  if (lua_type(L, index) == LUA_TNUMBER) {
+    lua_Number n = lua_tonumber(L, index);
+    lua_Integer i = lua_tointeger(L, index);
+    if (i == n)
+      return 1;
+  }
+  return 0;
+}
+#endif
+
 #if !defined(LUA_VERSION_NUM) || LUA_VERSION_NUM == 501
 #define LUA_OK 0
 #if !defined(luaL_newlib)
 #define luaL_newlib(L, l) (lua_newtable((L)),luaL_setfuncs((L), (l), 0))
 #endif
+
 void luaL_setfuncs(lua_State *L, const luaL_Reg *l, int nup);
 void luaL_requiref(lua_State *L, char const* modname, lua_CFunction openf, int glb);
 
@@ -92,5 +106,8 @@ static inline int lua_load_buffer(lua_State __attribute__ ((__unused__)) *L,
 static inline int lua_parser_fn(lua_State __attribute__ ((__unused__)) *L,
 			 const char __attribute__ ((__unused__)) *fcn,
 			 struct img_type __attribute__ ((__unused__)) *img) { return -1; }
+static inline int lua_handler_fn(lua_State __attribute__ ((__unused__)) *L,
+			 const char __attribute__ ((__unused__)) *fcn,
+			 const char __attribute__ ((__unused__)) *parms) { return -1; }
 static inline int lua_handlers_init(void) { return 0; }
 #endif

@@ -1597,3 +1597,39 @@ int lua_parser_fn(lua_State *L, const char *fcn, struct img_type *img)
 
 	return ret;
 }
+
+int lua_handler_fn(lua_State *L, const char *fcn, const char *parms)
+{
+	int ret = -1;
+
+	lua_getglobal(L, fcn);
+	if(!lua_isfunction(L, lua_gettop(L))) {
+		lua_pop(L, 1);
+		TRACE("Script : no %s in script, exiting", fcn);
+		return -1;
+	}
+	TRACE("Prepared to run %s", fcn);
+
+	/*
+	 * passing arguments
+	 */
+	lua_pushstring(L, parms);
+
+	ret = lua_pcall(L, 1, 1, 0);
+	if (ret || !lua_isinteger(L, -1)) {
+		LUAstackDump(L);
+		ERROR("ERROR Calling Lua %s", fcn);
+		return -1;
+	}
+
+	if (loglevel >= DEBUGLEVEL)
+		LUAstackDump(L);
+
+	ret = lua_tointeger(L, -1);
+
+	lua_pop(L, 1); /* clear stack */
+
+	TRACE("Script returns %d", ret);
+
+	return ret;
+}
