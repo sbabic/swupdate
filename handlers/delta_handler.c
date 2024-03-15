@@ -509,6 +509,7 @@ static bool create_zckindex(zckCtx *zck, int fd, size_t maxbytes)
 	}
 
 	free(buf);
+	zck_end_chunk(zck);
 
 	if(n < 0) {
 		ERROR("Error occurred while reading data : %s", strerror(errno));
