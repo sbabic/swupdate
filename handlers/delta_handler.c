@@ -45,6 +45,7 @@
 #include "swupdate_image.h"
 
 #define DEFAULT_MAX_RANGES	150	/* Apache has default = 200 */
+#define BUFF_SIZE		16384
 
 const char *handlername = "delta";
 void delta_handler(void);
@@ -470,33 +471,53 @@ static void zck_log_toswupdate(const char *function, zck_log_type lt,
 
 /*
  * Create a zck Index from a file
+ *
+ * If maxbytes has been set, it acts as a limit for the input data.
+ * If not (i.e. maxbytes==0), all the file/dev available data is used.
  */
 static bool create_zckindex(zckCtx *zck, int fd, size_t maxbytes)
 {
-	const size_t bufsize = 16384;
-	char *buf = malloc(bufsize);
-	ssize_t n;
-	int ret;
+	size_t bufsize = BUFF_SIZE;
+	char *buf = malloc(BUFF_SIZE);
+	ssize_t n = 0;
+	size_t count = 0;
+	bool rstatus = true;
 
 	if (!buf) {
 		ERROR("OOM creating temporary buffer");
 		return false;
 	}
 	while ((n = read(fd, buf, bufsize)) > 0) {
-		ret = zck_write(zck, buf, n);
-		if (ret < 0) {
+		if (zck_write(zck, buf, n) < 0) {
 			ERROR("ZCK returns %s", zck_get_error(zck));
 			free(buf);
 			return false;
 		}
-		if (maxbytes && n > maxbytes)
-			break;
+
+		if(maxbytes) {
+			/* Keep count only if maxbytes has been set and it's significant*/
+			count += n;
+
+			/* Stop if limit is reached*/
+			if (count >= maxbytes)
+				break;
+
+			/* Be sure read up to maxbytes limit next time */
+			if (BUFF_SIZE > (maxbytes - count))
+				bufsize = maxbytes - count;
+		}
 	}
 
 	free(buf);
 
-	return true;
+	if(n < 0) {
+		ERROR("Error occurred while reading data : %s", strerror(errno));
+		rstatus = false;
+	}
+
+	return rstatus;
 }
+
 
 /*
  * Chunks must be retrieved from network, prepare an send
