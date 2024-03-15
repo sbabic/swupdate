@@ -297,6 +297,9 @@ static int install_remote_swu(struct img_type *img,
 	pthread_attr_t attr;
 	int thread_ret = -1;
 
+	/* Reset list of connections */
+	LIST_INIT(&priv.conns);
+
 	/*
 	 * A single SWU can contains encrypted artifacts,
 	 * but the SWU itself cannot be encrypted.
@@ -328,9 +331,6 @@ static int install_remote_swu(struct img_type *img,
 		ret = FAILURE;
 		goto handler_exit;
 	}
-
-	/* Reset list of connections */
-	LIST_INIT(&priv.conns);
 
 	/* initialize CURL */
 	ret = curl_global_init(CURL_GLOBAL_DEFAULT);
