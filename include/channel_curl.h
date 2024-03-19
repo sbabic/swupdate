@@ -55,6 +55,7 @@ typedef struct {
 	bool dry_run;
 	char *cafile;
 	char *sslkey;
+	char *sslkeypassword;
 	char *sslcert;
 	char *ciphers;
 	char *proxy;

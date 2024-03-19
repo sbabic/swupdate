@@ -41,6 +41,9 @@ int channel_settings(void *elem, void *data)
 	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "sslkey", tmp);
 	if (strlen(tmp))
 		SETSTRING(chan->sslkey, tmp);
+	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "sslkeypassword", tmp);
+	if (strlen(tmp))
+		SETSTRING(chan->sslkeypassword, tmp);
 	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "ciphers", tmp);
 	if (strlen(tmp))
 		SETSTRING(chan->ciphers, tmp);

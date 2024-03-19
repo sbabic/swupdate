@@ -526,6 +526,7 @@ static void channel_push_options(lua_State *L, channel_data_t *channel_data)
 	push_to_table(L, "dry_run",            channel_data->dry_run);
 	push_to_table(L, "cafile",             channel_data->cafile);
 	push_to_table(L, "sslkey",             channel_data->sslkey);
+	push_to_table(L, "sslkeypassword",     channel_data->sslkeypassword);
 	push_to_table(L, "sslcert",            channel_data->sslcert);
 	push_to_table(L, "ciphers",            channel_data->ciphers);
 	if (channel_data->proxy && channel_data->proxy == USE_PROXY_ENV) {
@@ -572,6 +573,7 @@ static void channel_set_options(lua_State *L, channel_data_t *channel_data)
 	get_from_table(L, "dry_run",            channel_data->dry_run);
 	get_from_table(L, "cafile",             channel_data->cafile, COPY_DEST);
 	get_from_table(L, "sslkey",             channel_data->sslkey, COPY_DEST);
+	get_from_table(L, "sslkeypassword",     channel_data->sslkeypassword, COPY_DEST);
 	get_from_table(L, "sslcert",            channel_data->sslcert, COPY_DEST);
 	get_from_table(L, "ciphers",            channel_data->ciphers, COPY_DEST);
 	get_from_table(L, "info",               channel_data->info, COPY_DEST);
@@ -627,6 +629,7 @@ static void channel_free_options(channel_data_t *channel_data)
 	free(channel_data->iface);
 	free(channel_data->cafile);
 	free(channel_data->sslkey);
+	free(channel_data->sslkeypassword);
 	free(channel_data->sslcert);
 	free(channel_data->ciphers);
 	if (channel_data->proxy && channel_data->proxy != USE_PROXY_ENV) {

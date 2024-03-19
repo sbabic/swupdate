@@ -601,6 +601,9 @@ channel_op_res_t channel_set_options(channel_t *this, channel_data_t *channel_da
 			      CURLOPT_SSLKEY,
 			      channel_data->sslkey) != CURLE_OK) ||
 	    (curl_easy_setopt(channel_curl->handle,
+			      CURLOPT_KEYPASSWD,
+			      channel_data->sslkeypassword) != CURLE_OK) ||
+	    (curl_easy_setopt(channel_curl->handle,
 			      CURLOPT_SSLCERT,
 			      channel_data->sslcert) != CURLE_OK) ||
         (curl_easy_setopt(channel_curl->handle,
