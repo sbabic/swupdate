@@ -997,7 +997,7 @@ static void *process_notification_thread(void *data)
 	for (;;) {
 		ipc_message msg;
 		bool data_avail = false;
-		int ret = ipc_get_status_timeout(&msg, 100);
+		int ret = ipc_get_status(&msg);
 
 		data_avail = ret > 0 && (strlen(msg.data.status.desc) != 0);
 
@@ -1060,6 +1060,10 @@ static void *process_notification_thread(void *data)
 
 		if (stop && !data_avail)
 			break;
+
+		// wait a bit for next message...
+		if (!data_avail)
+			usleep(100000);
 	}
 
 	pthread_mutex_unlock(&notifylock);
