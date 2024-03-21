@@ -337,11 +337,6 @@ static void *subprocess_thread (void *data)
 	(void)data;
 	thread_ready();
 
-	sigset_t sigpipe_mask;
-	sigemptyset(&sigpipe_mask);
-	sigaddset(&sigpipe_mask, SIGPIPE);
-	pthread_sigmask(SIG_BLOCK, &sigpipe_mask, NULL);
-
 	pthread_mutex_lock(&subprocess_msg_lock);
 
 	while(1) {
@@ -392,6 +387,11 @@ void *network_thread (void *data)
 	SIMPLEQ_INIT(&notify_conns);
 	SIMPLEQ_INIT(&subprocess_messages);
 	register_notifier(network_notifier);
+
+	sigset_t sigpipe_mask;
+	sigemptyset(&sigpipe_mask);
+	sigaddset(&sigpipe_mask, SIGPIPE);
+	pthread_sigmask(SIG_BLOCK, &sigpipe_mask, NULL);
 
 	subprocess_ipc_handler_thread_id = start_thread(subprocess_thread, NULL);
 
@@ -644,7 +644,7 @@ void *network_thread (void *data)
 		if (msg.type == ACK || msg.type == NACK) {
 			ret = write(ctrlconnfd, &msg, sizeof(msg));
 			if (ret < 0)
-				ERROR("Error write on socket ctrl");
+				ERROR("Error write on socket ctrl: %s", strerror(errno));
 
 			if (should_close_socket == true)
 				close(ctrlconnfd);
