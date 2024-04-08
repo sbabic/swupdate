@@ -51,6 +51,26 @@ static struct ubi_part *search_volume_global(const char *str)
 	return NULL;
 }
 
+/* search for a UBI volume by name on a specified MTD partition */
+static struct ubi_part *search_volume_local(char *device, const char *volname)
+{
+	struct flash_description *flash = get_flash_info();
+	int mtdnum;
+	struct mtd_ubi_info *mtd_ubi_info;
+
+	mtdnum = get_mtd_from_device(device);
+	if (mtdnum < 0) {
+		mtdnum = get_mtd_from_name(device);
+	}
+	if (mtdnum < 0 || !mtd_dev_present(flash->libmtd, mtdnum)) {
+		ERROR("%s does not exist", device);
+		return NULL;
+	}
+	mtd_ubi_info = &flash->mtd_info[mtdnum];
+
+	return search_volume(volname, &mtd_ubi_info->ubi_partitions);
+}
+
 /**
  * check_replace - check for and validate replace property
  * @img: image information
@@ -77,7 +97,10 @@ static int check_replace(struct img_type *img,
 	if (tmpvol_name == NULL)
 		return 0;
 
-	tmpvol = search_volume_global(tmpvol_name);
+	if (strlen(img->device))
+		tmpvol = search_volume_local(img->device, tmpvol_name);
+	else
+		tmpvol = search_volume_global(tmpvol_name);
 
 	if (!tmpvol) {
 		INFO("replace: unable to find a volume %s, will rename", tmpvol_name);
@@ -400,7 +423,11 @@ static int wait_volume(struct img_type *img)
 	struct stat buf;
 	char node[64];
 
-	ubivol = search_volume_global(img->volname);
+	if (strlen(img->device))
+		ubivol = search_volume_local(img->device, img->volname);
+	else
+		ubivol = search_volume_global(img->volname);
+
 	if (!ubivol) {
 		ERROR("can't found volume %s", img->volname);
 		return -1;
@@ -451,7 +478,10 @@ static int install_ubivol_image(struct img_type *img,
 	}
 
 	/* find the volume to be updated */
-	ubivol = search_volume_global(img->volname);
+	if (strlen(img->device))
+		ubivol = search_volume_local(img->device, img->volname);
+	else
+		ubivol = search_volume_global(img->volname);
 
 	if (!ubivol) {
 		ERROR("Image %s should be stored in volume "
@@ -472,11 +502,14 @@ static int adjust_volume(struct img_type *cfg,
 	return resize_volume(cfg, cfg->partsize);
 }
 
-static int ubi_volume_get_info(char *name, int *dev_num, int *vol_id)
+static int ubi_volume_get_info(char *device, char *name, int *dev_num, int *vol_id)
 {
 	struct ubi_part *ubi_part;
 
-	ubi_part = search_volume_global(name);
+	if (device)
+		ubi_part = search_volume_local(device, name);
+	else
+		ubi_part = search_volume_global(name);
 	if (!ubi_part) {
 		ERROR("could not found UBI volume %s", name);
 		return -1;
@@ -533,7 +566,7 @@ static int swap_volume(struct img_type *img, void *data)
 			}
 
 			name[num] = volume->value;
-			if (ubi_volume_get_info(volume->value,
+			if (ubi_volume_get_info(img->device, volume->value,
 						&dev_num[num],
 						&vol_id[num]) < 0)
 				goto out;
