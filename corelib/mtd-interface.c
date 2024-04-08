@@ -379,6 +379,9 @@ static void scan_ubi_partitions(int mtd)
 	do {
 		err = ubi_attach(libubi, DEFAULT_CTRL_DEV, &mtd_info->req);
 		if (err) {
+			/* Handle race condition where MTD was already being attached. */
+			if (errno == EEXIST && !mtd_num2ubi_dev(libubi, mtd, &mtd_info->req.dev_num))
+				break;
 			if (mtd_info->has_ubi && !tryattach) {
 				TRACE("cannot attach mtd%d ..try erasing", mtd);
 				if (flash_erase(mtd)) {
