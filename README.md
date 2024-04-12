@@ -91,7 +91,7 @@ A community support takes place on the SWUpdate's Mailing List:
 
 	swupdate@googlegroups.com
 
-The Mailing List is open without need to be registered.
+Please subscribe to the list to post.
 
 A web-interface is available [here](https://groups.google.com/g/swupdate).
 
