@@ -2054,6 +2054,10 @@ static server_op_res_t server_activation_ipc(ipc_message *msg)
 		return  SERVER_EERR;
 	}
 
+	if (!json_data) {
+		ERROR("No details are passed, they are mandatory.");
+		return SERVER_EERR;
+	}
 	int numdetails = json_object_array_length(json_data);
 	const char **details = (const char **)malloc((numdetails + 1) * (sizeof (char *)));
 	if(!details)
