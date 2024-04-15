@@ -867,6 +867,7 @@ static void get_action_id_from_env(int *action_id)
 	 * Get the acction_id that corresponds to the done update if it was
 	 * stored.
 	 */
+	*action_id = -1;
 	char *action_str = swupdate_vars_get("action_id", NULL);
 	if (action_str) {
 		int tmp = ustrtoull(action_str, NULL, 10);
@@ -2023,11 +2024,12 @@ static server_op_res_t server_activation_ipc(ipc_message *msg)
 	int action_id = -1;
 	if (json_data) {
 		action_id = json_object_get_int(json_data);
-	} else {
+	}
+	if (action_id <= 0) { /* 0 is not a valid action id */
 		get_action_id_from_env(&action_id);
 	}
 
-	if (action_id < 0) {
+	if (action_id <= 0) {
 		ERROR("No action_id passed into JSON message and no action:_id in env");
 		return SERVER_EERR;
 	}
