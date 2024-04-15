@@ -63,6 +63,13 @@ static void usage_setversion(const char *program) {
 static void usage_send_to_hawkbit(const char *program) {
 	fprintf(stdout, "\t %s <action id> <status> <finished> "
 			"<execution> <detail 1> <detail 2> ..\n", program);
+	fprintf(stdout, "\t\t <action -id> : 0 - asks SWUpdate to find the action_id (first env, then network)\n");
+	fprintf(stdout, "\t\t                > 0 - valid action_id stored by application during update\n");
+	fprintf(stdout, "\t\t <status>     : a valid state, see values in state.h\n");
+	fprintf(stdout, "\t\t <finished>   : one of \"success\" \"failure\" \"none\"\n");
+	fprintf(stdout, "\t\t <execution>  : one of \"closed\",\"proceeding\",\"canceled\", \"scheduled\", \"rejected\", \"resumed\", \"downloaded\", \"download\"\n");
+	fprintf(stdout, "\t\t <details>    : strings that are passed and stored by Hawkbit server (User information)\n");
+
 }
 
 static void usage_sysrestart(const char *programname)
