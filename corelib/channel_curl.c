@@ -404,6 +404,7 @@ channel_op_res_t channel_map_curl_error(CURLcode res)
 	case CURLE_COULDNT_CONNECT:
 	case CURLE_INTERFACE_FAILED:
 	case CURLE_USE_SSL_FAILED:
+	case CURLE_HTTP2_STREAM:
 		return CHANNEL_ENONET;
 	case CURLE_OPERATION_TIMEDOUT:
 	case CURLE_SEND_ERROR:
