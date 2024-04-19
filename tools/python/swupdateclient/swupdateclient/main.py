@@ -224,7 +224,7 @@ def client(args: List[str]) -> None:
         args.swu_file,
         args.host_name,
         args.port,
-        args.route,
+        path=args.path,
         log_level=args.log_level.upper(),
     )
     updater.update(timeout=args.timeout)
