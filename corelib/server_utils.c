@@ -20,7 +20,7 @@ int channel_settings(void *elem, void *data)
 	char tmp[128];
 	channel_data_t *chan = (channel_data_t *)data;
 
-	get_field(LIBCFG_PARSER, elem, "retry",
+	GET_FIELD_INT(LIBCFG_PARSER, elem, "retry",
 		&chan->retries);
 
 	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "max-download-speed", tmp);

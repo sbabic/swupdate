@@ -741,7 +741,7 @@ static int mongoose_settings(void *elem, void  __attribute__ ((__unused__)) *dat
 		opts->root = strdup(tmp);
 	}
 
-	get_field(LIBCFG_PARSER, elem, "enable_directory_listing",
+	GET_FIELD_BOOL(LIBCFG_PARSER, elem, "enable_directory_listing",
 		  &opts->listing);
 
 	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "listening_ports", tmp);
@@ -768,9 +768,9 @@ static int mongoose_settings(void *elem, void  __attribute__ ((__unused__)) *dat
 	if (strlen(tmp)) {
 		opts->auth_domain = strdup(tmp);
 	}
-	get_field(LIBCFG_PARSER, elem, "run-postupdate", &run_postupdate);
+	GET_FIELD_BOOL(LIBCFG_PARSER, elem, "run-postupdate", &run_postupdate);
 
-	get_field(LIBCFG_PARSER, elem, "timeout", &watchdog_conn);
+	GET_FIELD_INT(LIBCFG_PARSER, elem, "timeout", &watchdog_conn);
 
 	return 0;
 }

@@ -325,9 +325,9 @@ static int read_globals_settings(void *elem, void *data)
 			WARN("Default Namaspace for SWUpdate vars cannot be set, possible side-effects");
 	}
 
-	get_field(LIBCFG_PARSER, elem, "verbose", &sw->verbose);
-	get_field(LIBCFG_PARSER, elem, "loglevel", &sw->loglevel);
-	get_field(LIBCFG_PARSER, elem, "syslog", &sw->syslog_enabled);
+	GET_FIELD_INT(LIBCFG_PARSER, elem, "verbose", &sw->verbose);
+	GET_FIELD_INT(LIBCFG_PARSER, elem, "loglevel", &sw->loglevel);
+	GET_FIELD_BOOL(LIBCFG_PARSER, elem, "syslog", &sw->syslog_enabled);
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
 				"no-downgrading", sw->minimum_version);
 	tmp[0] = '\0';

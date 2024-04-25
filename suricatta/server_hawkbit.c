@@ -1726,18 +1726,18 @@ static int server_hawkbit_settings(void *elem, void  __attribute__ ((__unused__)
 		mandatory_argument_count |= URL_BIT;
 	}
 
-	get_field(LIBCFG_PARSER, elem, "polldelay",
+	GET_FIELD_INT(LIBCFG_PARSER, elem, "polldelay",
 		&server_hawkbit.polling_interval);
 
-	get_field(LIBCFG_PARSER, elem, "initial-report-resend-period",
+	GET_FIELD_INT(LIBCFG_PARSER, elem, "initial-report-resend-period",
 		&server_hawkbit.initial_report_resend_period);
 
 	channel_settings(elem, &channel_data_defaults);
 
-	get_field(LIBCFG_PARSER, elem, "usetokentodwl",
+	GET_FIELD_BOOL(LIBCFG_PARSER, elem, "usetokentodwl",
 		&server_hawkbit.usetokentodwl);
 
-	get_field(LIBCFG_PARSER, elem, "connection-timeout",
+	GET_FIELD_INT(LIBCFG_PARSER, elem, "connection-timeout",
 		&channel_data_defaults.connection_timeout);
 
 	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "targettoken", tmp);

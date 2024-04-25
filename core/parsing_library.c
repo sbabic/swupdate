@@ -134,13 +134,13 @@ bool is_field_numeric(parsertype p, void *e, const char *path)
 	return false;
 }
 
-void get_field(parsertype p, void *e, const char *path, void *dest)
+void get_field(parsertype p, void *e, const char *path, void *dest, field_type_t type)
 {
 	switch (p) {
 	case LIBCFG_PARSER:
-		return get_field_cfg((config_setting_t *)e, path, dest);
+		return get_field_cfg((config_setting_t *)e, path, dest, type);
 	case JSON_PARSER:
-		return get_field_json((json_object *)e, path, dest);
+		return get_field_json((json_object *)e, path, dest, type);
 	default:
 		(void)e;
 		(void)path;

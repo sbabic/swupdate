@@ -95,8 +95,8 @@ static int get_run_as(void *elem, void *data)
 {
 	struct run_as *pid = (struct run_as *)data;
 
-	get_field(LIBCFG_PARSER, elem, "userid", &pid->userid);
-	get_field(LIBCFG_PARSER, elem, "groupid", &pid->groupid);
+	GET_FIELD_INT(LIBCFG_PARSER, elem, "userid", &pid->userid);
+	GET_FIELD_INT(LIBCFG_PARSER, elem, "groupid", &pid->groupid);
 
 	return 0;
 }

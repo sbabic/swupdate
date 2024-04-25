@@ -106,11 +106,11 @@ static int download_settings(void *elem, void  __attribute__ ((__unused__)) *dat
 		opt->auth = NULL;
 	}
 
-	get_field(LIBCFG_PARSER, elem, "retries",
+	GET_FIELD_INT(LIBCFG_PARSER, elem, "retries",
 		&opt->retries);
-	get_field(LIBCFG_PARSER, elem, "retrywait",
+	GET_FIELD_INT(LIBCFG_PARSER, elem, "retrywait",
 		&opt->retry_sleep);
-	get_field(LIBCFG_PARSER, elem, "timeout",
+	GET_FIELD_INT(LIBCFG_PARSER, elem, "timeout",
 		&opt->low_speed_timeout);
 
 	return 0;

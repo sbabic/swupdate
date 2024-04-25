@@ -167,7 +167,7 @@ static server_op_res_t suricatta_ipc(int fd)
 
 static int suricatta_settings(void *elem, void  __attribute__ ((__unused__)) *data)
 {
-	get_field(LIBCFG_PARSER, elem, "enable",
+	GET_FIELD_BOOL(LIBCFG_PARSER, elem, "enable",
 		&enable);
 
 	char cfg_server[128];

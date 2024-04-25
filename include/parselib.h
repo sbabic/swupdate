@@ -15,6 +15,14 @@ typedef enum {
 	JSON_PARSER
 } parsertype;
 
+typedef enum {
+	TYPE_INT,
+	TYPE_INT64,
+	TYPE_STRING,
+	TYPE_BOOL,
+	TYPE_FLOAT
+} field_type_t;
+
 typedef void (*iterate_callback)(const char *name, const char *value,
 				 void *data);
 
@@ -33,7 +41,7 @@ typedef void (*iterate_callback)(const char *name, const char *value,
 #endif
 
 bool is_field_numeric_cfg(config_setting_t *e, const char *path);
-void get_field_cfg(config_setting_t *e, const char *path, void *dest);
+void get_field_cfg(config_setting_t *e, const char *path, void *dest, field_type_t type);
 void *get_child_libconfig(void *e, const char *name);
 void iterate_field_libconfig(config_setting_t *e, iterate_callback cb,
 			     void *data);
@@ -49,7 +57,7 @@ void *get_node_libconfig(config_t *cfg, const char **nodes);
 #define get_field_string_libconfig(e, path)	(NULL)
 #define get_child_libconfig(e, name)		(NULL)
 #define iterate_field_libconfig(e, cb, data)	{ }
-#define get_field_cfg(e, path, dest)
+#define get_field_cfg(e, path, dest, type)
 #define find_root_libconfig(cfg, nodes, depth)		(NULL)
 #define get_node_libconfig(cfg, nodes)		(NULL)
 #define is_field_numeric_cfg(e, path)	(false)
@@ -59,7 +67,7 @@ void *get_node_libconfig(config_t *cfg, const char **nodes);
 
 bool is_field_numeric_json(json_object *e, const char *path);
 const char *get_field_string_json(json_object *e, const char *path);
-void get_field_json(json_object *e, const char *path, void *dest);
+void get_field_json(json_object *e, const char *path, void *dest, field_type_t type);
 void *get_child_json(json_object *e, const char *name);
 void iterate_field_json(json_object *e, iterate_callback cb, void *data);
 json_object *find_json_recursive_node(json_object *root, const char **names);
@@ -79,7 +87,7 @@ int get_array_length(parsertype p, void *root);
 void *get_elem_from_idx(parsertype p, void *node, int idx);
 void *get_child(parsertype p, void *node, const char *name);
 void iterate_field(parsertype p, void *e, iterate_callback cb, void *data);
-void get_field(parsertype p, void *e, const char *path, void *dest);
+void get_field(parsertype p, void *e, const char *path, void *dest, field_type_t type);
 int exist_field_string(parsertype p, void *e, const char *path);
 void get_hash_value(parsertype p, void *elem, unsigned char *hash);
 void check_field_string(const char *src, char *dst, const size_t max_len);
@@ -94,3 +102,15 @@ bool set_find_path(const char **nodes, const char *newpath, char **tmp);
 	d[0] = '\0'; \
 	GET_FIELD_STRING(p, e, name, d); \
 } while (0)
+
+#define GET_FIELD_BOOL(p, e, path, dest) \
+	get_field(p, e, path, dest, TYPE_BOOL)
+
+#define GET_FIELD_INT(p, e, path, dest) \
+	get_field(p, e, path, dest, TYPE_INT)
+
+#define GET_FIELD_INT64(p, e, path, dest) \
+	get_field(p, e, path, dest, TYPE_INT64)
+
+#define GET_FIELD_FLOAT(p, e, path, dest) \
+	get_field(p, e, path, dest, TYPE_FLOAT)
