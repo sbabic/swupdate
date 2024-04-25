@@ -19,7 +19,7 @@
 #include "util.h"
 #include "parselib.h"
 
-void get_value_libconfig(const config_setting_t *e, void *dest)
+static void get_value_libconfig(const config_setting_t *e, void *dest)
 {
 	int type = config_setting_type(e);
 	switch (type) {

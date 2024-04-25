@@ -102,7 +102,7 @@ const char *get_field_string_json(json_object *e, const char *path)
 	return NULL;
 }
 
-void get_value_json(json_object *e, void *dest)
+static void get_value_json(json_object *e, void *dest)
 {
 	enum json_type type;
 	type = json_object_get_type(e);

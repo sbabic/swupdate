@@ -33,7 +33,6 @@ typedef void (*iterate_callback)(const char *name, const char *value,
 #endif
 
 bool is_field_numeric_cfg(config_setting_t *e, const char *path);
-void get_value_libconfig(const config_setting_t *e, void *dest);
 void get_field_cfg(config_setting_t *e, const char *path, void *dest);
 void *get_child_libconfig(void *e, const char *name);
 void iterate_field_libconfig(config_setting_t *e, iterate_callback cb,
@@ -60,7 +59,6 @@ void *get_node_libconfig(config_t *cfg, const char **nodes);
 
 bool is_field_numeric_json(json_object *e, const char *path);
 const char *get_field_string_json(json_object *e, const char *path);
-void get_value_json(json_object *e, void *dest);
 void get_field_json(json_object *e, const char *path, void *dest);
 void *get_child_json(json_object *e, const char *name);
 void iterate_field_json(json_object *e, iterate_callback cb, void *data);
