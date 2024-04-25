@@ -507,7 +507,10 @@ static bool create_zckindex(zckCtx *zck, int fd, size_t maxbytes)
 	}
 
 	free(buf);
-	zck_end_chunk(zck);
+	if (zck_end_chunk(zck) < 0) {
+		ERROR("ZCK failed to create chunk boundary: %s", zck_get_error(zck));
+		return false;
+	}
 
 	if(n < 0) {
 		ERROR("Error occurred while reading data : %s", strerror(errno));
