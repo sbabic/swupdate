@@ -54,7 +54,7 @@ struct img_type {
 	skip_t skip;
 	int provided;
 	int compressed;
-	int preserve_attributes; /* whether to preserve attributes in archives */
+	bool preserve_attributes; /* whether to preserve attributes in archives */
 	bool is_encrypted;
 	char ivt_ascii[33];
 	int install_directly;
