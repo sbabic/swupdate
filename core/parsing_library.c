@@ -18,6 +18,7 @@
 #include "bsdqueue.h"
 #include "util.h"
 #include "parselib.h"
+#include "parselib-private.h"
 
 #define MAX_LINKS_DEPTH	10
 

@@ -18,6 +18,7 @@
 #include "bsdqueue.h"
 #include "util.h"
 #include "parselib.h"
+#include "parselib-private.h"
 
 static unsigned int map_field_type(field_type_t type)
 {

@@ -9,6 +9,15 @@
 
 #include <assert.h>
 #include <stdbool.h>
+#include <json-c/json.h>
+#ifdef CONFIG_LIBCONFIG
+#include <libconfig.h>
+#define LIBCONFIG_VERSION ((LIBCONFIG_VER_MAJOR << 16) | \
+	(LIBCONFIG_VER_MINOR << 8) | LIBCONFIG_VER_REVISION)
+#if LIBCONFIG_VERSION < 0x10500
+#define config_setting_lookup config_lookup_from
+#endif
+#endif
 
 typedef enum {
 	LIBCFG_PARSER,
@@ -32,53 +41,15 @@ typedef void (*iterate_callback)(const char *name, const char *value,
  */
 #define MAX_PARSED_NODES	20
 
-#ifdef CONFIG_LIBCONFIG
-#include <libconfig.h>
-#define LIBCONFIG_VERSION ((LIBCONFIG_VER_MAJOR << 16) | \
-	(LIBCONFIG_VER_MINOR << 8) | LIBCONFIG_VER_REVISION)
-#if LIBCONFIG_VERSION < 0x10500
-#define config_setting_lookup config_lookup_from
-#endif
-
-bool is_field_numeric_cfg(config_setting_t *e, const char *path);
-void get_field_cfg(config_setting_t *e, const char *path, void *dest, field_type_t type);
-void *get_child_libconfig(void *e, const char *name);
-void iterate_field_libconfig(config_setting_t *e, iterate_callback cb,
-			     void *data);
-const char *get_field_string_libconfig(config_setting_t *e, const char *path);
-void *find_root_libconfig(config_t *cfg, const char **nodes, unsigned int depth);
-void *get_node_libconfig(config_t *cfg, const char **nodes);
-
-#else
-#define config_setting_get_elem(a,b)	(NULL)
-#define config_setting_length(a)	(0)
-#define config_setting_lookup_string(a, b, str) (0)
-#define find_node_libconfig(cfg, field, swcfg) (NULL)
-#define get_field_string_libconfig(e, path)	(NULL)
-#define get_child_libconfig(e, name)		(NULL)
-#define iterate_field_libconfig(e, cb, data)	{ }
-#define get_field_cfg(e, path, dest, type)
-#define find_root_libconfig(cfg, nodes, depth)		(NULL)
-#define get_node_libconfig(cfg, nodes)		(NULL)
-#define is_field_numeric_cfg(e, path)	(false)
-#endif
-
-#include <json-c/json.h>
-
-bool is_field_numeric_json(json_object *e, const char *path);
-const char *get_field_string_json(json_object *e, const char *path);
-void get_field_json(json_object *e, const char *path, void *dest, field_type_t type);
-void *get_child_json(json_object *e, const char *name);
-void iterate_field_json(json_object *e, iterate_callback cb, void *data);
-json_object *find_json_recursive_node(json_object *root, const char **names);
-json_object *json_get_key(json_object *json_root, const char *key);
 const char *json_get_value(struct json_object *json_root,
 			   const char *key);
+json_object *json_get_key(json_object *json_root, const char *key);
 json_object *json_get_path_key(json_object *json_root, const char **json_path);
 char *json_get_data_url(json_object *json_root, const char *key);
-void *find_root_json(json_object *root, const char **nodes, unsigned int depth);
-void *get_node_json(json_object *root, const char **nodes);
 
+/*
+ * Parselib interface
+ */
 bool is_field_numeric(parsertype p, void *e, const char *path);
 const char *get_field_string(parsertype p, void *e, const char *path);
 void get_field_string_with_size(parsertype p, void *e, const char *path,
