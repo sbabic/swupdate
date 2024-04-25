@@ -138,7 +138,7 @@ static int do_apply_list(const char *filename)
 	int result = 0;
 	if (libcboot.open(BOOTINFO_O_RDWR, &ctx) < 0) {
 		ERROR("libcboot.open returns with error");
-		close(file);
+		fclose(file);
 		return -ENOENT;
 	}
 	while ((getline(&line, &length, file)) != -1) {
