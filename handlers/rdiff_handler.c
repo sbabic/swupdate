@@ -71,7 +71,7 @@ static rs_result base_file_read_cb(void *fp, rs_long_t pos, size_t *len, void **
 {
 	FILE *f = (FILE *)fp;
 
-	if (fseek(f, pos, SEEK_SET) != 0) {
+	if (fseeko64(f, pos, SEEK_SET) != 0) {
 		ERROR("Error seeking rdiff base file: %s", strerror(errno));
 		return RS_IO_ERROR;
 	}
