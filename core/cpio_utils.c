@@ -59,7 +59,7 @@ int get_cpiohdr(unsigned char *buf, struct filehdr *fhdr)
 	return 0;
 }
 
-static int fill_buffer(int fd, unsigned char *buf, unsigned int nbytes, unsigned long *offs,
+static int _fill_buffer(int fd, unsigned char *buf, unsigned int nbytes, unsigned long *offs,
 	uint32_t *checksum, void *dgst)
 {
 	ssize_t len;
@@ -90,6 +90,13 @@ static int fill_buffer(int fd, unsigned char *buf, unsigned int nbytes, unsigned
 	}
 
 	return count;
+}
+
+
+int fill_buffer(int fd, unsigned char *buf, unsigned int nbytes)
+{
+	unsigned long offs = 0;
+	return _fill_buffer(fd, buf, nbytes, &offs, NULL, NULL);
 }
 
 /*
@@ -235,7 +242,7 @@ static int input_step(void *state, void *buffer, size_t size)
 	}
 	switch (s->source) {
 	case INPUT_FROM_FD:
-		ret = fill_buffer(s->fdin, buffer, size, s->offs, &s->checksum, s->dgst);
+		ret = _fill_buffer(s->fdin, buffer, size, s->offs, &s->checksum, s->dgst);
 		if (ret < 0) {
 			return ret;
 		}
@@ -669,7 +676,7 @@ static int __swupdate_copy(int fdin, unsigned char *inbuf, void *out, size_t nby
 	}
 
 	if (!inbuf) {
-		ret = fill_buffer(fdin, buffer, NPAD_BYTES(*offs), offs, checksum, NULL);
+		ret = _fill_buffer(fdin, buffer, NPAD_BYTES(*offs), offs, checksum, NULL);
 		if (ret < 0)
 			DEBUG("Padding bytes are not read, ignoring");
 	}
@@ -757,7 +764,7 @@ int copyimage(void *out, struct img_type *img, writeimage callback)
 int extract_cpio_header(int fd, struct filehdr *fhdr, unsigned long *offset)
 {
 	unsigned char buf[sizeof(fhdr->filename)];
-	if (fill_buffer(fd, buf, sizeof(struct new_ascii_header), offset, NULL, NULL) < 0)
+	if (_fill_buffer(fd, buf, sizeof(struct new_ascii_header), offset, NULL, NULL) < 0)
 		return -EINVAL;
 	if (get_cpiohdr(buf, fhdr) < 0) {
 		ERROR("CPIO Header corrupted, cannot be parsed");
@@ -771,13 +778,13 @@ int extract_cpio_header(int fd, struct filehdr *fhdr, unsigned long *offset)
 		return -EINVAL;
 	}
 
-	if (fill_buffer(fd, buf, fhdr->namesize , offset, NULL, NULL) < 0)
+	if (_fill_buffer(fd, buf, fhdr->namesize , offset, NULL, NULL) < 0)
 		return -EINVAL;
 	buf[fhdr->namesize] = '\0';
 	strlcpy(fhdr->filename, (char *)buf, sizeof(fhdr->filename));
 
 	/* Skip filename padding, if any */
-	if (fill_buffer(fd, buf, (4 - (*offset % 4)) % 4, offset, NULL, NULL) < 0)
+	if (_fill_buffer(fd, buf, (4 - (*offset % 4)) % 4, offset, NULL, NULL) < 0)
 		return -EINVAL;
 
 	return 0;

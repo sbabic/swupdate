@@ -62,3 +62,4 @@ int extract_cpio_header(int fd, struct filehdr *fhdr, unsigned long *offset);
 int extract_img_from_cpio(int fd, unsigned long offset, struct filehdr *fdh);
 void extract_padding(int fd);
 bool swupdate_verify_chksum(const uint32_t chk1, struct filehdr *fhdr);
+int fill_buffer(int fd, unsigned char *buf, unsigned int nbytes);
