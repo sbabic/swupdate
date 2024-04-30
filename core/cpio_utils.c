@@ -31,8 +31,6 @@
 
 #define BUFF_SIZE	 16384
 
-#define NPAD_BYTES(o) ((4 - (o % 4)) % 4)
-
 typedef enum {
 	INPUT_FROM_FD,
 	INPUT_FROM_MEMORY

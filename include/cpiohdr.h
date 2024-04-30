@@ -29,6 +29,8 @@
 #define CPIO_NEWASCII 070701
 #define CPIO_CRCASCII 070702
 
+#define NPAD_BYTES(o) ((4 - (o % 4)) % 4)
+
 struct new_ascii_header
 {
   char c_magic[6];
