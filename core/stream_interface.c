@@ -374,7 +374,6 @@ static int save_stream(int fdin, struct swupdate_cfg *software)
 {
 	unsigned char *buf;
 	int fdout = -1, ret, len;
-	const int bufsize = 16 * 1024;
 	int tmpfd = -1;
 	char tmpfilename[MAX_IMAGE_FNAME];
 	struct filehdr fdh;
@@ -383,7 +382,11 @@ static int save_stream(int fdin, struct swupdate_cfg *software)
 	char output_file[MAX_IMAGE_FNAME];
 	const char* TMPDIR = get_tmpdir();
 	bool encrypted_sw_desc = false;
+	int files = 1;
 
+#ifdef CONFIG_SIGNED_IMAGES
+	files = 2; // sw-description and sw-description.sig
+#endif
 #ifdef CONFIG_ENCRYPTED_SW_DESCRIPTION
 	encrypted_sw_desc = true;
 #endif
@@ -392,7 +395,7 @@ static int save_stream(int fdin, struct swupdate_cfg *software)
 
 	snprintf(tmpfilename, sizeof(tmpfilename), "%s/%s", TMPDIR, SW_TMP_OUTPUT);
 
-	buf = (unsigned char *)malloc(bufsize);
+	buf = (unsigned char *)malloc(sizeof(struct new_ascii_header));
 	if (!buf) {
 		ERROR("OOM when saving stream");
 		return -ENOMEM;
@@ -410,39 +413,46 @@ static int save_stream(int fdin, struct swupdate_cfg *software)
 		ret = -EFAULT;
 		goto no_copy_output;
 	}
-	len = read(fdin, buf, bufsize);
-	if (len < 0) {
-		ERROR("Reading from file failed, error %d", errno);
-		ret = -EFAULT;
-		goto no_copy_output;
-	}
-	if (get_cpiohdr(buf, &fdh) < 0) {
-		ERROR("CPIO Header corrupted, cannot be parsed");
-		ret = -EINVAL;
-		goto no_copy_output;
-	}
 
 	/*
-	 * Make an estimation for sw-description and signature.
-	 * Signature cannot be very big - if it is, it is an attack.
-	 * So let a buffer just for the signature - tmpsize is enough for both
-	 * sw-description and sw-description.sig, if any.
+	 * Copy first two cpio blocks (sw-description and sw-description.sig) into tmpfd
 	 */
-	tmpsize = SWUPDATE_ALIGN(fdh.size + fdh.namesize + sizeof(struct new_ascii_header) + bufsize - len,
-			bufsize);
-	ret = copy_write(&tmpfd, buf, len);  /* copy the first buffer */
-	if (ret < 0) {
-		ret =  -EIO;
-		goto no_copy_output;
-	}
+	while (files-- > 0) {
+		len = fill_buffer(fdin, buf, sizeof(struct new_ascii_header));
+		if (len < 0) {
+			ERROR("Reading from file failed, error %d", errno);
+			ret = -EFAULT;
+			goto no_copy_output;
+		}
 
-	/*
-	 * copy enough bytes to have sw-description and sw-description.sig
-	 */
-	ret = cpfiles(fdin, tmpfd, tmpsize);
-	if (ret < 0) {
-		ret =  -EIO;
-		goto no_copy_output;
+		if (get_cpiohdr(buf, &fdh) < 0) {
+			ERROR("CPIO Header corrupted, cannot be parsed");
+			ret = -EINVAL;
+			goto no_copy_output;
+		}
+
+		ret = copy_write(&tmpfd, buf, len);
+		if (ret < 0) {
+			ret =  -EIO;
+			goto no_copy_output;
+		}
+
+		/*
+		 * calc remaining bytes of the cpio block
+		 */
+		tmpsize = sizeof(struct new_ascii_header) + fdh.namesize;
+		tmpsize += NPAD_BYTES(tmpsize) + fdh.size;
+		tmpsize += NPAD_BYTES(tmpsize);
+		tmpsize -= sizeof(struct new_ascii_header);
+
+		/*
+		 * copy the remaining bytes to have a complete cpio block
+		 */
+		ret = cpfiles(fdin, tmpfd, tmpsize);
+		if (ret < 0) {
+			ret =  -EIO;
+			goto no_copy_output;
+		}
 	}
 	lseek(tmpfd, 0, SEEK_SET);
 	offset = 0;

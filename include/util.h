@@ -33,7 +33,6 @@
 #define AES_256_KEY_LEN	32
 
 #define HWID_REGEXP_PREFIX	"#RE:"
-#define SWUPDATE_ALIGN(A,S)    (((A) + (S) - 1) & ~((S) - 1))
 
 #define BOOTVAR_TRANSACTION "recovery_status"
 
