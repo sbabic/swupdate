@@ -84,6 +84,9 @@ Talks about SWUpdate
        - Best Practices with SWUpdate by Stefano Babic, Embedded Recipes 2023
          `Slides Best Practices with SWUpdate <https://drive.google.com/file/d/1pbMtFH6IkztpsgvL6GJ54Fs7hPu7tPBf/view?usp=drive_link>`_,
          `Video Best Practices with SWUpdate <https://www.youtube.com/watch?v=SXzfDa8HEss&list=PLwnbCeeZfQ_Mi7gjUpLZxXGOcEBS_K8kH&index=7&pp=iAQB>`_
+       - Delta Updates: Making Updates Leaner by Felix Moessbauer & Jan Kiszka, Siemens AG, Embedded Open Source Summit 2024
+         `Slides Delta Updates: Making Updates Leaner <https://static.sched.com/hosted_files/eoss24/26/2024_EOSS_CIP_delta_updates.pdf>`_,
+         `Video Delta Updates: Making Updates Leaner <https://www.youtube.com/watch?v=1rzf7tE-cKY>`_
 
 Useful references
 =================
