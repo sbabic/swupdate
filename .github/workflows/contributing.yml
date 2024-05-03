@@ -7,6 +7,10 @@ on:
     types:
       - opened
 
+permissions:
+  contents: read # for reading contributing file
+  issues: write # for posting PR comment
+
 jobs:
   comment:
     runs-on: ubuntu-latest
