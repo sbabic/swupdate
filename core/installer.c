@@ -187,6 +187,24 @@ static int prepare_var_script(struct dict *dict, const char *script)
 	return 0;
 }
 
+static int generate_swversions(struct swupdate_cfg *cfg)
+{
+	FILE *fp;
+	struct sw_version *swver;
+	struct swver *sw_ver_list = &cfg->installed_sw_list;
+
+	fp = fopen(cfg->output_swversions, "w");
+	if (!fp)
+		return -EACCES;
+
+	LIST_FOREACH(swver, sw_ver_list, next) {
+		fprintf(fp, "%s\t\t%s\n", swver->name, swver->version);
+	}
+	fclose(fp);
+
+	return 0;
+}
+
 static int update_bootloader_env(struct swupdate_cfg *cfg, const char *script)
 {
 	int ret = 0;
@@ -277,6 +295,44 @@ int install_single_image(struct img_type *img, bool dry_run)
 	swupdate_progress_step_completed();
 
 	return ret;
+}
+
+static int update_installed_image_version(struct swver *sw_ver_list,
+		struct img_type *img)
+{
+	struct sw_version *swver;
+	struct sw_version *swcomp;
+
+	if (!sw_ver_list)
+		return false;
+
+	LIST_FOREACH(swver, sw_ver_list, next) {
+		/*
+		 * If component is already installed, update the version
+		 */
+		if (!strncmp(img->id.name, swver->name, sizeof(img->id.name))) {
+			strncpy(swver->version, img->id.version, sizeof(img->id.version));
+			return true;
+		}
+	}
+
+	if (!strlen(img->id.version))
+		return false;
+
+	/*
+	 * No previous version of this component is installed. Create a new entry.
+	 */
+	swcomp = (struct sw_version *)calloc(1, sizeof(struct sw_version));
+	if (!swcomp) {
+		ERROR("Could not create new version entry.");
+		return false;
+	}
+
+	strlcpy(swcomp->name, img->id.name, sizeof(swcomp->name));
+	strlcpy(swcomp->version, img->id.version, sizeof(swcomp->version));
+	LIST_INSERT_HEAD(sw_ver_list, swcomp, next);
+
+	return true;
 }
 
 /*
@@ -370,6 +426,8 @@ int install_images(struct swupdate_cfg *sw)
 
 		close(img->fdin);
 
+		update_installed_image_version(&sw->installed_sw_list, img);
+
 		if (dropimg)
 			free_image(img);
 
@@ -408,6 +466,16 @@ int install_images(struct swupdate_cfg *sw)
 	}
 
 	ret |= run_prepost_scripts(&sw->bootscripts, POSTINSTALL);
+
+	/*
+	 * Should we generate a list with installed software?
+	 */
+	if (strlen(sw->output_swversions)) {
+		ret |= generate_swversions(sw);
+		if (ret) {
+			ERROR("%s cannot be opened", sw->output_swversions);
+		}
+	}
 
 	return ret;
 }

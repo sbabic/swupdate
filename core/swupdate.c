@@ -111,6 +111,7 @@ static struct option long_options[] = {
 	{"no-state-marker", no_argument, NULL, 'm'},
 	{"no-transaction-marker", no_argument, NULL, 'M'},
 	{"output", required_argument, NULL, 'o'},
+	{"gen-swversions", required_argument, NULL, 's'},
 	{"preupdate", required_argument, NULL, 'P'},
 	{"postupdate", required_argument, NULL, 'p'},
 	{"select", required_argument, NULL, 'e'},
@@ -173,6 +174,7 @@ static void usage(char *programname)
 		" -M, --no-transaction-marker    : disable setting bootloader transaction marker\n"
 		" -m, --no-state-marker          : disable setting update state in bootloader\n"
 		" -o, --output <filename>        : saves the incoming stream\n"
+		" -s, --gen-swversions <filename>: generate sw-versions file after successful installation\n"
 		" -v, --verbose                  : be verbose, set maximum loglevel\n"
 		"     --version                  : print SWUpdate version and exit\n"
 #ifdef CONFIG_HW_COMPATIBILITY
@@ -320,6 +322,8 @@ static int read_globals_settings(void *elem, void *data)
 				"preupdatecmd", sw->preupdatecmd);
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
 				"namespace-vars", sw->namespace_for_vars);
+	GET_FIELD_STRING(LIBCFG_PARSER, elem,
+				"gen-swversions", sw->output_swversions);
 	if (strlen(sw->namespace_for_vars)) {
 		if (!swupdate_set_default_namespace(sw->namespace_for_vars))
 			WARN("Default Namaspace for SWUpdate vars cannot be set, possible side-effects");
@@ -475,7 +479,7 @@ int main(int argc, char **argv)
 #endif
 	memset(main_options, 0, sizeof(main_options));
 	memset(image_url, 0, sizeof(image_url));
-	strcpy(main_options, "vhni:e:gq:l:Lcf:p:P:o:N:R:MmB:");
+	strcpy(main_options, "vhni:e:gq:l:Lcf:p:P:o:s:N:R:MmB:");
 #ifdef CONFIG_MTD
 	strcat(main_options, "b:");
 #endif
@@ -622,6 +626,9 @@ int main(int argc, char **argv)
 			break;
 		case 'o':
 			strlcpy(swcfg.output, optarg, sizeof(swcfg.output));
+			break;
+		case 's':
+			strlcpy(swcfg.output_swversions, optarg, sizeof(swcfg.output_swversions));
 			break;
 		case 'B':
 			if (set_bootloader(optarg) != 0) {

@@ -49,6 +49,7 @@ struct swupdate_cfg {
 	bool bootloader_transaction_marker;
 	bool bootloader_state_marker;
 	char output[SWUPDATE_GENERAL_STRING_SIZE];
+	char output_swversions[SWUPDATE_GENERAL_STRING_SIZE];
 	char publickeyfname[SWUPDATE_GENERAL_STRING_SIZE];
 	char aeskeyfname[SWUPDATE_GENERAL_STRING_SIZE];
 	char postupdatecmd[SWUPDATE_GENERAL_STRING_SIZE];
