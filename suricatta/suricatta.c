@@ -25,6 +25,16 @@
 #include "swupdate_settings.h"
 #include <network_ipc.h>
 
+/*
+ * Needs sem_clockwait which was added in glibc v2.30 on linux.
+ */
+#if defined(__linux__) && defined(__GLIBC__) && \
+	(__GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 30))
+#define USE_SEM_MONOTONIC 1
+#else
+#define USE_SEM_MONOTONIC 0
+#endif
+
 static bool enable = true;
 static bool trigger = false;
 static struct option long_options[] = {
@@ -185,12 +195,20 @@ int suricatta_wait(int seconds)
 	int retval;
 	int enable_entry = enable;
 
+#if USE_SEM_MONOTONIC
+	clock_gettime(CLOCK_MONOTONIC, &tp);
+#else
 	clock_gettime(CLOCK_REALTIME, &tp);
-	int t_entry = tp.tv_sec;
+#endif
+	time_t t_entry = tp.tv_sec;
 
 	tp.tv_sec += seconds;
 	DEBUG("Sleeping for %d seconds.", seconds);
+#if USE_SEM_MONOTONIC
+	retval = sem_clockwait(&suricatta_enable_sema, CLOCK_MONOTONIC, &tp);
+#else
 	retval = sem_timedwait(&suricatta_enable_sema, &tp);
+#endif
 
 	if (retval) {
 		if (errno != ETIMEDOUT) {
@@ -200,7 +218,12 @@ int suricatta_wait(int seconds)
 		/* else: Suricatta awakened because timeout expired */
 	} else {
 		/* suricatta_enable_sema unlocked */
-		time_t t_wake = time(NULL);
+#if USE_SEM_MONOTONIC
+		clock_gettime(CLOCK_MONOTONIC, &tp);
+#else
+		clock_gettime(CLOCK_REALTIME, &tp);
+#endif
+		time_t t_wake = tp.tv_sec;
 
 		TRACE("Suricatta woke up for IPC at %ld seconds", t_wake - t_entry);
 		/*
