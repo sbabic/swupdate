@@ -538,6 +538,8 @@ Command line parameters
 +-------------+----------+--------------------------------------------+
 | -o <file>   | string   | Save the stream (SWU) to a file.           |
 +-------------+----------+--------------------------------------------+
+| -s <file>   | string   | Save installed version info to a file.     |
++-------------+----------+--------------------------------------------+
 | -v          |    -     | Activate verbose output.                   |
 +-------------+----------+--------------------------------------------+
 | -M          |    -     | Disable setting the bootloader transaction |
