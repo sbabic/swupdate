@@ -823,12 +823,12 @@ called.
 Building a single image
 =======================
 
-cpio is used as container for its simplicity. The resulting image is very
-simple to be built.
-The file describing the images ("sw-description", but the name can be
-configured) must be the first file in the cpio archive.
+cpio is used as container format because of its simplicity and its ability
+to be streamed. The meta information file ``sw-description`` (default, see
+``CONFIG_SETSWDESCRIPTION``) describing the images in the container must be
+the first file in the cpio archive. The images follow it, in any order.
 
-To produce an image, a script like this can be used:
+To produce an image, a script like the following can be used:
 
 ::
 
@@ -840,9 +840,9 @@ To produce an image, a script like this can be used:
 		echo $i;done | cpio -ov -H crc >  ${PRODUCT_NAME}_${CONTAINER_VER}.swu
 
 
-The single images can be put in any order inside the cpio container, with the
-exception of sw-description, that must be the first one.
-To check your generated image you can run the following command:
+Alternatively, swugenerator_ may be used to generate the image.
+
+The generated image can be checked by running the following command:
 
 ::
 
@@ -852,6 +852,11 @@ To check your generated image you can run the following command:
 Support of compound image
 -------------------------
 
-The single image can be built automatically inside Yocto.
-meta-swupdate extends the classes with the swupdate class. A recipe
-should inherit it, and add your own sw-description file to generate the image.
+A single image can be built automatically inside Yocto.
+meta-swupdate_ extends the classes with the ``swupdate`` class. A recipe
+should inherit it and add an own ``sw-description`` file to generate the image.
+
+Alternatively, swugenerator_ may be used to generate compound images outside Yocto.
+
+.. _swugenerator: https://github.com/sbabic/swugenerator/
+.. _meta-swupdate: https://github.com/sbabic/meta-swupdate
