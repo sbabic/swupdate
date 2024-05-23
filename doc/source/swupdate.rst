@@ -820,6 +820,31 @@ risk, we are not modifying original environment block. Variables are written
 into temporary file and after successful operation rename instruction is
 called.
 
+
+Image File Format
+=================
+
+SWUpdate uses cpio as image file format because it is a simple,
+well-established, and streamable format. More specifically, the
+*New ASCII* format (header magic number ``070701``) and the
+*New CRC* format (header magic number ``070702``) are supported.
+Both formats are essentially equivalent with the New CRC format additionally
+having set the cpio header field ``check`` to the least-significant 32 bits of
+the sum of all (unsigned) data bytes. This checksum is verified by SWUpdate.
+If this verification fails, SWUpdate yields an error like the following:
+
+::
+
+	Checksum WRONG ! Computed 0xfa11ed00, it should be 0xffffffff
+
+Note that there's artifact sha256 verification available
+(see ``CONFIG_HASH_VERIFY``) which is recommended over relying
+on cpio's checksum facility.
+
+For both cpio formats, the New ASCII as well as the New CRC format, the
+cpio file size is limited to 32 Bit, i.e., 4 GB.
+
+
 Building a single image
 =======================
 
