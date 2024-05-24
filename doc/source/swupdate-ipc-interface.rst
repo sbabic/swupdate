@@ -26,8 +26,15 @@ easy be extended in the future if new use cases will arise.
 API Description
 ===============
 
-The communication runs via UDS (Unix Domain Socket). The socket is created
-at startup by SWUpdate in /tmp/sockinstctrl as per default configuration.
+The communication runs via Unix Domain Socket (UDS). The socket path
+is determined by
+
+- the ``CONFIG_SOCKET_CTRL_PATH`` compile-time configuration,
+- ``$RUNTIME_DIRECTORY/sockinstctrl`` if ``$RUNTIME_DIRECTORY`` is set,
+- ``$TMPDIR/sockinstctrl`` if ``$TMPDIR`` is set, or
+- ``/tmp/sockinstctrl``,
+
+in this order, and taken over from systemd or created by SWUpdate.
 This socket should, however, not be used directly but instead by the Client
 Library explained below.
 
