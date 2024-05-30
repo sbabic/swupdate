@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>meta-swupdate: building with Yocto &mdash; Embedded Software Update Documentation 2024.05 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+    <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="SWUpdate Best Practice" href="swupdate-best-practise.html" />
+    <link rel="prev" title="Bootloader Interface" href="bootloader_interface.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> Embedded Software Update Documentation
+          </a>
+              <div class="version">
+                2024.05
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Software Management on embedded systems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="licensing.html">License</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="swupdate.html">SWUpdate: software update for embedded system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scenarios.html">Update strategy examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sw-description.html">SWUpdate: syntax and tags with the default parser</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed_images.html">Update images from verified source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="encrypted_images.html">Symmetrically Encrypted Update Images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="handlers.html">Handlers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mongoose.html">Mongoose daemon mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hawkbit-setup.html">Config for hawkBit under SSL/TLS using private CA / sub CA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-ipc-interface.html">SWUpdate: API for external programs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bindings.html">Language Bindings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bootloader_interface.html">Bootloader Interface</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">meta-swupdate: building with Yocto</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#what-about-libubootenv">What about libubootenv ?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-swupdate-class">The swupdate class</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#automatic-sha256-in-sw-description">Automatic sha256 in sw-description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bitbake-variable-expansion-in-sw-description">BitBake variable expansion in sw-description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#automatic-versions-in-sw-description">Automatic versions in sw-description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#using-checksum-for-version">Using checksum for version</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#template-for-recipe-using-the-class">Template for recipe using the class</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#simplified-version-for-just-image">Simplified version for just image</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#what-about-grub">What about grub ?</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-best-practise.html">SWUpdate Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="delta-update.html">Delta Update with SWUpdate</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-client.html">swupdate-client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-progress.html">swupdate-progress</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">swupdate-ipc</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="help_and_support.html">Help and support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to SWUpdate</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Proposals to improve SWUpdate</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="previous-releases.html">Documentation for previous releases</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Embedded Software Update Documentation</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>meta-swupdate: building with Yocto</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/building-with-yocto.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="meta-swupdate-building-with-yocto">
+<h1>meta-swupdate: building with Yocto<a class="headerlink" href="#meta-swupdate-building-with-yocto" title="Permalink to this headline"></a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline"></a></h2>
+<p>The <a class="reference external" href="http://www.yoctoproject.org">Yocto-Project</a> is a community project under the umbrella of the Linux
+Foundation that provides tools and template to create the own custom Linux-based
+software for embedded systems.</p>
+<p>Add-on features can be added using <em>layers</em>. <a class="reference external" href="https://github.com/sbabic/meta-swupdate.git">meta-swupdate</a> is the layer to
+cross-compile the SWUpdate application and to generate the compound SWU images
+containing the release of the product.  It contains the required changes
+for mtd-utils and for generating Lua. Using meta-SWUpdate is a
+straightforward process. As described in Yocto’s documentation
+about layers, you should include it in your <em>bblayers.conf</em> file to use it.</p>
+<p>Add meta-SWUpdate as usual to your bblayers.conf. You have also
+to add meta-oe to the list.</p>
+<p>In meta-SWUpdate there is a recipe to generate an initrd with a
+rescue system with SWUpdate. Use:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">MACHINE</span><span class="o">=&lt;</span><span class="n">your</span> <span class="n">machine</span><span class="o">&gt;</span> <span class="n">bitbake</span> <span class="n">swupdate</span><span class="o">-</span><span class="n">image</span>
+</pre></div>
+</div>
+<p>You will find the result in your tmp/deploy/&lt;your machine&gt; directory.
+How to install and start an initrd is very target specific - please
+check in the documentation of your bootloader.</p>
+</section>
+<section id="what-about-libubootenv">
+<h2>What about libubootenv ?<a class="headerlink" href="#what-about-libubootenv" title="Permalink to this headline"></a></h2>
+<p>This is a common issue when SWUpdate is built. SWUpdate depends on this library,
+that is generated from the U-Boot’s sources. This library allows one to safe modify
+the U-Boot environment. It is not required if U-Boot is not used as bootloader.
+If SWUpdate cannot be linked, you are using an old version of U-Boot (you need
+at least 2016.05). If this is the case, you can add your own recipe for
+the package u-boot-fw-utils, adding the code for the library.</p>
+<p>It is important that the package u-boot-fw-utils is built with the same
+sources of the bootloader and for the same machine. In fact, the target
+can have a default environment linked together with U-Boot’s code,
+and it is not (yet) stored into a storage. SWUpdate should be aware of
+it, because it cannot read it: the default environment must be linked
+as well to SWUpdate’s code. This is done inside the libubootenv.</p>
+<p>If you build for a different machine, SWUpdate will destroy the
+environment when it tries to change it the first time. In fact,
+a wrong default environment is taken, and your board won’t boot again.</p>
+<p>To avoid possible mismatch, a new library was developed to be hardware independent.
+A strict match with the bootloader is not required anymore. The meta-swupdate layer
+contains recipes to build the new library (<cite>libubootenv</cite>) and adjust SWUpdate to be linked
+against it. To use it as replacement for u-boot-fw-utils:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>set PREFERRED_PROVIDER_u-boot-fw-utils = “libubootenv”</p></li>
+<li><p>add to SWUpdate config:</p></li>
+</ul>
+</div></blockquote>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">CONFIG_UBOOT</span><span class="o">=</span><span class="n">y</span>
+</pre></div>
+</div>
+<p>With this library, you can simply pass the default environment as file (u-boot-initial-env).
+It is recommended for new project to switch to the new library to become independent from
+the bootloader.</p>
+</section>
+<section id="the-swupdate-class">
+<h2>The swupdate class<a class="headerlink" href="#the-swupdate-class" title="Permalink to this headline"></a></h2>
+<p>meta-swupdate contains a class specific for SWUpdate. It helps to generate the
+SWU image starting from images built inside the Yocto. It requires that all
+components, that means the artifacts that are part of the SWU image, are present
+in the Yocto’s deploy directory.  This class should be inherited by recipes
+generating the SWU. The class defines new variables, all of them have the prefix
+<em>SWUPDATE_</em> in the name.</p>
+<ul class="simple">
+<li><p><strong>SWUPDATE_IMAGES</strong> : this is a list of the artifacts to be packaged together.
+The list contains the name of images without any extension for MACHINE or
+filetype, that are added automatically.
+Example :</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">SWUPDATE_IMAGES</span> <span class="o">=</span> <span class="s2">&quot;core-image-full-cmdline uImage&quot;</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><strong>SWUPDATE_IMAGES_FSTYPES</strong> : extension of the artifact. Each artifact can
+have multiple extension according to the IMAGE_FSTYPES variable.
+For example, an image can be generated as tarball and as UBIFS for target.
+Setting the variable for each artifact tells the class which file must
+be packed into the SWU image.</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">SWUPDATE_IMAGES_FSTYPES</span><span class="p">[</span><span class="n">core</span><span class="o">-</span><span class="n">image</span><span class="o">-</span><span class="n">full</span><span class="o">-</span><span class="n">cmdline</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;.ubifs&quot;</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><strong>SWUPDATE_IMAGES_NOAPPEND_MACHINE</strong> : flag to use drop the machine name from the
+artifact file. Most images in <em>deploy</em> have the name of the Yocto’s machine in the
+filename. The class adds automatically the name of the MACHINE to the file, but some
+artifacts can be deployed without it.</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">SWUPDATE_IMAGES_NOAPPEND_MACHINE</span><span class="p">[</span><span class="n">my</span><span class="o">-</span><span class="n">image</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span>
+</pre></div>
+</div>
+<ul>
+<li><p><strong>SWUPDATE_SIGNING</strong> : if set, the SWU is signed. There are 3 allowed values:
+RSA, CMS, CUSTOM. This value determines used signing mechanism.</p></li>
+<li><p><strong>SWUPDATE_SIGN_TOOL</strong> : instead of using openssl, use SWUPDATE_SIGN_TOOL to sign
+the image. A typical use case is together with a hardware key. It is
+available if SWUPDATE_SIGNING is set to CUSTOM</p></li>
+<li><p><strong>SWUPDATE_PRIVATE_KEY</strong> : this is the file with the private key used to sign the
+image using RSA mechanism. Is available if SWUPDATE_SIGNING is set to RSA.</p></li>
+<li><p><strong>SWUPDATE_PASSWORD_FILE</strong> : an optional file containing the password for the private
+key. It is available if SWUPDATE_SIGNING is set to RSA.</p></li>
+<li><p><strong>SWUPDATE_CMS_KEY</strong> : this is the file with the private key used in signing
+process using CMS mechanism. It is available if SWUPDATE_SIGNING is set to
+CMS.</p></li>
+<li><p><strong>SWUPDATE_CMS_CERT</strong> : this is the file with the certificate used in signing
+process using CMS method. It is available if SWUPDATE_SIGNING is
+set to CMS.</p></li>
+<li><p><strong>SWUPDATE_AES_FILE</strong> : this is the file with the AES password to encrypt artifact. A new <cite>fstype</cite> is
+supported by the class (type: <cite>enc</cite>). SWUPDATE_AES_FILE is generated as output from openssl to create
+a new key with</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>openssl enc -aes-256-cbc -k &lt;PASSPHRASE&gt; -P -md sha1 -nosalt &gt; $SWUPDATE_AES_FILE
+</pre></div>
+</div>
+<p>To use it, it is enough to add IMAGE_FSTYPES += “enc” to the  artifact. SWUpdate supports decryption of
+compressed artifact, such as</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">IMAGE_FSTYPES</span> <span class="o">+=</span> <span class="s2">&quot;.ext4.gz.enc&quot;</span>
+</pre></div>
+</div>
+</li>
+</ul>
+<section id="automatic-sha256-in-sw-description">
+<h3>Automatic sha256 in sw-description<a class="headerlink" href="#automatic-sha256-in-sw-description" title="Permalink to this headline"></a></h3>
+<p>The swupdate class takes care of computing and inserting sha256 hashes in the
+sw-description file. The attribute <em>sha256</em> <strong>must</strong> be set in case the image
+is signed. Each artifact must have the attribute:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sha256</span> <span class="o">=</span> <span class="s2">&quot;$swupdate_get_sha256(artifact-file-name)&quot;</span>
+</pre></div>
+</div>
+<p>For example, to add sha256 to the standard Yocto core-image-full-cmdline:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sha256</span> <span class="o">=</span> <span class="s2">&quot;$swupdate_get_sha256(core-image-full-cmdline-machine.ubifs)&quot;</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>The name of the file must be the same as in deploy directory.</p>
+</section>
+<section id="bitbake-variable-expansion-in-sw-description">
+<h3>BitBake variable expansion in sw-description<a class="headerlink" href="#bitbake-variable-expansion-in-sw-description" title="Permalink to this headline"></a></h3>
+<p>To insert the value of a BitBake variable into the update file, pre- and
+postfix the variable name with “&#64;&#64;”.
+For example, to automatically set the version tag:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;@@DISTRO_VERSION@@&quot;</span><span class="p">;</span>
+</pre></div>
+</div>
+</section>
+<section id="automatic-versions-in-sw-description">
+<h3>Automatic versions in sw-description<a class="headerlink" href="#automatic-versions-in-sw-description" title="Permalink to this headline"></a></h3>
+<p>By setting the version tag in the update file to <cite>$swupdate_get_pkgvar(&lt;package-name&gt;)</cite> it is
+automatically replaced with <cite>PV</cite> from BitBake’s package-data-file for the package
+matching the name of the provided &lt;package-name&gt; tag.
+For example, to set the version tag to <cite>PV</cite> of package <cite>u-boot</cite>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;$swupdate_get_pkgvar(u-boot)&quot;</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>To automatically insert the value of a variable from BitBake’s package-data-file
+different to <cite>PV</cite> (e.g. <cite>PKGV</cite>) you can append the variable name to the tag:
+<cite>$swupdate_get_pkgvar(&lt;package-name&gt;&#64;&lt;package-data-variable&gt;)</cite>
+For example, to set the version tag to <cite>PKGV</cite> of package <cite>u-boot</cite>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;$swupdate_get_pkgvar(u-bootPKGV)&quot;</span><span class="p">;</span>
+</pre></div>
+</div>
+</section>
+<section id="using-checksum-for-version">
+<h3>Using checksum for version<a class="headerlink" href="#using-checksum-for-version" title="Permalink to this headline"></a></h3>
+<p>It is possible to use the hash of an artifact as the version in order to use
+“install-if-different”.  This allows versionless artifacts to be skipped if the
+artifact in the update matches the currently installed artifact.</p>
+<p>In order to use the hash as the version, the sha256 hash file placeholder
+described above in Automatic sha256 in sw-description must be used for version.</p>
+<p>Each artifact must have the attribute:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;@artifact-file-name&quot;</span>
+</pre></div>
+</div>
+<p>The name of the file must be the same as in deploy directory.</p>
+</section>
+<section id="template-for-recipe-using-the-class">
+<h3>Template for recipe using the class<a class="headerlink" href="#template-for-recipe-using-the-class" title="Permalink to this headline"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">DESCRIPTION</span> <span class="o">=</span> <span class="s2">&quot;Example recipe generating SWU image&quot;</span>
+<span class="n">SECTION</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+<span class="n">LICENSE</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+<span class="c1"># Add all local files to be added to the SWU</span>
+<span class="c1"># sw-description must always be in the list.</span>
+<span class="c1"># You can extend with scripts or wahtever you need</span>
+<span class="n">SRC_URI</span> <span class="o">=</span> <span class="s2">&quot; </span><span class="se">\</span>
+<span class="s2">    file://sw-description </span><span class="se">\</span>
+<span class="s2">    &quot;</span>
+
+<span class="c1"># images to build before building swupdate image</span>
+<span class="n">IMAGE_DEPENDS</span> <span class="o">=</span> <span class="s2">&quot;core-image-full-cmdline virtual/kernel&quot;</span>
+
+<span class="c1"># images and files that will be included in the .swu image</span>
+<span class="n">SWUPDATE_IMAGES</span> <span class="o">=</span> <span class="s2">&quot;core-image-full-cmdline uImage&quot;</span>
+
+<span class="c1"># a deployable image can have multiple format, choose one</span>
+<span class="n">SWUPDATE_IMAGES_FSTYPES</span><span class="p">[</span><span class="n">core</span><span class="o">-</span><span class="n">image</span><span class="o">-</span><span class="n">full</span><span class="o">-</span><span class="n">cmdline</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;.ubifs&quot;</span>
+<span class="n">SWUPDATE_IMAGES_FSTYPES</span><span class="p">[</span><span class="n">uImage</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;.bin&quot;</span>
+
+<span class="n">inherit</span> <span class="n">swupdate</span>
+</pre></div>
+</div>
+</section>
+<section id="simplified-version-for-just-image">
+<h3>Simplified version for just image<a class="headerlink" href="#simplified-version-for-just-image" title="Permalink to this headline"></a></h3>
+<p>In many cases there is a single image in the SWU. This is for example when
+just rootfs is updated. The generic case described above required an additional
+recipe that must be written and maintained. For this reason, a simplified version
+of the class is introduced that allowed to build the SWU from the image recipe.</p>
+<p>Users just need to import the <cite>swupdate-image</cite> class. This already sets some variables.
+A sw-description must still be added into a <cite>files</cite> directory, that is automatically searched by the class.
+User still needs to set SWUPDATE_IMAGE_FSTYPES[<cite>your image</cite>] to the fstype that should be packed
+into the SWU - an error is raised if the flag is not set.</p>
+<p>In the simple way, your recipe looks like</p>
+<dl>
+<dt>::</dt><dd><p>&lt;your original recipe code&gt;</p>
+<p>SWUPDATE_IMAGES_FSTYPES[&lt;name of your image&gt;] = &lt;fstype to be put into SWU&gt;
+inherit swupdate-image</p>
+</dd>
+</dl>
+</section>
+</section>
+<section id="what-about-grub">
+<h2>What about grub ?<a class="headerlink" href="#what-about-grub" title="Permalink to this headline"></a></h2>
+<p>In order to use swupdate with grub, swupdate needs to be configured to use grub. Some of
+the imporatant configurations are <strong>CONFIG_GRUBENV_PATH=”/path/to/grubenv”</strong>,
+where <strong>“/path/to/grubenv”</strong> is thepath to grub environment.
+Example: “/boot/EFI/BOOT/grubenv”.</p>
+<p>The grubenv file should be created using grub-editenv tool, because it is a <strong>1024-byte file</strong>, therefore,
+any modification using nano or vim will only corrupt the file, and grub will not be able to use it.</p>
+<p>You can create a grubenv file using these commands for instance:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>GRUBENV=&quot;/path/to/grubenv&quot;
+grub-editenv $GRUBENV create
+grub-editenv $GRUBENV set rootfs=2
+grub-editenv $GRUBENV set kernel=2
+</pre></div>
+</div>
+<p>grub-editenv is a tool that is integrated to yocto.</p>
+<p>When the grubenv file is created, grub should be configured to use it.
+This configuration should be in the configuration file grub.cfg.
+Here is an example of grub.cfg that loads the environment file before booting:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span># Take a kernel and a rootfs by default in case grubenv is corrupted
+rootfs=1
+kernel=1
+serial --unit=0 --speed=115200 --word=8 --parity=no --stop=1
+default=boot
+# set timeout to zero to boot without timeout
+timeout=0
+# load grubenv the environment file that contains the value of rootfs and kernel variables
+load_env -f &quot;/path/to/grubenv&quot;
+# detect which memory contains 5 partitions
+for i in 1 2 3 4 5; do  if [ -d (hd${i},gpt5)/ ]; then drive=${i};fi ; done
+# detect which rootfs should we boot with
+if [ ${rootfs} = &quot;1&quot; ]; then rootfs_part=4 ; elif [ ${rootfs} = &quot;2&quot; ]; then rootfs_part=5 ; fi
+# detect which kernel should we boot with
+if [ ${kernel} = &quot;1&quot; ]; then kernel_part=&quot;(hd${drive},gpt2)&quot; ; elif [ ${kernel} = &quot;2&quot; ]; then kernel_part=&quot;(hd${drive},gpt3)&quot; ; fi
+
+# The menuentry that is used to boot (more can be added if it is wanted)
+menuentry &#39;boot&#39;{
+linux ${kernel_part}/bzImage root=/dev/mmcblk1p${rootfs_part} rw rootwait quiet console=ttyS2,115200 console=tty0 panic=5
+}
+</pre></div>
+</div>
+<p>The grub.cfg above is merely an example, and can be modified as the user wants to,
+as long as it loads the environment variables,and it boots correctly using these environment
+variables.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="bootloader_interface.html" class="btn btn-neutral float-left" title="Bootloader Interface" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="swupdate-best-practise.html" class="btn btn-neutral float-right" title="SWUpdate Best Practice" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2013-2024, Stefano Babic.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
