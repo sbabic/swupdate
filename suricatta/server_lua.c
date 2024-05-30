@@ -591,6 +591,9 @@ static void channel_set_options(lua_State *L, channel_data_t *channel_data)
 	get_from_table(L, "max_download_speed", max_download_speed);
 	if (max_download_speed) {
 		channel_data->max_download_speed = (unsigned int)ustrtoull(max_download_speed, NULL, 10);
+		if (errno)
+			WARN("max-download-speed %s: ustrtoull failed",
+			     max_download_speed);
 		free(max_download_speed);
 	}
 	lua_getfield(L, -1, "proxy");

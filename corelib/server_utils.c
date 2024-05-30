@@ -4,6 +4,7 @@
  *
  * SPDX-License-Identifier:     GPL-2.0-only
  */
+#include <errno.h>
 #include <unistd.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -24,8 +25,11 @@ int channel_settings(void *elem, void *data)
 		&chan->retries);
 
 	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "max-download-speed", tmp);
-	if (strlen(tmp))
+	if (strlen(tmp)) {
 		chan->max_download_speed = (unsigned int)ustrtoull(tmp, NULL, 10);
+		if (errno)
+			WARN("max-download-speed setting %s: ustrtoull failed", tmp);
+	}
 
 	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "retrywait", tmp);
 	if (strlen(tmp))

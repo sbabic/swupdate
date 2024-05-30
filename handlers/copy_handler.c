@@ -204,9 +204,10 @@ static int recurse_directory(const char *fpath, const struct stat *sb,
 static int copy_image_file(struct img_type *img, void *data)
 {
 	int ret = 0;
+	char *tmp;
 	struct dict_list *proplist;
 	struct dict_list_elem *entry;
-	size_t size;
+	size_t size = 0;
 	struct script_handler_data *script_data;
 	bool recursive, createdest;
 
@@ -249,7 +250,12 @@ static int copy_image_file(struct img_type *img, void *data)
 	/*
 	 * Detect the size if not set in sw-descriptiont
 	 */
-	size = dict_get_value(&img->properties, "size") ? ustrtoull(dict_get_value(&img->properties, "size"), NULL, 0) : 0;
+	tmp = dict_get_value(&img->properties, "size");
+	if (tmp) {
+		size = ustrtoull(tmp, NULL, 0);
+		if (errno)
+			WARN("size property %s: ustrtoull failed", tmp);
+	}
 
 	/*
 	 * No chain set, fallback to rawcopy

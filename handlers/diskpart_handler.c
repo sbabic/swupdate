@@ -1232,11 +1232,15 @@ static int diskpart(struct img_type *img,
 					switch (i) {
 					case PART_SIZE:
 						part->size = ustrtoull(equal, NULL, 10);
+						if (errno)
+							WARN("partition size %s: ustrtoull failed", equal);
 						if (!size_delimiter_match(equal))
 							part->explicit_size = 1;
 						break;
 					case PART_START:
 						part->start = ustrtoull(equal, NULL, 10);
+						if (errno)
+							WARN("partition size %s: ustrtoull failed", equal);
 						break;
 					case PART_TYPE:
 						strncpy(part->type, equal, sizeof(part->type));

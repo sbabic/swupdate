@@ -663,6 +663,11 @@ static server_op_res_t server_start(const char *fname, int argc, char *argv[])
 		case 'n':
 			channel_data_defaults.max_download_speed =
 				(unsigned int)ustrtoull(optarg, NULL, 10);
+			if (errno) {
+				ERROR("max-download-speed %s: ustrtoull failed",
+				      optarg);
+				return SERVER_EINIT;
+			}
 			break;
 
 		/* Ignore the --server option which is already parsed by the caller. */

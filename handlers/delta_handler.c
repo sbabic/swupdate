@@ -326,10 +326,13 @@ static int delta_retrieve_attributes(struct img_type *img, struct hnd_priv *priv
 	char *srcsize;
 	srcsize = dict_get_value(&img->properties, "source-size");
 	if (srcsize) {
-		if (!strcmp(srcsize, "detect"))
+		if (!strcmp(srcsize, "detect")) {
 			priv->detectsrcsize = true;
-		else
+		} else {
 			priv->srcsize = ustrtoull(srcsize, NULL, 10);
+			if (errno)
+				WARN("source-size %s: ustrotull failed", srcsize);
+		}
 	}
 
 	char *zckloglevel = dict_get_value(&img->properties, "zckloglevel");

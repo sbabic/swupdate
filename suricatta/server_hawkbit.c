@@ -871,6 +871,9 @@ static void get_action_id_from_env(int *action_id)
 	char *action_str = swupdate_vars_get("action_id", NULL);
 	if (action_str) {
 		int tmp = ustrtoull(action_str, NULL, 10);
+		if (errno)
+			WARN("action_id %s: ustrtoull failed",
+			     action_str);
 		/*
 		 * action_id = 0 is invalid, then check it
 		 */
@@ -1910,6 +1913,11 @@ static server_op_res_t server_start(const char *fname, int argc, char *argv[])
 		case 'n':
 			channel_data_defaults.max_download_speed =
 				(unsigned int)ustrtoull(optarg, NULL, 10);
+			if (errno) {
+				ERROR("max-download-speed %s: ustrtoull failed",
+				      optarg);
+				return SERVER_EINIT;
+			}
 			break;
 		/* Ignore not recognized options, they can be already parsed by the caller */
 		case '?':
