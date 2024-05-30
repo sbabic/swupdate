@@ -36,6 +36,7 @@ static struct option long_options[] = {
     {"retrywait", required_argument, NULL, 'w'},
     {"timeout", required_argument, NULL, 't'},
     {"authentication", required_argument, NULL, 'a'},
+    {"max-download-speed", required_argument, NULL, 'n'},
     {NULL, 0, NULL, 0}};
 
 static channel_data_t channel_options = {
@@ -202,7 +203,9 @@ void download_print_help(void)
 	    "\t                         is broken (0 means indefinitely retries) (default: %d)\n"
 	    "\t  -w, --retrywait      timeout to wait before retrying retries (default: %d)\n"
 	    "\t  -t, --timeout          timeout to check if a connection is lost (default: %d)\n"
-	    "\t  -a, --authentication   authentication information as username:password\n",
+	    "\t  -a, --authentication   authentication information as username:password\n"
+	    "\t  -n, --max-download-speed <limit>    Set download speed limit.\n"
+	    "\t                Example: -n 100k; -n 1M; -n 100; -n 1G (default: no limit)\n",
 	    DL_DEFAULT_RETRIES, DL_LOWSPEED_TIME, CHANNEL_DEFAULT_RESUME_DELAY);
 }
 
@@ -220,7 +223,7 @@ int start_download_server(const char *fname, int argc, char *argv[])
 	/* reset to optind=1 to parse download's argument vector */
 	optind = 1;
 	int choice = 0;
-	while ((choice = getopt_long(argc, argv, "t:u:w:r:a:",
+	while ((choice = getopt_long(argc, argv, "t:u:w:r:a:n:",
 				     long_options, NULL)) != -1) {
 		switch (choice) {
 		case 't':
@@ -237,6 +240,15 @@ int start_download_server(const char *fname, int argc, char *argv[])
 			break;
 		case 'r':
 			channel_options.retries = strtoul(optarg, NULL, 10);
+			break;
+		case 'n':
+			channel_options.max_download_speed =
+				(unsigned int)ustrtoull(optarg, NULL, 10);
+			if (errno) {
+				ERROR("max-download-speed argument %s: ustrtoull failed",
+				      optarg);
+				return -1;
+			}
 			break;
 		case '?':
 		default:
