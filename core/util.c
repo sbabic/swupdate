@@ -721,9 +721,11 @@ unsigned long long ustrtoull(const char *cp, char **endptr, unsigned int base)
 
 	switch (*endp) {
 	case 'G':
+	case 'g':
 		result *= 1024;
 		/* fall through */
 	case 'M':
+	case 'm':
 		result *= 1024;
 		/* fall through */
 	case 'K':
@@ -737,6 +739,12 @@ unsigned long long ustrtoull(const char *cp, char **endptr, unsigned int base)
 		} else {
 			endp += 1;
 		}
+	case 0:
+		break;
+	default:
+		errno = EINVAL;
+		result = 0;
+		goto out;
 	}
 
 out:
