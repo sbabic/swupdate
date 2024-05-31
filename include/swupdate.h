@@ -68,7 +68,7 @@ struct swupdate_cfg {
 	bool no_state_marker;
 	bool reboot_required;
 	bool check_max_version;
-	int verbose;
+	bool verbose;
 	int loglevel;
 	int cert_purpose;
 	struct hw_type hw;

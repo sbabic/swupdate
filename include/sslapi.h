@@ -112,7 +112,7 @@ struct swupdate_digest {
 #endif
 #ifdef CONFIG_SIGALG_GPG
 	char *gpg_home_directory;
-	int verbose;
+	bool verbose;
 	char *gpgme_protocol;
 #endif
 };

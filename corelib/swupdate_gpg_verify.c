@@ -81,7 +81,7 @@ int swupdate_verify_file(struct swupdate_digest *dgst, const char *sigfile,
 
 	gpgme_set_protocol(ctx, protocol);
 	gpgme_set_status_cb(ctx, status_cb, NULL);
-	if (dgst->verbose == 1) {
+	if (dgst->verbose) {
 		gpgme_set_ctx_flag(ctx, "full-status", "1");
 	}
 	gpgme_set_locale(ctx, LC_ALL, setlocale(LC_ALL, ""));
