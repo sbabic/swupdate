@@ -18,9 +18,15 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <errno.h>
+#if defined(__linux__)
 #include <linux/version.h>
+#endif
 #include <sys/ioctl.h>
+#if defined(__linux__)
 #include <linux/mmc/ioctl.h>
+#elif defined(__FreeBSD__)
+#include <dev/mmc/mmc_ioctl.h>
+#endif
 #include "swupdate_image.h"
 #include "handler.h"
 #include "util.h"

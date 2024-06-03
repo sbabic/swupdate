@@ -12,10 +12,16 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <errno.h>
+#if defined(__linux__)
 #include <linux/version.h>
+#endif
 #include <sys/ioctl.h>
+#if defined(__linux__)
 #include <linux/major.h>
 #include <linux/mmc/ioctl.h>
+#elif defined(__FreeBSD__)
+#include <dev/mmc/mmc_ioctl.h>
+#endif
 #include "emmc.h"
 #include "util.h"
 
@@ -59,8 +65,15 @@ static int emmc_write_extcsd_value(int fd, __u8 index, __u8 value, unsigned int 
 
 	fill_switch_cmd(&idata, index, value);
 
+#if defined(__FreeBSD__)
+	if (timeout_ms != 0) {
+		ERROR("Command timeout not supported");
+		return -EOPNOTSUPP;
+	}
+#else
 	/* Kernel will set cmd_timeout_ms if 0 is set */
 	idata.cmd_timeout_ms = timeout_ms;
+#endif
 
 	ret = ioctl(fd, MMC_IOC_CMD, &idata);
 	if (ret)
