@@ -1592,6 +1592,11 @@ static int suricatta_lua_module(lua_State *L)
 	push_to_table(L, "SUBPROCESS", SUBPROCESS);
 	push_to_table(L, "PROGRESS", PROGRESS);
 	lua_settable(L, -3);
+	lua_pushstring(L, "progress_cause");
+	lua_newtable(L);
+	push_to_table(L, "CAUSE_NONE", CAUSE_NONE);
+	push_to_table(L, "CAUSE_REBOOT_MODE", CAUSE_REBOOT_MODE);
+	lua_settable(L, -3);
 	lua_settable(L, -3);
 
 	lua_pushstring(L, "status");
