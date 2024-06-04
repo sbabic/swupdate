@@ -110,7 +110,7 @@ int parse_external(struct swupdate_cfg *software, const char *filename,
 	int ret;
 	unsigned int nstreams;
 	struct img_type *image;
-	struct hw_type hardware;
+	struct hw_type hardware = {0};
 
 	lua_State *L = luaL_newstate(); /* opens Lua */
 	luaL_openlibs(L); /* opens the standard libraries */
