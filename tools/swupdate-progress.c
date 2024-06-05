@@ -339,7 +339,7 @@ int main(int argc, char **argv)
 		 * Be sure that string in message are Null terminated
 		 */
 		if (msg.infolen > 0) {
-			char *reboot_mode;
+			char reboot_mode[20] = { 0 };
 			int n, cause;
 
 			if (msg.infolen >= sizeof(msg.info) - 1) {
@@ -354,15 +354,14 @@ int main(int argc, char **argv)
 			 * will be added, JSON lib should be linked.
 			 * NOTE: Until then, the exact string format is imperative!
 			 */
-			n = sscanf(msg.info, "{\"%d\": { \"reboot-mode\" : \"%m[-a-z]\"}}",
-				   &cause, &reboot_mode);
+			n = sscanf(msg.info, "{\"%*d\": {\"%d\": { \"reboot-mode\" : \"%19[-a-z]\"}}}",
+				   &cause, reboot_mode);
 			if (n == 2) {
 				if (cause == CAUSE_REBOOT_MODE) {
 					if (!strcmp(reboot_mode, "no-reboot")) {
 						disable_reboot = true;
 					}
 				}
-				free(reboot_mode);
 			}
 		}
 		msg.cur_image[sizeof(msg.cur_image) - 1] = '\0';
