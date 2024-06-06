@@ -40,6 +40,13 @@ a sort of software compatibility check. For example, SWUpdate verifies if a comp
 (like an application) is compatible with a runningOS and reject the update in case of
 mismatch.
 
+Support files bigger than 4GB
+-----------------------------
+
+SWUpdate currently uses CPIO to pack updates in the 'newc' and 'crc' formats.
+These formats limit single files to 4GB - 1byte in size, which could become a
+problem as update size grows.
+
 Parser
 ======
 
