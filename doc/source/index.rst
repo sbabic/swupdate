@@ -75,13 +75,13 @@ Help and support
    contributing.rst
 
 ############################################
-Roadmap
+Future ideas
 ############################################
 
 .. toctree::
    :maxdepth: 2
 
-   roadmap.rst
+   improvement_proposals.rst
 
 ############################################
 Previous releases
