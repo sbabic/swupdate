@@ -510,24 +510,24 @@ Example:
 
 ::
 
-	scripts: (
-		{
-                        filename = "testscript.lua";
-                        type = "lua";
-                        properties: {
-				global-state = "true";
-                                preinstall = "pretest1";
-			}
-		},
-		{
-			filename = "test2script.lua";
-			type = "lua";
-			properties: {
-				global-state = "true";
-                                postinstall = "posttest2";
-                                postfailure = "failure";
-			}
-		}
+        scripts: (
+            {
+                filename = "testscript.lua";
+                type = "lua";
+                properties: {
+                    global-state = "true";
+                    preinstall = "pretest1";
+                }
+            },
+            {
+                filename = "test2script.lua";
+                type = "lua";
+                properties: {
+                    global-state = "true";
+                    postinstall = "posttest2";
+                    postfailure = "failure";
+                }
+        }
 
 Two scripts are defined. Both are using the global Lua state.
 Functions in test2script can find and run functions defined in testscript.lua,
