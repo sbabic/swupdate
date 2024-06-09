@@ -1536,6 +1536,14 @@ int lua_handlers_init(lua_State *L)
 		lua_setglobal(L, "SWUPDATE_LUA_TYPE");
 		/* load standard libraries */
 		luaL_openlibs(L);
+		/* load / fore-reload swupdate module */
+		lua_getglobal(L, "package");
+		lua_pushliteral(L, "loaded");
+		lua_gettable(L, -2);
+		lua_pushstring(L, "swupdate");
+		lua_pushnil(L);
+		lua_settable(L, -3);
+		lua_pop(L, 2);
 		luaL_requiref(L, "swupdate", luaopen_swupdate, 1 );
 		lua_pop(L, 1); /* remove unused copy left on stack */
 		/* try to load Lua handlers for the swupdate system */
