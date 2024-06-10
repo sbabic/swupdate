@@ -1463,6 +1463,21 @@ static int l_register_handler( lua_State *L ) {
 				 mask, l_func_ref);
 			break;
 		}
+
+		/* add newly registered handler to current Lua stack */
+		lua_getglobal(L, "swupdate");
+		lua_pushliteral(L, "handler");
+		lua_gettable(L, -2);
+		if (lua_istable(L, -1)) {
+			lua_pushstring(L, handler_desc);
+			lua_pushnumber(L, 1);
+			lua_settable(L, -3);
+		} else {
+			TRACE("swupdate.handler Table absent in current Lua "
+			      "context, not inserting handler '%s'", handler_desc);
+		}
+		lua_pop(L, 2);
+
 		return 0;
 	}
 }
