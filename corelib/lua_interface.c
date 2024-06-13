@@ -1541,12 +1541,8 @@ int lua_handlers_init(lua_State *L)
 #endif
 	int ret = -1;
 
-	if (!L) {
-		gL = luaL_newstate();
-		L = gL;
-	}
 	if (L) {
-		/* prime gL as LUA_TYPE_HANDLER */
+		/* prime L as LUA_TYPE_HANDLER */
 		lua_pushlightuserdata(L, (void*)LUA_TYPE_HANDLER);
 		lua_setglobal(L, "SWUPDATE_LUA_TYPE");
 		/* load standard libraries */
@@ -1601,6 +1597,18 @@ lua_State *lua_session_init(struct dict *bootenv)
 	lua_handlers_init(L);
 
 	return L;
+}
+
+int lua_init(void)
+{
+	lua_State *L = luaL_newstate();
+	int res = lua_handlers_init(L);
+	unregister_session_handlers();
+	lua_close(L);
+	if (!gL) {
+		gL = luaL_newstate();
+	}
+	return res;
 }
 
 int lua_load_buffer(lua_State *L, const char *buf)

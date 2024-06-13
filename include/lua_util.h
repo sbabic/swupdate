@@ -22,6 +22,7 @@ typedef enum {
 void LUAstackDump (lua_State *L);
 int run_lua_script(lua_State *L, const char *script, bool load, const char *function, char *parms);
 lua_State *lua_session_init(struct dict *bootenv);
+int lua_init(void);
 int lua_load_buffer(lua_State *L, const char *buf);
 int lua_parser_fn(lua_State *L, const char *fcn, struct img_type *img);
 int lua_handler_fn(lua_State *L, const char *fcn, const char *parms);
@@ -101,6 +102,7 @@ struct img_type;
 #define lua_exit(L)
 #define lua_close(L)
 static inline lua_State *lua_session_init(struct dict __attribute__ ((__unused__)) *bootenv) { return NULL;}
+static inline int lua_init() { return 0; }
 static inline int lua_load_buffer(lua_State __attribute__ ((__unused__)) *L, 
 					const char __attribute__ ((__unused__)) *buf) {return 1;}
 static inline int lua_parser_fn(lua_State __attribute__ ((__unused__)) *L,
