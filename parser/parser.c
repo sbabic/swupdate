@@ -1024,7 +1024,7 @@ static int parser(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 		swcfg->embscript = get_field_string(p, scriptnode, NULL);
 	}
 
-	L = lua_init(&swcfg->bootloader);
+	L = lua_session_init(&swcfg->bootloader);
 
 	if (swcfg->embscript) {
 		if (!L) {

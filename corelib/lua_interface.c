@@ -1582,7 +1582,7 @@ int lua_handlers_init(lua_State *L)
 	return ret;
 }
 
-lua_State *lua_init(struct dict *bootenv)
+lua_State *lua_session_init(struct dict *bootenv)
 {
 	lua_State *L = luaL_newstate(); /* opens Lua */
 

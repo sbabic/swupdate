@@ -74,7 +74,7 @@ static int start_lua_script(struct img_type *img, void *data)
 		TRACE("Executing with global state");
 		L = img->L;
 	} else {
-		L = lua_init(img->bootloader);
+		L = lua_session_init(img->bootloader);
 	}
 
 	if (!L) {
