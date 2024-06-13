@@ -1603,6 +1603,7 @@ int lua_init(void)
 {
 	lua_State *L = luaL_newstate();
 	int res = lua_handlers_init(L);
+	print_registered_handlers(false);
 	unregister_session_handlers();
 	lua_close(L);
 	if (!gL) {

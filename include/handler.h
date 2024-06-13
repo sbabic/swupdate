@@ -80,6 +80,6 @@ int unregister_handler(const char *desc);
 void unregister_session_handlers(void);
 
 struct installer_handler *find_handler(struct img_type *img);
-void print_registered_handlers(void);
+void print_registered_handlers(bool global);
 struct installer_handler *get_next_handler(void);
 unsigned int get_handler_mask(struct img_type *img);

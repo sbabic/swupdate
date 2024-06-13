@@ -866,7 +866,7 @@ int main(int argc, char **argv)
 	if(!get_hw_revision(&swcfg.hw))
 		INFO("Running on %s Revision %s", swcfg.hw.boardname, swcfg.hw.revision);
 
-	print_registered_handlers();
+	print_registered_handlers(true);
 	if (swcfg.syslog_enabled) {
 		if (syslog_init()) {
 			ERROR("failed to initialize syslog notifier");
