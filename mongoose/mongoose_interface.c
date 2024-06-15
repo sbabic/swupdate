@@ -190,9 +190,9 @@ static void mg_mkmd5resp(struct mg_str method, struct mg_str uri, struct mg_str 
 	static const char colon[] = ":";
 	static const size_t one = 1;
 	char ha2[33];
-	cs_md5(ha2, method.ptr, method.len, colon, one, uri.ptr, uri.len, NULL);
-	cs_md5(resp, ha1.ptr, ha1.len, colon, one, nonce.ptr, nonce.len, colon, one, nc.ptr,
-		   nc.len, colon, one, cnonce.ptr, cnonce.len, colon, one, qop.ptr, qop.len,
+	cs_md5(ha2, method.buf, method.len, colon, one, uri.buf, uri.len, NULL);
+	cs_md5(resp, ha1.buf, ha1.len, colon, one, nonce.buf, nonce.len, colon, one, nc.buf,
+		   nc.len, colon, one, cnonce.buf, cnonce.len, colon, one, qop.buf, qop.len,
 		   colon, one, ha2, sizeof(ha2) - 1, NULL);
 }
 
@@ -212,7 +212,7 @@ static double mg_time(void)
 static int mg_check_nonce(struct mg_str nonce)
 {
 	unsigned long now = (unsigned long) mg_time();
-	unsigned long val = (unsigned long) strtoul(nonce.ptr, NULL, 16);
+	unsigned long val = (unsigned long) strtoul(nonce.buf, NULL, 16);
 	return (now >= val) && (now - val < 60 * 60);
 }
 
@@ -236,7 +236,7 @@ static int mg_check_digest_auth(struct mg_str method, struct mg_str uri,
 			mg_vcmp(&auth_domain, f_domain) == 0) {
 			/* Username and domain matched, check the password */
 			mg_mkmd5resp(method, uri, mg_str_s(f_ha1), nonce, nc, cnonce, qop, exp_resp);
-			return mg_ncasecmp(response.ptr, exp_resp, strlen(exp_resp)) == 0;
+			return mg_ncasecmp(response.buf, exp_resp, strlen(exp_resp)) == 0;
 		}
 	}
 
@@ -268,7 +268,7 @@ static int mg_http_check_digest_auth(struct mg_http_message *hm, struct mg_str a
 	return mg_check_digest_auth(
 			hm->method,
 			mg_str_n(
-					hm->uri.ptr,
+					hm->uri.buf,
 					hm->uri.len + (hm->query.len ? hm->query.len + 1 : 0)),
 			username, cnonce, response, qop, nc, nonce, auth_domain, fp);
 }
@@ -585,7 +585,7 @@ static void upload_handler(struct mg_connection *nc, int ev, void *ev_data)
 			struct swupdate_request req;
 			swupdate_prepare_req(&req);
 			req.len = mp->len;
-			strncpy(req.info, mp->part.filename.ptr, sizeof(req.info) - 1);
+			strncpy(req.info, mp->part.filename.buf, sizeof(req.info) - 1);
 			req.source = SOURCE_WEBSERVER;
 			fus->fd = ipc_inst_start_ext(&req, sizeof(req));
 			if (fus->fd < 0) {
@@ -620,7 +620,7 @@ static void upload_handler(struct mg_connection *nc, int ev, void *ev_data)
 			if (!fus)
 				break;
 
-			written = write(fus->fd, (char *) mp->part.body.ptr, mp->part.body.len);
+			written = write(fus->fd, (char *) mp->part.body.buf, mp->part.body.len);
 			/*
 			 * IPC seems to block, wait for a while
 			 */

@@ -42,9 +42,9 @@ struct mg_http_multipart_stream {
 
 static void mg_http_free_proto_data_mp_stream(
 		struct mg_http_multipart_stream *mp) {
-	free((void *) mp->boundary.ptr);
-	free((void *) mp->part.name.ptr);
-	free((void *) mp->part.filename.ptr);
+	free((void *) mp->boundary.buf);
+	free((void *) mp->part.name.buf);
+	free((void *) mp->part.filename.buf);
 	memset(mp, 0, sizeof(*mp));
 }
 
@@ -76,7 +76,7 @@ static void mg_http_multipart_begin(struct mg_connection *c,
 	}
 
 	/* Content-type should start with "multipart" */
-	if (ct->len < 9 || strncmp(ct->ptr, "multipart", 9) != 0) {
+	if (ct->len < 9 || strncmp(ct->buf, "multipart", 9) != 0) {
 		return;
 	}
 
@@ -108,7 +108,7 @@ static void mg_http_multipart_begin(struct mg_connection *c,
 		}
 		mp_stream->state = MPS_BEGIN;
 		mp_stream->boundary = mg_strdup(boundary);
-		mp_stream->part.name.ptr = mp_stream->part.filename.ptr = NULL;
+		mp_stream->part.name.buf = mp_stream->part.filename.buf = NULL;
 		mp_stream->part.name.len = mp_stream->part.filename.len = 0;
 		mp_stream->len = hm->body.len;
 		c->pfn_data = mp_stream;
@@ -128,7 +128,7 @@ static size_t mg_http_multipart_call_handler(struct mg_connection *c, int ev,
 	mp.part.name = mp_stream->part.name;
 	mp.part.filename = mp_stream->part.filename;
 	mp.user_data = mp_stream->user_data;
-	mp.part.body.ptr = data;
+	mp.part.body.buf = (char*) data;
 	mp.part.body.len = data_len;
 	mp.num_data_consumed = data_len;
 	mp.len = mp_stream->len;
@@ -207,7 +207,7 @@ static int mg_http_multipart_process_boundary(struct mg_connection *c) {
 						sizeof(CONTENT_DISPOSITION) - 1) == 0) {
 			struct mg_str header;
 
-			header.ptr = block_begin + sizeof(CONTENT_DISPOSITION) - 1;
+			header.buf = (char*) (block_begin + sizeof(CONTENT_DISPOSITION) - 1);
 			header.len = line_len - sizeof(CONTENT_DISPOSITION) - 1;
 
 			mp_stream->part.name = mg_strdup(mg_http_get_header_var(header, mg_str_n("name", 4)));
@@ -342,7 +342,7 @@ void multipart_upload_handler(struct mg_connection *c, int ev, void *ev_data)
 			return;
 		}
 		s = mg_http_get_header(hm, "Content-Type");
-		if (s != NULL && s->len >= 9 && strncmp(s->ptr, "multipart", 9) == 0) {
+		if (s != NULL && s->len >= 9 && strncmp(s->buf, "multipart", 9) == 0) {
 			/* New request - new proto data */
 			c->data[0] = 'M';
 
