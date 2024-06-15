@@ -180,7 +180,7 @@ static void cs_md5(char buf[33], ...)
 	va_end(ap);
 
 	mg_hash_md5_v(num_msgs, msgs, msg_lens, hash);
-	mg_hex(hash, sizeof(hash), buf);
+	mg_snprintf(buf, 33, "%M", mg_print_hex, sizeof(hash), hash);
 }
 
 static void mg_mkmd5resp(struct mg_str method, struct mg_str uri, struct mg_str ha1,
