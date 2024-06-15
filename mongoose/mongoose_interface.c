@@ -710,7 +710,7 @@ static void ev_handler(struct mg_connection *nc, int ev, void *ev_data, void *fn
 				} else {
 					nc->pfn = upload_handler;
 					nc->pfn_data = NULL;
-					multipart_upload_handler(nc, MG_EV_HTTP_CHUNK, &hm, NULL);
+					multipart_upload_handler(nc, ev, &hm, NULL);
 				}
 			}
 		}
