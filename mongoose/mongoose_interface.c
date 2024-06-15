@@ -35,8 +35,8 @@
 #include "mongoose_multipart.h"
 #include "util.h"
 
-#ifndef MG_ENABLE_SSL
-#define MG_ENABLE_SSL 0
+#ifndef MG_TLS
+#define MG_TLS 0
 #endif
 
 #define MG_PORT "8080"
@@ -48,7 +48,7 @@ struct mongoose_options {
 	char *port;
 	char *global_auth_file;
 	char *auth_domain;
-#if MG_ENABLE_SSL
+#if MG_TLS
 	char *ssl_cert;
 	char *ssl_key;
 #endif
@@ -69,7 +69,7 @@ static unsigned int watchdog_conn = 0;
 static struct mg_http_serve_opts s_http_server_opts;
 const char *global_auth_domain;
 const char *global_auth_file;
-#if MG_ENABLE_SSL
+#if MG_TLS
 static bool ssl;
 static struct mg_tls_opts tls_opts;
 #endif
@@ -719,7 +719,7 @@ static void ev_handler(struct mg_connection *nc, int ev, void *ev_data)
 		multipart_upload_handler(nc, ev, ev_data);
 		if (nc->recv.len < MG_MAX_RECV_SIZE && ev == MG_EV_POLL)
 			nc->is_full = false;
-#if MG_ENABLE_SSL
+#if MG_TLS
 	} else if (ev == MG_EV_ACCEPT && ssl) {
 		mg_tls_init(nc, &tls_opts);
 #endif
@@ -747,7 +747,7 @@ static int mongoose_settings(void *elem, void  __attribute__ ((__unused__)) *dat
 	if (strlen(tmp)) {
 		opts->port = strdup(tmp);
 	}
-#if MG_ENABLE_SSL
+#if MG_TLS
 	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "ssl_certificate", tmp);
 	if (strlen(tmp)) {
 		opts->ssl_cert = strdup(tmp);
@@ -778,7 +778,7 @@ static int mongoose_settings(void *elem, void  __attribute__ ((__unused__)) *dat
 static struct option long_options[] = {
 	{"listing", no_argument, NULL, 'l'},
 	{"port", required_argument, NULL, 'p'},
-#if MG_ENABLE_SSL
+#if MG_TLS
 	{"ssl", no_argument, NULL, 's'},
 	{"ssl-cert", required_argument, NULL, 'C'},
 	{"ssl-key", required_argument, NULL, 'K'},
@@ -797,7 +797,7 @@ void mongoose_print_help(void)
 		"\tmongoose arguments:\n"
 		"\t  -l, --listing                  : enable directory listing\n"
 		"\t  -p, --port <port>              : server port number  (default: %s)\n"
-#if MG_ENABLE_SSL
+#if MG_TLS
 		"\t  -s, --ssl                      : enable ssl support\n"
 		"\t  -C, --ssl-cert <cert>          : ssl certificate to present to clients\n"
 		"\t  -K, --ssl-key <key>            : key corresponding to the ssl certificate\n"
@@ -818,7 +818,7 @@ int start_mongoose(const char *cfgfname, int argc, char *argv[])
 	char buf[50] = "\0";
 	int choice;
 
-#if MG_ENABLE_SSL
+#if MG_TLS
 	ssl = false;
 #endif
 
@@ -868,7 +868,7 @@ int start_mongoose(const char *cfgfname, int argc, char *argv[])
 		case 't':
 			watchdog_conn = strtoul(optarg, NULL, 10);
 			break;
-#if MG_ENABLE_SSL
+#if MG_TLS
 		case 's':
 			ssl = true;
 			break;
@@ -898,7 +898,7 @@ int start_mongoose(const char *cfgfname, int argc, char *argv[])
 	global_auth_file = opts.global_auth_file;
 	global_auth_domain = opts.auth_domain;
 
-#if MG_ENABLE_SSL
+#if MG_TLS
 	if (ssl) {
 		tls_opts.cert = opts.ssl_cert;
 		tls_opts.certkey = opts.ssl_key;
