@@ -336,7 +336,7 @@ void multipart_upload_handler(struct mg_connection *c, int ev, void *ev_data)
 	}
 
 	if (ev == MG_EV_READ) {
-		if(mg_vcasecmp(&hm->method, "POST") != 0) {
+		if(mg_strcasecmp(hm->method, mg_str("POST")) != 0) {
 			mg_http_reply(c, 405, "", "%s", "Method Not Allowed\n");
 			c->is_draining = 1;
 			return;

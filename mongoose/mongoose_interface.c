@@ -344,7 +344,7 @@ static void restart_handler(struct mg_connection *nc, void *ev_data)
 	struct mg_http_message *hm = (struct mg_http_message *) ev_data;
 	ipc_message msg = {};
 
-	if(mg_vcasecmp(&hm->method, "POST") != 0) {
+	if(mg_strcasecmp(hm->method, mg_str("POST")) != 0) {
 		mg_http_reply(nc, 405, "", "%s", "Method Not Allowed\n");
 		return;
 	}
