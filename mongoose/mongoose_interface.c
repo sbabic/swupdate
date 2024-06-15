@@ -900,8 +900,8 @@ int start_mongoose(const char *cfgfname, int argc, char *argv[])
 
 #if MG_TLS
 	if (ssl) {
-		tls_opts.cert = opts.ssl_cert;
-		tls_opts.certkey = opts.ssl_key;
+		tls_opts.cert = mg_file_read(&mg_fs_posix, opts.ssl_cert);
+		tls_opts.key = mg_file_read(&mg_fs_posix, opts.ssl_key);
 	}
 #endif
 
