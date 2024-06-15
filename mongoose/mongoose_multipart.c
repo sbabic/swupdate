@@ -203,7 +203,7 @@ static int mg_http_multipart_process_boundary(struct mg_connection *c) {
 		   (line_len = mg_get_line_len(block_begin, data_size)) != 0) {
 		mp_stream->len -= (line_len + 2);
 		if (line_len > sizeof(CONTENT_DISPOSITION) &&
-			mg_ncasecmp(block_begin, CONTENT_DISPOSITION,
+			strncmp(block_begin, CONTENT_DISPOSITION,
 						sizeof(CONTENT_DISPOSITION) - 1) == 0) {
 			struct mg_str header;
 
@@ -219,7 +219,7 @@ static int mg_http_multipart_process_boundary(struct mg_connection *c) {
 			continue;
 		}
 
-		if (line_len == 2 && mg_ncasecmp(block_begin, "\r\n", 2) == 0) {
+		if (line_len == 2 && strncmp(block_begin, "\r\n", 2) == 0) {
 			if (mp_stream->processing_part != 0) {
 				mg_http_multipart_call_handler(c, MG_EV_HTTP_PART_END, NULL, 0);
 			}

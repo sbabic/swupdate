@@ -236,7 +236,7 @@ static int mg_check_digest_auth(struct mg_str method, struct mg_str uri,
 			mg_vcmp(&auth_domain, f_domain) == 0) {
 			/* Username and domain matched, check the password */
 			mg_mkmd5resp(method, uri, mg_str_s(f_ha1), nonce, nc, cnonce, qop, exp_resp);
-			return mg_ncasecmp(response.buf, exp_resp, strlen(exp_resp)) == 0;
+			return strncmp(response.buf, exp_resp, strlen(exp_resp)) == 0;
 		}
 	}
 
