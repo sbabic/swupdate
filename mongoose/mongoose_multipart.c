@@ -48,6 +48,19 @@ static void mg_http_free_proto_data_mp_stream(
 	memset(mp, 0, sizeof(*mp));
 }
 
+static const char *mg_strstr(const struct mg_str haystack,
+                      const struct mg_str needle) {
+  size_t i;
+  if (needle.len > haystack.len) return NULL;
+  if (needle.len == 0) return haystack.buf;
+  for (i = 0; i <= haystack.len - needle.len; i++) {
+    if (memcmp(haystack.buf + i, needle.buf, needle.len) == 0) {
+      return haystack.buf + i;
+    }
+  }
+  return NULL;
+}
+
 static void mg_http_multipart_begin(struct mg_connection *c,
 									struct mg_http_message *hm) {
 	struct mg_http_multipart_stream *mp_stream;
