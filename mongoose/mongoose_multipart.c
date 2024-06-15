@@ -112,9 +112,6 @@ static void mg_http_multipart_begin(struct mg_connection *c,
 		mp_stream->part.name.len = mp_stream->part.filename.len = 0;
 		mp_stream->len = hm->body.len;
 		c->pfn_data = mp_stream;
-
-		mg_call(c, MG_EV_HTTP_MULTIPART_REQUEST, hm);
-
 		mg_iobuf_del(io, 0, hm->head.len + 2);
 	}
 }
@@ -149,7 +146,6 @@ static void mg_http_multipart_finalize(struct mg_connection *c) {
 	mp_stream->part.filename.ptr = NULL;
 	free((void *) mp_stream->part.name.ptr);
 	mp_stream->part.name.ptr = NULL;
-	mg_http_multipart_call_handler(c, MG_EV_HTTP_MULTIPART_REQUEST_END, NULL, 0);
 	mg_http_free_proto_data_mp_stream(mp_stream);
 	mp_stream->state = MPS_FINISHED;
 	free(mp_stream);

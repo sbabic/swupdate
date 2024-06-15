@@ -22,11 +22,9 @@
 #include "mongoose.h"
 
 enum {
-	MG_EV_HTTP_MULTIPART_REQUEST=MG_EV_USER + 1,  // struct mg_http_message *
-	MG_EV_HTTP_PART_BEGIN,                        // struct mg_http_multipart_part *
+	MG_EV_HTTP_PART_BEGIN=MG_EV_USER + 1,         // struct mg_http_multipart_part *
 	MG_EV_HTTP_PART_DATA,                         // struct mg_http_multipart_part *
-	MG_EV_HTTP_PART_END,                          // struct mg_http_multipart_part *
-	MG_EV_HTTP_MULTIPART_REQUEST_END              // struct mg_http_multipart_part *
+	MG_EV_HTTP_PART_END                           // struct mg_http_multipart_part *
 };
 
 /* HTTP multipart part */
