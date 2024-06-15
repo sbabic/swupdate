@@ -815,7 +815,6 @@ int start_mongoose(const char *cfgfname, int argc, char *argv[])
 	struct mg_mgr mgr;
 	struct mg_connection *nc;
 	char *url = NULL;
-	char buf[50] = "\0";
 	int choice;
 
 #if MG_TLS
@@ -938,9 +937,8 @@ int start_mongoose(const char *cfgfname, int argc, char *argv[])
 	start_thread(broadcast_message_thread, NULL);
 	start_thread(broadcast_progress_thread, NULL);
 
-	mg_snprintf(buf, sizeof(buf), "%I", 4, &nc->loc.ip);
-	INFO("Mongoose web server v%s with PID %d listening on %s:%" PRIu16 " and serving %s",
-		MG_VERSION, getpid(), buf, mg_ntohs(nc->loc.port), s_http_server_opts.root_dir);
+	INFO("Mongoose web server v%s with PID %d listening on %s and serving %s",
+		MG_VERSION, getpid(), url, s_http_server_opts.root_dir);
 
 	while (s_signo == 0)
 		mg_mgr_poll(&mgr, 100);
