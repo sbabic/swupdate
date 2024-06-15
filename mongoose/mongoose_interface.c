@@ -232,8 +232,8 @@ static int mg_check_digest_auth(struct mg_str method, struct mg_str uri,
 	 */
 	while (fgets(buf, sizeof(buf), fp) != NULL) {
 		if (sscanf(buf, "%[^:]:%[^:]:%s", f_user, f_domain, f_ha1) == 3 &&
-			mg_vcmp(&username, f_user) == 0 &&
-			mg_vcmp(&auth_domain, f_domain) == 0) {
+			mg_strcmp(username, mg_str(f_user)) == 0 &&
+			mg_strcmp(auth_domain, mg_str(f_domain)) == 0) {
 			/* Username and domain matched, check the password */
 			mg_mkmd5resp(method, uri, mg_str_s(f_ha1), nonce, nc, cnonce, qop, exp_resp);
 			return strncmp(response.buf, exp_resp, strlen(exp_resp)) == 0;
