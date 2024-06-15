@@ -43,4 +43,4 @@ struct mg_http_multipart {
 	size_t len;
 };
 
-void multipart_upload_handler(struct mg_connection *nc, int ev, void *ev_data, void *fn_data);
+void multipart_upload_handler(struct mg_connection *nc, int ev, void *ev_data);

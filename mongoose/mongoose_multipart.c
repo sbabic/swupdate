@@ -315,8 +315,7 @@ static void mg_http_multipart_continue(struct mg_connection *c) {
 	}
 }
 
-void multipart_upload_handler(struct mg_connection *c, int ev, void *ev_data,
-		void __attribute__ ((__unused__)) *fn_data)
+void multipart_upload_handler(struct mg_connection *c, int ev, void *ev_data)
 {
 	struct mg_http_message *hm = (struct mg_http_message *) ev_data;
 	struct mg_http_multipart_stream *mp_stream = c->pfn_data;

@@ -359,7 +359,7 @@ static void restart_handler(struct mg_connection *nc, void *ev_data)
 }
 
 static void broadcast_callback(struct mg_connection *nc, int ev,
-		void __attribute__ ((__unused__)) *ev_data, void __attribute__ ((__unused__)) *fn_data)
+		void __attribute__ ((__unused__)) *ev_data)
 {
 	static uint64_t last_io_time = 0;
 	if (ev == MG_EV_READ) {
@@ -563,8 +563,7 @@ static void timer_ev_handler(void *fn_data)
 /*
  * Code common to V1 and V2
  */
-static void upload_handler(struct mg_connection *nc, int ev, void *ev_data,
-		void __attribute__ ((__unused__)) *fn_data)
+static void upload_handler(struct mg_connection *nc, int ev, void *ev_data)
 {
 	struct mg_http_multipart *mp;
 	struct file_upload_state *fus;
@@ -685,7 +684,7 @@ static void websocket_handler(struct mg_connection *nc, void *ev_data)
 	mg_ws_upgrade(nc, hm, NULL);
 }
 
-static void ev_handler(struct mg_connection *nc, int ev, void *ev_data, void *fn_data)
+static void ev_handler(struct mg_connection *nc, int ev, void *ev_data)
 {
 	if (nc->data[0] != 'M' && ev == MG_EV_HTTP_MSG) {
 		struct mg_http_message *hm = (struct mg_http_message *) ev_data;
@@ -710,14 +709,14 @@ static void ev_handler(struct mg_connection *nc, int ev, void *ev_data, void *fn
 				} else {
 					nc->pfn = upload_handler;
 					nc->pfn_data = NULL;
-					multipart_upload_handler(nc, ev, &hm, NULL);
+					multipart_upload_handler(nc, ev, &hm);
 				}
 			}
 		}
 	} else if (nc->data[0] == 'M' && (ev == MG_EV_READ || ev == MG_EV_POLL || ev == MG_EV_CLOSE)) {
 		if (nc->recv.len >= MG_MAX_RECV_SIZE && ev == MG_EV_READ)
 			nc->is_full = true;
-		multipart_upload_handler(nc, ev, ev_data, fn_data);
+		multipart_upload_handler(nc, ev, ev_data);
 		if (nc->recv.len < MG_MAX_RECV_SIZE && ev == MG_EV_POLL)
 			nc->is_full = false;
 #if MG_ENABLE_SSL
