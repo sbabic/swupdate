@@ -142,10 +142,6 @@ static void mg_http_multipart_finalize(struct mg_connection *c) {
 	struct mg_http_multipart_stream *mp_stream = c->pfn_data;
 
 	mg_http_multipart_call_handler(c, MG_EV_HTTP_PART_END, NULL, 0);
-	free((void *) mp_stream->part.filename.ptr);
-	mp_stream->part.filename.ptr = NULL;
-	free((void *) mp_stream->part.name.ptr);
-	mp_stream->part.name.ptr = NULL;
 	mg_http_free_proto_data_mp_stream(mp_stream);
 	mp_stream->state = MPS_FINISHED;
 	free(mp_stream);
