@@ -73,7 +73,7 @@ static int _fill_buffer(int fd, unsigned char *buf, unsigned int nbytes, unsigne
 			return -EFAULT;
 		}
 		if (len == 0) {
-			return 0;
+			return count;
 		}
 		if (checksum)
 			for (i = 0; i < len; i++)
