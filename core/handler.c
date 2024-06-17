@@ -101,6 +101,7 @@ void unregister_session_handlers(void)
 void print_registered_handlers(bool global)
 {
 	unsigned int i;
+	unsigned int count = 0;
 
 	if (!nr_installers)
 		return;
@@ -111,8 +112,12 @@ void print_registered_handlers(bool global)
 	INFO("Registered %s handlers:", global ? "global" : "session");
 	for (i = 0; i < nr_installers; i++) {
 		if (noglobal == supported_types[i].noglobal) {
+			count++;
 			INFO("\t%s", supported_types[i].desc);
 		}
+	}
+	if (count == 0) {
+		INFO("\tnone registered.");
 	}
 }
 
