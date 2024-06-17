@@ -64,7 +64,7 @@ void get_hash_value(parsertype p, void *elem, unsigned char *hash);
 void check_field_string(const char *src, char *dst, const size_t max_len);
 void *find_root(parsertype p, void *root, const char **nodes);
 void *get_node(parsertype p, void *root, const char **nodes);
-bool set_find_path(const char **nodes, const char *newpath, char **tmp);
+bool set_find_path(const char **nodes, const char *newpath, char ***tmp);
 
 #define GET_FIELD_STRING(p, e, name, d) \
 	get_field_string_with_size(p, e, name, d, sizeof(d))

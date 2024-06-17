@@ -237,7 +237,7 @@ void *find_root_json(json_object *root, const char **nodes, unsigned int depth)
 		if (type == json_type_object || type == json_type_array) {
 			str = get_field_string_json(node, "ref");
 			if (str) {
-				if (!set_find_path(nodes, str, tmp))
+				if (!set_find_path(nodes, str, &tmp))
 					return NULL;
 				node = find_root_json(root, nodes, depth);
 				free_string_array(tmp);
