@@ -590,31 +590,22 @@ static int __swupdate_copy(int fdin, unsigned char *inbuf, void *out, size_t nby
 		}
 	}
 
+	step = &input_step;
+	state = &input_state;
+
+	if (encrypted) {
+		decrypt_state.upstream_step = step;
+		decrypt_state.upstream_state = state;
+		step = &decrypt_step;
+		state = &decrypt_state;
+	}
+
 #if defined(CONFIG_GUNZIP) || defined(CONFIG_ZSTD)
 	if (compressed) {
-		if (encrypted) {
-			decrypt_state.upstream_step = &input_step;
-			decrypt_state.upstream_state = &input_state;
-			decompress_state.upstream_step = &decrypt_step;
-			decompress_state.upstream_state = &decrypt_state;
-		} else {
-			decompress_state.upstream_step = &input_step;
-			decompress_state.upstream_state = &input_state;
-		}
+		decompress_state.upstream_step = step;
+		decompress_state.upstream_state = state;
 		step = decompress_step;
 		state = &decompress_state;
-	} else {
-#endif
-		if (encrypted) {
-			decrypt_state.upstream_step = &input_step;
-			decrypt_state.upstream_state = &input_state;
-			step = &decrypt_step;
-			state = &decrypt_state;
-		} else {
-			step = &input_step;
-			state = &input_state;
-		}
-#if defined(CONFIG_GUNZIP) || defined(CONFIG_ZSTD)
 	}
 #endif
 
