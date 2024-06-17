@@ -999,18 +999,7 @@ static int install_delta(struct img_type *img,
 		goto cleanup;
 	}
 
-	ret = copyfile(img->fdin,
-		&mem_fd,
-		img->size,
-		(unsigned long *)&img->offset,
-		img->seek,
-		0,
-		img->compressed,
-		&img->checksum,
-		img->sha256,
-		img->is_encrypted,
-		img->ivt_ascii,
-		NULL);
+	ret = copyimage(&mem_fd, img, NULL /* default write callback */);
 
 	if (ret != 0) {
 		ERROR("Error %d copying zchunk header, aborting.", ret);

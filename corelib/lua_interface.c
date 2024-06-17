@@ -388,7 +388,7 @@ static int l_copy2file(lua_State *L)
 	}
 
 	struct img_type img = {};
-	uint32_t checksum = 0;
+	uint32_t image_checksum = img.checksum;
 
 	table2image(L, &img);
 	if (check_same_file(img.fdin, fdout)) {
@@ -397,18 +397,7 @@ static int l_copy2file(lua_State *L)
 		lua_pushstring(L, "Output file path is same as input file temporary path");
 		goto copyfile_exit;
 	}
-	int ret = copyfile(img.fdin,
-				 &fdout,
-				 img.size,
-				 (unsigned long *)&img.offset,
-				 img.seek,
-				 0, /* no skip */
-				 img.compressed,
-				 &checksum,
-				 img.sha256,
-				 img.is_encrypted,
-				 img.ivt_ascii,
-				 NULL);
+	int ret = copyimage(&fdout, &img, NULL /* default write callback */);
 	update_table(L, &img);
 	lua_pop(L, 1);
 
@@ -417,10 +406,10 @@ static int l_copy2file(lua_State *L)
 		lua_pushstring(L, strerror(errno));
 		goto copyfile_exit;
 	}
-	if ((img.checksum != 0) && (checksum != img.checksum)) {
+	if ((image_checksum != 0) && (image_checksum != img.checksum)) {
 		lua_pushinteger(L, -1);
 		lua_pushfstring(L, "Checksums WRONG! Computed 0x%d, should be 0x%d\n",
-						checksum, img.checksum);
+				img.checksum, image_checksum);
 		goto copyfile_exit;
 	}
 
@@ -463,24 +452,13 @@ static int l_istream_read(lua_State* L)
 	luaL_checktype(L, 2, LUA_TFUNCTION);
 
 	struct img_type img = {};
-	uint32_t checksum = 0;
+	uint32_t image_checksum = img.checksum;
 
 	lua_pushvalue(L, 1);
 	table2image(L, &img);
 	lua_pop(L, 1);
 
-	int ret = copyfile(img.fdin,
-				 L,
-				 img.size,
-				 (unsigned long *)&img.offset,
-				 img.seek,
-				 0, /* no skip */
-				 img.compressed,
-				 &checksum,
-				 img.sha256,
-				 img.is_encrypted,
-				 img.ivt_ascii,
-				 istream_read_callback);
+	int ret = copyimage(L, &img, istream_read_callback);
 
 	lua_pop(L, 1);
 	update_table(L, &img);
@@ -491,10 +469,10 @@ static int l_istream_read(lua_State* L)
 		lua_pushstring(L, strerror(errno));
 		return 2;
 	}
-	if ((img.checksum != 0) && (checksum != img.checksum)) {
+	if ((image_checksum != 0) && (image_checksum != img.checksum)) {
 		lua_pushinteger(L, -1);
 		lua_pushfstring(L, "Checksums WRONG! Computed 0x%d, should be 0x%d\n",
-						checksum, img.checksum);
+				img.checksum, image_checksum);
 		return 2;
 	}
 	lua_pushinteger(L, 0);

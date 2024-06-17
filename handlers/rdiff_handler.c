@@ -337,18 +337,7 @@ static int apply_rdiff_patch(struct img_type *img,
 	rs_trace_to(rdiff_log);
 
 	rdiff_state.job = rs_patch_begin(base_file_read_cb, rdiff_state.base_file);
-	ret = copyfile(img->fdin,
-			&rdiff_state,
-			img->size,
-			(unsigned long *)&img->offset,
-			img->seek,
-			0, /* no skip */
-			img->compressed,
-			&img->checksum,
-			img->sha256,
-			img->is_encrypted,
-			img->ivt_ascii,
-			apply_rdiff_chunk_cb);
+	ret = copyimage(&rdiff_state, img, apply_rdiff_chunk_cb);
 	if (ret != 0) {
 		ERROR("Error %d running rdiff job, aborting.", ret);
 		goto cleanup;
