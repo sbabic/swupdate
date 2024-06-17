@@ -1298,8 +1298,6 @@ static int luaopen_swupdate(lua_State *L)
 	return 1;
 }
 
-static lua_State *gL = NULL;
-
 /**
  * @brief wrapper to call the Lua function
  *
@@ -1324,14 +1322,15 @@ static int l_handler_wrapper(struct img_type *img, void *data,
 	struct installer_handler *hnd;
 	hnd = find_handler(img);
 
-	if (!gL || !img || !data || !hnd) {
+	if (!img || !data || !hnd) {
 		return -1;
 	}
 
 	if (hnd->noglobal) {
 		L = img->L;
 	} else {
-		L = gL;
+		ERROR("Calling session Lua handler in non-session context.");
+		return -1;
 	}
 
 	if (img->bootloader) {
@@ -1407,7 +1406,6 @@ static int l_other_handler_wrapper(struct img_type *img, void *data)
  */
 static int l_register_handler( lua_State *L ) {
 	int *l_func_ref = malloc(sizeof(int));
-	handler_type_t lifetime = GLOBAL_HANDLER;
 
 	if(!l_func_ref) {
 		ERROR("Lua handler: unable to allocate memory");
@@ -1435,34 +1433,16 @@ static int l_register_handler( lua_State *L ) {
 
 		const char *handler_desc = luaL_checkstring(L, 1);
 
-		/*
-		 * Check if the handler must be registered globally
-		 * or just during the update
-		 */
-		if (L != gL) {
-			lifetime = SESSION_HANDLER;
-		}
 		/* store the callback function in registry */
 		*l_func_ref = luaL_ref (L, LUA_REGISTRYINDEX);
 		/* cleanup stack */
 		lua_pop (L, 1);
 
-		switch (lifetime) {
-		case GLOBAL_HANDLER:
-			register_handler(handler_desc,
-				 (mask & SCRIPT_HANDLER) ?
-				 l_script_handler_wrapper :
-				 l_other_handler_wrapper,
-				 mask, l_func_ref);
-			break;
-		case SESSION_HANDLER:
-			register_session_handler(handler_desc,
-				 (mask & SCRIPT_HANDLER) ?
-				 l_script_handler_wrapper :
-				 l_other_handler_wrapper,
-				 mask, l_func_ref);
-			break;
-		}
+		register_session_handler(handler_desc,
+				(mask & SCRIPT_HANDLER) ?
+				l_script_handler_wrapper :
+				l_other_handler_wrapper,
+				mask, l_func_ref);
 
 		/* add newly registered handler to current Lua stack */
 		lua_getglobal(L, "swupdate");
@@ -1606,9 +1586,6 @@ int lua_init(void)
 	print_registered_handlers(false);
 	unregister_session_handlers();
 	lua_close(L);
-	if (!gL) {
-		gL = luaL_newstate();
-	}
 	return res;
 }
 
