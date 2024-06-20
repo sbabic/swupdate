@@ -506,7 +506,7 @@ static int ubi_volume_get_info(char *device, char *name, int *dev_num, int *vol_
 {
 	struct ubi_part *ubi_part;
 
-	if (device)
+	if (strlen(device))
 		ubi_part = search_volume_local(device, name);
 	else
 		ubi_part = search_volume_global(name);
