@@ -531,6 +531,10 @@ static int _parse_partitions(parsertype p, void *cfg, void *setting, const char 
 			free_image(partition);
 			return -1;
 		}
+		if (skip || partition->skip != SKIP_NONE) {
+			free_image(partition);
+			continue;
+		}
 		TRACE("Partition: %s new size %lld bytes",
 			!strcmp(partition->type, "ubipartition") ? partition->volname : partition->device,
 			partition->partsize);
