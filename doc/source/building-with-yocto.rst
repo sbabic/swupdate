@@ -259,6 +259,7 @@ into the SWU - an error is raised if the flag is not set.
 In the simple way, your recipe looks like
 
 ::
+
         <your original recipe code>
 
         SWUPDATE_IMAGES_FSTYPES[<name of your image>] = <fstype to be put into SWU>
