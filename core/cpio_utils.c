@@ -434,6 +434,38 @@ static int zstd_step(void* state, void* buffer, size_t size)
 
 #endif
 
+static int hash_compare(struct swupdate_digest *dgst, unsigned char *hash)
+{
+	/*
+	 * SHA256_HASH_LENGTH should be enough but openssl might write
+	 * up to EVP_MAX_MD_SIZE = 64 bytes (sha512 size)
+	 */
+	unsigned char md_value[64];
+	unsigned int md_len = 0;
+
+	if (swupdate_HASH_final(dgst, md_value, &md_len) < 0) {
+		return -EFAULT;
+	}
+	/*
+	 * Now check if the computed hash is equal
+	 * to the value retrieved from sw-descritpion
+	 */
+	if (md_len != SHA256_HASH_LENGTH || swupdate_HASH_compare(hash, md_value)) {
+#ifndef CONFIG_ENCRYPTED_IMAGES_HARDEN_LOGGING
+		char hashstring[2 * SHA256_HASH_LENGTH + 1];
+		char newhashstring[2 * SHA256_HASH_LENGTH + 1];
+
+		hash_to_ascii(hash, hashstring);
+		hash_to_ascii(md_value, newhashstring);
+
+		ERROR("HASH mismatch : %s <--> %s",
+		      hashstring, newhashstring);
+#endif
+		return -EFAULT;
+	}
+	return 0;
+}
+
 static int __swupdate_copy(int fdin, unsigned char *inbuf, void *out, size_t nbytes, unsigned long *offs, unsigned long long seek,
 	int skip_file, int __attribute__ ((__unused__)) compressed,
 	uint32_t *checksum, unsigned char *hash, bool encrypted, const char *imgivt, writeimage callback)
@@ -441,11 +473,6 @@ static int __swupdate_copy(int fdin, unsigned char *inbuf, void *out, size_t nby
 	unsigned int percent, prevpercent = 0;
 	int ret = 0;
 	int len;
-	unsigned char md_value[64]; /*
-				     *  Maximum hash is 64 bytes for SHA512
-				     *  and we use sha256 in swupdate
-				     */
-	unsigned int md_len = 0;
 	unsigned char *aes_key = NULL;
 	unsigned char *ivt = NULL;
 	unsigned char ivtbuf[AES_BLK_SIZE];
@@ -639,31 +666,9 @@ static int __swupdate_copy(int fdin, unsigned char *inbuf, void *out, size_t nby
 		}
 	}
 
-	if (IsValidHash(hash)) {
-		if (swupdate_HASH_final(input_state.dgst, md_value, &md_len) < 0) {
-			ret = -EFAULT;
-			goto copyfile_exit;
-		}
-
-
-		/*
-		 * Now check if the computed hash is equal
-		 * to the value retrieved from sw-descritpion
-		 */
-		if (md_len != SHA256_HASH_LENGTH || swupdate_HASH_compare(hash, md_value)) {
-			char hashstring[2 * SHA256_HASH_LENGTH + 1];
-			char newhashstring[2 * SHA256_HASH_LENGTH + 1];
-
-			hash_to_ascii(hash, hashstring);
-			hash_to_ascii(md_value, newhashstring);
-
-#ifndef CONFIG_ENCRYPTED_IMAGES_HARDEN_LOGGING
-			ERROR("HASH mismatch : %s <--> %s",
-				hashstring, newhashstring);
-#endif
-			ret = -EFAULT;
-			goto copyfile_exit;
-		}
+	if (IsValidHash(hash) && hash_compare(input_state.dgst, hash) < 0) {
+		ret = -EFAULT;
+		goto copyfile_exit;
 	}
 
 	if (!inbuf) {
