@@ -141,13 +141,18 @@ static int extract_scripts(struct imglist *head)
 			return -ENOENT;
 		}
 
-		ret = copyfile(fdin, &fdout, script->size, &offset, 0, 0,
-				script->compressed,
-				&checksum,
-				script->sha256,
-				script->is_encrypted,
-				script->ivt_ascii,
-				NULL);
+		struct swupdate_copy copy = {
+			.fdin = fdin,
+			.out = &fdout,
+			.nbytes = script->size,
+			.offs = &offset,
+			.compressed = script->compressed,
+			.checksum = &checksum,
+			.hash = script->sha256,
+			.encrypted = script->is_encrypted,
+			.imgivt = script->ivt_ascii,
+		};
+		ret = copyfile(&copy);
 		close(fdin);
 		close(fdout);
 

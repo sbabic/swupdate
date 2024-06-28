@@ -103,8 +103,15 @@ static int extract_file_to_tmp(int fd, const char *fname, unsigned long *poffs, 
 	if (fdout < 0)
 		return -1;
 
-	if (copyfile(fd, &fdout, fdh.size, poffs, 0, 0, 0, &checksum, NULL,
-		     encrypted, NULL, NULL) < 0) {
+	struct swupdate_copy copy = {
+		.fdin = fd,
+		.out = &fdout,
+		.nbytes = fdh.size,
+		.offs = poffs,
+		.checksum = &checksum,
+		.encrypted = encrypted,
+	};
+	if (copyfile(&copy) < 0) {
 		close(fdout);
 		return -1;
 	}
@@ -230,6 +237,13 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 			fdout = -1;
 			offset = 0;
 
+			struct swupdate_copy copy = {
+				.fdin = fd,
+				.out = &fdout,
+				.nbytes = fdh.size,
+				.offs = &offset,
+				.checksum = &checksum,
+			};
 			/*
 			 * If images are not streamed directly into the target
 			 * copy them into TMPDIR to check if it is all ok
@@ -243,7 +257,8 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 					close(fdout);
 					return -1;
 				}
-				if (copyfile(fd, &fdout, fdh.size, &offset, 0, 0, 0, &checksum, img->sha256, false, NULL, NULL) < 0) {
+				copy.hash = img->sha256;
+				if (copyfile(&copy) < 0) {
 					close(fdout);
 					return -1;
 				}
@@ -255,7 +270,8 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 				break;
 
 			case SKIP_FILE:
-				if (copyfile(fd, &fdout, fdh.size, &offset, 0, skip, 0, &checksum, NULL, false, NULL, NULL) < 0) {
+				copy.skip_file = 1;
+				if (copyfile(&copy) < 0) {
 					return -1;
 				}
 				if (!swupdate_verify_chksum(checksum, &fdh)) {

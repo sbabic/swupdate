@@ -56,11 +56,40 @@ typedef enum {
 	SERVER_ID_REQUESTED,
 } server_op_res_t;
 
-enum {
+enum compression_type {
   COMPRESSED_FALSE,
   COMPRESSED_TRUE,
   COMPRESSED_ZLIB,
   COMPRESSED_ZSTD,
+};
+
+typedef int (*writeimage) (void *out, const void *buf, size_t len);
+
+struct swupdate_copy {
+	/* input: either fdin is set or fdin < 0 and inbuf */
+	int fdin;
+	unsigned char *inbuf;
+	/* data handler callback and output argument.
+	 * out must point to a fd if seeking */
+	writeimage callback;
+	void *out;
+	/* amount of data to copy */
+	size_t nbytes;
+	/* pointer to offset within source, must be set for fd */
+	unsigned long *offs;
+	/* absolute offset to seek in output (*out) if non-zero */
+	unsigned long long seek;
+	/* skip callback: only verify input */
+	int skip_file;
+	/* decompression to use */
+	enum compression_type compressed;
+	/* cpio crc checksum */
+	uint32_t *checksum;
+	/* sw-description sha256 checksum */
+	unsigned char *hash;
+	/* encryption */
+	bool encrypted;
+	const char *imgivt;
 };
 
 /*
@@ -188,8 +217,6 @@ bool strtobool(const char *s);
 /*
  * Function to extract / copy images
  */
-typedef int (*writeimage) (void *out, const void *buf, size_t len);
-
 void *saferealloc(void *ptr, size_t size);
 int copy_write(void *out, const void *buf, size_t len);
 #if defined(__FreeBSD__)
@@ -200,13 +227,8 @@ int copy_write_padded(void *out, const void *buf, size_t len);
 size_t
 strlcpy(char *dst, const char * src, size_t size);
 #endif
-int copyfile(int fdin, void *out, size_t nbytes, unsigned long *offs,
-	unsigned long long seek,
-	int skip_file, int compressed, uint32_t *checksum,
-	unsigned char *hash, bool encrypted, const char *imgivt, writeimage callback);
+int copyfile(struct swupdate_copy *copy);
 int copyimage(void *out, struct img_type *img, writeimage callback);
-int copybuffer(unsigned char *inbuf, void *out, size_t nbytes, int compressed,
-	unsigned char *hash, bool encrypted, const char *imgivt, writeimage callback);
 int openfileoutput(const char *filename);
 int mkpath(char *dir, mode_t mode);
 int swupdate_file_setnonblock(int fd, bool block);

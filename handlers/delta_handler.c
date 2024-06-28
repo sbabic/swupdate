@@ -161,14 +161,14 @@ static int network_process_data(multipart_parser* p, const char *at, size_t leng
 					zck_get_chunk_number(priv->chunk),
 					priv->current.chunksize);
 			if (priv->current.chunksize != 0) {
-				ret = copybuffer(priv->current.buf,
-						 &priv->fdout,
-						 priv->current.chunksize,
-						 COMPRESSED_ZSTD,
-						 hash,
-						 0,
-						 NULL,
-						 NULL);
+				struct swupdate_copy copy = {
+					.inbuf = priv->current.buf,
+					.out = &priv->fdout,
+					.nbytes = priv->current.chunksize,
+					.compressed = COMPRESSED_ZSTD,
+					.hash = hash,
+				};
+				ret = copyfile(&copy);
 			} else
 				ret = 0; /* skipping, nothing to be copied */
 			/* Buffer can be discarged */
@@ -178,7 +178,7 @@ static int network_process_data(multipart_parser* p, const char *at, size_t leng
 			 * if an error occurred, stops
 			 */
 			if (ret) {
-				ERROR("copybuffer failed !");
+				ERROR("copyfile failed !");
 				priv->error_in_parser = true;
 				return -EFAULT;
 			}
@@ -845,8 +845,15 @@ static bool copy_existing_chunks(zckChunk **dstChunk, struct hnd_priv *priv)
 				zck_get_chunk_number(chunk),
 				start,
 				len);
-		ret = copyfile(priv->fdsrc, &priv->fdout, len, &offset, 0, 0, COMPRESSED_FALSE,
-				&checksum, hash, false, NULL, NULL);
+		struct swupdate_copy copy = {
+			.fdin = priv->fdsrc,
+			.out = &priv->fdout,
+			.nbytes = len,
+			.offs = &offset,
+			.checksum = &checksum,
+			.hash = hash,
+		};
+		ret = copyfile(&copy);
 
 		free(sha);
 		if (ret)

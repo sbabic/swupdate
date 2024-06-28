@@ -102,18 +102,14 @@ static int readback_postinst(struct img_type *img)
 	 * the input device.
 	 */
 	unsigned long offset_out = 0;
-	int status = copyfile(fdin,
-			NULL,  /* no output */
-			size,
-			&offset_out,
-			0,     /* no output seek */
-			1,     /* skip file, do not write to the output */
-			0,     /* no compressed */
-			NULL,  /* no checksum */
-			hash,
-			false,     /* no encrypted */
-			NULL,     /* no IVT */
-			NULL); /* no callback */
+	struct swupdate_copy copy = {
+		.fdin = fdin,
+		.nbytes = size,
+		.offs = &offset_out,
+		.skip_file = 1,
+		.hash = hash,
+	};
+	int status = copyfile(&copy);
 	if (status == 0) {
 		INFO("Readback verification success");
 	} else {

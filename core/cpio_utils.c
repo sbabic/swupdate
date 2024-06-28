@@ -466,9 +466,7 @@ static int hash_compare(struct swupdate_digest *dgst, unsigned char *hash)
 	return 0;
 }
 
-static int __swupdate_copy(int fdin, unsigned char *inbuf, void *out, size_t nbytes, unsigned long *offs, unsigned long long seek,
-	int skip_file, int __attribute__ ((__unused__)) compressed,
-	uint32_t *checksum, unsigned char *hash, bool encrypted, const char *imgivt, writeimage callback)
+int copyfile(struct swupdate_copy *args)
 {
 	unsigned int percent, prevpercent = 0;
 	int ret = 0;
@@ -478,12 +476,12 @@ static int __swupdate_copy(int fdin, unsigned char *inbuf, void *out, size_t nby
 	unsigned char ivtbuf[AES_BLK_SIZE];
 
 	struct InputState input_state = {
-		.fdin = fdin,
+		.fdin = args->fdin,
 		.source = INPUT_FROM_FD,
 		.inbuf = NULL,
 		.pos = 0,
-		.nbytes = nbytes,
-		.offs = offs,
+		.nbytes = args->nbytes,
+		.offs = args->offs,
 		.dgst = NULL,
 		.checksum = 0
 	};
@@ -522,32 +520,33 @@ static int __swupdate_copy(int fdin, unsigned char *inbuf, void *out, size_t nby
 	/*
 	 * If inbuf is set, read from buffer instead of from file
 	 */
-	if (inbuf) {
-		input_state.inbuf = inbuf;
+	if (args->inbuf) {
+		input_state.inbuf = args->inbuf;
 		input_state.source = INPUT_FROM_MEMORY;
 	}
 
 	PipelineStep step = NULL;
 	void *state = NULL;
 	uint8_t buffer[BUFF_SIZE];
+	writeimage callback = args->callback;
 
 	if (!callback) {
 		callback = copy_write;
 	}
 
-	if (checksum)
-		*checksum = 0;
+	if (args->checksum)
+		*args->checksum = 0;
 
-	if (IsValidHash(hash)) {
+	if (IsValidHash(args->hash)) {
 		input_state.dgst = swupdate_HASH_init(SHA_DEFAULT);
 		if (!input_state.dgst)
 			return -EFAULT;
 	}
 
-	if (encrypted) {
+	if (args->encrypted) {
 		aes_key = get_aes_key();
-		if (imgivt && strlen(imgivt)) {
-			if (!is_hex_str(imgivt) || ascii_to_bin(ivtbuf, sizeof(ivtbuf), imgivt)) {
+		if (args->imgivt && strlen(args->imgivt)) {
+			if (!is_hex_str(args->imgivt) || ascii_to_bin(ivtbuf, sizeof(ivtbuf), args->imgivt)) {
 				ERROR("Invalid image ivt");
 				return -EINVAL;
 			}
@@ -562,12 +561,12 @@ static int __swupdate_copy(int fdin, unsigned char *inbuf, void *out, size_t nby
 		}
 	}
 
-	if (compressed) {
-		if (compressed == COMPRESSED_TRUE) {
+	if (args->compressed) {
+		if (args->compressed == COMPRESSED_TRUE) {
 			WARN("compressed argument: boolean form is deprecated, use compressed = \"zlib\";");
 		}
 #ifdef CONFIG_GUNZIP
-		if (compressed == COMPRESSED_ZLIB || compressed == COMPRESSED_TRUE) {
+		if (args->compressed == COMPRESSED_ZLIB || args->compressed == COMPRESSED_TRUE) {
 			/*
 			 * 16 + MAX_WBITS means that Zlib should expect and decode a
 			 * gzip header.
@@ -583,7 +582,7 @@ static int __swupdate_copy(int fdin, unsigned char *inbuf, void *out, size_t nby
 		} else
 #endif
 #ifdef CONFIG_ZSTD
-		if (compressed == COMPRESSED_ZSTD) {
+		if (args->compressed == COMPRESSED_ZSTD) {
 			if ((zstd_state.dctx = ZSTD_createDStream()) == NULL) {
 				ERROR("ZSTD_createDStream failed");
 				ret = -EFAULT;
@@ -595,22 +594,22 @@ static int __swupdate_copy(int fdin, unsigned char *inbuf, void *out, size_t nby
 		} else
 #endif
 		{
-			TRACE("Requested decompression method (%d) is not configured!", compressed);
+			TRACE("Requested decompression method (%d) is not configured!", args->compressed);
 			ret = -EINVAL;
 			goto copyfile_exit;
 		}
 	}
 
-	if (seek) {
-		int fdout = (out != NULL) ? *(int *)out : -1;
+	if (args->seek) {
+		int fdout = (args->out != NULL) ? *(int *)args->out : -1;
 		if (fdout < 0) {
 			ERROR("out argument: invalid fd or pointer");
 			ret = -EFAULT;
 			goto copyfile_exit;
 		}
 
-		TRACE("offset has been defined: %llu bytes", seek);
-		if (lseek(fdout, seek, SEEK_SET) < 0) {
+		TRACE("offset has been defined: %llu bytes", args->seek);
+		if (lseek(fdout, args->seek, SEEK_SET) < 0) {
 			ERROR("offset argument: seek failed");
 			ret = -EFAULT;
 			goto copyfile_exit;
@@ -620,7 +619,7 @@ static int __swupdate_copy(int fdin, unsigned char *inbuf, void *out, size_t nby
 	step = &input_step;
 	state = &input_state;
 
-	if (encrypted) {
+	if (args->encrypted) {
 		decrypt_state.upstream_step = step;
 		decrypt_state.upstream_state = state;
 		step = &decrypt_step;
@@ -628,7 +627,7 @@ static int __swupdate_copy(int fdin, unsigned char *inbuf, void *out, size_t nby
 	}
 
 #if defined(CONFIG_GUNZIP) || defined(CONFIG_ZSTD)
-	if (compressed) {
+	if (args->compressed) {
 		decompress_state.upstream_step = step;
 		decompress_state.upstream_state = state;
 		step = decompress_step;
@@ -644,7 +643,7 @@ static int __swupdate_copy(int fdin, unsigned char *inbuf, void *out, size_t nby
 		if (ret == 0) {
 			break;
 		}
-		if (skip_file) {
+		if (args->skip_file) {
 			continue;
 		}
 		len = ret;
@@ -654,31 +653,32 @@ static int __swupdate_copy(int fdin, unsigned char *inbuf, void *out, size_t nby
 		 * results corrupted. This lets the cleanup routine
 		 * to remove it
 		 */
-		if (callback(out, buffer, len) < 0) {
+		if (callback(args->out, buffer, len) < 0) {
 			ret = -ENOSPC;
 			goto copyfile_exit;
 		}
 
-		percent = (unsigned)(100ULL * (nbytes - input_state.nbytes) / nbytes);
+		percent = (unsigned)(100ULL * (args->nbytes - input_state.nbytes) / args->nbytes);
 		if (percent != prevpercent) {
 			prevpercent = percent;
 			swupdate_progress_update(percent);
 		}
 	}
 
-	if (IsValidHash(hash) && hash_compare(input_state.dgst, hash) < 0) {
+	if (IsValidHash(args->hash) && hash_compare(input_state.dgst, args->hash) < 0) {
 		ret = -EFAULT;
 		goto copyfile_exit;
 	}
 
-	if (!inbuf) {
-		ret = _fill_buffer(fdin, buffer, NPAD_BYTES(*offs), offs, checksum, NULL);
+	if (!args->inbuf) {
+		ret = _fill_buffer(args->fdin, buffer, NPAD_BYTES(*args->offs),
+				   args->offs, args->checksum, NULL);
 		if (ret < 0)
 			DEBUG("Padding bytes are not read, ignoring");
 	}
 
-	if (checksum != NULL) {
-		*checksum = input_state.checksum;
+	if (args->checksum != NULL) {
+		*args->checksum = input_state.checksum;
 	}
 
 	ret = 0;
@@ -704,57 +704,23 @@ copyfile_exit:
 	return ret;
 }
 
-int copyfile(int fdin, void *out, size_t nbytes, unsigned long *offs, unsigned long long seek,
-	int skip_file, int __attribute__ ((__unused__)) compressed,
-	uint32_t *checksum, unsigned char *hash, bool encrypted, const char *imgivt, writeimage callback)
-{
-	return __swupdate_copy(fdin,
-				NULL,
-				out,
-				nbytes,
-				offs,
-				seek,
-				skip_file,
-				compressed,
-				checksum,
-				hash,
-				encrypted,
-				imgivt,
-				callback);
-}
-
-int copybuffer(unsigned char *inbuf, void *out, size_t nbytes, int __attribute__ ((__unused__)) compressed,
-	unsigned char *hash, bool encrypted, const char *imgivt, writeimage callback)
-{
-	return __swupdate_copy(-1,
-				inbuf,
-				out,
-				nbytes,
-				NULL,
-				0,
-				0,
-				compressed,
-				NULL,
-				hash,
-				encrypted,
-				imgivt,
-				callback);
-}
-
 int copyimage(void *out, struct img_type *img, writeimage callback)
 {
-	return copyfile(img->fdin,
-			out,
-			img->size,
-			(unsigned long *)&img->offset,
-			img->seek,
-			0, /* no skip */
-			img->compressed,
-			&img->checksum,
-			img->sha256,
-			img->is_encrypted,
-			img->ivt_ascii,
-			callback);
+	struct swupdate_copy copy = {
+		.fdin = img->fdin,
+		.out = out,
+		.callback = callback,
+		.nbytes = img->size,
+		.offs = (unsigned long*)&img->offset,
+		.seek = img->seek,
+		.skip_file = 0,
+		.compressed = img->compressed,
+		.checksum = &img->checksum,
+		.hash = img->sha256,
+		.encrypted = img->is_encrypted,
+		.imgivt = img->ivt_ascii,
+	};
+	return copyfile(&copy);
 }
 
 int extract_cpio_header(int fd, struct filehdr *fhdr, unsigned long *offset)
@@ -837,8 +803,15 @@ int cpio_scan(int fd, struct swupdate_cfg *cfg, off_t start)
 		 * use copyfile for checksum and hash verification, as we skip file
 		 * we do not have to provide fdout
 		 */
-		if (copyfile(fd, NULL, fdh.size, &offset, 0, 1, 0, &checksum, img ? img->sha256 : NULL,
-				false, NULL, NULL) != 0) {
+		struct swupdate_copy copy = {
+			.fdin = fd,
+			.nbytes = fdh.size,
+			.offs = &offset,
+			.skip_file = 1,
+			.checksum = &checksum,
+			.hash = img ? img->sha256 : NULL,
+		};
+		if (copyfile(&copy) != 0) {
 			ERROR("invalid archive");
 			return -1;
 		}

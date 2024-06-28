@@ -121,18 +121,14 @@ static int copy_single_file(const char *path, ssize_t size, struct img_type *img
 	 * Copying from device itself,
 	 * no encryption or compression
 	 */
-	ret = copyfile(fdin,
-			&fdout,
-			size,
-			&offset,
-			0,
-			0, /* no skip */
-			0, /* no compressed */
-			&checksum,
-			0, /* no sha256 */
-			false, /* no encrypted */
-			NULL, /* no IVT */
-			NULL);
+	struct swupdate_copy copy = {
+		.fdin = fdin,
+		.out = &fdout,
+		.nbytes = size,
+		.offs = &offset,
+		.checksum = &checksum,
+	};
+	ret = copyfile(&copy);
 
 	close(fdout);
 	void *status;
