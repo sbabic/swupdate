@@ -169,6 +169,26 @@ void swupdate_create_directory(const char* path) {
 }
 
 #ifndef CONFIG_NOCLEANUP
+static int _is_mount_point(const char *path, const char *parent_path) {
+	struct stat path_stat, parent_stat;
+
+	if (stat(path, &path_stat)) {
+		ERROR("stat for path %s failed: %s", path, strerror(errno));
+		return -errno;
+	}
+
+	if (stat(parent_path, &parent_stat)) {
+		ERROR("stat for parent path %s failed: %s", parent_path, strerror(errno));
+		return -errno;
+	}
+
+	if (path_stat.st_dev != parent_stat.st_dev) {
+		return 1;
+	}
+
+	return 0;
+}
+
 static int _remove_directory_cb(const char *fpath, const struct stat *sb,
 								int typeflag, struct FTW *ftwbuf)
 {
@@ -187,7 +207,23 @@ int swupdate_remove_directory(const char* path)
 		ERROR("OOM: Directory %s not removed", path);
 		return -ENOMEM;
 	}
+
+	ret = _is_mount_point(dpath, get_tmpdir());
+	if (ret < 0)
+		goto out;
+
+	if (ret) {
+		WARN("Unexpected mountpoint, unmounting: %s", dpath);
+		ret = swupdate_umount(dpath);
+		if (ret && errno != EINVAL) {
+			ret = -errno;
+			ERROR("Can't unmount path %s: %s", dpath, strerror(errno));
+			goto out;
+		}
+	}
+
 	ret = nftw(dpath, _remove_directory_cb, 64, FTW_DEPTH | FTW_PHYS);
+out:
 	free(dpath);
 	return ret;
 }
