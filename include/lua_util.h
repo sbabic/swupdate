@@ -26,7 +26,6 @@ int lua_init(void);
 int lua_load_buffer(lua_State *L, const char *buf);
 int lua_parser_fn(lua_State *L, const char *fcn, struct img_type *img);
 int lua_handler_fn(lua_State *L, const char *fcn, const char *parms);
-int lua_handlers_init(lua_State *L);
 
 int lua_notify_trace(lua_State *L);
 int lua_notify_error(lua_State *L);

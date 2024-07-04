@@ -1489,7 +1489,7 @@ call_handler_exit:
 	return 2;
 }
 
-int lua_handlers_init(lua_State *L)
+static int lua_handlers_init(lua_State *L, struct dict *bootenv)
 {
 	static const char location[] =
 #if defined(CONFIG_EMBEDDED_LUA_HANDLER)
@@ -1514,6 +1514,12 @@ int lua_handlers_init(lua_State *L)
 		lua_settable(L, -3);
 		lua_pop(L, 2);
 		luaL_requiref(L, "swupdate", luaopen_swupdate, 1 );
+		if (bootenv) {
+			struct dict **udbootenv = lua_newuserdata(L, sizeof(struct dict*));
+			*udbootenv = bootenv;
+			luaL_setfuncs(L, l_swupdate_bootenv, 1);
+			lua_pop(L, 1); /* remove unused copy left on stack */
+		}
 		lua_pop(L, 1); /* remove unused copy left on stack */
 		/* try to load Lua handlers for the swupdate system */
 #if defined(CONFIG_EMBEDDED_LUA_HANDLER)
@@ -1547,12 +1553,9 @@ lua_State *lua_session_init(struct dict *bootenv)
 	lua_setglobal(L, "SWUPDATE_LUA_TYPE"); /* prime L as LUA_TYPE_PEMBSCR */
 	luaL_openlibs(L); /* opens the standard libraries */
 	luaL_requiref(L, "swupdate", luaopen_swupdate, 1 );
-	struct dict **udbootenv = lua_newuserdata(L, sizeof(struct dict*));
-	*udbootenv = bootenv;
-	luaL_setfuncs(L, l_swupdate_bootenv, 1);
-	lua_pop(L, 1); /* remove unused copy left on stack */
 
-	lua_handlers_init(L);
+	lua_handlers_init(L, bootenv);
+
 
 	return L;
 }
@@ -1560,7 +1563,7 @@ lua_State *lua_session_init(struct dict *bootenv)
 int lua_init(void)
 {
 	lua_State *L = luaL_newstate();
-	int res = lua_handlers_init(L);
+	int res = lua_handlers_init(L, NULL);
 	print_registered_handlers(false);
 	unregister_session_handlers();
 	lua_close(L);
