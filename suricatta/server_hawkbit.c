@@ -1003,7 +1003,12 @@ static void *process_notification_thread(void *data)
 		bool data_avail = false;
 		int ret = ipc_get_status(&msg);
 
-		data_avail = ret > 0 && (strlen(msg.data.status.desc) != 0);
+		if (ret < 0) {
+			ERROR("Error getting status, stopping notification thread");
+			stop = true;;
+		} else {
+			data_avail = (strlen(msg.data.status.desc) != 0);
+		}
 
 		/*
 		 * Mutex used to synchronize end of the thread
@@ -1017,12 +1022,6 @@ static void *process_notification_thread(void *data)
 
 		if (data_avail && msg.data.status.current == PROGRESS)
 			continue;
-		/*
-		 * If there is a message
-		 * ret > 0: data available
-		 * ret == 0: TIMEOUT, no more messages
-		 * ret < 0 : ERROR, exit
-		 */
 		if (data_avail && numdetails < MAX_DETAILS) {
 			for (int c = 0; c < strlen(msg.data.status.desc); c++) {
 				switch (msg.data.status.desc[c]) {
