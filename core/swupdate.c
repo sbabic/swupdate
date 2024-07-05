@@ -997,5 +997,6 @@ int main(int argc, char **argv)
 	if (!opt_c && !opt_i)
 		pthread_join(network_daemon, NULL);
 
+	free(cfgfname);
 	return exit_code;
 }
