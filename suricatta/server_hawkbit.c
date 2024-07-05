@@ -867,7 +867,6 @@ static void get_action_id_from_env(int *action_id)
 	 * Get the acction_id that corresponds to the done update if it was
 	 * stored.
 	 */
-	*action_id = -1;
 	char *action_str = swupdate_vars_get("action_id", NULL);
 	if (action_str) {
 		int tmp = ustrtoull(action_str, NULL, 10);
