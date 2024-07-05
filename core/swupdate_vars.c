@@ -47,6 +47,10 @@ int swupdate_vars_initialize(struct uboot_ctx **ctx, const char *namespace)
 	}
 
 	*ctx = libuboot_get_namespace(*ctx, namespace);
+	if (!*ctx) {
+		ERROR("Cannot get namespace %s from %s", namespace, get_fwenv_config());
+		return -EINVAL;
+	}
 
 	if (libuboot_open(*ctx) < 0) {
 		WARN("Cannot read environment, maybe still empty ?");
