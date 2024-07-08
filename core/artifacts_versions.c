@@ -200,7 +200,7 @@ static bool is_oldstyle_version(const char *version_string, __u64 *version_numbe
 			return false;
 		++ver;
 	}
-	return version_to_number(version_string, version_number);;
+	return version_to_number(version_string, version_number);
 }
 
 /*

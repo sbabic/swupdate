@@ -1004,7 +1004,7 @@ static void *process_notification_thread(void *data)
 
 		if (ret < 0) {
 			ERROR("Error getting status, stopping notification thread");
-			stop = true;;
+			stop = true;
 		} else {
 			data_avail = (strlen(msg.data.status.desc) != 0);
 		}
