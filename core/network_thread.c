@@ -424,9 +424,6 @@ void *network_thread (void *data)
 			close(ctrlconnfd);
 			continue;
 		}
-#ifdef DEBUG_IPC
-		TRACE("request header: magic[0x%08X] type[0x%08X]", msg.magic, msg.type);
-#endif
 
 		should_close_socket = true;
 		pthread_mutex_lock(&stream_mutex);
@@ -513,9 +510,6 @@ void *network_thread (void *data)
 					nrmsgs--;
 					strncpy(msg.data.status.desc, notification->msg,
 						sizeof(msg.data.status.desc) - 1);
-#ifdef DEBUG_IPC
-					DEBUG("GET STATUS: %s\n", msg.data.status.desc);
-#endif
 					msg.data.status.current = notification->status;
 					msg.data.status.error = notification->error;
 				}
