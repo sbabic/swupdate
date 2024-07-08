@@ -41,8 +41,8 @@
 #include <openssl/opensslv.h>
 #include <openssl/cms.h>
 #elif defined(CONFIG_SSL_IMPL_WOLFSSL)
-#include <wolfssl/ssl.h>
 #include <wolfssl/options.h>
+#include <wolfssl/ssl.h>
 #include <wolfssl/openssl/bio.h>
 #include <wolfssl/openssl/objects.h>
 #include <wolfssl/openssl/err.h>
