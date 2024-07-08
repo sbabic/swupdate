@@ -84,7 +84,7 @@
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to SWUpdate</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Proposals to improve SWUpdate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="improvement_proposals.html">Proposals to improve SWUpdate</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="previous-releases.html">Documentation for previous releases</a></li>
@@ -329,12 +329,12 @@ A sw-description must still be added into a <cite>files</cite> directory, that i
 User still needs to set SWUPDATE_IMAGE_FSTYPES[<cite>your image</cite>] to the fstype that should be packed
 into the SWU - an error is raised if the flag is not set.</p>
 <p>In the simple way, your recipe looks like</p>
-<dl>
-<dt>::</dt><dd><p>&lt;your original recipe code&gt;</p>
-<p>SWUPDATE_IMAGES_FSTYPES[&lt;name of your image&gt;] = &lt;fstype to be put into SWU&gt;
-inherit swupdate-image</p>
-</dd>
-</dl>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">your</span> <span class="n">original</span> <span class="n">recipe</span> <span class="n">code</span><span class="o">&gt;</span>
+
+<span class="n">SWUPDATE_IMAGES_FSTYPES</span><span class="p">[</span><span class="o">&lt;</span><span class="n">name</span> <span class="n">of</span> <span class="n">your</span> <span class="n">image</span><span class="o">&gt;</span><span class="p">]</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">fstype</span> <span class="n">to</span> <span class="n">be</span> <span class="n">put</span> <span class="n">into</span> <span class="n">SWU</span><span class="o">&gt;</span>
+<span class="n">inherit</span> <span class="n">swupdate</span><span class="o">-</span><span class="n">image</span>
+</pre></div>
+</div>
 </section>
 </section>
 <section id="what-about-grub">

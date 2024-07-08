@@ -110,7 +110,7 @@
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to SWUpdate</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="roadmap.html">Proposals to improve SWUpdate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="improvement_proposals.html">Proposals to improve SWUpdate</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="previous-releases.html">Documentation for previous releases</a></li>
@@ -576,23 +576,23 @@ can be called by later scripts.</p>
 Later, it is assumed that functions will be already available.</p>
 <p>Example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">scripts</span><span class="p">:</span> <span class="p">(</span>
-        <span class="p">{</span>
-                <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;testscript.lua&quot;</span><span class="p">;</span>
-                <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;lua&quot;</span><span class="p">;</span>
-                <span class="n">properties</span><span class="p">:</span> <span class="p">{</span>
-                        <span class="k">global</span><span class="o">-</span><span class="n">state</span> <span class="o">=</span> <span class="s2">&quot;true&quot;</span><span class="p">;</span>
-                        <span class="n">preinstall</span> <span class="o">=</span> <span class="s2">&quot;pretest1&quot;</span><span class="p">;</span>
-                <span class="p">}</span>
-        <span class="p">},</span>
-        <span class="p">{</span>
-                <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;test2script.lua&quot;</span><span class="p">;</span>
-                <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;lua&quot;</span><span class="p">;</span>
-                <span class="n">properties</span><span class="p">:</span> <span class="p">{</span>
-                        <span class="k">global</span><span class="o">-</span><span class="n">state</span> <span class="o">=</span> <span class="s2">&quot;true&quot;</span><span class="p">;</span>
-                        <span class="n">postinstall</span> <span class="o">=</span> <span class="s2">&quot;posttest2&quot;</span><span class="p">;</span>
-                        <span class="n">postfailure</span> <span class="o">=</span> <span class="s2">&quot;failure&quot;</span><span class="p">;</span>
-                <span class="p">}</span>
+    <span class="p">{</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;testscript.lua&quot;</span><span class="p">;</span>
+        <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;lua&quot;</span><span class="p">;</span>
+        <span class="n">properties</span><span class="p">:</span> <span class="p">{</span>
+            <span class="k">global</span><span class="o">-</span><span class="n">state</span> <span class="o">=</span> <span class="s2">&quot;true&quot;</span><span class="p">;</span>
+            <span class="n">preinstall</span> <span class="o">=</span> <span class="s2">&quot;pretest1&quot;</span><span class="p">;</span>
         <span class="p">}</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;test2script.lua&quot;</span><span class="p">;</span>
+        <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;lua&quot;</span><span class="p">;</span>
+        <span class="n">properties</span><span class="p">:</span> <span class="p">{</span>
+            <span class="k">global</span><span class="o">-</span><span class="n">state</span> <span class="o">=</span> <span class="s2">&quot;true&quot;</span><span class="p">;</span>
+            <span class="n">postinstall</span> <span class="o">=</span> <span class="s2">&quot;posttest2&quot;</span><span class="p">;</span>
+            <span class="n">postfailure</span> <span class="o">=</span> <span class="s2">&quot;failure&quot;</span><span class="p">;</span>
+        <span class="p">}</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>Two scripts are defined. Both are using the global Lua state.
