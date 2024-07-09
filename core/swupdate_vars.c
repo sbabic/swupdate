@@ -90,7 +90,7 @@ char *swupdate_vars_get(const char *name, const char *namespace)
 		strlcpy(msg.data.vars.varname, name, sizeof(msg.data.vars.varname));
 
 		if (ipc_send_cmd(&msg) || msg.type == NACK) {
-			ERROR("Failed to get variable %s", name);
+			WARN("Failed to get variable %s", name);
 			return NULL;
 		}
 		return strdup (msg.data.vars.varvalue);
