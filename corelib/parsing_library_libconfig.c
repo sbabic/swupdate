@@ -27,8 +27,6 @@ static unsigned int map_field_type(field_type_t type)
 		return CONFIG_TYPE_INT;
 	case TYPE_INT64:
 		return CONFIG_TYPE_INT64;
-	case TYPE_STRING:
-		return CONFIG_TYPE_STRING;
 	case TYPE_BOOL:
 		return CONFIG_TYPE_BOOL;
 	case TYPE_FLOAT:
@@ -50,9 +48,6 @@ static void get_value_libconfig(const config_setting_t *e, void *dest, field_typ
 		break;
 	case CONFIG_TYPE_INT64:
 		*(long long *)dest = config_setting_get_int64(e);
-		break;
-	case CONFIG_TYPE_STRING:
-		dest = (void *)config_setting_get_string(e);
 		break;
 	case CONFIG_TYPE_BOOL:
 		*(bool *)dest = config_setting_get_bool(e);

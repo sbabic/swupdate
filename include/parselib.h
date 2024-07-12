@@ -27,7 +27,6 @@ typedef enum {
 typedef enum {
 	TYPE_INT,
 	TYPE_INT64,
-	TYPE_STRING,
 	TYPE_BOOL,
 	TYPE_FLOAT
 } field_type_t;

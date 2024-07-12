@@ -28,8 +28,6 @@ static json_type map_field_type(field_type_t type)
 	case TYPE_INT:
 	case TYPE_INT64:
 		return json_type_int;
-	case TYPE_STRING:
-		return json_type_string;
 	case TYPE_BOOL:
 		return json_type_boolean;
 	case TYPE_FLOAT:
@@ -132,9 +130,6 @@ static void get_value_json(json_object *e, void *dest, field_type_t expected_typ
 		break;
 	case json_type_int:
 		*(unsigned int *)dest = json_object_get_int(e);
-		break;
-	case json_type_string:
-		strcpy(dest, json_object_get_string(e));
 		break;
 	case json_type_double:
 		*(double *)dest = json_object_get_double(e);
