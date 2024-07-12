@@ -39,20 +39,20 @@ static unsigned int map_field_type(field_type_t type)
 
 static void get_value_libconfig(const config_setting_t *e, void *dest, field_type_t expected_type)
 {
-	int type = config_setting_type(e);
-	if (type != map_field_type(expected_type))
+	int parsed_type = config_setting_type(e);
+	if (parsed_type != map_field_type(expected_type))
 		return;
-	switch (type) {
-	case CONFIG_TYPE_INT:
+	switch (expected_type) {
+	case TYPE_INT:
 		*(int *)dest = config_setting_get_int(e);
 		break;
-	case CONFIG_TYPE_INT64:
+	case TYPE_INT64:
 		*(long long *)dest = config_setting_get_int64(e);
 		break;
-	case CONFIG_TYPE_BOOL:
+	case TYPE_BOOL:
 		*(bool *)dest = config_setting_get_bool(e);
 		break;
-	case CONFIG_TYPE_FLOAT:
+	case TYPE_DOUBLE:
 		*(double *)dest = config_setting_get_float(e);
 		break;
 		/* Do nothing, add if needed */

@@ -120,22 +120,24 @@ const char *get_field_string_json(json_object *e, const char *path)
 
 static void get_value_json(json_object *e, void *dest, field_type_t expected_type)
 {
-	enum json_type type;
-	type = json_object_get_type(e);
-	if (type != map_field_type(expected_type))
+	enum json_type parsed_type;
+	parsed_type = json_object_get_type(e);
+	if (parsed_type != map_field_type(expected_type))
 		return;
-	switch (type) {
-	case json_type_boolean:
+	switch (expected_type) {
+	case TYPE_BOOL:
 		*(bool *)dest = json_object_get_boolean(e);
 		break;
-	case json_type_int:
+	case TYPE_INT:
 		*(int *)dest = json_object_get_int(e);
 		break;
-	case json_type_double:
+	case TYPE_INT64:
+		*(long long *)dest = json_object_get_int(e);
+		break;
+	case TYPE_DOUBLE:
 		*(double *)dest = json_object_get_double(e);
 		break;
-	default:
-		break;
+		/* Do nothing, add if needed */
 	}
 }
 
