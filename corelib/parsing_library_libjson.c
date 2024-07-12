@@ -129,7 +129,7 @@ static void get_value_json(json_object *e, void *dest, field_type_t expected_typ
 		*(bool *)dest = json_object_get_boolean(e);
 		break;
 	case json_type_int:
-		*(unsigned int *)dest = json_object_get_int(e);
+		*(int *)dest = json_object_get_int(e);
 		break;
 	case json_type_double:
 		*(double *)dest = json_object_get_double(e);

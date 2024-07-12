@@ -22,7 +22,7 @@ int channel_settings(void *elem, void *data)
 	channel_data_t *chan = (channel_data_t *)data;
 
 	GET_FIELD_INT(LIBCFG_PARSER, elem, "retry",
-		&chan->retries);
+		(int *)&chan->retries);
 
 	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "max-download-speed", tmp);
 	if (strlen(tmp)) {

@@ -770,7 +770,7 @@ static int mongoose_settings(void *elem, void  __attribute__ ((__unused__)) *dat
 	}
 	GET_FIELD_BOOL(LIBCFG_PARSER, elem, "run-postupdate", &run_postupdate);
 
-	GET_FIELD_INT(LIBCFG_PARSER, elem, "timeout", &watchdog_conn);
+	GET_FIELD_INT(LIBCFG_PARSER, elem, "timeout", (int *)&watchdog_conn);
 
 	return 0;
 }
