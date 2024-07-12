@@ -42,11 +42,21 @@ static void get_value_libconfig(const config_setting_t *e, const char *path, voi
 {
 	int parsed_type = config_setting_type(e);
 	if (parsed_type != map_field_type(expected_type)) {
-		WARN("Type mismatch for %s field \"%s\"", SW_DESCRIPTION_FILENAME, path);
-		return;
+		/* Weaken type equality requirements for INT/INT64 */
+		if ((parsed_type == CONFIG_TYPE_INT && expected_type == TYPE_INT64) ||
+		    (parsed_type == CONFIG_TYPE_INT64 && expected_type == TYPE_INT)) {
+			/* ignore type mismatch, handled well by libconfig */
+		} else {
+			WARN("Type mismatch for %s field \"%s\"", SW_DESCRIPTION_FILENAME, path);
+			return;
+		}
 	}
+
 	switch (expected_type) {
 	case TYPE_INT:
+		/* libconfig handles also 'L' suffixed integers as long as they fit
+		 * into INT32. Otherwise zero is returned
+		 */
 		*(int *)dest = config_setting_get_int(e);
 		break;
 	case TYPE_INT64:
