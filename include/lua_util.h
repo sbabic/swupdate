@@ -101,7 +101,7 @@ struct img_type;
 #define lua_exit(L)
 #define lua_close(L)
 static inline lua_State *lua_session_init(struct dict __attribute__ ((__unused__)) *bootenv) { return NULL;}
-static inline int lua_init() { return 0; }
+static inline int lua_init(void) { return 0; }
 static inline int lua_load_buffer(lua_State __attribute__ ((__unused__)) *L, 
 					const char __attribute__ ((__unused__)) *buf) {return 1;}
 static inline int lua_parser_fn(lua_State __attribute__ ((__unused__)) *L,
