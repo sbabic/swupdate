@@ -17,6 +17,7 @@
 #include "generated/autoconf.h"
 #include "bsdqueue.h"
 #include "util.h"
+#include "parsers.h"
 #include "parselib.h"
 #include "parselib-private.h"
 
@@ -118,12 +119,14 @@ const char *get_field_string_json(json_object *e, const char *path)
 	return NULL;
 }
 
-static void get_value_json(json_object *e, void *dest, field_type_t expected_type)
+static void get_value_json(json_object *e, const char *path, void *dest, field_type_t expected_type)
 {
 	enum json_type parsed_type;
 	parsed_type = json_object_get_type(e);
-	if (parsed_type != map_field_type(expected_type))
+	if (parsed_type != map_field_type(expected_type)) {
+		WARN("Type mismatch for %s field \"%s\"", SW_DESCRIPTION_FILENAME, path);
 		return;
+	}
 	switch (expected_type) {
 	case TYPE_BOOL:
 		*(bool *)dest = json_object_get_boolean(e);
@@ -164,9 +167,9 @@ void get_field_json(json_object *e, const char *path, void *dest, field_type_t t
 
 	if (path) {
 		if (json_object_object_get_ex(e, path, &fld))
-			get_value_json(fld, dest, type);
+			get_value_json(fld, path, dest, type);
 	} else {
-		get_value_json(e, dest, type);
+		get_value_json(e, path, dest, type);
 	}
 }
 

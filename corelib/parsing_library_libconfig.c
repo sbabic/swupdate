@@ -17,6 +17,7 @@
 #include "generated/autoconf.h"
 #include "bsdqueue.h"
 #include "util.h"
+#include "parsers.h"
 #include "parselib.h"
 #include "parselib-private.h"
 
@@ -37,11 +38,13 @@ static unsigned int map_field_type(field_type_t type)
 }
 
 
-static void get_value_libconfig(const config_setting_t *e, void *dest, field_type_t expected_type)
+static void get_value_libconfig(const config_setting_t *e, const char *path, void *dest, field_type_t expected_type)
 {
 	int parsed_type = config_setting_type(e);
-	if (parsed_type != map_field_type(expected_type))
+	if (parsed_type != map_field_type(expected_type)) {
+		WARN("Type mismatch for %s field \"%s\"", SW_DESCRIPTION_FILENAME, path);
 		return;
+	}
 	switch (expected_type) {
 	case TYPE_INT:
 		*(int *)dest = config_setting_get_int(e);
@@ -120,7 +123,7 @@ void get_field_cfg(config_setting_t *e, const char *path, void *dest, field_type
 	if (!elem)
 		return;
 
-	get_value_libconfig(elem, dest, type);
+	get_value_libconfig(elem, path, dest, type);
 }
 
 const char *get_field_string_libconfig(config_setting_t *e, const char *path)
