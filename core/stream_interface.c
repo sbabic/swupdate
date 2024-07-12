@@ -288,7 +288,7 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 							return -1;
 						}
 						/* Avoid trying to adjust again later */
-						part->install_directly = 1;
+						part->install_directly = true;
 					}
 				}
 				img->fdin = fd;

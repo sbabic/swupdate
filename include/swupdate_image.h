@@ -32,8 +32,8 @@ typedef enum {
 struct sw_version {
 	char name[SWUPDATE_GENERAL_STRING_SIZE];
 	char version[SWUPDATE_GENERAL_STRING_SIZE];
-	int install_if_different;
-	int install_if_higher;
+	bool install_if_different;
+	bool install_if_higher;
 	LIST_ENTRY(sw_version) next;
 };
 
@@ -57,7 +57,7 @@ struct img_type {
 	bool preserve_attributes; /* whether to preserve attributes in archives */
 	bool is_encrypted;
 	char ivt_ascii[33];
-	int install_directly;
+	bool install_directly;
 	int is_script;
 	int is_partitioner;
 	struct dict properties;
