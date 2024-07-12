@@ -15,6 +15,8 @@
 #define SW_DESCRIPTION_FILENAME	CONFIG_SWDESCRIPTION
 #endif
 
+struct swupdate_cfg;
+
 typedef int (*parser_fn)(struct swupdate_cfg *swcfg, const char *filename, char **error);
 
 int parse(struct swupdate_cfg *swcfg, const char *filename);
