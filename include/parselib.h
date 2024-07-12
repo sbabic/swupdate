@@ -65,6 +65,26 @@ void *find_root(parsertype p, void *root, const char **nodes);
 void *get_node(parsertype p, void *root, const char **nodes);
 bool set_find_path(const char **nodes, const char *newpath, char ***tmp);
 
+static inline void get_field_bool(parsertype p, void *e, const char *path, bool *dest)
+{
+	get_field(p, e, path, dest, TYPE_BOOL);
+}
+
+static inline void get_field_int(parsertype p, void *e, const char *path, int *dest)
+{
+	get_field(p, e, path, dest, TYPE_INT);
+}
+
+static inline void get_field_int64(parsertype p, void *e, const char *path, long long *dest)
+{
+	get_field(p, e, path, dest, TYPE_INT64);
+}
+
+static inline void get_field_float(parsertype p, void *e, const char *path, double *dest)
+{
+	get_field(p, e, path, dest, TYPE_DOUBLE);
+}
+
 #define GET_FIELD_STRING(p, e, name, d) \
 	get_field_string_with_size(p, e, name, d, sizeof(d))
 
@@ -74,13 +94,13 @@ bool set_find_path(const char **nodes, const char *newpath, char ***tmp);
 } while (0)
 
 #define GET_FIELD_BOOL(p, e, path, dest) \
-	get_field(p, e, path, dest, TYPE_BOOL)
+	get_field_bool(p, e, path, dest)
 
 #define GET_FIELD_INT(p, e, path, dest) \
-	get_field(p, e, path, dest, TYPE_INT)
+	get_field_int(p, e, path, dest)
 
 #define GET_FIELD_INT64(p, e, path, dest) \
-	get_field(p, e, path, dest, TYPE_INT64)
+	get_field_int64(p, e, path, dest)
 
 #define GET_FIELD_FLOAT(p, e, path, dest) \
-	get_field(p, e, path, dest, TYPE_FLOAT)
+	get_field_float(p, e, path, dest)
