@@ -248,9 +248,30 @@ static int update_volume(libubi_t libubi, struct img_type *img,
 		ERROR("cannot open UBI volume \"%s\"", node);
 		return -1;
 	}
-	err = ubi_update_start(libubi, fdout, bytes);
+
+	unsigned int retries = 3;
+	do {
+		/*
+		 * libubi just returns -1, errno can be checked
+		 * for the source of errors.
+		 * This should be changed in case ubi_update_start()
+		 * will do own error recovery in future.
+		 * Simply retries in case of error if the volume
+		 * is accessed by another process
+		 */
+		err = ubi_update_start(libubi, fdout, bytes);
+		retries--;
+		if (err) {
+			if (errno != EBUSY)
+				break;
+			WARN("Not possible to lock UBI, retry");
+			sleep(1);
+		}
+	} while (err && retries > 0);
+
 	if (err) {
 		ERROR("cannot start volume \"%s\" update", node);
+		close(fdout);
 		return -1;
 	}
 
