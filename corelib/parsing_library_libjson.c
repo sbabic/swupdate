@@ -30,7 +30,7 @@ static json_type map_field_type(field_type_t type)
 		return json_type_int;
 	case TYPE_BOOL:
 		return json_type_boolean;
-	case TYPE_FLOAT:
+	case TYPE_DOUBLE:
 		return json_type_double;
 	default: /* not supported in SWUpdate */
 		return json_type_null;

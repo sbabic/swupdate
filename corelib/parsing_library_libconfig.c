@@ -29,7 +29,7 @@ static unsigned int map_field_type(field_type_t type)
 		return CONFIG_TYPE_INT64;
 	case TYPE_BOOL:
 		return CONFIG_TYPE_BOOL;
-	case TYPE_FLOAT:
+	case TYPE_DOUBLE:
 		return CONFIG_TYPE_FLOAT;
 	default: /* not supported in SWUpdate */
 		return CONFIG_TYPE_NONE;

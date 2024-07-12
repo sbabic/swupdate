@@ -28,7 +28,7 @@ typedef enum {
 	TYPE_INT,
 	TYPE_INT64,
 	TYPE_BOOL,
-	TYPE_FLOAT
+	TYPE_DOUBLE
 } field_type_t;
 
 typedef void (*iterate_callback)(const char *name, const char *value,
