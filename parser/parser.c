@@ -427,7 +427,7 @@ static int parse_common_attributes(parsertype p, void *elem, struct img_type *im
 	 * multiplier suffixes are allowed
 	 */
 	if (is_field_numeric(p, elem, "offset")) {
-		GET_FIELD_INT64(p, elem, "offset", &offset);
+		GET_FIELD_INT64(p, elem, "offset", (long long *)&offset);
 		image->seek = offset;
 	} else {
 		GET_FIELD_STRING(p, elem, "offset", seek_str);
