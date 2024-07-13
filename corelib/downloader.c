@@ -108,9 +108,9 @@ static int download_settings(void *elem, void  __attribute__ ((__unused__)) *dat
 	}
 
 	GET_FIELD_INT(LIBCFG_PARSER, elem, "retries",
-		&opt->retries);
+		(int *)&opt->retries);
 	GET_FIELD_INT(LIBCFG_PARSER, elem, "timeout",
-		&opt->low_speed_timeout);
+		(int *)&opt->low_speed_timeout);
 	channel_settings(elem, &channel_options);
 
 	return 0;

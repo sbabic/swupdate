@@ -1730,10 +1730,10 @@ static int server_hawkbit_settings(void *elem, void  __attribute__ ((__unused__)
 	}
 
 	GET_FIELD_INT(LIBCFG_PARSER, elem, "polldelay",
-		&server_hawkbit.polling_interval);
+		(int *)&server_hawkbit.polling_interval);
 
 	GET_FIELD_INT(LIBCFG_PARSER, elem, "initial-report-resend-period",
-		&server_hawkbit.initial_report_resend_period);
+		(int *)&server_hawkbit.initial_report_resend_period);
 
 	channel_settings(elem, &channel_data_defaults);
 
@@ -1741,7 +1741,7 @@ static int server_hawkbit_settings(void *elem, void  __attribute__ ((__unused__)
 		&server_hawkbit.usetokentodwl);
 
 	GET_FIELD_INT(LIBCFG_PARSER, elem, "connection-timeout",
-		&channel_data_defaults.connection_timeout);
+		(int *)&channel_data_defaults.connection_timeout);
 
 	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "targettoken", tmp);
 	if (strlen(tmp))
