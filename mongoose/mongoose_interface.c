@@ -681,6 +681,10 @@ static void ev_handler(struct mg_connection *nc, int ev, void *ev_data)
 	static uint64_t last_io_time = 0;
 	if (ev == MG_EV_OPEN && nc->is_listening) {
 		struct parent_connection_info *data = calloc(2, sizeof(struct parent_connection_info));
+		if (!data) {
+			ERROR("Error: Memory allocation failed for parent_connection_info");
+			return;
+		}
 		data[0].mgr = nc->mgr;
 		data[0].conn_id = nc->id;
 		memcpy(&data[1], &data[0], sizeof(struct parent_connection_info));
