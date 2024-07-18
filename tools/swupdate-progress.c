@@ -354,7 +354,7 @@ int main(int argc, char **argv)
 			 * will be added, JSON lib should be linked.
 			 * NOTE: Until then, the exact string format is imperative!
 			 */
-			n = sscanf(msg.info, "{\"%*d\": {\"%d\": { \"reboot-mode\" : \"%19[-a-z]\"}}}",
+			n = sscanf(msg.info, "{\"%d\": { \"reboot-mode\" : \"%19[-a-z]\"}}",
 				   &cause, reboot_mode);
 			if (n == 2) {
 				if (cause == CAUSE_REBOOT_MODE) {
