@@ -731,13 +731,6 @@ void *network_initializer(void *data)
 		swupdate_remove_directory(DATADST_DIR_SUFFIX);
 #endif
 
-		pthread_mutex_lock(&stream_mutex);
-		inst.status = IDLE;
-		inst.req.source = SOURCE_UNKNOWN;
-		pthread_mutex_unlock(&stream_mutex);
-		TRACE("Main thread sleep again !");
-		notify(IDLE, RECOVERY_NO_ERROR, INFOLEVEL, "Waiting for requests...");
-
 		/*
 		 * Last step, if no restart is required,
 		 * SWUpdate can send automatically the feedback.
@@ -768,7 +761,12 @@ void *network_initializer(void *data)
 			ipc_send_cmd(&msg);
 		}
 
-
+		pthread_mutex_lock(&stream_mutex);
+		inst.status = IDLE;
+		inst.req.source = SOURCE_UNKNOWN;
+		pthread_mutex_unlock(&stream_mutex);
+		TRACE("Main thread sleep again !");
+		notify(IDLE, RECOVERY_NO_ERROR, INFOLEVEL, "Waiting for requests...");
 	}
 
 	pthread_exit((void *)0);
