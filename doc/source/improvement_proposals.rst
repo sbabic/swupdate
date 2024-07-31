@@ -303,6 +303,31 @@ changes must be implemented in SWUpdate.
 * Request for Support : Sponsor
 * Priority : Low
 
+Backend: hawkBit support for Delta Update
+-----------------------------------------
+
+Delta Update requires two or more files:
+
+- the SWU
+- one file ".zck" for each artifact that is upgraded via delta handler.
+
+The .zck must be uploaded somewhere and the URL is defined inside sw-description, that
+is then signed. This causes a chicken-egg issue, because the buzild cannot be completed
+with Hawkbit until the ".zck" files are not uploaded. In fact, Hawkbit assigns to each
+Software Module an "id" that is unknow at the moment of the build.
+
+It is required to implement a mechanism that let suricatta to inform the core about URLs
+passed by the Hawkbit server, and they can override the URL set inside sw-description.
+This lets the URL for ZCK unknown during the build and it will be detected at runtime.
+
+The authentication to the Hawkbit Server does not work in case of delta. In fact, authentication
+is performed by the backend connector, but the download of .zck files is done by a different
+process ("downloader") that don't use the setup froim suricatta.
+
+* Status: Wait
+* Request for Support : Sponsor
+* Priority : Medium
+
 Back-end: support for generic down-loader
 -----------------------------------------
 
