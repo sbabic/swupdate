@@ -424,6 +424,7 @@ copyfile_exit:
 static int istream_read_callback(void *out, const void *buf, size_t len)
 {
 	lua_State* L = (lua_State*)out;
+	lua_Number result;
 	if (len > LUAL_BUFFERSIZE) {
 		ERROR("I/O buffer size is larger than Lua's buffer size %d", LUAL_BUFFERSIZE);
 		return -1;
@@ -438,12 +439,23 @@ static int istream_read_callback(void *out, const void *buf, size_t len)
 	memcpy(buffer, buf, len);
 	luaL_addsize(&lbuffer, len);
 	luaL_pushresult(&lbuffer);
-	if (lua_pcall(L, 1, 0, 0) != LUA_OK) {
+	if (lua_pcall(L, 1, 1, 0) != LUA_OK) {
 		ERROR("Lua error in callback: %s", lua_tostring(L, -1));
 		lua_pop(L, 1);
 		return -1;
 	}
-	return 0;
+
+	/* retrieve result */
+	if (!lua_isnumber(L, -1)) {
+		ERROR("Lua Callback must return a number");
+		lua_pop(L, 1);
+		return -1;
+	}
+
+	result = lua_tonumber(L, -1);
+	lua_pop(L, 1);
+
+	return (int) result;
 }
 
 static int l_istream_read(lua_State* L)
