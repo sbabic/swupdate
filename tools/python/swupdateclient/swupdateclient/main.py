@@ -11,8 +11,10 @@ import logging
 import os
 import sys
 import string
+import ssl
 from swupdateclient import __about__
 from typing import List, Optional, Tuple, Union
+from urllib3.exceptions import InsecureRequestWarning
 
 
 import requests
@@ -66,6 +68,7 @@ class SWUpdater:
         path_image,
         host_name,
         port=8080,
+        ssl="",
         path="",
         logger=None,
         log_level=logging.DEBUG,
@@ -73,6 +76,7 @@ class SWUpdater:
         self._image = path_image
         self._host_name = host_name
         self._port = port
+        self._ssl = ssl
         self._path = path
         if logger is not None:
             self._logger = logger
@@ -82,12 +86,22 @@ class SWUpdater:
             self._logger = logging.getLogger("swupdate")
             self._logger.addHandler(handler)
             self._logger.setLevel(log_level)
+        if ssl is not None:
+            self.url_upload = "https://{}:{}{}/upload"
+            self.url_status = "wss://{}:{}{}/wss"
 
     async def wait_update_finished(self):
         self._logger.info("Waiting for messages on websocket connection")
+        sslcontext = None
+        if self._ssl is not None:
+            sslcontext = ssl.create_default_context()
+            if self._ssl == "insecure":
+                sslcontext.check_hostname = False
+                sslcontext.verify_mode = ssl.CERT_NONE
         try:
             async with websockets.connect(
-                self.url_status.format(self._host_name, self._port, self._path)
+                self.url_status.format(self._host_name, self._port, self._path),
+                ssl=sslcontext
             ) as websocket:
                 while True:
                     try:
@@ -120,11 +134,19 @@ class SWUpdater:
             return False
 
     def sync_upload(self, swu_file, timeout):
+        verify = False
+        if self._ssl is not None:
+            if self._ssl == "insecure":
+                requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
+                verify = False
+            else:
+                verify = True
         return requests.post(
             self.url_upload.format(self._host_name, self._port, self._path),
             files={"file": swu_file},
             headers={"Cache-Control": "no-cache"},
             timeout=timeout,
+            verify=verify
         )
 
     async def upload(self, timeout):
@@ -207,9 +229,16 @@ def client(args: List[str]) -> None:
         "--color",
         help="colorize messages (auto, always or never)",
         type=str,
-        metavar="[WHEN]",
+        metavar="[COLOR]",
         choices=["auto", "always", "never"],
         default="auto",
+    )
+    parser.add_argument(
+        "--ssl",
+        help="enable ssl connection (secure, insecure)",
+        type=str,
+        metavar="[MODE]",
+        choices=["secure", "insecure"],
     )
 
     args = parser.parse_args()
@@ -225,6 +254,7 @@ def client(args: List[str]) -> None:
         args.host_name,
         args.port,
         path=args.path,
+        ssl=args.ssl,
         log_level=args.log_level.upper(),
     )
     updater.update(timeout=args.timeout)
