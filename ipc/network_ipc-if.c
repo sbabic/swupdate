@@ -13,6 +13,7 @@
 #include <pthread.h>
 #include <inttypes.h>
 #include "network_ipc.h"
+#include "progress_ipc.h"
 
 static pthread_t async_thread_id;
 
@@ -34,6 +35,74 @@ static struct async_lib request;
 
 #define get_request()	(&request)
 
+/* Wait until the end of the installation (FAILURE or SUCCESS)
+ *
+ * Arguments:
+ *   progressfd: File descriptor for IPC with the daemon.
+ *               Will be closed and set to -1 before return.
+ *
+ * Return value:
+ *   FAILURE or SUCCESS
+ */
+static RECOVERY_STATUS inst_wait_for_complete(int *progressfd)
+{
+	struct progress_msg progressmsg;
+	RECOVERY_STATUS result = FAILURE;
+	int ret = -1;
+
+	/* Wait until the end of the installation (FAILURE or SUCCESS) */
+	while (1) {
+		ret = progress_ipc_receive(progressfd, &progressmsg);
+		if (ret < 0) {
+			/* Note that progressfd may have been closed by progress_ipc_receive
+			 * and set to -1 */
+			fprintf(stderr, "progress_ipc_receive failed (%d)\n", ret);
+			result = FAILURE;
+			break;
+		}
+
+		if (progressmsg.status == FAILURE || progressmsg.status == SUCCESS) {
+			/* We have the final result of the installation */
+			result = progressmsg.status;
+			break;
+		} else {
+			/* Other status (START, RUN, PROGRESS) */
+		}
+	}
+
+	if (*progressfd >= 0) {
+		close(*progressfd);
+		*progressfd = -1;
+	}
+
+	return result;
+}
+
+/* Get all status messages from the server and print them
+ * until ipc_get_status() returns IDLE.
+ */
+static void unstack_installation_status(getstatus callback)
+{
+	ipc_message ipcmsg;
+	int previous_status = -1;
+	int ret = -1;
+
+	do {
+		ret = ipc_get_status(&ipcmsg);
+		if (ret < 0)
+			break;
+
+		/* print if the status changed or there is a description */
+		if ( (previous_status != ipcmsg.data.status.current) ||
+		     strlen(ipcmsg.data.status.desc) ) {
+			callback(&ipcmsg);
+		}
+		previous_status = ipcmsg.data.status.current;
+
+	} while (ipcmsg.data.status.current != IDLE);
+}
+
+
 static void *swupdate_async_thread(void *data)
 {
 	char *pbuf;
@@ -43,6 +112,7 @@ static void *swupdate_async_thread(void *data)
 	struct timespec zerotime = {0, 0};
 	struct async_lib *rq = (struct async_lib *)data;
 	int swupdate_result = FAILURE;
+	int progressfd = -1;
 
 	sigemptyset(&sigpipe_mask);
 	sigaddset(&sigpipe_mask, SIGPIPE);
@@ -68,14 +138,31 @@ static void *swupdate_async_thread(void *data)
 		}
 	} while(size > 0);
 
+	/* Start listening to progress events, before ipc_end
+	 * so that we don't miss the result event.
+	 */
+	progressfd = progress_ipc_connect(0 /* no reconnect */);
+ 
 	ipc_end(rq->connfd);
 
+	if (progressfd < 0) {
+		fprintf(stderr, "progress_ipc_connect failed\n");
+		goto out;
+	}
+
 	/*
-	 * Everything sent, ask for status
+	 * Everything sent, wait for completion of the installation
 	 */
 
-	swupdate_result = ipc_wait_for_complete(rq->get);
+	/* Wait until the end of the installation and get the final result */
+	swupdate_result = inst_wait_for_complete(&progressfd); /* progressfd closed by the call */
 
+	/*
+	 * Get and print all status lines, for compatibility with legacy programs
+	 * that expect them
+	 */
+	if (rq->get) unstack_installation_status(rq->get);
+ 
 	if (sigtimedwait(&sigpipe_mask, 0, &zerotime) == -1) {
 		// currently ignored
 	}
