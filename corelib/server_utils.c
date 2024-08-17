@@ -19,6 +19,7 @@
 int channel_settings(void *elem, void *data)
 {
 	char tmp[128];
+	bool tmp_bool;
 	channel_data_t *chan = (channel_data_t *)data;
 
 	GET_FIELD_INT(LIBCFG_PARSER, elem, "retry",
@@ -35,6 +36,8 @@ int channel_settings(void *elem, void *data)
 	if (strlen(tmp))
 		chan->retry_sleep =
 			(unsigned int)strtoul(tmp, NULL, 10);
+	GET_FIELD_BOOL(LIBCFG_PARSER, elem, "nocheckcert", &tmp_bool);
+	chan->strictssl = !tmp_bool;
 	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "cafile", tmp);
 	if (strlen(tmp))
 		SETSTRING(chan->cafile, tmp);
