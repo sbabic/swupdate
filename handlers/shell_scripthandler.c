@@ -64,7 +64,7 @@ static int start_shell_script(struct img_type *img, void *data)
 		fnname="postinst";
 		break;
 	case POSTFAILURE:
-		fnname="failure";
+		fnname="postfailure";
 		break;
 	default:
 		/* no error, simply no call */
