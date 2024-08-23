@@ -204,42 +204,31 @@ copies. Not all handlers support to stream directly into the target.
 Streaming with zero-copy is enabled by setting the flag "installed-directly"
 in the description of the single image.
 
-Configuration and build
+Configuration and Build
 =======================
 
 Requirements
 ------------
 
-There are only a few libraries that are required to compile SWUpdate.
+There are only a few libraries strictly required to compile SWUpdate:
 
-- mtd-utils: internally, mtd-utils generates libmtd and libubi.
-  They are commonly not exported and not installed, but they are
-  linked by SWUpdate to reuse the same functions for upgrading
-  MTD and UBI volumes.
-- openssl / wolfssl / mbedtls (optional) for cryptographic operations
-- p11-kit & wolfssl (optional) for PKCS#11 support
-- Lua: liblua and the development headers.
-- libz is always linked.
-- libconfig (optional) for the default parser
-- libarchive (optional) for archive handler
-- librsync (optional) for support to apply rdiff patches
-- libjson (optional) for JSON parser and hawkBit
-- libubootenv (optional) if support for U-Boot is enabled
-- libebgenv (optional) if support for EFI Boot Guard is enabled
-- libcurl used to communicate with network
+- ``zlib`` (https://www.zlib.net)
+- ``libubootenv`` for U-Boot environment support
+  (https://github.com/sbabic/libubootenv)
+- ``json-c`` for parsing JSON
+  (https://github.com/json-c/json-c)
 
-New handlers can add some other libraries to the requirement list -
-check if you need all handlers in case you get build errors,
-and drop what you do not need.
+Further library dependencies may be required when activating more
+SWUpdate features, see the next section on `Configuring SWUpdate`_.
 
 
 Configuring SWUpdate
 --------------------
 
-SWUpdate is configurable via "make menuconfig". The small footprint
-is reached using the internal parser and disabling the web server.
-Any option has a small help describing its usage. In the default
-configuration, many options are already activated.
+SWUpdate is configurable via ``make menuconfig``. A small footprint
+is realized, e.g., by using the internal parser and disabling the
+web server. Every option has a small help describing its usage.
+In the default configuration, many options are already activated.
 
 To configure the options:
 
@@ -250,50 +239,19 @@ To configure the options:
 Building
 --------
 
-- to cross-compile, set the CC and CXX variables before running make.
-  It is also possible to set the cross-compiler prefix as option with
-  make menuconfig.
-- generate the code
+To cross-compile, set the ``CC`` and ``CXX`` variables before running make.
+It is also possible to set the cross-compiler prefix as option with
+``make menuconfig``. Then, generate the code by running
 
 ::
 
 	make
 
-The result is the binary "swupdate". A second binary "progress" is built,
-but it is not strictly required. It is an example how to build your
-own interface to SWUpdate to show a progress bar or whatever you want on your
-HMI. The example simply prints on the console the current status of the update.
-
-In the Yocto buildsystem,:
-
-::
-
-        bitbake swupdate
-
-This will build the package
-
-::
-
-        bitbake swupdate-image
-
-This builds a rescue image. The result is a Ramdisk that
-can be loaded directly by the bootloader.
-To use SWUpdate in the double-copy mode, put the package
-swupdate into your rootfs. Check your image recipe, and
-simply add it to the list of the installed packages.
-
-For example, if we want to add it to the standard "core-image-full-cmdline"
-image, we can add a *recipes-extended/images/core-image-full-cmdline.bbappend*
-
-::
-
-        IMAGE_INSTALL += " \
-                                swupdate \
-                                swupdate-www \
-                         "
-
-swupdate-www is the package with the website, that you can customize with
-your own logo, template ans style.
+The result is the binary ``swupdate``. Notably, the ``tools/swupdate-progress``
+binary is built as well. It is an example of how to build your own interface to
+SWUpdate to, e.g., show a progress bar on an HMI. This example simply prints on
+the console the current status of the update and, more importantly, reboots the
+machine after successful installation.
 
 Building with Yocto
 -------------------
