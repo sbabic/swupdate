@@ -310,6 +310,7 @@ static int resize_volume(struct img_type *cfg, long long size)
 	struct ubi_mkvol_request req;
 	struct mtd_ubi_info *mtd_info;
 	int mtdnum, req_vol_type;
+	int req_vol_id = UBI_VOL_NUM_AUTO;
 	char node[64];
 	int err;
 	struct flash_description *flash = get_flash_info();
@@ -371,6 +372,7 @@ static int resize_volume(struct img_type *cfg, long long size)
 		}
 
 		snprintf(node, sizeof(node), "/dev/ubi%d", ubivol->vol_info.dev_num);
+		req_vol_id = ubivol->vol_info.vol_id;
 		err = ubi_rmvol(nandubi->libubi, node, ubivol->vol_info.vol_id);
 		if (err) {
 			ERROR("Volume %s cannot be dropped", ubivol->vol_info.name);
@@ -392,7 +394,7 @@ static int resize_volume(struct img_type *cfg, long long size)
 		 */
 		memset(&req, 0, sizeof(req));
 		req.vol_type = req_vol_type;
-		req.vol_id = UBI_VOL_NUM_AUTO;
+		req.vol_id = req_vol_id;
 		req.alignment = 1;
 		req.bytes = size;
 		req.name = cfg->volname;
