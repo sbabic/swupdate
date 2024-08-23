@@ -232,10 +232,6 @@ New handlers can add some other libraries to the requirement list -
 check if you need all handlers in case you get build errors,
 and drop what you do not need.
 
-Building with Yocto
--------------------
-
-See corresponding chapter how to build in Yocto.
 
 Configuring SWUpdate
 --------------------
@@ -298,6 +294,13 @@ image, we can add a *recipes-extended/images/core-image-full-cmdline.bbappend*
 
 swupdate-www is the package with the website, that you can customize with
 your own logo, template ans style.
+
+Building with Yocto
+-------------------
+
+See the corresponding chapter
+:doc:`meta-swupdate: building with Yocto <building-with-yocto>`
+on how to build SWUpdate in Yocto.
 
 Distribution Packages
 ---------------------
