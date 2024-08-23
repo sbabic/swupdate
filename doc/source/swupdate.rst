@@ -299,36 +299,19 @@ image, we can add a *recipes-extended/images/core-image-full-cmdline.bbappend*
 swupdate-www is the package with the website, that you can customize with
 your own logo, template ans style.
 
-Building a debian package
--------------------------
+Distribution Packages
+---------------------
 
 SWUpdate is thought for Embedded Systems and building in an embedded
-distribution is the first use case. But apart the most used buildsystems
-for embedded as Yocto or Buildroot, in some cases a standard Linux distro
-is used. Not only, a distro package allows one to run SWUpdate on Linux PC
-for test purposes without having to fight with dependencies. Using the
-debhelper tools, it is possible to generate a debian package.
+distribution is the primary use case. But apart from the most used
+build systems for embedded systems like Yocto or Buildroot, in some cases,
+a standard Linux distro is used. SWUpdate is currently packaged for
 
-Steps for building a debian package
-...................................
+- `Debian <https://packages.debian.org/search?searchon=names&keywords=swupdate>`_
+- `Ubuntu <https://packages.ubuntu.com/search?keywords=swupdate>`_
 
-::
-
-        ./debian/rules clean
-        ./debian/rules build
-        fakeroot debian/rules binary
-
-The result is a "deb" package stored in the parent directory.
-
-Alternative way signing source package
-......................................
-
-You can use dpkg-buildpackage:
-
-::
-
-        dpkg-buildpackage -us -uc
-        debsign -k <keyId>
+Refer to the distribution source package and build system on how to
+build a package from source.
 
 
 Running SWUpdate
