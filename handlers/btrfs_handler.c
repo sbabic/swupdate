@@ -11,7 +11,6 @@
 #include <unistd.h>
 #include <blkid/blkid.h>
 #include <btrfsutil.h>
-#include "fs_interface.h"
 #include "progress.h"
 #include "swupdate_image.h"
 #include "handler.h"
@@ -34,7 +33,7 @@ static int btrfs(struct img_type *img,
 	char *subvol_path = dict_get_value(&img->properties, "path");
 	char *cmd = dict_get_value(&img->properties, "command");
 	char *globalpath;
-	char *mountpoint;
+	char *mountpoint = NULL;
 
 	op = IS_STR_EQUAL(cmd, "create") ? BTRFS_CREATE_SUBVOLUME :
 		IS_STR_EQUAL(cmd, "delete") ? BTRFS_DELETE_SUBVOLUME : BTRFS_UNKNOWN;
@@ -88,7 +87,9 @@ static int btrfs(struct img_type *img,
 		 * so just delay here
 		 */
 		sleep(1);
-		swupdate_umount(mountpoint);
+		if (mountpoint) {
+			swupdate_umount(mountpoint);
+		}
 	}
 	/*
 	 * Declare that handler has finished
