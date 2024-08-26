@@ -35,19 +35,25 @@ static int diskformat(struct img_type *img,
 
 	char *force = dict_get_value(&img->properties, "force");
 
-	if (force != NULL && strtobool(force)) {
-		; /* Skip file system exists check */
-	} else {
-		/* Check if file system exists */
-		if (diskformat_fs_exists(img->device, fstype)) {
-			TRACE("Found %s file system on %s, skip mkfs",
-			      fstype, img->device);
-			return 0;
-		}
+	/* create filesystem by default */
+	bool do_mkfs = true;
+	if (force == NULL || !strtobool(force)) {
+		/* only create fs if it does not exist */
+		do_mkfs = !diskformat_fs_exists(img->device, fstype);
 	}
 
-	/* File system does not exist, create new file system */
-	ret = diskformat_mkfs(img->device, fstype);
+	if (do_mkfs) {
+		ret = diskformat_mkfs(img->device, fstype);
+	} else {
+		TRACE("Skipping mkfs on %s", img->device);
+	}
+
+	if (!ret) {
+		char *fslabel = dict_get_value(&img->properties, "fslabel");
+		if (fslabel) {
+			ret = diskformat_set_fslabel(img->device, fstype, fslabel);
+		}
+	}
 
 	/*
 	 * Declare that handler has finished
