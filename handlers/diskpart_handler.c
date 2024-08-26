@@ -1155,6 +1155,11 @@ handler_release:
 static int format_parts(struct hnd_priv priv, struct img_type *img, struct create_table *createtable)
 {
 	int ret = 0;
+
+	char *path = realpath(img->device, NULL);
+	if (!path)
+		path = strdup(img->device);
+
 	struct partition_data *part;
 	LIST_FOREACH(part, &priv.listparts, next)
 	{
@@ -1168,14 +1173,7 @@ static int format_parts(struct hnd_priv priv, struct img_type *img, struct creat
 		if (!strlen(part->fstype))
 			continue; /* Don't touch partitions without fstype */
 
-		char *path = NULL;
-		char *device = NULL;
-
-		path = realpath(img->device, NULL);
-		if (!path)
-			path = strdup(img->device);
-		device = fdisk_partname(path, partno);
-		free(path);
+		char *device = fdisk_partname(path, partno);
 
 		if (!createtable->parent && !part->force) {
 			/* Check if file system exists */
@@ -1199,6 +1197,7 @@ static int format_parts(struct hnd_priv priv, struct img_type *img, struct creat
 		if (ret)
 			break;
 	}
+	free(path);
 	return ret;
 }
 
