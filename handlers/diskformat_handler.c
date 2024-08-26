@@ -22,14 +22,14 @@ static int diskformat(struct img_type *img,
 	int ret = 0;
 
 	if (!strlen(img->device)) {
-		ERROR("diskpart handler requires setting \"device\" attribute");
+		ERROR("diskformat handler requires setting \"device\" attribute");
 		return -EINVAL;
 	}
 
 	char *fstype = dict_get_value(&img->properties, "fstype");
 
 	if (!fstype) {
-		ERROR("diskpart handler requires setting \"fstype\" attribute");
+		ERROR("diskformat handler requires setting \"fstype\" attribute");
 		return -EINVAL;
 	}
 
