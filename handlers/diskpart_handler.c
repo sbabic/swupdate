@@ -12,7 +12,6 @@
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
-#include <ctype.h>
 #include <sys/file.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
@@ -1153,6 +1152,56 @@ handler_release:
 	return ret;
 }
 
+static int format_parts(struct hnd_priv priv, struct img_type *img, struct create_table *createtable)
+{
+	int ret = 0;
+	struct partition_data *part;
+	LIST_FOREACH(part, &priv.listparts, next)
+	{
+		/*
+		 * priv.listparts counts partitions starting with 0,
+		 * but fdisk_partname expects the first partition having
+		 * the number 1.
+		 */
+		size_t partno = part->partno + 1;
+
+		if (!strlen(part->fstype))
+			continue; /* Don't touch partitions without fstype */
+
+		char *path = NULL;
+		char *device = NULL;
+
+		path = realpath(img->device, NULL);
+		if (!path)
+			path = strdup(img->device);
+		device = fdisk_partname(path, partno);
+		free(path);
+
+		if (!createtable->parent && !part->force) {
+			/* Check if file system exists */
+			ret = diskformat_fs_exists(device, part->fstype);
+
+			if (ret < 0) {
+				free(device);
+				break;
+			}
+
+			if (ret) {
+				TRACE("Found %s file system on %s, skip mkfs", part->fstype, device);
+				ret = 0;
+				free(device);
+				continue;
+			}
+		}
+
+		ret = diskformat_mkfs(device, part->fstype);
+		free(device);
+		if (ret)
+			break;
+	}
+	return ret;
+}
+
 static int diskpart(struct img_type *img,
 	void __attribute__ ((__unused__)) *data)
 {
@@ -1409,59 +1458,16 @@ handler_release:
 #ifdef CONFIG_DISKPART_FORMAT
 	/* Create filesystems */
 	if (!ret) {
-		LIST_FOREACH(part, &priv.listparts, next) {
-			/*
-			 * priv.listparts counts partitions starting with 0,
-			 * but fdisk_partname expects the first partition having
-			 * the number 1.
-			 */
-			size_t partno = part->partno + 1;
-
-			if (!strlen(part->fstype))
-				continue;  /* Don't touch partitions without fstype */
-
-			char *path = NULL;
-			char *device = NULL;
-
-			path = realpath(img->device, NULL);
-			if (!path)
-				path = strdup(img->device);
-			device = fdisk_partname(path, partno);
-			free(path);
-
-			if (!createtable->parent && !part->force) {
-				/* Check if file system exists */
-				ret = diskformat_fs_exists(device, part->fstype);
-
-				if (ret < 0) {
-					free(device);
-					break;
-				}
-
-				if (ret) {
-					TRACE("Found %s file system on %s, skip mkfs",
-						  part->fstype, device);
-					ret = 0;
-					free(device);
-					continue;
-				}
-			}
-
-			ret = diskformat_mkfs(device, part->fstype);
-			free(device);
-			if (ret)
-				break;
-		}
+		ret = format_parts(priv, img, createtable);
 	}
 #endif
 
+	/* cleanup */
 	LIST_FOREACH_SAFE(part, &priv.listparts, next, tmp) {
 		LIST_REMOVE(part, next);
 		free(part);
 	}
-
-	if (createtable)
-		free(createtable);
+	free(createtable);
 
 	/*
 	 * Declare that handler has finished
