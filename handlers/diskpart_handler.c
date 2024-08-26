@@ -1176,15 +1176,8 @@ static int format_parts(struct hnd_priv priv, struct img_type *img, struct creat
 		char *device = fdisk_partname(path, partno);
 
 		if (!createtable->parent && !part->force) {
-			/* Check if file system exists */
-			ret = diskformat_fs_exists(device, part->fstype);
-
-			if (ret < 0) {
-				free(device);
-				break;
-			}
-
-			if (ret) {
+			/* Check if file system exists and if so, skip mkfs */
+			if (diskformat_fs_exists(device, part->fstype)) {
 				TRACE("Found %s file system on %s, skip mkfs", part->fstype, device);
 				ret = 0;
 				free(device);

@@ -39,12 +39,7 @@ static int diskformat(struct img_type *img,
 		; /* Skip file system exists check */
 	} else {
 		/* Check if file system exists */
-		ret = diskformat_fs_exists(img->device, fstype);
-
-		if (ret < 0)
-			return ret;
-
-		if (ret) {
+		if (diskformat_fs_exists(img->device, fstype)) {
 			TRACE("Found %s file system on %s, skip mkfs",
 			      fstype, img->device);
 			return 0;

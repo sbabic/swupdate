@@ -74,9 +74,9 @@ char *diskformat_fs_detect(char *device)
 	return s;
 }
 
-int diskformat_fs_exists(char *device, char *fstype)
+bool diskformat_fs_exists(char *device, char *fstype)
 {
-	int ret = 0;
+	bool ret = false;
 	char *filesystem = diskformat_fs_detect(device);
 
 	if (filesystem) {
