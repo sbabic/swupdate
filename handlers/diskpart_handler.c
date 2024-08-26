@@ -61,7 +61,8 @@ enum partfield {
 	PART_DOSTYPE,
 	PART_UUID,
 	PART_FLAG,
-	PART_FORCE
+	PART_FORCE,
+	PART_FSLABEL
 };
 
 const char *fields[] = {
@@ -74,6 +75,7 @@ const char *fields[] = {
 	[PART_UUID] = "partuuid",
 	[PART_FLAG] = "flag",
 	[PART_FORCE] = "force",
+	[PART_FSLABEL] = "fslabel"
 };
 
 struct partition_data {
@@ -83,6 +85,7 @@ struct partition_data {
 	char type[SWUPDATE_GENERAL_STRING_SIZE];
 	char name[SWUPDATE_GENERAL_STRING_SIZE];
 	char fstype[SWUPDATE_GENERAL_STRING_SIZE];
+	char fslabel[SWUPDATE_GENERAL_STRING_SIZE];
 	char dostype[SWUPDATE_GENERAL_STRING_SIZE];
 	char partuuid[UUID_STR_LEN];
 	int explicit_size;
@@ -1163,6 +1166,7 @@ static int format_parts(struct hnd_priv priv, struct img_type *img, struct creat
 	struct partition_data *part;
 	LIST_FOREACH(part, &priv.listparts, next)
 	{
+		ret = 0; /* reset result */
 		/*
 		 * priv.listparts counts partitions starting with 0,
 		 * but fdisk_partname expects the first partition having
@@ -1175,17 +1179,22 @@ static int format_parts(struct hnd_priv priv, struct img_type *img, struct creat
 
 		char *device = fdisk_partname(path, partno);
 
+		bool do_mkfs = true;
 		if (!createtable->parent && !part->force) {
-			/* Check if file system exists and if so, skip mkfs */
-			if (diskformat_fs_exists(device, part->fstype)) {
-				TRACE("Found %s file system on %s, skip mkfs", part->fstype, device);
-				ret = 0;
-				free(device);
-				continue;
-			}
+			/* only create fs if it does not exist */
+			do_mkfs = !diskformat_fs_exists(device, part->fstype);
 		}
 
-		ret = diskformat_mkfs(device, part->fstype);
+		if (do_mkfs) {
+			ret = diskformat_mkfs(device, part->fstype);
+		} else {
+			TRACE("Skipping mkfs on %s", device);
+		}
+
+		if (!ret && part->fslabel[0] != '\0') {
+			ret = diskformat_set_fslabel(device, part->fstype, part->fslabel);
+		}
+
 		free(device);
 		if (ret)
 			break;
@@ -1323,6 +1332,16 @@ static int diskpart(struct img_type *img,
 						part->force = strtobool(equal);
 						TRACE("Force flag explicitly mentioned, value %d", part->force);
 						break;
+					case PART_FSLABEL:
+#ifdef CONFIG_DISKPART_FORMAT
+						strncpy(part->fslabel, equal, sizeof(part->fslabel));
+						break;
+#else
+						ERROR("Partitions have fslabel entries but diskpart format is "
+						      "missing!");
+						ret = -EINVAL;
+						goto handler_exit;
+#endif
 					}
 				}
 			}

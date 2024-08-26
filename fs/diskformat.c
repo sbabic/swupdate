@@ -66,10 +66,15 @@ char *diskformat_fs_detect(char *device)
 
 		if (len > 0) {
 			s = strndup(value, len);
+			TRACE("Found %s file system on %s", s, device);
 			break;
 		}
 	}
 	blkid_free_probe(pr);
+
+	if (!s) {
+		TRACE("Found no file system on %s", device);
+	}
 
 	return s;
 }
@@ -116,4 +121,20 @@ int diskformat_mkfs(char *device, char *fstype)
 	}
 
 	return ret;
+}
+
+int diskformat_set_fslabel(char *device, char *fstype, const char *label)
+{
+#ifdef CONFIG_FAT_FILESYSTEM
+	if (!strcmp(fstype, "vfat")) {
+		if (fat_set_label(device, label)) {
+			ERROR("%s: failed to set FAT label", device);
+			return 1;
+		}
+		return 0;
+	}
+#endif
+	/* failure by default */
+	ERROR("%s: fslabel feature not supported", fstype);
+	return 1;
 }
