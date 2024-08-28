@@ -537,8 +537,8 @@ void notify_init(void)
 	 */
 	if (sd_booted() && getenv("JOURNAL_STREAM") != NULL) {
 		dev_t device;
-		ino_t inode;
-		if (sscanf(getenv("JOURNAL_STREAM"), "%" SCNu64 ":%lu", &device, &inode) == 2) {
+		unsigned long long inode;
+		if (sscanf(getenv("JOURNAL_STREAM"), "%" SCNu64 ":%llu", &device, &inode) == 2) {
 			struct stat statbuffer;
 			if (fstat(fileno(stderr), &statbuffer) == 0) {
 				if (inode == statbuffer.st_ino && device == statbuffer.st_dev) {
