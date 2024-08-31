@@ -6,7 +6,6 @@
  */
 
 #include <lua.h>
-#include <lua_util.h>
 
 /*
  * These LuaJIT/Lua 5.1 compatibility functions are taken from
