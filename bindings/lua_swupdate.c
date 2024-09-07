@@ -23,6 +23,7 @@
 #include <stdlib.h>
 
 #include "auxiliar.h"
+#include "lua_compat.h"
 
 #define WAIT 1
 

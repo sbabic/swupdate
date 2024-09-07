@@ -21,6 +21,7 @@
 #include "lauxlib.h"
 #include "lualib.h"
 #include "lua_util.h"
+#include "lua_compat.h"
 #include "util.h"
 #include "handler.h"
 #include "bootloader.h"
