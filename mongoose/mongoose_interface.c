@@ -572,7 +572,11 @@ static void upload_handler(struct mg_connection *nc, int ev, void *ev_data)
 				break;
 			}
 			fus->c = nc;
-
+			if (!mp->part.filename.buf) {
+				mg_http_reply(nc, 400, "", "%s", "filename not set in form\n");
+				nc->is_draining = 1;
+				break;
+			}
 			struct swupdate_request req;
 			swupdate_prepare_req(&req);
 			req.len = mp->len;
