@@ -88,6 +88,7 @@ static struct option long_options[] = {
 	{"dry-run", no_argument, NULL, 'n'},
 	{"file", required_argument, NULL, 'f'},
 	{"get-root", no_argument, NULL, 'g'},
+	{"get-emmc-boot", required_argument, NULL, 'E'},
 	{"help", no_argument, NULL, 'h'},
 #ifdef CONFIG_HW_COMPATIBILITY
 	{"hwrevision", required_argument, NULL, 'H'},
@@ -479,7 +480,7 @@ int main(int argc, char **argv)
 #endif
 	memset(main_options, 0, sizeof(main_options));
 	memset(image_url, 0, sizeof(image_url));
-	strcpy(main_options, "vhni:e:gq:l:Lcf:p:P:o:s:N:R:MmB:");
+	strcpy(main_options, "vhni:e:E:gq:l:Lcf:p:P:o:s:N:R:MmB:");
 #ifdef CONFIG_MTD
 	strcat(main_options, "b:");
 #endif
@@ -525,6 +526,7 @@ int main(int argc, char **argv)
 				long_options, NULL)) != EOF) {
 		switch (c) {
 		char *root;
+		int bootdev;
 		case 'f':
 			cfgfname = sdup(optarg);
 			break;
@@ -534,6 +536,19 @@ int main(int argc, char **argv)
 				printf("%s\n", root);
 				free(root);
 			}
+			exit(EXIT_SUCCESS);
+			break;
+		case 'E':
+			int fd;
+			fd = open(optarg, O_RDONLY);
+			if (fd < 0)
+				exit(EXIT_FAILURE);
+			bootdev = emmc_get_active_bootpart(fd);
+			close(fd);
+			if (bootdev < 0) {
+				exit(EXIT_FAILURE);
+			}
+			printf("%d\n", bootdev);
 			exit(EXIT_SUCCESS);
 			break;
 		case 'l':

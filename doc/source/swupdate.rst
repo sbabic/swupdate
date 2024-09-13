@@ -452,6 +452,10 @@ Command line parameters
 +-------------+----------+--------------------------------------------+
 | --get-root  |          | Detect and print the root device and exit  |
 +-------------+----------+--------------------------------------------+
+| --get-emmc- |          | If devic eis an eMMC, reads the CSD        |
+| boot        |          | register and detect from which boot device |
+| <device>    |          | has booted (mmcblkXboot0 or mmxblkXboot1)  |
++-------------+----------+--------------------------------------------+
 | -l <level>  | int      | Set loglevel.                              |
 +-------------+----------+--------------------------------------------+
 | -L          |    -     | Send LOG output to syslog (local).         |
