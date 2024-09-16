@@ -194,7 +194,7 @@ For example, to set the version tag to `PKGV` of package `u-boot`:
 
 ::
 
-        version = "$swupdate_get_pkgvar(u-bootPKGV)";
+        version = "$swupdate_get_pkgvar(u-boot@PKGV)";
 
 Using checksum for version
 --------------------------
