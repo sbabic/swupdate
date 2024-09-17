@@ -1,0 +1,5 @@
+# SPDX-FileCopyrightText: 2024 Michael Adler <michael.adler@siemens.com>
+# SPDX-License-Identifier: CC0-1.0
+CONFIG_LUAPKG="luajit"
+CONFIG_EXTRA_CFLAGS="-g"
+CONFIG_LUASCRIPTHANDLER=y

@@ -27,6 +27,7 @@ $_SUDO apt-get install -y \
     curl \
     libzmq3-dev \
     liblua5.2-dev \
+    libluajit-5.1-dev \
     libconfig-dev \
     libarchive-dev \
     libbtrfsutil-dev \
