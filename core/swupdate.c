@@ -522,6 +522,7 @@ int main(int argc, char **argv)
 	 * Parse once the command line just to find if a
 	 * configuration file is passed
 	 */
+	int fd;
 	while ((c = getopt_long(argc, argv, main_options,
 				long_options, NULL)) != EOF) {
 		switch (c) {
@@ -539,7 +540,6 @@ int main(int argc, char **argv)
 			exit(EXIT_SUCCESS);
 			break;
 		case 'E':
-			int fd;
 			fd = open(optarg, O_RDONLY);
 			if (fd < 0)
 				exit(EXIT_FAILURE);
