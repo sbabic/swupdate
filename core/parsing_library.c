@@ -38,11 +38,37 @@ void check_field_string(const char *src, char *dst, const size_t max_len)
 
 int get_array_length(parsertype p, void *root)
 {
+	int type;
 	switch (p) {
 	case LIBCFG_PARSER:
-		return config_setting_length(root);
+		type = config_setting_type((config_setting_t *)root);
+		switch (type) {
+		case CONFIG_TYPE_LIST:
+		case CONFIG_TYPE_ARRAY:
+			return config_setting_length((config_setting_t *)root);
+		/*
+		 * Group is considered as array of length=1, like object for JSON
+		 */
+		case CONFIG_TYPE_GROUP:
+			return 1;
+		default:
+			return 0;
+		}
+
 	case JSON_PARSER:
-		return json_object_array_length(root);
+		switch (json_object_get_type((json_object *)root)) {
+		case json_type_array:
+			return json_object_array_length(root);
+		/*
+		 * It is a single object. JSON allows to move to a object if
+		 * the array has just one element, so returns 1
+		 * as this is the only element
+		 */
+		case json_type_object:
+			return 1;
+		default:
+			return 0;
+		}
 	default:
 		(void)root;
 	}
@@ -87,7 +113,10 @@ void *get_elem_from_idx(parsertype p, void *node, int idx)
 	case LIBCFG_PARSER:
 		return config_setting_get_elem(node, idx);
 	case JSON_PARSER:
-		return json_object_array_get_idx(node, idx);
+		if (json_object_get_type((json_object *)node) == json_type_array) {
+			return json_object_array_get_idx(node, idx);
+		}
+		return node;
 	default:
 		(void)node;
 		(void)idx;

@@ -25,6 +25,7 @@ void *get_node_libconfig(config_t *cfg, const char **nodes);
 #define config_setting_get_elem(a,b)	(NULL)
 #define config_setting_length(a)	(0)
 #define config_setting_lookup_string(a, b, str) (0)
+#define config_setting_type(path) (0)
 #define find_node_libconfig(cfg, field, swcfg) (NULL)
 #define get_field_string_libconfig(e, path)	(NULL)
 #define get_child_libconfig(e, name)		(NULL)
@@ -33,6 +34,9 @@ void *get_node_libconfig(config_t *cfg, const char **nodes);
 #define find_root_libconfig(cfg, nodes, depth)		(NULL)
 #define get_node_libconfig(cfg, nodes)		(NULL)
 #define is_field_numeric_cfg(e, path)	(false)
+#define CONFIG_TYPE_GROUP   1
+#define CONFIG_TYPE_ARRAY   7
+#define CONFIG_TYPE_LIST    8
 #endif
 
 /*
