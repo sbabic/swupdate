@@ -16,7 +16,8 @@ typedef enum {
 	ROOT_DEV_PATH,
 	ROOT_DEV_UUID,
 	ROOT_DEV_PARTUUID,
-	ROOT_DEV_PARTLABEL
+	ROOT_DEV_PARTLABEL,
+	ROOT_DEV_UNKNOWN
 } root_dev_type;
 
 void LUAstackDump (lua_State *L);

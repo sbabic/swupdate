@@ -847,21 +847,27 @@ static int l_getroot(lua_State *L) {
 	root_dev_type type = ROOT_DEV_PATH;
 	char **root = NULL;
 	char *value = rootdev;
-	char* dev_path = getroot_dev_path((char*)"", rootdev);
+	char* dev_path = NULL;
 
-	root = string_split(rootdev, '=');
-	if (count_string_array((const char **)root) > 1) {
-		if (!strncmp(root[0], "UUID", strlen("UUID"))) {
-			type = ROOT_DEV_UUID;
-			dev_path = getroot_dev_path((char*)"/dev/disk/by-uuid/", root[1]);
-		} else if (!strncmp(root[0], "PARTUUID", strlen("PARTUUID"))) {
-			type = ROOT_DEV_PARTUUID;
-			dev_path = getroot_dev_path((char*)"/dev/disk/by-partuuid/", root[1]);
-		} else if (!strncmp(root[0], "PARTLABEL", strlen("PARTLABEL"))) {
-			type = ROOT_DEV_PARTLABEL;
-			dev_path = getroot_dev_path((char*)"/dev/disk/by-partlabel/", root[1]);
+	if (rootdev) {
+		dev_path = getroot_dev_path((char*)"", rootdev);
+		root = string_split(rootdev, '=');
+		if (count_string_array((const char **)root) > 1) {
+			if (!strncmp(root[0], "UUID", strlen("UUID"))) {
+				type = ROOT_DEV_UUID;
+				dev_path = getroot_dev_path((char*)"/dev/disk/by-uuid/", root[1]);
+			} else if (!strncmp(root[0], "PARTUUID", strlen("PARTUUID"))) {
+				type = ROOT_DEV_PARTUUID;
+				dev_path = getroot_dev_path((char*)"/dev/disk/by-partuuid/", root[1]);
+			} else if (!strncmp(root[0], "PARTLABEL", strlen("PARTLABEL"))) {
+				type = ROOT_DEV_PARTLABEL;
+				dev_path = getroot_dev_path((char*)"/dev/disk/by-partlabel/", root[1]);
+			}
+			value = root[1];
 		}
-		value = root[1];
+	} else {
+		type = ROOT_DEV_UNKNOWN;
+		value = (char *)"";
 	}
 	lua_newtable (L);
 	if (dev_path) {
@@ -1258,6 +1264,7 @@ static int luaopen_swupdate(lua_State *L)
 	lua_push_enum(L, "UUID", ROOT_DEV_UUID);
 	lua_push_enum(L, "PARTUUID", ROOT_DEV_PARTUUID);
 	lua_push_enum(L, "PARTLABEL", ROOT_DEV_PARTLABEL);
+	lua_push_enum(L, "PARTUNKNOWN", ROOT_DEV_UNKNOWN);
 	lua_settable(L, -3);
 
 	if (is_type(L, LUA_TYPE_HANDLER)) {
