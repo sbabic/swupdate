@@ -1159,6 +1159,7 @@ int parse_json(struct swupdate_cfg *swcfg, const char *filename, char **error)
 	if (!cfg) {
 		if (asprintf(error, "JSON File corrupted") == ENOMEM_ASPRINTF) {
 			ERROR("OOM when caching error");
+			free(string);
 			return -ENOMEM;
 		}
 		free(string);
