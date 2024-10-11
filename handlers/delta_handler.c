@@ -940,17 +940,16 @@ static int install_delta(struct img_type *img,
 		char *filesystem = diskformat_fs_detect(priv->srcdev);
 		if (filesystem) {
 			char* DATADST_DIR;
-			if (asprintf(&DATADST_DIR, "%s%s", get_tmpdir(), DATADST_DIR_SUFFIX) != -1)  {
-				if (!swupdate_mount(priv->srcdev, DATADST_DIR, filesystem)) {
+
+			DATADST_DIR = swupdate_temporary_mount(MNT_DATA, priv->srcdev, filesystem);
+			if (DATADST_DIR) {
 					struct statvfs vfs;
 					if (!statvfs(DATADST_DIR, &vfs)) {
 						TRACE("Detected filesystem %s, block size : %lu, %lu blocks =  %lu size",
 						       filesystem, vfs.f_frsize, vfs.f_blocks, vfs.f_frsize * vfs.f_blocks);
 						priv->srcsize = vfs.f_frsize * vfs.f_blocks;
 					}
-					swupdate_umount(DATADST_DIR);
-				}
-				free(DATADST_DIR);
+					swupdate_temporary_umount(DATADST_DIR);
 			}
 			free(filesystem);
 		}

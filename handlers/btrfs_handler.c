@@ -48,17 +48,14 @@ static int btrfs(struct img_type *img,
 			ERROR("btrfs must be mounted, no device set");
 			return -EINVAL;
 		}
-		globalpath = alloca(strlen(get_tmpdir()) +
-				strlen(DATADST_DIR_SUFFIX) + strlen(subvol_path) + 2);
-		sprintf(globalpath, "%s%s", get_tmpdir(), DATADST_DIR_SUFFIX);
-		mountpoint = strdupa(globalpath);
 		DEBUG("Try to mount %s as BTRFS", mountpoint);
-		ret = swupdate_mount(img->device, mountpoint, "btrfs");
-		if (ret) {
+		mountpoint = swupdate_temporary_mount(MNT_DATA, img->device, "btrfs");
+		if (!mountpoint) {
 			ERROR("%s cannot be mounted with btrfs", img->device);
 			return -1;
 		}
-		globalpath = strcat(globalpath, subvol_path);
+		globalpath = alloca(strlen(mountpoint) + strlen(subvol_path) + 2);
+		globalpath = strcat(mountpoint, subvol_path);
 	} else
 		globalpath = subvol_path;
 

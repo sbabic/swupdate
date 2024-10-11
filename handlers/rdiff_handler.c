@@ -281,10 +281,9 @@ static int apply_rdiff_patch(struct img_type *img,
 
 		base_file_filename = img->path;
 		if (use_mount) {
-			mountpoint = alloca(strlen(get_tmpdir()) + strlen(DATADST_DIR_SUFFIX) + 1);
-			sprintf(mountpoint, "%s%s", get_tmpdir(), DATADST_DIR_SUFFIX);
+			mountpoint = swupdate_temporary_mount(MNT_DATA, img->device, img->filesystem);
 
-			if (swupdate_mount(img->device, mountpoint, img->filesystem) != 0) {
+			if (!mountpoint) {
 				ERROR("Device %s with filesystem %s cannot be mounted",
 					  img->device, img->filesystem);
 				ret = -1;
@@ -417,8 +416,8 @@ cleanup:
 			ERROR("Cannot delete temporary file %s, please clean up manually: %s",
 			      dest_file_filename, strerror(errno));
 		}
-		if (use_mount == true) {
-			swupdate_umount(mountpoint);
+		if (use_mount == true && mountpoint) {
+			swupdate_temporary_umount(mountpoint);
 		}
 	}
 	return ret;

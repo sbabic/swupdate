@@ -155,8 +155,7 @@ static int install_raw_file(struct img_type *img,
 	int ret = -1;
 	int cleanup_ret = 0;
 	int use_mount = (strlen(img->device) && strlen(img->filesystem)) ? 1 : 0;
-	char* DATADST_DIR = alloca(strlen(get_tmpdir())+strlen(DATADST_DIR_SUFFIX)+1);
-	sprintf(DATADST_DIR, "%s%s", get_tmpdir(), DATADST_DIR_SUFFIX);
+	char* DATADST_DIR = NULL;
 
 	if (strlen(img->path) == 0) {
 		ERROR("Missing path attribute");
@@ -164,8 +163,8 @@ static int install_raw_file(struct img_type *img,
 	}
 
 	if (use_mount) {
-		ret = swupdate_mount(img->device, DATADST_DIR, img->filesystem);
-		if (ret) {
+		DATADST_DIR = swupdate_temporary_mount(MNT_DATA, img->device, img->filesystem);
+		if (!DATADST_DIR) {
 			ERROR("Device %s with filesystem %s cannot be mounted: %s",
 				img->device, img->filesystem, strerror(errno));
 			return -1;
@@ -245,9 +244,10 @@ cleanup:
 		close(fdout);
 
 	if (use_mount) {
-		cleanup_ret = swupdate_umount(DATADST_DIR);
-		if (cleanup_ret)
-			WARN("Can't unmount path %s: %s", DATADST_DIR, strerror(errno));
+		/*
+		 * error is already tracked by umount
+		 */
+		swupdate_temporary_umount(DATADST_DIR);
 	}
 
 	return (ret ? ret : cleanup_ret);

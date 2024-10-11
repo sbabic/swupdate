@@ -244,9 +244,7 @@ static int install_archive_image(struct img_type *img,
 		return -EINVAL;
 	}
 
-	if ((asprintf(&DATADST_DIR, "%s%s", get_tmpdir(), DATADST_DIR_SUFFIX) ==
-		ENOMEM_ASPRINTF) ||
-		(asprintf(&FIFO, "%s%s", get_tmpdir(), FIFO_FILE_NAME) ==
+	if ((asprintf(&FIFO, "%s%s", get_tmpdir(), FIFO_FILE_NAME) ==
 		ENOMEM_ASPRINTF)) {
 		ERROR("Path too long: %s", get_tmpdir());
 		exitval = -ENOMEM;
@@ -257,8 +255,8 @@ static int install_archive_image(struct img_type *img,
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
 	if (use_mount) {
-		ret = swupdate_mount(img->device, DATADST_DIR, img->filesystem);
-		if (ret) {
+		DATADST_DIR = swupdate_temporary_mount(MNT_DATA, img->device, img->filesystem);
+		if (!DATADST_DIR) {
 			ERROR("Device %s with filesystem %s cannot be mounted",
 				img->device, img->filesystem);
 			exitval = -EINVAL;
@@ -380,14 +378,10 @@ out:
 		unlink(FIFO);
 
 	if (is_mounted) {
-		ret = swupdate_umount(DATADST_DIR);
-		if (ret) {
-			TRACE("Failed to unmount directory %s", DATADST_DIR);
-		}
+		swupdate_temporary_umount(DATADST_DIR);
 	}
 
 	sync();
-	free(DATADST_DIR);
 	free(FIFO);
 
 	return exitval;
