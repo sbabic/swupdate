@@ -852,6 +852,69 @@ int swupdate_umount(const char *dir)
 #endif
 }
 
+static const char *mount_points[] = {
+	[MNT_SCRIPTS] = SCRIPTS_DIR_SUFFIX,
+	[MNT_DATA] = DATADST_DIR_SUFFIX,
+	[MNT_BOOT_SCRIPTS] = BOOT_SCRIPT_SUFFIX
+};
+
+char *swupdate_temporary_mount(tmp_mountpoint_t type, const char *device, const char *fstype)
+{
+	char *mountpoint;
+	const char *dir;
+	int ret = 0;
+
+	if (type != MNT_SCRIPTS && type != MNT_DATA && type != MNT_BOOT_SCRIPTS)
+		return NULL;
+
+	if (!device || !strlen(device)) {
+		ERROR("Mount requested without Device");
+		return NULL;
+	}
+
+	dir = mount_points[type];
+	if (asprintf(&mountpoint, "%s%sXXXXXX", get_tmpdir(), dir) == -1) {
+		ERROR("Unable to allocate memory");
+		return NULL;
+	}
+
+	if (!mkdtemp(mountpoint)) {
+		TRACE("Unable to create a unique temporary directory %s: %s",
+			mountpoint, strerror(errno));
+		free(mountpoint);
+		return NULL;
+	}
+
+	ret = swupdate_mount(device, mountpoint, fstype);
+	if (ret) {
+		TRACE("Device %s with filesystem %s cannot be mounted: %s",
+			device, fstype, strerror(errno));
+		rmdir(mountpoint);
+		free(mountpoint);
+		return NULL;
+	}
+
+	return mountpoint;
+}
+
+int swupdate_temporary_umount(char *mountpoint)
+{
+	int ret = 0;
+	if (swupdate_umount(mountpoint)) {
+		TRACE("Unable to unmount %s: %s", mountpoint, strerror(errno));
+		ret = -EFAULT;
+	}
+	if (ret == 0 && rmdir(mountpoint) == -1) {
+		if (errno != EROFS) {
+			TRACE("Unable to remove directory %s: %s", mountpoint, strerror(errno));
+			ret = -EROFS;
+		}
+	}
+	free(mountpoint);
+
+	return ret;
+}
+
 /*
  * Date time in SWUpdate
  * @return : date in ISO8601 (it must be freed by caller)

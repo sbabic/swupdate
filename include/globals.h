@@ -30,3 +30,9 @@
 #define SCRIPTS_DIR_SUFFIX	"scripts/"
 #define DATADST_DIR_SUFFIX	"datadst/"
 #define BOOT_SCRIPT_SUFFIX	"boot-script"
+
+typedef enum {
+	MNT_SCRIPTS,
+	MNT_DATA,
+	MNT_BOOT_SCRIPTS
+} tmp_mountpoint_t;

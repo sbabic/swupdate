@@ -290,6 +290,8 @@ int swupdate_remove_directory(const char* path);
 
 int swupdate_mount(const char *device, const char *dir, const char *fstype);
 int swupdate_umount(const char *dir);
+char *swupdate_temporary_mount(tmp_mountpoint_t type, const char *device, const char *fstype);
+int swupdate_temporary_umount(char *mountpoint);
 
 /* Date / Time utilities */
 char *swupdate_time_iso8601(struct timeval *tv);
