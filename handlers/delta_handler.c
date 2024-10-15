@@ -39,7 +39,7 @@
 #include "delta_handler.h"
 #include "multipart_parser.h"
 #include "zchunk_range.h"
-#include "chained_handler.h"
+#include "handler_helpers.h"
 #include "swupdate_image.h"
 
 #define DEFAULT_MAX_RANGES	150	/* Apache has default = 200 */

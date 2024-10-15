@@ -14,7 +14,7 @@
 #include <fcntl.h>
 #include <pthread.h>
 #include <unistd.h>
-#include "chained_handler.h"
+#include "handler_helpers.h"
 #include "installer.h"
 #include "pctl.h"
 #include "util.h"

@@ -30,7 +30,7 @@
 #include "progress.h"
 #include "handler.h"
 #include "util.h"
-#include "chained_handler.h"
+#include "handler_helpers.h"
 #include "installer.h"
 
 #define PIPE_READ  0
