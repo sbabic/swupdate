@@ -211,7 +211,6 @@ bool is_hex_str(const char *ascii);
 #define max_t(type,x,y) \
 	({ type __x = (x); type __y = (y); __x > __y ? __x: __y; })
 
-char *sdup(const char *str);
 bool strtobool(const char *s);
 
 /*

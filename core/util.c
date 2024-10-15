@@ -59,14 +59,6 @@ static struct decryption_key *aes_key = NULL;
 
 static char *fwenv_config = NULL;
 
-char *sdup(const char *str) {
-	char *p;
-	if ((p = (char *) malloc(strlen(str) + 1)) != NULL) {
-		strcpy(p, str);
-	}
-	return p;
-}
-
 static char* TMPDIR = NULL;
 static char* TMPDIRSCRIPT = NULL;
 

@@ -530,7 +530,7 @@ int main(int argc, char **argv)
 		char *root;
 		int bootdev;
 		case 'f':
-			cfgfname = sdup(optarg);
+			cfgfname = strdup(optarg);
 			break;
 		case 'g':
 			root = get_root_device();
@@ -570,7 +570,7 @@ int main(int argc, char **argv)
 	if (cfgfname == NULL) {
 		struct stat stbuf;
 		if (stat(CONFIG_DEFAULT_CONFIG_FILE, &stbuf) == 0) {
-			cfgfname = sdup(CONFIG_DEFAULT_CONFIG_FILE);
+			cfgfname = strdup(CONFIG_DEFAULT_CONFIG_FILE);
 		}
 	}
 
