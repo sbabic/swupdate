@@ -237,6 +237,7 @@ int syslog_init(void);
 
 char **splitargs(char *args, int *argc);
 char *mstrcat(const char **nodes, const char *delim);
+char *swupdate_strcat(int n, ...);
 char** string_split(const char* a_str, const char a_delim);
 char *substring(const char *src, int first, int len);
 char *string_tolower(char *s);

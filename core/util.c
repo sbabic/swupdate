@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <unistd.h>
 #include <string.h>
 #include <ctype.h>
@@ -293,6 +294,23 @@ char *mstrcat(const char **nodes, const char *delim)
 		}
 	}
 	return dest;
+}
+
+char *swupdate_strcat(int n, ...)
+{
+	const char *nodes[n + 1];
+
+	va_list valist;
+
+	va_start(valist, n);
+
+	for(int i = 0; i < n; i++)
+		nodes[i] = va_arg(valist, const char *);
+	nodes[n] = NULL;
+
+	va_end(valist);
+
+	return mstrcat(nodes, NULL);
 }
 
 /*
