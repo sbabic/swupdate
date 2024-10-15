@@ -154,7 +154,7 @@ static int install_raw_file(struct img_type *img,
 	int fdout = -1;
 	int ret = -1;
 	int cleanup_ret = 0;
-	int use_mount = (strlen(img->device) && strlen(img->filesystem)) ? 1 : 0;
+	bool use_mount = (strlen(img->device) && strlen(img->filesystem)) ? true : false;
 	char* DATADST_DIR = NULL;
 
 	if (strlen(img->path) == 0) {

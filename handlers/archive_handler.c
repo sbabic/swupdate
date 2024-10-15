@@ -233,7 +233,7 @@ static int install_archive_image(struct img_type *img,
 	char pwd[256] = "\0";
 	struct extract_data tf;
 	pthread_attr_t attr;
-	int use_mount = (strlen(img->device) && strlen(img->filesystem)) ? 1 : 0;
+	bool use_mount = (strlen(img->device) && strlen(img->filesystem)) ? true : false;
 	int is_mounted = 0;
 	int exitval = -EFAULT;
 	char *DATADST_DIR = NULL;
