@@ -145,6 +145,7 @@ static void usage(char *programname)
 		" -e, --select <software>,<mode> : Select software images set and source\n"
 		"                                  Ex.: stable,main\n"
 		" -g, --get-root                 : detect and print the root device and exit\n" 
+		" -E, --get-emmc-boot <device>   : read the boot partition (CSD register) for a /dev/mmcblkX device\n"
 		" -q, --accepted-select\n"
 		"            <software>,<mode>   : List for software images set and source\n"
 		"                                  that are accepted via IPC\n"
