@@ -249,10 +249,15 @@ void start_subprocess(sourcetype type, const char *name,
  * run_cmd executes a shell script or an internal function in background
  * in a separate process and intercepts stdout and stderr, writing then to
  * TRACE and ERROR.
+ *
  * This let the output of the scripts / functions to be collected by SWUpdate
  * tracing capabilities.
+ *
+ * @param[in] cmd external process to be launched
+ * @param[in] fn  internal SWUpdate function to be executed in process
+ * @param[in] fdin pipe[2] file with descriptors to be used as stdin by the bg process
  */
-static int __run_cmd(const char *cmd, bgtask *fn)
+static int __run_cmd(const char *cmd, bgtask *fn, int *fdin)
 {
 	int ret = 0;
 	int const npipes = 4;
@@ -317,6 +322,9 @@ static int __run_cmd(const char *cmd, bgtask *fn)
 			exit(errno);
 		if (dup2(pipes[1][PIPE_WRITE], STDERR_FILENO) < 0)
 			exit(errno);
+		if (fdin && (dup2(fdin[0], STDIN_FILENO) < 0))
+			exit(errno);
+
 		/* posix sh cannot use fd >= 10, so dup these to lower
 		 * numbers for convenience */
 		if (dup2(pipes[2][PIPE_WRITE], 3) < 0)
@@ -331,6 +339,11 @@ static int __run_cmd(const char *cmd, bgtask *fn)
 			close(pipes[i][PIPE_READ]);
 			close(pipes[i][PIPE_WRITE]);
 		}
+		/*
+		 * close the write part of the pipe
+		 */
+		if (fdin)
+			close(fdin[1]);
 
 		if (!execute_function) {
 			ret = execl("/bin/sh", "sh", "-c", cmd, (char *)NULL);
@@ -442,7 +455,11 @@ static int __run_cmd(const char *cmd, bgtask *fn)
 }
 
 int run_system_cmd(const char *cmd) {
-	return __run_cmd(cmd, NULL);
+	return __run_cmd(cmd, NULL, NULL);
+}
+
+int run_system_cmd_with_fdin(const char *cmd, int *fdin) {
+	return __run_cmd(cmd, NULL, fdin);
 }
 
 int run_function_background(void *fn, int argc, char **argv) {
@@ -452,7 +469,7 @@ int run_function_background(void *fn, int argc, char **argv) {
 	bg.argc = argc;
 	bg.argv = argv;
 
-	return __run_cmd(NULL, &bg);
+	return __run_cmd(NULL, &bg, NULL);
 }
 /*
  * The handler supervises the subprocesses
