@@ -27,41 +27,7 @@
 #include "parselib.h"
 #include "swupdate_image.h"
 #include "docker_interface.h"
-
-#define FIFO_THREAD_READ	0
-#define FIFO_HND_WRITE		1
-
-struct hnd_load_priv {
-	int fifo[2];	/* PIPE where to write */
-	size_t	totalbytes;
-	int exit_status;
-};
-
-/*
- * This is the copyimage's callback. When called,
- * there is a buffer to be passed to curl connections
- * This is part of the image load: using copyimage() the image is
- * transferred without copy to the daemon.
- */
-static int transfer_data(void *data, const void *buf, size_t len)
-{
-	struct hnd_load_priv *priv = (struct hnd_load_priv *)data;
-	ssize_t written;
-	unsigned int nbytes = len;
-	const void *tmp = buf;
-
-	while (nbytes) {
-		written = write(priv->fifo[FIFO_HND_WRITE], buf, len);
-		if (written < 0) {
-			ERROR ("Cannot write to fifo");
-			return -EFAULT;
-		}
-		nbytes -= written;
-		tmp += written;
-	}
-
-	return 0;
-}
+#include "handler_helpers.h"
 
 /*
  * Background threa dto transfer the image to the daemon.
@@ -125,7 +91,7 @@ static int docker_install_image(struct img_type *img,
 			goto handler_exit;
 	}
 
-	ret = copyimage(&priv, img, transfer_data);
+	ret = copyimage(&priv, img, handler_transfer_data);
 	if (ret) {
 		ERROR("Transferring SWU image was not successful");
 		ret = FAILURE;

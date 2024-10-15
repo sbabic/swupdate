@@ -12,4 +12,14 @@ struct chain_handler_data {
 	struct img_type img;
 };
 
+#define FIFO_THREAD_READ	0
+#define FIFO_HND_WRITE		1
+
+struct hnd_load_priv {
+	int fifo[2];	/* PIPE where to write */
+	size_t	totalbytes;
+	int exit_status;
+};
+
 extern void *chain_handler_thread(void *data);
+extern int handler_transfer_data(void *data, const void *buf, size_t len);
