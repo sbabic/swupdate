@@ -102,6 +102,54 @@ static void unstack_installation_status(getstatus callback)
 	} while (ipcmsg.data.status.current != IDLE);
 }
 
+/* Consume progress events
+ *
+ * Returns:
+ *        -1 error
+ *   FAILURE the installation failed
+ *   SUCCESS the installation suceeded
+ *         0 no event or other events consumed
+ *
+ * On error, progressfd is closed and set to -1.
+ */
+static int consume_progress_events(int *progressfd)
+{
+	struct progress_msg progressmsg;
+	int ret = -1;
+
+	/* Wait until the end of the installation (FAILURE or SUCCESS) */
+	while (1) {
+		int err = progress_ipc_receive_nb(progressfd, &progressmsg);
+		if (err < 0) {
+			/* Note that progressfd may have been closed by progress_ipc_receive
+			 * and set to -1 */
+			fprintf(stderr, "progress_ipc_receive_nb failed (%d)\n", ret);
+			ret = -1;
+			break;
+		} else if (err == 0) {
+			/* no pending message */
+			ret = 0;
+			break;
+		}
+
+		if (progressmsg.status == FAILURE || progressmsg.status == SUCCESS) {
+			/* We have the final result of the installation */
+			ret = progressmsg.status;
+			break;
+		} else {
+			/* Other status (START, RUN, PROGRESS) */
+			/* continue consuming messages */
+			continue;
+		}
+	}
+
+	if (ret == -1 && *progressfd >= 0) {
+		close(*progressfd);
+		*progressfd = -1;
+	}
+
+	return ret;
+}
 
 static void *swupdate_async_thread(void *data)
 {
@@ -113,6 +161,8 @@ static void *swupdate_async_thread(void *data)
 	struct async_lib *rq = (struct async_lib *)data;
 	int swupdate_result = FAILURE;
 	int progressfd = -1;
+	int ret;
+	int early_status = -1;
 
 	sigemptyset(&sigpipe_mask);
 	sigaddset(&sigpipe_mask, SIGPIPE);
@@ -122,6 +172,16 @@ static void *swupdate_async_thread(void *data)
 		swupdate_result = FAILURE;
 		goto out;
 	}
+	/* Start listening to progress events, before sending
+	 * the image so that we don't miss the result event.
+	 */
+	progressfd = progress_ipc_connect(0 /* no reconnect */);
+	if (progressfd < 0) {
+		fprintf(stderr, "progress_ipc_connect failed\n");
+		ipc_end(rq->connfd);
+		goto out;
+	}
+
 	/* Start writing the image until end */
 
 	do {
@@ -136,26 +196,40 @@ static void *swupdate_async_thread(void *data)
 				goto out;
 			}
 		}
+		/* Consume progress events so that the pipe does not get full
+		 * and block the daemon */
+		ret = consume_progress_events(&progressfd);
+		if (ret == -1) {
+			/* If we cannot get events, then we won't be able to get the result.
+			 * Quit and fail */
+			fprintf(stderr, "Cannot consume progress events. Fail.\n");
+			early_status = FAILURE;
+			break;
+		} else if (ret == FAILURE || ret == SUCCESS) {
+			/* early termination */
+			fprintf(stderr, "early termination while sending the image: %s\n",
+			        ret==SUCCESS?"SUCCESS":"FAILURE");
+			early_status = ret;
+			/* interrupt the transfer */
+			break;
+		}
 	} while(size > 0);
 
-	/* Start listening to progress events, before ipc_end
-	 * so that we don't miss the result event.
-	 */
-	progressfd = progress_ipc_connect(0 /* no reconnect */);
- 
 	ipc_end(rq->connfd);
-
-	if (progressfd < 0) {
-		fprintf(stderr, "progress_ipc_connect failed\n");
-		goto out;
-	}
 
 	/*
 	 * Everything sent, wait for completion of the installation
 	 */
 
-	/* Wait until the end of the installation and get the final result */
-	swupdate_result = inst_wait_for_complete(&progressfd); /* progressfd closed by the call */
+	if (early_status >= 0) {
+		swupdate_result = early_status;
+		close(progressfd);
+		progressfd = -1;
+
+	} else {
+		/* Wait until the end of the installation and get the final result */
+		swupdate_result = inst_wait_for_complete(&progressfd); /* progressfd closed by the call */
+	}
 
 	/*
 	 * Get and print all status lines, for compatibility with legacy programs
