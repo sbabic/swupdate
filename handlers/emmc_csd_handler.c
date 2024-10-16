@@ -47,6 +47,9 @@ static int emmc_csd_set(struct img_type *img, void *data, bool toggle)
 	struct script_handler_data *script_data = data;
 	char tmpdev[SWUPDATE_GENERAL_STRING_SIZE];
 
+	if (!script_data)
+		return -EINVAL;
+
 	if (script_data->scriptfn == PREINSTALL)
 		return 0;
 	
