@@ -8,12 +8,13 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <errno.h>
+#include <poll.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <unistd.h>
 #include <stdbool.h>
-
 #include <progress_ipc.h>
 
 #ifdef CONFIG_SOCKET_PROGRESS_PATH
@@ -40,10 +41,114 @@ char *get_prog_socket(void) {
 	return SOCKET_PROGRESS_PATH;
 }
 
+/* Decrease timeout depending on elapsed time */
+static int update_timeout(const struct timespec *initial_time, int *timeout_ms)
+{
+	struct timespec current_time;
+	int diff_timeout_ms;
+	struct timespec elapsed;
+	int err = clock_gettime(CLOCK_MONOTONIC, &current_time);
+	if (err) {
+		return -errno;
+	}
+	elapsed.tv_sec = current_time.tv_sec - initial_time->tv_sec;
+	elapsed.tv_nsec = current_time.tv_nsec - initial_time->tv_nsec;
+
+	diff_timeout_ms = *timeout_ms - (elapsed.tv_sec*1000 + elapsed.tv_nsec/1E6);
+
+	*timeout_ms = diff_timeout_ms;
+	return 0;
+}
+
+static int progress_ipc_recv_ack(int fd, struct progress_connect_ack *ack)
+{
+	struct timespec initial_time;
+	int err;
+	int ret = 0; /* 0 == success */
+	int timeout_ms = 5000; /* 5 s should be enough in most cases as the socket is local */
+	err = clock_gettime(CLOCK_MONOTONIC, &initial_time);
+	if (err) {
+		return -errno;
+	}
+
+	unsigned int size_to_read = sizeof(struct progress_connect_ack);
+	unsigned int offset = 0;
+
+	while (size_to_read > 0) {
+		int err_poll;
+		struct pollfd pfds[1];
+		pfds[0].fd = fd;
+		pfds[0].events = POLLIN;
+		do {
+			err_poll = poll(pfds, 1, timeout_ms);
+			int err_update_timeout = update_timeout(&initial_time, &timeout_ms);
+			if (err_update_timeout) return err_update_timeout;
+		} while (err_poll < 0 && errno == EINTR);
+
+		if (err_poll == -1) {
+			ret = -errno;
+			break;
+		} else if (err_poll == 0) {
+			/* Timeout */
+			ret = -ETIME;
+			break;
+		} else if (pfds[0].revents & POLLHUP) {
+			/* The peer closed its end of the channel */
+			/* (note that some operating systems also set POLLIN in this case) */
+			ret = -ECONNRESET;
+			break;
+		} else if (pfds[0].revents & POLLIN) {
+			/* There is a message to read */
+			int n = read(fd, (void*)ack + offset, size_to_read);
+			if (n == -1 && errno == EINTR) {
+				continue; /* redo poll() and timeout management */
+			} else if (0 == n) {
+				/* error, as at least 1 byte should be pending */
+				ret = -ENODATA;
+			} else if (n < 0) {
+				/* read error */
+				ret = -errno;
+				break;
+			}
+			size_to_read -= n;
+			offset += n;
+
+		} else {
+			/* unexpected error */
+			ret = -EOPNOTSUPP;
+		}
+	}
+
+	return ret;
+}
+
+/* Wait for the daemon to send an ACK
+ *
+ * Returns:
+ *      0 success
+ *     <0 error (timeout, peer closed, invalid ACK, ...)
+ */
+static int progress_ipc_wait_for_ack(int fd)
+{
+	struct progress_connect_ack ack;
+	int err = progress_ipc_recv_ack(fd, &ack);
+	if (err) {
+		return err;
+	}
+	if (! progress_is_major_version_compatible(ack.apiversion)) {
+		return -EBADMSG;
+	}
+	if (0 != strcmp(ack.magic, PROGRESS_CONNECT_ACK_MAGIC)) {
+		return -EBADMSG;
+	}
+	return 0;
+}
+
 static int _progress_ipc_connect(const char *socketpath, bool reconnect)
 {
 	struct sockaddr_un servaddr;
 	int fd = socket(AF_LOCAL, SOCK_STREAM, 0);
+	int err;
 	bzero(&servaddr, sizeof(servaddr));
 	servaddr.sun_family = AF_LOCAL;
 	strncpy(servaddr.sun_path, socketpath, sizeof(servaddr.sun_path) - 1);
@@ -66,6 +171,13 @@ static int _progress_ipc_connect(const char *socketpath, bool reconnect)
 
 		usleep(10000);
 	} while (true);
+
+	/* Connected. Wait for ACK */
+	err = progress_ipc_wait_for_ack(fd);
+	if (err < 0) {
+		close(fd);
+		return -1;
+	}
 
 	return fd;
 }

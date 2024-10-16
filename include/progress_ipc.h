@@ -38,13 +38,18 @@ extern char* SOCKET_PROGRESS_PATH;
  * - changes in major mean an incompatibility and clients do not work anymore
  */
 
-#define PROGRESS_API_MAJOR	1
+#define PROGRESS_API_MAJOR	2
 #define PROGRESS_API_MINOR	0
 #define PROGRESS_API_PATCH	0
 
 #define PROGRESS_API_VERSION 	((PROGRESS_API_MAJOR & 0xFFFF) << 16 | \
 				(PROGRESS_API_MINOR & 0xFF) << 8 | \
 				(PROGRESS_API_PATCH & 0xFF))
+
+inline int progress_is_major_version_compatible(unsigned int other_version)
+{
+	return  PROGRESS_API_MAJOR == ((other_version >> 16) & 0xFFFF);
+}
 /*
  * Message sent via progress socket.
  * Data is sent in LE if required.
@@ -62,6 +67,12 @@ struct progress_msg {
 	sourcetype	source;		/* Interface that triggered the update */
 	unsigned int 	infolen;    	/* Len of data valid in info */
 	char		info[PRINFOSIZE]; /* additional information about install */
+};
+
+#define PROGRESS_CONNECT_ACK_MAGIC "ACK"
+struct progress_connect_ack {
+	unsigned int apiversion; /* API Version for compatibility check */
+	char magic[4];           /* null-terminated string */
 };
 
 char *get_prog_socket(void);

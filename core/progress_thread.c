@@ -253,6 +253,46 @@ void swupdate_progress_done(const char *info)
 	pthread_mutex_unlock(&pprog->lock);
 }
 
+static int progress_send_connect_ack(int connfd)
+{
+	ssize_t n;
+	size_t remaining_bytes;
+	int ret = 0; /* 0==success */
+	void *buf;
+	struct progress_connect_ack ack;
+	memset(&ack, 0, sizeof(ack));
+	ack.apiversion = PROGRESS_API_VERSION;
+	strncpy(ack.magic, PROGRESS_CONNECT_ACK_MAGIC, strlen(PROGRESS_CONNECT_ACK_MAGIC));
+
+	remaining_bytes = sizeof(ack);
+	buf = &ack;
+	while (remaining_bytes > 0) {
+		n = send(connfd, buf, remaining_bytes, MSG_NOSIGNAL);
+		if (n < 0) {
+			if (EINTR == errno) {
+				continue;
+			} else if (EPIPE == errno || ECONNRESET == errno) {
+				TRACE("progress_send_connect_ack: closed by peer (%d)", errno);
+				ret = -1;
+				break;
+			} else {
+				ERROR("progress_send_connect_ack: send error %d", errno);
+				ret = -1;
+				break;
+			}
+		} else if (0 == n) {
+			/* Should not happen */
+			ERROR("progress_send_connect_ack: send returned zero");
+			ret = -1;
+			break;
+		}
+		remaining_bytes -= (size_t)n;
+		buf = (char*)buf + n;
+	}
+
+	return ret;
+}
+
 void *progress_bar_thread (void __attribute__ ((__unused__)) *data)
 {
 	int listen, connfd;
@@ -260,6 +300,7 @@ void *progress_bar_thread (void __attribute__ ((__unused__)) *data)
 	struct sockaddr_un cliaddr;
 	struct swupdate_progress *pprog = &progress;
 	struct progress_conn *conn;
+	int err;
 
 	pthread_mutex_init(&pprog->lock, NULL);
 	SIMPLEQ_INIT(&pprog->conns);
@@ -296,7 +337,15 @@ void *progress_bar_thread (void __attribute__ ((__unused__)) *data)
 		}
 		conn->sockfd = connfd;
 		pthread_mutex_lock(&pprog->lock);
-		SIMPLEQ_INSERT_TAIL(&pprog->conns, conn, next);
+		/* Send an ACK to the client to indicate that it is duly registered */
+		err = progress_send_connect_ack(connfd);
+		if (err) {
+			ERROR("progress_bar_thread: Could not send progress ACK");
+			close(conn->sockfd);
+			free(conn);
+		} else {
+			SIMPLEQ_INSERT_TAIL(&pprog->conns, conn, next);
+		}
 		pthread_mutex_unlock(&pprog->lock);
 	} while(1);
 }
