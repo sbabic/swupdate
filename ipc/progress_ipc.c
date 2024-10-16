@@ -212,3 +212,34 @@ int progress_ipc_receive(int *connfd, struct progress_msg *msg) {
 
 	return ret;
 }
+
+int progress_ipc_receive_nb(int *connfd, struct progress_msg *msg) {
+	int ret = -1;
+	int err_poll;
+	struct pollfd pfds[1];
+	pfds[0].fd = *connfd;
+	pfds[0].events = POLLIN;
+	do {
+		err_poll = poll(pfds, 1, 0);
+	} while (err_poll == -1 && errno == EINTR);
+
+	if (err_poll == -1) {
+		/* poll error */
+		ret = -1;
+	} else if (err_poll == 0) {
+		/* no pending message */
+		ret = 0;
+	} else if (pfds[0].revents & POLLIN) {
+		/* there is a message to read or the peer closed its end of the channel */
+		/* (some operating systems set POLLIN|POLLHUP on this later case) */
+		ret = progress_ipc_receive(connfd, msg);
+	} else if (pfds[0].revents & POLLHUP) {
+		/* the peer closed its end of the channel */
+		ret = -1;
+	} else {
+		/* unexpected error */
+		ret = -1;
+	}
+
+	return ret;
+}

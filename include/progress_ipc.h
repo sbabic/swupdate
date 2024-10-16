@@ -86,8 +86,9 @@ int progress_ipc_connect(bool reconnect);
  */
 int progress_ipc_connect_with_path(const char *socketpath, bool reconnect);
 
-/* Retrieve messages from progress interface (it blocks) */
+/* Retrieve messages from progress interface (blocking and non-blocking) */
 int progress_ipc_receive(int *connfd, struct progress_msg *msg);
+int progress_ipc_receive_nb(int *connfd, struct progress_msg *msg);
 
 #ifdef __cplusplus
 }   // extern "C"
