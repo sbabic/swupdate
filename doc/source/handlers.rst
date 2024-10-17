@@ -1278,8 +1278,8 @@ found on the device. It is a partition handler and it runs before any image is i
 		}
 	});
 
-BTRFS Handler
--------------
+BTRFS Partition Handler
+-----------------------
 
 This handler is activated if support for BTRFS is on. It allows to created and delete subvolumes
 during an update.
@@ -1299,8 +1299,56 @@ during an update.
 	})
 
 
-If `mount` is set, SWUpdate will mount the device and the path is appenden to the
+If `mount` is set, SWUpdate will mount the device and the path is appended to the
 mountpoint used with mount. If device is already mounted, path is the absolute path.
+
+BTRFS Snapshot Handler
+----------------------
+
+The handler allows to install a BTRFS snapshot created with the "btrfs send" command.
+SWUpdate is using the external "btrfs" utility, that must be installed on the target,
+and "btrfs receive" is executed by sending the stream to the command.
+
+All generic features are avaiulable, that means that an srtifact can be streamed by
+using the "installed-directly" attribute.
+
+
+::
+
+        images: (
+	{
+		filename = "btrfs-snapshot";
+		type = "btrfs-receive";
+		device = <optional, device with BTRFS fs, must be set if tomount is "true">;
+		properties: {
+			path = <mandatory, path where to install subvolume>;
+			btrfs-cmd = <optional, path to btrfs command>;
+                        tomount = <boolean, optional, "true" / "false" >;
+		}
+	})
+
+If `tomount` is set, SWUpdate will temporary mount "device" as BTRFS filesystem and will try to install
+the snapshot to `path`. `btrfs-cmd` is optional, fallback is /usr/bin/btrfs.
+
+Generic Executor handler
+------------------------
+
+The BTRFS snapshot handler requires to stream an artifact after normal handling
+(decompression, decryption, etc.) to the external command "btrfs" without any temporary copy.
+The same infrastucture can be used to stream any artifact to any arbitrary external command
+that accepts the stream as stdin. This is done with the "executor" handler.
+
+
+::
+
+		{
+			filename = "test";
+			type = "executor";
+			properties: {
+				cmd = <mandatory, command to be executed in a pipe>;
+			}
+		}
+
 
 Delta Update Handler
 --------------------

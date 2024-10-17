@@ -7,13 +7,16 @@
 
 #include <errno.h>
 #include <stdio.h>
-#include <util.h>
 #include <unistd.h>
 #include <blkid/blkid.h>
+#include <pthread.h>
 #include <btrfsutil.h>
 #include "progress.h"
 #include "swupdate_image.h"
 #include "handler.h"
+#include <util.h>
+#include <pctl.h>
+#include "handler_helpers.h"
 
 typedef enum {
 	BTRFS_UNKNOWN,
@@ -21,7 +24,34 @@ typedef enum {
 	BTRFS_DELETE_SUBVOLUME
 } btrfs_op_t;
 
-void btrfs_handler(void);
+#define BTRFS_MOUNT(mount, device, mnt, subvol, path) do {  \
+	if (mount) { \
+		if (!btrfs_mount(device, &mnt)) { \
+			ERROR("%s cannot be mounted with btrfs", device); \
+			return -1; \
+		} \
+		path = swupdate_strcat(2, mnt, subvol); \
+	} else \
+		path = strdup(subvol); \
+} while (0)
+
+/*
+ * This is just a wrapper as some parms are fixed
+ * (filesystem, etc)
+ */
+static bool btrfs_mount(const char *device, char **mnt)
+{
+	if (!mnt)
+		return false;
+
+	*mnt = swupdate_temporary_mount(MNT_DATA, device, "btrfs");
+	if (!*mnt) {
+		ERROR("%s cannot be mounted with btrfs", device);
+		return false;
+	}
+
+	return true;
+}
 
 static int btrfs(struct img_type *img,
 		      void __attribute__ ((__unused__)) *data)
@@ -32,7 +62,8 @@ static int btrfs(struct img_type *img,
 
 	char *subvol_path = dict_get_value(&img->properties, "path");
 	char *cmd = dict_get_value(&img->properties, "command");
-	char *globalpath;
+	bool tomount = strtobool(dict_get_value(&img->properties, "mount"));
+	char *globalpath = NULL;
 	char *mountpoint = NULL;
 
 	op = IS_STR_EQUAL(cmd, "create") ? BTRFS_CREATE_SUBVOLUME :
@@ -42,22 +73,8 @@ static int btrfs(struct img_type *img,
 		ERROR("Wrong operation of btrfs filesystem: %s", cmd);
 		return -EINVAL;
 	}
-	bool tomount = strtobool(dict_get_value(&img->properties, "mount"));
-	if (tomount) {
-		if (!strlen(img->device)) {
-			ERROR("btrfs must be mounted, no device set");
-			return -EINVAL;
-		}
-		DEBUG("Try to mount %s as BTRFS", mountpoint);
-		mountpoint = swupdate_temporary_mount(MNT_DATA, img->device, "btrfs");
-		if (!mountpoint) {
-			ERROR("%s cannot be mounted with btrfs", img->device);
-			return -1;
-		}
-		globalpath = alloca(strlen(mountpoint) + strlen(subvol_path) + 2);
-		globalpath = strcat(mountpoint, subvol_path);
-	} else
-		globalpath = subvol_path;
+
+	BTRFS_MOUNT(tomount, img->device, mountpoint, subvol_path, globalpath);
 
 	DEBUG("%s subvolume %s...", (op == BTRFS_CREATE_SUBVOLUME) ? "Creating" : "Deleting", subvol_path);
 	switch (op) {
@@ -78,27 +95,74 @@ static int btrfs(struct img_type *img,
 		ret = -1;
 	}
 
-	if (tomount) {
+	if (tomount && mountpoint) {
 		/*
 		 * btrfs needs some time after creating a subvolume,
 		 * so just delay here
 		 */
 		sleep(1);
-		if (mountpoint) {
-			swupdate_umount(mountpoint);
-		}
+		swupdate_umount(mountpoint);
 	}
 	/*
 	 * Declare that handler has finished
 	 */
 	swupdate_progress_update(100);
 
+	free(globalpath);
+
+	return ret;
+}
+
+static int install_btrfs_snapshot(struct img_type *img,
+		      void __attribute__ ((__unused__)) *data)
+{
+	int ret = 0;
+	struct bgtask_handle btrfs_handle;
+	char *subvol_path = dict_get_value(&img->properties, "path");
+	bool tomount = strtobool(dict_get_value(&img->properties, "mount"));
+	const char *btrfscmd = dict_get_value(&img->properties, "btrfs-cmd");
+	char *globalpath = NULL;
+	char *mountpoint = NULL;
+
+	/*
+	 * if no path for the command is found, the handler assumes that
+	 * btrfs is in standard path
+	 */
+	if (!btrfscmd)
+		btrfscmd = "/usr/bin/btrfs ";
+
+	BTRFS_MOUNT(tomount, img->device, mountpoint, subvol_path, globalpath);
+
+	btrfs_handle.cmd = btrfscmd;
+
+	/*
+	 * Note: btrfs tool writes to stderr instead of stdout
+	 * and SWUpdate will intercept and show the output as error
+	 * even if they are not. Just redirect it to stdout to drop
+	 * error messages
+	 */
+	btrfs_handle.parms = swupdate_strcat(3, " receive ", globalpath, " 2>&1");
+	free(globalpath);
+	btrfs_handle.img = img;
+
+	ret = bgtask_handler(&btrfs_handle);
+
+	if (tomount && mountpoint)
+		swupdate_umount(mountpoint);
+	free(btrfs_handle.parms);
 	return ret;
 }
 
 __attribute__((constructor))
-void btrfs_handler(void)
+static void btrfs_handler(void)
 {
 	register_handler("btrfs", btrfs,
 			 PARTITION_HANDLER | NO_DATA_HANDLER, NULL);
+}
+
+__attribute__((constructor))
+static void btrfs_receive_handler(void)
+{
+	register_handler("btrfs-receive", install_btrfs_snapshot,
+				IMAGE_HANDLER, NULL);
 }

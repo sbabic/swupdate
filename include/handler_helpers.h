@@ -21,5 +21,12 @@ struct hnd_load_priv {
 	int exit_status;
 };
 
-extern void *chain_handler_thread(void *data);
+struct bgtask_handle {
+	const char *cmd;
+	char *parms;
+	struct img_type *img;
+};
+
+void *chain_handler_thread(void *data);
 extern int handler_transfer_data(void *data, const void *buf, size_t len);
+int bgtask_handler(struct bgtask_handle *bg);
