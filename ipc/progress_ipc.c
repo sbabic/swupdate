@@ -25,6 +25,11 @@ char *SOCKET_PROGRESS_PATH = NULL;
 
 #define SOCKET_PROGRESS_DEFAULT  "swupdateprog"
 
+static inline int progress_is_major_version_compatible(unsigned int other_version)
+{
+	return  PROGRESS_API_MAJOR == ((other_version >> 16) & 0xFFFF);
+}
+
 char *get_prog_socket(void) {
 	if (!SOCKET_PROGRESS_PATH || !strlen(SOCKET_PROGRESS_PATH)) {
 		const char *socketdir = getenv("RUNTIME_DIRECTORY");

@@ -46,10 +46,6 @@ extern char* SOCKET_PROGRESS_PATH;
 				(PROGRESS_API_MINOR & 0xFF) << 8 | \
 				(PROGRESS_API_PATCH & 0xFF))
 
-inline int progress_is_major_version_compatible(unsigned int other_version)
-{
-	return  PROGRESS_API_MAJOR == ((other_version >> 16) & 0xFFFF);
-}
 /*
  * Message sent via progress socket.
  * Data is sent in LE if required.
