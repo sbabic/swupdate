@@ -28,12 +28,12 @@
 int handler_transfer_data(void *data, const void *buf, size_t len)
 {
 	struct hnd_load_priv *priv = (struct hnd_load_priv *)data;
-	ssize_t written;
-	unsigned int nbytes = len;
-	const void *tmp = buf;
+	size_t nbytes = len;
+	const char *tmp = buf;
 
-	while (nbytes) {
-		written = write(priv->fifo[FIFO_HND_WRITE], buf, len);
+	while (nbytes > 0) {
+		ssize_t written;
+		written = write(priv->fifo[FIFO_HND_WRITE], tmp, nbytes);
 		if (written < 0) {
 			ERROR ("Cannot write to fifo");
 			return -EFAULT;
