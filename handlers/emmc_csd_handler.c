@@ -62,7 +62,7 @@ static int emmc_csd_set(struct img_type *img, void *data, bool toggle)
 			ERROR("The value for boot device is not set");
 			return -EINVAL;
 		}
-		active = strtoul(&boot[5], NULL, 10);
+		active = strtoul(&boot[4], NULL, 10);
 		if (errno || (active != 0 && active != 1)) {
 			ERROR("Wrong boot device set: %s", img->device);
 
