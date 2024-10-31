@@ -85,6 +85,7 @@ struct swupdate_cfg {
 	const char *embscript;
 	char gpg_home_directory[SWUPDATE_GENERAL_STRING_SIZE];
 	char gpgme_protocol[SWUPDATE_GENERAL_STRING_SIZE];
+	int swdesc_max_size;
 };
 
 struct swupdate_cfg *get_swupdate_cfg(void);

@@ -73,7 +73,8 @@ pthread_cond_t stream_cond = PTHREAD_COND_INITIALIZER;
 
 static struct installer inst;
 
-static int extract_file_to_tmp(int fd, const char *fname, unsigned long *poffs, bool encrypted)
+static int extract_file_to_tmp(int fd, const char *fname, unsigned long *poffs,
+			       bool encrypted, int max_size)
 {
 	char output_file[MAX_IMAGE_FNAME];
 	struct filehdr fdh;
@@ -93,6 +94,11 @@ static int extract_file_to_tmp(int fd, const char *fname, unsigned long *poffs, 
 	if (snprintf(output_file, sizeof(output_file), "%s%s", TMPDIR,
 		     fdh.filename) >= (int)sizeof(output_file)) {
 		ERROR("Path too long: %s%s", TMPDIR, fdh.filename);
+		return -1;
+	}
+	if (max_size && fdh.size >= max_size) {
+		ERROR("%s size (%ld) exceeds configured max of %d, aborting",
+			fdh.filename, fdh.size, max_size);
 		return -1;
 	}
 	TRACE("Found file");
@@ -172,7 +178,8 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 		switch (status) {
 		/* Waiting for the first Header */
 		case STREAM_WAIT_DESCRIPTION:
-			if (extract_file_to_tmp(fd, SW_DESCRIPTION_FILENAME, &offset, encrypted_sw_desc) < 0 )
+			if (extract_file_to_tmp(fd, SW_DESCRIPTION_FILENAME, &offset,
+						encrypted_sw_desc, software->swdesc_max_size) < 0 )
 				return -1;
 
 			status = STREAM_WAIT_SIGNATURE;
@@ -181,7 +188,8 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 		case STREAM_WAIT_SIGNATURE:
 #ifdef CONFIG_SIGNED_IMAGES
 			snprintf(output_file, sizeof(output_file), "%s.sig", SW_DESCRIPTION_FILENAME);
-			if (extract_file_to_tmp(fd, output_file, &offset, false) < 0 )
+			if (extract_file_to_tmp(fd, output_file, &offset, false,
+						software->swdesc_max_size) < 0 )
 				return -1;
 #endif
 			snprintf(output_file, sizeof(output_file), "%s%s", TMPDIR, SW_DESCRIPTION_FILENAME);
@@ -461,6 +469,17 @@ static int save_stream(int fdin, struct swupdate_cfg *software)
 		tmpsize -= sizeof(struct new_ascii_header);
 
 		/*
+		 * This doubles with check in extract_file_to_tmp, but it does not make
+		 * sense to check after having copied everything once in tmpfd...
+		 */
+		if (software->swdesc_max_size && fdh.size >= software->swdesc_max_size) {
+			ERROR("sw-description size (%ld) exceeds configured max of %d, aborting",
+				fdh.size, software->swdesc_max_size);
+			ret = -EINVAL;
+			goto no_copy_output;
+		}
+
+		/*
 		 * copy the remaining bytes to have a complete cpio block
 		 */
 		ret = cpfiles(fdin, tmpfd, tmpsize);
@@ -472,14 +491,16 @@ static int save_stream(int fdin, struct swupdate_cfg *software)
 	lseek(tmpfd, 0, SEEK_SET);
 	offset = 0;
 
-	if (extract_file_to_tmp(tmpfd, SW_DESCRIPTION_FILENAME, &offset, encrypted_sw_desc) < 0) {
+	if (extract_file_to_tmp(tmpfd, SW_DESCRIPTION_FILENAME, &offset,
+				encrypted_sw_desc, software->swdesc_max_size) < 0) {
 		ERROR("%s cannot be extracted", SW_DESCRIPTION_FILENAME);
 		ret = -EINVAL;
 		goto no_copy_output;
 	}
 #ifdef CONFIG_SIGNED_IMAGES
 	snprintf(output_file, sizeof(output_file), "%s.sig", SW_DESCRIPTION_FILENAME);
-	if (extract_file_to_tmp(tmpfd, output_file, &offset, false) < 0 ) {
+	if (extract_file_to_tmp(tmpfd, output_file, &offset, false,
+				software->swdesc_max_size) < 0 ) {
 		ERROR("Signature cannot be extracted:%s", output_file);
 		ret = -EINVAL;
 		goto no_copy_output;

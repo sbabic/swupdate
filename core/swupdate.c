@@ -361,14 +361,16 @@ static int read_globals_settings(void *elem, void *data)
 
 	char software_select[SWUPDATE_GENERAL_STRING_SIZE] = "";
 	GET_FIELD_STRING(LIBCFG_PARSER, elem, "select", software_select);
-	GET_FIELD_STRING(LIBCFG_PARSER, elem,
-				"gpg-home-dir", sw->gpg_home_directory);
-	GET_FIELD_STRING(LIBCFG_PARSER, elem,
-				"gpgme-protocol", sw->gpgme_protocol);
 	if (software_select[0] != '\0') {
 		/* by convention, errors in a configuration section are ignored */
 		(void)parse_image_selector(software_select, sw);
 	}
+	GET_FIELD_STRING(LIBCFG_PARSER, elem,
+				"gpg-home-dir", sw->gpg_home_directory);
+	GET_FIELD_STRING(LIBCFG_PARSER, elem,
+				"gpgme-protocol", sw->gpgme_protocol);
+	GET_FIELD_INT(LIBCFG_PARSER, elem, "sw-description-max-size",
+				&sw->swdesc_max_size);
 
 	return 0;
 }
