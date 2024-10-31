@@ -420,6 +420,7 @@ static int parse_common_attributes(parsertype p, void *elem, struct img_type *im
 	GET_FIELD_STRING(p, elem, "filesystem", image->filesystem);
 	GET_FIELD_STRING(p, elem, "type", image->type);
 	GET_FIELD_STRING(p, elem, "data", image->type_data);
+	GET_FIELD_INT64(p, elem, "size", &image->size);
 	get_hash_value(p, elem, image->sha256);
 
 	/*

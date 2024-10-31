@@ -58,6 +58,12 @@ swupdate_file_t check_if_required(struct imglist *list, struct filehdr *pfdh,
 		if (strcmp(pfdh->filename, img->fname) == 0) {
 			skip = COPY_FILE;
 			img->provided = 1;
+			if (img->size && img->size != (unsigned int)pfdh->size) {
+				ERROR("Size in sw-description %llu does not match size in cpio %u",
+					img->size, (unsigned int)pfdh->size);
+				return -EINVAL;
+
+			}
 			img->size = (unsigned int)pfdh->size;
 
 			if (snprintf(img->extract_file,

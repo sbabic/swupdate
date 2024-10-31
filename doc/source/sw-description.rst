@@ -1491,3 +1491,8 @@ There are 4 main sections inside sw-description:
    |             |          |            | the mtd to update, instead of         |
    |             |          |            | specifying the devicenode             |
    +-------------+----------+------------+---------------------------------------+
+   | size        | int64    | images     | size of the file as it is expected    |
+   |             |          | files      | in the SWU. If set and the cpio size  |
+   |             |          | scripts    | does not match for some reason the    |
+   |             |          |            | update will fail with an error.       |
+   +-------------+----------+------------+---------------------------------------+
