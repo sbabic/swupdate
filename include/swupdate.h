@@ -88,22 +88,5 @@ struct swupdate_cfg {
 	char gpgme_protocol[SWUPDATE_GENERAL_STRING_SIZE];
 };
 
-#define SEARCH_FILE(img, list, found, offs) do { \
-	if (!found) { \
-		for (img = list.lh_first; img != NULL; \
-			img = img->next.le_next) { \
-			if (strcmp(img->fname, fdh.filename) == 0) { \
-				found = 1; \
-				img->offset = offs; \
-				img->provided = 1; \
-				img->size = fdh.size; \
-			} \
-		} \
-		if (!found) \
-			img = NULL; \
-	} \
-} while(0)
-
-int cpio_scan(int fd, struct swupdate_cfg *cfg, off_t start);
 struct swupdate_cfg *get_swupdate_cfg(void);
 void free_image(struct img_type *img);

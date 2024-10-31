@@ -772,65 +772,6 @@ int extract_img_from_cpio(int fd, unsigned long offset, struct filehdr *fdh)
 	return 0;
 }
 
-int cpio_scan(int fd, struct swupdate_cfg *cfg, off_t start)
-{
-	struct filehdr fdh;
-	unsigned long offset = start;
-	int file_listed;
-	uint32_t checksum;
-
-	while (1) {
-		file_listed = 0;
-		start = offset;
-		if (extract_cpio_header(fd, &fdh, &offset)) {
-			return -1;
-		}
-		if (strcmp("TRAILER!!!", fdh.filename) == 0) {
-			return 0;
-		}
-
-		struct img_type *img = NULL;
-		SEARCH_FILE(img, cfg->images, file_listed, start);
-		SEARCH_FILE(img, cfg->scripts, file_listed, start);
-		SEARCH_FILE(img, cfg->bootscripts, file_listed, start);
-
-		TRACE("Found file:\n\tfilename %s\n\tsize %lu\n\t%s",
-			fdh.filename,
-			fdh.size,
-			file_listed ? "REQUIRED" : "not required");
-
-		/*
-		 * use copyfile for checksum and hash verification, as we skip file
-		 * we do not have to provide fdout
-		 */
-		struct swupdate_copy copy = {
-			.fdin = fd,
-			.nbytes = fdh.size,
-			.offs = &offset,
-			.skip_file = 1,
-			.checksum = &checksum,
-			.hash = img ? img->sha256 : NULL,
-		};
-		if (copyfile(&copy) != 0) {
-			ERROR("invalid archive");
-			return -1;
-		}
-
-		if (!swupdate_verify_chksum(checksum, &fdh)) {
-			return -1;
-		}
-
-		/* Next header must be 4-bytes aligned */
-		offset += NPAD_BYTES(offset);
-		if (lseek(fd, offset, SEEK_SET) < 0) {
-			ERROR("CPIO file corrupted : %s", strerror(errno));
-			return -1;
-		}
-	}
-
-	return 0;
-}
-
 bool swupdate_verify_chksum(const uint32_t chk1, struct filehdr *fhdr) {
 	bool ret = (chk1 == fhdr->chksum);
 	if (fhdr->format == CPIO_NEWASCII)
