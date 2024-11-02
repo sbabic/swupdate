@@ -592,7 +592,7 @@ static int server_general_settings(void *elem, void  __attribute__ ((__unused__)
 	}
 
 	GET_FIELD_INT(LIBCFG_PARSER, elem, "polldelay",
-		&server_general.polling_interval);
+		(int *)&server_general.polling_interval);
 
 	channel_settings(elem, &channel_data_defaults);
 
