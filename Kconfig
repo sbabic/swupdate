@@ -248,7 +248,7 @@ comment "Lua support needs a Lua interpreter"
 
 config LUAPKG
 	string "Lua pkg-config name"
-	default "lua"
+	default "lua5.2"
 	depends on LUA
 	help
 	  Which pkg-config package supplies the Lua API.

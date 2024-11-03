@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2021 Stefano Babic <stefano.babic@swupdate.org>
 # SPDX-License-Identifier: CC0-1.0
 CONFIG_HW_COMPATIBILITY=y
-CONFIG_LUAPKG="lua5.2"
 CONFIG_EXTRA_CFLAGS="-g"
 CONFIG_DOWNLOAD=y
 CONFIG_SURICATTA=y

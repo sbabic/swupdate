@@ -91,6 +91,7 @@ define pkg_check_modules
 $(1)_CFLAGS := $(shell $(PKG_CONFIG) $(PKG_CONFIG_FLAGS) --cflags $(2))
 $(1)_LIBS := $(shell $(PKG_CONFIG) $(PKG_CONFIG_FLAGS) --libs $(2))
 $(1)_LDLIBS := $(patsubst -l%,%,$(shell $(PKG_CONFIG) $(PKG_CONFIG_FLAGS) --libs-only-l $(2)))
+$(1)_VERSION := $(shell $(PKG_CONFIG) $(PKG_CONFIG_FLAGS) --modversion $(2) | cut -d'.' -f1,2)
 endef
 
 ifneq ($(CONFIG_EXTRA_CFLAGS),)
@@ -110,11 +111,15 @@ LDLIBS += pthread ubootenv json-c
 # lua
 ifneq ($(CONFIG_LUA),)
 LDFLAGS_swupdate += -Wl,-E
+ifeq ($(shell $(PKG_CONFIG) $(PKG_CONFIG_FLAGS) --exists ${CONFIG_LUAPKG}; echo $$?), 0)
 $(eval $(call pkg_check_modules, LUABUILD, ${CONFIG_LUAPKG}))
+else ifeq ($(shell $(PKG_CONFIG) $(PKG_CONFIG_FLAGS) --exists lua; echo $$?), 0)
+$(eval $(call pkg_check_modules, LUABUILD, lua))
+endif
 KBUILD_CFLAGS += $(LUABUILD_CFLAGS)
 KBUILD_LIBS += $(LUABUILD_LIBS)
 LDLIBS += $(LUABUILD_LDLIBS)
-LUAVER :=  $(shell $(PKG_CONFIG) $(PKG_CONFIG_FLAGS) --modversion ${CONFIG_LUAPKG} | cut -d'.' -f1,2)
+LUAVER :=  $(LUABUILD_VERSION)
 endif
 
 ifeq ($(CONFIG_LUA),y)
