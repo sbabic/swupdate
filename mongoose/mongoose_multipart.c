@@ -233,6 +233,7 @@ static int mg_http_multipart_process_boundary(struct mg_connection *c) {
 		}
 
 		block_begin += line_len;
+		data_size -= line_len;
 	}
 
 	mp_stream->state = MPS_WAITING_FOR_BOUNDARY;
