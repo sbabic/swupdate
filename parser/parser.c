@@ -515,13 +515,6 @@ static int _parse_partitions(parsertype p, void *cfg, void *setting, const char 
 
 		partition->provided = 1;
 
-		if ((!strlen(partition->volname) && !strcmp(partition->type, "ubipartition")) ||
-				!strlen(partition->device)) {
-			ERROR("Partition incompleted in description file");
-			free_image(partition);
-			return -1;
-		}
-
 		GET_FIELD_INT64(p, elem, "size", &partition->partsize);
 
 		add_properties(p, elem, partition);
@@ -535,6 +528,14 @@ static int _parse_partitions(parsertype p, void *cfg, void *setting, const char 
 			free_image(partition);
 			continue;
 		}
+
+		if ((!strlen(partition->volname) && !strcmp(partition->type, "ubipartition")) ||
+				!strlen(partition->device)) {
+			ERROR("Partition incompleted in description file");
+			free_image(partition);
+			return -1;
+		}
+
 		TRACE("Partition: %s new size %lld bytes",
 			!strcmp(partition->type, "ubipartition") ? partition->volname : partition->device,
 			partition->partsize);
