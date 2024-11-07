@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <unistd.h>
+#include <util.h>
 #include <string.h>
 #include <errno.h>
 #include <sys/ioctl.h>
@@ -62,7 +63,7 @@ static void textcolor(int attr, int fg, int bg)
 static struct option long_options[] = {
 	{"help", no_argument, NULL, 'h'},
 	{"psplash", no_argument, NULL, 'p'},
-	{"reboot", no_argument, NULL, 'r'},
+	{"reboot", optional_argument, NULL, 'r'},
 	{"wait", no_argument, NULL, 'w'},
 	{"color", no_argument, NULL, 'c'},
 	{"socket", required_argument, NULL, 's'},
@@ -79,7 +80,8 @@ static void usage(char *programname)
 	fprintf(stdout,
 		" -c, --color             : Use colors to show results\n"
 		" -e, --exec <script>     : call the script with the result of update\n"
-		" -r, --reboot            : reboot after a successful update\n"
+		" -r, --reboot [<script>] : reboot after a successful update by calling the given script or\n"
+		"                           by calling the reboot() syscall by default\n"
 		" -w, --wait              : wait for a connection with SWUpdate\n"
 		" -p, --psplash           : send info to the psplash process\n"
 		" -s, --socket <path>     : path to progress IPC socket\n"
@@ -189,13 +191,20 @@ static void fill_progress_bar(char *bar, size_t size, unsigned int percent)
 	memset(&bar[filled_len], '-', remain);
 }
 
-static void reboot_device(void)
+static void reboot_device(const char* reboot_script)
 {
-	sleep(5);
-	sync();
-	if (reboot(RB_AUTOBOOT) < 0) { /* Should never happen. */
-		fprintf(stdout, "Please reset the board.\n");
+	if (reboot_script) {
+		/* A user might not expect the program to continue running ... */
+		if (system(reboot_script) >= 0)
+			while (true);
+	} else {
+		sleep(5);
+		sync();
+		if (reboot(RB_AUTOBOOT) >= 0)
+			return;
 	}
+
+	fprintf(stdout, "Please reset the board.\n");
 }
 
 static void run_post_script(char *script, struct progress_msg *msg)
@@ -231,6 +240,7 @@ int main(int argc, char **argv)
 	int opt_p = 0;
 	int c;
 	char *script = NULL;
+	char *reboot_script = NULL;
 	bool wait_update = true;
 	bool disable_reboot = false;
 	bool redirected = false;
@@ -250,6 +260,11 @@ int main(int argc, char **argv)
 			break;
 		case 'r':
 			opt_r = 1;
+			if ((!optarg) && (optind < argc) &&
+			    (argv[optind] != NULL) &&
+			    (argv[optind][0] != '-')) {
+				SETSTRING(reboot_script, argv[optind++]);
+			}
 			break;
 		case 's':
 			SOCKET_PROGRESS_PATH = strdup(optarg);
@@ -432,7 +447,7 @@ int main(int argc, char **argv)
 			}
 
 			if ((msg.status == SUCCESS) && (msg.cur_step > 0) && opt_r && !disable_reboot) {
-				reboot_device();
+				reboot_device(reboot_script);
 			}
 			/*
 			 * Reset per update variables after update.
@@ -458,7 +473,7 @@ int main(int argc, char **argv)
 					psplash_ok = 0;
 				}
 				if (opt_r && strcasestr(msg.info, "firmware")) {
-					reboot_device();
+					reboot_device(reboot_script);
 					break;
 				}
 				fprintf(stdout, "\nDon't know how to activate this update, doing nothing.\n");
