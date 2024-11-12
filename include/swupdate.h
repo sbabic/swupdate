@@ -76,7 +76,6 @@ struct swupdate_cfg {
 	struct swver installed_sw_list;
 	struct imglist images;
 	struct imglist scripts;
-	struct imglist bootscripts;
 	struct dict bootloader;
 	struct dict vars;
 	struct dict accepted_set;

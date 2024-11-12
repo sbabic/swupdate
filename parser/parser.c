@@ -649,7 +649,6 @@ static int _parse_bootloader(parsertype p, void *cfg, void *setting, const char 
 {
 	void *elem;
 	int count, i, skip, err;
-	struct img_type *script;
 	struct img_type dummy;
 
 	if (setting == NULL) {
@@ -676,58 +675,27 @@ static int _parse_bootloader(parsertype p, void *cfg, void *setting, const char 
 		/*
 		 * Check for mandatory field
 		 */
-		if(exist_field_string(p, elem, "name")) {
-			/*
-			 * Call directly get_field_string with size 0
-			 * to let allocate the place for the strings
-			 */
-			GET_FIELD_STRING(p, elem, "name", dummy.id.name);
-			GET_FIELD_STRING(p, elem, "value", dummy.id.version);
-			skip = run_embscript(p, elem, &dummy, L, swcfg->embscript);
-			if (skip < 0) {
-				return -1;
-			}
-			if (!skip) {
-				dict_set_value(&swcfg->bootloader, dummy.id.name, dummy.id.version);
-				TRACE("Bootloader var: %s = %s",
-					dummy.id.name,
-					dict_get_value(&swcfg->bootloader, dummy.id.name));
-			}
-			continue;
-		}
-
-		/*
-		 * Check if it is a bootloader script
-		 */
-		if(!(exist_field_string(p, elem, "filename"))) {
-			TRACE("bootloader entry is neither a script nor name/value.");
-			continue;
-		}
-		script = (struct img_type *)calloc(1, sizeof(struct img_type));
-		if (!script) {
-			ERROR( "No memory: malloc failed");
-			return -ENOMEM;
-		}
-
-		if (parse_common_attributes(p, elem, script, swcfg) < 0) {
-			free_image(script);
+		if(!exist_field_string(p, elem, "name")) {
+			ERROR("No variable set in bootenv section");
 			return -1;
 		}
 
-		script->is_script = 1;
-
-		skip = run_embscript(p, elem, script, L, swcfg->embscript);
-		if (skip != 0 || script->skip != SKIP_NONE) {
-			free_image(script);
-			if (skip < 0)
-				return -1;
-			continue;
+		/*
+		 * Call directly get_field_string with size 0
+		 * to let allocate the place for the strings
+		 */
+		GET_FIELD_STRING(p, elem, "name", dummy.id.name);
+		GET_FIELD_STRING(p, elem, "value", dummy.id.version);
+		skip = run_embscript(p, elem, &dummy, L, swcfg->embscript);
+		if (skip < 0) {
+			return -1;
 		}
-
-		LIST_INSERT_HEAD(&swcfg->bootscripts, script, next);
-
-		TRACE("Found U-Boot Script: %s",
-			script->fname);
+		if (!skip) {
+			dict_set_value(&swcfg->bootloader, dummy.id.name, dummy.id.version);
+			TRACE("Bootloader var: %s = %s",
+				dummy.id.name,
+				dict_get_value(&swcfg->bootloader, dummy.id.name));
+		}
 	}
 
 	return 0;

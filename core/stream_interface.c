@@ -217,8 +217,7 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 			}
 
 			struct imglist *list[] = {&software->images,
-						  &software->scripts,
-						  &software->bootscripts};
+						  &software->scripts};
 
 			for (unsigned int i = 0; i < ARRAY_SIZE(list); i++) {
 				skip = check_if_required(list[i], &fdh,

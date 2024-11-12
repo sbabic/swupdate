@@ -181,8 +181,6 @@ int parse(struct swupdate_cfg *sw, const char *descfile)
 					"images / files");
 	ret |= check_handler_list(&sw->images, PARTITION_HANDLER, IS_PARTITION,
 					"partitions");
-	ret |= check_handler_list(&sw->bootscripts, BOOTLOADER_HANDLER, IS_SCRIPT,
-					"bootloader");
 	if (ret)
 		return -EINVAL;
 

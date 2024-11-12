@@ -270,7 +270,6 @@ static void swupdate_init(struct swupdate_cfg *sw)
 	LIST_INIT(&sw->images);
 	LIST_INIT(&sw->hardware);
 	LIST_INIT(&sw->scripts);
-	LIST_INIT(&sw->bootscripts);
 	LIST_INIT(&sw->bootloader);
 	LIST_INIT(&sw->extprocs);
 	sw->cert_purpose = SSL_PURPOSE_DEFAULT;

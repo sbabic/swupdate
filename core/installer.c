@@ -359,7 +359,6 @@ int install_images(struct swupdate_cfg *sw)
 	/* Extract all scripts, preinstall scripts must be run now */
 	const char* tmpdir_scripts = get_tmpdirscripts();
 	ret = extract_scripts(&sw->scripts);
-	ret |= extract_scripts(&sw->bootscripts);
 	if (ret) {
 		ERROR("extracting script to %s failed", tmpdir_scripts);
 		return ret;
@@ -470,8 +469,6 @@ int install_images(struct swupdate_cfg *sw)
 		}
 	}
 
-	ret |= run_prepost_scripts(&sw->bootscripts, POSTINSTALL);
-
 	/*
 	 * Should we generate a list with installed software?
 	 */
@@ -522,7 +519,7 @@ void cleanup_files(struct swupdate_cfg *software) {
 	struct hw_type *hw;
 	struct hw_type *hw_tmp;
 	const char* TMPDIR = get_tmpdir();
-	struct imglist *list[] = {&software->scripts, &software->bootscripts};
+	struct imglist *list[] = {&software->scripts};
 
 	LIST_FOREACH_SAFE(img, &software->images, next, img_tmp) {
 		if (img->fname[0]) {
