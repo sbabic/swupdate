@@ -1294,7 +1294,8 @@ during an update.
 		properties: {
 			command = < one of create" or "delete" >
 			path = <path for the subvolume>;
-                        mount = "true" or missing;
+			mount = "true" or missing;
+			create-destination = "true" or missing;
 		}
 	})
 
@@ -1349,6 +1350,9 @@ that accepts the stream as stdin. This is done with the "executor" handler.
 			}
 		}
 
+
+If `create-destination` is set, SWUpdate will create the destination path of the subvolume before
+creating it.
 
 Delta Update Handler
 --------------------
