@@ -64,4 +64,5 @@ $_SUDO apt-get install -y \
     wget \
     python3
 
-$_SUDO ln -sf /usr/lib/x86_64-linux-gnu/pkgconfig/lua5.2.pc /usr/lib/x86_64-linux-gnu/pkgconfig/lua.pc
+PC_FILE_DIR=$(pkg-config --variable=pcfiledir lua5.2)
+$_SUDO ln -sf "$PC_FILE_DIR/lua5.2.pc" "$PC_FILE_DIR/lua.pc"
