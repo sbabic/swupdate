@@ -106,7 +106,7 @@ config DISKFORMAT_HANDLER
 	  The diskformat handler allows creating filesystems on empty
 	  partitions.
 
-source fs/Config.in
+source "fs/Kconfig"
 
 config LUASCRIPTHANDLER
 	bool "Lua Script"

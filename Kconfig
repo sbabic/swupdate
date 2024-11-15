@@ -359,7 +359,7 @@ endmenu
 
 comment "Bootloader support"
 
-source bootloader/Config.in
+source "bootloader/Kconfig"
 
 
 comment Interfaces
@@ -390,9 +390,9 @@ config CHANNEL_CURL
 	depends on HAVE_LIBCURL
 	select CURL
 
-source suricatta/Config.in
+source "suricatta/Kconfig"
 
-source mongoose/Config.in
+source "mongoose/Kconfig"
 
 comment Security
 
@@ -534,10 +534,10 @@ config ZSTD
 	depends on HAVE_ZSTD
 
 comment Parsers
-source parser/Config.in
+source "parser/Kconfig"
 
 comment Handlers
-source handlers/Config.in
+source "handlers/Kconfig"
 
 comment Containers
-source containers/Config.in
+source "containers/Kconfig"
