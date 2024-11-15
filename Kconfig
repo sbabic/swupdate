@@ -362,7 +362,7 @@ comment "Bootloader support"
 source "bootloader/Kconfig"
 
 
-comment Interfaces
+comment "Interfaces"
 
 config DOWNLOAD
 	bool "Enable image downloading"
@@ -394,7 +394,7 @@ source "suricatta/Kconfig"
 
 source "mongoose/Kconfig"
 
-comment Security
+comment "Security"
 
 choice
 	prompt "SSL implementation to use"
@@ -533,11 +533,11 @@ config ZSTD
 	bool "Zstd compression support"
 	depends on HAVE_ZSTD
 
-comment Parsers
+comment "Parsers"
 source "parser/Kconfig"
 
-comment Handlers
+comment "Handlers"
 source "handlers/Kconfig"
 
-comment Containers
+comment "Containers"
 source "containers/Kconfig"
