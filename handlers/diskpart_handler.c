@@ -841,9 +841,11 @@ static int diskpart_blkdev_lock(struct fdisk_context *cxt, bool nolock, bool noi
 	return 0;
 }
 
-static int diskpart_write_table(struct fdisk_context *cxt, struct create_table *createtable, bool nolock, bool noinuse)
+static int diskpart_write_table(struct fdisk_context *cxt, struct create_table *createtable,
+				struct diskpart_table *oldtb, bool nolock, bool noinuse)
 {
 	int ret = 0;
+	int fdisk_ret = 0;
 
 	if (createtable->parent || createtable->child) {
 		TRACE("Partitions on disk differ, write to disk;");
@@ -865,7 +867,11 @@ static int diskpart_write_table(struct fdisk_context *cxt, struct create_table *
 		ret = fdisk_write_disklabel(cxt);
 		if (ret)
 			ERROR("Nested partition table cannot be written on disk");
-		if (fdisk_reread_partition_table(cxt))
+		if (oldtb)
+			fdisk_ret = fdisk_reread_changes(cxt, oldtb->child);
+		else
+			fdisk_ret = fdisk_reread_partition_table(cxt);
+		if (fdisk_ret)
 			WARN("Nested partition table cannot be reread from the disk, be careful !");
 		if (ret)
 			return ret;
@@ -878,7 +884,11 @@ static int diskpart_write_table(struct fdisk_context *cxt, struct create_table *
 		ret = fdisk_write_disklabel(PARENT(cxt));
 		if (ret)
 			ERROR("Partition table cannot be written on disk");
-		if (fdisk_reread_partition_table(PARENT(cxt)))
+		if (oldtb)
+			fdisk_ret = fdisk_reread_changes(cxt, oldtb->parent);
+		else
+			fdisk_ret = fdisk_reread_partition_table(cxt);
+		if (fdisk_ret)
 			WARN("Table cannot be reread from the disk, be careful !");
 		if (ret)
 			return ret;
@@ -1443,7 +1453,7 @@ static int diskpart(struct img_type *img,
 	if (ret)
 		goto handler_exit;
 
-	ret = diskpart_write_table(cxt, createtable, priv.nolock, priv.noinuse);
+	ret = diskpart_write_table(cxt, createtable, oldtb, priv.nolock, priv.noinuse);
 
 handler_exit:
 	if (tb)
@@ -1708,7 +1718,7 @@ static int gpt_swap_partition(struct img_type *img, void *data)
 	}
 
 	/* Write table */
-	ret = diskpart_write_table(cxt, createtable, priv.nolock, priv.noinuse);
+	ret = diskpart_write_table(cxt, createtable, (struct diskpart_table *)NULL, priv.nolock, priv.noinuse);
 	if (ret) {
 		ERROR("Can't write table (err = %d)", ret);
 		goto handler_exit;
