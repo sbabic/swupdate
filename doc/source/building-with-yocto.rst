@@ -226,7 +226,7 @@ Template for recipe using the class
 
         # Add all local files to be added to the SWU
         # sw-description must always be in the list.
-        # You can extend with scripts or wahtever you need
+        # You can extend with scripts or whatever you need
         SRC_URI = " \
             file://sw-description \
             "

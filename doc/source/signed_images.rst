@@ -47,7 +47,7 @@ verify that each delivered sub-image really belongs to the release.
 Choice of algorithm
 -------------------
 
-The algorithm chosen to sign and verify the sw-descrription file can be
+The algorithm chosen to sign and verify the sw-description file can be
 selected via menuconfig. Currently, the following mechanisms are implemented:
 
 - RSA Public / private key. The private key belongs to the build system,

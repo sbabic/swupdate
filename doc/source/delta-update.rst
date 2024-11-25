@@ -31,7 +31,7 @@ into SWUpdate. The following criteria are important to find a suitable algorithm
 
 Specific ad-hoc delta updates mechanisms can be realized when the nature of the updated files is
 the same. It is always possible with SWUpdate to install single files, but coherency and compatibility
-with the runningsoftware must be guaranteed by the integratot / manufacturer. This is not covered here:
+with the running software must be guaranteed by the integrator / manufacturer. This is not covered here:
 the scope is to get an efficient and content unaware *delta* mechanism, that can upgrade in differential
 mode two arbitrary images, without any previous knowledge about what they content.
 
@@ -191,7 +191,7 @@ can be reused: each handler does not know that the artifact is coming with separ
 as before.
 The delta handler has in short the following duties:
 
-        - parse and understanf the ZCK header
+        - parse and understand the ZCK header
         - create a ZCK header from the file / partition used as source for the comparison
         - detect which chunks are missing and which one must be copied.
         - build  a mixer that copies and downloads all chunks and generates a stream
@@ -205,7 +205,7 @@ part of SWUpdate design.
 To avoid this, the delta handler does not download itself. A separate process, that can runs with different
 userid and groupid, is responsible for this. The handler sends a request to this process with a list of
 ranges that should be downloaded (see HTTP Range request). The delta handler does not know how the chunks are
-downlaoded, and even if using HTTP Range Request is the most frequent choice, it is open to further
+downloaded, and even if using HTTP Range Request is the most frequent choice, it is open to further
 implementations.
 The downloader process prepares the connection and asks the server for ranges. If the server is not
 able to provide ranges, the update aborts. It is in fact a requirement for delta update that the
@@ -258,6 +258,6 @@ This prints a list with all chunks, marking them with SRC if they are the same i
 and they should not retrieved and with DST if they are new and must be downloaded.
 The tool show at the end a summary with the total number of bytes of the new release (uncompressed) and how
 many bytes must be downloaded for the upgrade.
-Please remmeber that these value are just payload. SWUpdate reports a summary, too, but it takes into account
+Please remember that these value are just payload. SWUpdate reports a summary, too, but it takes into account
 also the HTTP overhead (headers, etc.), so that values are not the same and the ones from SWUpdate are
 slightly bigger.

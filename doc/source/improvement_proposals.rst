@@ -156,14 +156,14 @@ effort to maintain.
 Even if it was tried to have the same features, there are some important differences:
 
 - SWUGenerator is able to full understand a sw-description written in libconfig language and to rewrite it.
-  This means it is not yet possible to write sw-description using JSON if SWUGenerato is planned.
-  However, it is possible to split sww-description in small files (for example for the embedded Lua code),
-  and SWUGenerato is able to write the final sw-description combined all include files.
+  This means it is not yet possible to write sw-description using JSON if SWUGenerator is planned.
+  However, it is possible to split sw-description in small files (for example for the embedded Lua code),
+  and SWUGenerator is able to write the final sw-description combined all include files.
 - meta-swupdate is just able to replace variables known by bitbake, but it has no semantic knowledge.
   It is not possible to use @include directive, but it is possible to use JSON as language.
 
 The logical step will be to use a single tool (SWUGenerator), and let meta-swupdate to use it. To do this,
-SWUGenerator should be enhance to understand and write sw-description in JSON, too.
+SWUGenerator should be enhanced to understand and write sw-description in JSON, too.
 
 * Status: Wait
 * Request for Support : Sponsor
@@ -196,7 +196,7 @@ On SystemV (and compatible) systems, swupdate-progress is started from swupdate.
 the right solution and was discussed on the Mailing List.
 
 The agreed solution is to create an own startup script for swupdate-progress, and let run it after
-SWUpdate is started. This is mnore generic and let also to identify if swupdate-progress should be
+SWUpdate is started. This is more generic and let also to identify if swupdate-progress should be
 installed or not.
 
 * Status: Wait
@@ -280,7 +280,7 @@ Webserver that allows streaming.
 Security / Crypto engines
 =========================
 
-- add support for asymmetryc decryption
+- add support for asymmetric decryption
 - rework support for crypto engine - let possible to load multiple libraries at
   the same time. Currently, there is support for openSSL, WolfSSL and mbedTLS.
   However, WolfSSL are missing together. There should be a way to select one or more
@@ -346,7 +346,7 @@ Delta Update requires two or more files:
 The .zck must be uploaded somewhere and the URL is defined inside sw-description, that
 is then signed. This causes a chicken-egg issue, because the buzild cannot be completed
 with hawkBit until the ".zck" files are not uploaded. In fact, hawkBit assigns to each
-Software Module an "id" that is unknow at the moment of the build.
+Software Module an "id" that is unknown at the moment of the build.
 
 It is required to implement a mechanism that let suricatta to inform the core about URLs
 passed by the hawkBit server, and they can override the URL set inside sw-description.

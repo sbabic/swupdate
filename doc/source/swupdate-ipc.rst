@@ -58,7 +58,7 @@ hawkbitcfg
         disable suricatta mode
 
 swupdate-sendtohawkbit <action id> <status> <finished> <execution> <detail 1> <detail 2> ..
-        Send Acknolwedge to Hawkbit server after an update if SWUpdate is set to wait for.
+        Send Acknowledge to Hawkbit server after an update if SWUpdate is set to wait for.
 
 sysrestart
         Used with SWU handler, allow one to perform a network restart

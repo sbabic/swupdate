@@ -760,7 +760,7 @@ They are copied into a temporary directory before execution and their name must
 be unique inside the same cpio archive.
 
 If no type is given, SWUpdate default to "lua". Please note that running a shell script
-opens a set of different security issues, check also chapter "Best practise".
+opens a set of different security issues, check also chapter "Best practice".
 
 
 Lua
@@ -916,7 +916,7 @@ passed at the startup to perform a reboot, it will be executed anyway because
 SWUpdate cannot know the nature of this script.
 
 SWUpdate sends this information to the progress interface and it is duty of the
-listeners to interprete the information. The attribute is a boolean:
+listeners to interpret the information. The attribute is a boolean:
 
 ::
 

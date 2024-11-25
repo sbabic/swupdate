@@ -460,7 +460,7 @@ dynamically.
 Shell script handler
 --------------------
 
-This handler allows to run a shell script thta is packed into the SWU. Please note
+This handler allows to run a shell script that is packed into the SWU. Please note
 that running a shell script opens a set of different security issues. Shell scripts
 are supported due to their large acceptance, but you should prefer Lua Scripts.
 
