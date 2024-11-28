@@ -107,7 +107,6 @@ static int swu_forward_data(void *data, const void *buf, size_t len)
 	 */
 	LIST_FOREACH(conn, &priv->conns, next) {
 		unsigned int nbytes = len;
-		const void *tmp = buf;
 
 		while (nbytes) {
 			written = write(conn->fifo[1], buf, len);
@@ -117,7 +116,6 @@ static int swu_forward_data(void *data, const void *buf, size_t len)
 				return -EFAULT;
 			}
 			nbytes -= written;
-			tmp += written;
 		}
 	}
 
@@ -292,7 +290,6 @@ static int install_remote_swu(struct img_type *img,
 	int ret;
 	struct dict_list_elem *url;
 	struct dict_list *urls;
-	int index = 0;
 	const char *fn_parse_answer = NULL;
 	pthread_attr_t attr;
 	int thread_ret = -1;
@@ -387,8 +384,6 @@ static int install_remote_swu(struct img_type *img,
 			ret = FAILURE;
 			goto handler_exit;
 		}
-
-		index++;
 	}
 
 	if (initialize_backchannel(&priv)) {
@@ -427,11 +422,9 @@ static int install_remote_swu(struct img_type *img,
 
 handler_exit:
 	LIST_FOREACH_SAFE(conn, &priv.conns, next, tmp) {
-		index = 0;
 		LIST_REMOVE(conn, next);
 		swuforward_ws_free(conn);
 		free(conn);
-		index++;
 	}
 
 	return ret;

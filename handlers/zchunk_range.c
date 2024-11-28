@@ -131,7 +131,6 @@ char *zchunk_get_range_char(zck_range *range) {
 	   return NULL;
 	}
 	int loc = 0;
-	int count = 0;
 	zck_range_item *ri = range->first;
 	while(ri) {
 		int length = snprintf(output+loc, buf_size-loc, "%lu-%lu,",
@@ -152,7 +151,6 @@ char *zchunk_get_range_char(zck_range *range) {
 			continue;
 		}
 		loc += length;
-		count++;
 		ri = ri->next;
 	}
 	output[loc-1]='\0'; // Remove final comma
