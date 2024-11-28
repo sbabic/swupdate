@@ -10,6 +10,8 @@
 # SPDX-License-Identifier:	GPL-2.0-only
 set -eu
 
+SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+
 _SUDO=sudo
 if [ "$(id -u)" = 0 ]; then
     _SUDO=
@@ -63,6 +65,18 @@ $_SUDO apt-get install -y \
     libzstd-dev \
     wget \
     python3
+
+# packages are too old in Ubuntu Jammy
+if ! grep -q UBUNTU_CODENAME=jammy /etc/os-release; then
+    apt-get install -y \
+        libebgenv-dev \
+        libmtd-dev \
+        libubi-dev \
+        libubootenv-dev \
+        libzck-dev
+else
+    "$SCRIPT_DIR/install-src-deps.sh"
+fi
 
 PC_FILE_DIR=$(pkg-config --variable=pcfiledir lua5.2)
 $_SUDO ln -sf "$PC_FILE_DIR/lua5.2.pc" "$PC_FILE_DIR/lua.pc"

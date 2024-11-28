@@ -6,7 +6,6 @@
   stage: build
   before_script: &build_setup
     - ./ci/setup.sh
-    - ./ci/install-src-deps.sh
   script:
     - ./ci/test-configs.sh
 
