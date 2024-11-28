@@ -2,24 +2,39 @@
 #
 # SPDX-License-Identifier: MIT
 
-ubuntu-jammy:
-  image: ubuntu:jammy
+.build:
   stage: build
-  before_script:
+  before_script: &build_setup
     - ./ci/setup.sh
     - ./ci/install-src-deps.sh
   script:
     - ./ci/test-configs.sh
 
+ubuntu-jammy:
+  extends: .build
+  image: ubuntu:jammy
+
 ubuntu-noble:
+  extends: .build
   image: ubuntu:noble
-  stage: build
-  before_script:
-    - ./ci/setup.sh
-    - ./ci/install-src-deps.sh
+
+coverity:
+  extends: .build
+  image: ubuntu:noble
   script:
-    - if [ $CI_COMMIT_BRANCH == "coverity_scan" ]; then ./ci/coverity.sh;fi
-    - ./ci/test-configs.sh
+    - ci/coverity.sh
+  rules:
+    - if: $CI_COMMIT_BRANCH == "coverity_scan"
+
+clang:
+  extends: .build
+  image: ubuntu:noble
+  variables:
+    CC: clang
+  before_script:
+    - apt-get update -q
+    - apt-get install -y clang
+    - *build_setup
 
 reuse:
   needs: []
