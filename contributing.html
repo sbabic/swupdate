@@ -1,18 +1,21 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Contributing to SWUpdate &mdash; Embedded Software Update Documentation 2024.05 documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <title>Contributing to SWUpdate &mdash; Embedded Software Update Documentation 2024.12 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=86f27845" />
+
+  
     <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
   
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/doctools.js"></script>
+        <script src="_static/jquery.js?v=8dae8fb0"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=426f823e"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -25,14 +28,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> Embedded Software Update Documentation
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Embedded Software Update Documentation
           </a>
               <div class="version">
-                2024.05
+                2024.12
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -93,8 +100,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Contributing to SWUpdate</li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Contributing to SWUpdate</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/contributing.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -105,15 +112,15 @@
            <div itemprop="articleBody">
              
   <section id="contributing-to-swupdate">
-<h1>Contributing to SWUpdate<a class="headerlink" href="#contributing-to-swupdate" title="Permalink to this headline"></a></h1>
+<h1>Contributing to SWUpdate<a class="headerlink" href="#contributing-to-swupdate" title="Link to this heading"></a></h1>
 <p>Contributions are welcome ! Please follow the following guideline for contributions.</p>
 <section id="contribution-checklist">
-<h2>Contribution Checklist<a class="headerlink" href="#contribution-checklist" title="Permalink to this headline"></a></h2>
+<h2>Contribution Checklist<a class="headerlink" href="#contribution-checklist" title="Link to this heading"></a></h2>
 <p>These are mostly general recommendations and are common practice in a lot of
 FOSS projects.</p>
 <ul class="simple">
-<li><p>use git to manage your changes [<em>recomended</em>]</p></li>
-<li><p>follow as much as possible kernel codestyle [<em>recomended</em>]
+<li><p>use git to manage your changes [<em>recommended</em>]</p></li>
+<li><p>follow as much as possible kernel codestyle [<em>recommended</em>]
 Nevertheless, some rules are not so strict as in kernel. The maximum line length
 can be extended over 80 chars if this increase code readability.</p></li>
 <li><p>add the required copyright header to each new file introduced [<strong>required</strong>]</p></li>
@@ -126,7 +133,7 @@ can be extended over 80 chars if this increase code readability.</p></li>
 </dl>
 </li>
 <li><dl class="simple">
-<dt>add version number for your patches if follow-up versions are requested [<em>recomended</em>]</dt><dd><ul>
+<dt>add version number for your patches if follow-up versions are requested [<em>recommended</em>]</dt><dd><ul>
 <li><p>Add a “Change from Vx” description under the commit message to take track
 of the history of the patch.</p></li>
 <li><p>It is suggested to use excellent “patman” tool to manage patches series.
@@ -161,7 +168,7 @@ The review is done in a single place : the Mailing List. PR from github are igno
 You can see the status of your patches at <a class="reference external" href="http://patchwork.ozlabs.org/project/swupdate/list">http://patchwork.ozlabs.org/project/swupdate/list</a>.</p>
 </section>
 <section id="developer-s-certificate-of-origin-1-1">
-<h2>Developer’s Certificate of Origin 1.1<a class="headerlink" href="#developer-s-certificate-of-origin-1-1" title="Permalink to this headline"></a></h2>
+<h2>Developer’s Certificate of Origin 1.1<a class="headerlink" href="#developer-s-certificate-of-origin-1-1" title="Link to this heading"></a></h2>
 <p>When signing-off a patch for this project like this</p>
 <blockquote>
 <div><p>Signed-off-by: Random J Developer &lt;<a class="reference external" href="mailto:random&#37;&#52;&#48;developer&#46;example&#46;org">random<span>&#64;</span>developer<span>&#46;</span>example<span>&#46;</span>org</a>&gt;</p>

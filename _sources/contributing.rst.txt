@@ -12,9 +12,9 @@ Contribution Checklist
 These are mostly general recommendations and are common practice in a lot of
 FOSS projects.
 
-- use git to manage your changes [*recomended*]
+- use git to manage your changes [*recommended*]
 
-- follow as much as possible kernel codestyle [*recomended*]
+- follow as much as possible kernel codestyle [*recommended*]
   Nevertheless, some rules are not so strict as in kernel. The maximum line length
   can be extended over 80 chars if this increase code readability.
 
@@ -24,7 +24,7 @@ FOSS projects.
     - to certify the "Developer's Certificate of Origin", see below
     - check with your employer when not working on your own!
 
-- add version number for your patches if follow-up versions are requested [*recomended*]
+- add version number for your patches if follow-up versions are requested [*recommended*]
     - Add a "Change from Vx" description under the commit message to take track
       of the history of the patch.
     - It is suggested to use excellent "patman" tool to manage patches series.

@@ -38,7 +38,7 @@ Split system update with application update
 -------------------------------------------
 
 Updating a whole image is quite straightforward, but this means to transfer bigger amount
-of data if just a few files are updated. It is possible to split theupdate in several smaller
+of data if just a few files are updated. It is possible to split the update in several smaller
 parts to reduce the transfer size. This requires a special care to take care of compatibility
 between system and application, that can be solved with customized Lua scripts in the sw-description file.
 SWUpdate supports versioning for each artefact, and anyone can add own rules to verify compatibility

@@ -1,18 +1,21 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SWUpdate: API for external programs &mdash; Embedded Software Update Documentation 2024.05 documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <title>SWUpdate: API for external programs &mdash; Embedded Software Update Documentation 2024.12 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=86f27845" />
+
+  
     <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
   
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/doctools.js"></script>
+        <script src="_static/jquery.js?v=8dae8fb0"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=426f823e"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -25,14 +28,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> Embedded Software Update Documentation
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Embedded Software Update Documentation
           </a>
               <div class="version">
-                2024.05
+                2024.12
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -119,8 +126,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>SWUpdate: API for external programs</li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">SWUpdate: API for external programs</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/swupdate-ipc-interface.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -131,9 +138,9 @@
            <div itemprop="articleBody">
              
   <section id="swupdate-api-for-external-programs">
-<h1>SWUpdate: API for external programs<a class="headerlink" href="#swupdate-api-for-external-programs" title="Permalink to this headline"></a></h1>
+<h1>SWUpdate: API for external programs<a class="headerlink" href="#swupdate-api-for-external-programs" title="Link to this heading"></a></h1>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline"></a></h2>
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
 <p>SWUpdate contains an integrated web-server to allow remote updating.
 However, which protocols are involved during an update is project
 specific and differs significantly. Some projects can decide
@@ -147,7 +154,7 @@ and the final result. The API is at the moment very simple, but it can
 easy be extended in the future if new use cases will arise.</p>
 </section>
 <section id="api-description">
-<span id="install-api"></span><h2>API Description<a class="headerlink" href="#api-description" title="Permalink to this headline"></a></h2>
+<span id="install-api"></span><h2>API Description<a class="headerlink" href="#api-description" title="Link to this heading"></a></h2>
 <p>The communication runs via Unix Domain Socket (UDS). The socket path
 is determined by</p>
 <ul class="simple">
@@ -190,9 +197,9 @@ changed to accept an opaque interface that will survive API changes. Compatibili
 layers could be added on-demand in the future due to API changes.</p>
 </section>
 <section id="client-library">
-<h2>Client Library<a class="headerlink" href="#client-library" title="Permalink to this headline"></a></h2>
+<h2>Client Library<a class="headerlink" href="#client-library" title="Link to this heading"></a></h2>
 <section id="functions-to-start-an-update">
-<h3>Functions to start an update<a class="headerlink" href="#functions-to-start-an-update" title="Permalink to this headline"></a></h3>
+<h3>Functions to start an update<a class="headerlink" href="#functions-to-start-an-update" title="Link to this heading"></a></h3>
 <p>A library simplifies the usage of the IPC making available a way to
 start asynchronously an update.</p>
 <p>The library consists of one function and several call-backs.</p>
@@ -245,7 +252,7 @@ it should be accepted by swupdate (-q, –accepted-select option when swupdate i
 </div></blockquote>
 </section>
 <section id="functions-to-set-aes-keys">
-<h3>Functions to set AES keys<a class="headerlink" href="#functions-to-set-aes-keys" title="Permalink to this headline"></a></h3>
+<h3>Functions to set AES keys<a class="headerlink" href="#functions-to-set-aes-keys" title="Link to this heading"></a></h3>
 <p>The key for decryption can be set with command line parameter (see <cite>-K</cite>), but it is possible
 to set it via IPC. In this way, each update could have a different key.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">int</span> <span class="n">swupdate_set_aes</span><span class="p">(</span><span class="n">char</span> <span class="o">*</span><span class="n">key</span><span class="p">,</span> <span class="n">char</span> <span class="o">*</span><span class="n">ivt</span><span class="p">)</span>
@@ -254,7 +261,7 @@ to set it via IPC. In this way, each update could have a different key.</p>
 <p>The key is for AES-256. The length for key and ivt are then defined by the algorithm amd they are passed as ASCII string, so the length <em>must</em> be 64 bytes for key and 32 bytes for IVT.</p>
 </section>
 <section id="functions-to-control-swupdate">
-<h3>Functions to control SWUpdate<a class="headerlink" href="#functions-to-control-swupdate" title="Permalink to this headline"></a></h3>
+<h3>Functions to control SWUpdate<a class="headerlink" href="#functions-to-control-swupdate" title="Link to this heading"></a></h3>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">int</span> <span class="n">ipc_send_cmd</span><span class="p">(</span><span class="n">ipc_message</span> <span class="o">*</span><span class="n">msg</span><span class="p">);</span>
 </pre></div>
 </div>
@@ -274,15 +281,15 @@ The msgdata field is a structure as:</p>
    <span class="p">}</span>
 </pre></div>
 </div>
-<p>The caller fills <cite>source</cite> with the subprocess that acceps the command. Values of cmd
+<p>The caller fills <cite>source</cite> with the subprocess that accepts the command. Values of cmd
 are in <cite>network_ipc.h</cite>.</p>
 </section>
 <section id="messages-for-suricatta">
-<h3>Messages for suricatta<a class="headerlink" href="#messages-for-suricatta" title="Permalink to this headline"></a></h3>
+<h3>Messages for suricatta<a class="headerlink" href="#messages-for-suricatta" title="Link to this heading"></a></h3>
 <p>suricatta accepts messages in JSON format. The message must be formatted in the <cite>buf</cite> field of
 the message data.</p>
 <section id="setting-the-polling-time">
-<h4>Setting the polling time<a class="headerlink" href="#setting-the-polling-time" title="Permalink to this headline"></a></h4>
+<h4>Setting the polling time<a class="headerlink" href="#setting-the-polling-time" title="Link to this heading"></a></h4>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="s2">&quot;polling&quot;</span> <span class="p">:</span> <span class="o">&lt;</span><span class="n">value</span> <span class="ow">in</span> <span class="n">seconds</span><span class="p">,</span> <span class="nb">range</span> <span class="mf">0.</span><span class="o">.</span><span class="n">X</span><span class="o">&gt;</span><span class="p">}</span>
 </pre></div>
 </div>
@@ -290,14 +297,14 @@ the message data.</p>
 (if this is supported by the server).</p>
 </section>
 <section id="enable-disable-suricatta-daemon">
-<h4>Enable / disable Suricatta daemon<a class="headerlink" href="#enable-disable-suricatta-daemon" title="Permalink to this headline"></a></h4>
+<h4>Enable / disable Suricatta daemon<a class="headerlink" href="#enable-disable-suricatta-daemon" title="Link to this heading"></a></h4>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="s2">&quot;enable&quot;</span> <span class="p">:</span> <span class="n">true</span> <span class="p">}</span>
 <span class="p">{</span> <span class="s2">&quot;enable&quot;</span> <span class="p">:</span> <span class="n">false</span> <span class="p">}</span>
 </pre></div>
 </div>
 </section>
 <section id="set-custom-device-attributes-for-suricatta-for-hawkbit-implementation">
-<h4>Set custom device attributes for Suricatta (for Hawkbit implementation)<a class="headerlink" href="#set-custom-device-attributes-for-suricatta-for-hawkbit-implementation" title="Permalink to this headline"></a></h4>
+<h4>Set custom device attributes for Suricatta (for Hawkbit implementation)<a class="headerlink" href="#set-custom-device-attributes-for-suricatta-for-hawkbit-implementation" title="Link to this heading"></a></h4>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="s2">&quot;identify&quot;</span> <span class="p">:</span> <span class="p">[</span>
     <span class="p">{</span>
         <span class="s2">&quot;name&quot;</span>  <span class="p">:</span> <span class="s2">&quot;customizableAttributeOne&quot;</span><span class="p">,</span>
@@ -314,7 +321,7 @@ the message data.</p>
 way. Changes will be reflected on the server in the next poll iteration.</p>
 </section>
 <section id="trigger-a-check-on-the-server">
-<h4>Trigger a check on the server<a class="headerlink" href="#trigger-a-check-on-the-server" title="Permalink to this headline"></a></h4>
+<h4>Trigger a check on the server<a class="headerlink" href="#trigger-a-check-on-the-server" title="Link to this heading"></a></h4>
 <p>This is useful in case the device is mostly offline, and when it is online, it should check
 immediately if an update exists and run it. In fact, after enabling the suricatta daemon,
 the update follows the usual states, and the daemon waits for a polling time before
@@ -325,7 +332,7 @@ polling time.</p>
 </div>
 </section>
 <section id="activate-an-already-installed-software">
-<h4>Activate an already installed Software<a class="headerlink" href="#activate-an-already-installed-software" title="Permalink to this headline"></a></h4>
+<h4>Activate an already installed Software<a class="headerlink" href="#activate-an-already-installed-software" title="Link to this heading"></a></h4>
 <p>After a software was installed, the new software boots and if everything runs fine,
 an acknowledge should be sent to the hawkBit server. If this feature is used, for example
 to let the end user decide if the new software is accepted, the parameters used by the installation
@@ -339,7 +346,7 @@ should be stored during the update process.</p>
 </div>
 </section>
 <section id="get-hawkbit-server-status">
-<h4>Get hawkBit Server Status<a class="headerlink" href="#get-hawkbit-server-status" title="Permalink to this headline"></a></h4>
+<h4>Get hawkBit Server Status<a class="headerlink" href="#get-hawkbit-server-status" title="Link to this heading"></a></h4>
 <p>To provide the hawkBit server status to other processes, it can be requested by
 sending an empty message with message type CMD_GET_STATUS.</p>
 <p>The response is a JSON object containing the hawkBit server status &lt;status&gt;.
@@ -360,7 +367,7 @@ provided as ISO 8601 date and time string. (2021-10-14T13:42:37.000+00)</p>
 </section>
 </section>
 <section id="api-to-the-integrated-webserver">
-<h2>API to the integrated Webserver<a class="headerlink" href="#api-to-the-integrated-webserver" title="Permalink to this headline"></a></h2>
+<h2>API to the integrated Webserver<a class="headerlink" href="#api-to-the-integrated-webserver" title="Link to this heading"></a></h2>
 <p>The integrated Webserver provides REST resources to push a SWU package and to get inform about the update process.
 This API is based on HTTP standards. There are to kind of interface:</p>
 <ul class="simple">
@@ -368,7 +375,7 @@ This API is based on HTTP standards. There are to kind of interface:</p>
 <li><p>A WebSocket interface to send the status of the update process.</p></li>
 </ul>
 <section id="id1">
-<h3>Install API<a class="headerlink" href="#id1" title="Permalink to this headline"></a></h3>
+<h3>Install API<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">POST</span> <span class="o">/</span><span class="n">upload</span>
 </pre></div>
 </div>
@@ -389,24 +396,20 @@ The <code class="docutils literal notranslate"><span class="pre">POST</span> <sp
 </div>
 </section>
 <section id="restart-api">
-<h3>Restart API<a class="headerlink" href="#restart-api" title="Permalink to this headline"></a></h3>
+<h3>Restart API<a class="headerlink" href="#restart-api" title="Link to this heading"></a></h3>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">POST</span> <span class="o">/</span><span class="n">restart</span>
 </pre></div>
 </div>
 <p>If configured (see post update command), this request will restart the device.</p>
 </section>
 <section id="websocket-api">
-<h3>WebSocket API<a class="headerlink" href="#websocket-api" title="Permalink to this headline"></a></h3>
+<h3>WebSocket API<a class="headerlink" href="#websocket-api" title="Link to this heading"></a></h3>
 <p>The integrated Webserver exposes a WebSocket API. The WebSocket protocol specification defines ws (WebSocket) and wss (WebSocket Secure) as two new uniform resource identifier (URI) schemes that are used for unencrypted and encrypted connections, respectively and both of them are supported by SWUpdate.
 A WebSocket provides full-duplex communication but it is used in SWUpdate to send events to an external host after
 each change in the update process. The Webserver sends JSON formatted responses as results of internal events.</p>
 <p>The response contains the field type, that defines which event is sent.</p>
 <table class="docutils align-default" id="id2">
-<caption><span class="caption-text">Event Type</span><a class="headerlink" href="#id2" title="Permalink to this table"></a></caption>
-<colgroup>
-<col style="width: 15%" />
-<col style="width: 85%" />
-</colgroup>
+<caption><span class="caption-text">Event Type</span><a class="headerlink" href="#id2" title="Link to this table"></a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>type</p></th>
 <th class="head"><p>Description of event</p></th>
@@ -432,7 +435,7 @@ each change in the update process. The Webserver sends JSON formatted responses 
 </table>
 </section>
 <section id="status-change-event">
-<h3>Status Change Event<a class="headerlink" href="#status-change-event" title="Permalink to this headline"></a></h3>
+<h3>Status Change Event<a class="headerlink" href="#status-change-event" title="Link to this heading"></a></h3>
 <p>This event is sent when the internal SWUpdate status change. Following status are supported:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">IDLE</span>
 <span class="n">START</span>
@@ -451,7 +454,7 @@ each change in the update process. The Webserver sends JSON formatted responses 
 </div>
 </section>
 <section id="source-event">
-<h3>Source Event<a class="headerlink" href="#source-event" title="Permalink to this headline"></a></h3>
+<h3>Source Event<a class="headerlink" href="#source-event" title="Link to this heading"></a></h3>
 <p>This event informs from which interface a SWU is loaded.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
         <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;source&quot;</span><span class="p">,</span>
@@ -469,7 +472,7 @@ each change in the update process. The Webserver sends JSON formatted responses 
 </div>
 </section>
 <section id="info-event">
-<h3>Info Event<a class="headerlink" href="#info-event" title="Permalink to this headline"></a></h3>
+<h3>Info Event<a class="headerlink" href="#info-event" title="Link to this heading"></a></h3>
 <p>This event forwards all internal logs sent with level=INFO.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
         <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;info&quot;</span><span class="p">,</span>
@@ -479,14 +482,10 @@ each change in the update process. The Webserver sends JSON formatted responses 
 </div>
 </section>
 <section id="message-event">
-<h3>Message Event<a class="headerlink" href="#message-event" title="Permalink to this headline"></a></h3>
+<h3>Message Event<a class="headerlink" href="#message-event" title="Link to this heading"></a></h3>
 <p>This event contains the error message in case of failure.</p>
 <table class="docutils align-default" id="id3">
-<caption><span class="caption-text">Fields for message event</span><a class="headerlink" href="#id3" title="Permalink to this table"></a></caption>
-<colgroup>
-<col style="width: 15%" />
-<col style="width: 85%" />
-</colgroup>
+<caption><span class="caption-text">Fields for message event</span><a class="headerlink" href="#id3" title="Link to this table"></a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>name</p></th>
 <th class="head"><p>Description</p></th>
@@ -514,14 +513,10 @@ each change in the update process. The Webserver sends JSON formatted responses 
 </div>
 </section>
 <section id="step-event">
-<h3>Step event<a class="headerlink" href="#step-event" title="Permalink to this headline"></a></h3>
+<h3>Step event<a class="headerlink" href="#step-event" title="Link to this heading"></a></h3>
 <p>This event contains which is the current step running and which percentage of this step is currently installed.</p>
 <table class="docutils align-default" id="id4">
-<caption><span class="caption-text">Fields for step event</span><a class="headerlink" href="#id4" title="Permalink to this table"></a></caption>
-<colgroup>
-<col style="width: 15%" />
-<col style="width: 85%" />
-</colgroup>
+<caption><span class="caption-text">Fields for step event</span><a class="headerlink" href="#id4" title="Link to this table"></a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>name</p></th>
 <th class="head"><p>Description</p></th>

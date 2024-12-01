@@ -1,18 +1,21 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mongoose daemon mode &mdash; Embedded Software Update Documentation 2024.05 documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <title>Mongoose daemon mode &mdash; Embedded Software Update Documentation 2024.12 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=86f27845" />
+
+  
     <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
   
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/doctools.js"></script>
+        <script src="_static/jquery.js?v=8dae8fb0"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=426f823e"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -25,14 +28,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> Embedded Software Update Documentation
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Embedded Software Update Documentation
           </a>
               <div class="version">
-                2024.05
+                2024.12
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -97,8 +104,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Mongoose daemon mode</li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Mongoose daemon mode</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/mongoose.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -109,9 +116,9 @@
            <div itemprop="articleBody">
              
   <section id="mongoose-daemon-mode">
-<h1>Mongoose daemon mode<a class="headerlink" href="#mongoose-daemon-mode" title="Permalink to this headline"></a></h1>
+<h1>Mongoose daemon mode<a class="headerlink" href="#mongoose-daemon-mode" title="Link to this heading"></a></h1>
 <section id="introduction">
-<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline"></a></h2>
+<h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h2>
 <p>Mongoose is a daemon mode of SWUpdate that provides a web server, web
 interface and web application.</p>
 <p>The web application in <code class="docutils literal notranslate"><span class="pre">web-app</span></code> uses the <a class="reference external" href="https://nodejs.org/en/">Node.js</a> package manager
@@ -119,22 +126,22 @@ and <a class="reference external" href="https://gulpjs.com/">gulp</a> as build t
 <a class="reference external" href="https://fontawesome.com/">Font Awesome 5</a> and <a class="reference external" href="http://www.dropzonejs.com/">Dropzone.js</a>.</p>
 </section>
 <section id="startup">
-<h2>Startup<a class="headerlink" href="#startup" title="Permalink to this headline"></a></h2>
+<h2>Startup<a class="headerlink" href="#startup" title="Link to this heading"></a></h2>
 <p>After having configured and compiled SWUpdate with enabled mongoose web
 server:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./swupdate --help
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./swupdate<span class="w"> </span>--help
 </pre></div>
 </div>
 <p>lists the mandatory and optional arguments to be provided to mongoose.
 As an example,</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./swupdate -l <span class="m">5</span> -w <span class="s1">&#39;-r ./examples/www/v2 -p 8080&#39;</span> -p <span class="s1">&#39;reboot&#39;</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./swupdate<span class="w"> </span>-l<span class="w"> </span><span class="m">5</span><span class="w"> </span>-w<span class="w"> </span><span class="s1">&#39;-r ./examples/www/v2 -p 8080&#39;</span><span class="w"> </span>-p<span class="w"> </span><span class="s1">&#39;reboot&#39;</span>
 </pre></div>
 </div>
 <p>runs SWUpdate in mongoose daemon mode with log-level <code class="docutils literal notranslate"><span class="pre">TRACE</span></code> and a web
 server at <a class="reference external" href="http://localhost:8080">http://localhost:8080</a>.</p>
 </section>
 <section id="example">
-<h2>Example<a class="headerlink" href="#example" title="Permalink to this headline"></a></h2>
+<h2>Example<a class="headerlink" href="#example" title="Link to this heading"></a></h2>
 <p>The ready to use example of the web application in  the
 <code class="docutils literal notranslate"><span class="pre">examples/www/v2</span></code> directory uses a Public Domain <cite>background.jpg</cite>
 image from <a class="reference external" href="https://pixabay.com/de/leiterbahn-platine-technologie-3157431/">pixabay</a> with is released under the Creative Commons CC0
@@ -144,7 +151,7 @@ version 2. You must comply to this license or replace the images with
 your own files.</p>
 </section>
 <section id="customize">
-<h2>Customize<a class="headerlink" href="#customize" title="Permalink to this headline"></a></h2>
+<h2>Customize<a class="headerlink" href="#customize" title="Link to this heading"></a></h2>
 <p>You could customize the web application inside the <code class="docutils literal notranslate"><span class="pre">web-app</span></code> directory.
 Beside the replace of the <cite>favicon.png</cite>, <cite>logo.png</cite> and <cite>background.jpg</cite>
 images inside the <code class="docutils literal notranslate"><span class="pre">images</span></code> directory you could customize the Bootstrap
@@ -152,7 +159,7 @@ colors and settings inside the <code class="docutils literal notranslate"><span 
 style sheet changes need a rebuild of the web application source code.</p>
 </section>
 <section id="develop">
-<h2>Develop<a class="headerlink" href="#develop" title="Permalink to this headline"></a></h2>
+<h2>Develop<a class="headerlink" href="#develop" title="Link to this heading"></a></h2>
 <p>The development requires Node.js version 18 or greater and a prebuilt
 SWUpdate project with enabled mongoose web server and web application
 interface version 2 support.</p>
@@ -190,9 +197,9 @@ interface version 2 support.</p>
 </ol>
 </section>
 <section id="contribute">
-<h2>Contribute<a class="headerlink" href="#contribute" title="Permalink to this headline"></a></h2>
+<h2>Contribute<a class="headerlink" href="#contribute" title="Link to this heading"></a></h2>
 <p>Please run the linter before any commit</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>npm run lint
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>npm<span class="w"> </span>run<span class="w"> </span>lint
 </pre></div>
 </div>
 </section>

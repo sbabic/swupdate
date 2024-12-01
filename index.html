@@ -1,18 +1,21 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Updating an embedded system &mdash; Embedded Software Update Documentation 2024.05 documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <title>Updating an embedded system &mdash; Embedded Software Update Documentation 2024.12 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=86f27845" />
+
+  
     <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
   
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/doctools.js"></script>
+        <script src="_static/jquery.js?v=8dae8fb0"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=426f823e"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -24,14 +27,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="#" class="icon icon-home"> Embedded Software Update Documentation
+
+          
+          
+          <a href="#" class="icon icon-home">
+            Embedded Software Update Documentation
           </a>
               <div class="version">
-                2024.05
+                2024.12
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -88,8 +95,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="#" class="icon icon-home"></a> &raquo;</li>
-      <li>Updating an embedded system</li>
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Updating an embedded system</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -101,7 +108,7 @@
              
   <a class="reference internal image-reference" href="_images/SWUpdate.png"><img alt="_images/SWUpdate.png" class="align-center" src="_images/SWUpdate.png" style="width: 256.25px; height: 256.25px;" /></a>
 <section id="updating-an-embedded-system">
-<h1>Updating an embedded system<a class="headerlink" href="#updating-an-embedded-system" title="Permalink to this headline"></a></h1>
+<h1>Updating an embedded system<a class="headerlink" href="#updating-an-embedded-system" title="Link to this heading"></a></h1>
 <p>SWUpdate provides a reliable way to update
 the software on an embedded system.
 Sources are hosted at <a class="reference external" href="https://github.com/sbabic/swupdate">https://github.com/sbabic/swupdate</a>. Do not
@@ -123,13 +130,13 @@ forget to <cite>star</cite> SWUpdate.</p>
 </div>
 </section>
 <section id="swupdate-documentation">
-<h1>SWUpdate Documentation<a class="headerlink" href="#swupdate-documentation" title="Permalink to this headline"></a></h1>
+<h1>SWUpdate Documentation<a class="headerlink" href="#swupdate-documentation" title="Link to this heading"></a></h1>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="swupdate.html">SWUpdate: software update for embedded system</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="swupdate.html#overview">Overview</a></li>
 <li class="toctree-l2"><a class="reference internal" href="swupdate.html#features">Features</a></li>
-<li class="toctree-l2"><a class="reference internal" href="swupdate.html#configuration-and-build">Configuration and build</a></li>
+<li class="toctree-l2"><a class="reference internal" href="swupdate.html#configuration-and-build">Configuration and Build</a></li>
 <li class="toctree-l2"><a class="reference internal" href="swupdate.html#running-swupdate">Running SWUpdate</a></li>
 <li class="toctree-l2"><a class="reference internal" href="swupdate.html#changes-in-boot-loader-code">Changes in boot-loader code</a></li>
 <li class="toctree-l2"><a class="reference internal" href="swupdate.html#image-file-format">Image File Format</a></li>
@@ -213,7 +220,9 @@ forget to <cite>star</cite> SWUpdate.</p>
 <li class="toctree-l2"><a class="reference internal" href="handlers.html#gpt-partition-swap">gpt partition swap</a></li>
 <li class="toctree-l2"><a class="reference internal" href="handlers.html#diskformat-handler">Diskformat Handler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="handlers.html#unique-uuid-handler">Unique UUID Handler</a></li>
-<li class="toctree-l2"><a class="reference internal" href="handlers.html#btrfs-handler">BTRFS Handler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="handlers.html#btrfs-partition-handler">BTRFS Partition Handler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="handlers.html#btrfs-snapshot-handler">BTRFS Snapshot Handler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="handlers.html#generic-executor-handler">Generic Executor handler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="handlers.html#delta-update-handler">Delta Update Handler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="handlers.html#memory-issue-with-zchunk">Memory issue with zchunk</a></li>
 <li class="toctree-l2"><a class="reference internal" href="handlers.html#docker-handlers">Docker handlers</a></li>
@@ -300,7 +309,7 @@ forget to <cite>star</cite> SWUpdate.</p>
 </div>
 </section>
 <section id="utilities-and-tools">
-<h1>Utilities and tools<a class="headerlink" href="#utilities-and-tools" title="Permalink to this headline"></a></h1>
+<h1>Utilities and tools<a class="headerlink" href="#utilities-and-tools" title="Link to this heading"></a></h1>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="swupdate-client.html">swupdate-client</a><ul>
@@ -327,7 +336,7 @@ forget to <cite>star</cite> SWUpdate.</p>
 </div>
 </section>
 <section id="help-and-support">
-<h1>Help and support<a class="headerlink" href="#help-and-support" title="Permalink to this headline"></a></h1>
+<h1>Help and support<a class="headerlink" href="#help-and-support" title="Link to this heading"></a></h1>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="help_and_support.html">Help and support</a><ul>
@@ -348,7 +357,7 @@ forget to <cite>star</cite> SWUpdate.</p>
 </div>
 </section>
 <section id="future-ideas">
-<h1>Future ideas<a class="headerlink" href="#future-ideas" title="Permalink to this headline"></a></h1>
+<h1>Future ideas<a class="headerlink" href="#future-ideas" title="Link to this heading"></a></h1>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="improvement_proposals.html">Proposals to improve SWUpdate</a><ul>
@@ -360,6 +369,7 @@ forget to <cite>star</cite> SWUpdate.</p>
 <li class="toctree-l2"><a class="reference internal" href="improvement_proposals.html#tools-and-utilities">Tools and utilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="improvement_proposals.html#lua">Lua</a></li>
 <li class="toctree-l2"><a class="reference internal" href="improvement_proposals.html#handlers">Handlers:</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improvement_proposals.html#internal-webserver">Internal Webserver</a></li>
 <li class="toctree-l2"><a class="reference internal" href="improvement_proposals.html#security-crypto-engines">Security / Crypto engines</a></li>
 <li class="toctree-l2"><a class="reference internal" href="improvement_proposals.html#back-end-support-suricatta-mode">Back-end support (suricatta mode)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="improvement_proposals.html#test-and-continuous-integration">Test and Continuous Integration</a></li>
@@ -371,14 +381,14 @@ forget to <cite>star</cite> SWUpdate.</p>
 </div>
 </section>
 <section id="previous-releases">
-<h1>Previous releases<a class="headerlink" href="#previous-releases" title="Permalink to this headline"></a></h1>
+<h1>Previous releases<a class="headerlink" href="#previous-releases" title="Link to this heading"></a></h1>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="previous-releases.html">Documentation for previous releases</a></li>
 </ul>
 </div>
 <section id="indices-and-tables">
-<h2>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline"></a></h2>
+<h2>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
 <li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>

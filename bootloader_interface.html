@@ -1,18 +1,21 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bootloader Interface &mdash; Embedded Software Update Documentation 2024.05 documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <title>Bootloader Interface &mdash; Embedded Software Update Documentation 2024.12 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=86f27845" />
+
+  
     <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
   
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/doctools.js"></script>
+        <script src="_static/jquery.js?v=8dae8fb0"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=426f823e"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -25,14 +28,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> Embedded Software Update Documentation
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Embedded Software Update Documentation
           </a>
               <div class="version">
-                2024.05
+                2024.12
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -94,8 +101,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Bootloader Interface</li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Bootloader Interface</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/bootloader_interface.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -106,9 +113,9 @@
            <div itemprop="articleBody">
              
   <section id="bootloader-interface">
-<h1>Bootloader Interface<a class="headerlink" href="#bootloader-interface" title="Permalink to this headline"></a></h1>
+<h1>Bootloader Interface<a class="headerlink" href="#bootloader-interface" title="Link to this heading"></a></h1>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline"></a></h2>
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
 <p>SWUpdate has bindings to various bootloaders in order to store persistent
 state information across reboots. Currently, the following bootloaders are
 supported:</p>
@@ -135,14 +142,14 @@ downstream integrators to combine this generic package with the appropriate
 bootloader by just providing its environment modification shared library.</p>
 </section>
 <section id="bootloader-interface-description">
-<h2>Bootloader Interface Description<a class="headerlink" href="#bootloader-interface-description" title="Permalink to this headline"></a></h2>
+<h2>Bootloader Interface Description<a class="headerlink" href="#bootloader-interface-description" title="Link to this heading"></a></h2>
 <p>The bootloader interface implementations are located in <code class="docutils literal notranslate"><span class="pre">bootloader/</span></code>.
 Each bootloader has to implement the interface functions as defined in
 <code class="docutils literal notranslate"><span class="pre">include/bootloader.h</span></code>, more precisely</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="nf">env_get</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">name</span><span class="p">);</span><span class="w"></span>
-<span class="kt">int</span><span class="w"> </span><span class="nf">env_set</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">value</span><span class="p">);</span><span class="w"></span>
-<span class="kt">int</span><span class="w"> </span><span class="nf">env_unset</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">name</span><span class="p">);</span><span class="w"></span>
-<span class="kt">int</span><span class="w"> </span><span class="nf">apply_list</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">filename</span><span class="p">);</span><span class="w"></span>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="nf">env_get</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">name</span><span class="p">);</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">env_set</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">value</span><span class="p">);</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">env_unset</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">name</span><span class="p">);</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">apply_list</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">filename</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>which
@@ -162,18 +169,18 @@ be loaded, <code class="docutils literal notranslate"><span class="pre">NULL</sp
 functions implementations <code class="docutils literal notranslate"><span class="pre">do_env_{get,set,unset}()</span></code> as well as
 <code class="docutils literal notranslate"><span class="pre">do_apply_list()</span></code> in a <code class="docutils literal notranslate"><span class="pre">bootloader/trunk.c</span></code> file, the following snippet
 registers this bootloader to SWUpdate at run-time:</p>
-<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="n">bootloader</span><span class="w"> </span><span class="n">trunk</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="p">.</span><span class="n">env_get</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">do_env_get</span><span class="p">,</span><span class="w"></span>
-<span class="w">    </span><span class="p">.</span><span class="n">env_set</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">do_env_set</span><span class="p">,</span><span class="w"></span>
-<span class="w">    </span><span class="p">.</span><span class="n">env_unset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">do_env_unset</span><span class="p">,</span><span class="w"></span>
-<span class="w">    </span><span class="p">.</span><span class="n">apply_list</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">do_apply_list</span><span class="w"></span>
-<span class="p">};</span><span class="w"></span>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="n">bootloader</span><span class="w"> </span><span class="n">trunk</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="p">.</span><span class="n">env_get</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">do_env_get</span><span class="p">,</span>
+<span class="w">    </span><span class="p">.</span><span class="n">env_set</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">do_env_set</span><span class="p">,</span>
+<span class="w">    </span><span class="p">.</span><span class="n">env_unset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">do_env_unset</span><span class="p">,</span>
+<span class="w">    </span><span class="p">.</span><span class="n">apply_list</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">do_apply_list</span>
+<span class="p">};</span>
 
-<span class="n">__attribute__</span><span class="p">((</span><span class="n">constructor</span><span class="p">))</span><span class="w"></span>
-<span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">trunk_probe</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"></span>
-<span class="p">{</span><span class="w"></span>
-<span class="w">    </span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="n">register_bootloader</span><span class="p">(</span><span class="n">BOOTLOADER_TRUNK</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">trunk</span><span class="p">);</span><span class="w"></span>
-<span class="p">}</span><span class="w"></span>
+<span class="n">__attribute__</span><span class="p">((</span><span class="n">constructor</span><span class="p">))</span>
+<span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">trunk_probe</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="n">register_bootloader</span><span class="p">(</span><span class="n">BOOTLOADER_TRUNK</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">trunk</span><span class="p">);</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <p>with</p>
@@ -195,57 +202,57 @@ a shared environment modification library and <code class="docutils literal notr
 for a simpler bootloader support example.</p>
 </section>
 <section id="bootloader-build-system-integration">
-<h2>Bootloader Build System Integration<a class="headerlink" href="#bootloader-build-system-integration" title="Permalink to this headline"></a></h2>
+<h2>Bootloader Build System Integration<a class="headerlink" href="#bootloader-build-system-integration" title="Link to this heading"></a></h2>
 <p>A bootloader support implementation needs to be registered to the kconfig
 build system.</p>
 <p>First, the bootloader support implementation, named “trunk” and implemented
 in <code class="docutils literal notranslate"><span class="pre">bootloader/trunk.c</span></code> for example, needs to be added to
-<code class="docutils literal notranslate"><span class="pre">bootloader/Config.in</span></code> in the <code class="docutils literal notranslate"><span class="pre">Bootloader</span> <span class="pre">Interfaces</span></code> menu as
+<code class="docutils literal notranslate"><span class="pre">bootloader/Kconfig</span></code> in the <code class="docutils literal notranslate"><span class="pre">Bootloader</span> <span class="pre">Interfaces</span></code> menu as
 follows:</p>
-<div class="highlight-kconfig notranslate"><div class="highlight"><pre><span></span>...<span class="w"></span>
+<div class="highlight-kconfig notranslate"><div class="highlight"><pre><span></span>...
 
-<span class="k">menu</span><span class="w"> </span><span class="s2">&quot;Bootloader&quot;</span><span class="w"></span>
+<span class="k">menu</span><span class="w"> </span><span class="s2">&quot;Bootloader&quot;</span>
 
-<span class="k">menu</span><span class="w"> </span><span class="s2">&quot;Bootloader Interfaces&quot;</span><span class="w"></span>
+<span class="k">menu</span><span class="w"> </span><span class="s2">&quot;Bootloader Interfaces&quot;</span>
 
-...<span class="w"></span>
+...
 
-<span class="k">config</span><span class="w"> </span>BOOTLOADER_TRUNK<span class="w"></span>
-<span class="w">    </span><span class="nb">bool</span><span class="w"> </span><span class="s2">&quot;TrUnK Bootloader&quot;</span><span class="w"></span>
+<span class="k">config</span><span class="w"> </span>BOOTLOADER_TRUNK
+<span class="w">    </span><span class="nb">bool</span><span class="w"> </span><span class="s2">&quot;TrUnK Bootloader&quot;</span>
 <span class="w">    </span><span class="k">help</span>
-<span class="w">      </span>Support<span class="w"> </span>for<span class="w"> </span>the<span class="w"> </span>TrUnK<span class="w"> </span>Bootloader<span class="w"></span>
-<span class="w">      </span>https://github.com/knurt/trunk<span class="w"></span>
+<span class="w">      </span>Support<span class="w"> </span>for<span class="w"> </span>the<span class="w"> </span>TrUnK<span class="w"> </span>Bootloader
+<span class="w">      </span>https://github.com/knurt/trunk
 </pre></div>
 </div>
 <p>Then, in order to enable the compile-time selection of the “trunk” bootloader
 as default, add a section to the <code class="docutils literal notranslate"><span class="pre">Default</span> <span class="pre">Bootloader</span> <span class="pre">Interface</span></code> choice
 submenu of the <code class="docutils literal notranslate"><span class="pre">Bootloader</span></code> menu as follows:</p>
-<div class="highlight-kconfig notranslate"><div class="highlight"><pre><span></span><span class="k">choice</span><span class="w"></span>
-<span class="w">    </span><span class="k">prompt</span><span class="w"> </span><span class="s2">&quot;Default Bootloader Interface&quot;</span><span class="w"></span>
+<div class="highlight-kconfig notranslate"><div class="highlight"><pre><span></span><span class="k">choice</span>
+<span class="w">    </span><span class="k">prompt</span><span class="w"> </span><span class="s2">&quot;Default Bootloader Interface&quot;</span>
 <span class="w">    </span><span class="k">help</span>
-<span class="w">      </span>Default<span class="w"> </span>bootloader<span class="w"> </span>interface<span class="w"> </span>to<span class="w"> </span>use<span class="w"> </span><span class="k">if</span><span class="w"> </span>not<span class="w"> </span>explicitly<span class="w"></span>
-<span class="w">      </span>overridden<span class="w"> </span>via<span class="w"> </span>configuration<span class="w"> </span>or<span class="w"> </span>command-line<span class="w"> </span><span class="k">option</span><span class="w"></span>
-<span class="w">      </span>at<span class="w"> </span>run-time.<span class="w"></span>
+<span class="w">      </span>Default<span class="w"> </span>bootloader<span class="w"> </span>interface<span class="w"> </span>to<span class="w"> </span>use<span class="w"> </span><span class="k">if</span><span class="w"> </span>not<span class="w"> </span>explicitly
+<span class="w">      </span>overridden<span class="w"> </span>via<span class="w"> </span>configuration<span class="w"> </span>or<span class="w"> </span>command-line<span class="w"> </span><span class="k">option</span>
+<span class="w">      </span>at<span class="w"> </span>run-time.
 
-...<span class="w"></span>
+...
 
-<span class="k">config</span><span class="w"> </span>BOOTLOADER_DEFAULT_TRUNK<span class="w"></span>
-<span class="w">    </span><span class="nb">bool</span><span class="w"> </span><span class="s2">&quot;TrUnK&quot;</span><span class="w"></span>
-<span class="w">    </span><span class="k">depends on</span><span class="w"> </span>BOOTLOADER_TRUNK<span class="w"></span>
+<span class="k">config</span><span class="w"> </span>BOOTLOADER_DEFAULT_TRUNK
+<span class="w">    </span><span class="nb">bool</span><span class="w"> </span><span class="s2">&quot;TrUnK&quot;</span>
+<span class="w">    </span><span class="k">depends on</span><span class="w"> </span>BOOTLOADER_TRUNK
 <span class="w">    </span><span class="k">help</span>
-<span class="w">      </span>Use<span class="w"> </span>TrUnK<span class="w"> </span>as<span class="w"> </span><span class="k">default</span><span class="w"> </span>bootloader<span class="w"> </span>interface.<span class="w"></span>
+<span class="w">      </span>Use<span class="w"> </span>TrUnK<span class="w"> </span>as<span class="w"> </span><span class="k">default</span><span class="w"> </span>bootloader<span class="w"> </span>interface.
 </pre></div>
 </div>
 <p>Finally, <code class="docutils literal notranslate"><span class="pre">bootloader/Makefile</span></code> needs to be adapted to build the “trunk”
 bootloader support code, given <code class="docutils literal notranslate"><span class="pre">BOOTLOADER_TRUNK</span></code> was enabled:</p>
-<div class="highlight-makefile notranslate"><div class="highlight"><pre><span></span><span class="nv">obj-$(CONFIG_BOOTLOADER_TRUNK)</span> <span class="o">+=</span> trunk.o
+<div class="highlight-makefile notranslate"><div class="highlight"><pre><span></span><span class="nv">obj-$(CONFIG_BOOTLOADER_TRUNK)</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span>trunk.o
 </pre></div>
 </div>
 <p>If the “trunk” bootloader, for example, requires loading a shared
 environment modification library, then <code class="docutils literal notranslate"><span class="pre">Makefile.flags</span></code> needs to be
 adapted as well, e.g., as follows:</p>
 <div class="highlight-makefile notranslate"><div class="highlight"><pre><span></span><span class="cp">ifeq ($(CONFIG_BOOTLOADER_TUNK),y)</span>
-<span class="nv">LDLIBS</span> <span class="o">+=</span> dl
+<span class="nv">LDLIBS</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span>dl
 <span class="cp">endif</span>
 </pre></div>
 </div>

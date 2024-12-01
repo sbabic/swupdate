@@ -1,18 +1,21 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SWUpdate: syntax and tags with the default parser &mdash; Embedded Software Update Documentation 2024.05 documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <title>SWUpdate: syntax and tags with the default parser &mdash; Embedded Software Update Documentation 2024.12 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=86f27845" />
+
+  
     <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
   
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/doctools.js"></script>
+        <script src="_static/jquery.js?v=8dae8fb0"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=426f823e"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -25,14 +28,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> Embedded Software Update Documentation
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Embedded Software Update Documentation
           </a>
               <div class="version">
-                2024.05
+                2024.12
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -121,8 +128,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>SWUpdate: syntax and tags with the default parser</li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">SWUpdate: syntax and tags with the default parser</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/sw-description.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -133,9 +140,9 @@
            <div itemprop="articleBody">
              
   <section id="swupdate-syntax-and-tags-with-the-default-parser">
-<h1>SWUpdate: syntax and tags with the default parser<a class="headerlink" href="#swupdate-syntax-and-tags-with-the-default-parser" title="Permalink to this headline"></a></h1>
+<h1>SWUpdate: syntax and tags with the default parser<a class="headerlink" href="#swupdate-syntax-and-tags-with-the-default-parser" title="Link to this heading"></a></h1>
 <section id="introduction">
-<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline"></a></h2>
+<h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h2>
 <p>SWUpdate uses the library “libconfig”
 as default parser for the image description.
 However, it is possible to extend SWUpdate and add an own
@@ -242,7 +249,7 @@ this tag. It is possible to group settings per device by using <a class="referen
 specific settings</a>.</p>
 </section>
 <section id="handling-configuration-differences">
-<h2>Handling configuration differences<a class="headerlink" href="#handling-configuration-differences" title="Permalink to this headline"></a></h2>
+<h2>Handling configuration differences<a class="headerlink" href="#handling-configuration-differences" title="Link to this heading"></a></h2>
 <p>The concept can be extended to deliver a single image
 containing the release for multiple devices. Each device has its own
 kernel, dtb, and root filesystem, or they can share some parts.</p>
@@ -325,7 +332,7 @@ list</p></li>
 </ul>
 </section>
 <section id="software-collections">
-<span id="collections"></span><h2>Software collections<a class="headerlink" href="#software-collections" title="Permalink to this headline"></a></h2>
+<span id="collections"></span><h2>Software collections<a class="headerlink" href="#software-collections" title="Link to this heading"></a></h2>
 <p>Software collections and operation modes can be used to implement a
 dual copy strategy. The simplest case is to define two installation
 locations for the firmware image and call <cite>SWUpdate</cite> selecting the
@@ -363,7 +370,7 @@ other slot.</p>
 is responsible for calling <cite>SWUpdate</cite> passing proper settings.</p>
 </section>
 <section id="priority-finding-the-elements-in-the-file">
-<h2>Priority finding the elements in the file<a class="headerlink" href="#priority-finding-the-elements-in-the-file" title="Permalink to this headline"></a></h2>
+<h2>Priority finding the elements in the file<a class="headerlink" href="#priority-finding-the-elements-in-the-file" title="Link to this heading"></a></h2>
 <p>SWUpdate search for entries in the sw-description file according to the following priority:</p>
 <ol class="arabic simple">
 <li><p>Try &lt;boardname&gt;.&lt;selection&gt;.&lt;mode&gt;.&lt;entry&gt;</p></li>
@@ -427,7 +434,7 @@ both just a different format of the same release and they could be described tog
 It is important to understand the priorities how SWUpdate scans for entries during the parsing.</p>
 </section>
 <section id="using-links">
-<h2>Using links<a class="headerlink" href="#using-links" title="Permalink to this headline"></a></h2>
+<h2>Using links<a class="headerlink" href="#using-links" title="Link to this heading"></a></h2>
 <p>sw-description can become very complex. Let’s think to have just one board, but in multiple
 hw revision and they differ in Hardware. Some of them can be grouped together, some of them
 require a dedicated section. A way (but not the only one !) could be to add <em>mode</em> and selects
@@ -644,7 +651,7 @@ The path <cite>software.myboard.stable.common.images</cite>  is then replaced by
 “version” attribute.</p>
 </section>
 <section id="hardware-compatibility">
-<h2>hardware-compatibility<a class="headerlink" href="#hardware-compatibility" title="Permalink to this headline"></a></h2>
+<h2>hardware-compatibility<a class="headerlink" href="#hardware-compatibility" title="Link to this heading"></a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">hardware-compatibility:</span> <span class="pre">[</span> <span class="pre">&quot;major.minor&quot;,</span> <span class="pre">&quot;major.minor&quot;,</span> <span class="pre">...</span> <span class="pre">]</span></code></p>
 <p>This entry lists the hardware revisions that are compatible with this
 software image.</p>
@@ -672,7 +679,7 @@ another file if specified as configuration option) before SWUpdate is
 started.</p>
 </section>
 <section id="partitions-ubi-layout">
-<span id="id1"></span><h2>partitions : UBI layout<a class="headerlink" href="#partitions-ubi-layout" title="Permalink to this headline"></a></h2>
+<span id="id1"></span><h2>partitions : UBI layout<a class="headerlink" href="#partitions-ubi-layout" title="Link to this heading"></a></h2>
 <p>This tag allows one to change the layout of UBI volumes.
 Please take care that MTDs are not touched and they are
 configured by the Device Tree or in another way directly
@@ -701,7 +708,7 @@ can be used to remove orphan volumes possibly created by older software
 versions which are not required anymore.</p>
 </section>
 <section id="images">
-<h2>images<a class="headerlink" href="#images" title="Permalink to this headline"></a></h2>
+<h2>images<a class="headerlink" href="#images" title="Link to this heading"></a></h2>
 <p>The tag “images” collects the image that are installed to the system.
 The syntax is:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">images</span><span class="p">:</span> <span class="p">(</span>
@@ -772,7 +779,7 @@ in other cases.</p>
 </div>
 </section>
 <section id="files">
-<h2>Files<a class="headerlink" href="#files" title="Permalink to this headline"></a></h2>
+<h2>Files<a class="headerlink" href="#files" title="Link to this heading"></a></h2>
 <p>It is possible to copy single files instead of images.
 This is not the preferred way, but it can be used for
 debugging or special purposes.</p>
@@ -807,16 +814,16 @@ to the target file. This minimizes chances that an empty or corrupted file is
 created by an interrupted raw file handler.</p>
 </section>
 <section id="scripts">
-<h2>Scripts<a class="headerlink" href="#scripts" title="Permalink to this headline"></a></h2>
+<h2>Scripts<a class="headerlink" href="#scripts" title="Link to this heading"></a></h2>
 <p>Scripts runs in the order they are put into the sw-description file.
 The result of a script is valuated by SWUpdate, that stops the update
 with an error if the result is &lt;&gt; 0.</p>
 <p>They are copied into a temporary directory before execution and their name must
 be unique inside the same cpio archive.</p>
 <p>If no type is given, SWUpdate default to “lua”. Please note that running a shell script
-opens a set of different security issues, check also chapter “Best practise”.</p>
+opens a set of different security issues, check also chapter “Best practice”.</p>
 <section id="lua">
-<h3>Lua<a class="headerlink" href="#lua" title="Permalink to this headline"></a></h3>
+<h3>Lua<a class="headerlink" href="#lua" title="Link to this heading"></a></h3>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">scripts</span><span class="p">:</span> <span class="p">(</span>
         <span class="p">{</span>
                 <span class="n">filename</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">Name</span> <span class="ow">in</span> <span class="n">CPIO</span> <span class="n">Archive</span><span class="o">&gt;</span><span class="p">;</span>
@@ -846,7 +853,7 @@ to restore a previous state, for example, in case the application was
 stop, it should run again.</p>
 </section>
 <section id="shellscript">
-<h3>shellscript<a class="headerlink" href="#shellscript" title="Permalink to this headline"></a></h3>
+<h3>shellscript<a class="headerlink" href="#shellscript" title="Link to this heading"></a></h3>
 <p>SWUpdate will run the binary shell “/bin/sh” to execute the script.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">scripts</span><span class="p">:</span> <span class="p">(</span>
         <span class="p">{</span>
@@ -864,7 +871,7 @@ If the data attribute is defined, its value is passed as the last argument(s)
 to the script.</p>
 </section>
 <section id="preinstall">
-<h3>preinstall<a class="headerlink" href="#preinstall" title="Permalink to this headline"></a></h3>
+<h3>preinstall<a class="headerlink" href="#preinstall" title="Link to this heading"></a></h3>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">scripts</span><span class="p">:</span> <span class="p">(</span>
         <span class="p">{</span>
                 <span class="n">filename</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">Name</span> <span class="ow">in</span> <span class="n">CPIO</span> <span class="n">Archive</span><span class="o">&gt;</span><span class="p">;</span>
@@ -886,7 +893,7 @@ sw-description: because it becomes part of sw-description, it runs when sw-descr
 parsed and before any handler runs, even before a partition handler.</p>
 </section>
 <section id="postinstall">
-<h3>postinstall<a class="headerlink" href="#postinstall" title="Permalink to this headline"></a></h3>
+<h3>postinstall<a class="headerlink" href="#postinstall" title="Link to this heading"></a></h3>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">scripts</span><span class="p">:</span> <span class="p">(</span>
         <span class="p">{</span>
                 <span class="n">filename</span> <span class="o">=</span> <span class="o">&lt;</span><span class="n">Name</span> <span class="ow">in</span> <span class="n">CPIO</span> <span class="n">Archive</span><span class="o">&gt;</span><span class="p">;</span>
@@ -902,7 +909,7 @@ to the script.</p>
 </section>
 </section>
 <section id="update-transaction-and-status-marker">
-<h2>Update Transaction and Status Marker<a class="headerlink" href="#update-transaction-and-status-marker" title="Permalink to this headline"></a></h2>
+<h2>Update Transaction and Status Marker<a class="headerlink" href="#update-transaction-and-status-marker" title="Link to this heading"></a></h2>
 <p>By default, SWUpdate sets the bootloader environment variable “recovery_status”
 to “in_progress” prior to an update operation and either unsets it or sets it to
 “failed” after the update operation. This is an interface for SWUpdate-external
@@ -933,14 +940,14 @@ globally via the <cite>-m</cite> option to SWUpdate or per <cite>sw-description<
 boolean switch “bootloader_state_marker”.</p>
 </section>
 <section id="reboot-flag">
-<h2>reboot flag<a class="headerlink" href="#reboot-flag" title="Permalink to this headline"></a></h2>
+<h2>reboot flag<a class="headerlink" href="#reboot-flag" title="Link to this heading"></a></h2>
 <p>It is possible to signal that a reboot for a specific update is not required.
 This information is evaluated by SWUpdate just to inform a backend about the
 transaction result. If a postinstall script (command line parameter -p) is
 passed at the startup to perform a reboot, it will be executed anyway because
 SWUpdate cannot know the nature of this script.</p>
 <p>SWUpdate sends this information to the progress interface and it is duty of the
-listeners to interprete the information. The attribute is a boolean:</p>
+listeners to interpret the information. The attribute is a boolean:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">reboot</span> <span class="o">=</span> <span class="n">false</span><span class="p">;</span>
 </pre></div>
 </div>
@@ -955,7 +962,7 @@ reboot the device. This allows to have on the fly updates, where not the whole
 software is updated and a reboot is not required.</p>
 </section>
 <section id="bootloader">
-<h2>bootloader<a class="headerlink" href="#bootloader" title="Permalink to this headline"></a></h2>
+<h2>bootloader<a class="headerlink" href="#bootloader" title="Link to this heading"></a></h2>
 <p>There are two ways to update the bootloader (currently U-Boot, GRUB, and
 EFI Boot Guard) environment. First way is to add a file with the list of
 variables to be changed and setting “bootloader” as type of the image. This
@@ -1006,7 +1013,7 @@ bootloader handler for adjusting the environment.</p>
 is deprecated.</p>
 </section>
 <section id="swupdate-persistent-variables">
-<h2>SWUpdate persistent variables<a class="headerlink" href="#swupdate-persistent-variables" title="Permalink to this headline"></a></h2>
+<h2>SWUpdate persistent variables<a class="headerlink" href="#swupdate-persistent-variables" title="Link to this heading"></a></h2>
 <p>Not all updates require to inform the bootloader about the update, and in many cases a
 reboot is not required. There are also cases where changing bootloader’s environment
 is unwanted due to restriction for security.
@@ -1033,7 +1040,7 @@ example/configuration/swupdate.cfg for details.</p>
 is stored just before writing the bootloader environment, that is always the last step in an update.</p>
 </section>
 <section id="board-specific-settings">
-<h2>Board specific settings<a class="headerlink" href="#board-specific-settings" title="Permalink to this headline"></a></h2>
+<h2>Board specific settings<a class="headerlink" href="#board-specific-settings" title="Link to this heading"></a></h2>
 <p>Each setting can be placed under a custom tag matching the board
 name. This mechanism can be used to override particular setting in
 board specific fashion.</p>
@@ -1070,7 +1077,7 @@ board. For all other boards, <cite>bootpart</cite> will be set to <cite>0:1</cit
 specific settings take precedence over default scoped settings.</p>
 </section>
 <section id="software-collections-and-operation-modes">
-<h2>Software collections and operation modes<a class="headerlink" href="#software-collections-and-operation-modes" title="Permalink to this headline"></a></h2>
+<h2>Software collections and operation modes<a class="headerlink" href="#software-collections-and-operation-modes" title="Link to this heading"></a></h2>
 <p>Software collections and operations modes extend the description file
 syntax to provide an overlay grouping all previous configuration
 tags. The mechanism is similar to <a class="reference internal" href="#board-specific-settings">Board specific settings</a> and can
@@ -1135,13 +1142,13 @@ collection: <cite>/dev/mmcblk0p1</cite> and <cite>/dev/mmcblk0p2</cite> for <cit
 specifying the collection and mode explicitly.</p>
 </section>
 <section id="versioning-schemas-in-swupdate">
-<h2>Versioning schemas in SWUpdate<a class="headerlink" href="#versioning-schemas-in-swupdate" title="Permalink to this headline"></a></h2>
+<h2>Versioning schemas in SWUpdate<a class="headerlink" href="#versioning-schemas-in-swupdate" title="Link to this heading"></a></h2>
 <p>SWUpdate can perform version comparisons for the whole Software by checking
 the <cite>version</cite> attribute in the common part of sw-description and / or
 for single artifacts. SWUpdate supports two different version schemas,
 and they must be followed if version comparison is requested.</p>
 <section id="numbering-schema-default">
-<h3>Numbering schema (default)<a class="headerlink" href="#numbering-schema-default" title="Permalink to this headline"></a></h3>
+<h3>Numbering schema (default)<a class="headerlink" href="#numbering-schema-default" title="Link to this heading"></a></h3>
 <p>SWUpdate supports a version based on the schema:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">major</span><span class="o">&gt;.&lt;</span><span class="n">minor</span><span class="o">&gt;.&lt;</span><span class="n">revision</span><span class="o">&gt;.&lt;</span><span class="n">build</span><span class="o">&gt;</span>
 </pre></div>
@@ -1168,12 +1175,12 @@ that are interpreted as the same version number by SWUpdate:</p>
 </section>
 </section>
 <section id="semantic-version">
-<h2>Semantic version<a class="headerlink" href="#semantic-version" title="Permalink to this headline"></a></h2>
+<h2>Semantic version<a class="headerlink" href="#semantic-version" title="Link to this heading"></a></h2>
 <p>SWUpdate supports <a class="reference external" href="https://semver.org/">semantic</a> version. See official documentation
 for more details.</p>
 </section>
 <section id="checking-version-of-installed-software">
-<h2>Checking version of installed software<a class="headerlink" href="#checking-version-of-installed-software" title="Permalink to this headline"></a></h2>
+<h2>Checking version of installed software<a class="headerlink" href="#checking-version-of-installed-software" title="Link to this heading"></a></h2>
 <p>SWUpdate can optionally verify if a sub-image is already installed
 and, if the version to be installed is exactly the same, it can skip
 to install it. This is very useful in case some high risky image should
@@ -1221,7 +1228,7 @@ numbers (major, minor, patch) and the fourth number will be silently dropped
 if present.</p>
 </section>
 <section id="embedded-script">
-<h2>Embedded Script<a class="headerlink" href="#embedded-script" title="Permalink to this headline"></a></h2>
+<h2>Embedded Script<a class="headerlink" href="#embedded-script" title="Link to this heading"></a></h2>
 <p>It is possible to embed a script inside sw-description. This is useful in a lot
 of conditions where some parameters are known just by the target at runtime. The
 script is global to all sections, but it can contain several functions that can be specific
@@ -1294,7 +1301,7 @@ The Lua function must return 2 values:</p>
 reading from the target.</p>
 </section>
 <section id="attribute-reference">
-<span id="sw-description-attribute-reference"></span><h2>Attribute reference<a class="headerlink" href="#attribute-reference" title="Permalink to this headline"></a></h2>
+<span id="sw-description-attribute-reference"></span><h2>Attribute reference<a class="headerlink" href="#attribute-reference" title="Link to this heading"></a></h2>
 <p>There are 4 main sections inside sw-description:</p>
 <ul class="simple">
 <li><p>images: entries are images and SWUpdate has no knowledge
@@ -1308,13 +1315,7 @@ be run twice (as pre- and post- install scripts).</p></li>
 value.</p></li>
 </ul>
 <table class="docutils align-default" id="id3">
-<caption><span class="caption-text">Attributes in sw-description</span><a class="headerlink" href="#id3" title="Permalink to this table"></a></caption>
-<colgroup>
-<col style="width: 18%" />
-<col style="width: 14%" />
-<col style="width: 16%" />
-<col style="width: 53%" />
-</colgroup>
+<caption><span class="caption-text">Attributes in sw-description</span><a class="headerlink" href="#id3" title="Link to this table"></a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>Name</p></th>
 <th class="head"><p>Type</p></th>
@@ -1550,6 +1551,16 @@ called when the entry is parsed.</p></td>
 by the flash handler to identify the
 the mtd to update, instead of
 specifying the devicenode</p></td>
+</tr>
+<tr class="row-odd"><td><p>size</p></td>
+<td><p>int64</p></td>
+<td><p>images
+files
+scripts</p></td>
+<td><p>size of the file as it is expected
+in the SWU. If set and the cpio size
+does not match for some reason the
+update will fail with an error.</p></td>
 </tr>
 </tbody>
 </table>

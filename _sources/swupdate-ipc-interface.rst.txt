@@ -176,7 +176,7 @@ The msgdata field is a structure as:
                               */
         }
 
-The caller fills `source` with the subprocess that acceps the command. Values of cmd
+The caller fills `source` with the subprocess that accepts the command. Values of cmd
 are in `network_ipc.h`.
 
 Messages for suricatta

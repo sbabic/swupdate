@@ -1,18 +1,21 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Software Management on embedded systems &mdash; Embedded Software Update Documentation 2024.05 documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <title>Software Management on embedded systems &mdash; Embedded Software Update Documentation 2024.12 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=86f27845" />
+
+  
     <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
   
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/doctools.js"></script>
+        <script src="_static/jquery.js?v=8dae8fb0"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=426f823e"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -25,14 +28,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> Embedded Software Update Documentation
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Embedded Software Update Documentation
           </a>
               <div class="version">
-                2024.05
+                2024.12
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -112,8 +119,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Software Management on embedded systems</li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Software Management on embedded systems</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/overview.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -124,7 +131,7 @@
            <div itemprop="articleBody">
              
   <section id="software-management-on-embedded-systems">
-<h1>Software Management on embedded systems<a class="headerlink" href="#software-management-on-embedded-systems" title="Permalink to this headline"></a></h1>
+<h1>Software Management on embedded systems<a class="headerlink" href="#software-management-on-embedded-systems" title="Link to this heading"></a></h1>
 <p>As Embedded Systems become more and more complex,
 their software reflects the augmented complexity.
 It is vital that the software on an embedded system
@@ -153,7 +160,7 @@ and the system must be sent back to the manufacturer.</p>
 the software. I like to expose some of them, and then
 explain why I have implemented this project.</p>
 <section id="updating-through-the-boot-loader">
-<h2>Updating through the boot loader<a class="headerlink" href="#updating-through-the-boot-loader" title="Permalink to this headline"></a></h2>
+<h2>Updating through the boot loader<a class="headerlink" href="#updating-through-the-boot-loader" title="Link to this heading"></a></h2>
 <p>Boot loaders do much more as simply start the kernel.
 They have their own shell and can be managed using
 a processor’s peripheral, in most cases a serial line.
@@ -163,7 +170,7 @@ some kind of software update mechanism.</p>
 let me search for another solution, based on an application
 running on Linux:</p>
 <section id="boot-loaders-have-limited-access-to-peripherals">
-<h3>Boot loaders have limited access to peripherals<a class="headerlink" href="#boot-loaders-have-limited-access-to-peripherals" title="Permalink to this headline"></a></h3>
+<h3>Boot loaders have limited access to peripherals<a class="headerlink" href="#boot-loaders-have-limited-access-to-peripherals" title="Link to this heading"></a></h3>
 <p>Not all peripherals supported by the kernel are
 available with the boot loader. When it makes sense to add
 support to the kernel, because the peripheral is then available
@@ -171,7 +178,7 @@ by the main application, it does not always make sense to duplicate
 the effort to port the driver to the boot loader.</p>
 </section>
 <section id="boot-loader-s-drivers-are-not-updated">
-<h3>Boot loader’s drivers are not updated<a class="headerlink" href="#boot-loader-s-drivers-are-not-updated" title="Permalink to this headline"></a></h3>
+<h3>Boot loader’s drivers are not updated<a class="headerlink" href="#boot-loader-s-drivers-are-not-updated" title="Link to this heading"></a></h3>
 <p>Boot loader’s drivers are mostly ported from the Linux kernel,
 but due to adaptations they are not later fixed or synchronized
 with the kernel, while bug fixes flow regularly in the Linux kernel.
@@ -185,17 +192,17 @@ new peripherals or protocols is better to be used for the kernel
 as for the boot loaders.</p>
 </section>
 <section id="reduced-file-systems">
-<h3>Reduced file systems<a class="headerlink" href="#reduced-file-systems" title="Permalink to this headline"></a></h3>
+<h3>Reduced file systems<a class="headerlink" href="#reduced-file-systems" title="Link to this heading"></a></h3>
 <p>The number of supported file systems is limited and
 porting a file system to the boot loader requires high effort.</p>
 </section>
 <section id="network-support-is-limited">
-<h3>Network support is limited<a class="headerlink" href="#network-support-is-limited" title="Permalink to this headline"></a></h3>
+<h3>Network support is limited<a class="headerlink" href="#network-support-is-limited" title="Link to this heading"></a></h3>
 <p>Network stack is limited, generally an update is possible via
 UDP but not via TCP.</p>
 </section>
 <section id="interaction-with-the-operator">
-<h3>Interaction with the operator<a class="headerlink" href="#interaction-with-the-operator" title="Permalink to this headline"></a></h3>
+<h3>Interaction with the operator<a class="headerlink" href="#interaction-with-the-operator" title="Link to this heading"></a></h3>
 <p>It is difficult to expose an interface to the operator,
 such as a GUI with a browser or on a display.</p>
 <p>A complex logic can be easier implemented inside an application
@@ -203,7 +210,7 @@ else in the boot loader. Extending the boot loader becomes complicated
 because the whole range of services and libraries are not available.</p>
 </section>
 <section id="boot-loader-s-update-advantages">
-<h3>Boot loader’s update advantages<a class="headerlink" href="#boot-loader-s-update-advantages" title="Permalink to this headline"></a></h3>
+<h3>Boot loader’s update advantages<a class="headerlink" href="#boot-loader-s-update-advantages" title="Link to this heading"></a></h3>
 <p>However, this approach has some advantages, too:</p>
 <ul class="simple">
 <li><p>software for update is generally simpler.  - smaller footprint: a stand-alone
@@ -214,7 +221,7 @@ for updating the software, their size is not negligible.</p></li>
 </section>
 </section>
 <section id="updating-through-a-package-manager">
-<h2>Updating through a package manager<a class="headerlink" href="#updating-through-a-package-manager" title="Permalink to this headline"></a></h2>
+<h2>Updating through a package manager<a class="headerlink" href="#updating-through-a-package-manager" title="Link to this heading"></a></h2>
 <p>All Linux distributions are updating with a package manager.
 Why is it not suitable for embedded ?</p>
 <p>I cannot say it cannot be used, but there is an important drawback
@@ -238,7 +245,7 @@ to the customer ?</p>
 <p>An atomic update is generally a must feature for an embedded system.</p>
 </section>
 <section id="strategies-for-an-application-doing-software-upgrade">
-<h2>Strategies for an application doing software upgrade<a class="headerlink" href="#strategies-for-an-application-doing-software-upgrade" title="Permalink to this headline"></a></h2>
+<h2>Strategies for an application doing software upgrade<a class="headerlink" href="#strategies-for-an-application-doing-software-upgrade" title="Link to this heading"></a></h2>
 <p>Instead of using the boot loader, an application can take
 into charge to upgrade the system. The application can
 use all services provided by the OS. The proposed solution
@@ -254,7 +261,7 @@ scripts, and so on.</p>
 <p>Different strategies can be used, depending on the system’s
 resources. I am listing some of them.</p>
 <section id="double-copy-with-fall-back">
-<span id="double-copy"></span><h3>Double copy with fall-back<a class="headerlink" href="#double-copy-with-fall-back" title="Permalink to this headline"></a></h3>
+<span id="double-copy"></span><h3>Double copy with fall-back<a class="headerlink" href="#double-copy-with-fall-back" title="Link to this heading"></a></h3>
 <p>If there is enough space on the storage to save
 two copies of the whole software, it is possible to guarantee
 that there is always a working copy even if the software update
@@ -285,7 +292,7 @@ it is always possible to upgrade the not running copy.</p>
 successfully installed.</p>
 </section>
 <section id="single-copy-running-as-standalone-image">
-<span id="single-copy"></span><h3>Single copy - running as standalone image<a class="headerlink" href="#single-copy-running-as-standalone-image" title="Permalink to this headline"></a></h3>
+<span id="single-copy"></span><h3>Single copy - running as standalone image<a class="headerlink" href="#single-copy-running-as-standalone-image" title="Link to this heading"></a></h3>
 <p>The software upgrade application consists of kernel (maybe reduced
 dropping not required drivers) and a small root file system, with the
 application and its libraries. The whole size is much less than a single copy of
@@ -327,7 +334,7 @@ automatically started after mounting the root file system.</p>
 </section>
 </section>
 <section id="something-went-wrong">
-<h2>Something went wrong ?<a class="headerlink" href="#something-went-wrong" title="Permalink to this headline"></a></h2>
+<h2>Something went wrong ?<a class="headerlink" href="#something-went-wrong" title="Link to this heading"></a></h2>
 <p>Many things can go wrong, and it must be guaranteed that the system
 is able to run again and maybe able to reload a new software to fix
 a damaged image. SWUpdate works together with the boot loader to identify the
@@ -356,7 +363,7 @@ The boot loader can then start again SWUpdate to load again the software
 (single-copy case) or run the old copy of the application
 (double-copy case).</p>
 <section id="power-failure">
-<h3>Power Failure<a class="headerlink" href="#power-failure" title="Permalink to this headline"></a></h3>
+<h3>Power Failure<a class="headerlink" href="#power-failure" title="Link to this heading"></a></h3>
 <p>If a power off occurs, it must be guaranteed that the system is able
 to work again - starting again SWUpdate or restoring an old copy of the software.</p>
 <p>Generally, the behavior can be split according to the chosen scenario:</p>
@@ -381,7 +388,7 @@ update was running before a power-off.</p>
 <img alt="_images/SoftwareUpdateU-Boot.png" src="_images/SoftwareUpdateU-Boot.png" />
 </section>
 <section id="what-about-upgrading-swupdate-itself">
-<h3>What about upgrading SWUpdate itself ?<a class="headerlink" href="#what-about-upgrading-swupdate-itself" title="Permalink to this headline"></a></h3>
+<h3>What about upgrading SWUpdate itself ?<a class="headerlink" href="#what-about-upgrading-swupdate-itself" title="Link to this heading"></a></h3>
 <p>SWUpdate is thought to be used in the whole development process, replacing
 customized process to update the software during the development. Before going
 into production, SWUpdate is well tested for a project.</p>
@@ -396,7 +403,7 @@ upgraded image:</p>
 </ul>
 </section>
 <section id="what-about-upgrading-the-boot-loader">
-<h3>What about upgrading the Boot loader ?<a class="headerlink" href="#what-about-upgrading-the-boot-loader" title="Permalink to this headline"></a></h3>
+<h3>What about upgrading the Boot loader ?<a class="headerlink" href="#what-about-upgrading-the-boot-loader" title="Link to this heading"></a></h3>
 <p>Updating the boot loader is in most cases a one-way process. On most SOCs,
 there is no possibility to have multiple copies of the boot loader, and when
 boot loader is broken, the board does not simply boot.</p>

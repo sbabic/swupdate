@@ -1,18 +1,21 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Delta Update with SWUpdate &mdash; Embedded Software Update Documentation 2024.05 documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <title>Delta Update with SWUpdate &mdash; Embedded Software Update Documentation 2024.12 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=86f27845" />
+
+  
     <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
   
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/doctools.js"></script>
+        <script src="_static/jquery.js?v=8dae8fb0"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=426f823e"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -25,14 +28,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> Embedded Software Update Documentation
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Embedded Software Update Documentation
           </a>
               <div class="version">
-                2024.05
+                2024.12
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -105,8 +112,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Delta Update with SWUpdate</li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Delta Update with SWUpdate</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/delta-update.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -117,9 +124,9 @@
            <div itemprop="articleBody">
              
   <section id="delta-update-with-swupdate">
-<h1>Delta Update with SWUpdate<a class="headerlink" href="#delta-update-with-swupdate" title="Permalink to this headline"></a></h1>
+<h1>Delta Update with SWUpdate<a class="headerlink" href="#delta-update-with-swupdate" title="Link to this heading"></a></h1>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline"></a></h2>
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
 <p>The size of update packages is steadily increasing. While once the whole software was just
 a bunch of megabytes, it is not unusual now that OS and application on devices running
 Linux as OS reach huge size of Gigabytes.</p>
@@ -143,12 +150,12 @@ independently from the source where the SWU is stored (USB, OTA, etc.)</p></li>
 </div></blockquote>
 <p>Specific ad-hoc delta updates mechanisms can be realized when the nature of the updated files is
 the same. It is always possible with SWUpdate to install single files, but coherency and compatibility
-with the runningsoftware must be guaranteed by the integratot / manufacturer. This is not covered here:
+with the running software must be guaranteed by the integrator / manufacturer. This is not covered here:
 the scope is to get an efficient and content unaware <em>delta</em> mechanism, that can upgrade in differential
 mode two arbitrary images, without any previous knowledge about what they content.</p>
 </section>
 <section id="foss-projects-for-delta-encoding">
-<h2>FOSS projects for delta encoding<a class="headerlink" href="#foss-projects-for-delta-encoding" title="Permalink to this headline"></a></h2>
+<h2>FOSS projects for delta encoding<a class="headerlink" href="#foss-projects-for-delta-encoding" title="Link to this heading"></a></h2>
 <p>There are several algorithms for <em>delta encoding</em>, that is to find the difference between files,
 generally in binary format. Only algorithms available under a compatible FOSS license (GPLv2)
 are considered for SWUpdate.
@@ -158,7 +165,7 @@ much better results, but it works on programs (ELF files) and take advantages of
 code. In case of OTA update, not only software, but any kind of artifact can be delivered, and this includes
 configuration data, databases, videos, docs, etc.</p>
 <section id="librsync">
-<h3><a class="reference external" href="https://librsync.github.io/">librsync</a><a class="headerlink" href="#librsync" title="Permalink to this headline"></a></h3>
+<h3><a class="reference external" href="https://librsync.github.io/">librsync</a><a class="headerlink" href="#librsync" title="Link to this heading"></a></h3>
 <p><a class="reference external" href="https://librsync.github.io/">librsync</a> is an independent implementation for rsync and does not use the rsync protocol. It is well
 suited to generate offline differential update and it is already integrated into SWUpdate.
 However, librsync takes the whole artifact and generates a differential image that is applied
@@ -169,14 +176,14 @@ the resulting delta image can even become larger as the original one.</p>
 <p>SWUpdate supports <cite>librsync</cite> as delta encoder via the rdiff handler.</p>
 </section>
 <section id="xdelta">
-<h3><a class="reference external" href="http://xdelta.org/">xdelta</a><a class="headerlink" href="#xdelta" title="Permalink to this headline"></a></h3>
+<h3><a class="reference external" href="http://xdelta.org/">xdelta</a><a class="headerlink" href="#xdelta" title="Link to this heading"></a></h3>
 <p><a class="reference external" href="http://xdelta.org/">xdelta</a> uses the VCDIFF algorithm to compute differences between binaries. It is often used
 to deliver smaller images for CD and DVD. The resulting images are created from an installed
 image that should be loaded entirely in main memory. For this reason, it does not scale well
 when the images are becoming larger and it is unsuitable for embedded systems and SWUpdate.</p>
 </section>
 <section id="casync">
-<h3><a class="reference external" href="http://0pointer.net/blog/casync-a-tool-for-distributing-file-system-images.html">casync</a><a class="headerlink" href="#casync" title="Permalink to this headline"></a></h3>
+<h3><a class="reference external" href="http://0pointer.net/blog/casync-a-tool-for-distributing-file-system-images.html">casync</a><a class="headerlink" href="#casync" title="Link to this heading"></a></h3>
 <p><a class="reference external" href="http://0pointer.net/blog/casync-a-tool-for-distributing-file-system-images.html">casync</a> is, according to his author. a tool for distributing images. It has several interesting
 aspects that can be helpful with OTA update.
 Files itself are grouped together in chunks and casync creates a “Chunk storage” where each chunk
@@ -213,7 +220,7 @@ is not a candidate for SWUpdate. A out-of-the-box solution cannot be found, and 
 implement an own solution that better suits for SWUpdate.</p>
 </section>
 <section id="zchunk-compression-format">
-<h3><a class="reference external" href="https://github.com/zchunk/zchunk">Zchunk</a> - compression format<a class="headerlink" href="#zchunk-compression-format" title="Permalink to this headline"></a></h3>
+<h3><a class="reference external" href="https://github.com/zchunk/zchunk">Zchunk</a> - compression format<a class="headerlink" href="#zchunk-compression-format" title="Link to this heading"></a></h3>
 <p><a class="reference external" href="https://github.com/zchunk/zchunk">zchunk</a> seems to combine the usage of a chunk storage without having to deliver it on a server.
 zchunk is a FOSS project released under BSD by its <a class="reference external" href="https://www.jdieter.net/posts/2018/05/31/what-is-zchunk/">author</a>. The goal of this project is something else:
 zchunk creates a new compression format that adds the ability to download the differences between
@@ -232,7 +239,7 @@ to generate sha256 hashes.</p>
 </section>
 </section>
 <section id="design-delta-update-in-swupdate">
-<h2>Design Delta Update in SWUpdate<a class="headerlink" href="#design-delta-update-in-swupdate" title="Permalink to this headline"></a></h2>
+<h2>Design Delta Update in SWUpdate<a class="headerlink" href="#design-delta-update-in-swupdate" title="Link to this heading"></a></h2>
 <p>For all reasons stated before, <cite>zchunk</cite> is chosen as format to deliver delta update in SWUpdate.  An artifact
 can be generated in ZCK format and then the ZCK’s header (as described in <a class="reference external" href="https://github.com/zchunk/zchunk/blob/main/zchunk_format.txt">format</a>) can be extracted and
 added to the SWU. In this way, a ZCK file is signed (and if requested compressed and/or encrypted) as
@@ -240,7 +247,7 @@ part of the SWU, and loading chunks from an external URL can be verified as well
 hashes are already verified as part of the header.</p>
 </section>
 <section id="changes-in-zchunk-project">
-<h2>Changes in ZCHUNK project<a class="headerlink" href="#changes-in-zchunk-project" title="Permalink to this headline"></a></h2>
+<h2>Changes in ZCHUNK project<a class="headerlink" href="#changes-in-zchunk-project" title="Link to this heading"></a></h2>
 <p>Zchunk has an API that hides most of its internal, and provides a set of tools for creating
 and downloading itself a file in ZCK format. Nevertheless, Zchunk relies on hashes for the compressed
 (ZST) chunks, and it was missing for support for uncompressed data. To combine SWUpdate and zchunk,
@@ -266,7 +273,7 @@ commit 1b36f8b5e0ecb, that means newer as 1.1.16.</p>
 SWUpdate already verifies the downloaded data, and there is no need to add signatures to Zchunk itself.</p>
 </section>
 <section id="integration-in-sw-description">
-<h2>Integration in sw-description<a class="headerlink" href="#integration-in-sw-description" title="Permalink to this headline"></a></h2>
+<h2>Integration in sw-description<a class="headerlink" href="#integration-in-sw-description" title="Link to this heading"></a></h2>
 <p>The most important part in a Zchunk file is the header: this contains all metadata and hashes to perform
 comparisons. The <cite>zck</cite> tool splits a file in chunks and creates the header. Size of the header are know, and the
 header itself can be extracted from the ZCK file.
@@ -274,7 +281,7 @@ The header will be part of sw-description: this is the header for the file that 
 is very small compared to the size of the whole file (quite 1 %), this header can be delivered into the SWU.</p>
 </section>
 <section id="integration-in-swupdate-the-delta-handler">
-<h2>Integration in SWUpdate: the delta handler<a class="headerlink" href="#integration-in-swupdate-the-delta-handler" title="Permalink to this headline"></a></h2>
+<h2>Integration in SWUpdate: the delta handler<a class="headerlink" href="#integration-in-swupdate-the-delta-handler" title="Link to this heading"></a></h2>
 <p>The delta handler is responsible to compute the differences and to download the missing parts. It is not responsible
 to install the artifact, because this breaks the module design in SWUpdate and will constrain to have
 just one artifact type, for example installing as <cite>raw</cite> or <cite>rawfile</cite>. But what about if the artifact should be installed
@@ -286,7 +293,7 @@ as before.
 The delta handler has in short the following duties:</p>
 <blockquote>
 <div><ul class="simple">
-<li><p>parse and understanf the ZCK header</p></li>
+<li><p>parse and understand the ZCK header</p></li>
 <li><p>create a ZCK header from the file / partition used as source for the comparison</p></li>
 <li><p>detect which chunks are missing and which one must be copied.</p></li>
 <li><p>build  a mixer that copies and downloads all chunks and generates a stream
@@ -301,7 +308,7 @@ part of SWUpdate design.
 To avoid this, the delta handler does not download itself. A separate process, that can runs with different
 userid and groupid, is responsible for this. The handler sends a request to this process with a list of
 ranges that should be downloaded (see HTTP Range request). The delta handler does not know how the chunks are
-downlaoded, and even if using HTTP Range Request is the most frequent choice, it is open to further
+downloaded, and even if using HTTP Range Request is the most frequent choice, it is open to further
 implementations.
 The downloader process prepares the connection and asks the server for ranges. If the server is not
 able to provide ranges, the update aborts. It is in fact a requirement for delta update that the
@@ -317,7 +324,7 @@ and sends them back to the caller. The delta handler is then responsible to pars
 retrieve the missing chunks from the multipart HTTP body.</p>
 </section>
 <section id="creation-of-zck-header-and-zck-file-for-swupdate">
-<h2>Creation of ZCK Header and ZCK file for SWUpdate<a class="headerlink" href="#creation-of-zck-header-and-zck-file-for-swupdate" title="Permalink to this headline"></a></h2>
+<h2>Creation of ZCK Header and ZCK file for SWUpdate<a class="headerlink" href="#creation-of-zck-header-and-zck-file-for-swupdate" title="Link to this heading"></a></h2>
 <p>Zchunk supports more SHA algorithms and it sets as default SHA512/128. This is not compatible with SWUpdate
 that just support SHA256. Be sure to generate header and chunks with SHA256 support.
 You have to enable the generation of hashes for uncompressed chunk, too. A possible usage of the tool
@@ -335,7 +342,7 @@ dd if=&lt;ZCK FILE&gt; of=&lt;ZCK HEADER file&gt; bs=1 count=$((HSIZE))
 </div>
 </section>
 <section id="using-zck-tools-to-foresee-download-size">
-<h2>Using ZCK tools to foresee download size<a class="headerlink" href="#using-zck-tools-to-foresee-download-size" title="Permalink to this headline"></a></h2>
+<h2>Using ZCK tools to foresee download size<a class="headerlink" href="#using-zck-tools-to-foresee-download-size" title="Link to this heading"></a></h2>
 <p>There are tools that can be used at build time to know how many chunks should be downloaded
 when a device is upgrading from a known version. You can use <cite>zck_cmp_uncomp</cite> from the test
 directory:</p>
@@ -346,7 +353,7 @@ directory:</p>
 and they should not retrieved and with DST if they are new and must be downloaded.
 The tool show at the end a summary with the total number of bytes of the new release (uncompressed) and how
 many bytes must be downloaded for the upgrade.
-Please remmeber that these value are just payload. SWUpdate reports a summary, too, but it takes into account
+Please remember that these value are just payload. SWUpdate reports a summary, too, but it takes into account
 also the HTTP overhead (headers, etc.), so that values are not the same and the ones from SWUpdate are
 slightly bigger.</p>
 </section>

@@ -1,18 +1,21 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Config for hawkBit under SSL/TLS using private CA / sub CA &mdash; Embedded Software Update Documentation 2024.05 documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <title>Config for hawkBit under SSL/TLS using private CA / sub CA &mdash; Embedded Software Update Documentation 2024.12 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=86f27845" />
+
+  
     <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
   
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/doctools.js"></script>
+        <script src="_static/jquery.js?v=8dae8fb0"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=426f823e"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -25,14 +28,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> Embedded Software Update Documentation
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Embedded Software Update Documentation
           </a>
               <div class="version">
-                2024.05
+                2024.12
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -93,8 +100,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Config for hawkBit under SSL/TLS using private CA / sub CA</li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Config for hawkBit under SSL/TLS using private CA / sub CA</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/hawkbit-setup.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -105,14 +112,14 @@
            <div itemprop="articleBody">
              
   <section id="config-for-hawkbit-under-ssl-tls-using-private-ca-sub-ca">
-<h1>Config for hawkBit under SSL/TLS using private CA / sub CA<a class="headerlink" href="#config-for-hawkbit-under-ssl-tls-using-private-ca-sub-ca" title="Permalink to this headline"></a></h1>
+<h1>Config for hawkBit under SSL/TLS using private CA / sub CA<a class="headerlink" href="#config-for-hawkbit-under-ssl-tls-using-private-ca-sub-ca" title="Link to this heading"></a></h1>
 <p>A user-contributed recipe based on hawkBit (0.2.0-SNAPSHOT) + swupdate (v2018.03)</p>
 <section id="purpose">
-<h2>Purpose<a class="headerlink" href="#purpose" title="Permalink to this headline"></a></h2>
+<h2>Purpose<a class="headerlink" href="#purpose" title="Link to this heading"></a></h2>
 <p>Use HTTPS on a hawkBit server to avoid server spoofing. Anonymous client connections are authorized.</p>
 </section>
 <section id="recipe">
-<h2>Recipe<a class="headerlink" href="#recipe" title="Permalink to this headline"></a></h2>
+<h2>Recipe<a class="headerlink" href="#recipe" title="Link to this heading"></a></h2>
 <ol class="arabic simple">
 <li><p>On the PKI:</p></li>
 </ol>
@@ -132,9 +139,9 @@
 <li><p>It looks like a JKS like this cannot have a password different from the one protecting the <code class="docutils literal notranslate"><span class="pre">.p12</span></code>. Keytool also seems to have a little tendency to destruct the <code class="docutils literal notranslate"><span class="pre">.jks</span></code> if you change your mind and want to change the password… Basically do everything you need with openssl and use only keytool for generating the <code class="docutils literal notranslate"><span class="pre">.jks</span></code> file.</p></li>
 </ul>
 <p>The following command imports a <code class="docutils literal notranslate"><span class="pre">.p12</span></code> into a “pkcs12 Java keystore”, keeping the same password:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>keytool -importkeystore -srckeystore hb-pass.p12 -srcstoretype pkcs12 <span class="se">\</span>
-        -destkeystore hb-pass.jks -deststoretype pkcs12 <span class="se">\</span>
-        -alias <span class="m">1</span> -deststorepass &lt;password_of_p12&gt;
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>keytool<span class="w"> </span>-importkeystore<span class="w"> </span>-srckeystore<span class="w"> </span>hb-pass.p12<span class="w"> </span>-srcstoretype<span class="w"> </span>pkcs12<span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>-destkeystore<span class="w"> </span>hb-pass.jks<span class="w"> </span>-deststoretype<span class="w"> </span>pkcs12<span class="w"> </span><span class="se">\</span>
+<span class="w">        </span>-alias<span class="w"> </span><span class="m">1</span><span class="w"> </span>-deststorepass<span class="w"> </span>&lt;password_of_p12&gt;
 </pre></div>
 </div>
 <p>Then you need to adapt <code class="docutils literal notranslate"><span class="pre">application.properties</span></code> of the hawkBit server to make use of the keystore.

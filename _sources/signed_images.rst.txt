@@ -47,7 +47,7 @@ verify that each delivered sub-image really belongs to the release.
 Choice of algorithm
 -------------------
 
-The algorithm chosen to sign and verify the sw-descrription file can be
+The algorithm chosen to sign and verify the sw-description file can be
 selected via menuconfig. Currently, the following mechanisms are implemented:
 
 - RSA Public / private key. The private key belongs to the build system,
@@ -172,11 +172,13 @@ Generating a new keypair
 First, a primary keypair needs to be generated
 
 ::
+
 	gpg --gen-key
 
 The generated keys can be listed as follows
 
 ::
+
 	gpg -k
 
 Check the documentation for more information about parameters.
@@ -187,6 +189,7 @@ How to sign with gpg
 Signing the image is very simple:
 
 ::
+
 	gpg --batch --output sw-description.sig
 		--detach-sig sw-description
 
@@ -195,6 +198,7 @@ the following can be used to specify. In this example, the GnuPG home directory
 is in GPG_HOMEDIR, while the signing key is found in GPG_KEY.
 
 ::
+
 	gpg --batch --homedir "${GPG_HOMEDIR}" --default-key "${GPG_KEY}" --output sw-description.sig
 		--detach-sig sw-description
 
@@ -286,20 +290,24 @@ need to be imported to the device's GnuPG home directory. To do this, the
 key will need to be exported:
 
 ::
+
         gpg --export <keyid> --output <public key>
 
 You can then copy it onto the device and import it into your public keyring:
 
 ::
+
         gpg --import <public key>
 
 To verify that the key has been imported successfully:
 
 ::
+
         gpg --list-keys
 
 SWUpdate will need need to be configured with the following parameters:
 
 ::
+
         GnuPG Home directory: gpg-home-dir in swupdate.cfg
         GPGME Protocol: gpgme-protocol in swupdate.cfg: openpgp or cms

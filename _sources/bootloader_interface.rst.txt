@@ -115,7 +115,7 @@ build system.
 
 First, the bootloader support implementation, named "trunk" and implemented
 in ``bootloader/trunk.c`` for example, needs to be added to
-``bootloader/Config.in`` in the ``Bootloader Interfaces`` menu as
+``bootloader/Kconfig`` in the ``Bootloader Interfaces`` menu as
 follows:
 
 .. code-block:: kconfig

@@ -1,18 +1,21 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Language Bindings &mdash; Embedded Software Update Documentation 2024.05 documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <title>Language Bindings &mdash; Embedded Software Update Documentation 2024.12 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=86f27845" />
+
+  
     <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
   
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/doctools.js"></script>
+        <script src="_static/jquery.js?v=8dae8fb0"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=426f823e"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -25,14 +28,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> Embedded Software Update Documentation
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Embedded Software Update Documentation
           </a>
               <div class="version">
-                2024.05
+                2024.12
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -98,8 +105,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Language Bindings</li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Language Bindings</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/bindings.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -110,9 +117,9 @@
            <div itemprop="articleBody">
              
   <section id="language-bindings">
-<h1>Language Bindings<a class="headerlink" href="#language-bindings" title="Permalink to this headline"></a></h1>
+<h1>Language Bindings<a class="headerlink" href="#language-bindings" title="Link to this heading"></a></h1>
 <section id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline"></a></h2>
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
 <p>In general, SWUpdate is agnostic to a particular language it is operated from,
 thanks to <a class="reference internal" href="swupdate-ipc.html"><span class="doc">SWUpdate’s socket-based control</span></a> and
 <a class="reference internal" href="progress.html"><span class="doc">progress APIs</span></a> for external programs. As long as the language
@@ -121,7 +128,7 @@ of choice has proper socket (library) support, SWUpdate can be operated with it.
 currently <code class="docutils literal notranslate"><span class="pre">lua_swupdate.so.0.1</span></code>, is provided.</p>
 </section>
 <section id="lua-language-binding">
-<h2>Lua Language Binding<a class="headerlink" href="#lua-language-binding" title="Permalink to this headline"></a></h2>
+<h2>Lua Language Binding<a class="headerlink" href="#lua-language-binding" title="Link to this heading"></a></h2>
 <p>The Lua language binding is realized in terms of the <code class="docutils literal notranslate"><span class="pre">lua_swupdate</span></code> module
 that defines three bindings, namely for the control interface, the progress
 interface, and a convenience function yielding a table holding all local
@@ -136,7 +143,7 @@ environment variable <code class="docutils literal notranslate"><span class="pre
 a <code class="docutils literal notranslate"><span class="pre">require('lua_swupdate')</span></code>, or , as last resort, using <code class="docutils literal notranslate"><span class="pre">package.loadlib()</span></code>
 instead of <code class="docutils literal notranslate"><span class="pre">require('lua_swupdate')</span></code>.</p>
 <section id="control-interface">
-<h3>Control Interface<a class="headerlink" href="#control-interface" title="Permalink to this headline"></a></h3>
+<h3>Control Interface<a class="headerlink" href="#control-interface" title="Link to this heading"></a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">lua_swupdate</span></code> module’s control interface binding conveniently makes
 <a class="reference internal" href="swupdate-ipc.html"><span class="doc">SWUpdate’s socket-based control API</span></a> available to pure Lua.</p>
 <p>The binding is captured in the <code class="docutils literal notranslate"><span class="pre">swupdate_control</span></code> object that is returned
@@ -179,7 +186,7 @@ executes the post-install command, if given.</p>
 </div>
 </section>
 <section id="progress-interface">
-<h3>Progress Interface<a class="headerlink" href="#progress-interface" title="Permalink to this headline"></a></h3>
+<h3>Progress Interface<a class="headerlink" href="#progress-interface" title="Link to this heading"></a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">lua_swupdate</span></code> module’s progress interface binding conveniently makes
 <a class="reference internal" href="progress.html"><span class="doc">SWUpdate’s socket-based progress API</span></a> available to pure Lua.</p>
 <p>The binding is captured in the <code class="docutils literal notranslate"><span class="pre">swupdate_progress</span></code> object that is returned
@@ -195,7 +202,7 @@ explicitly call <code class="docutils literal notranslate"><span class="pre">con
 socket.</p>
 </section>
 <section id="ipv4-interface">
-<h3>IPv4 Interface<a class="headerlink" href="#ipv4-interface" title="Permalink to this headline"></a></h3>
+<h3>IPv4 Interface<a class="headerlink" href="#ipv4-interface" title="Link to this heading"></a></h3>
 <p>For convenience, the <code class="docutils literal notranslate"><span class="pre">lua_swupdate</span></code> module provides the <code class="docutils literal notranslate"><span class="pre">ipv4()</span></code> method
 returning a table holding the local network interfaces as the table’s keys and
 their space-separated IP addresses plus subnet masks as respective values.</p>

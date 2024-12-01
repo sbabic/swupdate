@@ -1,18 +1,21 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SWUpdate Best Practice &mdash; Embedded Software Update Documentation 2024.05 documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <title>SWUpdate Best Practice &mdash; Embedded Software Update Documentation 2024.12 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=86f27845" />
+
+  
     <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
   
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/doctools.js"></script>
+        <script src="_static/jquery.js?v=8dae8fb0"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=426f823e"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -25,14 +28,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> Embedded Software Update Documentation
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Embedded Software Update Documentation
           </a>
               <div class="version">
-                2024.05
+                2024.12
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -110,8 +117,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>SWUpdate Best Practice</li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">SWUpdate Best Practice</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/swupdate-best-practise.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -122,7 +129,7 @@
            <div itemprop="articleBody">
              
   <section id="swupdate-best-practice">
-<h1>SWUpdate Best Practice<a class="headerlink" href="#swupdate-best-practice" title="Permalink to this headline"></a></h1>
+<h1>SWUpdate Best Practice<a class="headerlink" href="#swupdate-best-practice" title="Link to this heading"></a></h1>
 <p>This is intended as general rule to integrate SWUpdate into a custom project.</p>
 <p>SWUpdate is an update agent and it is thought to be a framework. This means it is highly
 configurable and SWUpdate should be configured to fit into a project, not
@@ -133,7 +140,7 @@ and SWUpdate can run differently according to the <cite>mode</cite> a device is 
 Think about SWUpdate not being a ready-to-use updater but a framework, and hence you should first
 write a meaningful:</p>
 <section id="update-concept">
-<h2>Update Concept<a class="headerlink" href="#update-concept" title="Permalink to this headline"></a></h2>
+<h2>Update Concept<a class="headerlink" href="#update-concept" title="Link to this heading"></a></h2>
 <p>Take your time and write first an update concept for your device.  It is not wasted time.
 You have to imagine conditions when an update is not working, and try to write
 down the use cases when an update can fail and how the device can be restored.
@@ -197,7 +204,7 @@ the range of versions you allow via <cite>–M</cite>, <cite>-R</cite> and <cite
 revision is running.</p></li>
 </ul>
 <section id="reduce-dependencies-to-minimum">
-<h3>Reduce dependencies to minimum<a class="headerlink" href="#reduce-dependencies-to-minimum" title="Permalink to this headline"></a></h3>
+<h3>Reduce dependencies to minimum<a class="headerlink" href="#reduce-dependencies-to-minimum" title="Link to this heading"></a></h3>
 <p>An update should be possible in any condition. Even if the system is degraded or in a bad shape,
 if an update can work, the device can be functional again without returning it back to the
 factory.
@@ -212,7 +219,7 @@ update is still working. You can fix any bugs if the update works, but not anymo
 cannot be updated.</p>
 </section>
 <section id="make-a-risk-analysis">
-<h3>Make a risk analysis<a class="headerlink" href="#make-a-risk-analysis" title="Permalink to this headline"></a></h3>
+<h3>Make a risk analysis<a class="headerlink" href="#make-a-risk-analysis" title="Link to this heading"></a></h3>
 <p>A more accurate analysis brings less surprises in the field. Think twice about what you want to update,
 which components should be updated, and the risks of updating a single point of failure.
 Very often, this means the bootloader. Compare risks and benefits: it happens in many projects that
@@ -221,7 +228,7 @@ back to service. A cost / benefits analysis should be part of the integration of
 </section>
 </section>
 <section id="swupdate-builtin-configuration">
-<h2>SWUpdate builtin configuration<a class="headerlink" href="#swupdate-builtin-configuration" title="Permalink to this headline"></a></h2>
+<h2>SWUpdate builtin configuration<a class="headerlink" href="#swupdate-builtin-configuration" title="Link to this heading"></a></h2>
 <p>SWUpdate has a compile time configuration. The default configuration delivered with <cite>meta-swupdate</cite>
 is not suitable for most projects. The easy way to check configuration in Yocto is to run:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">bitbake</span> <span class="o">-</span><span class="n">c</span> <span class="n">menuconfig</span> <span class="n">swupdate</span>
@@ -247,7 +254,7 @@ from tarballs in future.</p></li>
 </ul>
 </section>
 <section id="swupdate-startup">
-<h2>SWUpdate startup<a class="headerlink" href="#swupdate-startup" title="Permalink to this headline"></a></h2>
+<h2>SWUpdate startup<a class="headerlink" href="#swupdate-startup" title="Link to this heading"></a></h2>
 <p>An easy way to start SWUpdate is provided only with meta-swupdate and Yocto. A generic SystemV init script or a
 systemd unit for SWUpdate are executing a script <cite>swupdate.sh</cite>, that is delivered together with the SWUpdate
 binaries.
@@ -266,7 +273,7 @@ with a configuration file whose filename is loaded at the end. Preferred style i
 names, for example <cite>10-webserver</cite>, <cite>11-suricatta</cite>, and so on.</p>
 </section>
 <section id="write-sw-description">
-<h2>Write sw-description<a class="headerlink" href="#write-sw-description" title="Permalink to this headline"></a></h2>
+<h2>Write sw-description<a class="headerlink" href="#write-sw-description" title="Link to this heading"></a></h2>
 <p><cite>sw-description</cite> is the central file that describes a new software release and how a release must be installed.
 It should be a consequence of the update concept. There is not a single right way. SWUpdate heavily
 uses ‘selections’ and links to extract just one part of the whole <cite>sw-description</cite>, that
@@ -285,7 +292,7 @@ used in Lua. An embedded Lua script must just start with</p>
 </div>
 <p>to make use of them.</p>
 <section id="use-oe-variables-as-much-as-possible">
-<h3>Use OE variables as much as possible<a class="headerlink" href="#use-oe-variables-as-much-as-possible" title="Permalink to this headline"></a></h3>
+<h3>Use OE variables as much as possible<a class="headerlink" href="#use-oe-variables-as-much-as-possible" title="Link to this heading"></a></h3>
 <p>meta-swupdate replaces a special construct in <cite>sw-description</cite> with the values of build variables.
 The recognized construct in <cite>sw-description</cite> is delimited by <em>&#64;&#64;</em>, that is <em>&#64;&#64;VARIABLE-NAME&#64;&#64;</em>.
 The exception (for compatibility reasons) is the automatic generation of <cite>sha256</cite>. The syntax in that case
@@ -300,13 +307,13 @@ is :</p>
 <p>Please note that each variable is double delimited (at the beginning and at the end) by <cite>&#64;&#64;</cite>.</p>
 </section>
 <section id="deliver-your-scripts-instead-of-relying-on-them-being-installed">
-<h3>Deliver your scripts instead of relying on them being installed<a class="headerlink" href="#deliver-your-scripts-instead-of-relying-on-them-being-installed" title="Permalink to this headline"></a></h3>
+<h3>Deliver your scripts instead of relying on them being installed<a class="headerlink" href="#deliver-your-scripts-instead-of-relying-on-them-being-installed" title="Link to this heading"></a></h3>
 <p>You have the freedom to call any tools during an update. However, take care if you are using
 some tools from the running rootfs / current software. This implies that the current software is running
 flawlessly, as well as the tools you are calling. And this may not always be the case.</p>
 </section>
 <section id="prefer-lua-to-shell-scripts">
-<h3>Prefer Lua to shell scripts<a class="headerlink" href="#prefer-lua-to-shell-scripts" title="Permalink to this headline"></a></h3>
+<h3>Prefer Lua to shell scripts<a class="headerlink" href="#prefer-lua-to-shell-scripts" title="Link to this heading"></a></h3>
 <p>Shell scripts are very popular, and they are often used even when they are not strictly required.
 They can raise security issues. In fact, take as example a simple
 shell script. Goal of rootkits is often the shell, because taking control of the shell
@@ -320,7 +327,7 @@ a child process. Shell is not involved at all. Of course, Lua scripts should be 
 to be self-contained, too, and executing external tools should be done only if unavoidable.</p>
 </section>
 <section id="use-installed-directly-when-possible">
-<h3>Use installed-directly when possible<a class="headerlink" href="#use-installed-directly-when-possible" title="Permalink to this headline"></a></h3>
+<h3>Use installed-directly when possible<a class="headerlink" href="#use-installed-directly-when-possible" title="Link to this heading"></a></h3>
 <p>SWUpdate can be enabled for zero-copy (or streaming mode), that is the incoming SWU is analyzed on the fly and it is
 installed by the associated handler without any temporary copy. If this is not set, SWUpdate creates
 a temporary copy in <cite>$TMPDIR</cite> before passing it to the handlers. Note that <cite>$TMPDIR</cite> generally points to
@@ -331,17 +338,17 @@ is corrupted or the connection gets broken, the board is left in a bricked state
 then to download the whole artifact before installing.</p>
 </section>
 <section id="always-enable-sha256-verification">
-<h3>Always enable sha256 verification<a class="headerlink" href="#always-enable-sha256-verification" title="Permalink to this headline"></a></h3>
+<h3>Always enable sha256 verification<a class="headerlink" href="#always-enable-sha256-verification" title="Link to this heading"></a></h3>
 <p>The SWU image is a CPIO archive with CRC (new ASCII format), but the check in CPIO is very
 weak. Do not trust it, but enable sha256 for each artifact.</p>
 </section>
 <section id="always-set-the-type-attribute">
-<h3>Always set the “type” attribute<a class="headerlink" href="#always-set-the-type-attribute" title="Permalink to this headline"></a></h3>
+<h3>Always set the “type” attribute<a class="headerlink" href="#always-set-the-type-attribute" title="Link to this heading"></a></h3>
 <p>SWUpdate sets some default handler if the type is not set. Do not use it, but set explicitly
 the type (that is, which handler should install the artifact) in <cite>sw-description</cite>.</p>
 </section>
 <section id="do-not-rely-on-install-order">
-<h3>Do not rely on install order<a class="headerlink" href="#do-not-rely-on-install-order" title="Permalink to this headline"></a></h3>
+<h3>Do not rely on install order<a class="headerlink" href="#do-not-rely-on-install-order" title="Link to this heading"></a></h3>
 <p>SWUpdate does not require that artifacts are put into the CPIO in a specific order. The exception is
 <cite>sw-description</cite>, that must be the first file in a SWU. Avoid dependencies inside the SWU, that is an artifact
 that can be installed only after another one was installed before. If you really need it, for example if
@@ -349,7 +356,7 @@ you want to install a file into a filesystem provided as image, disable <cite>in
 and enable it for the filesystem image.</p>
 </section>
 <section id="do-not-drop-atomicity">
-<h3>Do not drop atomicity !<a class="headerlink" href="#do-not-drop-atomicity" title="Permalink to this headline"></a></h3>
+<h3>Do not drop atomicity !<a class="headerlink" href="#do-not-drop-atomicity" title="Link to this heading"></a></h3>
 <p>SWUpdate guarantees atomicity as long as you don’t do something that simply breaks it. As example,
 think about the bootloader’s environment. In an <cite>sw-description</cite>, there is a specific section where
 the environment can be set, adding / modifying / deleting variables. SWUpdate does not change
@@ -368,7 +375,7 @@ can brick the device.</p>
 </section>
 </section>
 <section id="plan-to-have-a-rescue-system">
-<h2>Plan to have a rescue system<a class="headerlink" href="#plan-to-have-a-rescue-system" title="Permalink to this headline"></a></h2>
+<h2>Plan to have a rescue system<a class="headerlink" href="#plan-to-have-a-rescue-system" title="Link to this heading"></a></h2>
 <p>Even if you have a double-copy setup, something can go wrong. Plan to have a rescue system (swupdate-image in meta-swupdate)
 and to install it on a separate storage than the main system, if it is possible. This helps when the main
 storage is corrupted, and the device can be restored in the field without returning it back to the factory.

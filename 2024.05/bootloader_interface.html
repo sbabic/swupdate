@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bootloader Interface &mdash; Embedded Software Update Documentation 2024.05 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+    <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="meta-swupdate: building with Yocto" href="building-with-yocto.html" />
+    <link rel="prev" title="Language Bindings" href="bindings.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> Embedded Software Update Documentation
+          </a>
+              <div class="version">
+                2024.05
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Software Management on embedded systems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="licensing.html">License</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="swupdate.html">SWUpdate: software update for embedded system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scenarios.html">Update strategy examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sw-description.html">SWUpdate: syntax and tags with the default parser</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed_images.html">Update images from verified source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="encrypted_images.html">Symmetrically Encrypted Update Images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="handlers.html">Handlers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mongoose.html">Mongoose daemon mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hawkbit-setup.html">Config for hawkBit under SSL/TLS using private CA / sub CA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-ipc-interface.html">SWUpdate: API for external programs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bindings.html">Language Bindings</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Bootloader Interface</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bootloader-interface-description">Bootloader Interface Description</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bootloader-build-system-integration">Bootloader Build System Integration</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="building-with-yocto.html">meta-swupdate: building with Yocto</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-best-practise.html">SWUpdate Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="delta-update.html">Delta Update with SWUpdate</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-client.html">swupdate-client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-progress.html">swupdate-progress</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">swupdate-ipc</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="help_and_support.html">Help and support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to SWUpdate</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="improvement_proposals.html">Proposals to improve SWUpdate</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="previous-releases.html">Documentation for previous releases</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Embedded Software Update Documentation</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Bootloader Interface</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/bootloader_interface.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="bootloader-interface">
+<h1>Bootloader Interface<a class="headerlink" href="#bootloader-interface" title="Permalink to this headline"></a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline"></a></h2>
+<p>SWUpdate has bindings to various bootloaders in order to store persistent
+state information across reboots. Currently, the following bootloaders are
+supported:</p>
+<ul class="simple">
+<li><p>A fake bootloader called “Environment in RAM”,</p></li>
+<li><p><a class="reference external" href="https://github.com/siemens/efibootguard">EFI Boot Guard</a>,</p></li>
+<li><p><a class="reference external" href="https://www.denx.de/wiki/U-Boot">U-Boot</a>, and</p></li>
+<li><p><a class="reference external" href="https://www.gnu.org/software/grub/">GRUB</a>.</p></li>
+</ul>
+<p>The actual (sub)set of bootloaders supported is a compile-time choice. At
+run-time, the compile-time set default bootloader interface implementation
+is used unless overruled to use another bootloader interface implementation
+via the <code class="docutils literal notranslate"><span class="pre">-B</span></code> command line switch or a configuration file (via the
+<code class="docutils literal notranslate"><span class="pre">bootloader</span></code> setting in the <code class="docutils literal notranslate"><span class="pre">globals</span></code> section, see
+<code class="docutils literal notranslate"><span class="pre">examples/configuration/swupdate.cfg</span></code>).</p>
+<p>Note that the run-time support for some bootloaders, currently U-Boot and
+EFI Boot Guard, relies on loading the respective bootloader’s environment
+modification shared library at run-time. Hence, even if support for
+a particular bootloader is compiled-in, the according shared library must
+be present and loadable on the target system at run-time for using this
+bootloader interface implementation.
+This allows, e.g., distributions to ship a generic SWUpdate package and
+downstream integrators to combine this generic package with the appropriate
+bootloader by just providing its environment modification shared library.</p>
+</section>
+<section id="bootloader-interface-description">
+<h2>Bootloader Interface Description<a class="headerlink" href="#bootloader-interface-description" title="Permalink to this headline"></a></h2>
+<p>The bootloader interface implementations are located in <code class="docutils literal notranslate"><span class="pre">bootloader/</span></code>.
+Each bootloader has to implement the interface functions as defined in
+<code class="docutils literal notranslate"><span class="pre">include/bootloader.h</span></code>, more precisely</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="nf">env_get</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">name</span><span class="p">);</span><span class="w"></span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">env_set</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">value</span><span class="p">);</span><span class="w"></span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">env_unset</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">name</span><span class="p">);</span><span class="w"></span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">apply_list</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">filename</span><span class="p">);</span><span class="w"></span>
+</pre></div>
+</div>
+<p>which
+retrieve a key’s value from the bootloader environment,
+set a key to a value in the bootloader environment,
+delete a key-value pair from the bootloader environment, and
+apply the <code class="docutils literal notranslate"><span class="pre">key=value</span></code> pairs found in a file.</p>
+<p>Then, each bootloader interface implementation has to register itself to
+SWUpdate at run-time by calling the <code class="docutils literal notranslate"><span class="pre">register_bootloader(const</span> <span class="pre">char</span> <span class="pre">*name,</span>
+<span class="pre">bootloader</span> <span class="pre">*bl)</span></code> function that takes the bootloader’s name and a pointer
+to <code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">bootloader</span></code> as in <code class="docutils literal notranslate"><span class="pre">include/bootloader.h</span></code> which is filled
+with pointers to the respective above mentioned interface functions.
+If the bootloader setup fails and hence it cannot be successfully registered,
+e.g., because the required shared library for environment modification cannot
+be loaded, <code class="docutils literal notranslate"><span class="pre">NULL</span></code> is to be returned as pointer to <code class="docutils literal notranslate"><span class="pre">struct</span> <span class="pre">bootloader</span></code>.</p>
+<p>For example, assuming a bootloader named “trunk” and (static) interface
+functions implementations <code class="docutils literal notranslate"><span class="pre">do_env_{get,set,unset}()</span></code> as well as
+<code class="docutils literal notranslate"><span class="pre">do_apply_list()</span></code> in a <code class="docutils literal notranslate"><span class="pre">bootloader/trunk.c</span></code> file, the following snippet
+registers this bootloader to SWUpdate at run-time:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="n">bootloader</span><span class="w"> </span><span class="n">trunk</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="p">.</span><span class="n">env_get</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">do_env_get</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="p">.</span><span class="n">env_set</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">do_env_set</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="p">.</span><span class="n">env_unset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">do_env_unset</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="p">.</span><span class="n">apply_list</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">do_apply_list</span><span class="w"></span>
+<span class="p">};</span><span class="w"></span>
+
+<span class="n">__attribute__</span><span class="p">((</span><span class="n">constructor</span><span class="p">))</span><span class="w"></span>
+<span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">trunk_probe</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="w"></span>
+<span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="n">register_bootloader</span><span class="p">(</span><span class="n">BOOTLOADER_TRUNK</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">trunk</span><span class="p">);</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</pre></div>
+</div>
+<p>with</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#define BOOTLOADER_TRUNK &quot;trunk&quot;</span>
+</pre></div>
+</div>
+<p>added to <code class="docutils literal notranslate"><span class="pre">include/bootloader.h</span></code> as a single central “trunk” bootloader
+name definition aiding in maintaining the uniqueness of bootloader names.
+This new “trunk” bootloader should also be added to the Suricatta Lua
+Module interface specification’s bootloader Table
+<code class="docutils literal notranslate"><span class="pre">suricatta.bootloader.bootloaders</span> <span class="pre">=</span> <span class="pre">{</span> <span class="pre">...</span> <span class="pre">}</span></code> in
+<code class="docutils literal notranslate"><span class="pre">suricatta/suricatta.lua</span></code>.</p>
+<div class="admonition attention">
+<p class="admonition-title">Attention</p>
+<p>Take care to uniquely name the bootloader.</p>
+</div>
+<p>See, e.g., <code class="docutils literal notranslate"><span class="pre">bootloader/{uboot,ebg}.c</span></code> for examples of a bootloader using
+a shared environment modification library and <code class="docutils literal notranslate"><span class="pre">bootloader/{grub,none}.c</span></code>
+for a simpler bootloader support example.</p>
+</section>
+<section id="bootloader-build-system-integration">
+<h2>Bootloader Build System Integration<a class="headerlink" href="#bootloader-build-system-integration" title="Permalink to this headline"></a></h2>
+<p>A bootloader support implementation needs to be registered to the kconfig
+build system.</p>
+<p>First, the bootloader support implementation, named “trunk” and implemented
+in <code class="docutils literal notranslate"><span class="pre">bootloader/trunk.c</span></code> for example, needs to be added to
+<code class="docutils literal notranslate"><span class="pre">bootloader/Config.in</span></code> in the <code class="docutils literal notranslate"><span class="pre">Bootloader</span> <span class="pre">Interfaces</span></code> menu as
+follows:</p>
+<div class="highlight-kconfig notranslate"><div class="highlight"><pre><span></span>...<span class="w"></span>
+
+<span class="k">menu</span><span class="w"> </span><span class="s2">&quot;Bootloader&quot;</span><span class="w"></span>
+
+<span class="k">menu</span><span class="w"> </span><span class="s2">&quot;Bootloader Interfaces&quot;</span><span class="w"></span>
+
+...<span class="w"></span>
+
+<span class="k">config</span><span class="w"> </span>BOOTLOADER_TRUNK<span class="w"></span>
+<span class="w">    </span><span class="nb">bool</span><span class="w"> </span><span class="s2">&quot;TrUnK Bootloader&quot;</span><span class="w"></span>
+<span class="w">    </span><span class="k">help</span>
+<span class="w">      </span>Support<span class="w"> </span>for<span class="w"> </span>the<span class="w"> </span>TrUnK<span class="w"> </span>Bootloader<span class="w"></span>
+<span class="w">      </span>https://github.com/knurt/trunk<span class="w"></span>
+</pre></div>
+</div>
+<p>Then, in order to enable the compile-time selection of the “trunk” bootloader
+as default, add a section to the <code class="docutils literal notranslate"><span class="pre">Default</span> <span class="pre">Bootloader</span> <span class="pre">Interface</span></code> choice
+submenu of the <code class="docutils literal notranslate"><span class="pre">Bootloader</span></code> menu as follows:</p>
+<div class="highlight-kconfig notranslate"><div class="highlight"><pre><span></span><span class="k">choice</span><span class="w"></span>
+<span class="w">    </span><span class="k">prompt</span><span class="w"> </span><span class="s2">&quot;Default Bootloader Interface&quot;</span><span class="w"></span>
+<span class="w">    </span><span class="k">help</span>
+<span class="w">      </span>Default<span class="w"> </span>bootloader<span class="w"> </span>interface<span class="w"> </span>to<span class="w"> </span>use<span class="w"> </span><span class="k">if</span><span class="w"> </span>not<span class="w"> </span>explicitly<span class="w"></span>
+<span class="w">      </span>overridden<span class="w"> </span>via<span class="w"> </span>configuration<span class="w"> </span>or<span class="w"> </span>command-line<span class="w"> </span><span class="k">option</span><span class="w"></span>
+<span class="w">      </span>at<span class="w"> </span>run-time.<span class="w"></span>
+
+...<span class="w"></span>
+
+<span class="k">config</span><span class="w"> </span>BOOTLOADER_DEFAULT_TRUNK<span class="w"></span>
+<span class="w">    </span><span class="nb">bool</span><span class="w"> </span><span class="s2">&quot;TrUnK&quot;</span><span class="w"></span>
+<span class="w">    </span><span class="k">depends on</span><span class="w"> </span>BOOTLOADER_TRUNK<span class="w"></span>
+<span class="w">    </span><span class="k">help</span>
+<span class="w">      </span>Use<span class="w"> </span>TrUnK<span class="w"> </span>as<span class="w"> </span><span class="k">default</span><span class="w"> </span>bootloader<span class="w"> </span>interface.<span class="w"></span>
+</pre></div>
+</div>
+<p>Finally, <code class="docutils literal notranslate"><span class="pre">bootloader/Makefile</span></code> needs to be adapted to build the “trunk”
+bootloader support code, given <code class="docutils literal notranslate"><span class="pre">BOOTLOADER_TRUNK</span></code> was enabled:</p>
+<div class="highlight-makefile notranslate"><div class="highlight"><pre><span></span><span class="nv">obj-$(CONFIG_BOOTLOADER_TRUNK)</span> <span class="o">+=</span> trunk.o
+</pre></div>
+</div>
+<p>If the “trunk” bootloader, for example, requires loading a shared
+environment modification library, then <code class="docutils literal notranslate"><span class="pre">Makefile.flags</span></code> needs to be
+adapted as well, e.g., as follows:</p>
+<div class="highlight-makefile notranslate"><div class="highlight"><pre><span></span><span class="cp">ifeq ($(CONFIG_BOOTLOADER_TUNK),y)</span>
+<span class="nv">LDLIBS</span> <span class="o">+=</span> dl
+<span class="cp">endif</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="bindings.html" class="btn btn-neutral float-left" title="Language Bindings" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="building-with-yocto.html" class="btn btn-neutral float-right" title="meta-swupdate: building with Yocto" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2013-2024, Stefano Babic.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -204,46 +204,31 @@ copies. Not all handlers support to stream directly into the target.
 Streaming with zero-copy is enabled by setting the flag "installed-directly"
 in the description of the single image.
 
-Configuration and build
+Configuration and Build
 =======================
 
 Requirements
 ------------
 
-There are only a few libraries that are required to compile SWUpdate.
+There are only a few libraries strictly required to compile SWUpdate:
 
-- mtd-utils: internally, mtd-utils generates libmtd and libubi.
-  They are commonly not exported and not installed, but they are
-  linked by SWUpdate to reuse the same functions for upgrading
-  MTD and UBI volumes.
-- openssl / wolfssl / mbedtls (optional) for cryptographic operations
-- p11-kit & wolfssl (optional) for PKCS#11 support
-- Lua: liblua and the development headers.
-- libz is always linked.
-- libconfig (optional) for the default parser
-- libarchive (optional) for archive handler
-- librsync (optional) for support to apply rdiff patches
-- libjson (optional) for JSON parser and hawkBit
-- libubootenv (optional) if support for U-Boot is enabled
-- libebgenv (optional) if support for EFI Boot Guard is enabled
-- libcurl used to communicate with network
+- ``zlib`` (https://www.zlib.net)
+- ``libubootenv`` for U-Boot environment support
+  (https://github.com/sbabic/libubootenv)
+- ``json-c`` for parsing JSON
+  (https://github.com/json-c/json-c)
 
-New handlers can add some other libraries to the requirement list -
-check if you need all handlers in case you get build errors,
-and drop what you do not need.
+Further library dependencies may be required when activating more
+SWUpdate features, see the next section on `Configuring SWUpdate`_.
 
-Building with Yocto
--------------------
-
-See corresponding chapter how to build in Yocto.
 
 Configuring SWUpdate
 --------------------
 
-SWUpdate is configurable via "make menuconfig". The small footprint
-is reached using the internal parser and disabling the web server.
-Any option has a small help describing its usage. In the default
-configuration, many options are already activated.
+SWUpdate is configurable via ``make menuconfig``. A small footprint
+is realized, e.g., by using the internal parser and disabling the
+web server. Every option has a small help describing its usage.
+In the default configuration, many options are already activated.
 
 To configure the options:
 
@@ -254,81 +239,40 @@ To configure the options:
 Building
 --------
 
-- to cross-compile, set the CC and CXX variables before running make.
-  It is also possible to set the cross-compiler prefix as option with
-  make menuconfig.
-- generate the code
+To cross-compile, set the ``CC`` and ``CXX`` variables before running make.
+It is also possible to set the cross-compiler prefix as option with
+``make menuconfig``. Then, generate the code by running
 
 ::
 
 	make
 
-The result is the binary "swupdate". A second binary "progress" is built,
-but it is not strictly required. It is an example how to build your
-own interface to SWUpdate to show a progress bar or whatever you want on your
-HMI. The example simply prints on the console the current status of the update.
+The result is the binary ``swupdate``. Notably, the ``tools/swupdate-progress``
+binary is built as well. It is an example of how to build your own interface to
+SWUpdate to, e.g., show a progress bar on an HMI. This example simply prints on
+the console the current status of the update and, more importantly, reboots the
+machine after successful installation.
 
-In the Yocto buildsystem,:
+Building with Yocto
+-------------------
 
-::
+See the corresponding chapter
+:doc:`meta-swupdate: building with Yocto <building-with-yocto>`
+on how to build SWUpdate in Yocto.
 
-        bitbake swupdate
-
-This will build the package
-
-::
-
-        bitbake swupdate-image
-
-This builds a rescue image. The result is a Ramdisk that
-can be loaded directly by the bootloader.
-To use SWUpdate in the double-copy mode, put the package
-swupdate into your rootfs. Check your image recipe, and
-simply add it to the list of the installed packages.
-
-For example, if we want to add it to the standard "core-image-full-cmdline"
-image, we can add a *recipes-extended/images/core-image-full-cmdline.bbappend*
-
-::
-
-        IMAGE_INSTALL += " \
-                                swupdate \
-                                swupdate-www \
-                         "
-
-swupdate-www is the package with the website, that you can customize with
-your own logo, template ans style.
-
-Building a debian package
--------------------------
+Distribution Packages
+---------------------
 
 SWUpdate is thought for Embedded Systems and building in an embedded
-distribution is the first use case. But apart the most used buildsystems
-for embedded as Yocto or Buildroot, in some cases a standard Linux distro
-is used. Not only, a distro package allows one to run SWUpdate on Linux PC
-for test purposes without having to fight with dependencies. Using the
-debhelper tools, it is possible to generate a debian package.
+distribution is the primary use case. But apart from the most used
+build systems for embedded systems like Yocto or Buildroot, in some cases,
+a standard Linux distro is used. SWUpdate is currently packaged for
 
-Steps for building a debian package
-...................................
+- `Debian <https://packages.debian.org/search?searchon=names&keywords=swupdate>`_
+- `Ubuntu <https://packages.ubuntu.com/search?keywords=swupdate>`_
 
-::
-
-        ./debian/rules clean
-        ./debian/rules build
-        fakeroot debian/rules binary
-
-The result is a "deb" package stored in the parent directory.
-
-Alternative way signing source package
-......................................
-
-You can use dpkg-buildpackage:
-
-::
-
-        dpkg-buildpackage -us -uc
-        debsign -k <keyId>
+Refer to the distribution source package and build system on how to
+build a package from source.
 
 
 Running SWUpdate
@@ -507,6 +451,10 @@ Command line parameters
 | path <file> |          | Path to the Certificate Authority (PEM).   |
 +-------------+----------+--------------------------------------------+
 | --get-root  |          | Detect and print the root device and exit  |
++-------------+----------+--------------------------------------------+
+| --get-emmc- |          | If devic eis an eMMC, reads the CSD        |
+| boot        |          | register and detect from which boot device |
+| <device>    |          | has booted (mmcblkXboot0 or mmxblkXboot1)  |
 +-------------+----------+--------------------------------------------+
 | -l <level>  | int      | Set loglevel.                              |
 +-------------+----------+--------------------------------------------+
