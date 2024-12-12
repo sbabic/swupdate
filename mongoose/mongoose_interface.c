@@ -66,9 +66,10 @@ struct file_upload_state {
 
 struct parent_connection_info {
 	struct mg_mgr *mgr;
-	unsigned long conn_id;
+	unsigned long id;
 };
 
+static struct parent_connection_info conn_info = {0};
 static bool run_postupdate;
 static unsigned int watchdog_conn = 0;
 static struct mg_http_serve_opts s_http_server_opts;
@@ -377,18 +378,16 @@ static int level_to_rfc_5424(int level)
 	}
 }
 
-static void broadcast(struct parent_connection_info *p, char *str)
+static void broadcast(char *str)
 {
-	mg_wakeup(p->mgr, p->conn_id, str, strlen(str));
+	if (conn_info.mgr && conn_info.id) {
+		mg_wakeup(conn_info.mgr, conn_info.id, str, strlen(str));
+	}
 }
 
-static void *broadcast_message_thread(void *data)
+static void *broadcast_message_thread(void __attribute__ ((__unused__)) *data)
 {
 	int fd = -1;
-	struct parent_connection_info *p = (struct parent_connection_info *) data;
-
-	if(!p)
-		return NULL;
 
 	for (;;) {
 		ipc_message msg;
@@ -424,24 +423,20 @@ static void *broadcast_message_thread(void *data)
 					 level_to_rfc_5424(msg.data.notify.level), /* RFC 5424 */
 					 text);
 
-			broadcast(p, str);
+			broadcast(str);
 		}
 	}
-	free(p);
+
 	return NULL;
 }
 
-static void *broadcast_progress_thread(void *data)
+static void *broadcast_progress_thread(void __attribute__ ((__unused__)) *data)
 {
 	RECOVERY_STATUS status = -1;
 	sourcetype source = -1;
 	unsigned int step = 0;
 	uint8_t percent = 0;
 	int fd = -1;
-	struct parent_connection_info *p = (struct parent_connection_info *) data;
-
-	if(!p)
-		return NULL;
 
 	for (;;) {
 		struct progress_msg msg;
@@ -475,7 +470,7 @@ static void *broadcast_progress_thread(void *data)
 				"\t\"status\": \"%s\"\r\n"
 				"}\r\n",
 				escaped);
-			broadcast(p, str);
+			broadcast(str);
 		}
 
 		if (msg.source != source) {
@@ -487,7 +482,7 @@ static void *broadcast_progress_thread(void *data)
 				"\t\"source\": \"%s\"\r\n"
 				"}\r\n",
 				get_source_string(msg.source));
-			broadcast(p, str);
+			broadcast(str);
 		}
 
 		if (msg.status == SUCCESS && msg.source == SOURCE_WEBSERVER && run_postupdate) {
@@ -505,7 +500,7 @@ static void *broadcast_progress_thread(void *data)
 				"\t\"source\": \"%s\"\r\n"
 				"}\r\n",
 				escaped);
-			broadcast(p, str);
+			broadcast(str);
 		}
 
 		if ((msg.cur_step != step || msg.cur_percent != percent) &&
@@ -527,10 +522,10 @@ static void *broadcast_progress_thread(void *data)
 				msg.cur_step,
 				escaped,
 				msg.cur_percent);
-			broadcast(p, str);
+			broadcast(str);
 		}
 	}
-	free(p);
+
 	return NULL;
 }
 
@@ -684,16 +679,10 @@ static void ev_handler(struct mg_connection *nc, int ev, void *ev_data)
 {
 	static uint64_t last_io_time = 0;
 	if (ev == MG_EV_OPEN && nc->is_listening) {
-		struct parent_connection_info *data = calloc(2, sizeof(struct parent_connection_info));
-		if (!data) {
-			ERROR("Error: Memory allocation failed for parent_connection_info");
-			return;
-		}
-		data[0].mgr = nc->mgr;
-		data[0].conn_id = nc->id;
-		memcpy(&data[1], &data[0], sizeof(struct parent_connection_info));
-		start_thread(broadcast_message_thread, &data[0]);
-		start_thread(broadcast_progress_thread, &data[1]);
+		conn_info.mgr = nc->mgr;
+		conn_info.id = nc->id;
+		start_thread(broadcast_message_thread, NULL);
+		start_thread(broadcast_progress_thread, NULL);
 	} else if (nc->data[0] != 'M' && nc->data[0] != 'W' && ev == MG_EV_HTTP_MSG) {
 		struct mg_http_message *hm = (struct mg_http_message *) ev_data;
 		if (!mg_http_is_authorized(hm, global_auth_domain, global_auth_file))
