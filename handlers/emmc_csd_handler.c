@@ -43,7 +43,7 @@ void emmc_csd_toggle_handler(void);
  */
 static int emmc_csd_set(struct img_type *img, void *data, bool toggle)
 {
-	int active, ret;
+	int active = -1, ret;
 	struct script_handler_data *script_data = data;
 	char tmpdev[SWUPDATE_GENERAL_STRING_SIZE];
 
