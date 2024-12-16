@@ -531,7 +531,7 @@ int main(int argc, char **argv)
 		char *root;
 		int bootdev;
 		case 'f':
-			cfgfname = strdup(optarg);
+			if (optarg) cfgfname = strdup(optarg);
 			break;
 		case 'g':
 			root = get_root_device();
@@ -554,7 +554,7 @@ int main(int argc, char **argv)
 			exit(EXIT_SUCCESS);
 			break;
 		case 'l':
-			loglevel = strtoul(optarg, NULL, 10);
+			if (optarg) loglevel = strtoul(optarg, NULL, 10);
 			break;
 		case 'v':
 			loglevel = LASTLOGLEVEL;
@@ -634,18 +634,20 @@ int main(int argc, char **argv)
 			break;
 #ifdef CONFIG_UBIATTACH
 		case 'b':
-			mtd_set_ubiblacklist(optarg);
+			if (optarg) mtd_set_ubiblacklist(optarg);
 			break;
 #endif
 		case 'i':
-			strlcpy(fname, optarg, sizeof(fname));
-			opt_i = 1;
+			if (optarg) {
+				strlcpy(fname, optarg, sizeof(fname));
+				opt_i = 1;
+			}
 			break;
 		case 'o':
-			strlcpy(swcfg.output, optarg, sizeof(swcfg.output));
+			if (optarg) strlcpy(swcfg.output, optarg, sizeof(swcfg.output));
 			break;
 		case 's':
-			strlcpy(swcfg.output_swversions, optarg, sizeof(swcfg.output_swversions));
+			if (optarg) strlcpy(swcfg.output_swversions, optarg, sizeof(swcfg.output_swversions));
 			break;
 		case 'B':
 			if (set_bootloader(optarg) != 0) {
@@ -655,7 +657,7 @@ int main(int argc, char **argv)
 			}
 			break;
 		case 'l':
-			loglevel = strtoul(optarg, NULL, 10);
+			if (optarg) loglevel = strtoul(optarg, NULL, 10);
 			break;
 		case 'n':
 			swcfg.parms.dry_run = true;
@@ -664,38 +666,42 @@ int main(int argc, char **argv)
 			swcfg.syslog_enabled = true;
 			break;
 		case 'k':
-			strlcpy(swcfg.publickeyfname,
+			if (optarg) strlcpy(swcfg.publickeyfname,
 				optarg,
 			       	sizeof(swcfg.publickeyfname));
 			break;
 		case '1':
-			swcfg.cert_purpose = parse_cert_purpose(optarg);
+			if (optarg) swcfg.cert_purpose = parse_cert_purpose(optarg);
 			break;
 		case '2':
-			strlcpy(swcfg.forced_signer_name, optarg,
+			if (optarg) strlcpy(swcfg.forced_signer_name, optarg,
 				sizeof(swcfg.forced_signer_name));
 			break;
 		case '3':
-			swcfg.check_max_version = true;
-			strlcpy(swcfg.maximum_version, optarg,
-				sizeof(swcfg.maximum_version));
+			if (optarg) {
+				swcfg.check_max_version = true;
+				strlcpy(swcfg.maximum_version, optarg,
+					sizeof(swcfg.maximum_version));
+			}
 			break;
 #ifdef CONFIG_ENCRYPTED_IMAGES
 		case 'K':
-			strlcpy(swcfg.aeskeyfname,
-				optarg,
-			       	sizeof(swcfg.aeskeyfname));
+			if (optarg) strlcpy(swcfg.aeskeyfname,
+					    optarg,
+					    sizeof(swcfg.aeskeyfname));
 			break;
 #endif
 		case 'N':
 			swcfg.no_downgrading = true;
-			strlcpy(swcfg.minimum_version, optarg,
-				sizeof(swcfg.minimum_version));
+			if (optarg) strlcpy(swcfg.minimum_version, optarg,
+					    sizeof(swcfg.minimum_version));
 			break;
 		case 'R':
-			swcfg.no_reinstalling = true;
-			strlcpy(swcfg.current_version, optarg,
-				sizeof(swcfg.current_version));
+			if (optarg) {
+				swcfg.no_reinstalling = true;
+				strlcpy(swcfg.current_version, optarg,
+					sizeof(swcfg.current_version));
+			}
 			break;
 		case 'M':
 			swcfg.no_transaction_marker = true;
@@ -706,8 +712,10 @@ int main(int argc, char **argv)
 			TRACE("state_marker globally disabled");
 			break;
 		case 'e':
-			software_select = optarg;
-			opt_e = 1;
+			if (optarg) {
+				software_select = optarg;
+				opt_e = 1;
+			}
 			break;
 		/* Configuration file already parsed, ignores it */
 		case 'f':
@@ -733,7 +741,7 @@ int main(int argc, char **argv)
 				exit(EXIT_FAILURE);
 			break;
 		case 'q':
-			dict_insert_value(&swcfg.accepted_set, "accepted", optarg);
+			if (optarg) dict_insert_value(&swcfg.accepted_set, "accepted", optarg);
 			break;
 #ifdef CONFIG_SURICATTA
 		case 'u':
@@ -763,12 +771,12 @@ int main(int argc, char **argv)
 			opt_c = true;
 			break;
 		case 'p':
-			strlcpy(swcfg.postupdatecmd, optarg,
-				sizeof(swcfg.postupdatecmd));
+			if (optarg) strlcpy(swcfg.postupdatecmd, optarg,
+					    sizeof(swcfg.postupdatecmd));
 			break;
 		case 'P':
-			strlcpy(swcfg.preupdatecmd, optarg,
-				sizeof(swcfg.preupdatecmd));
+			if (optarg )strlcpy(swcfg.preupdatecmd, optarg,
+					    sizeof(swcfg.preupdatecmd));
 			break;
 		default:
 			fprintf(stdout, "Try %s -h for usage\n", argv[0]);
