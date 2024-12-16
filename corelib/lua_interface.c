@@ -1001,12 +1001,9 @@ static void lua_push_enum(lua_State *L, const char *name, int value)
 
 int lua_get_swupdate_version(lua_State *L)
 {
-	unsigned int version = 0, patchlevel = 0;
-	/* Deliberately ignore sublevel and extraversion. */
-	if (sscanf(SWU_VER, "%u.%u.%*s", &version, &patchlevel) != 2) {
-		version = 0;
-		patchlevel = 0;
-	}
+	const unsigned int version = VERSION;
+	const unsigned int patchlevel = VERSION_PATCHLEVEL;
+
 	lua_newtable (L);
 	lua_pushnumber(L, 1);
 	lua_pushnumber(L, version);

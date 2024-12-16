@@ -1,0 +1,26 @@
+#!/usr/bin/sh
+#
+# Copyright (C) 2024, Daniel Braunwarth <oss@braunwarth.dev>
+#
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+EXTRA_VERSION=""
+
+# Check if we are in a git repository
+if [ -z "$(git rev-parse --is-inside-work-tree 2>/dev/null)" ]; then
+	exit 0
+fi
+
+# If we are on an untagged commit, append the short commit hash
+if [ -z "$(git describe --tags --exact-match 2>/dev/null)" ]; then
+	EXTRA_VERSION="${EXTRA_VERSION}-$(git rev-parse --short HEAD)"
+fi
+
+# If the working directory is dirty, append -dirty
+if [ -n "$(git --no-optional-locks status -uno --porcelain 2>/dev/null)" ]; then
+	EXTRA_VERSION="${EXTRA_VERSION}-dirty"
+fi
+
+printf "%s" "${EXTRA_VERSION#-}"
+
+exit 0

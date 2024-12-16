@@ -5,9 +5,6 @@
 # ==========================================================================
 # Build system
 # ==========================================================================
-SWU_DIR = $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
-SWU_VER = $(shell git -C $(SWU_DIR) describe --tags --always --dirty)
-export SWU_VER
 SKIP_STRIP ?= n
 
 ifneq ($(CC),clang)
@@ -19,8 +16,13 @@ endif
 # -std=gnu99 needed for [U]LLONG_MAX on some systems
 KBUILD_CPPFLAGS += $(call cc-option,-std=gnu99,)
 
-KBUILD_CPPFLAGS += -D_GNU_SOURCE -DNDEBUG \
-		   -D"SWU_VER=\"$(SWU_VER)\""
+KBUILD_CPPFLAGS += -D_GNU_SOURCE -DNDEBUG
+
+# Generate version
+KBUILD_CPPFLAGS += -DVERSION=$(VERSION)
+KBUILD_CPPFLAGS += -DVERSION_PATCHLEVEL=$(PATCHLEVEL)
+KBUILD_CPPFLAGS += -DVERSION_SUBLEVEL=$(SUBLEVEL)
+KBUILD_CPPFLAGS += -DVERSION_EXTRAVERSION=$(shell $(srctree)/scripts/gen_extraversion)
 
 KBUILD_CFLAGS += $(call cc-option,-Wall,)
 KBUILD_CFLAGS += $(call cc-option,-Wshadow,)
@@ -259,7 +261,7 @@ ifneq ($(CONFIG_EMBEDDED_SURICATTA_LUA),)
 ifneq ($(CONFIG_EMBEDDED_SURICATTA_LUA_SOURCE),)
 LDFLAGS_swupdate += -Wl,--format=binary -Wl,$(CONFIG_EMBEDDED_SURICATTA_LUA_SOURCE) -Wl,--format=default
 KBUILD_CPPFLAGS += -DEMBEDDED_SURICATTA_LUA_SOURCE_START="_binary_$(subst ",,$(subst .,_,$(subst /,_,$(CONFIG_EMBEDDED_SURICATTA_LUA_SOURCE))))_start"
-KBUILD_CPPFLAGS += -DEMBEDDED_SURICATTA_LUA_SOURCE_END="_binary_$(subst ",,$(subst .,_,$(subst /,_,$(CONFIG_EMBEDDED_SURICATTA_LUA_SOURCE))))_end"	
+KBUILD_CPPFLAGS += -DEMBEDDED_SURICATTA_LUA_SOURCE_END="_binary_$(subst ",,$(subst .,_,$(subst /,_,$(CONFIG_EMBEDDED_SURICATTA_LUA_SOURCE))))_end"
 endif
 endif
 endif

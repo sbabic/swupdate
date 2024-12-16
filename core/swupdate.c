@@ -560,7 +560,7 @@ int main(int argc, char **argv)
 			loglevel = LASTLOGLEVEL;
 			break;
 		case '0':
-			printf("%s", BANNER);
+			printf("%s\n", BANNER);
 			exit(EXIT_SUCCESS);
 		}
 	}
@@ -836,7 +836,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-	printf("%s\n", BANNER);
+	printf("%s\n\n", BANNER);
 	printf("Licensed under GPLv2. See source distribution for detailed "
 		"copyright notices.\n\n");
 
