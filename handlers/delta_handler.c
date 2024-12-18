@@ -642,15 +642,13 @@ static bool parse_headers(struct hnd_priv *priv)
 
 	range_answer_t *answer = priv->answer;
 	answer->data[answer->len] = '\0';
-	/* Converto to lower case to make comparison easier */
-	string_tolower(answer->data);
 
 	/* Check for multipart */
 	nconv = sscanf(answer->data, "%ms %ms %ms", &header, &value, &boundary_string);
 
 	if (nconv == 3) {
-		if (!strncmp(header, "content-type", strlen("content-type")) &&
-			!strncmp(boundary_string, "boundary", strlen("boundary"))) {
+		if (!strncasecmp(header, "content-type", strlen("content-type")) &&
+			!strncasecmp(boundary_string, "boundary", strlen("boundary"))) {
 			pair = string_split(boundary_string, '=');
 			cnt = count_string_array((const char **)pair);
 			if (cnt == 2) {
@@ -661,8 +659,8 @@ static bool parse_headers(struct hnd_priv *priv)
 			free_string_array(pair);
 		}
 
-		if (!strncmp(header, "content-range", strlen("content-range")) &&
-		    !strncmp(value, "bytes", strlen("bytes"))) {
+		if (!strncasecmp(header, "content-range", strlen("content-range")) &&
+		    !strncasecmp(value, "bytes", strlen("bytes"))) {
 			pair = string_split(boundary_string, '-');
 			priv->range_type = SINGLE_RANGE;
 			size_t start = strtoul(pair[0], NULL, 10);
@@ -701,7 +699,7 @@ static bool search_boundary_in_body(struct hnd_priv *priv)
 	}
 	s = answer->data;
 	for (i = 0; i < answer->len; i++, s++) {
-		if (!strncmp(s, priv->boundary, strlen(priv->boundary))) {
+		if (!strncasecmp(s, priv->boundary, strlen(priv->boundary))) {
 			DEBUG("Boundary found in body");
 			/* Reset buffer to start from here */
 			if (i != 0)
