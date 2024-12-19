@@ -873,6 +873,7 @@ char *swupdate_temporary_mount(tmp_mountpoint_t type, const char *device, const 
 	char *mountpoint;
 	const char *dir;
 	int ret = 0;
+	unsigned int len;
 
 	if (type != MNT_SCRIPTS && type != MNT_DATA && type != MNT_BOOT_SCRIPTS)
 		return NULL;
@@ -883,10 +884,13 @@ char *swupdate_temporary_mount(tmp_mountpoint_t type, const char *device, const 
 	}
 
 	dir = mount_points[type];
-	if (asprintf(&mountpoint, "%s%sXXXXXX", get_tmpdir(), dir) == -1) {
+	len = asprintf(&mountpoint, "%s%sXXXXXX/", get_tmpdir(), dir);
+	if (len == -1) {
 		ERROR("Unable to allocate memory");
 		return NULL;
 	}
+
+	mountpoint[len-1] = '\0'; /* last six characters of template must be XXXXXX */
 
 	if (!mkdtemp(mountpoint)) {
 		TRACE("Unable to create a unique temporary directory %s: %s",
@@ -903,6 +907,8 @@ char *swupdate_temporary_mount(tmp_mountpoint_t type, const char *device, const 
 		free(mountpoint);
 		return NULL;
 	}
+
+	mountpoint[len-1] = '/';  /* restore the trailing slash */
 
 	return mountpoint;
 }
