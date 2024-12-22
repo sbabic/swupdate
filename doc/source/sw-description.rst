@@ -86,7 +86,7 @@ The following example explains the implemented tags:
 				filename = "README";
 				path = "/README";
 				device = "/dev/mmcblk0p1";
-				filesystem = "vfat"
+				filesystem = "vfat";
 			}
 		);
 
@@ -108,7 +108,7 @@ The following example explains the implemented tags:
 			},
 			{
 				name = "addfb";
-				value = "setenv bootargs ${bootargs} omapfb.vram=1:2M,2:2M,3:2M omapdss.def_disp=lcd"
+				value = "setenv bootargs ${bootargs} omapfb.vram=1:2M,2:2M,3:2M omapdss.def_disp=lcd";
 			}
 		);
 	}
