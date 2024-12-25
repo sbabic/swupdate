@@ -161,9 +161,10 @@ extract(void *p)
 				    archive_error_string(a), archive_entry_pathname(entry),
 				    strerror(archive_errno(a)));
 			} else {
-				ERROR("archive_read_next_header(): %s: %s",
-				    archive_error_string(a),
-				    strerror(archive_errno(a)));
+				ERROR("archive_read_next_header(): %s for '%s': %s",
+				      archive_error_string(a),
+				      archive_entry_pathname(entry),
+				      strerror(archive_errno(a)));
 				goto out;
 			}
 		}
@@ -173,8 +174,9 @@ extract(void *p)
 
 		r = archive_write_header(ext, entry);
 		if (r != ARCHIVE_OK) {
-			ERROR("archive_write_header(): %s: %s",
+			ERROR("archive_write_header(): %s for '%s': %s",
 			      archive_error_string(ext),
+			      archive_entry_pathname(entry),
 			      strerror(archive_errno(ext)));
 			goto out;
 		}
