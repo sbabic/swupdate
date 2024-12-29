@@ -62,6 +62,14 @@ struct swupdate_digest *swupdate_DECRYPT_init(unsigned char *key, char keylen, u
 		goto fail;
 	}
 
+#ifdef MBEDTLS_CIPHER_MODE_WITH_PADDING
+	error = mbedtls_cipher_set_padding_mode(&dgst->mbedtls_cipher_context, MBEDTLS_PADDING_PKCS7);
+	if (error) {
+		ERROR("mbedtls_cipher_set_padding_mode: %d", error);
+		goto fail;
+	}
+#endif
+
 	error = mbedtls_cipher_set_iv(&dgst->mbedtls_cipher_context, iv, 16);
 	if (error) {
 		ERROR("mbedtls_cipher_set_iv: %d", error);
