@@ -76,6 +76,12 @@ struct swupdate_digest *swupdate_DECRYPT_init(unsigned char *key, char keylen, u
 		goto fail;
 	}
 
+	error = mbedtls_cipher_reset(&dgst->mbedtls_cipher_context);
+	if (error) {
+		ERROR("mbedtls_cipher_reset: %d", error);
+		goto fail;
+	}
+
 	return dgst;
 
 fail:
