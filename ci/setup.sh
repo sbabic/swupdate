@@ -77,6 +77,3 @@ if ! grep -q UBUNTU_CODENAME=jammy /etc/os-release; then
 else
     "$SCRIPT_DIR/install-src-deps.sh"
 fi
-
-PC_FILE_DIR=$(pkg-config --variable=pcfiledir lua5.2)
-$_SUDO ln -sf "$PC_FILE_DIR/lua5.2.pc" "$PC_FILE_DIR/lua.pc"
