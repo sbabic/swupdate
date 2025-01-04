@@ -19,9 +19,10 @@ install_mtd_utils() {
     $_SUDO mkdir -p /usr/local/lib
     $_SUDO mkdir -p /usr/local/include
     $_SUDO mkdir -p /usr/local/include/mtd
-    git clone https://github.com/sigma-star/mtd-utils
-    cd mtd-utils
-    git checkout -b tmp v2.0.0
+    rm -rf /tmp/mtd-utils
+    git clone https://github.com/sigma-star/mtd-utils /tmp/mtd-utils
+    cd /tmp/mtd-utils
+    git checkout v2.0.0
     ./autogen.sh
     ./configure
     make -j$(nproc)
@@ -29,37 +30,36 @@ install_mtd_utils() {
     $_SUDO install -m 644 include/libmtd.h /usr/local/include
     $_SUDO install -m 644 include/mtd/ubi-media.h /usr/local/include/mtd
     $_SUDO install -m 644 *.a /usr/local/lib
-    cd ..
 }
 
 install_libubootenv() {
-    git clone https://github.com/sbabic/libubootenv.git
-    cd libubootenv
+    rm -rf /tmp/libubootenv
+    git clone https://github.com/sbabic/libubootenv.git /tmp/libubootenv
+    cd /tmp/libubootenv
     cmake .
     make -j$(nproc)
     $_SUDO make install
-    cd ..
 }
 
 install_efibootguard() {
-    git clone https://github.com/siemens/efibootguard.git
-    cd efibootguard
+    rm -rf /tmp/efibootguard
+    git clone https://github.com/siemens/efibootguard.git /tmp/efibootguard
+    cd /tmp/efibootguard
     git submodule update --init
     autoreconf -fi
     ./configure --disable-bootloader
     make -j$(nproc)
     $_SUDO make install
-    cd ..
 }
 
 install_zchunk() {
-    git clone https://github.com/zchunk/zchunk
-    cd zchunk
+    rm -rf /tmp/zchunk
+    git clone https://github.com/zchunk/zchunk /tmp/zchunk
+    cd /tmp/zchunk
     meson build
     cd build
     ninja
     $_SUDO ninja install
-    cd ..
 }
 
 install_mtd_utils
