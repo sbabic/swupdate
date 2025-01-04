@@ -56,10 +56,9 @@ install_zchunk() {
     rm -rf /tmp/zchunk
     git clone https://github.com/zchunk/zchunk /tmp/zchunk
     cd /tmp/zchunk
-    meson build
-    cd build
-    ninja
-    $_SUDO ninja install
+    meson setup build
+    meson compile -C build
+    $_SUDO meson install -C build
 }
 
 install_mtd_utils
