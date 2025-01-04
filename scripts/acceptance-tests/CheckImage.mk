@@ -29,7 +29,7 @@ quiet_cmd_sign_desc = SIGN    $@
 
 URL = https://raw.githubusercontent.com/openssl/openssl/master/demos/cms
 quiet_cmd_download = GET     $@
-      cmd_download = rm -f $@.tmp && wget -O $@.tmp $(URL)/$(notdir $@) && mv $@.tmp $@
+      cmd_download = rm -f $@.tmp && curl -s -o $@.tmp $(URL)/$(notdir $@) && mv $@.tmp $@
 
 #
 # tests to run
