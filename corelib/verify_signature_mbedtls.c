@@ -4,6 +4,7 @@
 
 #include <ctype.h>
 #include <errno.h>
+#include <mbedtls/version.h>
 #include <stdlib.h>
 
 #include "sslapi.h"
