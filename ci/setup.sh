@@ -21,59 +21,58 @@ fi
 export DEBIAN_FRONTEND=noninteractive
 export TZ=Europe/London
 
-$_SUDO apt-get -qq update
-$_SUDO apt-get install -y \
-    autoconf-archive \
-    automake \
-    build-essential \
-    check \
-    cmake \
+$_SUDO apt-get -qq update && apt-get install --yes --no-install-recommends \
     cpio \
     curl \
-    doxygen \
     gawk \
+    gcc \
     git \
-    graphviz \
+    gulp \
     libarchive-dev \
+    libblkid-dev \
     libbtrfsutil-dev \
     libcmocka-dev \
     libconfig-dev \
     libcurl4-openssl-dev \
+    libczmq-dev \
     libext2fs-dev \
     libfdisk-dev \
     libgpiod-dev \
     libjson-c-dev \
     liblua5.2-dev \
     libluajit-5.1-dev \
-    liblzo2-dev \
     libmbedtls-dev \
-    libpci-dev \
     librsync-dev \
-    librsync2 \
+    libssl-dev \
     libsystemd-dev \
-    libsystemd0 \
+    libudev-dev \
     liburiparser-dev \
     libwebsockets-dev \
-    libyaml-dev \
-    libzmq3-dev \
     libzstd-dev \
-    linux-headers-generic \
-    meson \
-    ninja-build \
+    make \
+    npm \
     python3 \
-    uuid \
     uuid-dev \
-    wget \
     zlib1g-dev
 
 # packages are too old in Ubuntu Jammy
 if ! grep -q UBUNTU_CODENAME=jammy /etc/os-release; then
-    apt-get install -y \
+    $_SUDO apt-get -qq update && apt-get install --yes --no-install-recommends \
         libebgenv-dev \
         libmtd-dev \
         libubi-dev \
         libubootenv-dev \
         libzck-dev
 else
+    $_SUDO apt-get -qq update && apt-get install --yes --no-install-recommends \
+        autoconf \
+        autoconf-archive \
+        automake \
+        check \
+        cmake \
+        liblzo2-dev \
+        libtool \
+        libyaml-dev \
+        meson
     "$SCRIPT_DIR/install-src-deps.sh"
 fi
