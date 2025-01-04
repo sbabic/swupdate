@@ -23,48 +23,48 @@ export TZ=Europe/London
 
 $_SUDO apt-get -qq update
 $_SUDO apt-get install -y \
-    build-essential \
+    autoconf-archive \
     automake \
+    build-essential \
+    check \
     cmake \
+    cpio \
     curl \
-    libzmq3-dev \
-    liblua5.2-dev \
-    libluajit-5.1-dev \
-    libconfig-dev \
+    doxygen \
+    gawk \
+    git \
+    graphviz \
     libarchive-dev \
     libbtrfsutil-dev \
+    libcmocka-dev \
+    libconfig-dev \
+    libcurl4-openssl-dev \
+    libext2fs-dev \
+    libfdisk-dev \
+    libgpiod-dev \
     libjson-c-dev \
-    libyaml-dev \
-    zlib1g-dev \
-    git \
-    uuid \
-    uuid-dev \
+    liblua5.2-dev \
+    libluajit-5.1-dev \
     liblzo2-dev \
+    libmbedtls-dev \
+    libpci-dev \
+    librsync-dev \
+    librsync2 \
     libsystemd-dev \
     libsystemd0 \
-    check \
-    librsync2 \
-    librsync-dev \
-    libext2fs-dev \
     liburiparser-dev \
-    doxygen \
-    graphviz \
-    autoconf-archive \
-    linux-headers-generic \
-    libmbedtls-dev \
-    libcmocka-dev \
-    libfdisk-dev \
     libwebsockets-dev \
-    libgpiod-dev \
-    libcurl4-openssl-dev \
-    libpci-dev \
-    gawk \
-    cpio \
+    libyaml-dev \
+    libzmq3-dev \
+    libzstd-dev \
+    linux-headers-generic \
     meson \
     ninja-build \
-    libzstd-dev \
+    python3 \
+    uuid \
+    uuid-dev \
     wget \
-    python3
+    zlib1g-dev
 
 # packages are too old in Ubuntu Jammy
 if ! grep -q UBUNTU_CODENAME=jammy /etc/os-release; then
