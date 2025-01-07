@@ -12,6 +12,7 @@
 #include <signal.h>
 #include <pthread.h>
 #include <inttypes.h>
+#include <unistd.h>
 #include "network_ipc.h"
 #include "progress_ipc.h"
 
