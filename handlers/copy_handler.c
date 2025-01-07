@@ -24,6 +24,7 @@
 #else
 #include <linux/fs.h>
 #endif
+#include <unistd.h>
 
 #include <pctl.h>
 #include "swupdate_image.h"
