@@ -172,7 +172,7 @@ static int flash_write_nand_hamming1(int mtdnum, struct img_type *img)
 	unsigned char *page;
 	unsigned char code[3];
 	unsigned char ecc[12];
-	int cnt;
+	int cnt = -1;
 	int i, j;
 	int len;
 	long long imglen = 0;
