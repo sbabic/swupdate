@@ -1,0 +1,130 @@
+version = 1
+SPDX-PackageName = "SWUpdate"
+SPDX-PackageSupplier = "Stefano Babic <stefano.babic@swupdate.org>"
+SPDX-PackageDownloadLocation = "https://github.com/sbabic/swupdate"
+
+[[annotations]]
+path = "examples/www/v2/css/fontawesome.min.css"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2019 Font Awesome"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "examples/www/v2/css/solid.min.css"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2019 Font Awesome"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "examples/www/v2/webfonts/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2016 Font Awesome"
+SPDX-License-Identifier = "OFL-1.1"
+
+[[annotations]]
+path = "examples/www/v2/images/favicon.png"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2016 Andres Babic <andres.babic@gmail.com>"
+SPDX-License-Identifier = "CC-BY-SA-4.0"
+
+[[annotations]]
+path = "web-app/images/favicon.png"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2016 Andres Babic <andres.babic@gmail.com>"
+SPDX-License-Identifier = "CC-BY-SA-4.0"
+
+[[annotations]]
+path = "examples/www/v2/images/logo.png"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2016 Andres Babic <andres.babic@gmail.com>"
+SPDX-License-Identifier = "CC-BY-SA-4.0"
+
+[[annotations]]
+path = "web-app/images/logo.png"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2016 Andres Babic <andres.babic@gmail.com>"
+SPDX-License-Identifier = "CC-BY-SA-4.0"
+
+[[annotations]]
+path = "SWUpdate.svg"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2016 Andres Babic <andres.babic@gmail.com>"
+SPDX-License-Identifier = "CC-BY-SA-4.0"
+
+[[annotations]]
+path = "examples/description/sw-description-json"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2013-2021 Stefano Babic <stefano.babic@swupdate.org>"
+SPDX-License-Identifier = "CC0-1.0"
+
+[[annotations]]
+path = "examples/www/v2/images/background.jpg"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2016 Gerd Altmann"
+SPDX-License-Identifier = "CC0-1.0"
+
+[[annotations]]
+path = "web-app/images/background.jpg"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2016 Gerd Altmann"
+SPDX-License-Identifier = "CC0-1.0"
+
+[[annotations]]
+path = "examples/www/v2/index.html"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2018 Stefan Herbrechtsmeier <stefan.herbrechtsmeier@weidmueller.com>"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "web-app/index.html"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2018 Stefan Herbrechtsmeier <stefan.herbrechtsmeier@weidmueller.com>"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "web-app/package.json"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2018 Stefan Herbrechtsmeier <stefan.herbrechtsmeier@weidmueller.com>"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "bindings/nodejs/package.json"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2023 Stefano Babic <stefano.babic@swupdate.org>"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "examples/www/v2/css/dropzone.min.css"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2021 Matias Meno <m@tias.me>"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "examples/www/v2/js/dropzone.min.js"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2021 Matias Meno <m@tias.me>"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "examples/www/v2/js/bootstrap.min.js"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2011-2021 the Bootstrap Authors"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "examples/www/v2/js/jquery.min.js"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2011-2021 OpenJS Foundation and other contributors"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "scripts/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "Free Software Foundation, Inc."
+SPDX-License-Identifier = "GPL-2.0-only"
+
+[[annotations]]
+path = "doc/source/images/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2013-2021 Stefano Babic <stefano.babic@swupdate.org>"
+SPDX-License-Identifier = "GPL-2.0-only"
