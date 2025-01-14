@@ -1,0 +1,19 @@
+# SPDX-FileCopyrightText: 2025 Daniel Braunwarth <oss@braunwarth.dev>
+#
+# SPDX-License-Identifier: MIT
+name: REUSE compliance
+
+on:
+  push
+
+jobs:
+  reuse:
+    name: REUSE compliance
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install pipx
+      run: |
+        sudo apt-get -qq update && sudo apt-get install --yes --no-install-recommends pipx
+    - name: Check REUSE compliance
+      run: pipx run reuse lint
