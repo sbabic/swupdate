@@ -13,6 +13,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <errno.h>
 #include <sys/time.h>
 #if defined(__linux__)
 #include <linux/types.h>
@@ -210,6 +211,33 @@ bool is_hex_str(const char *ascii);
 	({ type __x = (x); type __y = (y); __x < __y ? __x: __y; })
 #define max_t(type,x,y) \
 	({ type __x = (x); type __y = (y); __x > __y ? __x: __y; })
+
+#define ROUND_UP(N, S) ((((N) + (S) - 1) / (S)) * (S))
+#define ROUND_DOWN(N, S) (((N) / (S)) * (S))
+
+/* According to linux kernel ENOTSUPP is not a standard error code and should
+ * be avoided in new patches. EOPNOTSUPP should be used instead. Unfortunately
+ * some drivers still return ENOTSUPP. Do not confuse with ENOTSUP! See also:
+ * https://lists.gnu.org/archive/html/bug-glibc/2002-08/msg00017.html
+ * https://linux-fsdevel.vger.kernel.narkive.com/pERNbmWG/kernel-glibc-eopnotsupp-vs-enotsup-vs-enotsupp-also-rfc-posix-acl-kernel-infrastructure
+ */
+#ifndef ENOTSUPP
+#define ENOTSUPP 524 /* Operation is not supported */
+UNUSED static inline const char *strerror_enotsupp(int code)
+{
+	if (code == ENOTSUPP)
+		return "Operation is not supported";
+	return strerror(code);
+}
+#define STRERROR(code) strerror_enotsupp(code)
+#else
+#define STRERROR(code) strerror(code)
+#endif
+
+UNUSED static inline bool is_not_supported(int code)
+{
+	return (code == EOPNOTSUPP) || (code == ENOTSUP) || (code == ENOTSUPP);
+}
 
 bool strtobool(const char *s);
 

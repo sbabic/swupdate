@@ -14,6 +14,7 @@
 #include "bsdqueue.h"
 
 #define DEFAULT_CTRL_DEV "/dev/ubi_ctrl"
+#define FLASH_EMPTY_BYTE 0xFF
 
 struct ubi_part {
 	struct ubi_vol_info vol_info;
