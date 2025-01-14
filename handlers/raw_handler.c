@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <libgen.h>
+#include <linux/fs.h>
 
 #include "swupdate_image.h"
 #include "handler.h"
