@@ -26,6 +26,17 @@
 #else
 #include <linux/fs.h>
 #endif
+/*
+ * Though the glibc-specific flag `FTW_ACTIONRETVAL` wasn't passed to `nftw()`,
+ * the specific return codes are used nonetheless. As they happen to match
+ * the defaults, just define them for musl and non-Linux systems. 
+ */
+#ifndef FTW_CONTINUE
+#define FTW_CONTINUE  0
+#endif
+#ifndef FTW_STOP
+#define FTW_STOP 1
+#endif
 #include <unistd.h>
 
 #include <pctl.h>
