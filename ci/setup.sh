@@ -56,8 +56,8 @@ $_SUDO apt-get -qq update && apt-get install --yes --no-install-recommends \
         zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# packages are too old in Ubuntu Jammy
-if ! grep -q UBUNTU_CODENAME=jammy /etc/os-release; then
+# packages are too old in Ubuntu Jammy and Debian Bookworm
+if ! grep -qP "VERSION_CODENAME=(jammy|bookworm)" /etc/os-release; then
     $_SUDO apt-get -qq update && apt-get install --yes --no-install-recommends \
             libebgenv-dev \
             libmtd-dev \
