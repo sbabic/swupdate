@@ -9,17 +9,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <sys/ioctl.h>
-#ifdef __FreeBSD__
-#include <sys/disk.h>
-// the ioctls are almost identical except for the name, just alias it
-#define BLKGETSIZE64 DIOCGMEDIASIZE
-#else
-#include <linux/fs.h>
-#endif
-
-#include <fcntl.h>
-#include <stdlib.h>
 #include <errno.h>
 #include <libgen.h>
 
