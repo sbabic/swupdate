@@ -52,6 +52,7 @@ tools/*.out
 test/test_crypt
 test/test_hash
 test/test_json
+test/test_flash_handler
 test/test_server_hawkbit
 test/test_util
 test/test_verify

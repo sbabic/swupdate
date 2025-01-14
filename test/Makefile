@@ -27,6 +27,7 @@ endif
 tests-$(CONFIG_SURICATTA_HAWKBIT) += test_json
 tests-$(CONFIG_SURICATTA_HAWKBIT) += test_server_hawkbit
 tests-y += test_util
+tests-$(CONFIG_CFI) += test_flash_handler
 
 ccflags-y += -I$(src)/../
 
