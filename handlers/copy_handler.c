@@ -15,7 +15,9 @@
 #include <pthread.h>
 #include <signal.h>
 #include <libgen.h>
+#ifdef CONFIG_MTD
 #include <mtd/mtd-user.h>
+#endif
 #include <ftw.h>
 #ifdef __FreeBSD__
 #include <sys/disk.h>
@@ -48,7 +50,9 @@ static int copy_single_file(const char *path, ssize_t size, struct img_type *img
 {
 	int fdout, fdin, ret;
 	struct stat statbuf;
-	struct mtd_info_user	mtdinfo;
+#ifdef CONFIG_MTD
+	struct mtd_info_user mtdinfo;
+#endif
 	struct chain_handler_data priv;
 	uint32_t checksum;
 	int pipes[2];
@@ -81,7 +85,9 @@ static int copy_single_file(const char *path, ssize_t size, struct img_type *img
 		else if (S_ISBLK(statbuf.st_mode) && (ioctl(fdin, BLKGETSIZE64, &size) < 0)) {
 			ERROR("Cannot get size of Block Device %s", path);
 			size = -1;
-		} else if (S_ISCHR(statbuf.st_mode)) {
+		} 
+#ifdef CONFIG_MTD
+		else if (S_ISCHR(statbuf.st_mode)) {
 			/* it is maybe a MTD device, just try */
 			ret = ioctl(fdin, MEMGETINFO, &mtdinfo);
 			if (!ret) {
@@ -89,6 +95,10 @@ static int copy_single_file(const char *path, ssize_t size, struct img_type *img
 			} else {
 				size = -1;
 			}
+		}
+#endif
+		else {
+			size = -1;
 		}
 	}
 
