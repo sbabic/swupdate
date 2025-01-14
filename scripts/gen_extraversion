@@ -1,4 +1,4 @@
-#!/usr/bin/sh
+#!/usr/bin/env sh
 #
 # Copyright (C) 2024, Daniel Braunwarth <oss@braunwarth.dev>
 #
