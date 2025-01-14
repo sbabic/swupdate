@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: 2025 Daniel Braunwarth <oss@braunwarth.dev>
+#
+# SPDX-License-Identifier: MIT
+name: CI tests
+
+on:
+  push
+
+jobs:
+  test:
+    strategy:
+        fail-fast: false
+        matrix:
+          container:
+          - ubuntu:22.04
+          - ubuntu:24.04
+          - debian:bookworm-slim
+          - debian:testing-slim
+    name: ${{ matrix.container }}
+    runs-on: ubuntu-24.04
+    container: ${{ matrix.container }}
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install dependencies
+      run: ./ci/setup.sh
+    - name: Run tests
+      run: ./ci/test-configs.sh
