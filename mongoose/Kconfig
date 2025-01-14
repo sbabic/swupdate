@@ -4,7 +4,6 @@
 
 menuconfig WEBSERVER
 	bool "Web Server"
-	select MONGOOSE
 	help
 	  Enable update from remote using a web server on the target.
 
