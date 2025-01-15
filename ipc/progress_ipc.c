@@ -16,6 +16,10 @@
 #include <unistd.h>
 #include <stdbool.h>
 #include <progress_ipc.h>
+#if defined(__FreeBSD__)
+#define ENODATA ENOATTR
+#define ETIME ETIMEDOUT
+#endif
 
 #ifdef CONFIG_SOCKET_PROGRESS_PATH
 char *SOCKET_PROGRESS_PATH = (char*)CONFIG_SOCKET_PROGRESS_PATH;
