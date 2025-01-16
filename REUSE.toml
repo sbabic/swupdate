@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2025 Stefano Babic <stefano.babic@swupdate.org>
+#
+# SPDX-License-Identifier: MIT
 version = 1
 SPDX-PackageName = "SWUpdate"
 SPDX-PackageSupplier = "Stefano Babic <stefano.babic@swupdate.org>"
