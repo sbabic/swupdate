@@ -9,7 +9,7 @@ SPDX-License-Identifier: GPL-2.0-only
 SWUpdate - Software Update for Embedded Linux Devices
 =====================================================
 
-[![CI tests](https://github.com/swupdate/swupdate/actions/workflows/ci_tests.yml/badge.svg?branch=master)](https://github.com/swupdate/swupdate/actions/workflows/ci_tests.yml)
+[![CI tests](https://github.com/sbabic/swupdate/actions/workflows/ci_tests.yml/badge.svg?branch=master)](https://github.com/sbabic/swupdate/actions/workflows/ci_tests.yml)
 [![Coverity Scan Build Status](https://scan.coverity.com/projects/20753/badge.svg)](https://scan.coverity.com/projects/20753)
 ![License](https://img.shields.io/github/license/sbabic/swupdate)
 [![REUSE status](https://api.reuse.software/badge/github.com/sbabic/swupdate)](https://api.reuse.software/info/github.com/sbabic/swupdate)
