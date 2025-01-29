@@ -693,6 +693,21 @@ channel_op_res_t channel_set_options(channel_t *this, channel_data_t *channel_da
 		goto cleanup;
 	}
 
+    if ((channel_data->api_key_header) && (channel_data->api_key)) {
+	char *header;
+	if (ENOMEM_ASPRINTF == asprintf(&header, "%s: %s", channel_data->api_key_header, channel_data->api_key)) {
+		result = CHANNEL_EINIT;
+		goto cleanup;
+		}
+	    if (((channel_curl->header = curl_slist_append(
+				channel_curl->header, header)) == NULL)) {
+		free(header);
+		result = CHANNEL_EINIT;
+		goto cleanup;
+		}
+	free(header);
+	}
+
 	if (channel_data->received_headers || channel_data->headers) {
 		if ((curl_easy_setopt(channel_curl->handle,
 			      CURLOPT_HEADERFUNCTION,

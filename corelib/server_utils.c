@@ -59,6 +59,12 @@ int channel_settings(void *elem, void *data)
 	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "interface", tmp);
 	if (strlen(tmp))
 		SETSTRING(chan->iface, tmp);
+	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "api_key_header", tmp);
+	if (strlen(tmp))
+		SETSTRING(chan->api_key_header, tmp);
+	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "api_key", tmp);
+	if (strlen(tmp))
+		SETSTRING(chan->api_key, tmp);
 
 	return 0;
 }

@@ -95,4 +95,6 @@ typedef struct {
 	size_t	upload_filesize;
 	char *range; /* Range request for get_file in any */
 	void *user;
+	char *api_key_header;
+	char *api_key;
 } channel_data_t;
