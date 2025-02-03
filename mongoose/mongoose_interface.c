@@ -700,7 +700,7 @@ static void ev_handler(struct mg_connection *nc, int ev, void *ev_data)
 			mg_http_send_digest_auth_request(nc, global_auth_domain);
 		else if (mg_http_get_header(hm, "Sec-WebSocket-Key") != NULL)
 			websocket_handler(nc, ev_data);
-		else if (mg_match(hm->uri, mg_str("/restart"), NULL))
+		else if (mg_match(hm->uri, mg_str("#/restart"), NULL))
 			restart_handler(nc, ev_data);
 		else
 			mg_http_serve_dir(nc, ev_data, &s_http_server_opts);
@@ -708,7 +708,7 @@ static void ev_handler(struct mg_connection *nc, int ev, void *ev_data)
 		struct mg_http_message hm;
 		int hlen = mg_http_parse((char *) nc->recv.buf, nc->recv.len, &hm);
 		if (hlen > 0) {
-			if (mg_match(hm.uri, mg_str("/upload"), NULL)) {
+			if (mg_match(hm.uri, mg_str("#/upload"), NULL)) {
 				if (!mg_http_is_authorized(&hm, global_auth_domain, global_auth_file)) {
 					if (nc->pfn != NULL)
 						mg_http_send_digest_auth_request(nc, global_auth_domain);
