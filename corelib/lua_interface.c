@@ -929,6 +929,11 @@ static int l_get_selection(lua_State *L) {
 	return 2;
 }
 
+static int l_is_dry_run(lua_State *L) {
+	bool dryrun = is_dryrun_install();
+	lua_pushboolean(L, dryrun);
+	return 1;
+}
 
 static int l_get_tmpdir(lua_State *L)
 {
@@ -1211,6 +1216,7 @@ static const luaL_Reg l_swupdate[] = {
         { "getversion", lua_get_swupdate_version },
         { "progress", lua_notify_progress },
         { "emmcbootpart", l_get_emmc_bootpart },
+	{ "is_dryrun", l_is_dry_run },
         { NULL, NULL }
 };
 

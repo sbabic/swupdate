@@ -845,6 +845,11 @@ int get_install_info(char *buf, size_t len)
 	return len;
 }
 
+bool is_dryrun_install(void)
+{
+	return inst.software->parms.dry_run;
+}
+
 sourcetype get_install_source(void)
 {
 	return inst.req.source;
