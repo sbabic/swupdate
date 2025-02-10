@@ -73,6 +73,12 @@ swupdate.progress = function(msg) end
 swupdate.notify = function(status, error, msg) end
 
 
+--- Report whether dry-run installation is performed.
+--
+--- @return boolean  # `true` if dry-run installation is performed, `false` otherwise
+swupdate.is_dryrun = function() end
+
+
 --- Update progress.
 --
 --- @param percent  number  Progress percent to set
