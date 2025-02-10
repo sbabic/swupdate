@@ -1197,8 +1197,11 @@ if the partition table is DOS. It reports an error if the table is GPT.
            }
         }
 
-gpt partition installer
------------------------
+GPT Partition Handler
+---------------------
+
+GPT Partition Installer
+.......................
 
 There is a handler gptpart that allows writing an image into a gpt partition selected by
 the name. This handler do not modify the gpt partition (type, size, ...), it just writes
@@ -1222,8 +1225,8 @@ the image in the GPT partition.
 		},
 	);
 
-gpt partition swap
-------------------
+GPT Partition Swap
+..................
 
 There is a handler gptswap that allow to swap gpt partitions after all the images were flashed.
 This handler only swaps the name of the partition. It coud be useful for a dual bank strategy.
@@ -1290,8 +1293,11 @@ found on the device. It is a partition handler and it runs before any image is i
 		}
 	});
 
+BTRFS Handler
+-------------
+
 BTRFS Partition Handler
------------------------
+.......................
 
 This handler is activated if support for BTRFS is on. It allows to created and delete subvolumes
 during an update.
@@ -1316,7 +1322,7 @@ If `mount` is set, SWUpdate will mount the device and the path is appended to th
 mountpoint used with mount. If device is already mounted, path is the absolute path.
 
 BTRFS Snapshot Handler
-----------------------
+......................
 
 The handler allows to install a BTRFS snapshot created with the "btrfs send" command.
 SWUpdate is using the external "btrfs" utility, that must be installed on the target,
@@ -1343,7 +1349,7 @@ using the "installed-directly" attribute.
 If `tomount` is set, SWUpdate will temporary mount "device" as BTRFS filesystem and will try to install
 the snapshot to `path`. `btrfs-cmd` is optional, fallback is /usr/bin/btrfs.
 
-Generic Executor handler
+Generic Executor Handler
 ------------------------
 
 The BTRFS snapshot handler requires to stream an artifact after normal handling
@@ -1452,7 +1458,7 @@ Example:
         }
 
 Memory issue with zchunk
-------------------------
+........................
 
 SWUpdate will create the header from the current version, often from a block partition. As default,
 Zchunk creates a temporary file with all chunks in /tmp, that is at the end concatenated to the
@@ -1460,8 +1466,8 @@ header and written to the destination file. This means that an amount of memory 
 partition (SWUpdate does not compress the chunks) is required. This was solved with later version
 of Zchunk - check inside zchunk code if ZCK_NO_WRITE is supported.
 
-Docker handlers
-----------------
+Docker Handlers
+---------------
 
 To improve containers update, a docker set of handlers implements part of the API to communicate
 with the docker daemon. Podman (another container solution) has a compatibility layer for
@@ -1472,7 +1478,7 @@ Goal of these handlers is just to provice the few API to update images and start
 does not implement the full API.
 
 Docker Load Image
------------------
+.................
 
 This handler allow to load an image without copying temporarily and push it to the docker daemon.
 It implements the /images/load entry point., and it is implemented as "image" handler. The file
@@ -1509,7 +1515,7 @@ passed to the daemon:
 
 
 Docker Remove Image
--------------------
+...................
 
 It is implemented as script (post install).
 Example:
@@ -1524,7 +1530,7 @@ Example:
 	});
 
 Docker Delete Unused Images
----------------------------
+...........................
 
 It is implemented as script (post install).
 Example:
@@ -1537,7 +1543,7 @@ Example:
 
 
 Docker: container create
-------------------------
+........................
 
 It is implemented as post-install script. The script itself is the json file passed
 to the daemon to configure and set the container. The container is just created, not started.
@@ -1569,7 +1575,7 @@ Creating the container can be done in sw-description with:
 	});
 
 Docker Remove Container
------------------------
+.......................
 
 It is implemented as script (post install).
 Example:
@@ -1584,7 +1590,7 @@ Example:
 	});
 
 Docker : Start / Stop containers
---------------------------------
+................................
 
 Examples:
 
