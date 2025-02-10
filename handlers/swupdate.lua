@@ -120,6 +120,12 @@ swupdate.ROOT_DEVICE = {
 --- @return swupdate.rootdev  # Table containing type, and (full) path to root device
 swupdate.getroot = function() end
 
+--- Get the HW boot device of an eMMC.
+--
+--- @param devicepath  string  Fully qualified device path
+--- @return integer            # eMMC boot device number or `-1` on error
+swupdate.emmcbootpart = function(devicepath) end
+
 
 --- Table with major/minor numbers of the device on which the swupdate.stat()'d file resides.
 --- @class swupdate.stat_dev
