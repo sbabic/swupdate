@@ -226,9 +226,9 @@ Configuration_
 The delta handler is configured in the runtime configuration file (swupdate.cfg). The configuration is done in the
 `delta` section. See also example/configuration/swupdate.cfg for details.
 
-api_key_ authentication can be setup by providing the api_key_header and api_key in the configuration file. The
-api_key_header is the header name that will be used to send the api_key. The api_key is the value that will be sent in
-the header.
+API key authentication can be setup by providing ``api_key_header`` and ``api_key`` in the configuration file.
+``api_key_header`` is the header name that is used to send the ``api_key``.
+``api_key`` is the value that is sent in the header.
 
 
 Creation of ZCK Header and ZCK file for SWUpdate
