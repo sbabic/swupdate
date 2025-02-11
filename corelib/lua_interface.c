@@ -16,6 +16,7 @@
 #include <sys/sysmacros.h>
 #endif
 #include <sys/types.h>
+#include <limits.h>
 
 #include "lua.h"
 #include "lauxlib.h"
