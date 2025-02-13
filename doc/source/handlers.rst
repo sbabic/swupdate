@@ -309,7 +309,8 @@ In analogy to C handlers, the prototype for a Lua handler is
 where ``image`` is a Lua table (with attributes according to
 :ref:`sw-description's attribute reference <sw-description-attribute-reference>`)
 that describes a single artifact to be processed by the handler
-(also see the Lua Handler Interface Specification in ``handlers/swupdate.lua``).
+(also see the Lua Handler Interface Specification in ``handlers/swupdate.lua``,
+reproduced for convenience in Section :ref:`handlers.lua.specification`).
 
 Note that dashes in the attributes' names are replaced with
 underscores for the Lua domain to make them idiomatic, e.g.,
@@ -456,6 +457,17 @@ technically allow one to embed them into a to be processed ``.swu``
 image, this is not implemented as it carries some security
 implications since the behavior of SWUpdate is changed
 dynamically.
+
+.. _handlers.lua.specification:
+
+Lua Handler Interface Specification
+...................................
+
+.. literalinclude:: ../../handlers/swupdate.lua
+   :linenos:
+   :tab-width: 3
+   :language: lua
+
 
 Shell script handler
 --------------------
