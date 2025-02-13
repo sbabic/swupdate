@@ -27,8 +27,10 @@ network interfaces including their IP addresses and submasks.
 
 The ``lua_swupdate`` Lua module interface specification that details what
 functionality is made available by ``bindings/lua_swupdate.c`` is found
-in ``bindings/lua_swupdate.lua``. It serves as reference, for mocking
-purposes, and type checking thanks to the EmmyLua-inspired annotations.
+in ``bindings/lua_swupdate.lua``, reproduced for convenience in
+Section :ref:`bindings.lua.specification`.
+It serves as reference, for mocking purposes, and type checking thanks to
+the EmmyLua-inspired annotations.
 
 Note that, depending on the filesystem location of the Lua binding's shared
 library, Lua's ``package.cpath`` may have to be adapted by setting the
@@ -117,3 +119,13 @@ IPv4 Interface
 For convenience, the ``lua_swupdate`` module provides the ``ipv4()`` method
 returning a table holding the local network interfaces as the table's keys and
 their space-separated IP addresses plus subnet masks as respective values.
+
+.. _bindings.lua.specification:
+
+Lua Language Binding Interface Specification
+............................................
+
+.. literalinclude:: ../../bindings/lua_swupdate.lua
+   :linenos:
+   :tab-width: 3
+   :language: lua
