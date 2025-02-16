@@ -344,8 +344,12 @@ static const char *get_source_string(unsigned int source)
 
 static void restart_handler(struct mg_connection *nc, void *ev_data)
 {
-	struct mg_http_message *hm = (struct mg_http_message *) ev_data;
-	ipc_message msg = {};
+	struct mg_http_message* hm = (struct mg_http_message*)ev_data;
+	ipc_message msg;
+
+	size_t size = sizeof(msg.data.procmsg.buf);
+	snprintf(msg.data.procmsg.buf, size, "{\"reboot\": \"true\"}");
+	msg.data.procmsg.len = strnlen(msg.data.procmsg.buf, size);
 
 	if(mg_strcasecmp(hm->method, mg_str("POST")) != 0) {
 		mg_http_reply(nc, 405, "", "%s", "Method Not Allowed\n");
