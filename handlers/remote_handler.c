@@ -197,6 +197,7 @@ static int install_remote_image(struct img_type *img,
 	ret = copyimage(request, img, forward_data);
 
 cleanup:
+	free(connect_string);
 	zmq_close(request);
 	zmq_ctx_destroy(context);
 

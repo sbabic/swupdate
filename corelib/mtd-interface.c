@@ -289,6 +289,7 @@ static void scan_ubi_volumes(struct mtd_ubi_info *info)
 		err = ubi_get_vol_info1(libubi, info->dev_info.dev_num,
 					i, &ubi_part->vol_info);
 		if (err == -1) {
+			free(ubi_part);
 			if (errno == ENOENT || errno == ENODEV)
 				continue;
 
