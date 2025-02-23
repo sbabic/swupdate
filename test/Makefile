@@ -81,7 +81,11 @@ $(obj)/%.lnk: $(obj)/%.o $(objtree)/core/built-in.o.tmp
 
 DATADIR := test/data
 
-$(obj)/test_verify.o: $(DATADIR)/signature $(DATADIR)/signing-pubkey.pem
+PHONY += PREPARE_DATA
+PREPARE_DATA:
+	$(Q)cp -r $(srctree)/test/data $(objtree)/test/data
+
+$(obj)/test_verify.o: PREPARE_DATA $(DATADIR)/signature $(DATADIR)/signing-pubkey.pem
 
 .INTERMEDIATE: $(DATADIR)/signature
 $(DATADIR)/signature: $(DATADIR)/to-be-signed $(DATADIR)/signing-secret.pem
