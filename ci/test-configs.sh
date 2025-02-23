@@ -10,9 +10,13 @@
 # SPDX-License-Identifier:	GPL-2.0-only
 set -eu
 
+BUILD_DIR=$(mktemp --directory)
+
 find configs -type f | while read -r fname; do
     echo "*** Testing config: $fname"
-    make "$(basename "$fname")"
-    make "-j$(nproc)"
-    make tests
+    rm -rf "${BUILD_DIR}"
+    mkdir -p "${BUILD_DIR}"
+    make O="${BUILD_DIR}" "$(basename "$fname")"
+    make O="${BUILD_DIR}" "-j$(nproc)"
+    make O="${BUILD_DIR}" tests
 done
