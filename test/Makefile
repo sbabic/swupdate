@@ -40,6 +40,9 @@ ifneq ($(CONFIG_EXTRA_LDFLAGS),)
 EXTRA_LDFLAGS += $($(STRIP) $(subst ",,$(CONFIG_EXTRA_LDFLAGS)))#"))
 endif
 ifneq ($(CONFIG_EMBEDDED_SURICATTA_LUA),)
+ifneq ($(findstring /, $(firstword $(CONFIG_EMBEDDED_SURICATTA_LUA_SOURCE))),)
+    CONFIG_EMBEDDED_SURICATTA_LUA_SOURCE := $(srctree)/$(CONFIG_EMBEDDED_SURICATTA_LUA_SOURCE)
+endif
 EXTRA_LDFLAGS += -Wl,--format=binary -Wl,$(CONFIG_EMBEDDED_SURICATTA_LUA_SOURCE) -Wl,--format=default
 endif
 
