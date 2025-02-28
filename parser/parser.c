@@ -144,7 +144,7 @@ static int parser_follow_link(parsertype p, void *cfg, void *elem,
 	for (int j = 0; j < count_string_array(nodes); j++) {
 		linknodes[j] = nodes[j];
 	}
-	if (!set_find_path(linknodes, ref, &tmp)) {
+	if (!set_find_path(linknodes, ref, tmp)) {
 		free(linknodes);
 		return -1;
 	}

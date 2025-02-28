@@ -204,7 +204,7 @@ void *find_root_libconfig(config_t *cfg, const char **nodes, unsigned int depth)
 	if (elem && config_setting_is_group(elem) == CONFIG_TRUE) {
 		ref = get_field_string_libconfig(elem, "ref");
 		if (ref) {
-			if (!set_find_path(nodes, ref, &tmp)) {
+			if (!set_find_path(nodes, ref, tmp)) {
 				free(root);
 				return NULL;
 			}
