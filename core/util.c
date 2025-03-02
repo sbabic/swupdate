@@ -723,8 +723,10 @@ void free_string_array(char **nodes)
 	char **iter;
 	if (!nodes)
 		return;
-	for (iter = nodes; *iter != NULL; iter++)
+	for (iter = nodes; *iter != NULL; iter++) {
 		free(*iter);
+		*iter = NULL;
+	}
 	free(nodes);
 }
 
