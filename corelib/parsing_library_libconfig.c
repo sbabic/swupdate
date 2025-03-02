@@ -182,7 +182,6 @@ void *find_root_libconfig(config_t *cfg, const char **nodes, unsigned int depth)
 	config_setting_t *elem;
 	char *root;
 	const char *ref;
-	char **tmp = NULL;
 
 	/*
 	 * check for deadlock links, block recursion
@@ -204,12 +203,11 @@ void *find_root_libconfig(config_t *cfg, const char **nodes, unsigned int depth)
 	if (elem && config_setting_is_group(elem) == CONFIG_TRUE) {
 		ref = get_field_string_libconfig(elem, "ref");
 		if (ref) {
-			if (!set_find_path(nodes, ref, tmp)) {
+			if (!set_find_path(nodes, ref)) {
 				free(root);
 				return NULL;
 			}
 			elem = find_root_libconfig(cfg, nodes, depth);
-			free_string_array(tmp);
 		}
 	}
 

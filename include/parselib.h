@@ -63,7 +63,7 @@ void get_hash_value(parsertype p, void *elem, unsigned char *hash);
 void check_field_string(const char *src, char *dst, const size_t max_len);
 void *find_root(parsertype p, void *root, const char **nodes);
 void *get_node(parsertype p, void *root, const char **nodes);
-bool set_find_path(const char **nodes, const char *newpath, char **tmp);
+bool set_find_path(const char **nodes, const char *newpath);
 
 static inline void get_field_bool(parsertype p, void *e, const char *path, bool *dest)
 {
