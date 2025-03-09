@@ -1,5 +1,5 @@
 /*
- * Author: Viacheslav Volkov
+ * Copyright Viacheslav Volkov
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
