@@ -89,13 +89,13 @@ swupdate.progress_update = function(percent) end
 --
 --- @param  device      string  Device to mount
 --- @param  filesystem  string  Device's filesystem
---- @return string              # Mountpoint for use with `swupdate.umount(target)`
+--- @return string | nil        # Mountpoint for use with `swupdate.umount(target)`, `nil` on error
 swupdate.mount = function(device, filesystem) end
 
---- Unmount a mountpoint.
+--- Unmount a mountpoint returned by `swupdate.mount()`.
 --
 --- @param  target  string  Mountpoint to unmount
---- @return boolean | nil   # true if successful, nil on error
+--- @return boolean | nil   # `true` if successful, `nil` on error
 swupdate.umount = function(target) end
 
 
