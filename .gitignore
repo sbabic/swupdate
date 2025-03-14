@@ -134,3 +134,6 @@ Pipfile.lock
 tools/python/swupdateclient/Pipfile.lock
 tools/python/swupdateclient/build/
 tools/python/swupdateclient/swupdateclient.egg-info/
+
+# Python
+__pycache__
