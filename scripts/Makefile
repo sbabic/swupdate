@@ -32,5 +32,5 @@
 #subdir-$(CONFIG_DTC)         += dtc
 
 # Let clean descend into subdirs
-#subdir-	+= basic kconfig package selinux
-subdir-	+= basic kconfig
+#subdir-	+= basic package selinux
+subdir-	+= basic
