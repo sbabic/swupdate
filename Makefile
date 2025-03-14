@@ -226,6 +226,9 @@ KBUILD_AFLAGS   := -D__ASSEMBLY__
 KERNELRELEASE = $(shell cat include/config/kernel.release 2> /dev/null)
 KERNELVERSION = $(VERSION)$(if $(PATCHLEVEL),.$(PATCHLEVEL)$(if $(SUBLEVEL),.$(SUBLEVEL)))$(EXTRAVERSION)
 
+# Kconfiglib
+KCONFIGLIB = $(srctree)/scripts/Kconfiglib
+
 export ARCH SRCARCH CONFIG_SHELL HOSTCC HOSTCFLAGS CROSS_COMPILE AS LD CC
 export CPP AR NM STRIP OBJCOPY OBJDUMP
 export MAKE AWK GENKSYMS INSTALLKERNEL PERL UTS_MACHINE
@@ -267,7 +270,7 @@ endif
 
 
 # To make sure we do not include .config for any of the *config targets
-# catch them early, and hand them over to scripts/kconfig/Makefile
+# catch them early, and hand them over to scripts/Kconfiglib/.
 # It is allowed to specify more targets when calling make, including
 # mixing *config targets and build targets.
 # For example 'make oldconfig all'.
@@ -307,8 +310,8 @@ ifeq ($(mixed-targets),1)
 else
 ifeq ($(config-targets),1)
 # ===========================================================================
-# *config targets only - make sure prerequisites are updated, and descend
-# in scripts/kconfig to make the *config target
+# *config targets only - make sure prerequisites are updated, and call
+# scripts/Kconfiglib to make the *config target
 
 # Read arch specific Makefile to set KBUILD_DEFCONFIG as needed.
 # KBUILD_DEFCONFIG may point out an alternative default configuration
@@ -322,7 +325,11 @@ config: scripts_basic outputmakefile FORCE
 
 %config: scripts_basic outputmakefile FORCE
 	$(Q)mkdir -p include/linux include/config
-	$(Q)$(MAKE) $(build)=scripts/kconfig $@
+	$(Q)$(KCONFIGLIB)/$@.py
+
+%_defconfig: scripts_basic outputmakefile FORCE
+	$(Q)mkdir -p include/linux include/config
+	$(Q)$(KCONFIGLIB)/defconfig.py $(srctree)/configs/$@
 
 else
 
@@ -344,8 +351,10 @@ $(KCONFIG_CONFIG) include/config/auto.conf.cmd: ;
 # if auto.conf.cmd is missing then we are probably in a cleaned tree so
 # we execute the config step to be sure to catch updated Kconfig files
 include/config/%.conf: $(KCONFIG_CONFIG) include/config/auto.conf.cmd
-	$(Q)$(MAKE) -f $(srctree)/Makefile silentoldconfig
-
+	$(Q)mkdir -p $(objtree)/include/config $(objtree)/include/generated
+	$(Q)$(KCONFIGLIB)/genconfig.py \
+		--header-path $(objtree)/include/generated/autoconf.h \
+		--sync-deps $(objtree)/include/config
 
 else
 # Dummy target needed, because used as prerequisite
