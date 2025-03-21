@@ -15,7 +15,7 @@
 // Alternatively, you can license this software under a commercial
 // license, as set out in https://www.mongoose.ws/licensing/
 //
-// SPDX-License-Identifier: GPL-2.0-only or commercial
+// SPDX-License-Identifier: GPL-2.0-only
 
 #include "mongoose.h"
 
@@ -5976,11 +5976,6 @@ bool mg_l2_pppoe_rx(struct mg_tcpip_if *ifp, enum mg_l2proto *proto,
 #ifdef MG_ENABLE_LINES
 #line 1 "src/lfs.c"
 #endif
-// Copyright (c) 2023 Cesanta Software Limited
-// SPDX-License-Identifier: GPL-2.0-only or commercial
-
-
-
 
 #if MG_ENABLE_LFS
 
