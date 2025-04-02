@@ -598,15 +598,20 @@ setmetatable(M.job.status, {
     end,
 })
 
---- Update job status JSON schema from its OpenAPI (Swagger) definition.
+--- Update job status JSON schema from its OpenAPI specification.
 --
---- @param  swagger  table  Swagger definition
---- @return boolean         # `true` if swagger was parsed, `false` otherwise
-function M.job.status:update_json_schema(swagger)
-    if type(swagger) ~= "table" then
+--- @param  oapispec  table  OpenAPI v2 (Swagger) or OpenAPI v3 specification
+--- @return boolean          # `true` if specification was processed, `false` otherwise
+function M.job.status:update_json_schema(oapispec)
+    if type(oapispec) ~= "table" then
         return false
     end
-    local spec = (((swagger or {}).definitions or {}).JobStatus or {}).properties or {}
+    -- Try OpenAPI v3 specification first...
+    local spec = ((((oapispec or {}).components or {}).schemas or {}).JobStatus or {}).properties or {}
+    if M.utils.table.is_empty(spec) then
+        -- ... and fall-back to OpenAPI v2 (Swagger)
+        spec = (((oapispec or {}).definitions or {}).JobStatus or {}).properties or {}
+    end    
     if M.utils.table.is_empty(spec) then
         return false
     end
@@ -626,6 +631,7 @@ end
 --- @param  status  job.status  Job status instance to normalize
 --- @return job.status          # Normalized `job.status` instance
 function M.job.status.normalize(status)
+    status = status or {}
     status.state = status.state or "0xDEAD57A7E"
     status.clientId = M.device.id
     status.progress = status.progress or 0
@@ -2125,19 +2131,38 @@ function M.suricatta_funcs.server_start(defaults, argv, fconfig)
         return suricatta.status.EINIT
     end
 
-    local url = ("%s/swagger.json"):format(M.channel.main.options.url)
-    suricatta.notify.debug("Suricatta querying %q", url)
-    repeat
-        local res, _, data = M.channel.main.get { url = url }
-        if not res then
-            suricatta.notify.warn(
-                "Got HTTP error code %d, sleeping %d seconds ...",
-                data.http_response_code,
-                M.channel.main.options.retry_sleep
-            )
-            suricatta.sleep(M.channel.main.options.retry_sleep)
+    repeat until (function()
+        --- @param  url string    URL to query for wfx OpenAPI Specification
+        --- @return boolean|nil   # `true` if specification was found and parsed successfully, `false` otherwise
+        local function fetch_json_schema(url)
+            suricatta.notify.debug("Querying wfx specification at %q", url)
+            local res, _, data = M.channel.main.get { url = url }
+            if res then
+                if data.http_response_code == 204 then -- HTTP error code 204 'No Content'
+                    local link = (data.received_headers['Link'] or ""):match("^<(http[s]*://[%w/%%%-_%.~:]+)>;")
+                    if link == nil then
+                        return false
+                    end
+                    suricatta.notify.debug("Got HTTP 204, following HTTP Header Link to %q", link)
+                    return fetch_json_schema(link)
+                end
+                return M.job.status:update_json_schema(((data or {}).json_reply or {}))
+            end
+            suricatta.notify.debug("Got HTTP error code %d", data.http_response_code)
         end
-    until res and M.job.status:update_json_schema(((data or {}).json_reply or {}))
+
+        for _, url in ipairs({
+            ("%s/swagger.json"):format(M.channel.main.options.url),
+            ("%s/openapi.json"):format(M.channel.main.options.url),
+        }) do
+            if fetch_json_schema(url) then
+                suricatta.notify.debug("Fetched and processed wfx specification.")
+                return true
+            end
+        end
+        suricatta.notify.warn("Couldn't get wfx specification, sleeping %d seconds ...", M.channel.main.options.retry_sleep)
+        suricatta.sleep(M.channel.main.options.retry_sleep)
+    end)()
 
     suricatta.notify.info("Running with device ID %q on %q", M.device.id, configuration.url)
     return suricatta.status.OK
