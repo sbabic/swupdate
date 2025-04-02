@@ -573,6 +573,19 @@ cleanup:
 		free(server_general.cached_file);
 		server_general.cached_file = NULL;
 	}
+
+	if (result == SERVER_OK) {
+		INFO("Update successful, executing post-update actions.");
+		ipc_message msg;
+		memset(&msg, 0, sizeof(msg));
+		if (ipc_postupdate(&msg) != 0) {
+			result = SERVER_EERR;
+		} else {
+			result = msg.type == ACK ? SERVER_OK : SERVER_EERR;
+			DEBUG("%s", msg.data.msg);
+		}
+	}
+
 	return result;
 }
 
