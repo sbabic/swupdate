@@ -303,6 +303,13 @@ int start_suricatta(const char *cfgfname, int argc, char *argv[])
 			break;
 		}
 	}
+
+	if (optind < argc) {
+		ERROR("Non-option or unrecognized argument(s) given to suricatta (-u), see --help.");
+		suricatta_print_help();
+		exit(EXIT_FAILURE);
+	}
+
 	if (!server) {
 		if (servers_count == 0) {
 			ERROR("No compiled-in suricatta modules!");

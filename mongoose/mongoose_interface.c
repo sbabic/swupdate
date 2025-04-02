@@ -908,6 +908,12 @@ int start_mongoose(const char *cfgfname, int argc, char *argv[])
 		}
 	}
 
+	if (optind < argc) {
+		ERROR("Non-option or unrecognized argument(s) given to webserver (-w), see --help.");
+		mongoose_print_help();
+		return -EINVAL;
+	}
+
 	s_http_server_opts.root_dir =
 		opts.root ? opts.root : MG_ROOT;
 	if (!opts.listing)
