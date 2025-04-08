@@ -300,6 +300,7 @@ void get_install_swset(char *buf, size_t len);
 void get_install_running_mode(char *buf, size_t len);
 bool is_dryrun_install(void);
 char *get_root_device(void);
+char **parse_linux_cmdline(void);
 
 /* Setting global information */
 void set_version_range(const char *minversion,

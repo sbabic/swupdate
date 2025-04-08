@@ -1164,11 +1164,10 @@ static char *get_root_from_mountinfo(void)
 }
 
 #define MAX_CMDLINE_LENGTH 4096
-static char *get_root_from_cmdline(void)
+char **parse_linux_cmdline(void)
 {
 	char *buf;
 	FILE *fp;
-	char *root = NULL;
 	int ret;
 	char **parms = NULL;
 
@@ -1192,10 +1191,25 @@ static char *get_root_from_cmdline(void)
 	 */
 	buf[MAX_CMDLINE_LENGTH - 1] = '\0';
 
+	fclose(fp);
+
 	if (ret > 0) {
 		parms = string_split(buf, ' ');
 		if (!parms)
 			goto out;
+	}
+out:
+	free(buf);
+	return parms;
+}
+
+static char *get_root_from_cmdline(void)
+{
+	char **parms = NULL;
+	char *root = NULL;
+
+	parms = parse_linux_cmdline();
+	if (parms) {
 		int nparms = count_string_array((const char **)parms);
 		for (unsigned int index = 0; index < nparms; index++) {
 			if (!strncmp(parms[index], "root=", strlen("root="))) {
@@ -1207,11 +1221,8 @@ static char *get_root_from_cmdline(void)
 				break;
 			}
 		}
+		free_string_array(parms);
 	}
-out:
-	fclose(fp);
-	free_string_array(parms);
-	free(buf);
 	return root;
 }
 
