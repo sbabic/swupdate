@@ -254,11 +254,6 @@ int start_download_server(const char *fname, int argc, char *argv[])
 			return -EINVAL;
 		}
 	}
-	if (optind < argc) {
-		ERROR("Non-option or unrecognized argument(s) given to downloader (-d), see --help.");
-		download_print_help();
-		return -EINVAL;
-	}
 
 	/*
 	 * if URL is passed, this is a one time step
