@@ -1826,9 +1826,7 @@ static server_op_res_t server_start(const char *fname, int argc, char *argv[])
 			case STATE_WAIT:
 				break;
 			default:
-				fprintf(
-				    stderr,
-				    "Error: Invalid update status given.\n");
+				ERROR("Error: Invalid update status given.\n");
 				suricatta_print_help();
 				exit(EXIT_FAILURE);
 			}
@@ -1929,12 +1927,12 @@ static server_op_res_t server_start(const char *fname, int argc, char *argv[])
 	}
 
 	if (mandatory_argument_count != ALL_MANDATORY_SET) {
-		fprintf(stderr, "Mandatory arguments missing!\n");
+		ERROR("Mandatory arguments missing!\n");
 		suricatta_print_help();
 		return SERVER_EINIT;
 	}
-	if (argc > optind) {
-		fprintf(stderr, "Unused arguments.\n");
+	if (optind < argc) {
+		ERROR("Unused argument(s) given to suricatta (-u), see --help.");
 		suricatta_print_help();
 		return SERVER_EINIT;
 	}
@@ -1951,8 +1949,8 @@ static server_op_res_t server_start(const char *fname, int argc, char *argv[])
 	 * accept target and gateway token at the same time
 	 */
 	if (server_hawkbit.targettoken != NULL && server_hawkbit.gatewaytoken != NULL) {
-		fprintf(stderr, "Error: both target and gateway tokens have been provided, "
-				"but just one at a time is supported.\n");
+		ERROR("both target and gateway tokens have been provided, "
+		      "but just one at a time is supported.\n");
 		exit(EXIT_FAILURE);
 	}
 	server_hawkbit_settoken("TargetToken", server_hawkbit.targettoken);

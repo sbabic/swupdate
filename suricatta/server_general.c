@@ -685,6 +685,11 @@ static server_op_res_t server_start(const char *fname, int argc, char *argv[])
 		suricatta_print_help();
 		return SERVER_EINIT;
 	}
+	if (optind < argc) {
+		ERROR("Unused argument(s) given to suricatta (-u), see --help.");
+		suricatta_print_help();
+		return SERVER_EINIT;
+	}
 
 	channel_data_defaults.headers_to_send = &server_general.httpheaders_to_send;
 
