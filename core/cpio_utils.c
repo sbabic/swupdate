@@ -107,7 +107,7 @@ void extract_padding(int fd)
 {
     int padding;
     ssize_t len;
-	unsigned char buf[512];
+    unsigned char buf[512];
     int old_flags;
     struct pollfd pfd;
     int retval;
@@ -141,6 +141,10 @@ void extract_padding(int fd)
         }
         padding -= len;
     } while (len > 0 && padding > 0);
+
+    if (poll(&pfd, 1, 1000) > 0 && read(fd, buf, 1) > 0) {
+	WARN("Excessive bytes after end-of-file in swu artifact.");
+    }
 
     fcntl(fd, F_SETFL, old_flags);
     return;
