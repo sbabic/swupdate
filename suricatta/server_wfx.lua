@@ -612,8 +612,10 @@ function M.job.status:update_json_schema(swagger)
     end
     for k, v in pairs(spec) do
         if self.json_schema[k] then
-            local max = v.maxLength or v.maximum
-            self.json_schema[k].max = max and tonumber(max) or nil
+            local min = v.minLength or v.minimum or self.json_schema[k].min or 0
+            self.json_schema[k].min = tonumber(min)
+            local max = v.maxLength or v.maximum or self.json_schema[k].max or math.huge
+            self.json_schema[k].max = tonumber(max)
         end
     end
     return true
@@ -1315,8 +1317,8 @@ M.job.workflow.dispatch:set(
                     msg,
                     prepare_logs(
                         updatelog,
-                        job.status.json_schema.context.max,
-                        job.status.json_schema.context.delimiter
+                        job.status.json_schema.context.max or math.huge,
+                        job.status.json_schema.context.delimiter or ", "
                     )
                 )
             end
@@ -1496,8 +1498,8 @@ M.job.workflow.dispatch:set(
                     msg,
                     prepare_logs(
                         updatelog,
-                        job.status.json_schema.context.max,
-                        job.status.json_schema.context.delimiter
+                        job.status.json_schema.context.max or math.huge,
+                        job.status.json_schema.context.delimiter or ", "
                     )
                 )
             end
