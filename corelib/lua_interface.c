@@ -888,6 +888,41 @@ static int l_getroot(lua_State *L) {
 	return 1;
 }
 
+static int l_get_cmdline(lua_State *L) {
+	char **parms = NULL;
+
+	parms = parse_linux_cmdline();
+	if (!parms) {
+		lua_pushnil(L);
+		return 1;
+	}
+	lua_newtable (L);
+
+	int nparms = count_string_array((const char **)parms);
+	TRACE("parms=%d", nparms);
+	for (unsigned int index = 0; index < nparms; index++) {
+		char *equal = strchr(parms[index], '=');
+		const char *val;
+		if (equal) {
+			val = equal + 1;
+			/* split into two strings */
+			*equal = '\0';
+		} else {
+			/*
+			 * A table cannot have a nil value
+			 * so just set an empty string
+			 */
+			val = ""; 
+		}
+		lua_pushstring(L, parms[index]);
+		lua_pushstring(L, val);
+		lua_settable(L, -3);
+	}
+
+	free_string_array(parms);
+	return 1;
+}
+
 static int l_get_bootenv(lua_State *L) {
 	const char *name = luaL_checkstring(L, 1);
 	char *value = NULL;
@@ -1225,6 +1260,7 @@ static const luaL_Reg l_swupdate_bootenv[] = {
         { "get_bootenv", l_get_bootenv },
         { "set_bootenv", l_set_bootenv },
         { "get_selection", l_get_selection },
+        { "get_cmdline", l_get_cmdline },
         { NULL, NULL }
 };
 

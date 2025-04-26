@@ -197,6 +197,10 @@ swupdate.getversion = function() end
 --- @return string  # Mode
 swupdate.get_selection = function() end
 
+--- Get Linux Command Line Parameters
+--
+--- @return table  # Table with keys and values fields
+swupdate.get_cmdline = function() end
 
 --- Set Bootloader environment key=value.
 --
