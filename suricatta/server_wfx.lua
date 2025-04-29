@@ -1804,7 +1804,7 @@ M.job.workflow.dispatch:set(
 --- @field version string            Device client version information, sent to server in HTTP Header
 --- @field reset   function(device)  Reset `device` Table
 M.device = {
-    version = ("SWUpdate %s.%s"):format(table.unpack(suricatta.getversion() or { 2023, 5 })),
+    version = ("SWUpdate %04u.%02u"):format(table.unpack(suricatta.getversion() or { 2025, 5 })),
     reset = function(self)
         self.id = nil
         self.pstate = nil
