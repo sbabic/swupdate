@@ -2141,10 +2141,10 @@ function M.suricatta_funcs.server_start(defaults, argv, fconfig)
 
     M.channel.main = M.channel(M.utils.table.merge({
         -- An API Gateway may use this information to do steering.
-        headers_to_send = {
+        headers_to_send = M.utils.table.merge({
             ["X-Client-Version"] = M.device.version,
             ["X-Client-Id"] = M.device.id,
-        },
+        }, configuration.custom_http_headers)
     }, configuration))
     if not M.channel.main then
         suricatta.notify.error("Cannot initialize channel.")

@@ -35,7 +35,6 @@
 #include "server_utils.h"
 #include "suricatta/server.h"
 
-#define CONFIG_SECTION "suricatta"
 
 #if defined(CONFIG_EMBEDDED_SURICATTA_LUA)
 extern const char EMBEDDED_SURICATTA_LUA_SOURCE_START[];
@@ -1807,6 +1806,8 @@ static server_op_res_t suricatta_lua_create(void)
  */
 static int config_section_to_table(void *setting, void *data)
 {
+	const char *name;
+	const char *value;
 	for (int i = 0; i < config_setting_length(setting); i++) {
 		config_setting_t *entry = config_setting_get_elem(setting, i);
 		switch (config_setting_type(entry)) {
@@ -1829,6 +1830,12 @@ static int config_section_to_table(void *setting, void *data)
 		case CONFIG_TYPE_FLOAT:
 			push_to_table((lua_State *)data, entry->name,
 				      config_setting_get_float(entry));
+			break;
+		case CONFIG_TYPE_GROUP:
+			if (config_setting_lookup_string(entry, "name", &name) == CONFIG_TRUE &&
+			    config_setting_lookup_string(entry, "value", &value) == CONFIG_TRUE) {
+				push_to_table((lua_State *)data, (char *)name, value);
+			}
 			break;
 		}
 	}
@@ -1874,11 +1881,13 @@ static server_op_res_t server_start(const char *fname, int argc, char *argv[])
 		swupdate_cfg_handle handle;
 		swupdate_cfg_init(&handle);
 		if (swupdate_cfg_read_file(&handle, fname) == 0) {
-			if (read_module_settings(&handle, CONFIG_SECTION,
-						 config_section_to_table, gL) != 0) {
-				ERROR("Error reading module settings \"%s\" from %s",
-				      CONFIG_SECTION, fname);
-			}
+			read_module_settings(&handle, "suricatta", config_section_to_table, gL);
+			read_module_settings(&handle, "wfx", config_section_to_table, gL);
+			lua_pushstring(gL, "custom_http_headers");
+			lua_newtable(gL);
+			read_module_settings(&handle, "custom-http-headers",
+					     config_section_to_table, gL);
+			lua_settable(gL, -3);
 		}
 		swupdate_cfg_destroy(&handle);
 	}
