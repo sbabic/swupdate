@@ -1824,14 +1824,20 @@ M.channel = setmetatable({}, {
     end,
 })
 
+--- @class server.value
+--- @field default  any | nil
+--- @field current  any | nil
+
 --- Server information.
 --
 --- @class server
 --- @field polldelay  number            Delay between two wfx poll operations in seconds
+--- @field yieldtime  server.value      Time to next polling after yielding to wfx in seconds
 --- @field reset      function(server)  Reset `server` Table
 M.server = {
     reset = function(self)
         self.polldelay = nil
+        self.yieldtime = { current = nil, default = 10 }
     end,
 }
 
@@ -1926,6 +1932,8 @@ function M.suricatta_funcs.has_pending_action()
         return query_wfx(("%s/jobs/%s"):format(M.channel.main.options.url, M.job.id))
     end
 
+    M.server.yieldtime.current = nil
+
     -- ────┤ Handle & Dispatch ├──────────────────────────────────────
     local response, j = get_current_job()
     if not response then
@@ -1947,6 +1955,7 @@ function M.suricatta_funcs.has_pending_action()
         return suricatta.status.EAGAIN
     end
 
+    M.server.yieldtime.current = M.server.yieldtime.default
     suricatta.notify.info("Processing job ID %s in state %s ...", M.job.id, M.job.status.state)
     _ = M.job.workflow:advance(M.job)
     suricatta.notify.info("Yielding to wfx.")
@@ -1972,6 +1981,7 @@ end, suricatta.server.INSTALL_UPDATE)
 --- @param  defaults  suricatta.channel.options|table  Default options
 --- @return suricatta.status                           # Suricatta return code
 function M.suricatta_funcs.print_help(defaults)
+    M.server:reset()
     defaults = defaults or {}
     local stdout = io.output()
     stdout:write("\t  -u, --url <URL>          * Base URL to the wfx server, e.g.,http://localhost:8080/api/wfx/v1\n")
@@ -1980,6 +1990,11 @@ function M.suricatta_funcs.print_help(defaults)
     stdout:write(
         ("\t  -p, --polldelay <int>      Delay between two poll operations (default: %s sec)\n"):format(
             tostring(defaults.polldelay or "?")
+        )
+    )
+    stdout:write(
+        ("\t  -t, --yieldtime <int>      Polling wait time in between two workflow steps (default: %s sec)\n"):format(
+            tostring(M.server.yieldtime.default or "?")
         )
     )
     stdout:write(
@@ -2008,6 +2023,7 @@ suricatta.server.register(M.suricatta_funcs.print_help, suricatta.server.PRINT_H
 --- @param  fconfig   {[string]: any}  SWUpdate configuration file's `[suricatta]` section as Lua Table ∪ { polldelay = CHANNEL_DEFAULT_POLLING_INTERVAL}
 --- @return suricatta.status           # Suricatta return code
 function M.suricatta_funcs.server_start(defaults, argv, fconfig)
+    M.server:reset()
     -- Use defaults,
     -- ... shadowed by configuration file values,
     -- ... shadowed by command line arguments.
@@ -2018,6 +2034,7 @@ function M.suricatta_funcs.server_start(defaults, argv, fconfig)
         { "id", M.utils.GETOPT_ARG.REQUIRED, "i" },
         { "proxy", M.utils.GETOPT_ARG.REQUIRED, "y" },
         { "polldelay", M.utils.GETOPT_ARG.REQUIRED, "p" },
+        { "yieldtime", M.utils.GETOPT_ARG.REQUIRED, "t" },
         { "retry", M.utils.GETOPT_ARG.REQUIRED, "r" },
         { "retrywait", M.utils.GETOPT_ARG.REQUIRED, "w" },
         { "confirm", M.utils.GETOPT_ARG.REQUIRED, "c" },
@@ -2049,6 +2066,8 @@ function M.suricatta_funcs.server_start(defaults, argv, fconfig)
             end
         elseif opt == "p" then
             configuration.polldelay = tonumber(arg) or configuration.polldelay
+        elseif opt == "t" then
+            configuration.yieldtime = tonumber(arg) or configuration.yieldtime
         elseif opt == "r" then
             configuration.retries = tonumber(arg) or configuration.retries
         elseif opt == "w" then
@@ -2118,6 +2137,7 @@ function M.suricatta_funcs.server_start(defaults, argv, fconfig)
     end
 
     M.server.polldelay = configuration.polldelay
+    M.server.yieldtime.default = configuration.yieldtime or M.server.yieldtime.default
 
     M.channel.main = M.channel(M.utils.table.merge({
         -- An API Gateway may use this information to do steering.
@@ -2191,11 +2211,15 @@ suricatta.server.register(M.suricatta_funcs.server_stop, suricatta.server.SERVER
 --
 --- @return number  # Polling interval in seconds
 function M.suricatta_funcs.get_polling_interval()
-    -- Not implemented.
     -- Remotely setting the polling interval is the original concern of
     -- a device management solution that should set the polling interval
-    -- via SWUpdate IPC (or command line or configuration file).
-    return M.server.polldelay
+    -- via SWUpdate IPC (or command line or configuration file). The latter
+    -- can be done via a wfx workflow :)
+    --
+    -- While an update action is in progress, report the (likely short)
+    -- `yieldtime` as time between two polling intervals so not to wait
+    -- excessively long when a large (regular) polling interval is chosen.
+    return M.server.yieldtime.current or M.server.polldelay
 end
 suricatta.server.register(M.suricatta_funcs.get_polling_interval, suricatta.server.GET_POLLING_INTERVAL)
 
