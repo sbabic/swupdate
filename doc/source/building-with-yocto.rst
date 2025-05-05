@@ -265,6 +265,69 @@ In the simple way, your recipe looks like
         SWUPDATE_IMAGES_FSTYPES[<name of your image>] = <fstype to be put into SWU>
         inherit swupdate-image
 
+
+SWU image content's encryption
+------------------------------
+
+The swupdate class is able to encrypt the contents of the SWU image. In order to do
+so first check that SWUpdate is compiled with ``CONFIG_ENCRYPTED_IMAGES=y``
+enabled. Then set ``SWUPDATE_AES_FILE`` to the full path of the key. Finally,
+for each content you want to encrypt, on your SWU image recipe add:
+
+::
+
+
+        SWUPDATE_IMAGES_ENCRYPTED[content] = "1"
+
+
+Where ``content`` matches the files described on ``sw-description``.
+
+If you want to encrypt sw-description check that SWUpdate is being compiled with
+``CONFIG_ENCRYPTED_SW_DESCRIPTION=y`` and then set the following on your SWU
+image recipe:
+
+::
+
+
+        SWUPDATE_ENCRYPT_SWDESC = "1"
+
+
+Do not forget to add ``encrypted = true;`` on each of the contents that will require
+decryption on the ``sw-description`` file.
+
+Expanding on the previous example:
+
+::
+
+        DESCRIPTION = "Example recipe generating SWU image"
+        SECTION = ""
+
+        LICENSE = ""
+
+        # Add all local files to be added to the SWU
+        # sw-description must always be in the list.
+        # You can extend with scripts or whatever you need
+        SRC_URI = " \
+            file://sw-description \
+            "
+
+        # images to build before building swupdate image
+        IMAGE_DEPENDS = "core-image-full-cmdline virtual/kernel"
+
+        # images and files that will be included in the .swu image
+        SWUPDATE_IMAGES = "core-image-full-cmdline uImage"
+
+        # a deployable image can have multiple format, choose one
+        SWUPDATE_IMAGES_FSTYPES[core-image-full-cmdline] = ".ubifs"
+        SWUPDATE_IMAGES_FSTYPES[uImage] = ".bin"
+
+        SWUPDATE_IMAGES_ENCRYPTED[core-image-full-cmdline.ubifs] = "1"
+        SWUPDATE_IMAGES_ENCRYPTED[uImage] = "1"
+        SWUPDATE_ENCRYPT_SWDESC = "1"
+
+        inherit swupdate
+
+
 What about grub ?
 =================
 In order to use swupdate with grub, swupdate needs to be configured to use grub. Some of
