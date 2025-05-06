@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contributing to SWUpdate &mdash; Embedded Software Update Documentation 2024.12 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=86f27845" />
+
+  
+    <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
+  
+        <script src="_static/jquery.js?v=8dae8fb0"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=426f823e"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Proposals to improve SWUpdate" href="improvement_proposals.html" />
+    <link rel="prev" title="Help and support" href="help_and_support.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Embedded Software Update Documentation
+          </a>
+              <div class="version">
+                2024.12
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Software Management on embedded systems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="licensing.html">License</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="swupdate.html">SWUpdate: software update for embedded system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scenarios.html">Update strategy examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sw-description.html">SWUpdate: syntax and tags with the default parser</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed_images.html">Update images from verified source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="encrypted_images.html">Symmetrically Encrypted Update Images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="handlers.html">Handlers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mongoose.html">Mongoose daemon mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hawkbit-setup.html">Config for hawkBit under SSL/TLS using private CA / sub CA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-ipc-interface.html">SWUpdate: API for external programs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bindings.html">Language Bindings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bootloader_interface.html">Bootloader Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building-with-yocto.html">meta-swupdate: building with Yocto</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-best-practise.html">SWUpdate Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="delta-update.html">Delta Update with SWUpdate</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-client.html">swupdate-client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-progress.html">swupdate-progress</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">swupdate-ipc</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="help_and_support.html">Help and support</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Contributing to SWUpdate</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#contribution-checklist">Contribution Checklist</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#developer-s-certificate-of-origin-1-1">Developer’s Certificate of Origin 1.1</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="improvement_proposals.html">Proposals to improve SWUpdate</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="previous-releases.html">Documentation for previous releases</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Embedded Software Update Documentation</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Contributing to SWUpdate</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/contributing.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="contributing-to-swupdate">
+<h1>Contributing to SWUpdate<a class="headerlink" href="#contributing-to-swupdate" title="Link to this heading"></a></h1>
+<p>Contributions are welcome ! Please follow the following guideline for contributions.</p>
+<section id="contribution-checklist">
+<h2>Contribution Checklist<a class="headerlink" href="#contribution-checklist" title="Link to this heading"></a></h2>
+<p>These are mostly general recommendations and are common practice in a lot of
+FOSS projects.</p>
+<ul class="simple">
+<li><p>use git to manage your changes [<em>recommended</em>]</p></li>
+<li><p>follow as much as possible kernel codestyle [<em>recommended</em>]
+Nevertheless, some rules are not so strict as in kernel. The maximum line length
+can be extended over 80 chars if this increase code readability.</p></li>
+<li><p>add the required copyright header to each new file introduced [<strong>required</strong>]</p></li>
+<li><dl class="simple">
+<dt>add signed-off to all patches [<strong>required</strong>]</dt><dd><ul>
+<li><p>to certify the “Developer’s Certificate of Origin”, see below</p></li>
+<li><p>check with your employer when not working on your own!</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>add version number for your patches if follow-up versions are requested [<em>recommended</em>]</dt><dd><ul>
+<li><p>Add a “Change from Vx” description under the commit message to take track
+of the history of the patch.</p></li>
+<li><p>It is suggested to use excellent “patman” tool to manage patches series.
+This is part of U-Boot’s project (tools/patman), but it can be used in other projects, too.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>check that your patches do not break build [<strong>required</strong>]</p>
+<ul>
+<li><p>There is a set of configuration files in the <cite>configs/</cite> directory.
+Please run a build for all files in the directory to ensure that SWUpdate is
+still buildable from configurations different as yours.</p></li>
+</ul>
+</li>
+<li><dl class="simple">
+<dt>post patches to mailing list [<strong>required</strong>]</dt><dd><ul>
+<li><p>use <cite>git format-patch</cite> to generate your patches.</p></li>
+<li><p>use <cite>git send-email</cite> if possible. This avoid corruptions due
+to the mailers</p></li>
+<li><p>add a prefix [meta-swupdate] if patches are intended to the Yocto’s meta layer.</p></li>
+<li><p>send patches inline, do not append them</p></li>
+<li><p>no HTML emails!</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p>do not use github Pull Request. github facilities are not used for this project.
+The review is done in a single place : the Mailing List. PR from github are ignored.</p></li>
+</ul>
+<p>Patches are tracked by patchwork (see <a class="reference external" href="http://jk.ozlabs.org/projects/patchwork/">http://jk.ozlabs.org/projects/patchwork/</a>).
+You can see the status of your patches at <a class="reference external" href="http://patchwork.ozlabs.org/project/swupdate/list">http://patchwork.ozlabs.org/project/swupdate/list</a>.</p>
+</section>
+<section id="developer-s-certificate-of-origin-1-1">
+<h2>Developer’s Certificate of Origin 1.1<a class="headerlink" href="#developer-s-certificate-of-origin-1-1" title="Link to this heading"></a></h2>
+<p>When signing-off a patch for this project like this</p>
+<blockquote>
+<div><p>Signed-off-by: Random J Developer &lt;<a class="reference external" href="mailto:random&#37;&#52;&#48;developer&#46;example&#46;org">random<span>&#64;</span>developer<span>&#46;</span>example<span>&#46;</span>org</a>&gt;</p>
+</div></blockquote>
+<p>using your real name (no pseudonyms or anonymous contributions), you declare the
+following:</p>
+<blockquote>
+<div><p>By making a contribution to this project, I certify that:</p>
+<blockquote>
+<div><ol class="loweralpha simple">
+<li><p>The contribution was created in whole or in part by me and I
+have the right to submit it under the open source license
+indicated in the file; or</p></li>
+<li><p>The contribution is based upon previous work that, to the best
+of my knowledge, is covered under an appropriate open source
+license and I have the right under that license to submit that
+work with modifications, whether created in whole or in part
+by me, under the same open source license (unless I am
+permitted to submit under a different license), as indicated
+in the file; or</p></li>
+<li><p>The contribution was provided directly to me by some other
+person who certified (a), (b) or (c) and I have not modified
+it.</p></li>
+<li><p>I understand and agree that this project and the contribution
+are public and that a record of the contribution (including all
+personal information I submit with it, including my sign-off) is
+maintained indefinitely and may be redistributed consistent with
+this project or the open source license(s) involved.</p></li>
+</ol>
+</div></blockquote>
+</div></blockquote>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="help_and_support.html" class="btn btn-neutral float-left" title="Help and support" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="improvement_proposals.html" class="btn btn-neutral float-right" title="Proposals to improve SWUpdate" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2013-2024, Stefano Babic.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
