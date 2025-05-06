@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Update images from verified source &mdash; Embedded Software Update Documentation 2024.12 documentation</title>
+  <title>Update images from verified source &mdash; Embedded Software Update Documentation 2025.05 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=86f27845" />
 
@@ -13,7 +13,7 @@
   
         <script src="_static/jquery.js?v=8dae8fb0"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=426f823e"></script>
+        <script src="_static/documentation_options.js?v=ffeffead"></script>
         <script src="_static/doctools.js?v=888ff710"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
@@ -35,7 +35,7 @@
             Embedded Software Update Documentation
           </a>
               <div class="version">
-                2024.12
+                2025.05
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -228,23 +228,31 @@ can be passed to swupdate at the command line with the -k parameter.</p>
 <h2>Usage with certificates and CMS<a class="headerlink" href="#usage-with-certificates-and-cms" title="Link to this heading"></a></h2>
 <section id="generating-self-signed-certificates">
 <h3>Generating self-signed certificates<a class="headerlink" href="#generating-self-signed-certificates" title="Link to this heading"></a></h3>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">openssl</span> <span class="n">req</span> <span class="o">-</span><span class="n">x509</span> <span class="o">-</span><span class="n">newkey</span> <span class="n">rsa</span><span class="p">:</span><span class="mi">4096</span> <span class="o">-</span><span class="n">nodes</span> <span class="o">-</span><span class="n">keyout</span> <span class="n">mycert</span><span class="o">.</span><span class="n">key</span><span class="o">.</span><span class="n">pem</span> \
-    <span class="o">-</span><span class="n">out</span> <span class="n">mycert</span><span class="o">.</span><span class="n">cert</span><span class="o">.</span><span class="n">pem</span> <span class="o">-</span><span class="n">subj</span> <span class="s2">&quot;/O=SWUpdate /CN=target&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">openssl</span> <span class="n">req</span> <span class="o">-</span><span class="n">x509</span> <span class="o">-</span><span class="n">newkey</span> <span class="n">rsa</span><span class="p">:</span><span class="mi">4096</span> <span class="o">-</span><span class="n">noenc</span> <span class="o">-</span><span class="n">keyout</span> <span class="n">mycert</span><span class="o">.</span><span class="n">key</span><span class="o">.</span><span class="n">pem</span> \
+    <span class="o">-</span><span class="n">out</span> <span class="n">mycert</span><span class="o">.</span><span class="n">cert</span><span class="o">.</span><span class="n">pem</span> <span class="o">-</span><span class="n">subj</span> <span class="s2">&quot;/O=SWUpdate/CN=target&quot;</span> \
+    <span class="o">-</span><span class="n">addext</span> <span class="n">extendedKeyUsage</span><span class="o">=</span><span class="mf">1.3.6.1.5.5.7.3.4</span> <span class="o">-</span><span class="n">addext</span> <span class="n">keyUsage</span><span class="o">=</span><span class="n">digitalSignature</span>
 </pre></div>
 </div>
 <p>Check the documentation for more information about parameters. The “mycert.key.pem” contains
 the private key and it is used for signing. It is <em>not</em> delivered on the target.</p>
 <p>The target must have “mycert.cert.pem” installed - this is used by SWUpdate for verification.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The extendedKeyUsage value of “1.3.6.1.5.5.7.3.4” refers to “emailProtection”. For “codeSigning”
+use “1.3.6.1.5.5.7.3.3”.</p>
+</div>
 </section>
 <section id="using-pki-issued-certificates">
 <h3>Using PKI issued certificates<a class="headerlink" href="#using-pki-issued-certificates" title="Link to this heading"></a></h3>
 <p>It is also possible to use PKI issued code signing certificates. However,
-SWUpdate uses OpenSSL library for handling CMS signatures and the library
+SWUpdate uses OpenSSL library for handling CMS signatures and by default the library
 requires the following attributes to be set on the signing certificate:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">keyUsage</span><span class="o">=</span><span class="n">digitalSignature</span>
 <span class="n">extendedKeyUsage</span><span class="o">=</span><span class="n">emailProtection</span>
 </pre></div>
 </div>
+<p>It is possible to change the default extendedKeyUsage value by setting the cert-purpose parameter
+in swupdate.cfg.</p>
 <p>It is also possible to completely disable signing certificate key usage
 checking if this requirement cannot be satisfied. This is controlled by
 <cite>CONFIG_CMS_IGNORE_CERTIFICATE_PURPOSE</cite> configuration option.</p>
@@ -357,7 +365,7 @@ for i in $FILES;do
 If activated, SWUpdate will always check the compound image. For security reasons,
 it is not possible to disable the check at runtime.</p>
 <p>For RSA and CMS signing, the -k parameter (public key file) is mandatory and the program stops
-if the public key is not passed.</p>
+if the public key is not passed. For CMS signing, CONFIG_SIGALG_CMS needs to be enabled.</p>
 <p>For GPG signing, CONFIG_SIGALG_GPG needs to be enabled. The GPG key will
 need to be imported to the device’s GnuPG home directory. To do this, the
 key will need to be exported:</p>
@@ -391,7 +399,7 @@ key will need to be exported:</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2013-2024, Stefano Babic.</p>
+    <p>&#169; Copyright 2013-2025, Stefano Babic.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

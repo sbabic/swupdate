@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>meta-swupdate: building with Yocto &mdash; Embedded Software Update Documentation 2024.12 documentation</title>
+  <title>meta-swupdate: building with Yocto &mdash; Embedded Software Update Documentation 2025.05 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=86f27845" />
 
@@ -13,7 +13,7 @@
   
         <script src="_static/jquery.js?v=8dae8fb0"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=426f823e"></script>
+        <script src="_static/documentation_options.js?v=ffeffead"></script>
         <script src="_static/doctools.js?v=888ff710"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
@@ -35,7 +35,7 @@
             Embedded Software Update Documentation
           </a>
               <div class="version">
-                2024.12
+                2025.05
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -73,6 +73,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#using-checksum-for-version">Using checksum for version</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#template-for-recipe-using-the-class">Template for recipe using the class</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#simplified-version-for-just-image">Simplified version for just image</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#swu-image-content-s-encryption">SWU image content’s encryption</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#what-about-grub">What about grub ?</a></li>
@@ -343,6 +344,55 @@ into the SWU - an error is raised if the flag is not set.</p>
 </pre></div>
 </div>
 </section>
+<section id="swu-image-content-s-encryption">
+<h3>SWU image content’s encryption<a class="headerlink" href="#swu-image-content-s-encryption" title="Link to this heading"></a></h3>
+<p>The swupdate class is able to encrypt the contents of the SWU image. In order to do
+so first check that SWUpdate is compiled with <code class="docutils literal notranslate"><span class="pre">CONFIG_ENCRYPTED_IMAGES=y</span></code>
+enabled. Then set <code class="docutils literal notranslate"><span class="pre">SWUPDATE_AES_FILE</span></code> to the full path of the key. Finally,
+for each content you want to encrypt, on your SWU image recipe add:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">SWUPDATE_IMAGES_ENCRYPTED</span><span class="p">[</span><span class="n">content</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span>
+</pre></div>
+</div>
+<p>Where <code class="docutils literal notranslate"><span class="pre">content</span></code> matches the files described on <code class="docutils literal notranslate"><span class="pre">sw-description</span></code>.</p>
+<p>If you want to encrypt sw-description check that SWUpdate is being compiled with
+<code class="docutils literal notranslate"><span class="pre">CONFIG_ENCRYPTED_SW_DESCRIPTION=y</span></code> and then set the following on your SWU
+image recipe:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">SWUPDATE_ENCRYPT_SWDESC</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span>
+</pre></div>
+</div>
+<p>Do not forget to add <code class="docutils literal notranslate"><span class="pre">encrypted</span> <span class="pre">=</span> <span class="pre">true;</span></code> on each of the contents that will require
+decryption on the <code class="docutils literal notranslate"><span class="pre">sw-description</span></code> file.</p>
+<p>Expanding on the previous example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">DESCRIPTION</span> <span class="o">=</span> <span class="s2">&quot;Example recipe generating SWU image&quot;</span>
+<span class="n">SECTION</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+<span class="n">LICENSE</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+<span class="c1"># Add all local files to be added to the SWU</span>
+<span class="c1"># sw-description must always be in the list.</span>
+<span class="c1"># You can extend with scripts or whatever you need</span>
+<span class="n">SRC_URI</span> <span class="o">=</span> <span class="s2">&quot; </span><span class="se">\</span>
+<span class="s2">    file://sw-description </span><span class="se">\</span>
+<span class="s2">    &quot;</span>
+
+<span class="c1"># images to build before building swupdate image</span>
+<span class="n">IMAGE_DEPENDS</span> <span class="o">=</span> <span class="s2">&quot;core-image-full-cmdline virtual/kernel&quot;</span>
+
+<span class="c1"># images and files that will be included in the .swu image</span>
+<span class="n">SWUPDATE_IMAGES</span> <span class="o">=</span> <span class="s2">&quot;core-image-full-cmdline uImage&quot;</span>
+
+<span class="c1"># a deployable image can have multiple format, choose one</span>
+<span class="n">SWUPDATE_IMAGES_FSTYPES</span><span class="p">[</span><span class="n">core</span><span class="o">-</span><span class="n">image</span><span class="o">-</span><span class="n">full</span><span class="o">-</span><span class="n">cmdline</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;.ubifs&quot;</span>
+<span class="n">SWUPDATE_IMAGES_FSTYPES</span><span class="p">[</span><span class="n">uImage</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;.bin&quot;</span>
+
+<span class="n">SWUPDATE_IMAGES_ENCRYPTED</span><span class="p">[</span><span class="n">core</span><span class="o">-</span><span class="n">image</span><span class="o">-</span><span class="n">full</span><span class="o">-</span><span class="n">cmdline</span><span class="o">.</span><span class="n">ubifs</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span>
+<span class="n">SWUPDATE_IMAGES_ENCRYPTED</span><span class="p">[</span><span class="n">uImage</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span>
+<span class="n">SWUPDATE_ENCRYPT_SWDESC</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span>
+
+<span class="n">inherit</span> <span class="n">swupdate</span>
+</pre></div>
+</div>
+</section>
 </section>
 <section id="what-about-grub">
 <h2>What about grub ?<a class="headerlink" href="#what-about-grub" title="Link to this heading"></a></h2>
@@ -402,7 +452,7 @@ variables.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2013-2024, Stefano Babic.</p>
+    <p>&#169; Copyright 2013-2025, Stefano Babic.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

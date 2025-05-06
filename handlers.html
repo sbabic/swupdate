@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Handlers &mdash; Embedded Software Update Documentation 2024.12 documentation</title>
+  <title>Handlers &mdash; Embedded Software Update Documentation 2025.05 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=86f27845" />
 
@@ -13,7 +13,7 @@
   
         <script src="_static/jquery.js?v=8dae8fb0"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=426f823e"></script>
+        <script src="_static/documentation_options.js?v=ffeffead"></script>
         <script src="_static/doctools.js?v=888ff710"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
@@ -35,7 +35,7 @@
             Embedded Software Update Documentation
           </a>
               <div class="version">
-                2024.12
+                2025.05
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -66,7 +66,10 @@
 <li class="toctree-l3"><a class="reference internal" href="#size-properties">size properties</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#lua-handlers">Lua Handlers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#lua-handlers">Lua Handlers</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#lua-handler-interface-specification">Lua Handler Interface Specification</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#shell-script-handler">Shell script handler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#lua-script-handler">Lua script handler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#remote-handler">Remote handler</a></li>
@@ -80,22 +83,32 @@
 <li class="toctree-l2"><a class="reference internal" href="#archive-handler">Archive handler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#disk-partitioner">Disk partitioner</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#toggleboot-handler">Toggleboot Handler</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#gpt-partition-installer">gpt partition installer</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#gpt-partition-swap">gpt partition swap</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#gpt-partition-handler">GPT Partition Handler</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#gpt-partition-installer">GPT Partition Installer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gpt-partition-swap">GPT Partition Swap</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#diskformat-handler">Diskformat Handler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#unique-uuid-handler">Unique UUID Handler</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#btrfs-partition-handler">BTRFS Partition Handler</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#btrfs-snapshot-handler">BTRFS Snapshot Handler</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#generic-executor-handler">Generic Executor handler</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#delta-update-handler">Delta Update Handler</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#memory-issue-with-zchunk">Memory issue with zchunk</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#docker-handlers">Docker handlers</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#docker-load-image">Docker Load Image</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#docker-remove-image">Docker Remove Image</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#docker-delete-unused-images">Docker Delete Unused Images</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#docker-container-create">Docker: container create</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#docker-remove-container">Docker Remove Container</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#docker-start-stop-containers">Docker : Start / Stop containers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#btrfs-handler">BTRFS Handler</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#btrfs-partition-handler">BTRFS Partition Handler</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#btrfs-snapshot-handler">BTRFS Snapshot Handler</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#generic-executor-handler">Generic Executor Handler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#delta-update-handler">Delta Update Handler</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#memory-issue-with-zchunk">Memory issue with zchunk</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#docker-handlers">Docker Handlers</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#docker-load-image">Docker Load Image</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#docker-remove-image">Docker Remove Image</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#docker-delete-unused-images">Docker Delete Unused Images</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#docker-container-create">Docker: container create</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#docker-remove-container">Docker Remove Container</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#docker-start-stop-containers">Docker : Start / Stop containers</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="mongoose.html">Mongoose daemon mode</a></li>
@@ -415,7 +428,8 @@ end
 <p>where <code class="docutils literal notranslate"><span class="pre">image</span></code> is a Lua table (with attributes according to
 <a class="reference internal" href="sw-description.html#sw-description-attribute-reference"><span class="std std-ref">sw-description’s attribute reference</span></a>)
 that describes a single artifact to be processed by the handler
-(also see the Lua Handler Interface Specification in <code class="docutils literal notranslate"><span class="pre">handlers/swupdate.lua</span></code>).</p>
+(also see the Lua Handler Interface Specification in <code class="docutils literal notranslate"><span class="pre">handlers/swupdate.lua</span></code>,
+reproduced for convenience in Section <a class="reference internal" href="#handlers-lua-specification"><span class="std std-ref">Lua Handler Interface Specification</span></a>).</p>
 <p>Note that dashes in the attributes’ names are replaced with
 underscores for the Lua domain to make them idiomatic, e.g.,
 <code class="docutils literal notranslate"><span class="pre">installed-directly</span></code> becomes <code class="docutils literal notranslate"><span class="pre">installed_directly</span></code> in the
@@ -541,6 +555,376 @@ technically allow one to embed them into a to be processed <code class="docutils
 image, this is not implemented as it carries some security
 implications since the behavior of SWUpdate is changed
 dynamically.</p>
+<section id="lua-handler-interface-specification">
+<span id="handlers-lua-specification"></span><h3>Lua Handler Interface Specification<a class="headerlink" href="#lua-handler-interface-specification" title="Link to this heading"></a></h3>
+<div class="highlight-lua notranslate"><div class="highlight"><pre><span></span><span class="linenos">  1</span><span class="cm">--[[</span>
+<span class="linenos">  2</span>
+<span class="linenos">  3</span><span class="cm">    SWUpdate Lua Handler Interface.</span>
+<span class="linenos">  4</span>
+<span class="linenos">  5</span><span class="cm">    Interface specification for the Lua module</span>
+<span class="linenos">  6</span><span class="cm">    provided by SWUpdate to Lua Handlers.</span>
+<span class="linenos">  7</span><span class="cm">    See: corelib/lua_interface.c</span>
+<span class="linenos">  8</span>
+<span class="linenos">  9</span><span class="cm">    Copyright (C) 2022, Siemens AG</span>
+<span class="linenos"> 10</span><span class="cm">    Author: Christian Storm &lt;christian.storm@siemens.com&gt;</span>
+<span class="linenos"> 11</span>
+<span class="linenos"> 12</span><span class="cm">    SPDX-License-Identifier: GPL-2.0-or-later</span>
+<span class="linenos"> 13</span>
+<span class="linenos"> 14</span><span class="cm">--]]</span>
+<span class="linenos"> 15</span>
+<span class="linenos"> 16</span><span class="c1">---@diagnostic disable: missing-return</span>
+<span class="linenos"> 17</span><span class="c1">---@diagnostic disable: unused-local</span>
+<span class="linenos"> 18</span><span class="c1">-- luacheck: no unused args</span>
+<span class="linenos"> 19</span>
+<span class="linenos"> 20</span>
+<span class="linenos"> 21</span><span class="c1">--- SWUpdate Lua Handler Module.</span>
+<span class="linenos"> 22</span><span class="c1">--- @class swupdate</span>
+<span class="linenos"> 23</span><span class="kd">local</span> <span class="n">swupdate</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="linenos"> 24</span>
+<span class="linenos"> 25</span>
+<span class="linenos"> 26</span><span class="c1">--- @enum swupdate.RECOVERY_STATUS</span>
+<span class="linenos"> 27</span><span class="c1">--- Lua equivalent of `RECOVERY_STATUS` as in `include/swupdate_status.h`.</span>
+<span class="linenos"> 28</span><span class="n">swupdate</span><span class="p">.</span><span class="n">RECOVERY_STATUS</span> <span class="o">=</span> <span class="p">{</span>
+<span class="linenos"> 29</span>    <span class="n">IDLE</span>       <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+<span class="linenos"> 30</span>    <span class="n">START</span>      <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos"> 31</span>    <span class="n">RUN</span>        <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+<span class="linenos"> 32</span>    <span class="n">SUCCESS</span>    <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+<span class="linenos"> 33</span>    <span class="n">FAILURE</span>    <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+<span class="linenos"> 34</span>    <span class="n">DOWNLOAD</span>   <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
+<span class="linenos"> 35</span>    <span class="n">DONE</span>       <span class="o">=</span> <span class="mi">6</span><span class="p">,</span>
+<span class="linenos"> 36</span>    <span class="n">SUBPROCESS</span> <span class="o">=</span> <span class="mi">7</span><span class="p">,</span>
+<span class="linenos"> 37</span>    <span class="n">PROGRESS</span>   <span class="o">=</span> <span class="mi">8</span>
+<span class="linenos"> 38</span><span class="p">}</span>
+<span class="linenos"> 39</span>
+<span class="linenos"> 40</span><span class="c1">--- Lua equivalent of `ERROR(format, ...)`.</span>
+<span class="linenos"> 41</span><span class="c1">--- @param format  string  Format string</span>
+<span class="linenos"> 42</span><span class="c1">--- @param ...     any     Varargs as referenced in format string</span>
+<span class="linenos"> 43</span><span class="n">swupdate</span><span class="p">.</span><span class="n">error</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">format</span><span class="p">,</span> <span class="p">...)</span> <span class="kr">end</span>
+<span class="linenos"> 44</span>
+<span class="linenos"> 45</span><span class="c1">--- Lua equivalent of `TRACE(format, ...)`.</span>
+<span class="linenos"> 46</span><span class="c1">--- @param format  string  Format string</span>
+<span class="linenos"> 47</span><span class="c1">--- @param ...     any     Varargs as referenced in format string</span>
+<span class="linenos"> 48</span><span class="n">swupdate</span><span class="p">.</span><span class="n">trace</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">format</span><span class="p">,</span> <span class="p">...)</span> <span class="kr">end</span>
+<span class="linenos"> 49</span>
+<span class="linenos"> 50</span><span class="c1">--- Lua equivalent of `INFO(format, ...)`.</span>
+<span class="linenos"> 51</span><span class="c1">--- @param format  string  Format string</span>
+<span class="linenos"> 52</span><span class="c1">--- @param ...     any     Varargs as referenced in format string</span>
+<span class="linenos"> 53</span><span class="n">swupdate</span><span class="p">.</span><span class="n">info</span>  <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">format</span><span class="p">,</span> <span class="p">...)</span> <span class="kr">end</span>
+<span class="linenos"> 54</span>
+<span class="linenos"> 55</span><span class="c1">--- Lua equivalent of `WARN(format, ...)`.</span>
+<span class="linenos"> 56</span><span class="c1">--- @param format  string  Format string</span>
+<span class="linenos"> 57</span><span class="c1">--- @param ...     any     Varargs as referenced in format string</span>
+<span class="linenos"> 58</span><span class="n">swupdate</span><span class="p">.</span><span class="n">warn</span>  <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">format</span><span class="p">,</span> <span class="p">...)</span> <span class="kr">end</span>
+<span class="linenos"> 59</span>
+<span class="linenos"> 60</span><span class="c1">--- Lua equivalent of `DEBUG(format, ...)`.</span>
+<span class="linenos"> 61</span><span class="c1">--- @param format  string  Format string</span>
+<span class="linenos"> 62</span><span class="c1">--- @param ...     any     Varargs as referenced in format string</span>
+<span class="linenos"> 63</span><span class="n">swupdate</span><span class="p">.</span><span class="n">debug</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">format</span><span class="p">,</span> <span class="p">...)</span> <span class="kr">end</span>
+<span class="linenos"> 64</span>
+<span class="linenos"> 65</span><span class="c1">--- Lua equivalent of `notify(PROGRESS, ..., msg)`.</span>
+<span class="linenos"> 66</span><span class="c1">--- @param msg  string  Message to send to progress interface</span>
+<span class="linenos"> 67</span><span class="n">swupdate</span><span class="p">.</span><span class="n">progress</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span> <span class="kr">end</span>
+<span class="linenos"> 68</span>
+<span class="linenos"> 69</span><span class="c1">--- Lua equivalent of `notify(status, error, INFOLEVEL, msg)`.</span>
+<span class="linenos"> 70</span><span class="c1">--- @param status  swupdate.RECOVERY_STATUS  Current status, one of `swupdate.RECOVERY_STATUS`&#39;s values</span>
+<span class="linenos"> 71</span><span class="c1">--- @param error   number                    Error code</span>
+<span class="linenos"> 72</span><span class="c1">--- @param msg     string                    Message</span>
+<span class="linenos"> 73</span><span class="n">swupdate</span><span class="p">.</span><span class="n">notify</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="nb">error</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span> <span class="kr">end</span>
+<span class="linenos"> 74</span>
+<span class="linenos"> 75</span>
+<span class="linenos"> 76</span><span class="c1">--- Report whether dry-run installation is performed.</span>
+<span class="linenos"> 77</span><span class="c1">--</span>
+<span class="linenos"> 78</span><span class="c1">--- @return boolean  # `true` if dry-run installation is performed, `false` otherwise</span>
+<span class="linenos"> 79</span><span class="n">swupdate</span><span class="p">.</span><span class="n">is_dryrun</span> <span class="o">=</span> <span class="kr">function</span><span class="p">()</span> <span class="kr">end</span>
+<span class="linenos"> 80</span>
+<span class="linenos"> 81</span>
+<span class="linenos"> 82</span><span class="c1">--- Update progress.</span>
+<span class="linenos"> 83</span><span class="c1">--</span>
+<span class="linenos"> 84</span><span class="c1">--- @param percent  number  Progress percent to set</span>
+<span class="linenos"> 85</span><span class="n">swupdate</span><span class="p">.</span><span class="n">progress_update</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">percent</span><span class="p">)</span> <span class="kr">end</span>
+<span class="linenos"> 86</span>
+<span class="linenos"> 87</span>
+<span class="linenos"> 88</span><span class="c1">--- Mount a filesystem to a temporary mountpoint.</span>
+<span class="linenos"> 89</span><span class="c1">--</span>
+<span class="linenos"> 90</span><span class="c1">--- @param  device      string  Device to mount</span>
+<span class="linenos"> 91</span><span class="c1">--- @param  filesystem  string  Device&#39;s filesystem</span>
+<span class="linenos"> 92</span><span class="c1">--- @return string | nil        # Mountpoint for use with `swupdate.umount(target)`, `nil` on error</span>
+<span class="linenos"> 93</span><span class="n">swupdate</span><span class="p">.</span><span class="n">mount</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">device</span><span class="p">,</span> <span class="n">filesystem</span><span class="p">)</span> <span class="kr">end</span>
+<span class="linenos"> 94</span>
+<span class="linenos"> 95</span><span class="c1">--- Unmount a mountpoint returned by `swupdate.mount()`.</span>
+<span class="linenos"> 96</span><span class="c1">--</span>
+<span class="linenos"> 97</span><span class="c1">--- @param  target  string  Mountpoint to unmount</span>
+<span class="linenos"> 98</span><span class="c1">--- @return boolean | nil   # `true` if successful, `nil` on error</span>
+<span class="linenos"> 99</span><span class="n">swupdate</span><span class="p">.</span><span class="n">umount</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">target</span><span class="p">)</span> <span class="kr">end</span>
+<span class="linenos">100</span>
+<span class="linenos">101</span>
+<span class="linenos">102</span><span class="c1">--- @enum swupdate.ROOT_DEVICE</span>
+<span class="linenos">103</span><span class="c1">--- Lua equivalent of `root_dev_type` as in `include/lua_util.h`.</span>
+<span class="linenos">104</span><span class="n">swupdate</span><span class="p">.</span><span class="n">ROOT_DEVICE</span> <span class="o">=</span> <span class="p">{</span>
+<span class="linenos">105</span>    <span class="n">PATH</span>      <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+<span class="linenos">106</span>    <span class="n">UUID</span>      <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">107</span>    <span class="n">PARTUUID</span>  <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+<span class="linenos">108</span>    <span class="n">PARTLABEL</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="linenos">109</span><span class="p">}</span>
+<span class="linenos">110</span>
+<span class="linenos">111</span>
+<span class="linenos">112</span><span class="c1">--- Current root device information.</span>
+<span class="linenos">113</span><span class="c1">--- @class swupdate.rootdev</span>
+<span class="linenos">114</span><span class="c1">--- @field type   swupdate.ROOT_DEVICE  Root device type, one of `swupdate.ROOT_DEVICE`&#39;s values</span>
+<span class="linenos">115</span><span class="c1">--- @field value  string                Root device path</span>
+<span class="linenos">116</span><span class="c1">--- @field path   string                Full root device path, if identified, else nil</span>
+<span class="linenos">117</span>
+<span class="linenos">118</span><span class="c1">--- Get current root device.</span>
+<span class="linenos">119</span><span class="c1">--</span>
+<span class="linenos">120</span><span class="c1">--- @return swupdate.rootdev  # Table containing type, and (full) path to root device</span>
+<span class="linenos">121</span><span class="n">swupdate</span><span class="p">.</span><span class="n">getroot</span> <span class="o">=</span> <span class="kr">function</span><span class="p">()</span> <span class="kr">end</span>
+<span class="linenos">122</span>
+<span class="linenos">123</span><span class="c1">--- Get the HW boot device of an eMMC.</span>
+<span class="linenos">124</span><span class="c1">--</span>
+<span class="linenos">125</span><span class="c1">--- @param devicepath  string  Fully qualified device path</span>
+<span class="linenos">126</span><span class="c1">--- @return integer            # eMMC boot device number or `-1` on error</span>
+<span class="linenos">127</span><span class="n">swupdate</span><span class="p">.</span><span class="n">emmcbootpart</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">devicepath</span><span class="p">)</span> <span class="kr">end</span>
+<span class="linenos">128</span>
+<span class="linenos">129</span>
+<span class="linenos">130</span><span class="c1">--- Table with major/minor numbers of the device on which the swupdate.stat()&#39;d file resides.</span>
+<span class="linenos">131</span><span class="c1">--- @class swupdate.stat_dev</span>
+<span class="linenos">132</span><span class="c1">--- @field major  number  Major device number</span>
+<span class="linenos">133</span><span class="c1">--- @field minor  number  Minor device number</span>
+<span class="linenos">134</span>
+<span class="linenos">135</span><span class="c1">--- `struct stat`-alike Table.</span>
+<span class="linenos">136</span><span class="c1">--- @class swupdate.stat_info</span>
+<span class="linenos">137</span><span class="c1">--- @field mode          &quot;directory&quot;|&quot;named pipe&quot;|&quot;link&quot;|&quot;regular file&quot;|&quot;socket&quot;|&quot;block device&quot;|&quot;char device&quot;|&quot;unknown&quot;  File type and mode</span>
+<span class="linenos">138</span><span class="c1">--- @field dev           swupdate.stat_dev  ID of device containing file</span>
+<span class="linenos">139</span><span class="c1">--- @field ino           number             Inode number</span>
+<span class="linenos">140</span><span class="c1">--- @field nlink         number             Number of hard links</span>
+<span class="linenos">141</span><span class="c1">--- @field uid           number             User ID of owner</span>
+<span class="linenos">142</span><span class="c1">--- @field gid           number             Group ID of owner</span>
+<span class="linenos">143</span><span class="c1">--- @field rdev          swupdate.stat_dev  Device ID (if special file)</span>
+<span class="linenos">144</span><span class="c1">--- @field access        string             Time of last access, e.g., &quot;Wed Jun 30 21:49:08 1993&quot;</span>
+<span class="linenos">145</span><span class="c1">--- @field modification  string             Time of last modification, e.g., &quot;Wed Jun 30 21:49:08 1993&quot;</span>
+<span class="linenos">146</span><span class="c1">--- @field change        string             Time of last status change, e.g., &quot;Wed Jun 30 21:49:08 1993&quot;</span>
+<span class="linenos">147</span><span class="c1">--- @field size          number             Total size, in bytes</span>
+<span class="linenos">148</span><span class="c1">--- @field permissions   string             Unix file permissions string, e.g., &quot;rwxr-xr-x&quot;</span>
+<span class="linenos">149</span><span class="c1">--- @field blocks        number             Number of 512B blocks allocated</span>
+<span class="linenos">150</span><span class="c1">--- @field blksize       number             Block size for filesystem I/O</span>
+<span class="linenos">151</span>
+<span class="linenos">152</span><span class="c1">--- STAT(2) Wrapper.</span>
+<span class="linenos">153</span><span class="c1">--</span>
+<span class="linenos">154</span><span class="c1">--- @param  pathname  string          Retrieve information about the file `pathname`</span>
+<span class="linenos">155</span><span class="c1">--- @return swupdate.stat_info | nil  # `struct stat`-alike Table if successful, nil on error</span>
+<span class="linenos">156</span><span class="n">swupdate</span><span class="p">.</span><span class="n">stat</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">pathname</span><span class="p">)</span> <span class="kr">end</span>
+<span class="linenos">157</span>
+<span class="linenos">158</span>
+<span class="linenos">159</span><span class="c1">--- Get SWUpdate&#39;s TMPDIRSCRIPT directory.</span>
+<span class="linenos">160</span><span class="c1">--</span>
+<span class="linenos">161</span><span class="c1">--- @return string  # TMPDIRSCRIPT directory</span>
+<span class="linenos">162</span><span class="n">swupdate</span><span class="p">.</span><span class="n">tmpdirscripts</span> <span class="o">=</span> <span class="kr">function</span><span class="p">()</span> <span class="kr">end</span>
+<span class="linenos">163</span>
+<span class="linenos">164</span><span class="c1">--- Get SWUpdate&#39;s TMPDIR directory.</span>
+<span class="linenos">165</span><span class="c1">--</span>
+<span class="linenos">166</span><span class="c1">--- @return string  # TMPDIR directory</span>
+<span class="linenos">167</span><span class="n">swupdate</span><span class="p">.</span><span class="n">tmpdir</span> <span class="o">=</span> <span class="kr">function</span><span class="p">()</span> <span class="kr">end</span>
+<span class="linenos">168</span>
+<span class="linenos">169</span>
+<span class="linenos">170</span><span class="c1">--- SWUpdate hardware information.</span>
+<span class="linenos">171</span><span class="c1">--- @class swupdate.hardware</span>
+<span class="linenos">172</span><span class="c1">--- @field boardname   string  SWUpdate&#39;s boardname</span>
+<span class="linenos">173</span><span class="c1">--- @field revision    string  SWUpdate&#39;s revision</span>
+<span class="linenos">174</span>
+<span class="linenos">175</span><span class="c1">--- Get SWUpdate hardware.</span>
+<span class="linenos">176</span><span class="c1">--</span>
+<span class="linenos">177</span><span class="c1">--- @return swupdate.hardware  # Table with &#39;boardname&#39; and &#39;revision&#39; fields</span>
+<span class="linenos">178</span><span class="n">swupdate</span><span class="p">.</span><span class="n">get_hw</span> <span class="o">=</span> <span class="kr">function</span><span class="p">()</span> <span class="kr">end</span>
+<span class="linenos">179</span>
+<span class="linenos">180</span>
+<span class="linenos">181</span><span class="c1">--- SWUpdate version information.</span>
+<span class="linenos">182</span><span class="c1">--- @class swupdate.version</span>
+<span class="linenos">183</span><span class="c1">--- @field [1]         number  SWUpdate&#39;s version</span>
+<span class="linenos">184</span><span class="c1">--- @field [2]         number  SWUpdate&#39;s patch level</span>
+<span class="linenos">185</span><span class="c1">--- @field version     number  SWUpdate&#39;s version</span>
+<span class="linenos">186</span><span class="c1">--- @field patchlevel  number  SWUpdate&#39;s patch level</span>
+<span class="linenos">187</span>
+<span class="linenos">188</span><span class="c1">--- Get SWUpdate version.</span>
+<span class="linenos">189</span><span class="c1">--</span>
+<span class="linenos">190</span><span class="c1">--- @return swupdate.version  # Table with &#39;version&#39; and &#39;patchlevel&#39; fields</span>
+<span class="linenos">191</span><span class="n">swupdate</span><span class="p">.</span><span class="n">getversion</span> <span class="o">=</span> <span class="kr">function</span><span class="p">()</span> <span class="kr">end</span>
+<span class="linenos">192</span>
+<span class="linenos">193</span>
+<span class="linenos">194</span><span class="c1">--- Get software Selection and Mode.</span>
+<span class="linenos">195</span><span class="c1">--</span>
+<span class="linenos">196</span><span class="c1">--- @return string  # Selection</span>
+<span class="linenos">197</span><span class="c1">--- @return string  # Mode</span>
+<span class="linenos">198</span><span class="n">swupdate</span><span class="p">.</span><span class="n">get_selection</span> <span class="o">=</span> <span class="kr">function</span><span class="p">()</span> <span class="kr">end</span>
+<span class="linenos">199</span>
+<span class="linenos">200</span>
+<span class="linenos">201</span><span class="c1">--- Set Bootloader environment key=value.</span>
+<span class="linenos">202</span><span class="c1">--</span>
+<span class="linenos">203</span><span class="c1">--- @param key    string  Bootloader environment key to set</span>
+<span class="linenos">204</span><span class="c1">--- @param value  string  Value to set `key` to in bootloader environment</span>
+<span class="linenos">205</span><span class="n">swupdate</span><span class="p">.</span><span class="n">set_bootenv</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="kr">end</span>
+<span class="linenos">206</span>
+<span class="linenos">207</span><span class="c1">--- Get Bootloader environment key&#39;s value.</span>
+<span class="linenos">208</span><span class="c1">--</span>
+<span class="linenos">209</span><span class="c1">--- @param  key  string  Bootloader environment&#39;s key to get value from</span>
+<span class="linenos">210</span><span class="c1">--- @return string       # Bootloader environment key&#39;s value, empty if key absent</span>
+<span class="linenos">211</span><span class="n">swupdate</span><span class="p">.</span><span class="n">get_bootenv</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="kr">end</span>
+<span class="linenos">212</span>
+<span class="linenos">213</span>
+<span class="linenos">214</span><span class="c1">--- @enum swupdate.HANDLER_MASK</span>
+<span class="linenos">215</span><span class="c1">--- Lua equivalent of `HANDLER_MASK` as in `include/handler.h`.</span>
+<span class="linenos">216</span><span class="n">swupdate</span><span class="p">.</span><span class="n">HANDLER_MASK</span> <span class="o">=</span> <span class="p">{</span>
+<span class="linenos">217</span>    <span class="n">IMAGE_HANDLER</span>      <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">218</span>    <span class="n">FILE_HANDLER</span>       <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+<span class="linenos">219</span>    <span class="n">SCRIPT_HANDLER</span>     <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+<span class="linenos">220</span>    <span class="n">BOOTLOADER_HANDLER</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span>
+<span class="linenos">221</span>    <span class="n">PARTITION_HANDLER</span>  <span class="o">=</span> <span class="mi">16</span><span class="p">,</span>
+<span class="linenos">222</span>    <span class="n">NO_DATA_HANDLER</span>    <span class="o">=</span> <span class="mi">32</span><span class="p">,</span>
+<span class="linenos">223</span>    <span class="n">ANY_HANDLER</span>        <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">4</span> <span class="o">+</span> <span class="mi">8</span> <span class="o">+</span> <span class="mi">16</span> <span class="o">+</span> <span class="mi">32</span>
+<span class="linenos">224</span><span class="p">}</span>
+<span class="linenos">225</span>
+<span class="linenos">226</span><span class="c1">--- Register a Lua function as Handler implementation.</span>
+<span class="linenos">227</span><span class="c1">--</span>
+<span class="linenos">228</span><span class="c1">-- The signature of the function to be registered as Handler implementation is:</span>
+<span class="linenos">229</span><span class="c1">--</span>
+<span class="linenos">230</span><span class="c1">-- --- @param  image     img_type  Lua equivalent of `struct img_type`</span>
+<span class="linenos">231</span><span class="c1">-- --- @param  fn | nil  string    `preinst` or `postinst` for `SCRIPT_HANDLER`s, else nil</span>
+<span class="linenos">232</span><span class="c1">-- --- @return number    # 0 on success, 1 on error</span>
+<span class="linenos">233</span><span class="c1">-- function lua_handler(image, fn)</span>
+<span class="linenos">234</span><span class="c1">--     ...</span>
+<span class="linenos">235</span><span class="c1">-- end</span>
+<span class="linenos">236</span><span class="c1">--</span>
+<span class="linenos">237</span><span class="c1">--- @param name     string    Registered Handler&#39;s name</span>
+<span class="linenos">238</span><span class="c1">--- @param funcptr  function  Function to register as Handler implementation</span>
+<span class="linenos">239</span><span class="c1">--- @param mask     number    Type(s) for which to register the Handler, one or more ORed values of `swupdate.HANDLER_MASK`</span>
+<span class="linenos">240</span><span class="n">swupdate</span><span class="p">.</span><span class="n">register_handler</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">funcptr</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span> <span class="kr">end</span>
+<span class="linenos">241</span>
+<span class="linenos">242</span>
+<span class="linenos">243</span><span class="c1">--- Lua equivalent of `struct img_type {...}` as in `include/swupdate.h` plus `read()` and `copy2file()` functions.</span>
+<span class="linenos">244</span><span class="c1">--- @class img_type</span>
+<span class="linenos">245</span><span class="c1">--- @field name                  string    `sw-component` name to check with `sw-versions`</span>
+<span class="linenos">246</span><span class="c1">--- @field version               string    `sw-component` version to check with `sw-versions`</span>
+<span class="linenos">247</span><span class="c1">--- @field filename              string    File name in CPIO archive</span>
+<span class="linenos">248</span><span class="c1">--- @field volume                string    If handler is &quot;ubivol&quot;, the UBI volume name</span>
+<span class="linenos">249</span><span class="c1">--- @field type                  string    The Handler name</span>
+<span class="linenos">250</span><span class="c1">--- @field device                string    Device node to operate on for mounting, flashing, ...</span>
+<span class="linenos">251</span><span class="c1">--- @field path                  string    For FILE_HANDLERs: the relative destination path</span>
+<span class="linenos">252</span><span class="c1">--- @field mtdname               string    MTD device where image must be installed</span>
+<span class="linenos">253</span><span class="c1">--- @field data                  string    Handler-specific arbitrary data</span>
+<span class="linenos">254</span><span class="c1">--- @field filesystem            string    For FILE_HANDLERs: the filesystem to mount</span>
+<span class="linenos">255</span><span class="c1">--- @field ivt                   string    IVT of an encrypted artifact</span>
+<span class="linenos">256</span><span class="c1">--- @field installed_directly    boolean   Whether to stream image to `device` w/o temporary copy</span>
+<span class="linenos">257</span><span class="c1">--- @field install_if_different  boolean   Whether to compare `name` and `version` accordingly</span>
+<span class="linenos">258</span><span class="c1">--- @field install_if_higher     boolean   Whether to compare `name` and `version` accordingly</span>
+<span class="linenos">259</span><span class="c1">--- @field encrypted             boolean   Whether the artifact is encrypted</span>
+<span class="linenos">260</span><span class="c1">--- @field partition             boolean   Whether the artifact is a partitioner</span>
+<span class="linenos">261</span><span class="c1">--- @field script                boolean   Whether the artifact is a script</span>
+<span class="linenos">262</span><span class="c1">--- @field preserve_attributes   boolean   Whether to preserve attributes in archives</span>
+<span class="linenos">263</span><span class="c1">--- @field offset                number    Offset to seek to in artifact</span>
+<span class="linenos">264</span><span class="c1">--- @field size                  number    Artifact size</span>
+<span class="linenos">265</span><span class="c1">--- @field checksum              number    Computed checksum</span>
+<span class="linenos">266</span><span class="c1">--- @field skip                  number    `skip_t` enum number as in `include/swupdate.h`</span>
+<span class="linenos">267</span><span class="c1">--- @field compressed            string    `zlib` or `zstd` (boolean value is deprecated)</span>
+<span class="linenos">268</span><span class="c1">--- @field properties            table     Properties Table equivalent as specified in `sw-description`</span>
+<span class="linenos">269</span><span class="c1">--- @field sha256                string    sha256 hash of the image, file, or script</span>
+<span class="linenos">270</span><span class="kd">local</span> <span class="n">img_type</span> <span class="o">=</span> <span class="p">{</span>
+<span class="linenos">271</span>    <span class="c1">--- Store the current image artifact to disk.</span>
+<span class="linenos">272</span>    <span class="c1">--</span>
+<span class="linenos">273</span>    <span class="c1">--- @param  self  img_type  This `img_type` instance</span>
+<span class="linenos">274</span>    <span class="c1">--- @param  path  string    Path to store the current image artifact to</span>
+<span class="linenos">275</span>    <span class="c1">--- @return number          # 0 on success, -1 on error</span>
+<span class="linenos">276</span>    <span class="c1">--- @return string | nil    # nil on success, error message on failure</span>
+<span class="linenos">277</span>    <span class="p">[</span><span class="s1">&#39;copy2file&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span> <span class="kr">end</span><span class="p">,</span>
+<span class="linenos">278</span>
+<span class="linenos">279</span>    <span class="c1">--- Process the current image artifact in Lua.</span>
+<span class="linenos">280</span>    <span class="c1">--</span>
+<span class="linenos">281</span>    <span class="c1">-- The `callback = function(chunk) ... end` is repeatedly called with</span>
+<span class="linenos">282</span>    <span class="c1">-- chunked artifact data of type `string` in its `chunk` parameter as</span>
+<span class="linenos">283</span>    <span class="c1">-- long as there is data available.</span>
+<span class="linenos">284</span>    <span class="c1">-- The callback function must completely consume the artifact data so</span>
+<span class="linenos">285</span>    <span class="c1">-- that SWUpdate can continue with the stream&#39;s next artifact after</span>
+<span class="linenos">286</span>    <span class="c1">-- the Lua Handler returns.</span>
+<span class="linenos">287</span>    <span class="c1">--</span>
+<span class="linenos">288</span>    <span class="c1">--- @param  self      img_type  This `img_type` instance</span>
+<span class="linenos">289</span>    <span class="c1">--- @param  callback  function  Callback `function(chunk) ... end` that is fed the current image artifact in chunks.</span>
+<span class="linenos">290</span>    <span class="c1">--- @return number              # 0 on success, -1 on error</span>
+<span class="linenos">291</span>    <span class="c1">--- @return string | nil        # nil on success, error message on failure</span>
+<span class="linenos">292</span>    <span class="p">[</span><span class="s1">&#39;read&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span> <span class="kr">end</span><span class="p">,</span>
+<span class="linenos">293</span><span class="p">}</span>
+<span class="linenos">294</span>
+<span class="linenos">295</span>
+<span class="linenos">296</span><span class="c1">--- @class swupdate.handler</span>
+<span class="linenos">297</span><span class="c1">--- Chain-callable SWUpdate Handlers (Non-exhaustive).</span>
+<span class="linenos">298</span><span class="c1">--</span>
+<span class="linenos">299</span><span class="c1">-- Note: This list of built-in Handlers is non-exhaustive and</span>
+<span class="linenos">300</span><span class="c1">-- purely illustrative. At run-time, SWUpdate populates this</span>
+<span class="linenos">301</span><span class="c1">-- Table with the actually available Handlers according to its</span>
+<span class="linenos">302</span><span class="c1">-- compile-time configuration and Lua Handlers loaded.</span>
+<span class="linenos">303</span><span class="c1">--</span>
+<span class="linenos">304</span><span class="c1">--- @type table&lt;string, number&gt;</span>
+<span class="linenos">305</span><span class="n">swupdate</span><span class="p">.</span><span class="n">handler</span> <span class="o">=</span> <span class="p">{</span>
+<span class="linenos">306</span>    <span class="c1">--- Archive Handler (See: `handlers/archive_handler.c`).</span>
+<span class="linenos">307</span>    <span class="p">[</span><span class="s2">&quot;archive&quot;</span><span class="p">]</span>        <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">308</span>    <span class="c1">--- `tar` Archive Handler (See: `handlers/archive_handler.c`).</span>
+<span class="linenos">309</span>    <span class="p">[</span><span class="s2">&quot;tar&quot;</span><span class="p">]</span>            <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">310</span>    <span class="c1">--- Bootloader Handler (See: `handlers/boot_handler.c`).</span>
+<span class="linenos">311</span>    <span class="p">[</span><span class="s2">&quot;bootloader&quot;</span><span class="p">]</span>     <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">312</span>    <span class="c1">--- &quot;dummy&quot; Handler (See: `handlers/dummy_handler.c`).</span>
+<span class="linenos">313</span>    <span class="p">[</span><span class="s2">&quot;dummy&quot;</span><span class="p">]</span>          <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">314</span>    <span class="c1">--- Delta Handler (See: `handlers/delta_handler.c`).</span>
+<span class="linenos">315</span>    <span class="p">[</span><span class="s2">&quot;delta&quot;</span><span class="p">]</span>          <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">316</span>    <span class="c1">--- Disk Format Handler (See: `handlers/diskformat_handler.c`).</span>
+<span class="linenos">317</span>    <span class="p">[</span><span class="s2">&quot;diskformat&quot;</span><span class="p">]</span>     <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">318</span>    <span class="c1">--- Disk Partition Handler (See: `handlers/diskpart_handler.c`).</span>
+<span class="linenos">319</span>    <span class="p">[</span><span class="s2">&quot;diskpart&quot;</span><span class="p">]</span>       <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">320</span>    <span class="c1">--- Toggle Boot Flag Handler (See: `handlers/diskpart_handler.c`).</span>
+<span class="linenos">321</span>    <span class="p">[</span><span class="s2">&quot;toggleboot&quot;</span><span class="p">]</span>     <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">322</span>    <span class="c1">--- Flash Hamming1 Handler (See: `handlers/flash_hamming1_handler.c`).</span>
+<span class="linenos">323</span>    <span class="p">[</span><span class="s2">&quot;flash-hamming1&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">324</span>    <span class="c1">--- Flash Handler (See: `handlers/flash_handler.c`).</span>
+<span class="linenos">325</span>    <span class="p">[</span><span class="s2">&quot;flash&quot;</span><span class="p">]</span>          <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">326</span>    <span class="c1">--- Raw Image Handler (See: `handlers/raw_handler.c`).</span>
+<span class="linenos">327</span>    <span class="p">[</span><span class="s2">&quot;raw&quot;</span><span class="p">]</span>            <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">328</span>    <span class="c1">--- Raw File Handler (See: `handlers/raw_handler.c`).</span>
+<span class="linenos">329</span>    <span class="p">[</span><span class="s2">&quot;rawfile&quot;</span><span class="p">]</span>        <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">330</span>    <span class="c1">--- Raw Copy Handler (See: `handlers/raw_handler.c`).</span>
+<span class="linenos">331</span>    <span class="p">[</span><span class="s2">&quot;rawcopy&quot;</span><span class="p">]</span>        <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">332</span>    <span class="c1">--- rdiff Image Handler (See: `handlers/rdiff_handler.c`).</span>
+<span class="linenos">333</span>    <span class="p">[</span><span class="s2">&quot;rdiff_image&quot;</span><span class="p">]</span>    <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">334</span>    <span class="c1">--- rdiff File Handler (See: `handlers/rdiff_handler.c`).</span>
+<span class="linenos">335</span>    <span class="p">[</span><span class="s2">&quot;rdiff_file&quot;</span><span class="p">]</span>     <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">336</span>    <span class="c1">--- Readback Handler (See: `handlers/readback_handler.c`).</span>
+<span class="linenos">337</span>    <span class="p">[</span><span class="s2">&quot;readback&quot;</span><span class="p">]</span>       <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">338</span>    <span class="c1">--- Remote Handler (See: `handlers/remote_handler.c`).</span>
+<span class="linenos">339</span>    <span class="p">[</span><span class="s2">&quot;remote&quot;</span><span class="p">]</span>         <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">340</span>    <span class="c1">--- SSBL Handler (See: `handlers/ssbl_handler.c`).</span>
+<span class="linenos">341</span>    <span class="p">[</span><span class="s2">&quot;ssblswitch&quot;</span><span class="p">]</span>     <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">342</span>    <span class="c1">--- SWU Forward Handler (See: `handlers/swuforward_handler.c`).</span>
+<span class="linenos">343</span>    <span class="p">[</span><span class="s2">&quot;swuforward&quot;</span><span class="p">]</span>     <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">344</span>    <span class="c1">--- UBI Volume Handler (See: `handlers/ubivol_handler.c`).</span>
+<span class="linenos">345</span>    <span class="p">[</span><span class="s2">&quot;ubivol&quot;</span><span class="p">]</span>         <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">346</span>    <span class="c1">--- UBI Partition Handler (See: `handlers/ubivol_handler.c`).</span>
+<span class="linenos">347</span>    <span class="p">[</span><span class="s2">&quot;ubipartition&quot;</span><span class="p">]</span>   <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">348</span>    <span class="c1">--- UBI Swap Handler (See: `handlers/ubivol_handler.c`).</span>
+<span class="linenos">349</span>    <span class="p">[</span><span class="s2">&quot;ubiswap&quot;</span><span class="p">]</span>        <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">350</span>    <span class="c1">--- ucfw Handler (See: `handlers/ucfw_handler.c`).</span>
+<span class="linenos">351</span>    <span class="p">[</span><span class="s2">&quot;ucfw&quot;</span><span class="p">]</span>           <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">352</span>    <span class="c1">--- Unique UUID Handler (See: `handlers/uniqueuuid_handler.c`).</span>
+<span class="linenos">353</span>    <span class="p">[</span><span class="s2">&quot;uniqueuuid&quot;</span><span class="p">]</span>     <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">354</span><span class="p">}</span>
+<span class="linenos">355</span>
+<span class="linenos">356</span><span class="c1">--- Chain-call another Handler.</span>
+<span class="linenos">357</span><span class="c1">--</span>
+<span class="linenos">358</span><span class="c1">--- @param  handler  string    Chain-called Handler&#39;s name</span>
+<span class="linenos">359</span><span class="c1">--- @param  image    img_type  Lua equivalent of `struct img_type` as in `include/swupdate.h`</span>
+<span class="linenos">360</span><span class="c1">--- @return number             # 0 on success, 1 on failure</span>
+<span class="linenos">361</span><span class="c1">--- @return string | nil       # nil on success, error message on failure</span>
+<span class="linenos">362</span><span class="n">swupdate</span><span class="p">.</span><span class="n">call_handler</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">handler</span><span class="p">,</span> <span class="n">image</span><span class="p">)</span> <span class="kr">end</span>
+<span class="linenos">363</span>
+<span class="linenos">364</span>
+<span class="linenos">365</span><span class="kr">return</span> <span class="n">swupdate</span>
+</pre></div>
+</div>
+</section>
 </section>
 <section id="shell-script-handler">
 <h2>Shell script handler<a class="headerlink" href="#shell-script-handler" title="Link to this heading"></a></h2>
@@ -1285,8 +1669,10 @@ if the partition table is DOS. It reports an error if the table is GPT.</p>
 </pre></div>
 </div>
 </section>
+<section id="gpt-partition-handler">
+<h2>GPT Partition Handler<a class="headerlink" href="#gpt-partition-handler" title="Link to this heading"></a></h2>
 <section id="gpt-partition-installer">
-<h2>gpt partition installer<a class="headerlink" href="#gpt-partition-installer" title="Link to this heading"></a></h2>
+<h3>GPT Partition Installer<a class="headerlink" href="#gpt-partition-installer" title="Link to this heading"></a></h3>
 <p>There is a handler gptpart that allows writing an image into a gpt partition selected by
 the name. This handler do not modify the gpt partition (type, size, …), it just writes
 the image in the GPT partition.</p>
@@ -1309,7 +1695,7 @@ the image in the GPT partition.</p>
 </div>
 </section>
 <section id="gpt-partition-swap">
-<h2>gpt partition swap<a class="headerlink" href="#gpt-partition-swap" title="Link to this heading"></a></h2>
+<h3>GPT Partition Swap<a class="headerlink" href="#gpt-partition-swap" title="Link to this heading"></a></h3>
 <p>There is a handler gptswap that allow to swap gpt partitions after all the images were flashed.
 This handler only swaps the name of the partition. It coud be useful for a dual bank strategy.
 This handler is a script for the point of view of swupdate, so the node that provides it should
@@ -1328,6 +1714,7 @@ be added in the section scripts.</p>
 <span class="p">);</span>
 </pre></div>
 </div>
+</section>
 </section>
 <section id="diskformat-handler">
 <h2>Diskformat Handler<a class="headerlink" href="#diskformat-handler" title="Link to this heading"></a></h2>
@@ -1368,8 +1755,10 @@ found on the device. It is a partition handler and it runs before any image is i
 </pre></div>
 </div>
 </section>
+<section id="btrfs-handler">
+<h2>BTRFS Handler<a class="headerlink" href="#btrfs-handler" title="Link to this heading"></a></h2>
 <section id="btrfs-partition-handler">
-<h2>BTRFS Partition Handler<a class="headerlink" href="#btrfs-partition-handler" title="Link to this heading"></a></h2>
+<h3>BTRFS Partition Handler<a class="headerlink" href="#btrfs-partition-handler" title="Link to this heading"></a></h3>
 <p>This handler is activated if support for BTRFS is on. It allows to created and delete subvolumes
 during an update.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">partitions</span><span class="p">:</span> <span class="p">(</span>
@@ -1390,7 +1779,7 @@ during an update.</p>
 mountpoint used with mount. If device is already mounted, path is the absolute path.</p>
 </section>
 <section id="btrfs-snapshot-handler">
-<h2>BTRFS Snapshot Handler<a class="headerlink" href="#btrfs-snapshot-handler" title="Link to this heading"></a></h2>
+<h3>BTRFS Snapshot Handler<a class="headerlink" href="#btrfs-snapshot-handler" title="Link to this heading"></a></h3>
 <p>The handler allows to install a BTRFS snapshot created with the “btrfs send” command.
 SWUpdate is using the external “btrfs” utility, that must be installed on the target,
 and “btrfs receive” is executed by sending the stream to the command.</p>
@@ -1412,8 +1801,9 @@ using the “installed-directly” attribute.</p>
 <p>If <cite>tomount</cite> is set, SWUpdate will temporary mount “device” as BTRFS filesystem and will try to install
 the snapshot to <cite>path</cite>. <cite>btrfs-cmd</cite> is optional, fallback is /usr/bin/btrfs.</p>
 </section>
+</section>
 <section id="generic-executor-handler">
-<h2>Generic Executor handler<a class="headerlink" href="#generic-executor-handler" title="Link to this heading"></a></h2>
+<h2>Generic Executor Handler<a class="headerlink" href="#generic-executor-handler" title="Link to this heading"></a></h2>
 <p>The BTRFS snapshot handler requires to stream an artifact after normal handling
 (decompression, decryption, etc.) to the external command “btrfs” without any temporary copy.
 The same infrastucture can be used to stream any artifact to any arbitrary external command
@@ -1524,26 +1914,25 @@ will try to find the effective size of fs.</p></td>
 <span class="p">}</span>
 </pre></div>
 </div>
-</section>
 <section id="memory-issue-with-zchunk">
-<h2>Memory issue with zchunk<a class="headerlink" href="#memory-issue-with-zchunk" title="Link to this heading"></a></h2>
+<h3>Memory issue with zchunk<a class="headerlink" href="#memory-issue-with-zchunk" title="Link to this heading"></a></h3>
 <p>SWUpdate will create the header from the current version, often from a block partition. As default,
 Zchunk creates a temporary file with all chunks in /tmp, that is at the end concatenated to the
 header and written to the destination file. This means that an amount of memory equal to the
 partition (SWUpdate does not compress the chunks) is required. This was solved with later version
 of Zchunk - check inside zchunk code if ZCK_NO_WRITE is supported.</p>
 </section>
+</section>
 <section id="docker-handlers">
-<h2>Docker handlers<a class="headerlink" href="#docker-handlers" title="Link to this heading"></a></h2>
+<h2>Docker Handlers<a class="headerlink" href="#docker-handlers" title="Link to this heading"></a></h2>
 <p>To improve containers update, a docker set of handlers implements part of the API to communicate
 with the docker daemon. Podman (another container solution) has a compatibility layer for
 docker REST API and could be used as well, but SWUpdate is currently not checking if a podman
 daemon must be started.</p>
 <p>Goal of these handlers is just to provice the few API to update images and start containers - it
 does not implement the full API.</p>
-</section>
 <section id="docker-load-image">
-<h2>Docker Load Image<a class="headerlink" href="#docker-load-image" title="Link to this heading"></a></h2>
+<h3>Docker Load Image<a class="headerlink" href="#docker-load-image" title="Link to this heading"></a></h3>
 <p>This handler allow to load an image without copying temporarily and push it to the docker daemon.
 It implements the /images/load entry point., and it is implemented as “image” handler. The file
 should be in a format accepted by docker.</p>
@@ -1573,7 +1962,7 @@ passed to the daemon:</p>
 </div>
 </section>
 <section id="docker-remove-image">
-<h2>Docker Remove Image<a class="headerlink" href="#docker-remove-image" title="Link to this heading"></a></h2>
+<h3>Docker Remove Image<a class="headerlink" href="#docker-remove-image" title="Link to this heading"></a></h3>
 <p>It is implemented as script (post install).
 Example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">scripts</span><span class="p">:</span> <span class="p">(</span> <span class="p">{</span>
@@ -1586,7 +1975,7 @@ Example:</p>
 </div>
 </section>
 <section id="docker-delete-unused-images">
-<h2>Docker Delete Unused Images<a class="headerlink" href="#docker-delete-unused-images" title="Link to this heading"></a></h2>
+<h3>Docker Delete Unused Images<a class="headerlink" href="#docker-delete-unused-images" title="Link to this heading"></a></h3>
 <p>It is implemented as script (post install).
 Example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">scripts</span><span class="p">:</span> <span class="p">(</span> <span class="p">{</span>
@@ -1596,7 +1985,7 @@ Example:</p>
 </div>
 </section>
 <section id="docker-container-create">
-<h2>Docker: container create<a class="headerlink" href="#docker-container-create" title="Link to this heading"></a></h2>
+<h3>Docker: container create<a class="headerlink" href="#docker-container-create" title="Link to this heading"></a></h3>
 <p>It is implemented as post-install script. The script itself is the json file passed
 to the daemon to configure and set the container. The container is just created, not started.</p>
 <p>For example, having this hello-world.json file:</p>
@@ -1623,7 +2012,7 @@ to the daemon to configure and set the container. The container is just created,
 </div>
 </section>
 <section id="docker-remove-container">
-<h2>Docker Remove Container<a class="headerlink" href="#docker-remove-container" title="Link to this heading"></a></h2>
+<h3>Docker Remove Container<a class="headerlink" href="#docker-remove-container" title="Link to this heading"></a></h3>
 <p>It is implemented as script (post install).
 Example:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">scripts</span><span class="p">:</span> <span class="p">(</span> <span class="p">{</span>
@@ -1636,7 +2025,7 @@ Example:</p>
 </div>
 </section>
 <section id="docker-start-stop-containers">
-<h2>Docker : Start / Stop containers<a class="headerlink" href="#docker-start-stop-containers" title="Link to this heading"></a></h2>
+<h3>Docker : Start / Stop containers<a class="headerlink" href="#docker-start-stop-containers" title="Link to this heading"></a></h3>
 <p>Examples:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">scripts</span><span class="p">:</span> <span class="p">(</span> <span class="p">{</span>
         <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;docker_containerstart&quot;</span><span class="p">;</span>
@@ -1656,6 +2045,7 @@ Example:</p>
 </div>
 </section>
 </section>
+</section>
 
 
            </div>
@@ -1668,7 +2058,7 @@ Example:</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2013-2024, Stefano Babic.</p>
+    <p>&#169; Copyright 2013-2025, Stefano Babic.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

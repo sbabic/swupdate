@@ -485,8 +485,8 @@ SWUpdate binary by enabling ``CONFIG_EMBEDDED_SURICATTA_LUA`` and setting
 ``CONFIG_EMBEDDED_SURICATTA_LUA_SOURCE`` accordingly.
 
 The interface specification in terms of a Lua (suricatta) module is found in
-``suricatta/suricatta.lua``.
-
+``suricatta/suricatta.lua``, reproduced for convenience in
+Section :ref:`suricatta.lua.specification`.
 
 `suricatta`
 ...........
@@ -719,3 +719,13 @@ environment's key ``variable``.
 The function ``suricatta.bootloader.env.apply(filename)`` applies
 all key=value lines of a local file ``filename`` to the currently selected
 bootloader's environment.
+
+.. _suricatta.lua.specification:
+   
+Lua Suricatta Interface Specification
+.....................................
+
+.. literalinclude:: ../../suricatta/suricatta.lua
+   :linenos:
+   :tab-width: 3
+   :language: lua

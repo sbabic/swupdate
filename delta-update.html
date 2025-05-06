@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Delta Update with SWUpdate &mdash; Embedded Software Update Documentation 2024.12 documentation</title>
+  <title>Delta Update with SWUpdate &mdash; Embedded Software Update Documentation 2025.05 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=86f27845" />
 
@@ -13,7 +13,7 @@
   
         <script src="_static/jquery.js?v=8dae8fb0"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=426f823e"></script>
+        <script src="_static/documentation_options.js?v=ffeffead"></script>
         <script src="_static/doctools.js?v=888ff710"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
@@ -35,7 +35,7 @@
             Embedded Software Update Documentation
           </a>
               <div class="version">
-                2024.12
+                2025.05
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -77,7 +77,10 @@
 <li class="toctree-l2"><a class="reference internal" href="#design-delta-update-in-swupdate">Design Delta Update in SWUpdate</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#changes-in-zchunk-project">Changes in ZCHUNK project</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#integration-in-sw-description">Integration in sw-description</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#integration-in-swupdate-the-delta-handler">Integration in SWUpdate: the delta handler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#integration-in-swupdate-the-delta-handler">Integration in SWUpdate: the delta handler</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#configuration">Configuration</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#creation-of-zck-header-and-zck-file-for-swupdate">Creation of ZCK Header and ZCK file for SWUpdate</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#using-zck-tools-to-foresee-download-size">Using ZCK tools to foresee download size</a></li>
 </ul>
@@ -322,6 +325,14 @@ several requests to the downloader, and tracking each of them.
 The downloader is thought as dummy servant: it starts the connection, retrieves HTTP headers and data,
 and sends them back to the caller. The delta handler is then responsible to parse the answer, and to
 retrieve the missing chunks from the multipart HTTP body.</p>
+<section id="configuration">
+<h3><a class="reference internal" href="#configuration">Configuration</a><a class="headerlink" href="#configuration" title="Link to this heading"></a></h3>
+<p>The delta handler is configured in the runtime configuration file (swupdate.cfg). The configuration is done in the
+<cite>delta</cite> section. See also example/configuration/swupdate.cfg for details.</p>
+<p>API key authentication can be setup by providing <code class="docutils literal notranslate"><span class="pre">api_key_header</span></code> and <code class="docutils literal notranslate"><span class="pre">api_key</span></code> in the configuration file.
+<code class="docutils literal notranslate"><span class="pre">api_key_header</span></code> is the header name that is used to send the <code class="docutils literal notranslate"><span class="pre">api_key</span></code>.
+<code class="docutils literal notranslate"><span class="pre">api_key</span></code> is the value that is sent in the header.</p>
+</section>
 </section>
 <section id="creation-of-zck-header-and-zck-file-for-swupdate">
 <h2>Creation of ZCK Header and ZCK file for SWUpdate<a class="headerlink" href="#creation-of-zck-header-and-zck-file-for-swupdate" title="Link to this heading"></a></h2>
@@ -370,7 +381,7 @@ slightly bigger.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2013-2024, Stefano Babic.</p>
+    <p>&#169; Copyright 2013-2025, Stefano Babic.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

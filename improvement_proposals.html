@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Proposals to improve SWUpdate &mdash; Embedded Software Update Documentation 2024.12 documentation</title>
+  <title>Proposals to improve SWUpdate &mdash; Embedded Software Update Documentation 2025.05 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=86f27845" />
 
@@ -13,7 +13,7 @@
   
         <script src="_static/jquery.js?v=8dae8fb0"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=426f823e"></script>
+        <script src="_static/documentation_options.js?v=ffeffead"></script>
         <script src="_static/doctools.js?v=888ff710"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
@@ -35,7 +35,7 @@
             Embedded Software Update Documentation
           </a>
               <div class="version">
-                2024.12
+                2025.05
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -86,7 +86,6 @@
 <li class="toctree-l3"><a class="reference internal" href="#support-files-bigger-than-4gb">Support files bigger than 4GB</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#parser">Parser</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#fetcher-and-interfaces">Fetcher and interfaces</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#selective-downloading">Selective downloading</a></li>
 </ul>
@@ -100,8 +99,6 @@
 <li class="toctree-l2"><a class="reference internal" href="#lua">Lua</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#handlers">Handlers:</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#new-handlers">New Handlers</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#handlers-installable-as-plugin-at-runtime">Handlers installable as plugin at runtime</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#support-for-btrfs-snapshot">Support for BTRFS snapshot</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#internal-webserver">Internal Webserver</a></li>
@@ -118,6 +115,14 @@
 <li class="toctree-l2"><a class="reference internal" href="#test-and-continuous-integration">Test and Continuous Integration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#binding-to-languages">Binding to languages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#documentation">Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#already-completed-and-mainlined">Already completed and mainlined</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#support-for-btrfs-snapshot">Support for BTRFS snapshot</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#parser">Parser</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#handlers-installable-as-plugin-at-runtime">Handlers installable as plugin at runtime</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -277,17 +282,6 @@ problem as update size grows.</p>
 </ul>
 </section>
 </section>
-<section id="parser">
-<h2>Parser<a class="headerlink" href="#parser" title="Link to this heading"></a></h2>
-<p>SWUpdate supports two parsers : libconfig and JSON. It would be nice if tools can
-be used to convert from one format to the other one. Currently, due to some specialties
-in libconfig, a manual conversion is still required.</p>
-<ul class="simple">
-<li><p>Status: Wait</p></li>
-<li><p>Request for Support : None</p></li>
-<li><p>Priority : Medium</p></li>
-</ul>
-</section>
 <section id="fetcher-and-interfaces">
 <h2>Fetcher and interfaces<a class="headerlink" href="#fetcher-and-interfaces" title="Link to this heading"></a></h2>
 <section id="selective-downloading">
@@ -396,34 +390,6 @@ to show how to solve custom install.</p></li>
 <li><p>Status : Running</p></li>
 <li><p>Request for Support : None</p></li>
 <li><p>Priority : Low</p></li>
-</ul>
-</section>
-<section id="handlers-installable-as-plugin-at-runtime">
-<h3>Handlers installable as plugin at runtime<a class="headerlink" href="#handlers-installable-as-plugin-at-runtime" title="Link to this heading"></a></h3>
-<p>The project supports Lua as script language for pre- and postinstall
-script. It will be easy to add a way for installing a handler at run-time
-written in Lua, allowing to expand SWUpdate to the cases not covered
-in the design phase of a product.</p>
-<p>Of course, this issue is related to the security features: it must be
-ensured that only verified handlers can be added to the system to avoid
-that malware can get the control of the target.</p>
-<p>Current release supports verified images. That means that a handler
-written in Lua could be now be part of the compound image, because
-a unauthenticated handler cannot run.</p>
-<ul class="simple">
-<li><p>Status : Running</p></li>
-<li><p>Request for Support : None</p></li>
-</ul>
-</section>
-<section id="support-for-btrfs-snapshot">
-<h3>Support for BTRFS snapshot<a class="headerlink" href="#support-for-btrfs-snapshot" title="Link to this heading"></a></h3>
-<p>BTRFS supports subvolume and delta backup for volumes - supporting subvolumes is a way
-to move the delta approach to filesystems, while SWUpdate should apply the deltas
-generated by BTRFS utilities.</p>
-<ul class="simple">
-<li><p>Status: Design</p></li>
-<li><p>Request for Support : Planned</p></li>
-<li><p>Priority : Medium</p></li>
 </ul>
 </section>
 </section>
@@ -582,6 +548,45 @@ appreciated.</p>
 <li><p>Request for Support : None</p></li>
 </ul>
 </section>
+<section id="already-completed-and-mainlined">
+<h2>Already completed and mainlined<a class="headerlink" href="#already-completed-and-mainlined" title="Link to this heading"></a></h2>
+<p>Following items were already implemented and are supported in mainlined - thanks for whom
+sponsored them.</p>
+<section id="support-for-btrfs-snapshot">
+<h3>Support for BTRFS snapshot<a class="headerlink" href="#support-for-btrfs-snapshot" title="Link to this heading"></a></h3>
+<p>BTRFS supports subvolume and delta backup for volumes - supporting subvolumes is a way
+to move the delta approach to filesystems, while SWUpdate should apply the deltas
+generated by BTRFS utilities.</p>
+<ul class="simple">
+<li><p>Status: since 2024.12</p></li>
+</ul>
+</section>
+</section>
+<section id="parser">
+<h2>Parser<a class="headerlink" href="#parser" title="Link to this heading"></a></h2>
+<p>SWUpdate supports two parsers : libconfig and JSON. It would be nice if tools can
+be used to convert from one format to the other one. Currently, due to some specialties
+in libconfig, a manual conversion is still required.</p>
+<ul class="simple">
+<li><p>Status: since 2024.12</p></li>
+</ul>
+<section id="handlers-installable-as-plugin-at-runtime">
+<h3>Handlers installable as plugin at runtime<a class="headerlink" href="#handlers-installable-as-plugin-at-runtime" title="Link to this heading"></a></h3>
+<p>The project supports Lua as script language for pre- and postinstall
+script. It will be easy to add a way for installing a handler at run-time
+written in Lua, allowing to expand SWUpdate to the cases not covered
+in the design phase of a product.</p>
+<p>Of course, this issue is related to the security features: it must be
+ensured that only verified handlers can be added to the system to avoid
+that malware can get the control of the target.</p>
+<p>Current release supports verified images. That means that a handler
+written in Lua could be now be part of the compound image, because
+a unauthenticated handler cannot run.</p>
+<ul class="simple">
+<li><p>Status : since 2024.05</p></li>
+</ul>
+</section>
+</section>
 </section>
 
 
@@ -595,7 +600,7 @@ appreciated.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2013-2024, Stefano Babic.</p>
+    <p>&#169; Copyright 2013-2025, Stefano Babic.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

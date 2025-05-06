@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Updating an embedded system &mdash; Embedded Software Update Documentation 2024.12 documentation</title>
+  <title>Updating an embedded system &mdash; Embedded Software Update Documentation 2025.05 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=86f27845" />
 
@@ -13,7 +13,7 @@
   
         <script src="_static/jquery.js?v=8dae8fb0"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=426f823e"></script>
+        <script src="_static/documentation_options.js?v=ffeffead"></script>
         <script src="_static/doctools.js?v=888ff710"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
@@ -34,7 +34,7 @@
             Embedded Software Update Documentation
           </a>
               <div class="version">
-                2024.12
+                2025.05
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -216,22 +216,13 @@ forget to <cite>star</cite> SWUpdate.</p>
 <li class="toctree-l2"><a class="reference internal" href="handlers.html#archive-handler">Archive handler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="handlers.html#disk-partitioner">Disk partitioner</a></li>
 <li class="toctree-l2"><a class="reference internal" href="handlers.html#toggleboot-handler">Toggleboot Handler</a></li>
-<li class="toctree-l2"><a class="reference internal" href="handlers.html#gpt-partition-installer">gpt partition installer</a></li>
-<li class="toctree-l2"><a class="reference internal" href="handlers.html#gpt-partition-swap">gpt partition swap</a></li>
+<li class="toctree-l2"><a class="reference internal" href="handlers.html#gpt-partition-handler">GPT Partition Handler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="handlers.html#diskformat-handler">Diskformat Handler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="handlers.html#unique-uuid-handler">Unique UUID Handler</a></li>
-<li class="toctree-l2"><a class="reference internal" href="handlers.html#btrfs-partition-handler">BTRFS Partition Handler</a></li>
-<li class="toctree-l2"><a class="reference internal" href="handlers.html#btrfs-snapshot-handler">BTRFS Snapshot Handler</a></li>
-<li class="toctree-l2"><a class="reference internal" href="handlers.html#generic-executor-handler">Generic Executor handler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="handlers.html#btrfs-handler">BTRFS Handler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="handlers.html#generic-executor-handler">Generic Executor Handler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="handlers.html#delta-update-handler">Delta Update Handler</a></li>
-<li class="toctree-l2"><a class="reference internal" href="handlers.html#memory-issue-with-zchunk">Memory issue with zchunk</a></li>
-<li class="toctree-l2"><a class="reference internal" href="handlers.html#docker-handlers">Docker handlers</a></li>
-<li class="toctree-l2"><a class="reference internal" href="handlers.html#docker-load-image">Docker Load Image</a></li>
-<li class="toctree-l2"><a class="reference internal" href="handlers.html#docker-remove-image">Docker Remove Image</a></li>
-<li class="toctree-l2"><a class="reference internal" href="handlers.html#docker-delete-unused-images">Docker Delete Unused Images</a></li>
-<li class="toctree-l2"><a class="reference internal" href="handlers.html#docker-container-create">Docker: container create</a></li>
-<li class="toctree-l2"><a class="reference internal" href="handlers.html#docker-remove-container">Docker Remove Container</a></li>
-<li class="toctree-l2"><a class="reference internal" href="handlers.html#docker-start-stop-containers">Docker : Start / Stop containers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="handlers.html#docker-handlers">Docker Handlers</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="mongoose.html">Mongoose daemon mode</a><ul>
@@ -364,7 +355,6 @@ forget to <cite>star</cite> SWUpdate.</p>
 <li class="toctree-l2"><a class="reference internal" href="improvement_proposals.html#legende">Legende</a></li>
 <li class="toctree-l2"><a class="reference internal" href="improvement_proposals.html#main-goal">Main goal</a></li>
 <li class="toctree-l2"><a class="reference internal" href="improvement_proposals.html#core-features">Core features</a></li>
-<li class="toctree-l2"><a class="reference internal" href="improvement_proposals.html#parser">Parser</a></li>
 <li class="toctree-l2"><a class="reference internal" href="improvement_proposals.html#fetcher-and-interfaces">Fetcher and interfaces</a></li>
 <li class="toctree-l2"><a class="reference internal" href="improvement_proposals.html#tools-and-utilities">Tools and utilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="improvement_proposals.html#lua">Lua</a></li>
@@ -375,6 +365,8 @@ forget to <cite>star</cite> SWUpdate.</p>
 <li class="toctree-l2"><a class="reference internal" href="improvement_proposals.html#test-and-continuous-integration">Test and Continuous Integration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="improvement_proposals.html#binding-to-languages">Binding to languages</a></li>
 <li class="toctree-l2"><a class="reference internal" href="improvement_proposals.html#documentation">Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improvement_proposals.html#already-completed-and-mainlined">Already completed and mainlined</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improvement_proposals.html#parser">Parser</a></li>
 </ul>
 </li>
 </ul>
@@ -407,7 +399,7 @@ forget to <cite>star</cite> SWUpdate.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2013-2024, Stefano Babic.</p>
+    <p>&#169; Copyright 2013-2025, Stefano Babic.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

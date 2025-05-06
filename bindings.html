@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Language Bindings &mdash; Embedded Software Update Documentation 2024.12 documentation</title>
+  <title>Language Bindings &mdash; Embedded Software Update Documentation 2025.05 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=86f27845" />
 
@@ -13,7 +13,7 @@
   
         <script src="_static/jquery.js?v=8dae8fb0"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=426f823e"></script>
+        <script src="_static/documentation_options.js?v=ffeffead"></script>
         <script src="_static/doctools.js?v=888ff710"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
@@ -35,7 +35,7 @@
             Embedded Software Update Documentation
           </a>
               <div class="version">
-                2024.12
+                2025.05
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -67,6 +67,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#control-interface">Control Interface</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#progress-interface">Progress Interface</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#ipv4-interface">IPv4 Interface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#lua-language-binding-interface-specification">Lua Language Binding Interface Specification</a></li>
 </ul>
 </li>
 </ul>
@@ -135,8 +136,10 @@ interface, and a convenience function yielding a table holding all local
 network interfaces including their IP addresses and submasks.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">lua_swupdate</span></code> Lua module interface specification that details what
 functionality is made available by <code class="docutils literal notranslate"><span class="pre">bindings/lua_swupdate.c</span></code> is found
-in <code class="docutils literal notranslate"><span class="pre">bindings/lua_swupdate.lua</span></code>. It serves as reference, for mocking
-purposes, and type checking thanks to the EmmyLua-inspired annotations.</p>
+in <code class="docutils literal notranslate"><span class="pre">bindings/lua_swupdate.lua</span></code>, reproduced for convenience in
+Section <a class="reference internal" href="#bindings-lua-specification"><span class="std std-ref">Lua Language Binding Interface Specification</span></a>.
+It serves as reference, for mocking purposes, and type checking thanks to
+the EmmyLua-inspired annotations.</p>
 <p>Note that, depending on the filesystem location of the Lua binding’s shared
 library, Lua’s <code class="docutils literal notranslate"><span class="pre">package.cpath</span></code> may have to be adapted by setting the
 environment variable <code class="docutils literal notranslate"><span class="pre">LUA_CPATH</span></code>, modifying <code class="docutils literal notranslate"><span class="pre">package.cpath</span></code> prior to
@@ -207,6 +210,148 @@ socket.</p>
 returning a table holding the local network interfaces as the table’s keys and
 their space-separated IP addresses plus subnet masks as respective values.</p>
 </section>
+<section id="lua-language-binding-interface-specification">
+<span id="bindings-lua-specification"></span><h3>Lua Language Binding Interface Specification<a class="headerlink" href="#lua-language-binding-interface-specification" title="Link to this heading"></a></h3>
+<div class="highlight-lua notranslate"><div class="highlight"><pre><span></span><span class="linenos">  1</span><span class="cm">--[[</span>
+<span class="linenos">  2</span>
+<span class="linenos">  3</span><span class="cm">    SWUpdate IPC Lua Module Interface.</span>
+<span class="linenos">  4</span>
+<span class="linenos">  5</span><span class="cm">    Interface specification for the Lua IPC module.</span>
+<span class="linenos">  6</span><span class="cm">    See: bindings/lua_swupdate.c</span>
+<span class="linenos">  7</span>
+<span class="linenos">  8</span><span class="cm">    Copyright (C) 2022, Siemens AG</span>
+<span class="linenos">  9</span><span class="cm">    Author: Christian Storm &lt;christian.storm@siemens.com&gt;</span>
+<span class="linenos"> 10</span>
+<span class="linenos"> 11</span><span class="cm">    SPDX-License-Identifier: GPL-2.0-or-later</span>
+<span class="linenos"> 12</span>
+<span class="linenos"> 13</span><span class="cm">--]]</span>
+<span class="linenos"> 14</span>
+<span class="linenos"> 15</span><span class="c1">---@diagnostic disable: missing-return</span>
+<span class="linenos"> 16</span><span class="c1">---@diagnostic disable: unused-local</span>
+<span class="linenos"> 17</span><span class="c1">-- luacheck: no unused args</span>
+<span class="linenos"> 18</span>
+<span class="linenos"> 19</span>
+<span class="linenos"> 20</span><span class="c1">--- SWUpdate IPC Lua Module.</span>
+<span class="linenos"> 21</span><span class="c1">--- @class lua_swupdate</span>
+<span class="linenos"> 22</span><span class="kd">local</span> <span class="n">lua_swupdate</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="linenos"> 23</span>
+<span class="linenos"> 24</span>
+<span class="linenos"> 25</span><span class="c1">--- Get local IPv4 network interface(s) information.</span>
+<span class="linenos"> 26</span><span class="c1">--</span>
+<span class="linenos"> 27</span><span class="c1">-- The returned Table contains the network interface names</span>
+<span class="linenos"> 28</span><span class="c1">-- as keys and a space-separated IP address and subnet mask</span>
+<span class="linenos"> 29</span><span class="c1">-- as values, e.g., {[&#39;eth0&#39;]=&quot;192.168.1.1 255.255.255.0&quot;}.</span>
+<span class="linenos"> 30</span><span class="c1">--</span>
+<span class="linenos"> 31</span><span class="c1">--- @return table&lt;string, string&gt;</span>
+<span class="linenos"> 32</span><span class="n">lua_swupdate</span><span class="p">.</span><span class="n">ipv4</span> <span class="o">=</span> <span class="kr">function</span><span class="p">()</span> <span class="kr">end</span>
+<span class="linenos"> 33</span>
+<span class="linenos"> 34</span>
+<span class="linenos"> 35</span><span class="c1">--- @enum lua_swupdate.RECOVERY_STATUS</span>
+<span class="linenos"> 36</span><span class="c1">--- Lua equivalent of `RECOVERY_STATUS` as in `include/swupdate_status.h`.</span>
+<span class="linenos"> 37</span><span class="n">lua_swupdate</span><span class="p">.</span><span class="n">RECOVERY_STATUS</span> <span class="o">=</span> <span class="p">{</span>
+<span class="linenos"> 38</span>    <span class="n">IDLE</span>       <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+<span class="linenos"> 39</span>    <span class="n">START</span>      <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos"> 40</span>    <span class="n">RUN</span>        <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+<span class="linenos"> 41</span>    <span class="n">SUCCESS</span>    <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+<span class="linenos"> 42</span>    <span class="n">FAILURE</span>    <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+<span class="linenos"> 43</span>    <span class="n">DOWNLOAD</span>   <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
+<span class="linenos"> 44</span>    <span class="n">DONE</span>       <span class="o">=</span> <span class="mi">6</span><span class="p">,</span>
+<span class="linenos"> 45</span>    <span class="n">SUBPROCESS</span> <span class="o">=</span> <span class="mi">7</span><span class="p">,</span>
+<span class="linenos"> 46</span>    <span class="n">PROGRESS</span>   <span class="o">=</span> <span class="mi">8</span>
+<span class="linenos"> 47</span><span class="p">}</span>
+<span class="linenos"> 48</span>
+<span class="linenos"> 49</span>
+<span class="linenos"> 50</span><span class="c1">--- @enum lua_swupdate.sourcetype</span>
+<span class="linenos"> 51</span><span class="c1">--- Lua equivalent of `sourcetype` as in `include/swupdate_status.h`.</span>
+<span class="linenos"> 52</span><span class="n">lua_swupdate</span><span class="p">.</span><span class="n">sourcetype</span> <span class="o">=</span> <span class="p">{</span>
+<span class="linenos"> 53</span>    <span class="n">SOURCE_UNKNOWN</span>           <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+<span class="linenos"> 54</span>    <span class="n">SOURCE_WEBSERVER</span>         <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos"> 55</span>    <span class="n">SOURCE_SURICATTA</span>         <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+<span class="linenos"> 56</span>    <span class="n">SOURCE_DOWNLOADER</span>        <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+<span class="linenos"> 57</span>    <span class="n">SOURCE_LOCAL</span>             <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+<span class="linenos"> 58</span>    <span class="n">SOURCE_CHUNKS_DOWNLOADER</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="linenos"> 59</span><span class="p">}</span>
+<span class="linenos"> 60</span>
+<span class="linenos"> 61</span>
+<span class="linenos"> 62</span><span class="c1">--- Lua equivalent of `struct progress_msg` as in `include/progress_ipc.h`.</span>
+<span class="linenos"> 63</span><span class="c1">--- @class lua_swupdate.progress_msg</span>
+<span class="linenos"> 64</span><span class="c1">--- @field status    lua_swupdate.RECOVERY_STATUS  Update status, one of `lua_swupdate.RECOVERY_STATUS`&#39;s values</span>
+<span class="linenos"> 65</span><span class="c1">--- @field download  number  Downloaded data percentage</span>
+<span class="linenos"> 66</span><span class="c1">--- @field source    lua_swupdate.sourcetype  Interface that triggered the update, one of `lua_swupdate.sourcetype`&#39;s values</span>
+<span class="linenos"> 67</span><span class="c1">--- @field nsteps    number  Total number of steps</span>
+<span class="linenos"> 68</span><span class="c1">--- @field step      number  Current step</span>
+<span class="linenos"> 69</span><span class="c1">--- @field percent   number  Percentage done in current step</span>
+<span class="linenos"> 70</span><span class="c1">--- @field artifact  string  Name of image to be installed</span>
+<span class="linenos"> 71</span><span class="c1">--- @field handler   string  Name of running Handler</span>
+<span class="linenos"> 72</span><span class="c1">--- @field info      string  Additional information about installation</span>
+<span class="linenos"> 73</span>
+<span class="linenos"> 74</span>
+<span class="linenos"> 75</span><span class="c1">--- SWUpdate progress socket binding.</span>
+<span class="linenos"> 76</span><span class="c1">--</span>
+<span class="linenos"> 77</span><span class="c1">-- The returned Class Table contains methods to</span>
+<span class="linenos"> 78</span><span class="c1">-- interact with SWUpdate&#39;s progress socket.</span>
+<span class="linenos"> 79</span><span class="c1">--</span>
+<span class="linenos"> 80</span><span class="n">lua_swupdate</span><span class="p">.</span><span class="n">progress</span> <span class="o">=</span> <span class="kr">function</span><span class="p">()</span>
+<span class="linenos"> 81</span>    <span class="kr">return</span> <span class="p">{</span>
+<span class="linenos"> 82</span>        <span class="c1">--- Connect to SWUpdate&#39;s progress socket.</span>
+<span class="linenos"> 83</span>        <span class="c1">--</span>
+<span class="linenos"> 84</span>        <span class="c1">--- @param  self  table   This `lua_swupdate.progress` instance</span>
+<span class="linenos"> 85</span>        <span class="c1">--- @return number | nil  # The connection handle or nil in case of error</span>
+<span class="linenos"> 86</span>        <span class="c1">--- @return nil | string  # nil or an error message in case of error</span>
+<span class="linenos"> 87</span>        <span class="n">connect</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">self</span><span class="p">)</span> <span class="kr">end</span><span class="p">,</span>
+<span class="linenos"> 88</span>
+<span class="linenos"> 89</span>        <span class="c1">--- Receive data from SWUpdate&#39;s progress socket.</span>
+<span class="linenos"> 90</span>        <span class="c1">--</span>
+<span class="linenos"> 91</span>        <span class="c1">--- @param  self  table                        This `lua_swupdate.progress` instance</span>
+<span class="linenos"> 92</span>        <span class="c1">--- @return table | lua_swupdate.progress_msg  # This `lua_swupdate.progress` instance on error or the received progress message</span>
+<span class="linenos"> 93</span>        <span class="c1">--- @return nil                                # nil in case of error</span>
+<span class="linenos"> 94</span>        <span class="n">receive</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">self</span><span class="p">)</span> <span class="kr">end</span><span class="p">,</span>
+<span class="linenos"> 95</span>
+<span class="linenos"> 96</span>        <span class="c1">--- Close connection to SWUpdate&#39;s progress socket.</span>
+<span class="linenos"> 97</span>        <span class="c1">--</span>
+<span class="linenos"> 98</span>        <span class="c1">--- @param  self  table  This `lua_swupdate.progress` instance</span>
+<span class="linenos"> 99</span>        <span class="c1">--- @return table        # This `lua_swupdate.progress` instance</span>
+<span class="linenos">100</span>        <span class="n">close</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">self</span><span class="p">)</span> <span class="kr">end</span><span class="p">,</span>
+<span class="linenos">101</span>    <span class="p">}</span>
+<span class="linenos">102</span><span class="kr">end</span>
+<span class="linenos">103</span>
+<span class="linenos">104</span>
+<span class="linenos">105</span><span class="c1">--- SWUpdate control socket binding.</span>
+<span class="linenos">106</span><span class="c1">--</span>
+<span class="linenos">107</span><span class="c1">-- The returned Class Table contains methods to</span>
+<span class="linenos">108</span><span class="c1">-- interact with SWUpdate&#39;s control socket.</span>
+<span class="linenos">109</span><span class="c1">--</span>
+<span class="linenos">110</span><span class="n">lua_swupdate</span><span class="p">.</span><span class="n">control</span> <span class="o">=</span> <span class="kr">function</span><span class="p">()</span>
+<span class="linenos">111</span>    <span class="kr">return</span> <span class="p">{</span>
+<span class="linenos">112</span>        <span class="c1">--- Connect to SWUpdate&#39;s control socket.</span>
+<span class="linenos">113</span>        <span class="c1">--</span>
+<span class="linenos">114</span>        <span class="c1">--- @param  self  table   This `lua_swupdate.control` instance</span>
+<span class="linenos">115</span>        <span class="c1">--- @return number | nil  # Connection handle or nil in case of error</span>
+<span class="linenos">116</span>        <span class="c1">--- @return nil | string  # nil or an error message in case of error</span>
+<span class="linenos">117</span>        <span class="n">connect</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">self</span><span class="p">)</span> <span class="kr">end</span><span class="p">,</span>
+<span class="linenos">118</span>
+<span class="linenos">119</span>        <span class="c1">--- Write to connected SWUpdate control socket.</span>
+<span class="linenos">120</span>        <span class="c1">--</span>
+<span class="linenos">121</span>        <span class="c1">--- @param  self  table    This `lua_swupdate.control` instance</span>
+<span class="linenos">122</span>        <span class="c1">--- @param  data  string   Chunk data to write to SWUpdate&#39;s control socket</span>
+<span class="linenos">123</span>        <span class="c1">--- @return boolean | nil  # true or nil in case of error</span>
+<span class="linenos">124</span>        <span class="c1">--- @return nil | string   # nil or an error message in case of error</span>
+<span class="linenos">125</span>        <span class="n">write</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span> <span class="kr">end</span><span class="p">,</span>
+<span class="linenos">126</span>
+<span class="linenos">127</span>        <span class="c1">--- Close connection to SWUpdate&#39;s control socket.</span>
+<span class="linenos">128</span>        <span class="c1">--</span>
+<span class="linenos">129</span>        <span class="c1">--- @param  self  table    This `lua_swupdate.control` instance</span>
+<span class="linenos">130</span>        <span class="c1">--- @return boolean | nil  # true or nil in case of error</span>
+<span class="linenos">131</span>        <span class="c1">--- @return nil | string   # nil or an error message in case of error</span>
+<span class="linenos">132</span>        <span class="n">close</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">self</span><span class="p">)</span> <span class="kr">end</span><span class="p">,</span>
+<span class="linenos">133</span>    <span class="p">}</span>
+<span class="linenos">134</span><span class="kr">end</span>
+<span class="linenos">135</span>
+<span class="linenos">136</span>
+<span class="linenos">137</span><span class="kr">return</span> <span class="n">lua_swupdate</span>
+</pre></div>
+</div>
+</section>
 </section>
 </section>
 
@@ -221,7 +366,7 @@ their space-separated IP addresses plus subnet masks as respective values.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2013-2024, Stefano Babic.</p>
+    <p>&#169; Copyright 2013-2025, Stefano Babic.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

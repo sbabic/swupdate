@@ -124,27 +124,33 @@ Generating self-signed certificates
 
 ::
 
-        openssl req -x509 -newkey rsa:4096 -nodes -keyout mycert.key.pem \
-            -out mycert.cert.pem -subj "/O=SWUpdate /CN=target"
-
+        openssl req -x509 -newkey rsa:4096 -noenc -keyout mycert.key.pem \
+            -out mycert.cert.pem -subj "/O=SWUpdate/CN=target" \
+            -addext extendedKeyUsage=1.3.6.1.5.5.7.3.4 -addext keyUsage=digitalSignature
 
 Check the documentation for more information about parameters. The "mycert.key.pem" contains
 the private key and it is used for signing. It is *not* delivered on the target.
 
 The target must have "mycert.cert.pem" installed - this is used by SWUpdate for verification.
 
+.. note::
+   The extendedKeyUsage value of "1.3.6.1.5.5.7.3.4" refers to "emailProtection". For "codeSigning"
+   use "1.3.6.1.5.5.7.3.3".
 
 Using PKI issued certificates
 .............................
 
 It is also possible to use PKI issued code signing certificates. However,
-SWUpdate uses OpenSSL library for handling CMS signatures and the library
+SWUpdate uses OpenSSL library for handling CMS signatures and by default the library
 requires the following attributes to be set on the signing certificate:
 
 ::
 
         keyUsage=digitalSignature
         extendedKeyUsage=emailProtection
+
+It is possible to change the default extendedKeyUsage value by setting the cert-purpose parameter
+in swupdate.cfg.
 
 It is also possible to completely disable signing certificate key usage
 checking if this requirement cannot be satisfied. This is controlled by
@@ -283,7 +289,7 @@ If activated, SWUpdate will always check the compound image. For security reason
 it is not possible to disable the check at runtime.
 
 For RSA and CMS signing, the -k parameter (public key file) is mandatory and the program stops 
-if the public key is not passed.
+if the public key is not passed. For CMS signing, CONFIG_SIGALG_CMS needs to be enabled.
 
 For GPG signing, CONFIG_SIGALG_GPG needs to be enabled. The GPG key will
 need to be imported to the device's GnuPG home directory. To do this, the
