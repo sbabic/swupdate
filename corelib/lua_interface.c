@@ -283,6 +283,8 @@ static void lua_string_to_img(struct img_type *img, const char *key,
 	if (!strcmp(key, "compressed")) {
 		if (!strcmp(value, "zlib")) {
 			img->compressed = COMPRESSED_ZLIB;
+		} else if (!strcmp(value, "xz")) {
+			img->compressed = COMPRESSED_XZ;
 		} else if (!strcmp(value, "zstd")) {
 			img->compressed = COMPRESSED_ZSTD;
 		} else {
@@ -529,6 +531,9 @@ static void update_table(lua_State* L, struct img_type *img)
 		switch (img->compressed) {
 			case COMPRESSED_ZLIB:
 				LUA_PUSH_IMG_STRING_VALUE(img, "compressed", "zlib");
+				break;
+			case COMPRESSED_XZ:
+				LUA_PUSH_IMG_STRING_VALUE(img, "compressed", "xz");
 				break;
 			case COMPRESSED_ZSTD:
 				LUA_PUSH_IMG_STRING_VALUE(img, "compressed", "zstd");

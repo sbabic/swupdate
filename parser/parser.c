@@ -441,6 +441,8 @@ static int parse_common_attributes(parsertype p, void *elem, struct img_type *im
 	if ((compressed = get_field_string(p, elem, "compressed")) != NULL) {
 		if (!strcmp(compressed, "zlib")) {
 			image->compressed = COMPRESSED_ZLIB;
+		} else if (!strcmp(compressed, "xz")) {
+			image->compressed = COMPRESSED_XZ;
 		} else if (!strcmp(compressed, "zstd")) {
 			image->compressed = COMPRESSED_ZSTD;
 		} else {

@@ -62,6 +62,10 @@ ifeq ($(HAVE_ZLIB),)
 export HAVE_ZLIB = y
 endif
 
+ifeq ($(HAVE_XZ),)
+export HAVE_XZ = y
+endif
+
 ifeq ($(HAVE_ZSTD),)
 export HAVE_ZSTD = y
 endif

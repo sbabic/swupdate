@@ -1415,8 +1415,8 @@ There are 4 main sections inside sw-description:
    |             |          | files      | compressed and must be decompressed   |
    |             |          |            | before being installed. the value     |
    |             |          |            | denotes the compression type.         |
-   |             |          |            | currently supported values are "zlib" |
-   |             |          |            | and "zstd".                           |
+   |             |          |            | currently supported values are "xz",  |
+   |             |          |            | "zlib" and "zstd".                    |
    +-------------+----------+------------+---------------------------------------+
    | compressed  | bool (dep| images     | Deprecated. Use the string form. true |
    |             | recated) | files      | is equal to 'compressed = "zlib"'.    |

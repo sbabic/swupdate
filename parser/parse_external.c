@@ -87,6 +87,8 @@ static void sw_append_stream(struct img_type *img, const char *key,
 		if (value != NULL) {
 			if (!strcmp(value, "zlib")) {
 				img->compressed = COMPRESSED_ZLIB;
+			} else if (!strcmp(value, "xz")) {
+				img->compressed = COMPRESSED_XZ;
 			} else if (!strcmp(value, "zstd")) {
 				img->compressed = COMPRESSED_ZSTD;
 			} else {

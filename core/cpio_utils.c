@@ -16,6 +16,9 @@
 #ifdef CONFIG_GUNZIP
 #include <zlib.h>
 #endif
+#ifdef CONFIG_XZ
+#include <lzma.h>
+#endif
 #ifdef CONFIG_ZSTD
 #include <zstd.h>
 #endif
@@ -332,7 +335,7 @@ static int decrypt_step(void *state, void *buffer, size_t size)
 	return 0;
 }
 
-#if defined(CONFIG_GUNZIP) || defined(CONFIG_ZSTD)
+#if defined(CONFIG_GUNZIP) || defined(CONFIG_ZSTD) || defined(CONFIG_XZ)
 typedef int (*DecompressStep)(void *state, void *buffer, size_t size);
 
 struct DecompressState {
@@ -383,6 +386,53 @@ static int gunzip_step(void *state, void *buffer, size_t size)
 		}
 		if (ret != Z_OK && ret != Z_BUF_ERROR) {
 			ERROR("inflate failed (returned %d)", ret);
+			return -1;
+		}
+	}
+	return outlen;
+}
+
+#endif
+
+#ifdef CONFIG_XZ
+struct XzState {
+	lzma_stream strm;
+	bool initialized;
+};
+static int xz_step(void* state, void* buffer, size_t size)
+{
+	struct DecompressState *ds = (struct DecompressState *)state;
+	struct XzState *s = (struct XzState *)ds->impl_state;
+	lzma_ret ret;
+	int outlen = 0;
+	lzma_action action = LZMA_RUN;
+
+	s->strm.next_out = buffer;
+	s->strm.avail_out = size;
+
+	while (outlen == 0) {
+		if (s->strm.avail_in == 0) {
+			ret = ds->upstream_step(ds->upstream_state, ds->input, sizeof ds->input);
+			if (ret < 0) {
+				return ret;
+			} else if (ret == 0) {
+				ds->eof = true;
+			}
+			s->strm.avail_in = ret;
+			s->strm.next_in = ds->input;
+		}
+		if (ds->eof) {
+			action = LZMA_FINISH;
+		}
+
+		ret = lzma_code(&s->strm, action);
+		outlen = size - s->strm.avail_out;
+		if (ret == LZMA_STREAM_END) {
+			ds->eof = true;
+			break;
+		}
+		if (ret != LZMA_OK && ret != LZMA_BUF_ERROR) {
+			ERROR("xz failed (returned %d)", ret);
 			return -1;
 		}
 	}
@@ -496,7 +546,7 @@ int copyfile(struct swupdate_copy *args)
 		.outlen = 0, .eof = false
 	};
 
-#if defined(CONFIG_GUNZIP) || defined(CONFIG_ZSTD)
+#if defined(CONFIG_GUNZIP) || defined(CONFIG_ZSTD) || defined(CONFIG_XZ)
 	struct DecompressState decompress_state = {
 		.upstream_step = NULL, .upstream_state = NULL,
 		.impl_state = NULL
@@ -510,6 +560,12 @@ int copyfile(struct swupdate_copy *args)
 			.avail_in = 0, .next_in = Z_NULL,
 			.avail_out = 0, .next_out = Z_NULL
 		},
+		.initialized = false,
+	};
+#endif
+#ifdef CONFIG_XZ
+	struct XzState xz_state = {
+		.strm = LZMA_STREAM_INIT,
 		.initialized = false,
 	};
 #endif
@@ -585,6 +641,19 @@ int copyfile(struct swupdate_copy *args)
 			decompress_state.impl_state = &gunzip_state;
 		} else
 #endif
+#ifdef CONFIG_XZ
+		if (args->compressed == COMPRESSED_XZ) {
+			if (lzma_stream_decoder(&xz_state.strm, UINT32_MAX,
+						LZMA_CONCATENATED) != LZMA_OK) {
+				ERROR("(lzma_stream_decoder failed");
+				ret = -EFAULT;
+				goto copyfile_exit;
+			}
+			xz_state.initialized = true;
+			decompress_step = &xz_step;
+			decompress_state.impl_state = &xz_state;
+		} else
+#endif
 #ifdef CONFIG_ZSTD
 		if (args->compressed == COMPRESSED_ZSTD) {
 			if ((zstd_state.dctx = ZSTD_createDStream()) == NULL) {
@@ -630,7 +699,7 @@ int copyfile(struct swupdate_copy *args)
 		state = &decrypt_state;
 	}
 
-#if defined(CONFIG_GUNZIP) || defined(CONFIG_ZSTD)
+#if defined(CONFIG_GUNZIP) || defined(CONFIG_ZSTD) || defined(CONFIG_XZ)
 	if (args->compressed) {
 		decompress_state.upstream_step = step;
 		decompress_state.upstream_state = state;
@@ -697,6 +766,11 @@ copyfile_exit:
 #ifdef CONFIG_GUNZIP
 	if (gunzip_state.initialized) {
 		inflateEnd(&gunzip_state.strm);
+	}
+#endif
+#ifdef CONFIG_XZ
+	if (xz_state.initialized) {
+		lzma_end(&xz_state.strm);
 	}
 #endif
 #ifdef CONFIG_ZSTD

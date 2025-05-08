@@ -81,6 +81,10 @@ config HAVE_ZLIB
 	bool
 	option env="HAVE_ZLIB"
 
+config HAVE_XZ
+	bool
+	option env="HAVE_XZ"
+
 config HAVE_ZSTD
 	bool
 	option env="HAVE_ZSTD"
@@ -528,6 +532,10 @@ config GUNZIP
 	bool
 	depends on HAVE_ZLIB
 	default y
+
+config XZ
+	bool "XZ compression support"
+	depends on HAVE_XZ
 
 config ZSTD
 	bool "Zstd compression support"

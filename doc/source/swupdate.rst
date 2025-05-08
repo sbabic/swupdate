@@ -57,7 +57,7 @@ General Overview
   SWUpdate can recreate UBI volumes, resizing them and
   copying the new software.
 
-- support for compressed images, using the zlib and zstd library.
+- support for compressed images, using the xz, zlib and zstd library.
   tarball (tgz file) are supported.
 
 - support for partitioned USB-pen or unpartitioned (mainly
