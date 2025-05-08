@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <unistd.h>
 #include <inttypes.h>
 #include <stdbool.h>
@@ -240,7 +241,7 @@ static int mg_check_digest_auth(struct mg_str method, struct mg_str uri,
 			mg_strcmp(auth_domain, mg_str(f_domain)) == 0) {
 			/* Username and domain matched, check the password */
 			mg_mkmd5resp(method, uri, mg_str_s(f_ha1), nonce, nc, cnonce, qop, exp_resp);
-			return strncmp(response.buf, exp_resp, strlen(exp_resp)) == 0;
+			return strncasecmp(response.buf, exp_resp, strlen(exp_resp)) == 0;
 		}
 	}
 
