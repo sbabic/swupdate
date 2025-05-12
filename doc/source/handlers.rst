@@ -118,6 +118,13 @@ Where:
   saves in the handlers' list and pass to the handler when it will
   be executed.
 
+Dummy Handler
+-------------
+
+The always built-in and aptly named dummy handler copies the artifact
+to ``/dev/null``, effectively skipping it and advancing to the next
+artifact, if any.
+
 UBI Volume Handler
 ------------------
 
