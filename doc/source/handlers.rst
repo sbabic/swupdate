@@ -183,7 +183,7 @@ However, please note the following limitations:
 
 There is a handler ubiswap that allow one to do an atomic swap for several
 ubi volume after all the images were flashed. This handler is a script
-for the point of view of swudate, so the node that provide it the data
+for the point of view of SWUpdate, so the node that provide it the data
 should be added in the section scripts.
 
 ::
@@ -486,7 +486,7 @@ script:
 
         - local: the script runs in own (isolated) Lua state that is created for the script.
           The script has access only to function defined inside the script or functions
-          provided by external libraries, like the internal swupdate library called via
+          provided by external libraries, like the internal SWUpdate library called via
           "require(swupdate)".
         - global: SWUpdate create a Lua state at the beginning of an Update and this is
           valid until the update is terminated. In this case, the script has access to any function
@@ -494,7 +494,7 @@ script:
           can be defined inside sw-description, and the script can call it.
 
 As default, each script runs in isolated / local Lua state. If the property "global-state" is set,
-then the common LUa state used for each Update transaction is taken.
+then the common Lua state used for each Update transaction is taken.
 
 Scripts ran in isolated context in previous versions. SWUpdate allocates a new
 Lua state, and import the basic libraries before loading the script. A
@@ -996,7 +996,7 @@ is called twice.
 Bootloader handler
 ------------------
 
-The bootloader handler allows to set bootloader's environment with a file. The file shold have the format:
+The bootloader handler allows to set bootloader's environment with a file. The file should have the format:
 
 ::
 
@@ -1033,13 +1033,13 @@ Archive handler
 ---------------
 
 The archive handler extracts an archive to a destination path.
-It supports whatever format libarchive has been compiled to support, for example even if swupdate
+It supports whatever format libarchive has been compiled to support, for example even if SWUpdate
 itself has no direct support for xz it can be possible to extract tar.xz files with it.
 
 The attribute `preserve-attributes` must be set to preserve timestamps. uid/gid (numeric),
 permissions (except +x, always preserved) and extended attributes.
 
-The property `create-destination` can be set to the string `true` to have swupdate create
+The property `create-destination` can be set to the string `true` to have SWUpdate create
 the destination path before extraction.
 
 ::
@@ -1229,8 +1229,8 @@ GPT Partition Swap
 ..................
 
 There is a handler gptswap that allow to swap gpt partitions after all the images were flashed.
-This handler only swaps the name of the partition. It coud be useful for a dual bank strategy.
-This handler is a script for the point of view of swupdate, so the node that provides it should
+This handler only swaps the name of the partition. It could be useful for a dual bank strategy.
+This handler is a script for the point of view of SWUpdate, so the node that provides it should
 be added in the section scripts.
 
 Simple example:
@@ -1328,7 +1328,7 @@ The handler allows to install a BTRFS snapshot created with the "btrfs send" com
 SWUpdate is using the external "btrfs" utility, that must be installed on the target,
 and "btrfs receive" is executed by sending the stream to the command.
 
-All generic features are avaiulable, that means that an srtifact can be streamed by
+All generic features are available, that means that an artifact can be streamed by
 using the "installed-directly" attribute.
 
 
@@ -1354,7 +1354,7 @@ Generic Executor Handler
 
 The BTRFS snapshot handler requires to stream an artifact after normal handling
 (decompression, decryption, etc.) to the external command "btrfs" without any temporary copy.
-The same infrastucture can be used to stream any artifact to any arbitrary external command
+The same infrastructure can be used to stream any artifact to any arbitrary external command
 that accepts the stream as stdin. This is done with the "executor" handler.
 
 
@@ -1379,11 +1379,11 @@ The handler processes a ZCHUNK header and finds which chunks should be downloade
 after generating the corresponding header of the running artifact to be updated.
 The handler uses just a couple of attributes from the main setup, and gets more information
 from the properties. The attributes are then passed to a secondary handler that
-will install the artefact after the delta handler has assembled it.
+will install the artifact after the delta handler has assembled it.
 The handler requires ZST because this is the compression format for Zchunk.
 
 The SWU must just contain the ZCK's header, while the ZCK file is put as it is on the server.
-The utilities in Zchunk project are used to build the zck file.
+The utilities in Zchunk project are used to build the ZCK file.
 
 ::
 
@@ -1474,7 +1474,7 @@ with the docker daemon. Podman (another container solution) has a compatibility 
 docker REST API and could be used as well, but SWUpdate is currently not checking if a podman
 daemon must be started.
 
-Goal of these handlers is just to provice the few API to update images and start containers - it
+Goal of these handlers is just to provide the few API to update images and start containers - it
 does not implement the full API.
 
 Docker Load Image
