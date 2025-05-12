@@ -1049,6 +1049,7 @@ int lua_get_swupdate_version(lua_State *L)
 {
 	const unsigned int version = VERSION;
 	const unsigned int patchlevel = VERSION_PATCHLEVEL;
+	const unsigned int sublevel = VERSION_SUBLEVEL;
 
 	lua_newtable (L);
 	lua_pushnumber(L, 1);
@@ -1057,8 +1058,12 @@ int lua_get_swupdate_version(lua_State *L)
 	lua_pushnumber(L, 2);
 	lua_pushnumber(L, patchlevel);
 	lua_settable(L, -3);
+	lua_pushnumber(L, 3);
+	lua_pushnumber(L, sublevel);
+	lua_settable(L, -3);
 	lua_push_enum(L, "version", version);
 	lua_push_enum(L, "patchlevel", patchlevel);
+	lua_push_enum(L, "sublevel", sublevel);
 	return 1;
 }
 

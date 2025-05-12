@@ -320,8 +320,10 @@ suricatta.get_tmpdir = function() end
 --- @class suricatta.version
 --- @field [1]         number  SWUpdate's version
 --- @field [2]         number  SWUpdate's patch level
+--- @field [3]         number  SWUpdate's sub level
 --- @field version     number  SWUpdate's version
 --- @field patchlevel  number  SWUpdate's patch level
+--- @field sublevel    number  SWUpdate's sub level
 
 --- Get SWUpdate version.
 --
