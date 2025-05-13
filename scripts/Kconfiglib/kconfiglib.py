@@ -1637,6 +1637,11 @@ class Kconfig(object):
                     continue
                 item._visited = True
 
+                # Don't serialize Buildroot environment variables into .config
+                if item.env_var is not None and \
+                        item.env_var.startswith("HAVE_"):
+                    continue
+
                 conf_string = item.config_string
                 if not conf_string:
                     continue
