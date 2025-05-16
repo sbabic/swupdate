@@ -178,6 +178,15 @@ to SWUGenerator.
 * Request for Support : Sponsor
 * Priority : Medium
 
+LZMA support to SWUGenerator
+----------------------------
+
+XZ (LZMA) decompression was added to SWUpdate, but SWUGenerator is not able to create XZ compressed images.
+
+* Status: Wait
+* Request for Support : Sponsor
+* Priority : Medium
+
 swupdate-progress start up
 --------------------------
 
@@ -356,6 +365,18 @@ and tested on real hardware.
 * Status: Wait
 * Request for Support : Sponsor
 * Priority : Medium
+
+Bootloader interface
+====================
+
+SWUpdate has several interfaces to bootloader, but support for handling UEFI variables is still
+missing. It is required to set UEFI variable exactly as done for other bootloader (like U-Boot)
+via sw-description. Lua code can profit, too, becaause variables can be retrieved using the "get"
+function.
+
+* Status: Wait
+* Request for Support : Sponsor
+* Priority : High
 
 Binding to languages
 ====================
