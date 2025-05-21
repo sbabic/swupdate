@@ -48,6 +48,7 @@ $_SUDO apt-get -qq update && apt-get install --yes --no-install-recommends \
         libudev-dev \
         liburiparser-dev \
         libwebsockets-dev \
+	liblzma-dev \
         libzstd-dev \
         make \
         npm \
