@@ -422,7 +422,7 @@ static int xz_step(void* state, void* buffer, size_t size)
 			s->strm.next_in = ds->input;
 		}
 		if (ds->eof) {
-			action = LZMA_FINISH;
+			break;
 		}
 
 		ret = lzma_code(&s->strm, action);
@@ -644,7 +644,7 @@ int copyfile(struct swupdate_copy *args)
 #ifdef CONFIG_XZ
 		if (args->compressed == COMPRESSED_XZ) {
 			if (lzma_stream_decoder(&xz_state.strm, UINT32_MAX,
-						LZMA_CONCATENATED) != LZMA_OK) {
+						0) != LZMA_OK) {
 				ERROR("(lzma_stream_decoder failed");
 				ret = -EFAULT;
 				goto copyfile_exit;
