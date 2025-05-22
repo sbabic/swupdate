@@ -184,7 +184,7 @@ LZMA support to SWUGenerator
 XZ (LZMA) decompression was added to SWUpdate, but SWUGenerator is not able to create XZ compressed images.
 
 * Status: Wait
-* Request for Support : Sponsor
+* Request for Support : Not required
 * Priority : Medium
 
 swupdate-progress start up
