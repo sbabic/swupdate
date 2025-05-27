@@ -40,8 +40,14 @@ ifneq ($(CONFIG_EXTRA_LDFLAGS),)
 EXTRA_LDFLAGS += $($(STRIP) $(subst ",,$(CONFIG_EXTRA_LDFLAGS)))#"))
 endif
 ifneq ($(CONFIG_EMBEDDED_SURICATTA_LUA),)
-ifneq ($(findstring /, $(firstword $(CONFIG_EMBEDDED_SURICATTA_LUA_SOURCE))),)
-    CONFIG_EMBEDDED_SURICATTA_LUA_SOURCE := $(srctree)/$(CONFIG_EMBEDDED_SURICATTA_LUA_SOURCE)
+# Strip quotes from filename
+CONFIG_EMBEDDED_SURICATTA_LUA_SOURCE := $(patsubst "%",%,$(CONFIG_EMBEDDED_SURICATTA_LUA_SOURCE))
+ifeq ($(findstring /,$(word 1,$(subst /, /,$(CONFIG_EMBEDDED_SURICATTA_LUA_SOURCE)))),)
+# It's not an absolute path, assume it's relative to $(srcdir)
+ifeq ($(realpath $(srctree)/$(CONFIG_EMBEDDED_SURICATTA_LUA_SOURCE)),)
+$(error File specified in CONFIG_EMBEDDED_SURICATTA_LUA_SOURCE=$(CONFIG_EMBEDDED_SURICATTA_LUA_SOURCE) not found)
+endif
+CONFIG_EMBEDDED_SURICATTA_LUA_SOURCE := $(realpath $(srctree)/$(CONFIG_EMBEDDED_SURICATTA_LUA_SOURCE))
 endif
 EXTRA_LDFLAGS += -Wl,--format=binary -Wl,$(CONFIG_EMBEDDED_SURICATTA_LUA_SOURCE) -Wl,--format=default
 endif
