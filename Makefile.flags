@@ -22,7 +22,7 @@ KBUILD_CPPFLAGS += -D_GNU_SOURCE -DNDEBUG
 KBUILD_CPPFLAGS += -DVERSION=$(VERSION)
 KBUILD_CPPFLAGS += -DVERSION_PATCHLEVEL=$(PATCHLEVEL)
 KBUILD_CPPFLAGS += -DVERSION_SUBLEVEL=$(SUBLEVEL)
-KBUILD_CPPFLAGS += -DVERSION_EXTRAVERSION=$(shell $(srctree)/scripts/gen_extraversion)
+KBUILD_CPPFLAGS += -DVERSION_EXTRAVERSION=$(shell cd $(srctree) && ver=$$(./scripts/gen_extraversion); [ -n "$$ver" ] && echo -$$ver)
 
 KBUILD_CFLAGS += $(call cc-option,-Wall,)
 KBUILD_CFLAGS += $(call cc-option,-Wshadow,)
