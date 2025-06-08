@@ -92,7 +92,7 @@ DATADIR := test/data
 
 PHONY += PREPARE_DATA
 PREPARE_DATA:
-	$(Q)cp -r $(srctree)/test/data $(objtree)/test/data
+	$(Q)[ "$(srctree)" -ef "$(objtree)" ] || cp -r $(srctree)/test/data $(objtree)/test/data
 
 $(obj)/test_verify.o: PREPARE_DATA $(DATADIR)/signature $(DATADIR)/signing-pubkey.pem
 
