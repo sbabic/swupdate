@@ -463,9 +463,14 @@ static int flash_write_image(int mtdnum, struct img_type *img)
 
 	priv.imglen = get_output_size(img, true);
 	if (priv.imglen < 0) {
-		ERROR("Failed to determine output size, bailing out.");
-		return (int)priv.imglen;
+		WARN("Failed to determine output size, getting MTD size.");
+		priv.imglen = get_mtd_size(mtdnum);
+		if (priv.imglen < 0) {
+			ERROR("Could not get MTD %d device size", mtdnum);
+			return -ENODEV;
+		}
 	}
+
 	if (!priv.imglen)
 		return 0;
 
