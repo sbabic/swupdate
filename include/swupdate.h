@@ -36,10 +36,30 @@ struct extproc {
 
 LIST_HEAD(proclist, extproc);
 
+/*
+ * This is used for per type configuration
+ * if no type is set, the type "default" (always set)
+ * is taken.
+ */
+struct swupdate_type_cfg {
+	char type_name[SWUPDATE_GENERAL_STRING_SIZE];
+	char minimum_version[SWUPDATE_GENERAL_STRING_SIZE];
+	char maximum_version[SWUPDATE_GENERAL_STRING_SIZE];
+	char current_version[SWUPDATE_GENERAL_STRING_SIZE];
+	char postupdatecmd[SWUPDATE_GENERAL_STRING_SIZE];
+	char preupdatecmd[SWUPDATE_GENERAL_STRING_SIZE];
+	bool no_downgrading;
+	bool no_reinstalling;
+	bool check_max_version;
+	LIST_ENTRY(swupdate_type_cfg) next;
+};
+LIST_HEAD(swupdate_type_list, swupdate_type_cfg);
+
 struct swupdate_parms {
 	bool dry_run;
 	char software_set[SWUPDATE_GENERAL_STRING_SIZE];
 	char running_mode[SWUPDATE_GENERAL_STRING_SIZE];
+	struct swupdate_type_cfg *type;
 };
 
 struct swupdate_cfg {
@@ -52,28 +72,21 @@ struct swupdate_cfg {
 	char output_swversions[SWUPDATE_GENERAL_STRING_SIZE];
 	char publickeyfname[SWUPDATE_GENERAL_STRING_SIZE];
 	char aeskeyfname[SWUPDATE_GENERAL_STRING_SIZE];
-	char postupdatecmd[SWUPDATE_GENERAL_STRING_SIZE];
-	char preupdatecmd[SWUPDATE_GENERAL_STRING_SIZE];
-	char minimum_version[SWUPDATE_GENERAL_STRING_SIZE];
-	char maximum_version[SWUPDATE_GENERAL_STRING_SIZE];
-	char current_version[SWUPDATE_GENERAL_STRING_SIZE];
 	char mtdblacklist[SWUPDATE_GENERAL_STRING_SIZE];
 	char forced_signer_name[SWUPDATE_GENERAL_STRING_SIZE];
 	char namespace_for_vars[SWUPDATE_GENERAL_STRING_SIZE];
 	void *lua_state;
 	bool syslog_enabled;
-	bool no_downgrading;
-	bool no_reinstalling;
-	bool no_transaction_marker;
-	bool no_state_marker;
-	bool reboot_required;
-	bool check_max_version;
 	bool verbose;
 	int loglevel;
 	int cert_purpose;
+	bool no_transaction_marker;
+	bool no_state_marker;
+	bool reboot_required;
 	struct hw_type hw;
 	struct hwlist hardware;
 	struct swver installed_sw_list;
+	struct swupdate_type_list swupdate_types;
 	struct imglist images;
 	struct imglist scripts;
 	struct dict bootloader;
@@ -82,6 +95,7 @@ struct swupdate_cfg {
 	struct proclist extprocs;
 	void *dgst;	/* Structure for signed images */
 	struct swupdate_parms parms;
+	struct swupdate_type_cfg *update_type;
 	const char *embscript;
 	char gpg_home_directory[SWUPDATE_GENERAL_STRING_SIZE];
 	char gpgme_protocol[SWUPDATE_GENERAL_STRING_SIZE];

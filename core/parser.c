@@ -130,6 +130,18 @@ static int check_handler_list(struct imglist *list,
 	return 0;
 }
 
+static struct swupdate_type_cfg *swupdate_find_update_type(struct swupdate_type_list *list, const char *name)
+{
+	struct swupdate_type_cfg *type_cfg = NULL;
+
+	LIST_FOREACH(type_cfg, list, next) {
+		if (!strcmp(type_cfg->type_name, name)) {
+			return type_cfg;
+		}
+	}
+	return NULL;
+}
+
 int parse(struct swupdate_cfg *sw, const char *descfile)
 {
 	int ret = -1;
@@ -152,9 +164,16 @@ int parse(struct swupdate_cfg *sw, const char *descfile)
 
 #endif
 	char *errors[ARRAY_SIZE(parsers)] = {0};
+	struct swupdate_type_cfg *update_type = swupdate_find_update_type(&sw->swupdate_types, "default");
+
+	if (!update_type) {
+		ERROR("Update Type Default is always present, something wrong here !");
+		return -EFAULT;
+	}
 	for (unsigned int i = 0; i < ARRAY_SIZE(parsers); i++) {
 		current = parsers[i];
 
+		sw->update_type = update_type;
 		ret = current(sw, descfile, &errors[i]);
 
 		if (ret == 0)
@@ -220,10 +239,10 @@ int parse(struct swupdate_cfg *sw, const char *descfile)
 	 * versions in numbers to be compared and check to get a
 	 * newer version
 	 */
-	if (sw->no_downgrading) {
-		if (compare_versions(sw->version, sw->minimum_version) < 0) {
+	if (sw->update_type->no_downgrading) {
+		if (compare_versions(sw->version, sw->update_type->minimum_version) < 0) {
 			ERROR("No downgrading allowed: new version %s < installed %s",
-				sw->version, sw->minimum_version);
+				sw->version, sw->update_type->minimum_version);
 			return -EPERM;
 		}
 	}
@@ -233,10 +252,10 @@ int parse(struct swupdate_cfg *sw, const char *descfile)
 	 * versions in numbers to be compared and check to get a
 	 * newer version
 	 */
-	if (sw->check_max_version) {
-		if (compare_versions(sw->version, sw->maximum_version) > 0) {
+	if (sw->update_type->check_max_version) {
+		if (compare_versions(sw->version, sw->update_type->maximum_version) > 0) {
 			ERROR("Max version set: new version %s > max allowed %s",
-				sw->version, sw->maximum_version);
+				sw->version, sw->update_type->maximum_version);
 			return -EPERM;
 		}
 	}
@@ -245,11 +264,11 @@ int parse(struct swupdate_cfg *sw, const char *descfile)
 	 * If reinstalling is not allowed, compare
 	 * version strings
 	 */
-	if (sw->no_reinstalling) {
+	if (sw->update_type->no_reinstalling) {
 
-		if (strcmp(sw->version, sw->current_version) == 0) {
+		if (strcmp(sw->version, sw->update_type->current_version) == 0) {
 			ERROR("No reinstalling allowed: new version %s == installed %s",
-				sw->version, sw->current_version);
+				sw->version, sw->update_type->current_version);
 			return -EPERM;
 		}
 	}

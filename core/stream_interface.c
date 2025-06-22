@@ -859,18 +859,18 @@ void set_version_range(const char *minversion,
 		const char *maxversion, const char *current)
 {
 	if (minversion && strnlen(minversion, SWUPDATE_GENERAL_STRING_SIZE)) {
-		strlcpy(inst.software->minimum_version, minversion,
-			sizeof(inst.software->minimum_version));
-		inst.software->no_downgrading = true;
+		strlcpy(inst.software->update_type->minimum_version, minversion,
+			sizeof(inst.software->update_type->minimum_version));
+		inst.software->update_type->no_downgrading = true;
 	}
 	if (maxversion && strnlen(maxversion, SWUPDATE_GENERAL_STRING_SIZE)) {
-		strlcpy(inst.software->maximum_version, maxversion,
-			sizeof(inst.software->maximum_version));
-		inst.software->check_max_version = true;
+		strlcpy(inst.software->update_type->maximum_version, maxversion,
+			sizeof(inst.software->update_type->maximum_version));
+		inst.software->update_type->check_max_version = true;
 	}
 	if (current && strnlen(current, SWUPDATE_GENERAL_STRING_SIZE)) {
-		strlcpy(inst.software->current_version, current,
-			sizeof(inst.software->current_version));
-		inst.software->no_reinstalling = true;
+		strlcpy(inst.software->update_type->current_version, current,
+			sizeof(inst.software->update_type->current_version));
+		inst.software->update_type->no_reinstalling = true;
 	}
 }

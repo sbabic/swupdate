@@ -265,6 +265,7 @@ static int parse_image_selector(const char *selector, struct swupdate_cfg *sw)
 
 static void swupdate_init(struct swupdate_cfg *sw)
 {
+	struct swupdate_type_cfg *update_type = calloc (1, sizeof(*update_type));
 	/* Initialize internal tree to store configuration */
 	memset(sw, 0, sizeof(*sw));
 	LIST_INIT(&sw->images);
@@ -272,6 +273,11 @@ static void swupdate_init(struct swupdate_cfg *sw)
 	LIST_INIT(&sw->scripts);
 	LIST_INIT(&sw->bootloader);
 	LIST_INIT(&sw->extprocs);
+	LIST_INIT(&sw->swupdate_types);
+	strlcpy(update_type->type_name, "default", sizeof(update_type->type_name));
+	LIST_INSERT_HEAD(&sw->swupdate_types, update_type, next);
+	sw->update_type = update_type;
+
 	sw->cert_purpose = SSL_PURPOSE_DEFAULT;
 
 #ifdef CONFIG_MTD
@@ -293,6 +299,28 @@ static int parse_cert_purpose(const char *text)
 
 	ERROR("unknown certificate purpose '%s'\n", text);
 	exit(EXIT_FAILURE);
+}
+
+static void read_type_settings(void *elem, struct swupdate_type_cfg *typecfg)
+{
+	GET_FIELD_STRING(LIBCFG_PARSER, elem,
+				"postupdatecmd", typecfg->postupdatecmd);
+	GET_FIELD_STRING(LIBCFG_PARSER, elem,
+				"preupdatecmd", typecfg->preupdatecmd);
+
+	GET_FIELD_STRING(LIBCFG_PARSER, elem,
+				"no-downgrading", typecfg->minimum_version);
+
+	if (strlen(typecfg->minimum_version))
+		typecfg->no_downgrading = true;
+	GET_FIELD_STRING(LIBCFG_PARSER, elem,
+				"max-version", typecfg->maximum_version);
+	if (strlen(typecfg->maximum_version))
+		typecfg->check_max_version = true;
+	GET_FIELD_STRING(LIBCFG_PARSER, elem,
+				"no-reinstalling", typecfg->current_version);
+	if (strlen(typecfg->current_version))
+		typecfg->no_reinstalling = true;
 }
 
 static int read_globals_settings(void *elem, void *data)
@@ -318,10 +346,6 @@ static int read_globals_settings(void *elem, void *data)
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
 				"mtd-blacklist", sw->mtdblacklist);
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
-				"postupdatecmd", sw->postupdatecmd);
-	GET_FIELD_STRING(LIBCFG_PARSER, elem,
-				"preupdatecmd", sw->preupdatecmd);
-	GET_FIELD_STRING(LIBCFG_PARSER, elem,
 				"namespace-vars", sw->namespace_for_vars);
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
 				"gen-swversions", sw->output_swversions);
@@ -333,8 +357,6 @@ static int read_globals_settings(void *elem, void *data)
 	GET_FIELD_BOOL(LIBCFG_PARSER, elem, "verbose", &sw->verbose);
 	GET_FIELD_INT(LIBCFG_PARSER, elem, "loglevel", &sw->loglevel);
 	GET_FIELD_BOOL(LIBCFG_PARSER, elem, "syslog", &sw->syslog_enabled);
-	GET_FIELD_STRING(LIBCFG_PARSER, elem,
-				"no-downgrading", sw->minimum_version);
 	tmp[0] = '\0';
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
 				"fwenv-config-location", tmp);
@@ -342,16 +364,6 @@ static int read_globals_settings(void *elem, void *data)
 		set_fwenv_config(tmp);
 		tmp[0] = '\0';
 	}
-	if (strlen(sw->minimum_version))
-		sw->no_downgrading = true;
-	GET_FIELD_STRING(LIBCFG_PARSER, elem,
-				"max-version", sw->maximum_version);
-	if (strlen(sw->maximum_version))
-		sw->check_max_version = true;
-	GET_FIELD_STRING(LIBCFG_PARSER, elem,
-				"no-reinstalling", sw->current_version);
-	if (strlen(sw->current_version))
-		sw->no_reinstalling = true;
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
 				"cert-purpose", tmp);
 	if (tmp[0] != '\0')
@@ -371,6 +383,9 @@ static int read_globals_settings(void *elem, void *data)
 				"gpgme-protocol", sw->gpgme_protocol);
 	GET_FIELD_INT(LIBCFG_PARSER, elem, "sw-description-max-size",
 				&sw->swdesc_max_size);
+
+
+	read_type_settings(elem, sw->update_type);
 
 	return 0;
 }
@@ -679,9 +694,9 @@ int main(int argc, char **argv)
 			break;
 		case '3':
 			if (optarg) {
-				swcfg.check_max_version = true;
-				strlcpy(swcfg.maximum_version, optarg,
-					sizeof(swcfg.maximum_version));
+				swcfg.update_type->check_max_version = true;
+				strlcpy(swcfg.update_type->maximum_version, optarg,
+					sizeof(swcfg.update_type->maximum_version));
 			}
 			break;
 #ifdef CONFIG_ENCRYPTED_IMAGES
@@ -692,15 +707,15 @@ int main(int argc, char **argv)
 			break;
 #endif
 		case 'N':
-			swcfg.no_downgrading = true;
-			if (optarg) strlcpy(swcfg.minimum_version, optarg,
-					    sizeof(swcfg.minimum_version));
+			swcfg.update_type->no_downgrading = true;
+			if (optarg) strlcpy(swcfg.update_type->minimum_version, optarg,
+					    sizeof(swcfg.update_type->minimum_version));
 			break;
 		case 'R':
 			if (optarg) {
-				swcfg.no_reinstalling = true;
-				strlcpy(swcfg.current_version, optarg,
-					sizeof(swcfg.current_version));
+				swcfg.update_type->no_reinstalling = true;
+				strlcpy(swcfg.update_type->current_version, optarg,
+					sizeof(swcfg.update_type->current_version));
 			}
 			break;
 		case 'M':
@@ -771,12 +786,12 @@ int main(int argc, char **argv)
 			opt_c = true;
 			break;
 		case 'p':
-			if (optarg) strlcpy(swcfg.postupdatecmd, optarg,
-					    sizeof(swcfg.postupdatecmd));
+			if (optarg) strlcpy(swcfg.update_type->postupdatecmd, optarg,
+					    sizeof(swcfg.update_type->postupdatecmd));
 			break;
 		case 'P':
-			if (optarg )strlcpy(swcfg.preupdatecmd, optarg,
-					    sizeof(swcfg.preupdatecmd));
+			if (optarg )strlcpy(swcfg.update_type->preupdatecmd, optarg,
+					    sizeof(swcfg.update_type->preupdatecmd));
 			break;
 		default:
 			fprintf(stdout, "Try %s -h for usage\n", argv[0]);
