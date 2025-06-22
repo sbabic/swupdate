@@ -131,6 +131,13 @@ int __wrap_mtd_dev_present(libmtd_t UNUSED desc, int mtd_num)
 	return 1;
 }
 
+int __wrap_get_mtd_size(int mtd_num);
+int __wrap_get_mtd_size(int UNUSED mtd_num)
+{
+	return -ENODEV;
+}
+
+
 int __wrap_get_mtd_from_device(char *s);
 int __wrap_get_mtd_from_device(char *s)
 {
