@@ -11,7 +11,6 @@
 #include <stdbool.h>
 #include <json-c/json.h>
 
-#ifdef CONFIG_LIBCONFIG
 bool is_field_numeric_cfg(config_setting_t *e, const char *path);
 void get_field_cfg(config_setting_t *e, const char *path, void *dest, field_type_t type);
 void *get_child_libconfig(void *e, const char *name);
@@ -20,24 +19,6 @@ void iterate_field_libconfig(config_setting_t *e, iterate_callback cb,
 const char *get_field_string_libconfig(config_setting_t *e, const char *path);
 void *find_root_libconfig(config_t *cfg, const char **nodes, unsigned int depth);
 void *get_node_libconfig(config_t *cfg, const char **nodes);
-
-#else
-#define config_setting_get_elem(a,b)	(NULL)
-#define config_setting_length(a)	(0)
-#define config_setting_lookup_string(a, b, str) (0)
-#define config_setting_type(path) (0)
-#define find_node_libconfig(cfg, field, swcfg) (NULL)
-#define get_field_string_libconfig(e, path)	(NULL)
-#define get_child_libconfig(e, name)		(NULL)
-#define iterate_field_libconfig(e, cb, data)	{ }
-#define get_field_cfg(e, path, dest, type)
-#define find_root_libconfig(cfg, nodes, depth)		(NULL)
-#define get_node_libconfig(cfg, nodes)		(NULL)
-#define is_field_numeric_cfg(e, path)	(false)
-#define CONFIG_TYPE_GROUP   1
-#define CONFIG_TYPE_ARRAY   7
-#define CONFIG_TYPE_LIST    8
-#endif
 
 /*
  * JSON implementation for parselib

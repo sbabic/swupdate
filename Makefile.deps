@@ -6,10 +6,6 @@ ifeq ($(HAVE_LUA),)
 export HAVE_LUA = y
 endif
 
-ifeq ($(HAVE_LIBCONFIG),)
-export HAVE_LIBCONFIG = y
-endif
-
 ifeq ($(HAVE_LIBARCHIVE),)
 export HAVE_LIBARCHIVE = y
 endif

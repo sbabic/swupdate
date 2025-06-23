@@ -10,13 +10,11 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <json-c/json.h>
-#ifdef CONFIG_LIBCONFIG
 #include <libconfig.h>
 #define LIBCONFIG_VERSION ((LIBCONFIG_VER_MAJOR << 16) | \
 	(LIBCONFIG_VER_MINOR << 8) | LIBCONFIG_VER_REVISION)
 #if LIBCONFIG_VERSION < 0x10500
 #define config_setting_lookup config_lookup_from
-#endif
 #endif
 
 typedef enum {

@@ -149,9 +149,7 @@ LDLIBS += curl
 endif
 
 # libconfig is always compiled
-ifeq ($(CONFIG_LIBCONFIG),y)
 LDLIBS += config
-endif
 
 # libarchive
 ifeq ($(CONFIG_ARCHIVE),y)

@@ -93,7 +93,6 @@ static int read_sw_version_file(struct swupdate_cfg *sw)
 	return 0;
 }
 
-#ifdef CONFIG_LIBCONFIG
 static int versions_settings(void *setting, void *data)
 {
 	struct swupdate_cfg *sw = (struct swupdate_cfg *)data;
@@ -136,14 +135,6 @@ void get_sw_versions(swupdate_cfg_handle *handle, struct swupdate_cfg *sw)
 	/* If not found, fall back to a legacy file in the format "<image name> <version>" */
 	read_sw_version_file(sw);
 }
-#else
-
-void get_sw_versions(swupdate_cfg_handle  __attribute__ ((__unused__))*handle,
-			struct swupdate_cfg *sw)
-{
-	read_sw_version_file(sw);
-}
-#endif
 
 /*
  * convert a version string into a number

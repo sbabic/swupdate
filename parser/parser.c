@@ -1044,7 +1044,6 @@ static int parser(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 	return ret;
 }
 
-#ifdef CONFIG_LIBCONFIG
 int parse_cfg(struct swupdate_cfg *swcfg, const char *filename, char **error)
 {
 	config_t cfg;
@@ -1075,14 +1074,6 @@ int parse_cfg(struct swupdate_cfg *swcfg, const char *filename, char **error)
 
 	return ret;
 }
-#else
-int parse_cfg(struct swupdate_cfg __attribute__((__unused__)) *swcfg,
-	      const char __attribute__((__unused__)) *filename,
-	      char __attribute__((__unused__)) **error)
-{
-	return -1;
-}
-#endif
 
 #define JSON_OBJECT_FREED 1
 
