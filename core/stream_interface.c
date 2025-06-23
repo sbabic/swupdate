@@ -855,22 +855,34 @@ sourcetype get_install_source(void)
 	return inst.req.source;
 }
 
-void set_version_range(const char *minversion,
+int set_version_range(const char *update_type, const char *minversion,
 		const char *maxversion, const char *current)
 {
+	struct swupdate_type_cfg *typecfg;
+	typecfg = swupdate_find_update_type(&inst.software->swupdate_types,
+					    update_type && strnlen(update_type, SWUPDATE_GENERAL_STRING_SIZE) ?
+					    update_type : "default");
+
+	if (!typecfg) {
+		ERROR("Configuration setup for Update Type not found");
+		return -EINVAL;
+	}
+
 	if (minversion && strnlen(minversion, SWUPDATE_GENERAL_STRING_SIZE)) {
-		strlcpy(inst.software->update_type->minimum_version, minversion,
-			sizeof(inst.software->update_type->minimum_version));
-		inst.software->update_type->no_downgrading = true;
+		strlcpy(typecfg->minimum_version, minversion,
+			sizeof(typecfg->minimum_version));
+		typecfg->no_downgrading = true;
 	}
 	if (maxversion && strnlen(maxversion, SWUPDATE_GENERAL_STRING_SIZE)) {
-		strlcpy(inst.software->update_type->maximum_version, maxversion,
-			sizeof(inst.software->update_type->maximum_version));
-		inst.software->update_type->check_max_version = true;
+		strlcpy(typecfg->maximum_version, maxversion,
+			sizeof(typecfg->maximum_version));
+		typecfg->check_max_version = true;
 	}
 	if (current && strnlen(current, SWUPDATE_GENERAL_STRING_SIZE)) {
-		strlcpy(inst.software->update_type->current_version, current,
-			sizeof(inst.software->update_type->current_version));
-		inst.software->update_type->no_reinstalling = true;
+		strlcpy(typecfg->current_version, current,
+			sizeof(typecfg->current_version));
+		typecfg->no_reinstalling = true;
 	}
+
+	return 0;
 }

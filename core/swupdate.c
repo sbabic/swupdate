@@ -266,6 +266,11 @@ static int parse_image_selector(const char *selector, struct swupdate_cfg *sw)
 static void swupdate_init(struct swupdate_cfg *sw)
 {
 	struct swupdate_type_cfg *update_type = calloc (1, sizeof(*update_type));
+	if (!update_type) {
+		/* this should never happen */
+		fprintf(stderr, "OOM at startup, exiting...\n");
+		exit(EXIT_FAILURE);
+	}
 	/* Initialize internal tree to store configuration */
 	memset(sw, 0, sizeof(*sw));
 	LIST_INIT(&sw->images);
@@ -301,7 +306,7 @@ static int parse_cert_purpose(const char *text)
 	exit(EXIT_FAILURE);
 }
 
-static void read_type_settings(void *elem, struct swupdate_type_cfg *typecfg)
+static void read_updatetype_settings(void *elem, struct swupdate_type_cfg *typecfg)
 {
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
 				"postupdatecmd", typecfg->postupdatecmd);
@@ -357,6 +362,7 @@ static int read_globals_settings(void *elem, void *data)
 	GET_FIELD_BOOL(LIBCFG_PARSER, elem, "verbose", &sw->verbose);
 	GET_FIELD_INT(LIBCFG_PARSER, elem, "loglevel", &sw->loglevel);
 	GET_FIELD_BOOL(LIBCFG_PARSER, elem, "syslog", &sw->syslog_enabled);
+	GET_FIELD_BOOL(LIBCFG_PARSER, elem, "update-type-required", &sw->update_type_required);
 	tmp[0] = '\0';
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
 				"fwenv-config-location", tmp);
@@ -385,7 +391,7 @@ static int read_globals_settings(void *elem, void *data)
 				&sw->swdesc_max_size);
 
 
-	read_type_settings(elem, sw->update_type);
+	read_updatetype_settings(elem, sw->update_type);
 
 	return 0;
 }
@@ -453,6 +459,61 @@ static int read_processes_settings(void *settings, void *data)
 	}
 
 	return 0;
+}
+
+static int read_type_settings(void *settings, void *data)
+{
+	struct swupdate_cfg *sw = (struct swupdate_cfg *)data;
+	void *elem;
+	int count, i;
+	count = get_array_length(LIBCFG_PARSER, settings);
+	struct swupdate_type_cfg *current = LIST_FIRST(&sw->swupdate_types);
+
+	for(i = 0; i < count; ++i) {
+		elem = get_elem_from_idx(LIBCFG_PARSER, settings, i);
+
+		if (!elem)
+			continue;
+
+		if(!(exist_field_string(LIBCFG_PARSER, elem, "name")))
+			continue;
+		struct swupdate_type_cfg *update_type = calloc (1, sizeof(*update_type));
+		if (!update_type) {
+			ERROR("OOM at startup");
+			return -ENOMEM;
+		}
+
+		GET_FIELD_STRING(LIBCFG_PARSER, elem, "name", update_type->type_name);
+		if (swupdate_find_update_type(&sw->swupdate_types, update_type->type_name)) {
+			WARN("Duplicated Update Type: %s, ignoring...", update_type->type_name);
+			free(update_type);
+			continue;
+		}
+		read_updatetype_settings(elem, update_type);
+		LIST_INSERT_AFTER(current, update_type, next);
+		current = update_type;
+	}
+
+	return 0;
+}
+
+static void print_registered_updatetypes(struct swupdate_cfg *sw)
+{
+	struct swupdate_type_cfg *update_type;
+	INFO("Registered : Update Types");
+	LIST_FOREACH(update_type, &sw->swupdate_types, next) {
+		INFO("\tName:\t%s", update_type->type_name);
+		if (strlen(update_type->preupdatecmd))
+			INFO("\t\tpreupdatecmd:\t%s", update_type->preupdatecmd);
+		if (strlen(update_type->postupdatecmd))
+			INFO("\t\tpostupdatecmd:\t%s", update_type->postupdatecmd);
+		if (strlen(update_type->minimum_version))
+			INFO("\t\tMin Version:\t%s", update_type->minimum_version);
+		if (strlen(update_type->maximum_version))
+			INFO("\t\tMax Version:\t%s", update_type->maximum_version);
+		if (strlen(update_type->current_version))
+			INFO("\t\tNo-Downgrading:\t%s", update_type->current_version);
+	}
 }
 
 static void sigterm_handler(int __attribute__ ((__unused__)) signum)
@@ -612,6 +673,14 @@ int main(int argc, char **argv)
 					    : "cannot read");
 			swupdate_cfg_destroy(&handle);
 			exit(EXIT_FAILURE);
+		}
+
+		/*
+		 * Read configuration for different update types
+		 */
+		ret = read_module_settings(&handle, "update-types", read_type_settings, &swcfg);
+		if (ret && swcfg.update_type_required) {
+			WARN("Type is requested, but no type is configured, just default");
 		}
 
 		loglevel = swcfg.verbose ? LASTLOGLEVEL : swcfg.loglevel;
@@ -876,6 +945,8 @@ int main(int argc, char **argv)
 	} else {
 		INFO("Using bootloader interface: %s", get_bootloader());
 	}
+
+	print_registered_updatetypes(&swcfg);
 
 	/*
 	 * Install a child handler to check if a subprocess

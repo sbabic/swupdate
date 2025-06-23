@@ -65,9 +65,11 @@ struct swupdate_parms {
 struct swupdate_cfg {
 	char name[SWUPDATE_GENERAL_STRING_SIZE];
 	char description[SWUPDATE_UPDATE_DESCRIPTION_STRING_SIZE];
+	char update_type_name[SWUPDATE_GENERAL_STRING_SIZE];
 	char version[SWUPDATE_GENERAL_STRING_SIZE];
 	bool bootloader_transaction_marker;
 	bool bootloader_state_marker;
+	bool update_type_required;
 	char output[SWUPDATE_GENERAL_STRING_SIZE];
 	char output_swversions[SWUPDATE_GENERAL_STRING_SIZE];
 	char publickeyfname[SWUPDATE_GENERAL_STRING_SIZE];
@@ -104,3 +106,4 @@ struct swupdate_cfg {
 
 struct swupdate_cfg *get_swupdate_cfg(void);
 void free_image(struct img_type *img);
+struct swupdate_type_cfg *swupdate_find_update_type(struct swupdate_type_list *list, const char *name);

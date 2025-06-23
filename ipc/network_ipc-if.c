@@ -357,7 +357,8 @@ int swupdate_set_aes(char *key, char *ivt)
  * Set via IPC the range of accepted versions
  * Versions are string and they can use semver
  */
-int swupdate_set_version_range(const char *minversion,
+int swupdate_set_version_range_type(const char *updatetype,
+				const char *minversion,
 				const char *maxversion,
 				const char *currentversion)
 {
@@ -385,7 +386,23 @@ int swupdate_set_version_range(const char *minversion,
 			sizeof(msg.data.versions.maximum_version) - 1);
 	}
 
+	if (updatetype) {
+		strncpy(msg.data.versions.update_type,
+			updatetype,
+			sizeof(msg.data.versions.update_type) - 1);
+	}
 	return ipc_send_cmd(&msg);
+}
+
+int swupdate_set_version_range(const char *minversion,
+				const char *maxversion,
+				const char *currentversion)
+
+{
+	return swupdate_set_version_range_type(minversion,
+						      maxversion,
+						      currentversion,
+						      NULL);
 }
 
 void swupdate_prepare_req(struct swupdate_request *req) {

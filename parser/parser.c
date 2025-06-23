@@ -188,6 +188,13 @@ static bool get_common_fields(parsertype p, void *cfg, struct swupdate_cfg *swcf
 		TRACE("Description %s", swcfg->description);
 	}
 
+	swcfg->update_type_name[0] = '\0';
+
+	if((setting = find_node(p, cfg, "update-type", swcfg)) != NULL) {
+		GET_FIELD_STRING(p, setting, NULL, swcfg->update_type_name);
+		TRACE("Update Type set to %s", swcfg->update_type_name);
+	}
+
 	if(swcfg->no_state_marker) {
 		swcfg->bootloader_state_marker = false;
 	} else {

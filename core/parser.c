@@ -130,7 +130,7 @@ static int check_handler_list(struct imglist *list,
 	return 0;
 }
 
-static struct swupdate_type_cfg *swupdate_find_update_type(struct swupdate_type_list *list, const char *name)
+struct swupdate_type_cfg *swupdate_find_update_type(struct swupdate_type_list *list, const char *name)
 {
 	struct swupdate_type_cfg *type_cfg = NULL;
 
@@ -164,16 +164,10 @@ int parse(struct swupdate_cfg *sw, const char *descfile)
 
 #endif
 	char *errors[ARRAY_SIZE(parsers)] = {0};
-	struct swupdate_type_cfg *update_type = swupdate_find_update_type(&sw->swupdate_types, "default");
 
-	if (!update_type) {
-		ERROR("Update Type Default is always present, something wrong here !");
-		return -EFAULT;
-	}
 	for (unsigned int i = 0; i < ARRAY_SIZE(parsers); i++) {
 		current = parsers[i];
 
-		sw->update_type = update_type;
 		ret = current(sw, descfile, &errors[i]);
 
 		if (ret == 0)
@@ -233,6 +227,28 @@ int parse(struct swupdate_cfg *sw, const char *descfile)
 		ret = -EINVAL;
 #endif
 #endif
+
+	/*
+	 * Check if a an Update Type is set and
+	 * load the configuration
+	 */
+	struct swupdate_type_cfg *update_type;
+	if (!strnlen(sw->update_type_name, sizeof(sw->update_type_name) - 1)) {
+		if (sw->update_type_required) {
+			ERROR("Update Type is mandatory but it was not set");
+			return -EINVAL;
+		} else
+			strlcpy(sw->update_type_name,
+				"default",
+				sizeof(sw->update_type_name));
+	}
+	update_type = swupdate_find_update_type(&sw->swupdate_types, sw->update_type_name);
+	if (!update_type) {
+		ERROR("Requested Update of Type %s but it is not configured", sw->update_type_name);
+		return -EINVAL;
+	}
+
+	sw->update_type = update_type;
 
 	/*
 	 * If downgrading is not allowed, convert

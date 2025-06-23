@@ -304,7 +304,8 @@ char *get_root_device(void);
 char **parse_linux_cmdline(void);
 
 /* Setting global information */
-void set_version_range(const char *minversion,
+int set_version_range(const char *updatetype,
+			const char *minversion,
 			const char *maxversion,
 			const char *current);
 

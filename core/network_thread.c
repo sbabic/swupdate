@@ -580,9 +580,10 @@ void *network_thread (void *data)
 				break;
 			case SET_VERSIONS_RANGE:
 				msg.type = ACK;
-				set_version_range(msg.data.versions.minimum_version,
+				if (set_version_range(msg.data.versions.update_type,
+						  msg.data.versions.minimum_version,
 						  msg.data.versions.maximum_version,
-						  msg.data.versions.current_version);
+						  msg.data.versions.current_version)) msg.type = NACK;
 				break;
 			case GET_HW_REVISION:
 				cfg = get_swupdate_cfg();

@@ -116,6 +116,7 @@ typedef union {
 		char minimum_version[256];
 		char maximum_version[256];
 		char current_version[256];
+		char update_type[256];
 	} versions;
 	struct {
 		char boardname[256];
@@ -157,6 +158,10 @@ int swupdate_async_start(writedata wr_func, getstatus status_func,
 				void *priv, ssize_t size);
 int swupdate_set_aes(char *key, char *ivt);
 int swupdate_set_version_range(const char *minversion,
+				const char *maxversion,
+				const char *currentversion);
+int swupdate_set_version_range_type(const char *updatetype,
+				const char *minversion,
 				const char *maxversion,
 				const char *currentversion);
 #ifdef __cplusplus
