@@ -71,6 +71,20 @@ static int read_settings_file(config_t *cfg, const char *filename)
 	return ret;
 }
 
+static int get_run_as(void *elem, void *data)
+{
+	struct run_as *pid = (struct run_as *)data;
+
+	GET_FIELD_INT(LIBCFG_PARSER, elem, "userid", (int *)&pid->userid);
+	GET_FIELD_INT(LIBCFG_PARSER, elem, "groupid", (int *)&pid->groupid);
+
+	return 0;
+}
+
+/*
+ * Public interface for the Settings
+ * These are the functions exported to the other modules
+ */
 int read_module_settings(swupdate_cfg_handle *handle, const char *module, settings_callback fcn, void *data)
 {
 	config_setting_t *elem;
@@ -87,16 +101,6 @@ int read_module_settings(swupdate_cfg_handle *handle, const char *module, settin
 
 	DEBUG("Reading config settings for module %s", module);
 	fcn(elem, data);
-
-	return 0;
-}
-
-static int get_run_as(void *elem, void *data)
-{
-	struct run_as *pid = (struct run_as *)data;
-
-	GET_FIELD_INT(LIBCFG_PARSER, elem, "userid", (int *)&pid->userid);
-	GET_FIELD_INT(LIBCFG_PARSER, elem, "groupid", (int *)&pid->groupid);
 
 	return 0;
 }
