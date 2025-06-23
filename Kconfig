@@ -369,7 +369,6 @@ config DOWNLOAD
 	default n
 	depends on HAVE_LIBCURL
 	select CHANNEL_CURL
-	select JSON
 	help
 	  Enable update from image URL using libcurl. The stream is sent via IPC
 	  to the installer as it is done for other interfaces.
