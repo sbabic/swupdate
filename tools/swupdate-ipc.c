@@ -420,12 +420,16 @@ static int sendaes(cmd_t *cmd, int argc, char *argv[]) {
 }
 
 static int setversions(cmd_t *cmd, int argc, char *argv[]) {
-	if (argc != 4) {
+	char *type = NULL;
+	if (argc < 4) {
 		cmd->usage(argv[0]);
 		return 1;
 	}
 
-	if (swupdate_set_version_range(argv[2], argv[3], argv[4])) {
+	if (argc == 5)
+		type = argv[5];
+
+	if (swupdate_set_version_range_type(type, argv[2], argv[3], argv[4])) {
 		fprintf(stderr, "Error IPC setting versions\n");
 		return 1;
 	}
