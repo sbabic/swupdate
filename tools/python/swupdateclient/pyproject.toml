@@ -1,0 +1,30 @@
+# SPDX-FileCopyrightText: 2023 Stefano Babic <stefano.babic@swupdate.org>
+#
+# SPDX-License-Identifier:     GPL-2.0-only
+[project]
+name = "swupdateclient"
+description="Python Client to update SWUpdate based devices"
+version = "0.1"
+authors = [
+    { name = "Stefano Babic", email = "stefano.babic@swupdate.org" }
+]
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+
+license="GPL-2.0-only"
+
+dependencies = [
+	"websockets",
+	"requests",
+	"termcolor~=2.2.0"
+]
+
+[build-system]
+requires = ["setuptools>=45.0"]
+build-backend = "setuptools.build_meta"
+
+[project.scripts]
+swupdateclient="swupdateclient.main:main"
