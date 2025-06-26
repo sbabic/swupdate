@@ -104,6 +104,23 @@ mismatch.
 * Request for Support : Sponsor
 * Priority : Medium
 
+Support for different Update Types
+----------------------------------
+
+Update can be split and group in several components. If updating everything in one shot
+is the preferred method, there are use case where different updates are provided, for example
+OS and Application updates, and different SWU are generated.
+SWUpdate does not recognize which is the type of the update, and uses global rules to check
+the version. The feature here is thought to introduce update-types, and a set of per type setup
+(min / max version, downgrading options,..) that are be used if the update of that type is recognized.
+Types are not limited to a selected list, but they can be free set inside swupdate.cfg.
+A flag can require that the update-type is mandatory, and SWUpdate will always check
+if the type is one of the supported.
+
+* Status: Development
+* Request for Support : Sponsored by iris-GmbH infrared & intelligent sensors
+* Priority : High
+
 Support files bigger than 4GB
 -----------------------------
 
