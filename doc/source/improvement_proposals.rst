@@ -401,12 +401,25 @@ Binding to languages
 libswupdate allows to write an application that can control SWUpdate's behavior and be informed
 about a running update. There are bindings for C/C++, Lua and nodejs (just progress).
 
+Use a JSON interface to exchange IPC messeges.
+----------------------------------------------
+
+Instead of using binary message, use JSON to exchange messages between a client and
+SWUpdate. This makes adding new binding very easy, and often not necessary.
+
+* Status: Wait
+* Request for Support : Sponsor
+* Priority : Low
+
+Bindings for other languages
+----------------------------
+
 Applications can be written in other languages, and binding to Python and Rust can be
 implemented, too.
 
 * Status: Wait
 * Request for Support : Sponsor
-* Priority : Medium
+* Priority : Low
 
 Documentation
 =============
