@@ -8,6 +8,7 @@
 #pragma once
 
 #include <stdbool.h>
+#include <stdint.h>
 #include <swupdate_status.h>
 
 #ifdef __cplusplus
@@ -51,23 +52,23 @@ extern char* SOCKET_PROGRESS_PATH;
  * Data is sent in LE if required.
  */
 struct progress_msg {
-	unsigned int	apiversion;	/* API Version for compatibility check */
-	RECOVERY_STATUS	status;		/* Update Status (Running, Failure) */
-	unsigned int	dwl_percent;	/* % downloaded data */
+	uint32_t	apiversion;	/* API Version for compatibility check */
+	uint32_t	status;		/* Update Status (Running, Failure) */
+	uint32_t	dwl_percent;	/* % downloaded data */
 	unsigned long long dwl_bytes;   /* total of bytes to be downloaded */
-	unsigned int	nsteps;		/* No. total of steps */
-	unsigned int	cur_step;	/* Current step index */
-	unsigned int	cur_percent;	/* % in current step */
+	uint32_t	nsteps;		/* No. total of steps */
+	uint32_t	cur_step;	/* Current step index */
+	uint32_t	cur_percent;	/* % in current step */
 	char		cur_image[256];	/* Name of image to be installed */
 	char		hnd_name[64];	/* Name of running handler */
-	sourcetype	source;		/* Interface that triggered the update */
-	unsigned int 	infolen;    	/* Len of data valid in info */
+	uint32_t	source;		/* Interface that triggered the update */
+	uint32_t 	infolen;    	/* Len of data valid in info */
 	char		info[PRINFOSIZE]; /* additional information about install */
-};
+} __attribute__ ((__packed__));;
 
 #define PROGRESS_CONNECT_ACK_MAGIC "ACK"
 struct progress_connect_ack {
-	unsigned int apiversion; /* API Version for compatibility check */
+	uint32_t apiversion; /* API Version for compatibility check */
 	char magic[4];           /* null-terminated string */
 };
 
