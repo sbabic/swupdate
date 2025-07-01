@@ -265,16 +265,31 @@ Webserver that allows streaming.
 Security / Crypto engines
 =========================
 
-- add support for asymmetric decryption
 - rework support for crypto engine - let possible to load multiple libraries at
   the same time. Currently, there is support for openSSL, WolfSSL and mbedTLS.
   However, WolfSSL are missing together. There should be a way to select one or more
   libraries and independently the algorithms that SWUpdate should support.
   Some hacks are currently built to avoid conflicts (pkcs#7 and CMS are the same
   thing, but supported by different libraries), and they should be solved.
+
+* Status: Development
+* Request for Support : Sponsored by iris-GmbH infrared & intelligent sensors
+* Priority : High
+
+- add support for asymmetric decryption
+
+* Status: Wait
+* Request for Support : Sponsor
+* Priority : High
+
 - add more algorithms for decryption, as AES-CTR can be very useful to decrypt
   chunks in delta updates.
-- Support for TPM2 to store secrets (requires rework above).
+
+* Status: Wait
+* Request for Support : Sponsor
+* Priority : High
+
+- Support for TPM2 / HSM to store secrets (requires rework above).
 
 * Status: Wait
 * Request for Support : Sponsor
