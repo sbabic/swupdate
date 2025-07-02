@@ -314,8 +314,11 @@ static int copy_image_file(struct img_type *img, void *data)
 	recursive = strtobool(dict_get_value(&img->properties, "recursive"));
 	createdest = strtobool(dict_get_value(&img->properties, "create-destination"));
 
-
 	if (createdest) {
+		if (!strlen(base_img->path)) {
+			ERROR("Destination must be created, but no path set");
+			return -EINVAL;
+		}
 		ret = mkpath(recursive ? base_img->path : dirname(base_img->path), 0755);
 		if (ret < 0) {
 			ERROR("I cannot create path %s: %s",
