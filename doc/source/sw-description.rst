@@ -1247,6 +1247,54 @@ It is advised not to mix version formats! Semantic versions only support 3
 numbers (major, minor, patch) and the fourth number will be silently dropped
 if present.
 
+Update Types
+------------
+
+There are use cases where distinct updates are preferred, for example an OS update
+or an Application update. SWUpdate is unaware of this, and rules are defined
+globally into the configuration file (swupdate.cfg) or in the description file
+as part of SWU. However, it could be required to overwrite some global rules,
+and specific updates require different setups. For example, an application update
+could require a different pre- or post- update script, and the accepted versions
+generally differ from the ones for OS. For this reason "update-types" are introduced.
+They must be listed in swupdate.cfg (see example for this file), and sw-description will
+identify which is the type of the SWU. For example:
+
+::
+
+        update-type = "application";
+
+To make it valid, swupdate.cfg must have an entry to identify it, else the update will fail
+because the specific typoe was not found. In swupdate.cfg there will be something like:
+
+::
+
+        update-types: (
+         {
+                 name = "OS";
+                 postupdatecmd = "/usr/bin/echo Finished !";
+                 no-downgrading = "5.0";
+                 preupdatecmd = "/usr/bin/echo Hello";
+                 max-version = "8.99";
+                 no-reinstalling = "5.5";
+         },
+         {
+                 name = "Application";
+                 postupdatecmd = "/usr/bin/echo Finished !";
+                 no-downgrading = "3.0";
+                 preupdatecmd = "/usr/bin/echo Hello";
+                 max-version = "5.99";
+                 no-reinstalling = "4.5";
+         }
+        )
+
+Further releases could add new parameters that are specific for an update. If a type is specified,
+SWUpdate will overwrite the rules set in the "global" section of swupdate.cfg with the specific one.
+Values in the "globals" are still identified with a type, that SWUpdate calls "default".
+
+A flag into swupdate.cfg (update-type-required, globals section) will force that "update-type" is
+mandatory, and SWU without the type set will be simply rejected.
+
 Embedded Script
 ---------------
 
