@@ -319,13 +319,19 @@ static int copy_image_file(struct img_type *img, void *data)
 			ERROR("Destination must be created, but no path set");
 			return -EINVAL;
 		}
-		ret = mkpath(recursive ? base_img->path : dirname(base_img->path), 0755);
+		char *tmppath = strdup(img->path);
+		if (!tmppath) {
+			ERROR("OOM creating local image path");
+			return -ENOMEM;
+		}
+		ret = mkpath(recursive ? tmppath : dirname(tmppath), 0755);
 		if (ret < 0) {
-			ERROR("I cannot create path %s: %s",
-				recursive ? base_img->path : dirname(base_img->path),
+			ERROR("I cannot create path %s: %s", tmppath,
 				strerror(errno));
+			free(tmppath);
 			ret = -EFAULT;
 		}
+		free(tmppath);
 	}
 
 	if (!ret) {
