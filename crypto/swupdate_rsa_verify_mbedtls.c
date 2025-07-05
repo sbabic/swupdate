@@ -16,6 +16,11 @@
 #include "sslapi.h"
 #include "util.h"
 #include "swupdate.h"
+#include "swupdate_crypto.h"
+
+#define MODNAME	"mbedtlsRSA"
+
+static swupdate_dgst_lib	libs;
 
 static int read_file_into_buffer(uint8_t *buffer, int size, const char *filename)
 {
@@ -43,7 +48,7 @@ exit:
 	return result;
 }
 
-int swupdate_verify_file(struct swupdate_digest *dgst, const char *sigfile,
+static int mbedtls_rsa_verify_file(struct swupdate_digest *dgst, const char *sigfile,
 		const char *file, const char *signer_name)
 {
 	int error;
@@ -90,7 +95,7 @@ int swupdate_verify_file(struct swupdate_digest *dgst, const char *sigfile,
 	);
 }
 
-int swupdate_dgst_init(struct swupdate_cfg *sw, const char *keyfile)
+static int mbedtls_rsa_dgst_init(struct swupdate_cfg *sw, const char *keyfile)
 {
 	struct swupdate_digest *dgst;
 
@@ -112,4 +117,12 @@ int swupdate_dgst_init(struct swupdate_cfg *sw, const char *keyfile)
 
 	sw->dgst = dgst;
 	return 0;
+}
+
+__attribute__((constructor))
+static void mbedtls_rsa_dgst(void)
+{
+	libs.dgst_init = mbedtls_rsa_dgst_init;
+	libs.verify_file = mbedtls_rsa_verify_file;
+	(void)register_dgstlib(MODNAME, &libs);
 }

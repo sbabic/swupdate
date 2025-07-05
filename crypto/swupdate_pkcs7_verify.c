@@ -16,7 +16,10 @@
 #include "swupdate.h"
 #include "sslapi.h"
 #include "util.h"
-#include "swupdate_verify_private.h"
+#include "swupdate_crypto.h"
+#include <wolfssl/openssl/pkcs7.h>
+
+static swupdate_dgst_lib	libs;
 
 static int store_verify_callback(int ok, X509_STORE_CTX *ctx) {
 	int cert_error = X509_STORE_CTX_get_error(ctx);
@@ -42,7 +45,7 @@ static int store_verify_callback(int ok, X509_STORE_CTX *ctx) {
 	return ok;
 }
 
-X509_STORE *load_cert_chain(const char *file)
+static X509_STORE *load_cert_chain(const char *file)
 {
 	X509_STORE *castore = X509_STORE_new();
 	if (!castore) {
@@ -98,7 +101,56 @@ static int check_signer_name(const char *name)
 	return 0;
 }
 
-int swupdate_verify_file(struct swupdate_digest *dgst, const char *sigfile,
+static int wolfssl_pkcs7_dgst_init(struct swupdate_cfg *sw, const char *keyfile)
+{
+	struct swupdate_digest *dgst;
+	int ret;
+
+	/*
+	 * Check that it was not called before
+	 */
+	if (sw->dgst) {
+		return -EBUSY;
+	}
+
+	dgst = calloc(1, sizeof(*dgst));
+	if (!dgst) {
+		ret = -ENOMEM;
+		goto dgst_init_error;
+	}
+
+	/*
+	 * Load certificate chain
+	 */
+	dgst->certs = load_cert_chain(keyfile);
+	if (!dgst->certs) {
+		ERROR("Error loading certificate chain from %s", keyfile);
+		ret = -EINVAL;
+		goto dgst_init_error;
+	}
+
+	/*
+	 * Create context
+	 */
+	dgst->ctx = EVP_MD_CTX_create();
+	if(dgst->ctx == NULL) {
+		ERROR("EVP_MD_CTX_create failed, error 0x%lx", ERR_get_error());
+		ret = -ENOMEM;
+		goto dgst_init_error;
+	}
+
+	sw->dgst = dgst;
+
+	return 0;
+
+dgst_init_error:
+	if (dgst)
+		free(dgst);
+
+	return ret;
+}
+
+static int wolfssl_pkcs7_verify_file(struct swupdate_digest *dgst, const char *sigfile,
 		const char *file, const char *signer_name)
 {
 	int status = -EFAULT;
@@ -170,4 +222,12 @@ out:
 		BIO_free(sigfile_bio);
 	}
 	return status;
+}
+
+__attribute__((constructor))
+static void wolfssl_dgst(void)
+{
+	libs.dgst_init = wolfssl_pkcs7_dgst_init;
+	libs.verify_file = wolfssl_pkcs7_verify_file;
+	(void)register_dgstlib("pkcs#7WolfSSL", &libs);
 }

@@ -14,7 +14,7 @@
 #include "swupdate.h"
 #include "sslapi.h"
 #include "util.h"
-#include "swupdate_verify_private.h"
+#include "swupdate_crypto.h"
 
 #if defined(CONFIG_CMS_SKIP_UNKNOWN_SIGNERS)
 #define VERIFY_UNKNOWN_SIGNER_FLAGS (CMS_NO_SIGNER_CERT_VERIFY)
@@ -22,8 +22,12 @@
 #define VERIFY_UNKNOWN_SIGNER_FLAGS (0)
 #endif
 
+#define MODNAME	"opensslCMS"
+
+static swupdate_dgst_lib	libs;
+
 #ifndef CONFIG_CMS_IGNORE_CERTIFICATE_PURPOSE
-int check_code_sign(const X509_PURPOSE *xp, const X509 *crt, int ca)
+static int check_code_sign(const X509_PURPOSE *xp, const X509 *crt, int ca)
 {
 	X509 *x = (X509 *)crt;
 	uint32_t ex_flags = SSL_X509_get_extension_flags(x);
@@ -74,7 +78,7 @@ static int cms_verify_callback(int ok, X509_STORE_CTX *ctx) {
 	return ok;
 }
 
-X509_STORE *load_cert_chain(const char *file)
+static X509_STORE *load_cert_chain(const char *file)
 {
 	X509_STORE *castore = X509_STORE_new();
 	if (!castore) {
@@ -231,7 +235,77 @@ static int check_verified_signer(CMS_ContentInfo* cms, X509_STORE* store)
 }
 #endif
 
-int swupdate_verify_file(struct swupdate_digest *dgst, const char *sigfile,
+static int openssl_cms_dgst_init(struct swupdate_cfg *sw, const char *keyfile)
+{
+	struct swupdate_digest *dgst;
+	int ret;
+
+	/*
+	 * Check that it was not called before
+	 */
+	if (sw->dgst) {
+		return -EBUSY;
+	}
+
+	dgst = calloc(1, sizeof(*dgst));
+	if (!dgst) {
+		ret = -ENOMEM;
+		goto dgst_init_error;
+	}
+
+	/*
+	 * Load certificate chain
+	 */
+	dgst->certs = load_cert_chain(keyfile);
+	if (!dgst->certs) {
+		ERROR("Error loading certificate chain from %s", keyfile);
+		ret = -EINVAL;
+		goto dgst_init_error;
+	}
+
+#ifndef CONFIG_CMS_IGNORE_CERTIFICATE_PURPOSE
+	{
+		static char code_sign_name[] = "Code signing";
+		static char code_sign_sname[] = "codesign";
+
+		if (!X509_PURPOSE_add(X509_PURPOSE_CODE_SIGN, X509_TRUST_EMAIL,
+				0, check_code_sign, code_sign_name,
+				code_sign_sname, NULL)) {
+			ERROR("failed to add code sign purpose");
+			ret = -EINVAL;
+			goto dgst_init_error;
+		}
+	}
+
+	if (!X509_STORE_set_purpose(dgst->certs, sw->cert_purpose)) {
+		ERROR("failed to set purpose");
+		ret = -EINVAL;
+		goto dgst_init_error;
+	}
+#endif
+
+	/*
+	 * Create context
+	 */
+	dgst->ctx = EVP_MD_CTX_create();
+	if(dgst->ctx == NULL) {
+		ERROR("EVP_MD_CTX_create failed, error 0x%lx", ERR_get_error());
+		ret = -ENOMEM;
+		goto dgst_init_error;
+	}
+
+	sw->dgst = dgst;
+
+	return 0;
+
+dgst_init_error:
+	if (dgst)
+		free(dgst);
+
+	return ret;
+}
+
+static int openssl_cms_verify_file(struct swupdate_digest *dgst, const char *sigfile,
 		const char *file, const char *signer_name)
 {
 	int status = -EFAULT;
@@ -302,4 +376,12 @@ out:
 		BIO_free(sigfile_bio);
 	}
 	return status;
+}
+
+__attribute__((constructor))
+static void openssl_dgst(void)
+{
+	libs.dgst_init = openssl_cms_dgst_init;
+	libs.verify_file = openssl_cms_verify_file;
+	(void)register_dgstlib(MODNAME, &libs);
 }

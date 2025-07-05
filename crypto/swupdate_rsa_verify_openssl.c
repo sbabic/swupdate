@@ -14,11 +14,15 @@
 #include "swupdate.h"
 #include "sslapi.h"
 #include "util.h"
-#include "swupdate_verify_private.h"
+#include "swupdate_crypto.h"
 
 #define BUFSIZE	(1024 * 8)
 
-EVP_PKEY *load_pubkey(const char *file)
+#define MODNAME	"opensslRSA"
+
+static swupdate_dgst_lib	libs;
+
+static EVP_PKEY *load_pubkey(const char *file)
 {
 	BIO *key=NULL;
 	EVP_PKEY *pkey=NULL;
@@ -103,7 +107,7 @@ static int verify_final(struct swupdate_digest *dgst, unsigned char *sig, unsign
 	return rc;
 }
 
-int swupdate_verify_file(struct swupdate_digest *dgst, const char *sigfile,
+static int openssl_rsa_verify_file(struct swupdate_digest *dgst, const char *sigfile,
 		const char *file, const char *signer_name)
 {
 	FILE *fp = NULL;
@@ -197,5 +201,65 @@ out:
 	return status;
 }
 
+static int openssl_rsa_dgst_init(struct swupdate_cfg *sw, const char *keyfile)
+{
+	struct swupdate_digest *dgst;
+	int ret;
 
+	/*
+	 * Check that it was not called before
+	 */
+	if (sw->dgst) {
+		return -EBUSY;
+	}
 
+	dgst = calloc(1, sizeof(*dgst));
+	if (!dgst) {
+		ret = -ENOMEM;
+		goto dgst_init_error;
+	}
+
+	/*
+	 * Load public key
+	 */
+	dgst->pkey = load_pubkey(keyfile);
+	if (!dgst->pkey) {
+		ERROR("Error loading pub key from %s", keyfile);
+		ret = -EINVAL;
+		goto dgst_init_error;
+	}
+	dgst->ckey = EVP_PKEY_CTX_new(dgst->pkey, NULL);
+	if (!dgst->ckey) {
+		ERROR("Error creating context key for %s", keyfile);
+		ret = -EINVAL;
+		goto dgst_init_error;
+	}
+
+	/*
+	 * Create context
+	 */
+	dgst->ctx = EVP_MD_CTX_create();
+	if(dgst->ctx == NULL) {
+		ERROR("EVP_MD_CTX_create failed, error 0x%lx", ERR_get_error());
+		ret = -ENOMEM;
+		goto dgst_init_error;
+	}
+
+	sw->dgst = dgst;
+
+	return 0;
+
+dgst_init_error:
+	if (dgst)
+		free(dgst);
+
+	return ret;
+}
+
+__attribute__((constructor))
+static void openssl_dgst(void)
+{
+	libs.dgst_init = openssl_rsa_dgst_init;
+	libs.verify_file = openssl_rsa_verify_file;
+	(void)register_dgstlib(MODNAME, &libs);
+}

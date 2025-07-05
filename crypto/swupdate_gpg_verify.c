@@ -15,6 +15,9 @@
 #include <errno.h>
 #include <locale.h>
 #include <gpgme.h>
+#include "swupdate_crypto.h"
+
+static swupdate_dgst_lib	libs;
 
 static gpg_error_t
 status_cb(void *opaque, const char *keyword, const char *value)
@@ -26,7 +29,50 @@ status_cb(void *opaque, const char *keyword, const char *value)
 
 #define MSGBUF_LEN 256
 
-int swupdate_verify_file(struct swupdate_digest *dgst, const char *sigfile,
+static int gpg_dgst_init(struct swupdate_cfg *sw, const char *keyfile)
+{
+	struct swupdate_digest *dgst;
+	int ret;
+
+	/*
+	 * Check that it was not called before
+	 */
+	if (sw->dgst) {
+		return -EBUSY;
+	}
+
+	dgst = calloc(1, sizeof(*dgst));
+	if (!dgst) {
+		ret = -ENOMEM;
+		goto dgst_init_error;
+	}
+
+	dgst->gpg_home_directory = sw->gpg_home_directory;
+	dgst->gpgme_protocol = sw->gpgme_protocol;
+	dgst->verbose = sw->verbose;
+
+	/*
+	 * Create context
+	 */
+	dgst->ctx = EVP_MD_CTX_create();
+	if(dgst->ctx == NULL) {
+		ERROR("EVP_MD_CTX_create failed, error 0x%lx", ERR_get_error());
+		ret = -ENOMEM;
+		goto dgst_init_error;
+	}
+
+	sw->dgst = dgst;
+
+	return 0;
+
+dgst_init_error:
+	if (dgst)
+		free(dgst);
+
+	return ret;
+}
+
+static int gpg_verify_file(struct swupdate_digest *dgst, const char *sigfile,
                 const char *file, const char *signer_name)
 {
 	gpgme_ctx_t ctx;
@@ -168,4 +214,12 @@ int swupdate_verify_file(struct swupdate_digest *dgst, const char *sigfile,
 		fclose(fp_sig);
 
 	return status;
+}
+
+__attribute__((constructor))
+static void gpg_dgst(void)
+{
+	libs.dgst_init = gpg_dgst_init;
+	libs.verify_file = gpg_verify_file;
+	(void)register_dgstlib("GPG", &libs);
 }
