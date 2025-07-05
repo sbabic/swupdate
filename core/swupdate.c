@@ -101,6 +101,10 @@ static struct option long_options[] = {
 #if defined(CONFIG_SIGALG_CMS) && !defined(CONFIG_SSL_IMPL_WOLFSSL)
 	{"forced-signer-name", required_argument, NULL, '2'},
 #endif
+#ifdef CONFIG_SIGALG_GPG
+	{"gpg-home-dir", required_argument, NULL, '4'},
+	{"gpg-protocol", required_argument, NULL, '5'},
+#endif
 #endif
 #ifdef CONFIG_ENCRYPTED_IMAGES
 	{"key-aes", required_argument, NULL, 'K'},
@@ -155,7 +159,6 @@ static void usage(char *programname)
 		" -l, --loglevel <level>         : logging level\n"
 		" -L, --syslog                   : enable syslog logger\n"
 #ifdef CONFIG_SIGNED_IMAGES
-#ifndef CONFIG_SIGALG_GPG
 		" -k, --key <public key file>    : file with public key to verify images\n"
 		"     --cert-purpose <purpose>   : set expected certificate purpose\n"
 		"                                  [emailProtection|codeSigning] (default: emailProtection)\n"
@@ -163,6 +166,10 @@ static void usage(char *programname)
 		"     --forced-signer-name <cn>  : set expected common name of signer certificate\n"
 #endif
 		"     --ca-path                  : path to the Certificate Authority (PEM)\n"
+#ifdef CONFIG_SIGALG_GPG
+		" For GnuPG only:\n"
+		"     --gpg-home-dir             : path where the GPG ring and keys are stored\n"
+		"     --gpg-protocol             : supported protocol, openpgp or cms\n"
 #endif
 #endif
 #ifdef CONFIG_ENCRYPTED_IMAGES
@@ -593,8 +600,8 @@ int main(int argc, char **argv)
 	strcat(main_options, "H:");
 #endif
 #ifdef CONFIG_SIGNED_IMAGES
-#ifndef CONFIG_SIGALG_GPG
 	strcat(main_options, "k:");
+#ifndef CONFIG_SIGALG_GPG
 	public_key_mandatory = 1;
 #endif
 #endif
@@ -785,6 +792,16 @@ int main(int argc, char **argv)
 				strlcpy(swcfg.update_type->maximum_version, optarg,
 					sizeof(swcfg.update_type->maximum_version));
 			}
+			break;
+		case '4':
+			strlcpy(swcfg.gpg_home_directory,
+				optarg,
+				sizeof(swcfg.gpg_home_directory));
+			break;
+		case '5':
+			strlcpy(swcfg.gpgme_protocol,
+				optarg,
+				sizeof(swcfg.gpgme_protocol));
 			break;
 #ifdef CONFIG_ENCRYPTED_IMAGES
 		case 'K':
