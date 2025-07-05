@@ -167,15 +167,19 @@ else ifeq ($(CONFIG_PKCS11),y)
 LDLIBS += wolfssl
 endif
 
+ifeq ($(CONFIG_SSL_IMPL_MBEDTLS),y)
+LDLIBS += mbedcrypto mbedtls mbedx509
+endif
+
+ifeq ($(CONFIG_SSL_IMPL_GPGME),y)
+LDLIBS += gpgme
+endif
+
 ifeq ($(CONFIG_PKCS11),y)
 $(eval $(call pkg_check_modules, P11BUILD, "p11-kit-1"))
 KBUILD_CFLAGS += $(P11BUILD_CFLAGS)
 KBUILD_LIBS += $(P11BUILD_LIBS)
 LDLIBS += p11-kit
-endif
-
-ifeq ($(CONFIG_SSL_IMPL_MBEDTLS),y)
-LDLIBS += mbedcrypto mbedtls mbedx509
 endif
 
 # MTD
@@ -325,7 +329,3 @@ endif
 # (we stole scripts/checkstack.pl from the kernel... thanks guys!)
 # Reduced from 20k to 16k in 1.9.0.
 FLTFLAGS += -s 16000
-
-ifeq ($(CONFIG_SIGALG_GPG),y)
-LDLIBS += gpgme
-endif

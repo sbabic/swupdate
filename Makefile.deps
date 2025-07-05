@@ -98,6 +98,10 @@ ifeq ($(HAVE_MBEDTLS),)
 export HAVE_MBEDTLS = y
 endif
 
+ifeq ($(HAVE_GPGME),)
+export HAVE_GPGME = y
+endif
+
 ifeq ($(HAVE_P11KIT),)
 export HAVE_P11KIT = y
 endif

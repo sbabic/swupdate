@@ -105,6 +105,10 @@ config HAVE_MBEDTLS
 	bool
 	option env="HAVE_MBEDTLS"
 
+config HAVE_GPGME
+	bool
+	option env="HAVE_GPGME"
+
 config HAVE_P11KIT
 	bool
 	option env="HAVE_P11KIT"
@@ -395,17 +399,10 @@ source "mongoose/Kconfig"
 
 comment "Security"
 
-choice
-	prompt "SSL implementation to use"
-	default SSL_IMPL_OPENSSL
-	help
-	  Select SSL implementation for hashing, verifying and decrypting images.
-
-	config SSL_IMPL_NONE
-		bool "None"
-
+menu "Cryoto libraries"
 	config SSL_IMPL_OPENSSL
 		bool "OpenSSL"
+		default y
 		depends on HAVE_LIBSSL
 
 	config SSL_IMPL_WOLFSSL
@@ -413,12 +410,16 @@ choice
 		depends on HAVE_WOLFSSL
 		select CMS_IGNORE_CERTIFICATE_PURPOSE if SIGALG_CMS
 		select CMS_SKIP_UNKNOWN_SIGNERS if SIGALG_CMS
+		select PKCS11
 
 	config SSL_IMPL_MBEDTLS
 		bool "mbedTLS"
 		depends on HAVE_MBEDTLS
-endchoice
 
+	config SSL_IMPL_GPGME
+		bool "gpgme"
+		depends on HAVE_GPGME
+endmenu
 
 config CHANNEL_CURL_SSL
 	bool
@@ -442,22 +443,17 @@ config SIGNED_IMAGES
 comment "Image signature verification needs an SSL implementation"
 	depends on !SSL_IMPL_OPENSSL && !SSL_IMPL_WOLFSSL && !SSL_IMPL_MBEDTLS
 
-choice
-	prompt "Signature verification algorithm"
+menu "Signature verification algorithm"
 	depends on SIGNED_IMAGES
-	default SIGALG_RAWRSA
-	help
-	  Select if the signature algorithm for signed images is a raw RSA signature
-	  (following PKCS#1.5) or if it uses Cryptographic Message Syntax (CMS) with
-	  OpenSSL/LibreSSL or PKCS#7 with wolfSSL.
-	  wolfSSL's PKCS#7 implementation can only deal with one signature and cannot
-	  deal with X509 purposes.
 
 	config SIGALG_RAWRSA
 		bool "RSA PKCS#1.5"
+		default y
+		depends on SSL_IMPL_OPENSSL || SSL_IMPL_WOLFSSL || SSL_IMPL_MBEDTLS
 
 	config SIGALG_RSAPSS
 		bool "RSA PSS"
+		depends on SSL_IMPL_OPENSSL || SSL_IMPL_WOLFSSL
 
 	config SIGALG_CMS
 		bool "Cryptographic Message Syntax (CMS) / PKCS#7"
@@ -465,7 +461,8 @@ choice
 
 	config SIGALG_GPG
 		bool "GPG signing"
-endchoice
+		depends on SSL_IMPL_GPGME
+endmenu
 
 menu "CMS / PKCS#7 signature verification options"
 	depends on SIGALG_CMS
