@@ -56,28 +56,6 @@
 
 #if defined(CONFIG_SSL_IMPL_OPENSSL) || defined(CONFIG_SSL_IMPL_WOLFSSL)
 
-#ifdef CONFIG_SIGALG_CMS
-
-static inline uint32_t SSL_X509_get_extension_flags(X509 *x)
-{
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-	return x->ex_flags;
-#else
-	return X509_get_extension_flags(x);
-#endif
-}
-
-static inline uint32_t SSL_X509_get_extended_key_usage(X509 *x)
-{
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-	return x->ex_xkusage;
-#else
-	return X509_get_extended_key_usage(x);
-#endif
-}
-
-#endif /* CONFIG_SIGALG_CMS */
-
 #ifdef CONFIG_SSL_IMPL_WOLFSSL
 #define EVP_PKEY_CTX_set_rsa_pss_saltlen(ctx, len) (1)
 

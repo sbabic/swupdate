@@ -26,6 +26,24 @@
 
 static swupdate_dgst_lib	libs;
 
+static inline uint32_t SSL_X509_get_extension_flags(X509 *x)
+{
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+	return x->ex_flags;
+#else
+	return X509_get_extension_flags(x);
+#endif
+}
+
+static inline uint32_t SSL_X509_get_extended_key_usage(X509 *x)
+{
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+	return x->ex_xkusage;
+#else
+	return X509_get_extended_key_usage(x);
+#endif
+}
+
 #ifndef CONFIG_CMS_IGNORE_CERTIFICATE_PURPOSE
 static int check_code_sign(const X509_PURPOSE *xp, const X509 *crt, int ca)
 {
