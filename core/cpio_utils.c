@@ -608,7 +608,7 @@ int copyfile(struct swupdate_copy *args)
 	}
 
 	if (args->encrypted) {
-		aes_key = get_aes_key();
+		aes_key = (unsigned char *)get_aes_key();
 		if (args->imgivt && strlen(args->imgivt)) {
 			if (!is_hex_str(args->imgivt) || ascii_to_bin(ivtbuf, sizeof(ivtbuf), args->imgivt)) {
 				ERROR("Invalid image ivt");

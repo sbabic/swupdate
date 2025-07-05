@@ -39,15 +39,12 @@
 
 /*
  * key    is 256 bit for max aes_256
+ *	  or is a pkcs#11 URL
  * keylen is the actual aes key length
  * ivt    is 128 bit
  */
 struct decryption_key {
-#ifdef CONFIG_PKCS11
-	char * key;
-#else
-	unsigned char key[AES_256_KEY_LEN];
-#endif
+	char *key;
 	char keylen;
 	unsigned char ivt[AES_BLK_SIZE];
 };
@@ -548,7 +545,7 @@ int load_decryption_key(char *fname)
 	return 0;
 }
 
-unsigned char *get_aes_key(void) {
+char *get_aes_key(void) {
 	if (!aes_key)
 		return NULL;
 	return aes_key->key;
@@ -587,6 +584,7 @@ int set_aes_key(const char *key, const char *ivt)
 {
 	int ret;
 	size_t keylen;
+	bool is_pkcs11 = false;
 
 	/*
 	 * Allocates the global structure just once
@@ -603,28 +601,39 @@ int set_aes_key(const char *key, const char *ivt)
 	}
 
 	ret = ascii_to_bin(aes_key->ivt, sizeof(aes_key->ivt), ivt);
-#ifdef CONFIG_PKCS11
-	keylen = strlen(key) + 1;
-	aes_key->key = malloc(keylen);
+	keylen = strlen(key);
+
+	if (!strcmp("pkcs11", key)) {
+		is_pkcs11 = true;
+		aes_key->keylen = keylen;
+
+	} else {
+		switch (keylen) {
+		case AES_128_KEY_LEN * 2:
+		case AES_192_KEY_LEN * 2:
+		case AES_256_KEY_LEN * 2:
+			// valid hex string size for AES 128/192/256
+			aes_key->keylen = keylen / 2;
+			break;
+		default:
+			ERROR("Invalid aes_key length");
+			return -EINVAL;
+		}
+	}
+
+	if (aes_key->key)
+		free(aes_key->key);
+
+	aes_key->key = calloc(1, keylen + 1);
 	if (!aes_key->key)
 		return -ENOMEM;
-	strncpy(aes_key->key, key, keylen);
-#else
-	keylen = strlen(key);
-	switch (keylen) {
-	case AES_128_KEY_LEN * 2:
-	case AES_192_KEY_LEN * 2:
-	case AES_256_KEY_LEN * 2:
-		// valid hex string size for AES 128/192/256
-		aes_key->keylen = keylen / 2;
-		break;
-	default:
-		ERROR("Invalid aes_key length");
-		return -EINVAL;
+
+	if (is_pkcs11) {
+		strncpy(aes_key->key, key, keylen);
+	} else {
+		ret |= !is_hex_str(key);
+		ret |= ascii_to_bin((unsigned char *)aes_key->key, aes_key->keylen, key);
 	}
-	ret |= !is_hex_str(key);
-	ret |= ascii_to_bin(aes_key->key, aes_key->keylen, key);
-#endif
 
 	if (ret) {
 		ERROR("Invalid aes_key");
