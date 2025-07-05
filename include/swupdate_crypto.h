@@ -19,6 +19,12 @@
 
 struct swupdate_cfg;
 
+typedef enum {
+	CERT_PURPOSE_EMAIL_PROT,
+	CERT_PURPOSE_CODE_SIGN,
+	CERT_PURPOSE_LAST = CERT_PURPOSE_CODE_SIGN
+} ssl_cert_purpose_t;
+
 typedef struct {
 	struct swupdate_digest *(*DECRYPT_init)(unsigned char *key, char keylen, unsigned char *iv);
 	int (*DECRYPT_update)(struct swupdate_digest *dgst, unsigned char *buf, 

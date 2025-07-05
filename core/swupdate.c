@@ -284,7 +284,7 @@ static void swupdate_init(struct swupdate_cfg *sw)
 	LIST_INSERT_HEAD(&sw->swupdate_types, update_type, next);
 	sw->update_type = update_type;
 
-	sw->cert_purpose = SSL_PURPOSE_DEFAULT;
+	sw->cert_purpose = CERT_PURPOSE_EMAIL_PROT;
 
 #ifdef CONFIG_MTD
 	mtd_init();
@@ -298,10 +298,10 @@ static int parse_cert_purpose(const char *text)
 	static const char EMAIL_PROT[] = "emailProtection";
 
 	if (strncmp(CODE_SIGN, text, sizeof(CODE_SIGN)) == 0)
-		return SSL_PURPOSE_CODE_SIGN;
+		return CERT_PURPOSE_CODE_SIGN;
 
 	if (strncmp(EMAIL_PROT, text, sizeof(EMAIL_PROT)) == 0)
-		return SSL_PURPOSE_EMAIL_PROT;
+		return CERT_PURPOSE_EMAIL_PROT;
 
 	ERROR("unknown certificate purpose '%s'\n", text);
 	exit(EXIT_FAILURE);

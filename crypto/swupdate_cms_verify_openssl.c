@@ -26,6 +26,17 @@
 
 static swupdate_dgst_lib	libs;
 
+static int openssl_map_purpose [] = {
+	[CERT_PURPOSE_EMAIL_PROT] = X509_PURPOSE_SMIME_SIGN,
+	[CERT_PURPOSE_CODE_SIGN] = X509_PURPOSE_CODE_SIGN
+};
+
+static inline int get_x509_purpose(unsigned int purpose) {
+	if (purpose > CERT_PURPOSE_LAST)
+		purpose = CERT_PURPOSE_EMAIL_PROT;
+	return openssl_map_purpose[purpose];
+}
+
 static inline uint32_t SSL_X509_get_extension_flags(X509 *x)
 {
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
@@ -295,7 +306,7 @@ static int openssl_cms_dgst_init(struct swupdate_cfg *sw, const char *keyfile)
 		}
 	}
 
-	if (!X509_STORE_set_purpose(dgst->certs, sw->cert_purpose)) {
+	if (!X509_STORE_set_purpose(dgst->certs, get_x509_purpose(sw->cert_purpose))) {
 		ERROR("failed to set purpose");
 		ret = -EINVAL;
 		goto dgst_init_error;
