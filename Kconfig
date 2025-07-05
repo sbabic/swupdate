@@ -399,124 +399,12 @@ source "mongoose/Kconfig"
 
 comment "Security"
 
-menu "Cryoto libraries"
-	config SSL_IMPL_OPENSSL
-		bool "OpenSSL"
-		default y
-		depends on HAVE_LIBSSL
-
-	config SSL_IMPL_WOLFSSL
-		bool "wolfSSL (with OpenSSL compatibility layer)"
-		depends on HAVE_WOLFSSL
-		select CMS_IGNORE_CERTIFICATE_PURPOSE if SIGALG_CMS
-		select CMS_SKIP_UNKNOWN_SIGNERS if SIGALG_CMS
-		select PKCS11
-
-	config SSL_IMPL_MBEDTLS
-		bool "mbedTLS"
-		depends on HAVE_MBEDTLS
-
-	config SSL_IMPL_GPGME
-		bool "gpgme"
-		depends on HAVE_GPGME
-endmenu
+source "crypto/Kconfig"
 
 config CHANNEL_CURL_SSL
 	bool
 	depends on CHANNEL_CURL
 	select CURL_SSL
-
-config HASH_VERIFY
-	bool "Allow to add sha256 hash to each image"
-	depends on SSL_IMPL_OPENSSL || SSL_IMPL_WOLFSSL || SSL_IMPL_MBEDTLS
-	help
-	  Allow to add a sha256 hash to an artifact.
-	  This is automatically set in case of Signed Image
-
-comment "Hash checking needs an SSL implementation"
-	depends on !SSL_IMPL_OPENSSL && !SSL_IMPL_WOLFSSL && !SSL_IMPL_MBEDTLS
-
-config SIGNED_IMAGES
-	bool "Enable verification of signed images"
-	depends on SSL_IMPL_OPENSSL || SSL_IMPL_WOLFSSL || SSL_IMPL_MBEDTLS
-	select HASH_VERIFY
-comment "Image signature verification needs an SSL implementation"
-	depends on !SSL_IMPL_OPENSSL && !SSL_IMPL_WOLFSSL && !SSL_IMPL_MBEDTLS
-
-menu "Signature verification algorithm"
-	depends on SIGNED_IMAGES
-
-	config SIGALG_RAWRSA
-		bool "RSA PKCS#1.5"
-		default y
-		depends on SSL_IMPL_OPENSSL || SSL_IMPL_WOLFSSL || SSL_IMPL_MBEDTLS
-
-	config SIGALG_RSAPSS
-		bool "RSA PSS"
-		depends on SSL_IMPL_OPENSSL || SSL_IMPL_WOLFSSL
-
-	config SIGALG_CMS
-		bool "Cryptographic Message Syntax (CMS) / PKCS#7"
-		depends on SSL_IMPL_OPENSSL || SSL_IMPL_WOLFSSL
-
-	config SIGALG_GPG
-		bool "GPG signing"
-		depends on SSL_IMPL_GPGME
-endmenu
-
-menu "CMS / PKCS#7 signature verification options"
-	depends on SIGALG_CMS
-
-config CMS_IGNORE_EXPIRED_CERTIFICATE
-	bool "Ignore expired certificates"
-	depends on SIGALG_CMS
-
-config CMS_IGNORE_CERTIFICATE_PURPOSE
-	bool "Ignore X.509 certificate purpose"
-	depends on SIGALG_CMS
-
-config CMS_SKIP_UNKNOWN_SIGNERS
-	bool "Ignore unverifiable signatures if known signer verifies"
-	depends on SIGALG_CMS
-endmenu
-
-
-config ENCRYPTED_IMAGES
-	bool "Images can be encrypted with a symmetric key"
-	depends on SSL_IMPL_OPENSSL || SSL_IMPL_WOLFSSL || SSL_IMPL_MBEDTLS
-comment "Image encryption needs an SSL implementation"
-	depends on !SSL_IMPL_OPENSSL && !SSL_IMPL_WOLFSSL && !SSL_IMPL_MBEDTLS
-
-config ENCRYPTED_SW_DESCRIPTION
-	bool "Even sw-description is encrypted"
-	depends on ENCRYPTED_IMAGES
-	help
-	  sw-description is not encrypted as default, but it is encrypted
-	  if this is set. It is a compile time option, and mix of plain and
-	  encrypted sw-descriptions is not possible.
-
-config ENCRYPTED_IMAGES_HARDEN_LOGGING
-	bool "Harden logging for encrypted images"
-	default n
-	depends on ENCRYPTED_IMAGES
-	help
-	  This option addresses a theoretical weakness of the AES-CBC encryption in
-	  combination with streamed images. An adversary can target each 16-byte
-	  block of encrypted data within an image and decrypt it, if they can apply a
-	  huge amount of manipulated firmware updates and observe the logged
-	  messages. On average, 2048 update attempts are needed for each block.
-	  Select if this scenario poses a risk. If set, log messages related to a
-	  hash mismatch and errors in the decryption finalization (padding) of a
-	  streamed image are suppressed.
-
-config PKCS11
-	bool "Enable PKCS#11 cryptographic operations"
-	default n
-	depends on HAVE_WOLFSSL && HAVE_P11KIT && ENCRYPTED_IMAGES
-	help
-	  Enable using PKCS#11 for AES decryption instead of having the plain
-	  key available in a file. This is implemented with wolfSSL independent
-	  from the SSL implementation and replaces the plain key method.
 
 comment "Compressors (zlib always on)"
 
