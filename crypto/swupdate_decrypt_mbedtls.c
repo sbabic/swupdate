@@ -4,10 +4,9 @@
 
 #include <errno.h>
 
-#include "sslapi.h"
 #include "util.h"
 #include "swupdate_crypto.h"
-
+#include "swupdate_mbedtls.h"
 
 #define MODNAME	"mbedtlsAES"
 

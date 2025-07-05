@@ -40,7 +40,6 @@
 #include "download_interface.h"
 #include "network_ipc.h"
 #include "network_utils.h"
-#include "sslapi.h"
 #include "suricatta/suricatta.h"
 #include "delta_process.h"
 #include "progress.h"

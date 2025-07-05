@@ -13,10 +13,10 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "sslapi.h"
 #include "util.h"
 #include "swupdate.h"
 #include "swupdate_crypto.h"
+#include "swupdate_mbedtls.h"
 
 #define MODNAME	"mbedtlsRSA"
 

@@ -6,9 +6,9 @@
 #include <errno.h>
 #include <stdlib.h>
 
-#include "sslapi.h"
 #include "util.h"
 #include "swupdate_crypto.h"
+#include "swupdate_mbedtls.h"
 
 #define MODNAME	"mbedtlsSHA256"
 

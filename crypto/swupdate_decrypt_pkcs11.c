@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "swupdate.h"
-#include "sslapi.h"
+#include "swupdate_wolfssl.h"
 #include "util.h"
 #include <wolfssl/wolfcrypt/error-crypt.h>
 #include <wolfssl/wolfcrypt/logging.h>

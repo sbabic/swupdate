@@ -26,7 +26,8 @@
 #include <cmocka.h>
 #include <util.h>
 #include <swupdate_crypto.h>
-#include <sslapi.h>
+
+#define EVP_MAX_BLOCK_LENGTH (16)
 
 struct cryptdata {
 	unsigned char *key;

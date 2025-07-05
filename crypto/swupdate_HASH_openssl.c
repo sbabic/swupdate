@@ -12,7 +12,10 @@
 #include <string.h>
 #include <stdbool.h>
 #include "swupdate.h"
-#include "sslapi.h"
+#if !defined(NO_INCLUDE_OPENSSL)
+#define MODNAME	"opensslSHA256"
+#include "swupdate_openssl.h"
+#endif
 #include "util.h"
 #include "compat.h"
 #include "swupdate_crypto.h"
@@ -115,5 +118,5 @@ static void openssl_hash(void)
 	hash.HASH_final = openssl_HASH_final;
 	hash.HASH_compare = openssl_HASH_compare;
 	hash.HASH_cleanup = openssl_HASH_cleanup;
-	(void)register_hashlib("opensslHASH", &hash);
+	(void)register_hashlib(MODNAME, &hash);
 }

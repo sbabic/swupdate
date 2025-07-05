@@ -11,10 +11,21 @@
 
 #define SHA_DEFAULT	"sha256"
 
-#ifndef SSL_PURPOSE_DEFAULT
-#define SSL_PURPOSE_EMAIL_PROT -1
-#define SSL_PURPOSE_CODE_SIGN  -1
-#define SSL_PURPOSE_DEFAULT -1
+/*
+ * This just initialize globally the openSSL
+ * library
+ * It must be called just once
+ */
+#if defined (OPENSSL_VERSION_NUMBER) && OPENSSL_VERSION_NUMBER < 0x10100000L
+#define swupdate_crypto_init() { \
+	do { \
+		CRYPTO_malloc_init(); \
+		OpenSSL_add_all_algorithms(); \
+		ERR_load_crypto_strings(); \
+	} while (0); \
+}
+#else
+#define swupdate_crypto_init()
 #endif
 
 struct swupdate_cfg;

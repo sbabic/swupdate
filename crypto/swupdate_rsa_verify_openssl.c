@@ -12,9 +12,9 @@
 #include <string.h>
 #include <stdbool.h>
 #include "swupdate.h"
-#include "sslapi.h"
 #include "util.h"
 #include "swupdate_crypto.h"
+#include "swupdate_openssl.h"
 
 #define BUFSIZE	(1024 * 8)
 

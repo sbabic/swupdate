@@ -14,7 +14,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include "swupdate.h"
-#include "sslapi.h"
+#include "swupdate_wolfssl.h"
 #include "util.h"
 #include "swupdate_crypto.h"
 #include <wolfssl/openssl/pkcs7.h>

@@ -9,13 +9,13 @@
 #include <string.h>
 #include <stdbool.h>
 #include "swupdate.h"
-#include "sslapi.h"
 #include "util.h"
 
 #include <errno.h>
 #include <locale.h>
 #include <gpgme.h>
 #include "swupdate_crypto.h"
+#include "swupdate_gpg.h"
 
 static swupdate_dgst_lib	libs;
 
@@ -50,16 +50,6 @@ static int gpg_dgst_init(struct swupdate_cfg *sw, const char *keyfile)
 	dgst->gpg_home_directory = sw->gpg_home_directory;
 	dgst->gpgme_protocol = sw->gpgme_protocol;
 	dgst->verbose = sw->verbose;
-
-	/*
-	 * Create context
-	 */
-	dgst->ctx = EVP_MD_CTX_create();
-	if(dgst->ctx == NULL) {
-		ERROR("EVP_MD_CTX_create failed, error 0x%lx", ERR_get_error());
-		ret = -ENOMEM;
-		goto dgst_init_error;
-	}
 
 	sw->dgst = dgst;
 

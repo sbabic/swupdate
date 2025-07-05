@@ -13,7 +13,7 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include "swupdate.h"
-#include "sslapi.h"
+#include "swupdate_openssl.h"
 #include "util.h"
 #include "swupdate_crypto.h"
 
