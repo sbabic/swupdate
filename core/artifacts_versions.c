@@ -182,7 +182,7 @@ out:
 
 static const char ACCEPTED_CHARS[] = "0123456789.";
 
-static bool is_oldstyle_version(const char *version_string, __u64 *version_number)
+static bool is_numbered_version(const char *version_string, __u64 *version_number)
 {
 	const char *ver = version_string;
 	while (*ver)
@@ -211,8 +211,8 @@ int compare_versions(const char* left_version, const char* right_version)
 	__u64 left_u64;
 	__u64 right_u64;
 
-	if (is_oldstyle_version(left_version, &left_u64)
-	    && is_oldstyle_version(right_version, &right_u64))
+	if (is_numbered_version(left_version, &left_u64)
+	    && is_numbered_version(right_version, &right_u64))
 	{
 		DEBUG("Comparing old-style versions '%s' <-> '%s'",
 		      left_version, right_version);
