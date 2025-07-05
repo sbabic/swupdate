@@ -50,6 +50,7 @@ $_SUDO apt-get -qq update && apt-get install --yes --no-install-recommends \
         liburiparser-dev \
         libwebsockets-dev \
 	liblzma-dev \
+        libwolfssl-dev \
         libzstd-dev \
         make \
         npm \
@@ -57,7 +58,6 @@ $_SUDO apt-get -qq update && apt-get install --yes --no-install-recommends \
         uuid-dev \
         zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
-
 # packages are too old in Ubuntu Jammy and Debian Bookworm
 if ! grep -qP "VERSION_CODENAME=(jammy|bookworm)" /etc/os-release; then
     $_SUDO apt-get -qq update && apt-get install --yes --no-install-recommends \
