@@ -6,8 +6,14 @@
 
 #include "sslapi.h"
 #include "util.h"
+#include "swupdate_crypto.h"
 
-struct swupdate_digest *swupdate_DECRYPT_init(unsigned char *key, char keylen, unsigned char *iv)
+
+#define MODNAME	"mbedtlsAES"
+
+static swupdate_decrypt_lib mbedtls;
+
+static struct swupdate_digest *mbedtls_DECRYPT_init(unsigned char *key, char keylen, unsigned char *iv)
 {
 	struct swupdate_digest *dgst;
 	mbedtls_cipher_type_t cipher_type;
@@ -89,7 +95,7 @@ fail:
 	return NULL;
 }
 
-int swupdate_DECRYPT_update(struct swupdate_digest *dgst, unsigned char *buf,
+static int mbedtls_DECRYPT_update(struct swupdate_digest *dgst, unsigned char *buf,
 				int *outlen, const unsigned char *cryptbuf, int inlen)
 {
 	int error;
@@ -105,7 +111,7 @@ int swupdate_DECRYPT_update(struct swupdate_digest *dgst, unsigned char *buf,
 	return 0;
 }
 
-int swupdate_DECRYPT_final(struct swupdate_digest *dgst, unsigned char *buf,
+static int mbedtls_DECRYPT_final(struct swupdate_digest *dgst, unsigned char *buf,
 				int *outlen)
 {
 	int error;
@@ -128,7 +134,7 @@ int swupdate_DECRYPT_final(struct swupdate_digest *dgst, unsigned char *buf,
 
 }
 
-void swupdate_DECRYPT_cleanup(struct swupdate_digest *dgst)
+static void mbedtls_DECRYPT_cleanup(struct swupdate_digest *dgst)
 {
 	if (!dgst) {
 		return;
@@ -136,4 +142,14 @@ void swupdate_DECRYPT_cleanup(struct swupdate_digest *dgst)
 
 	mbedtls_cipher_free(&dgst->mbedtls_cipher_context);
 	free(dgst);
+}
+
+__attribute__((constructor))
+static void mbedtls_probe(void)
+{
+	mbedtls.DECRYPT_init = mbedtls_DECRYPT_init;
+	mbedtls.DECRYPT_update = mbedtls_DECRYPT_update;
+	mbedtls.DECRYPT_final = mbedtls_DECRYPT_final;
+	mbedtls.DECRYPT_cleanup = mbedtls_DECRYPT_cleanup;
+	(void)register_cryptolib(MODNAME, &mbedtls);
 }

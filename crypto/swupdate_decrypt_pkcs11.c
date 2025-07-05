@@ -14,6 +14,9 @@
 #include "util.h"
 #include <wolfssl/wolfcrypt/error-crypt.h>
 #include <wolfssl/wolfcrypt/logging.h>
+#include "swupdate_crypto.h"
+
+static swupdate_decrypt_lib wolfssl;
 
 #ifdef DEBUG_WOLFSSL
 static void wolfssl_debug(int __attribute__ ((__unused__)) level, const char *const msg)
@@ -22,7 +25,7 @@ static void wolfssl_debug(int __attribute__ ((__unused__)) level, const char *co
 }
 #endif
 
-struct swupdate_digest *swupdate_DECRYPT_init(unsigned char *uri,
+static struct swupdate_digest *wolfssl_DECRYPT_init(unsigned char *uri,
 					char __attribute__ ((__unused__)) keylen, unsigned char *iv)
 {
 	struct swupdate_digest *dgst;
@@ -116,7 +119,7 @@ err_free:
 	return NULL;
 }
 
-int swupdate_DECRYPT_update(struct swupdate_digest *dgst, unsigned char *buf,
+static int wolfssl_DECRYPT_update(struct swupdate_digest *dgst, unsigned char *buf,
 				int *outlen, const unsigned char *cryptbuf, int inlen)
 {
 	// precondition: len(buf) >= inlen + AES_BLK_SIZE
@@ -153,7 +156,7 @@ int swupdate_DECRYPT_update(struct swupdate_digest *dgst, unsigned char *buf,
 }
 
 // Gets rid of PKCS#7 padding
-int swupdate_DECRYPT_final(struct swupdate_digest *dgst, unsigned char *buf, int *outlen)
+static int wolfssl_DECRYPT_final(struct swupdate_digest *dgst, unsigned char *buf, int *outlen)
 {
 	unsigned char last_oct = dgst->last_decr[AES_BLK_SIZE - 1];
 	if (last_oct > AES_BLK_SIZE || last_oct == 0) {
@@ -178,7 +181,7 @@ int swupdate_DECRYPT_final(struct swupdate_digest *dgst, unsigned char *buf, int
 	return 0;
 }
 
-void swupdate_DECRYPT_cleanup(struct swupdate_digest *dgst)
+static void wolfssl_DECRYPT_cleanup(struct swupdate_digest *dgst)
 {
 	if (dgst) {
 		if (&dgst->pktoken)
@@ -192,4 +195,14 @@ void swupdate_DECRYPT_cleanup(struct swupdate_digest *dgst)
 	}
 
 	wolfCrypt_Cleanup();
+}
+
+__attribute__((constructor))
+static void wolfssl_probe(void)
+{
+	wolfssl.DECRYPT_init = wolfssl_DECRYPT_init;
+	wolfssl.DECRYPT_update = wolfssl_DECRYPT_update;
+	wolfssl.DECRYPT_final = wolfssl_DECRYPT_final;
+	wolfssl.DECRYPT_cleanup = wolfssl_DECRYPT_cleanup;
+	(void)register_cryptolib("wolfssl", &wolfssl);
 }

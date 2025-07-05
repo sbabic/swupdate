@@ -7,16 +7,22 @@
  * Code mostly taken from openssl examples
  *
  */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <unistd.h>
 #include "swupdate.h"
 #include "sslapi.h"
 #include "util.h"
+#include "swupdate_crypto.h"
 
-struct swupdate_digest *swupdate_DECRYPT_init(unsigned char *key, char keylen, unsigned char *iv)
+#define MODNAME	"opensslAES"
+
+static void openssl_probe(void);
+
+static swupdate_decrypt_lib openssl;
+static struct swupdate_digest *openssl_DECRYPT_init(unsigned char *key, char keylen, unsigned char *iv)
 {
 	struct swupdate_digest *dgst;
 	const EVP_CIPHER *cipher;
@@ -78,7 +84,7 @@ struct swupdate_digest *swupdate_DECRYPT_init(unsigned char *key, char keylen, u
 	return dgst;
 }
 
-int swupdate_DECRYPT_update(struct swupdate_digest *dgst, unsigned char *buf, 
+static int openssl_DECRYPT_update(struct swupdate_digest *dgst, unsigned char *buf, 
 				int *outlen, const unsigned char *cryptbuf, int inlen)
 {
 	if (EVP_DecryptUpdate(SSL_GET_CTXDEC(dgst), buf, outlen, cryptbuf, inlen) != 1) {
@@ -91,7 +97,7 @@ int swupdate_DECRYPT_update(struct swupdate_digest *dgst, unsigned char *buf,
 	return 0;
 }
 
-int swupdate_DECRYPT_final(struct swupdate_digest *dgst, unsigned char *buf,
+static int openssl_DECRYPT_final(struct swupdate_digest *dgst, unsigned char *buf,
 				int *outlen)
 {
 	if (!dgst)
@@ -110,7 +116,7 @@ int swupdate_DECRYPT_final(struct swupdate_digest *dgst, unsigned char *buf,
 
 }
 
-void swupdate_DECRYPT_cleanup(struct swupdate_digest *dgst)
+static void openssl_DECRYPT_cleanup(struct swupdate_digest *dgst)
 {
 	if (dgst) {
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
@@ -121,4 +127,14 @@ void swupdate_DECRYPT_cleanup(struct swupdate_digest *dgst)
 		free(dgst);
 		dgst = NULL;
 	}
+}
+
+__attribute__((constructor))
+static void openssl_probe(void)
+{
+	openssl.DECRYPT_init = openssl_DECRYPT_init;
+	openssl.DECRYPT_update = openssl_DECRYPT_update;
+	openssl.DECRYPT_final = openssl_DECRYPT_final;
+	openssl.DECRYPT_cleanup = openssl_DECRYPT_cleanup;
+	(void)register_cryptolib(MODNAME, &openssl);
 }
