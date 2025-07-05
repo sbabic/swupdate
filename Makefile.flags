@@ -168,6 +168,9 @@ LDLIBS += wolfssl
 endif
 
 ifeq ($(CONFIG_PKCS11),y)
+$(eval $(call pkg_check_modules, P11BUILD, "p11-kit-1"))
+KBUILD_CFLAGS += $(P11BUILD_CFLAGS)
+KBUILD_LIBS += $(P11BUILD_LIBS)
 LDLIBS += p11-kit
 endif
 
