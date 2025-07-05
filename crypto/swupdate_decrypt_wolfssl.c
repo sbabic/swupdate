@@ -109,10 +109,8 @@ err_msg:
 	ERROR("PKCS#11 initialization failed: %s", msg);
 
 err_free:
-	if (&dgst->pktoken)
-		wc_Pkcs11Token_Final(&dgst->pktoken);
-	if (&dgst->pkdev)
-		wc_Pkcs11_Finalize(&dgst->pkdev);
+	wc_Pkcs11Token_Final(&dgst->pktoken);
+	wc_Pkcs11_Finalize(&dgst->pkdev);
 
 	p11_kit_uri_free(dgst->p11uri);
 	free(dgst);
@@ -188,10 +186,8 @@ static void wolfssl_DECRYPT_cleanup(void *ctx)
 {
 	struct wolfssl_digest *dgst = (struct wolfssl_digest *)ctx;
 	if (dgst) {
-		if (&dgst->pktoken)
-			wc_Pkcs11Token_Final(&dgst->pktoken);
-		if (&dgst->pkdev)
-			wc_Pkcs11_Finalize(&dgst->pkdev);
+		wc_Pkcs11Token_Final(&dgst->pktoken);
+		wc_Pkcs11_Finalize(&dgst->pkdev);
 		p11_kit_uri_free(dgst->p11uri);
 
 		free(dgst);
