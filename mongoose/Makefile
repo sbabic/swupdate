@@ -16,12 +16,10 @@ endif
 ifneq ($(CONFIG_MONGOOSESSL),)
 ifeq ($(CONFIG_SSL_IMPL_OPENSSL),y)
 KBUILD_CFLAGS += -DMG_TLS=2
-endif
-ifeq ($(CONFIG_SSL_IMPL_WOLFSSL),y)
-KBUILD_CFLAGS += -DMG_TLS=5
-endif
-ifeq ($(CONFIG_SSL_IMPL_MBEDTLS),y)
+else ifeq ($(CONFIG_SSL_IMPL_MBEDTLS),y)
 KBUILD_CFLAGS += -DMG_TLS=1
+else ifeq ($(CONFIG_SSL_IMPL_WOLFSSL),y)
+KBUILD_CFLAGS += -DMG_TLS=5
 endif
 endif
 endif
