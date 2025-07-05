@@ -24,7 +24,7 @@
 #include <cmocka.h>
 #include <string.h>
 
-#include "sslapi.h"
+#include "swupdate_crypto.h"
 #include "util.h"
 
 struct testvector {

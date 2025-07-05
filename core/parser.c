@@ -16,6 +16,7 @@
 #include "util.h"
 #include "progress.h"
 #include "handler.h"
+#include "swupdate_crypto.h"
 
 static parser_fn parsers[] = {
 	parse_cfg,

@@ -25,6 +25,7 @@
 #include <setjmp.h>
 #include <cmocka.h>
 #include <util.h>
+#include <swupdate_crypto.h>
 #include <sslapi.h>
 
 struct cryptdata {

@@ -27,7 +27,7 @@
 #include "cpiohdr.h"
 #include "swupdate.h"
 #include "util.h"
-#include "sslapi.h"
+#include "swupdate_crypto.h"
 #include "progress.h"
 
 #define MODULE_NAME "cpio"

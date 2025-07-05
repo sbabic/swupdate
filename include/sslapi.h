@@ -10,8 +10,6 @@
 #include <stdint.h>
 #include "util.h"
 
-#define SHA_DEFAULT	"sha256"
-
 /*
  * openSSL is not mandatory
  * Let compile when openSSL is not activated
@@ -176,42 +174,4 @@ struct swupdate_digest {
 #endif /* CONFIG_SSL_IMPL */
 #else
 #define swupdate_crypto_init()
-#endif
-
-#if defined(CONFIG_HASH_VERIFY)
-struct swupdate_cfg;
-
-int swupdate_dgst_init(struct swupdate_cfg *sw, const char *keyfile);
-struct swupdate_digest *swupdate_HASH_init(const char *SHALength);
-int swupdate_HASH_update(struct swupdate_digest *dgst, const unsigned char *buf,
-				size_t len);
-int swupdate_HASH_final(struct swupdate_digest *dgst, unsigned char *md_value,
-	       			unsigned int *md_len);
-void swupdate_HASH_cleanup(struct swupdate_digest *dgst);
-int swupdate_verify_file(struct swupdate_digest *dgst, const char *sigfile,
-				const char *file, const char *signer_name);
-int swupdate_HASH_compare(const unsigned char *hash1, const unsigned char *hash2);
-
-
-#else
-#define swupdate_dgst_init(sw, keyfile) ( 0 )
-#define swupdate_HASH_init(p) ( NULL )
-#define swupdate_verify_file(dgst, sigfile, file) ( 0 )
-#define swupdate_HASH_update(p, buf, len)	(-1)
-#define swupdate_HASH_final(p, result, len)	(-1)
-#define swupdate_HASH_cleanup(sw)
-#define swupdate_HASH_compare(hash1,hash2)	(0)
-#endif
-
-struct swupdate_digest *swupdate_DECRYPT_init(unsigned char *key, char keylen, unsigned char *iv);
-int swupdate_DECRYPT_update(struct swupdate_digest *dgst, unsigned char *buf, 
-				int *outlen, const unsigned char *cryptbuf, int inlen);
-int swupdate_DECRYPT_final(struct swupdate_digest *dgst, unsigned char *buf,
-				int *outlen);
-void swupdate_DECRYPT_cleanup(struct swupdate_digest *dgst);
-
-#ifndef SSL_PURPOSE_DEFAULT
-#define SSL_PURPOSE_EMAIL_PROT -1
-#define SSL_PURPOSE_CODE_SIGN  -1
-#define SSL_PURPOSE_DEFAULT -1
 #endif

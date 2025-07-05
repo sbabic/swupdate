@@ -23,6 +23,7 @@
 #include <stddef.h>
 #include <cmocka.h>
 
+#include "swupdate_crypto.h"
 #include "sslapi.h"
 #include "swupdate.h"
 
