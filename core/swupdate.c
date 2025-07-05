@@ -939,6 +939,7 @@ int main(int argc, char **argv)
 
 	swupdate_crypto_init();
 
+#ifdef CONFIG_SIGNED_IMAGES
 	if (strlen(swcfg.publickeyfname) || strlen(swcfg.gpg_home_directory)) {
 		if (swupdate_dgst_init(&swcfg, swcfg.publickeyfname)) {
 			fprintf(stderr,
@@ -946,6 +947,7 @@ int main(int argc, char **argv)
 			exit(EXIT_FAILURE);
 		}
 	}
+#endif
 
 	printf("%s\n\n", BANNER);
 	printf("Licensed under GPLv2. See source distribution for detailed "
