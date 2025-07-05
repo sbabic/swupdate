@@ -17,7 +17,7 @@
 #include "compat.h"
 #include "swupdate_verify_private.h"
 
-int dgst_init(struct swupdate_digest *dgst, const EVP_MD *md)
+static int dgst_init(struct swupdate_digest *dgst, const EVP_MD *md)
 {
 	int rc;
 

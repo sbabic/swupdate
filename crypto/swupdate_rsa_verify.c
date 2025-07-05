@@ -142,7 +142,14 @@ int swupdate_verify_file(struct swupdate_digest *dgst, const char *sigfile,
 		goto out;
 	}
 
-	if ((dgst_init(dgst, EVP_sha256()) < 0) || (dgst_verify_init(dgst) < 0)) {
+	ERR_clear_error();
+	if (EVP_DigestInit_ex(dgst->ctx, EVP_sha256(), NULL) != 1) {
+		ERROR("EVP_DigestInit_ex failed: %s", ERR_error_string(ERR_get_error(), NULL));
+		status = -ENOKEY;
+		goto out;
+	}
+
+	if (dgst_verify_init(dgst) < 0) {
 		status = -ENOKEY;
 		goto out;
 	}
