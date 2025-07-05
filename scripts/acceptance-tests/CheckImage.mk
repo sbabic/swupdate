@@ -6,7 +6,7 @@
 #
 # test commands for --check command-line option
 #
-SWU_CHECK_BASE = ./swupdate -l 5 -c $(if $(CONFIG_SIGALG_CMS),-k $(obj)/cacert.pem) $(if $(strip $(filter %.cfg, $^)), -f $(filter %.cfg, $^))
+SWU_CHECK_BASE = ./swupdate -l 5 -c $(if $(CONFIG_SIGALG_CMS),-k $(obj)/cacert.pem --digest-provider opensslCMS) $(if $(strip $(filter %.cfg, $^)), -f $(filter %.cfg, $^))
 SWU_CHECK = $(SWU_CHECK_BASE) $(if $(CONFIG_HW_COMPATIBILITY),-H test:1) $(if $(strip $(filter-out FORCE,$<)),-i $<) $(if $(strip $(KBUILD_VERBOSE:0=)),,>/dev/null 2>&1)
 
 quiet_cmd_swu_check_assert_false = RUN     $@
