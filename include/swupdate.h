@@ -112,6 +112,13 @@ struct swupdate_cfg {
 	char gpg_home_directory[SWUPDATE_GENERAL_STRING_SIZE];
 	char gpgme_protocol[SWUPDATE_GENERAL_STRING_SIZE];
 	int swdesc_max_size;
+	/*
+	 * Select which provider is used in case of multiple
+	 * crypto libraries
+	 */
+	char hash_provider[SWUPDATE_GENERAL_STRING_SIZE];
+	char decrypt_provider[SWUPDATE_GENERAL_STRING_SIZE];
+	char digest_provider[SWUPDATE_GENERAL_STRING_SIZE];
 };
 
 struct swupdate_cfg *get_swupdate_cfg(void);

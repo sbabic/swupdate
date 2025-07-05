@@ -105,9 +105,14 @@ static struct option long_options[] = {
 	{"gpg-home-dir", required_argument, NULL, '4'},
 	{"gpg-protocol", required_argument, NULL, '5'},
 #endif
+	{"digest-provider", required_argument, NULL, '6'},
 #endif
 #ifdef CONFIG_ENCRYPTED_IMAGES
 	{"key-aes", required_argument, NULL, 'K'},
+	{"decrypt-provider", required_argument, NULL, '8'},
+#endif
+#ifdef CONFIG_HASH_VERIFY
+	{"hash-provider", required_argument, NULL, '7'},
 #endif
 	{"loglevel", required_argument, NULL, 'l'},
 	{"max-version", required_argument, NULL, '3'},
@@ -159,6 +164,7 @@ static void usage(char *programname)
 		" -l, --loglevel <level>         : logging level\n"
 		" -L, --syslog                   : enable syslog logger\n"
 #ifdef CONFIG_SIGNED_IMAGES
+		" -6, --digest-provider <string> : the provider used to verify the update\n"
 		" -k, --key <public key file>    : file with public key to verify images\n"
 		"     --cert-purpose <purpose>   : set expected certificate purpose\n"
 		"                                  [emailProtection|codeSigning] (default: emailProtection)\n"
@@ -175,6 +181,10 @@ static void usage(char *programname)
 #ifdef CONFIG_ENCRYPTED_IMAGES
 		" -K, --key-aes <key file>       : the file contains the symmetric key to be used\n"
 		"                                  to decrypt images\n"
+		" -8, --decrypt-provider <string>: the provider used for decryption\n"
+#endif
+#ifdef CONFIG_HASH_VERIFY
+		" -7, --hash-provider <string>   : the provider used to perform hashes\n"
 #endif
 		" -n, --dry-run                  : run SWUpdate without installing the software\n"
 		" -N, --no-downgrading <version> : not install a release older as <version>\n"
@@ -404,6 +414,16 @@ static int read_globals_settings(void *elem, void *data)
 
 	char software_select[SWUPDATE_GENERAL_STRING_SIZE] = "";
 	GET_FIELD_STRING(LIBCFG_PARSER, elem, "select", software_select);
+	GET_FIELD_STRING(LIBCFG_PARSER, elem,
+				"gpg-home-dir", sw->gpg_home_directory);
+	GET_FIELD_STRING(LIBCFG_PARSER, elem,
+				"gpgme-protocol", sw->gpgme_protocol);
+	GET_FIELD_STRING(LIBCFG_PARSER, elem,
+				"hash-provider", sw->hash_provider);
+	GET_FIELD_STRING(LIBCFG_PARSER, elem,
+				"decrypt-provider", sw->decrypt_provider);
+	GET_FIELD_STRING(LIBCFG_PARSER, elem,
+				"digest-provider", sw->digest_provider);
 	if (software_select[0] != '\0') {
 		/* by convention, errors in a configuration section are ignored */
 		(void)parse_image_selector(software_select, sw);
@@ -803,6 +823,21 @@ int main(int argc, char **argv)
 				optarg,
 				sizeof(swcfg.gpgme_protocol));
 			break;
+		case '6':
+			strlcpy(swcfg.digest_provider,
+				optarg,
+				sizeof(swcfg.digest_provider));
+			break;
+		case '7':
+			strlcpy(swcfg.hash_provider,
+				optarg,
+				sizeof(swcfg.hash_provider));
+			break;
+		case '8':
+			strlcpy(swcfg.decrypt_provider,
+				optarg,
+				sizeof(swcfg.decrypt_provider));
+			break;
 #ifdef CONFIG_ENCRYPTED_IMAGES
 		case 'K':
 			if (optarg) strlcpy(swcfg.aeskeyfname,
@@ -955,15 +990,26 @@ int main(int argc, char **argv)
 
 	swupdate_crypto_init();
 
-#ifdef CONFIG_SIGNED_IMAGES
-	if (strlen(swcfg.publickeyfname) || strlen(swcfg.gpg_home_directory)) {
-		if (swupdate_dgst_init(&swcfg, swcfg.publickeyfname)) {
-			fprintf(stderr,
-				 "Error: Crypto cannot be initialized.\n");
+	if (strlen(swcfg.hash_provider)) {
+		if (set_HASHlib(swcfg.hash_provider)) {
+			ERROR("HASH provider %s cannot be set", swcfg.hash_provider);
 			exit(EXIT_FAILURE);
 		}
 	}
-#endif
+
+	if (strlen(swcfg.decrypt_provider)) {
+		if (set_cryptolib(swcfg.decrypt_provider)) {
+			ERROR("Decrypt provider %s cannot be set", swcfg.decrypt_provider);
+			exit(EXIT_FAILURE);
+		}
+	}
+
+	if (strlen(swcfg.digest_provider)) {
+		if (set_dgstlib(swcfg.digest_provider)) {
+			ERROR("Verification provider %s cannot be set", swcfg.digest_provider);
+			exit(EXIT_FAILURE);
+		}
+	}
 
 	printf("%s\n\n", BANNER);
 	printf("Licensed under GPLv2. See source distribution for detailed "
@@ -985,6 +1031,15 @@ int main(int argc, char **argv)
 
 	print_registered_updatetypes(&swcfg);
 	print_registered_cryptolib();
+
+#ifdef CONFIG_SIGNED_IMAGES
+	if (strlen(swcfg.publickeyfname) || strlen(swcfg.gpg_home_directory)) {
+		if (swupdate_dgst_init(&swcfg, swcfg.publickeyfname)) {
+			ERROR("Error: Crypto cannot be initialized.\n");
+			exit(EXIT_FAILURE);
+		}
+	}
+#endif
 
 	/*
 	 * Install a child handler to check if a subprocess
