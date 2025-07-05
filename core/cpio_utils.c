@@ -492,7 +492,7 @@ static int zstd_step(void* state, void* buffer, size_t size)
 
 #endif
 
-static int hash_compare(struct swupdate_digest *dgst, unsigned char *hash)
+static int hash_compare(void *dgst, unsigned char *hash)
 {
 	/*
 	 * SHA256_HASH_LENGTH should be enough but openssl might write
