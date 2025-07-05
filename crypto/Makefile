@@ -3,7 +3,7 @@
 # SPDX-License-Identifier:     GPL-2.0-only
 
 ifeq ($(CONFIG_SSL_IMPL_OPENSSL)$(CONFIG_SSL_IMPL_WOLFSSL),y)
-obj-$(CONFIG_HASH_VERIFY)	+= verify_signature.o
+obj-$(CONFIG_HASH_VERIFY)	+= verify_signature.o swupdate_HASH_openssl.o
 ifeq ($(CONFIG_PKCS11),y)
 obj-$(CONFIG_ENCRYPTED_IMAGES)	+= swupdate_decrypt_pkcs11.o
 else
