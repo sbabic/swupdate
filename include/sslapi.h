@@ -203,26 +203,12 @@ int swupdate_HASH_compare(const unsigned char *hash1, const unsigned char *hash2
 #define swupdate_HASH_compare(hash1,hash2)	(0)
 #endif
 
-#ifdef CONFIG_ENCRYPTED_IMAGES
 struct swupdate_digest *swupdate_DECRYPT_init(unsigned char *key, char keylen, unsigned char *iv);
 int swupdate_DECRYPT_update(struct swupdate_digest *dgst, unsigned char *buf, 
 				int *outlen, const unsigned char *cryptbuf, int inlen);
 int swupdate_DECRYPT_final(struct swupdate_digest *dgst, unsigned char *buf,
 				int *outlen);
 void swupdate_DECRYPT_cleanup(struct swupdate_digest *dgst);
-#else
-UNUSED static inline struct swupdate_digest *swupdate_DECRYPT_init(
-		unsigned char UNUSED *key,
-		char UNUSED keylen,
-		unsigned char UNUSED *iv)
-{
-	ERROR("SWUpdate was built without support for encrypted images");
-	return NULL;
-}
-#define swupdate_DECRYPT_update(p, buf, len, cbuf, inlen) (-1)
-#define swupdate_DECRYPT_final(p, buf, len) (-1)
-#define swupdate_DECRYPT_cleanup(p)
-#endif
 
 #ifndef SSL_PURPOSE_DEFAULT
 #define SSL_PURPOSE_EMAIL_PROT -1
