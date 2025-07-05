@@ -52,6 +52,7 @@
 #include "versions.h"
 #include "hw-compatibility.h"
 #include "swupdate_vars.h"
+#include "swupdate_crypto.h"
 
 #ifdef CONFIG_SYSTEMD
 #include <systemd/sd-daemon.h>
@@ -965,6 +966,7 @@ int main(int argc, char **argv)
 	}
 
 	print_registered_updatetypes(&swcfg);
+	print_registered_cryptolib();
 
 	/*
 	 * Install a child handler to check if a subprocess
