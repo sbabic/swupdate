@@ -15,6 +15,7 @@
 
 #include "sslapi.h"
 #include "util.h"
+#include "swupdate.h"
 
 static int read_file_into_buffer(uint8_t *buffer, int size, const char *filename)
 {
@@ -87,4 +88,28 @@ int swupdate_verify_file(struct swupdate_digest *dgst, const char *sigfile,
 		hash_computed, sizeof(hash_computed),
 		signature, sizeof(signature)
 	);
+}
+
+int swupdate_dgst_init(struct swupdate_cfg *sw, const char *keyfile)
+{
+	struct swupdate_digest *dgst;
+
+	dgst = calloc(1, sizeof(*dgst));
+	if (!dgst) {
+		return -ENOMEM;
+	}
+
+#ifdef CONFIG_SIGNED_IMAGES
+	mbedtls_pk_init(&dgst->mbedtls_pk_context);
+
+	int error = mbedtls_pk_parse_public_keyfile(&dgst->mbedtls_pk_context, keyfile);
+	if (error) {
+		ERROR("mbedtls_pk_parse_public_keyfile: %d", error);
+		free(dgst);
+		return -EIO;
+	}
+#endif
+
+	sw->dgst = dgst;
+	return 0;
 }

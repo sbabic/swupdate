@@ -4,12 +4,15 @@
 
 #include <ctype.h>
 #include <errno.h>
-#include <mbedtls/version.h>
 #include <stdlib.h>
 
 #include "sslapi.h"
 #include "util.h"
-#include "swupdate.h"
+#include "swupdate_crypto.h"
+
+#define MODNAME	"mbedtlsSHA256"
+
+static swupdate_HASH_lib hash;
 
 static char *algo_upper(const char *algo)
 {
@@ -23,7 +26,7 @@ static char *algo_upper(const char *algo)
 	return result;
 }
 
-struct swupdate_digest *swupdate_HASH_init(const char *algo)
+static struct swupdate_digest *mbedtls_HASH_init(const char *algo)
 {
 	struct swupdate_digest *dgst;
 	int error;
@@ -60,7 +63,7 @@ fail:
 	return 0;
 }
 
-int swupdate_HASH_update(struct swupdate_digest *dgst, const unsigned char *buf,
+static int mbedtls_HASH_update(struct swupdate_digest *dgst, const unsigned char *buf,
 				size_t len)
 {
 	if (!dgst) {
@@ -76,7 +79,7 @@ int swupdate_HASH_update(struct swupdate_digest *dgst, const unsigned char *buf,
 	return 0;
 }
 
-int swupdate_HASH_final(struct swupdate_digest *dgst, unsigned char *md_value,
+static int mbedtls_HASH_final(struct swupdate_digest *dgst, unsigned char *md_value,
 		unsigned int *md_len)
 {
 	if (!dgst) {
@@ -88,17 +91,13 @@ int swupdate_HASH_final(struct swupdate_digest *dgst, unsigned char *md_value,
 		return -EINVAL;
 	}
 	if (md_len) {
-#if MBEDTLS_VERSION_NUMBER >= 0x03020000
-		*md_len = mbedtls_md_get_size(mbedtls_md_info_from_ctx(&dgst->mbedtls_md_context));
-#else
 		*md_len = mbedtls_md_get_size(dgst->mbedtls_md_context.md_info);
-#endif
 	}
 	return 1;
 
 }
 
-void swupdate_HASH_cleanup(struct swupdate_digest *dgst)
+static void mbedtls_HASH_cleanup(struct swupdate_digest *dgst)
 {
 	if (!dgst) {
 		return;
@@ -111,31 +110,18 @@ void swupdate_HASH_cleanup(struct swupdate_digest *dgst)
 /*
  * Just a wrap function to memcmp
  */
-int swupdate_HASH_compare(const unsigned char *hash1, const unsigned char *hash2)
+static int mbedtls_HASH_compare(const unsigned char *hash1, const unsigned char *hash2)
 {
 	return memcmp(hash1, hash2, SHA256_HASH_LENGTH) ? -1 : 0;
 }
 
-int swupdate_dgst_init(struct swupdate_cfg *sw, const char *keyfile)
+__attribute__((constructor))
+static void openssl_hash(void)
 {
-	struct swupdate_digest *dgst;
-
-	dgst = calloc(1, sizeof(*dgst));
-	if (!dgst) {
-		return -ENOMEM;
-	}
-
-#ifdef CONFIG_SIGNED_IMAGES
-	mbedtls_pk_init(&dgst->mbedtls_pk_context);
-
-	int error = mbedtls_pk_parse_public_keyfile(&dgst->mbedtls_pk_context, keyfile);
-	if (error) {
-		ERROR("mbedtls_pk_parse_public_keyfile: %d", error);
-		free(dgst);
-		return -EIO;
-	}
-#endif
-
-	sw->dgst = dgst;
-	return 0;
+	hash.HASH_init = mbedtls_HASH_init;
+	hash.HASH_update = mbedtls_HASH_update;
+	hash.HASH_final = mbedtls_HASH_final;
+	hash.HASH_compare = mbedtls_HASH_compare;
+	hash.HASH_cleanup = mbedtls_HASH_cleanup;
+	(void)register_hashlib(MODNAME, &hash);
 }

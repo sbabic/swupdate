@@ -19,7 +19,7 @@ ifeq ($(CONFIG_SSL_IMPL_WOLFSSL),y)
 obj-$(CONFIG_SIGALG_CMS)	+= swupdate_pkcs7_verify.o
 endif
 ifeq ($(CONFIG_SSL_IMPL_MBEDTLS),y)
-obj-$(CONFIG_HASH_VERIFY)	+= verify_signature_mbedtls.o
+obj-$(CONFIG_HASH_VERIFY)	+= swupdate_HASH_mbedtls.o
 ifeq ($(CONFIG_PKCS11),y)
 obj-$(CONFIG_ENCRYPTED_IMAGES)	+= swupdate_decrypt_pkcs11.o
 else
