@@ -10,6 +10,7 @@
 
 obj-y += swupdate.o \
 	 cpio_utils.o \
+	 crypto.o \
 	 notifier.o \
 	 handler.o \
 	 bootloader.o \
