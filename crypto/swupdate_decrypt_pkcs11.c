@@ -25,7 +25,7 @@ static void wolfssl_debug(int __attribute__ ((__unused__)) level, const char *co
 }
 #endif
 
-static void *wolfssl_DECRYPT_init(unsigned char *uri,
+static void *wolfssl_DECRYPT_init(unsigned char *key,
 					char __attribute__ ((__unused__)) keylen, unsigned char *iv)
 {
 	struct wolfssl_digest *dgst;
@@ -37,6 +37,7 @@ static void *wolfssl_DECRYPT_init(unsigned char *uri,
 	int err = 0;
 	int dev_id = 1;
 
+	const char *uri = (const char *)key;
 	if ((uri == NULL) || (iv == NULL)) {
 		ERROR("PKCS#11 URI or AES IV missing for decryption!");
 		return NULL;
@@ -80,7 +81,7 @@ static void *wolfssl_DECRYPT_init(unsigned char *uri,
 		goto err_msg;
 
 	err = wc_Pkcs11Token_Init(&dgst->pktoken, &dgst->pkdev, slot_id,
-					"unspecified", pin, strlen(pin));
+					"unspecified", (unsigned char *)pin, strlen(pin));
 	if (err)
 		goto err_msg;
 
