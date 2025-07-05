@@ -16,7 +16,7 @@ ifeq ($(CONFIG_SSL_IMPL_OPENSSL),y)
 obj-$(CONFIG_SIGALG_CMS)	+= swupdate_cms_verify_openssl.o
 endif
 ifeq ($(CONFIG_SSL_IMPL_WOLFSSL),y)
-obj-$(CONFIG_SIGALG_CMS)	+= swupdate_pkcs7_verify.o
+obj-$(CONFIG_SIGALG_CMS)	+= swupdate_pkcs7_verify_wolfssl.o
 endif
 ifeq ($(CONFIG_SSL_IMPL_MBEDTLS),y)
 obj-$(CONFIG_HASH_VERIFY)	+= swupdate_HASH_mbedtls.o
