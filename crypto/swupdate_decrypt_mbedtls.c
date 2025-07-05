@@ -12,9 +12,9 @@
 
 static swupdate_decrypt_lib mbedtls;
 
-static struct swupdate_digest *mbedtls_DECRYPT_init(unsigned char *key, char keylen, unsigned char *iv)
+static void *mbedtls_DECRYPT_init(unsigned char *key, char keylen, unsigned char *iv)
 {
-	struct swupdate_digest *dgst;
+	struct mbedtls_digest *dgst;
 	mbedtls_cipher_type_t cipher_type;
 	const mbedtls_cipher_info_t *cipher_info;
 	int key_bitlen;
@@ -94,9 +94,10 @@ fail:
 	return NULL;
 }
 
-static int mbedtls_DECRYPT_update(struct swupdate_digest *dgst, unsigned char *buf,
+static int mbedtls_DECRYPT_update(void *ctx, unsigned char *buf,
 				int *outlen, const unsigned char *cryptbuf, int inlen)
 {
+	struct mbedtls_digest *dgst = (struct mbedtls_digest *)ctx;
 	int error;
 	size_t olen = *outlen;
 
@@ -110,11 +111,12 @@ static int mbedtls_DECRYPT_update(struct swupdate_digest *dgst, unsigned char *b
 	return 0;
 }
 
-static int mbedtls_DECRYPT_final(struct swupdate_digest *dgst, unsigned char *buf,
+static int mbedtls_DECRYPT_final(void *ctx, unsigned char *buf,
 				int *outlen)
 {
 	int error;
 	size_t olen = *outlen;
+	struct mbedtls_digest *dgst = (struct mbedtls_digest *)ctx;
 
 	if (!dgst) {
 		return -EINVAL;
@@ -133,8 +135,10 @@ static int mbedtls_DECRYPT_final(struct swupdate_digest *dgst, unsigned char *bu
 
 }
 
-static void mbedtls_DECRYPT_cleanup(struct swupdate_digest *dgst)
+static void mbedtls_DECRYPT_cleanup(void *ctx)
 {
+	struct mbedtls_digest *dgst = (struct mbedtls_digest *)ctx;
+
 	if (!dgst) {
 		return;
 	}

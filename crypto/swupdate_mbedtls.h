@@ -17,7 +17,7 @@
 
 #define EVP_MAX_BLOCK_LENGTH (16)
 
-struct swupdate_digest {
+struct mbedtls_digest {
 	mbedtls_md_context_t mbedtls_md_context;
 	mbedtls_pk_context mbedtls_pk_context;
 	mbedtls_cipher_context_t mbedtls_cipher_context;

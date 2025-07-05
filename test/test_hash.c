@@ -72,7 +72,7 @@ static void do_concrete_hash(const char* algo, const char* input, const char* ex
 	uint8_t result[32] = {0};
 	unsigned len = 0;
 	uint8_t expected_bin[32] = {0};
-	struct swupdate_digest *dgst;
+	void *dgst;
 
 	dgst = swupdate_HASH_init(algo);
 	assert_non_null(dgst);

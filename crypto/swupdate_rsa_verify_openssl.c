@@ -53,7 +53,7 @@ end:
 	return(pkey);
 }
 
-static int dgst_verify_init(struct swupdate_digest *dgst)
+static int dgst_verify_init(struct openssl_digest *dgst)
 {
 	int rc;
 
@@ -79,7 +79,7 @@ static int dgst_verify_init(struct swupdate_digest *dgst)
 	return 0;
 }
 
-static int verify_update(struct swupdate_digest *dgst, char *msg, unsigned int mlen)
+static int verify_update(struct openssl_digest *dgst, char *msg, unsigned int mlen)
 {
 	int rc;
 
@@ -92,7 +92,7 @@ static int verify_update(struct swupdate_digest *dgst, char *msg, unsigned int m
 	return 0;
 }
 
-static int verify_final(struct swupdate_digest *dgst, unsigned char *sig, unsigned int slen)
+static int verify_final(struct openssl_digest *dgst, unsigned char *sig, unsigned int slen)
 {
 	unsigned int rc;
 
@@ -107,9 +107,10 @@ static int verify_final(struct swupdate_digest *dgst, unsigned char *sig, unsign
 	return rc;
 }
 
-static int openssl_rsa_verify_file(struct swupdate_digest *dgst, const char *sigfile,
+static int openssl_rsa_verify_file(void *ctx, const char *sigfile,
 		const char *file, const char *signer_name)
 {
+	struct openssl_digest *dgst = (struct openssl_digest *)ctx;
 	FILE *fp = NULL;
 	BIO *sigbio;
 	int siglen = 0;
@@ -203,7 +204,7 @@ out:
 
 static int openssl_rsa_dgst_init(struct swupdate_cfg *sw, const char *keyfile)
 {
-	struct swupdate_digest *dgst;
+	struct openssl_digest *dgst;
 	int ret;
 
 	/*

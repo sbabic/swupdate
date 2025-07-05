@@ -31,7 +31,7 @@
 #define SSL_PURPOSE_CODE_SIGN  X509_PURPOSE_CODE_SIGN
 #define SSL_PURPOSE_DEFAULT SSL_PURPOSE_EMAIL_PROT
 
-struct swupdate_digest {
+struct openssl_digest {
 	EVP_PKEY *pkey;		/* this is used for RSA key */
 	EVP_PKEY_CTX *ckey;	/* this is used for RSA key */
 	X509_STORE *certs;	/* this is used if CMS is set */

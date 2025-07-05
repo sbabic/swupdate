@@ -25,10 +25,10 @@ static void wolfssl_debug(int __attribute__ ((__unused__)) level, const char *co
 }
 #endif
 
-static struct swupdate_digest *wolfssl_DECRYPT_init(unsigned char *uri,
+static void *wolfssl_DECRYPT_init(unsigned char *uri,
 					char __attribute__ ((__unused__)) keylen, unsigned char *iv)
 {
-	struct swupdate_digest *dgst;
+	struct wolfssl_digest *dgst;
 	const char *library;
 	const char *pin;
 	const char *msg;
@@ -119,9 +119,10 @@ err_free:
 	return NULL;
 }
 
-static int wolfssl_DECRYPT_update(struct swupdate_digest *dgst, unsigned char *buf,
+static int wolfssl_DECRYPT_update(void *ctx, unsigned char *buf,
 				int *outlen, const unsigned char *cryptbuf, int inlen)
 {
+	struct wolfssl_digest *dgst = (struct wolfssl_digest *)ctx;
 	// precondition: len(buf) >= inlen + AES_BLK_SIZE
 	unsigned char *pad_buf = &buf[AES_BLK_SIZE];
 	const char *msg;
@@ -156,8 +157,9 @@ static int wolfssl_DECRYPT_update(struct swupdate_digest *dgst, unsigned char *b
 }
 
 // Gets rid of PKCS#7 padding
-static int wolfssl_DECRYPT_final(struct swupdate_digest *dgst, unsigned char *buf, int *outlen)
+static int wolfssl_DECRYPT_final(void *ctx, unsigned char *buf, int *outlen)
 {
+	struct wolfssl_digest *dgst = (struct wolfssl_digest *)ctx;
 	unsigned char last_oct = dgst->last_decr[AES_BLK_SIZE - 1];
 	if (last_oct > AES_BLK_SIZE || last_oct == 0) {
 #ifndef CONFIG_ENCRYPTED_IMAGES_HARDEN_LOGGING
@@ -181,8 +183,9 @@ static int wolfssl_DECRYPT_final(struct swupdate_digest *dgst, unsigned char *bu
 	return 0;
 }
 
-static void wolfssl_DECRYPT_cleanup(struct swupdate_digest *dgst)
+static void wolfssl_DECRYPT_cleanup(void *ctx)
 {
+	struct wolfssl_digest *dgst = (struct wolfssl_digest *)ctx;
 	if (dgst) {
 		if (&dgst->pktoken)
 			wc_Pkcs11Token_Final(&dgst->pktoken);

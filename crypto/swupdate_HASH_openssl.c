@@ -22,7 +22,7 @@
 
 static swupdate_HASH_lib hash;
 
-static int dgst_init(struct swupdate_digest *dgst, const EVP_MD *md)
+static int dgst_init(struct openssl_digest *dgst, const EVP_MD *md)
 {
 	int rc;
 
@@ -36,9 +36,9 @@ static int dgst_init(struct swupdate_digest *dgst, const EVP_MD *md)
 	return 0;
 }
 
-static struct swupdate_digest *openssl_HASH_init(const char *SHAlength)
+static void *openssl_HASH_init(const char *SHAlength)
 {
-	struct swupdate_digest *dgst;
+	struct openssl_digest *dgst;
 	const EVP_MD *md;
 	int ret;
 
@@ -68,9 +68,9 @@ static struct swupdate_digest *openssl_HASH_init(const char *SHAlength)
 	return dgst;
 }
 
-static int openssl_HASH_update(struct swupdate_digest *dgst, const unsigned char *buf,
-				size_t len)
+static int openssl_HASH_update(void *ctx, const unsigned char *buf, size_t len)
 {
+	struct openssl_digest *dgst = (struct openssl_digest *)ctx;
 	if (!dgst)
 		return -EFAULT;
 
@@ -80,9 +80,10 @@ static int openssl_HASH_update(struct swupdate_digest *dgst, const unsigned char
 	return 0;
 }
 
-static int openssl_HASH_final(struct swupdate_digest *dgst, unsigned char *md_value,
+static int openssl_HASH_final(void *ctx, unsigned char *md_value,
 		unsigned int *md_len)
 {
+	struct openssl_digest *dgst = (struct openssl_digest *)ctx;
 	if (!dgst)
 		return -EFAULT;
 
@@ -90,8 +91,9 @@ static int openssl_HASH_final(struct swupdate_digest *dgst, unsigned char *md_va
 
 }
 
-static void openssl_HASH_cleanup(struct swupdate_digest *dgst)
+static void openssl_HASH_cleanup(void *ctx)
 {
+	struct openssl_digest *dgst = (struct openssl_digest *)ctx;
 	if (dgst) {
 		EVP_MD_CTX_destroy(dgst->ctx);
 		free(dgst);

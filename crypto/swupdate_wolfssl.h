@@ -39,9 +39,9 @@
 #define X509_PURPOSE_CODE_SIGN EXTKEYUSE_CODESIGN
 #define SSL_PURPOSE_EMAIL_PROT EXTKEYUSE_EMAILPROT
 
-//#define SSL_PURPOSE_DEFAULT SSL_PURPOSE_EMAIL_PROT
+#define openssl_digest wolfssl_digest
 
-struct swupdate_digest {
+struct wolfssl_digest {
 	EVP_PKEY *pkey;		/* this is used for RSA key */
 	EVP_PKEY_CTX *ckey;	/* this is used for RSA key */
 	X509_STORE *certs;	/* this is used if CMS is set */

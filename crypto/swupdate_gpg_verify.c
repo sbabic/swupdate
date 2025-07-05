@@ -31,7 +31,7 @@ status_cb(void *opaque, const char *keyword, const char *value)
 
 static int gpg_dgst_init(struct swupdate_cfg *sw, const char *keyfile)
 {
-	struct swupdate_digest *dgst;
+	struct gpg_digest *dgst;
 	int ret;
 
 	/*
@@ -62,9 +62,10 @@ dgst_init_error:
 	return ret;
 }
 
-static int gpg_verify_file(struct swupdate_digest *dgst, const char *sigfile,
+static int gpg_verify_file(void *gpgdgst, const char *sigfile,
                 const char *file, const char *signer_name)
 {
+	struct gpg_digest *dgst = (struct gpg_digest *)gpgdgst;
 	gpgme_ctx_t ctx;
 	gpgme_error_t err;
 	gpgme_data_t image_sig, image;

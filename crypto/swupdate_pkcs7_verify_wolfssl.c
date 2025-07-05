@@ -107,7 +107,7 @@ static int check_signer_name(const char *name)
 
 static int wolfssl_pkcs7_dgst_init(struct swupdate_cfg *sw, const char *keyfile)
 {
-	struct swupdate_digest *dgst;
+	struct wolfssl_digest *dgst;
 	int ret;
 
 	/*
@@ -154,9 +154,10 @@ dgst_init_error:
 	return ret;
 }
 
-static int wolfssl_pkcs7_verify_file(struct swupdate_digest *dgst, const char *sigfile,
+static int wolfssl_pkcs7_verify_file(void *ctx, const char *sigfile,
 		const char *file, const char *signer_name)
 {
+	struct wolfssl_digest *dgst = (struct wolfssl_digest *)ctx;
 	int status = -EFAULT;
 	WOLFSSL_PKCS7* pkcs7 =  (WOLFSSL_PKCS7 *)PKCS7_new();
 	BIO *bio_mem = NULL;

@@ -26,9 +26,9 @@ static char *algo_upper(const char *algo)
 	return result;
 }
 
-static struct swupdate_digest *mbedtls_HASH_init(const char *algo)
+static void *mbedtls_HASH_init(const char *algo)
 {
-	struct swupdate_digest *dgst;
+	struct mbedtls_digest *dgst;
 	int error;
 
 	const mbedtls_md_info_t *info = mbedtls_md_info_from_string(algo_upper(algo));
@@ -63,9 +63,10 @@ fail:
 	return 0;
 }
 
-static int mbedtls_HASH_update(struct swupdate_digest *dgst, const unsigned char *buf,
+static int mbedtls_HASH_update(void *ctx, const unsigned char *buf,
 				size_t len)
 {
+	struct mbedtls_digest *dgst = (struct mbedtls_digest *)ctx;
 	if (!dgst) {
 		return -EFAULT;
 	}
@@ -79,9 +80,10 @@ static int mbedtls_HASH_update(struct swupdate_digest *dgst, const unsigned char
 	return 0;
 }
 
-static int mbedtls_HASH_final(struct swupdate_digest *dgst, unsigned char *md_value,
+static int mbedtls_HASH_final(void *ctx, unsigned char *md_value,
 		unsigned int *md_len)
 {
+	struct mbedtls_digest *dgst = (struct mbedtls_digest *)ctx;
 	if (!dgst) {
 		return -EFAULT;
 	}
@@ -101,8 +103,9 @@ static int mbedtls_HASH_final(struct swupdate_digest *dgst, unsigned char *md_va
 
 }
 
-static void mbedtls_HASH_cleanup(struct swupdate_digest *dgst)
+static void mbedtls_HASH_cleanup(void *ctx)
 {
+	struct mbedtls_digest *dgst = (struct mbedtls_digest *)ctx;
 	if (!dgst) {
 		return;
 	}

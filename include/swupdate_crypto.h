@@ -37,25 +37,25 @@ typedef enum {
 } ssl_cert_purpose_t;
 
 typedef struct {
-	struct swupdate_digest *(*DECRYPT_init)(unsigned char *key, char keylen, unsigned char *iv);
-	int (*DECRYPT_update)(struct swupdate_digest *dgst, unsigned char *buf, 
+	void *(*DECRYPT_init)(unsigned char *key, char keylen, unsigned char *iv);
+	int (*DECRYPT_update)(void *ctx, unsigned char *buf, 
 				int *outlen, const unsigned char *cryptbuf, int inlen);
 
-	int (*DECRYPT_final)(struct swupdate_digest *dgst, unsigned char *buf, int *outlen);
-	void (*DECRYPT_cleanup)(struct swupdate_digest *dgst);
+	int (*DECRYPT_final)(void *ctx, unsigned char *buf, int *outlen);
+	void (*DECRYPT_cleanup)(void *ctx);
 } swupdate_decrypt_lib;
 
 typedef struct {
-	struct swupdate_digest *(*HASH_init)(const char *SHAlength);
-	int (*HASH_update)(struct swupdate_digest *dgst, const unsigned char *buf, size_t len);
-	int (*HASH_final)(struct swupdate_digest *dgst, unsigned char *md_value, unsigned int *md_len);
+	void *(*HASH_init)(const char *SHAlength);
+	int (*HASH_update)(void *ctx, const unsigned char *buf, size_t len);
+	int (*HASH_final)(void *ctx, unsigned char *md_value, unsigned int *md_len);
 	int (*HASH_compare)(const unsigned char *hash1, const unsigned char *hash2);
-	void (*HASH_cleanup)(struct swupdate_digest *dgst);
+	void (*HASH_cleanup)(void *ctx);
 } swupdate_HASH_lib;
 
 typedef struct {
 	int (*dgst_init)(struct swupdate_cfg *sw, const char *keyfile);
-	int (*verify_file)(struct swupdate_digest *dgst, const char *sigfile, const char *file, const char *signer_name);
+	int (*verify_file)(void *ctx, const char *sigfile, const char *file, const char *signer_name);
 } swupdate_dgst_lib;
 
 /*
@@ -106,20 +106,19 @@ void print_registered_cryptolib(void);
 struct swupdate_cfg;
 
 int swupdate_dgst_init(struct swupdate_cfg *sw, const char *keyfile);
-struct swupdate_digest *swupdate_HASH_init(const char *SHALength);
-int swupdate_HASH_update(struct swupdate_digest *dgst, const unsigned char *buf,
+void *swupdate_HASH_init(const char *SHALength);
+int swupdate_HASH_update(void *ctx, const unsigned char *buf,
 				size_t len);
-int swupdate_HASH_final(struct swupdate_digest *dgst, unsigned char *md_value,
+int swupdate_HASH_final(void *ctx, unsigned char *md_value,
 	       			unsigned int *md_len);
-void swupdate_HASH_cleanup(struct swupdate_digest *dgst);
-int swupdate_verify_file(struct swupdate_digest *dgst, const char *sigfile,
+void swupdate_HASH_cleanup(void *ctx);
+int swupdate_verify_file(void *ctx, const char *sigfile,
 				const char *file, const char *signer_name);
 int swupdate_HASH_compare(const unsigned char *hash1, const unsigned char *hash2);
 
-
-struct swupdate_digest *swupdate_DECRYPT_init(unsigned char *key, char keylen, unsigned char *iv);
-int swupdate_DECRYPT_update(struct swupdate_digest *dgst, unsigned char *buf, 
+void *swupdate_DECRYPT_init(unsigned char *key, char keylen, unsigned char *iv);
+int swupdate_DECRYPT_update(void *ctx, unsigned char *buf, 
 				int *outlen, const unsigned char *cryptbuf, int inlen);
-int swupdate_DECRYPT_final(struct swupdate_digest *dgst, unsigned char *buf,
+int swupdate_DECRYPT_final(void *ctx, unsigned char *buf,
 				int *outlen);
-void swupdate_DECRYPT_cleanup(struct swupdate_digest *dgst);
+void swupdate_DECRYPT_cleanup(void *ctx);

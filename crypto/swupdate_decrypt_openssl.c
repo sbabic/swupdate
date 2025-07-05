@@ -22,9 +22,9 @@
 static void openssl_probe(void);
 
 static swupdate_decrypt_lib openssl;
-static struct swupdate_digest *openssl_DECRYPT_init(unsigned char *key, char keylen, unsigned char *iv)
+static void *openssl_DECRYPT_init(unsigned char *key, char keylen, unsigned char *iv)
 {
-	struct swupdate_digest *dgst;
+	struct openssl_digest *dgst;
 	const EVP_CIPHER *cipher;
 	int ret;
 
@@ -84,9 +84,12 @@ static struct swupdate_digest *openssl_DECRYPT_init(unsigned char *key, char key
 	return dgst;
 }
 
-static int openssl_DECRYPT_update(struct swupdate_digest *dgst, unsigned char *buf, 
+static int openssl_DECRYPT_update(void *ctx, unsigned char *buf, 
 				int *outlen, const unsigned char *cryptbuf, int inlen)
 {
+	struct openssl_digest *dgst = (struct openssl_digest *)ctx;
+	if (!dgst)
+		return -EINVAL;
 	if (EVP_DecryptUpdate(SSL_GET_CTXDEC(dgst), buf, outlen, cryptbuf, inlen) != 1) {
 		const char *reason = ERR_reason_error_string(ERR_peek_error());
 		ERROR("Update: Decryption error 0x%lx, reason: %s", ERR_get_error(),
@@ -97,9 +100,10 @@ static int openssl_DECRYPT_update(struct swupdate_digest *dgst, unsigned char *b
 	return 0;
 }
 
-static int openssl_DECRYPT_final(struct swupdate_digest *dgst, unsigned char *buf,
+static int openssl_DECRYPT_final(void *ctx, unsigned char *buf,
 				int *outlen)
 {
+	struct openssl_digest *dgst = (struct openssl_digest *)ctx;
 	if (!dgst)
 		return -EINVAL;
 
@@ -116,8 +120,9 @@ static int openssl_DECRYPT_final(struct swupdate_digest *dgst, unsigned char *bu
 
 }
 
-static void openssl_DECRYPT_cleanup(struct swupdate_digest *dgst)
+static void openssl_DECRYPT_cleanup(void *ctx)
 {
+	struct openssl_digest *dgst = (struct openssl_digest *)ctx;
 	if (dgst) {
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
 		EVP_CIPHER_CTX_cleanup(SSL_GET_CTXDEC(dgst));

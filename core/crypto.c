@@ -139,7 +139,7 @@ void print_registered_cryptolib(void)
 	}
 }
 
-struct swupdate_digest *swupdate_DECRYPT_init(unsigned char *key, char keylen, unsigned char *iv)
+void *swupdate_DECRYPT_init(unsigned char *key, char keylen, unsigned char *iv)
 {
 	swupdate_decrypt_lib *lib;
 	if (!get_cryptolib())
@@ -149,7 +149,7 @@ struct swupdate_digest *swupdate_DECRYPT_init(unsigned char *key, char keylen, u
 	return lib->DECRYPT_init(key, keylen, iv);
 }
 
-int swupdate_DECRYPT_update(struct swupdate_digest *dgst, unsigned char *buf, 
+int swupdate_DECRYPT_update(void *dgst, unsigned char *buf, 
 				int *outlen, const unsigned char *cryptbuf, int inlen)
 {
 	swupdate_decrypt_lib *lib;
@@ -160,7 +160,7 @@ int swupdate_DECRYPT_update(struct swupdate_digest *dgst, unsigned char *buf,
 	return lib->DECRYPT_update(dgst, buf, outlen, cryptbuf, inlen);
 }
 
-int swupdate_DECRYPT_final(struct swupdate_digest *dgst, unsigned char *buf, int *outlen)
+int swupdate_DECRYPT_final(void *dgst, unsigned char *buf, int *outlen)
 {
 	swupdate_decrypt_lib *lib;
 	if (!get_cryptolib())
@@ -169,7 +169,7 @@ int swupdate_DECRYPT_final(struct swupdate_digest *dgst, unsigned char *buf, int
 	return lib->DECRYPT_final(dgst, buf, outlen);
 }
 
-void swupdate_DECRYPT_cleanup(struct swupdate_digest *dgst)
+void swupdate_DECRYPT_cleanup(void *dgst)
 {
 	swupdate_decrypt_lib *lib;
 	if (!get_cryptolib())
@@ -178,7 +178,7 @@ void swupdate_DECRYPT_cleanup(struct swupdate_digest *dgst)
 	return lib->DECRYPT_cleanup(dgst);
 }
 
-struct swupdate_digest *swupdate_HASH_init(const char *SHAlength)
+void *swupdate_HASH_init(const char *SHAlength)
 {
 	swupdate_HASH_lib *lib;
 
@@ -189,7 +189,7 @@ struct swupdate_digest *swupdate_HASH_init(const char *SHAlength)
 	return lib->HASH_init(SHAlength);
 }
 
-int swupdate_HASH_update(struct swupdate_digest *dgst, const unsigned char *buf, size_t len)
+int swupdate_HASH_update(void *dgst, const unsigned char *buf, size_t len)
 {
 	swupdate_HASH_lib *lib;
 
@@ -200,7 +200,7 @@ int swupdate_HASH_update(struct swupdate_digest *dgst, const unsigned char *buf,
 	return lib->HASH_update(dgst, buf, len);
 }
 
-int swupdate_HASH_final(struct swupdate_digest *dgst, unsigned char *md_value, unsigned int *md_len)
+int swupdate_HASH_final(void *dgst, unsigned char *md_value, unsigned int *md_len)
 {
 	swupdate_HASH_lib *lib;
 
@@ -222,7 +222,7 @@ int swupdate_HASH_compare(const unsigned char *hash1, const unsigned char *hash2
 	return lib->HASH_compare(hash1, hash2);
 }
 
-void swupdate_HASH_cleanup(struct swupdate_digest *dgst)
+void swupdate_HASH_cleanup(void *dgst)
 {
 	swupdate_HASH_lib *lib;
 
@@ -244,7 +244,7 @@ int swupdate_dgst_init(struct swupdate_cfg *sw, const char *keyfile)
 	return lib->dgst_init(sw, keyfile);
 }
 
-int swupdate_verify_file(struct swupdate_digest *dgst, const char *sigfile,
+int swupdate_verify_file(void *dgst, const char *sigfile,
 		const char *file, const char *signer_name)
 {
 	swupdate_dgst_lib *lib;

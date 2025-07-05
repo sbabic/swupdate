@@ -266,7 +266,7 @@ static int check_verified_signer(CMS_ContentInfo* cms, X509_STORE* store)
 
 static int openssl_cms_dgst_init(struct swupdate_cfg *sw, const char *keyfile)
 {
-	struct swupdate_digest *dgst;
+	struct openssl_digest *dgst;
 	int ret;
 
 	/*
@@ -334,12 +334,14 @@ dgst_init_error:
 	return ret;
 }
 
-static int openssl_cms_verify_file(struct swupdate_digest *dgst, const char *sigfile,
+static int openssl_cms_verify_file(void  *ctx, const char *sigfile,
 		const char *file, const char *signer_name)
 {
 	int status = -EFAULT;
 	CMS_ContentInfo *cms = NULL;
 	BIO *content_bio = NULL;
+
+	struct openssl_digest *dgst = (struct openssl_digest *)ctx;
 
 	/* Open CMS blob that needs to be checked */
 	BIO *sigfile_bio = BIO_new_file(sigfile, "rb");

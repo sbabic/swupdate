@@ -48,9 +48,10 @@ exit:
 	return result;
 }
 
-static int mbedtls_rsa_verify_file(struct swupdate_digest *dgst, const char *sigfile,
+static int mbedtls_rsa_verify_file(void *ctx, const char *sigfile,
 		const char *file, const char *signer_name)
 {
+	struct mbedtls_digest *dgst = (struct mbedtls_digest *)ctx;
 	int error;
 	uint8_t hash_computed[32];
 	const mbedtls_md_info_t *md_info;
@@ -97,7 +98,7 @@ static int mbedtls_rsa_verify_file(struct swupdate_digest *dgst, const char *sig
 
 static int mbedtls_rsa_dgst_init(struct swupdate_cfg *sw, const char *keyfile)
 {
-	struct swupdate_digest *dgst;
+	struct mbedtls_digest *dgst;
 
 	dgst = calloc(1, sizeof(*dgst));
 	if (!dgst) {
