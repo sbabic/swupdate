@@ -19,6 +19,10 @@
 #include "swupdate_crypto.h"
 #include <wolfssl/openssl/pkcs7.h>
 
+#ifndef PKCS7_BINARY
+#define PKCS7_BINARY            0x80
+#endif
+
 static swupdate_dgst_lib	libs;
 
 static int store_verify_callback(int ok, X509_STORE_CTX *ctx) {
