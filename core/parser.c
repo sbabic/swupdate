@@ -13,7 +13,6 @@
 #include <errno.h>
 #include "swupdate.h"
 #include "parsers.h"
-#include "sslapi.h"
 #include "util.h"
 #include "progress.h"
 #include "handler.h"
