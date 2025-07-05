@@ -91,7 +91,11 @@ static int mbedtls_HASH_final(struct swupdate_digest *dgst, unsigned char *md_va
 		return -EINVAL;
 	}
 	if (md_len) {
+#if MBEDTLS_VERSION_NUMBER >= 0x03020000
+		*md_len = mbedtls_md_get_size(mbedtls_md_info_from_ctx(&dgst->mbedtls_md_context));
+#else
 		*md_len = mbedtls_md_get_size(dgst->mbedtls_md_context.md_info);
+#endif
 	}
 	return 1;
 
