@@ -43,6 +43,7 @@ $_SUDO apt-get -qq update && apt-get install --yes --no-install-recommends \
         liblua5.2-dev \
         libluajit-5.1-dev \
         libmbedtls-dev \
+        libp11-kit-dev \
         librsync-dev \
         libssl-dev \
         libsystemd-dev \
