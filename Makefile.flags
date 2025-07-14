@@ -108,7 +108,7 @@ KBUILD_CFLAGS += --sysroot=$(CONFIG_SYSROOT)
 export SYSROOT=$(CONFIG_SYSROOT)
 endif
 
-# Links always pthread
+# Always link pthread, libubootenv, and json-c
 LDLIBS += pthread ubootenv json-c
 # lua
 ifneq ($(CONFIG_LUA),)
