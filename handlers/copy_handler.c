@@ -44,7 +44,9 @@
 #include "progress.h"
 #include "handler.h"
 #include "util.h"
+#ifdef CONFIG_MTD
 #include "flash.h"
+#endif
 #include "handler_helpers.h"
 #include "installer.h"
 
@@ -236,6 +238,7 @@ static int copy_image_file(struct img_type *img, void *data)
 	script_data = data;
 
 	base_img = img;
+#ifdef CONFIG_MTD
 	if(strlen(img->mtdname) ){
 		int mtdnum = get_mtd_from_name(img->mtdname);
 		if (mtdnum < 0) {
@@ -245,6 +248,7 @@ static int copy_image_file(struct img_type *img, void *data)
 		}
 		snprintf(img->device, sizeof(img->device), "/dev/mtdblock%d", mtdnum);
 	}
+#endif
 	proplist = dict_get_list(&img->properties, "type");
 	if (proplist) {
 		entry = LIST_FIRST(proplist);
@@ -267,6 +271,7 @@ static int copy_image_file(struct img_type *img, void *data)
 		ERROR("Missing source device, no copyfrom property");
 		return -EINVAL;
 	}
+#ifdef CONFIG_MTD
 	if (!strncmp("mtd:", entry->value, 4)) {
 		int mtdnum = get_mtd_from_name(entry->value + 4);
 		if (mtdnum < 0) {
@@ -278,6 +283,7 @@ static int copy_image_file(struct img_type *img, void *data)
 		entry->value = malloc(20+1); /* to hold "/dev/mtdblockXX */
 		snprintf(entry->value, 20, "/dev/mtdblock%d", mtdnum);
 	}
+#endif
 	copyfrom = realpath(entry->value, NULL);
 	if (!copyfrom) {
 		ERROR("%s cannot be resolved", entry->value);
