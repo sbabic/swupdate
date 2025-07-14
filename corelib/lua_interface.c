@@ -990,7 +990,8 @@ static int l_get_tmpdir_scripts(lua_State *L)
 
 static int l_progress_update(lua_State *L)
 {
-	lua_Number percent =  luaL_checknumber (L, 1);
+	lua_Number percent = luaL_checknumber(L, 1);
+	lua_pop(L, 1);
 	swupdate_progress_update((unsigned int) percent);
 	return 0;
 }
