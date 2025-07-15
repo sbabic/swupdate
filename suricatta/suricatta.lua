@@ -47,6 +47,7 @@ suricatta.status = {
 --
 -- Translates to `notify(string.format(message, ...))`,
 -- @see `corelib/lua_interface.c`
+-- except for `suricatta.notify.progress()`.
 --
 --- @class suricatta.notify
 suricatta.notify = {
@@ -60,8 +61,8 @@ suricatta.notify = {
     info     = function(message, ...) end,
     --- @type fun(message: string, ...: any)
     warn     = function(message, ...) end,
-    --- @type fun(message: string, ...: any)
-    progress = function(message, ...) end,
+    --- @type fun(message: string, cause:suricatta.ipc.progress_cause?)
+    progress = function(message, cause) end,
 }
 
 

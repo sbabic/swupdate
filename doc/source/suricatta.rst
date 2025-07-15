@@ -557,10 +557,10 @@ The ``suricatta.status`` table exposes the ``server_op_res_t`` enum values defin
 The ``suricatta.notify`` table provides the usual logging functions to the Lua
 suricatta module matching their uppercase-named pendants available in the C realm.
 
-One notable exception is ``suricatta.notify.progress(message)`` which dispatches the
-message to the progress interface (see :doc:`progress`). Custom progress client
-implementations listening and acting on custom progress messages can be realized
-using this function.
+One notable exception is ``suricatta.notify.progress(message, cause)`` which 
+dispatches the message to the progress interface (see :doc:`progress`). Custom
+progress client implementations listening and acting on custom progress messages
+can be realized using this function.
 
 All notify functions return ``nil``.
 

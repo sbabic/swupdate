@@ -63,8 +63,9 @@ swupdate.warn  = function(format, ...) end
 swupdate.debug = function(format, ...) end
 
 --- Lua equivalent of `notify(PROGRESS, ..., msg)`.
---- @param msg  string  Message to send to progress interface
-swupdate.progress = function(msg) end
+--- @param msg    string        Message to send to progress interface
+--- @param cause  number | nil  `progress_cause_t` value as defined in `include/progress_ipc.h`
+swupdate.progress = function(msg, cause) end
 
 --- Lua equivalent of `notify(status, error, INFOLEVEL, msg)`.
 --- @param status  swupdate.RECOVERY_STATUS  Current status, one of `swupdate.RECOVERY_STATUS`'s values

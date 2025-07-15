@@ -1232,17 +1232,18 @@ static int l_stat(lua_State *L)
  * @brief Dispatch a message to the progress interface.
  *
  * @param [Lua] Message to dispatch to progress interface.
+ * @param [Lua] progress_cause_t number (optional), default: CAUSE_NONE
  * @return [Lua] nil.
  */
 int lua_notify_progress(lua_State *L) {
-  /*
-   * NOTE: level is INFOLEVEL for the sake of specifying a level.
-   * It is unused in core/notifier.c :: progress_notifier() as the
-   * progress emitter doesn't know about log levels.
-   */
-  notify(PROGRESS, RECOVERY_NO_ERROR, INFOLEVEL, luaL_checkstring(L, -1));
-  lua_pop(L, 1);
-  return 0;
+	lua_Number cause = CAUSE_NONE;
+	if (lua_isnumber(L, -1) == 1) {
+		cause = lua_tonumber(L, -1);
+		lua_pop(L, 1);
+	}
+	notify(PROGRESS, (progress_cause_t)cause, INFOLEVEL, luaL_checkstring(L, -1));
+	lua_pop(L, 1);
+	return 0;
 }
 
 /**

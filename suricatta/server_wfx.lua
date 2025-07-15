@@ -1471,8 +1471,10 @@ M.job.workflow.dispatch:set(
             suricatta.notify.warn("Cannot initialize progress reporting channel, won't send progress.")
         end
 
-        suricatta.notify.progress(M.utils.string.escape([[{"%s": { "reboot-mode" : "no-reboot"}}]])
-            :format(suricatta.ipc.progress_cause.CAUSE_REBOOT_MODE))
+        suricatta.notify.progress(
+            M.utils.string.escape([[{ "reboot-mode" : "no-reboot"}]]),
+            suricatta.ipc.progress_cause.CAUSE_REBOOT_MODE
+        )
 
         suricatta.notify.debug(
             "%s Version '%s' (Type: %s).",
