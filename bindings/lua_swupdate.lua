@@ -61,15 +61,16 @@ lua_swupdate.sourcetype = {
 
 --- Lua equivalent of `struct progress_msg` as in `include/progress_ipc.h`.
 --- @class lua_swupdate.progress_msg
---- @field status    lua_swupdate.RECOVERY_STATUS  Update status, one of `lua_swupdate.RECOVERY_STATUS`'s values
---- @field download  number  Downloaded data percentage
---- @field source    lua_swupdate.sourcetype  Interface that triggered the update, one of `lua_swupdate.sourcetype`'s values
---- @field nsteps    number  Total number of steps
---- @field step      number  Current step
---- @field percent   number  Percentage done in current step
---- @field artifact  string  Name of image to be installed
---- @field handler   string  Name of running Handler
---- @field info      string  Additional information about installation
+--- @field apiversion number  API Version for compatibility check
+--- @field status     lua_swupdate.RECOVERY_STATUS  Update status, one of `lua_swupdate.RECOVERY_STATUS`'s values
+--- @field download   number  Downloaded data percentage
+--- @field source     lua_swupdate.sourcetype  Interface that triggered the update, one of `lua_swupdate.sourcetype`'s values
+--- @field nsteps     number  Total number of steps
+--- @field step       number  Current step
+--- @field percent    number  Percentage done in current step
+--- @field artifact   string  Name of image to be installed
+--- @field handler    string  Name of running Handler
+--- @field info       string  Additional information about installation
 
 
 --- SWUpdate progress socket binding.

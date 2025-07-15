@@ -321,6 +321,7 @@ static int progress_receive(lua_State *L) {
 	};
 	lua_newtable(L);
 
+	LUA_PUSH_INT("apiversion", p->msg.apiversion);
 	LUA_PUSH_INT("status", p->msg.status);
 	LUA_PUSH_INT("download", p->msg.dwl_percent);
 	LUA_PUSH_INT("source", p->msg.source);
