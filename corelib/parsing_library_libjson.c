@@ -38,6 +38,22 @@ static json_type map_field_type(field_type_t type)
 	}
 }
 
+static bool get_field_type(json_object *e, const char *path, enum json_type *type)
+{
+	json_object *fld = NULL;
+
+	if (path) {
+		if (!json_object_object_get_ex(e, path, &fld))
+			return false;
+	} else {
+		fld = e;
+	}
+
+	*type = json_object_get_type(fld);
+
+	return true;
+}
+
 json_object *find_json_recursive_node(json_object *root, const char **names)
 {
 	json_object *node = root;
@@ -147,18 +163,32 @@ static void get_value_json(json_object *e, const char *path, void *dest, field_t
 bool is_field_numeric_json(json_object *e, const char *path)
 {
 	enum json_type type;
-	json_object *fld = NULL;
 
-	if (path) {
-		if (!json_object_object_get_ex(e, path, &fld))
-			return false;
-	} else {
-		fld = e;
-	}
+	if (!get_field_type(e, path, &type))
+		return false;
 
-	type = json_object_get_type(fld);
 	return type == json_type_int ||
 	       type == json_type_double;
+}
+
+bool is_field_bool_json(json_object *e, const char *path)
+{
+	enum json_type type;
+
+	if (!get_field_type(e, path, &type))
+		return false;
+
+	return type == json_type_boolean;
+}
+
+bool is_field_string_json(json_object *e, const char *path)
+{
+	enum json_type type;
+
+	if (!get_field_type(e, path, &type))
+		return false;
+
+	return type == json_type_string;
 }
 
 void get_field_json(json_object *e, const char *path, void *dest, field_type_t type)

@@ -12,6 +12,8 @@
 #include <json-c/json.h>
 
 bool is_field_numeric_cfg(config_setting_t *e, const char *path);
+bool is_field_bool_cfg(config_setting_t *e, const char *path);
+bool is_field_string_cfg(config_setting_t *e, const char *path);
 void get_field_cfg(config_setting_t *e, const char *path, void *dest, field_type_t type);
 void *get_child_libconfig(void *e, const char *name);
 void iterate_field_libconfig(config_setting_t *e, iterate_callback cb,
@@ -24,6 +26,8 @@ void *get_node_libconfig(config_t *cfg, const char **nodes);
  * JSON implementation for parselib
  */
 bool is_field_numeric_json(json_object *e, const char *path);
+bool is_field_bool_json(json_object *e, const char *path);
+bool is_field_string_json(json_object *e, const char *path);
 const char *get_field_string_json(json_object *e, const char *path);
 void get_field_json(json_object *e, const char *path, void *dest, field_type_t type);
 void *get_child_json(json_object *e, const char *name);

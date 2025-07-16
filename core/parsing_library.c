@@ -164,6 +164,36 @@ bool is_field_numeric(parsertype p, void *e, const char *path)
 	return false;
 }
 
+bool is_field_bool(parsertype p, void *e, const char *path)
+{
+	switch (p) {
+	case LIBCFG_PARSER:
+		return is_field_bool_cfg((config_setting_t *)e, path);
+	case JSON_PARSER:
+		return is_field_bool_json((json_object *)e, path);
+	default:
+		(void)e;
+		(void)path;
+	}
+	return false;
+}
+
+bool is_field_string(parsertype p, void *e, const char *path)
+{
+	switch (p) {
+	case LIBCFG_PARSER:
+		return is_field_string_cfg((config_setting_t *)e, path);
+	case JSON_PARSER:
+		return is_field_string_json((json_object *)e, path);
+	default:
+		(void)e;
+		(void)path;
+	}
+	return false;
+}
+
+
+
 void get_field(parsertype p, void *e, const char *path, void *dest, field_type_t type)
 {
 	switch (p) {

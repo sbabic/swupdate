@@ -37,6 +37,22 @@ static unsigned int map_field_type(field_type_t type)
 	}
 }
 
+static bool get_field_type(config_setting_t *e, const char *path, int *type)
+{
+	config_setting_t *elem;
+
+	if (path)
+		elem = config_setting_lookup(e, path);
+	else
+		elem = e;
+
+	if (!elem)
+		return false;
+
+	*type = config_setting_type(elem);
+
+	return true;
+}
 
 static void get_value_libconfig(const config_setting_t *e, const char *path, void *dest, field_type_t expected_type)
 {
@@ -103,23 +119,36 @@ void iterate_field_libconfig(config_setting_t *e, iterate_callback cb, void *dat
 
 bool is_field_numeric_cfg(config_setting_t *e, const char *path)
 {
-	config_setting_t *elem;
 	int type;
 
-	if (path)
-		elem = config_setting_lookup(e, path);
-	else
-		elem = e;
-
-	if (!elem)
+	if (!get_field_type(e, path, &type))
 		return false;
-
-	type = config_setting_type(elem);
 
 	return type == CONFIG_TYPE_INT ||
 	       type == CONFIG_TYPE_INT64 ||
 	       type == CONFIG_TYPE_FLOAT;
 }
+
+bool is_field_bool_cfg(config_setting_t *e, const char *path)
+{
+	int type;
+
+	if (!get_field_type(e, path, &type))
+		return false;
+
+	return type == CONFIG_TYPE_BOOL;
+}
+
+bool is_field_string_cfg(config_setting_t *e, const char *path)
+{
+	int type;
+
+	if (!get_field_type(e, path, &type))
+		return false;
+
+	return type == CONFIG_TYPE_STRING;
+}
+
 
 void get_field_cfg(config_setting_t *e, const char *path, void *dest, field_type_t type)
 {

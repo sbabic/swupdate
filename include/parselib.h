@@ -48,6 +48,8 @@ char *json_get_data_url(json_object *json_root, const char *key);
  * Parselib interface
  */
 bool is_field_numeric(parsertype p, void *e, const char *path);
+bool is_field_bool(parsertype p, void *e, const char *path);
+bool is_field_string(parsertype p, void *e, const char *path);
 const char *get_field_string(parsertype p, void *e, const char *path);
 void get_field_string_with_size(parsertype p, void *e, const char *path,
 				char *d, size_t n);
