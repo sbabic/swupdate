@@ -308,6 +308,8 @@ static int parse_cert_purpose(const char *text)
 
 static void read_updatetype_settings(void *elem, struct swupdate_type_cfg *typecfg)
 {
+	char tmp[SWUPDATE_GENERAL_STRING_SIZE] = "";
+
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
 				"postupdatecmd", typecfg->postupdatecmd);
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
@@ -326,6 +328,22 @@ static void read_updatetype_settings(void *elem, struct swupdate_type_cfg *typec
 				"no-reinstalling", typecfg->current_version);
 	if (strlen(typecfg->current_version))
 		typecfg->no_reinstalling = true;
+
+	/*
+	 * As default, reboot is initiated
+	 */
+	GET_FIELD_STRING(LIBCFG_PARSER, elem,
+				"reboot", tmp);
+	typecfg->reboot_enabled = REBOOT_UNSET;
+	if (tmp[0] != '\0') {
+		if (!is_enabled_or_disabled(tmp)) {
+			WARN("Possible mismatch for reboot attribute, it is neither enabled nor disabled");
+		} else if (is_enabled(tmp)) {
+			typecfg->reboot_enabled = REBOOT_ENABLED;
+		} else {
+			typecfg->reboot_enabled = REBOOT_DISABLED;
+		}
+	}
 }
 
 static int read_globals_settings(void *elem, void *data)

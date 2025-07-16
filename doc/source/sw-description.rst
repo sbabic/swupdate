@@ -1277,6 +1277,7 @@ because the specific typoe was not found. In swupdate.cfg there will be somethin
                  preupdatecmd = "/usr/bin/echo Hello";
                  max-version = "8.99";
                  no-reinstalling = "5.5";
+                 reboot = "enabled";
          },
          {
                  name = "Application";
@@ -1285,6 +1286,7 @@ because the specific typoe was not found. In swupdate.cfg there will be somethin
                  preupdatecmd = "/usr/bin/echo Hello";
                  max-version = "5.99";
                  no-reinstalling = "4.5";
+                 reboot = "disabled";
          }
         )
 
@@ -1294,6 +1296,9 @@ Values in the "globals" are still identified with a type, that SWUpdate calls "d
 
 A flag into swupdate.cfg (update-type-required, globals section) will force that "update-type" is
 mandatory, and SWU without the type set will be simply rejected.
+
+The flag reboot identifies if the update will be followed by a reboot or it is marked as "no rebootable". 
+This can still be overwritten by the global attribute "reboot" in sw-description.
 
 Embedded Script
 ---------------

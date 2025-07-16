@@ -331,3 +331,12 @@ char *swupdate_time_iso8601(struct timeval *tv);
 /* eMMC functions */
 int emmc_write_bootpart(int fd, int bootpart);
 int emmc_get_active_bootpart(int fd);
+
+/* used to compare if an attribute is set to enabled or disabled */
+
+static inline bool is_enabled_or_disabled(const char *s) {
+	return (!(strcmp(s, "enabled") && strcmp(s, "disabled")));
+}
+static inline bool is_enabled(const char *s) {
+	return (!strcmp(s, "enabled"));
+}

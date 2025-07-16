@@ -27,6 +27,15 @@ typedef enum {
 	INSTALL_FROM_STREAM
 } swupdate_file_t;
 
+/*
+ * Type of reboot after an update
+ */
+typedef enum {
+	REBOOT_UNSET,
+	REBOOT_ENABLED,
+	REBOOT_DISABLED
+} swupdate_reboot_t;
+
 struct extproc {
 	char name[SWUPDATE_GENERAL_STRING_SIZE];
 	char exec[SWUPDATE_GENERAL_STRING_SIZE];
@@ -51,6 +60,7 @@ struct swupdate_type_cfg {
 	bool no_downgrading;
 	bool no_reinstalling;
 	bool check_max_version;
+	swupdate_reboot_t reboot_enabled;
 	LIST_ENTRY(swupdate_type_cfg) next;
 };
 LIST_HEAD(swupdate_type_list, swupdate_type_cfg);
@@ -84,7 +94,7 @@ struct swupdate_cfg {
 	int cert_purpose;
 	bool no_transaction_marker;
 	bool no_state_marker;
-	bool reboot_required;
+	swupdate_reboot_t reboot_enabled;
 	struct hw_type hw;
 	struct hwlist hardware;
 	struct swver installed_sw_list;

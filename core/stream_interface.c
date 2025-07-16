@@ -58,6 +58,16 @@ enum {
 
 static pthread_t network_thread_id;
 
+static bool check_reboot_enabled(struct swupdate_cfg *sw) {
+	if (sw->reboot_enabled != REBOOT_UNSET)
+		return sw->reboot_enabled == REBOOT_ENABLED;
+	struct swupdate_type_cfg *typecfg = sw->update_type;
+	if (typecfg->reboot_enabled != REBOOT_UNSET)
+		return typecfg->reboot_enabled == REBOOT_ENABLED;
+
+	return true;
+}
+
 /*
  * NOTE: these sync vars are _not_ static, they are _shared_ between the
  * installer, the display thread and the network thread
@@ -562,6 +572,7 @@ void *network_initializer(void *data)
 	struct swupdate_cfg *software = data;
 	struct swupdate_request *req;
 	struct swupdate_parms parms;
+	bool do_reboot = true;
 
 	/* No installation in progress */
 	memset(&inst, 0, sizeof(inst));
@@ -711,7 +722,8 @@ void *network_initializer(void *data)
 			 * if this update is signalled to be without reboot (On the Fly),
 			 * send a notification via progress for processes responsible for booting
 			 */
-			if (!software->reboot_required) {
+			do_reboot = check_reboot_enabled(software);
+			if (!do_reboot) {
 				swupdate_progress_info(RUN, CAUSE_REBOOT_MODE , "{ \"reboot-mode\" : \"no-reboot\"}");
 			}
 
@@ -778,7 +790,7 @@ void *network_initializer(void *data)
 		 */
 		if (req->source == SOURCE_SURICATTA &&
 		    /*simple check without JSON */ strstr(req->info, "hawkbit") &&
-		    !software->reboot_required) {
+		    !do_reboot) {
 			ipc_message msg;
 			size_t size = sizeof(msg.data.procmsg.buf);
 			char *buf = msg.data.procmsg.buf;

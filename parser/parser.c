@@ -220,12 +220,29 @@ static bool get_common_fields(parsertype p, void *cfg, struct swupdate_cfg *swcf
 	/*
 	 * As default, reboot is initiated
 	 */
-	swcfg->reboot_required = true;
+	swcfg->reboot_enabled = REBOOT_UNSET;
 	if((setting = find_node(p, cfg, "reboot", swcfg)) != NULL) {
-		GET_FIELD_BOOL(p, setting, NULL, &swcfg->reboot_required);
+		if (is_field_bool(p, setting, NULL)) {
+			bool must_reboot = true;
+			GET_FIELD_BOOL(p, setting, NULL, &must_reboot);
+			swcfg->reboot_enabled = must_reboot ? REBOOT_ENABLED : REBOOT_DISABLED;
+		} else if (is_field_string(p, setting, NULL)) {
+			char tmp[SWUPDATE_GENERAL_STRING_SIZE] = "";
+			GET_FIELD_STRING(p, setting, NULL, tmp);
+
+			if (tmp[0] != '\0') {
+				if (!is_enabled_or_disabled(tmp)) {
+					WARN("Possible mismatch for reboot attribute, it is neither enabled nor disabled");
+				} else if (is_enabled(tmp)) {
+					swcfg->reboot_enabled = REBOOT_ENABLED;
+				} else {
+					swcfg->reboot_enabled = REBOOT_DISABLED;
+				}
+			}
+		}
 	}
 
-	TRACE("reboot_required %d", swcfg->reboot_required);
+	TRACE("reboot_enabled %d", swcfg->reboot_enabled != REBOOT_DISABLED);
 
 	/*
 	 * Check if SWU should be cached
