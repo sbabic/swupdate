@@ -58,6 +58,20 @@ selected via menuconfig. Currently, the following mechanisms are implemented:
 For RSA and CMS algorithms, key or certificate is passed to SWUpdate
 with the `-k` parameter.
 
+Architecture of crypto subsystem
+--------------------------------
+
+The subszstem consists of crypto "providers", services and modules.
+A provider is a library that allows to build services. It is an external library
+like openSSL. Modules will use one of the provider to implement one service. 
+SWUpdate defines three type of services : Verification, Hashing and Decryption.
+
+The modules are the specific implementation of one of the services with
+an algorythm supported by the provided. It can be CMS, AES, pkcs#11, etc.
+Multiple modules can be installed, and the choice can be done at runtime.
+
+.. image:: images/crypto_architecture.png
+
 Tool to generate keys / certificates
 ------------------------------------
 

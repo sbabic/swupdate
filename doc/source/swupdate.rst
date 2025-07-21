@@ -529,6 +529,27 @@ Command line parameters
 |             |          |             it can be set multiple times   |
 +-------------+----------+--------------------------------------------+
 
+Crypto selection parameters
+---------------------------
+
++------------------------+----------+--------------------------------------------+
+|  Parameter             | Type     | Description                                |
++========================+==========+============================================+
+| --digest-provider      | string   | Select the implementation for signature    |
+|      <provider>        |          | verification. The list of implementation   |
+|                        |          | is written at start. Examples: opensslCMS  |
+|                        |          | opensslRSA, etc.                           |
++------------------------+----------+--------------------------------------------+
+| --decrpyt-provider     | string   | Select the implementation for decryption   |
+|      <provider>        |          | The list of implementation                 |
+|                        |          | is written at start. Examples: openssl     |
+|                        |          | wolfssl, etc.                              |
++------------------------+----------+--------------------------------------------+
+| --hash-provider        | string   | Select the implementation for hash         |
+|      <provider>        |          | computation. The list of implementation    |
+|                        |          | is written at start. Examples: openssl     |
++------------------------+----------+--------------------------------------------+
+
 Downloader command line parameters
 ..................................
 
