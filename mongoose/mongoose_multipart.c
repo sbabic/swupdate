@@ -324,7 +324,7 @@ void multipart_upload_handler(struct mg_connection *c, int ev, void *ev_data)
 	struct mg_str *s;
 
 	if (mp_stream != NULL && mp_stream->boundary.len != 0) {
-		if (ev == MG_EV_READ || (ev == MG_EV_POLL && mp_stream->data_avail)) {
+		if (ev == MG_EV_READ || ev == MG_EV_HTTP_MSG || (ev == MG_EV_POLL && mp_stream->data_avail)) {
 			mg_http_multipart_continue(c);
 		} else if (ev == MG_EV_CLOSE) {
 			/*
@@ -337,7 +337,7 @@ void multipart_upload_handler(struct mg_connection *c, int ev, void *ev_data)
 		return;
 	}
 
-	if (ev == MG_EV_READ) {
+	if (ev == MG_EV_READ || ev == MG_EV_HTTP_MSG) {
 		if(mg_strcasecmp(hm->method, mg_str("POST")) != 0) {
 			mg_http_reply(c, 405, "", "%s", "Method Not Allowed\n");
 			c->is_draining = 1;

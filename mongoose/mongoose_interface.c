@@ -692,7 +692,11 @@ static void ev_handler(struct mg_connection *nc, int ev, void *ev_data)
 			websocket_handler(nc, ev_data);
 		else if (mg_match(hm->uri, mg_str("#/restart"), NULL))
 			restart_handler(nc, ev_data);
-		else
+	        else if (mg_match(hm->uri, mg_str("#/upload"), NULL)) {
+			nc->pfn = upload_handler;
+			nc->pfn_data = NULL;
+			multipart_upload_handler(nc, ev, hm);
+		} else
 			mg_http_serve_dir(nc, ev_data, &s_http_server_opts);
 	} else if (nc->data[0] != 'M' && nc->data[0] != 'W' && ev == MG_EV_READ) {
 		struct mg_http_message hm;
