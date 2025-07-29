@@ -315,7 +315,7 @@ int ipc_send_data(int connfd, char *buf, int size)
 	ssize_t len = size;
 
 	while (len) {
-		ret = write(connfd, buf, (size_t)size);
+		ret = write(connfd, buf, (size_t)len);
 		if (ret < 0)
 			return ret;
 		len -= ret;
