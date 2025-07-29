@@ -72,6 +72,10 @@ static int _fill_buffer(int fd, unsigned char *buf, unsigned int nbytes, unsigne
 	while (nbytes > 0) {
 		len = read(fd, buf, nbytes);
 		if (len < 0) {
+			if (errno == EINTR) {
+				continue;
+			}
+
 			ERROR("Failure in stream %d: %s", fd, strerror(errno));
 			return -EFAULT;
 		}
