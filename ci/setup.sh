@@ -24,6 +24,7 @@ export TZ=Europe/London
 $_SUDO apt-get -qq update && apt-get install --yes --no-install-recommends \
         cpio \
         curl \
+	file \
         gawk \
         gcc \
         git \
