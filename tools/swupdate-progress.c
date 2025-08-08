@@ -62,7 +62,7 @@ static void textcolor(int attr, int fg, int bg)
 
 static struct option long_options[] = {
 	{"help", no_argument, NULL, 'h'},
-	{"psplash", no_argument, NULL, 'p'},
+	{"psplash", optional_argument, NULL, 'p'},
 	{"reboot", optional_argument, NULL, 'r'},
 	{"wait", no_argument, NULL, 'w'},
 	{"color", no_argument, NULL, 'c'},
@@ -83,14 +83,50 @@ static void usage(char *programname)
 		" -r, --reboot [<script>] : reboot after a successful update by calling the given script or\n"
 		"                           by calling the reboot() syscall by default\n"
 		" -w, --wait              : wait for a connection with SWUpdate\n"
-		" -p, --psplash           : send info to the psplash process\n"
+		" -p, --psplash [<args>]  : send info to the psplash process\n"
 		" -s, --socket <path>     : path to progress IPC socket\n"
 		" -h, --help              : print this help and exit\n"
 		" -q, --quiet             : do not print progress bar\n"
 		);
 }
 
-static int psplash_init(char *pipe)
+static char **get_psplash_args(const char *optarg) {
+    char **av = NULL;
+    int av_size = 0;
+    char *optarg_copy;
+    char *arg;
+
+    av = realloc(av, sizeof(char*) * (av_size + 1));
+    av[av_size] = strdup("psplash");
+    av_size++;
+
+    if (optarg != NULL) {
+        optarg_copy = strdup(optarg);
+        arg = strtok(optarg_copy, " ");
+        while (arg != NULL) {
+            av = realloc(av, sizeof(char*) * (av_size + 1));
+            av[av_size] = strdup(arg);
+            av_size++;
+            arg = strtok(NULL, " ");
+        }
+        free(optarg_copy);
+    }
+
+    // Add NULL at the end of the array to terminate the argument list
+    av = realloc(av, sizeof(char*) * (av_size + 1));
+    av[av_size] = NULL;
+    return av;
+}
+
+static void free_args(char **argv)
+{
+    for (int i = 0; argv && argv[i] != NULL; i++) {
+        free(argv[i]);
+    }
+    free(argv);
+}
+
+static int psplash_init(char *pipe, char **av)
 {
 	int psplash_pipe_fd;
 	int pid_psplash;
@@ -101,7 +137,7 @@ static int psplash_init(char *pipe)
 		if (pid_psplash < 0)
 			return 0;
 		else if (pid_psplash == 0) {
-			execl("/usr/bin/psplash", "psplash", (char *)0);
+			execv("/usr/bin/psplash", av);
 			exit(1);
 		} else {
 			sleep(1);
@@ -238,6 +274,7 @@ int main(int argc, char **argv)
 	int opt_w = 0;
 	int opt_r = 0;
 	int opt_p = 0;
+	char **psplash_args = NULL;
 	int c;
 	char *script = NULL;
 	char *reboot_script = NULL;
@@ -246,7 +283,7 @@ int main(int argc, char **argv)
 	bool redirected = false;
 
 	/* Process options with getopt */
-	while ((c = getopt_long(argc, argv, "cwprhs:e:q",
+	while ((c = getopt_long(argc, argv, "cwp::rhs:e:q",
 				long_options, NULL)) != EOF) {
 		switch (c) {
 		case 'c':
@@ -257,6 +294,7 @@ int main(int argc, char **argv)
 			break;
 		case 'p':
 			opt_p = 1;
+			psplash_args = get_psplash_args(optarg);
 			break;
 		case 'r':
 			opt_r = 1;
@@ -382,7 +420,8 @@ int main(int argc, char **argv)
 		msg.cur_image[sizeof(msg.cur_image) - 1] = '\0';
 
 		if (!psplash_ok && opt_p) {
-			psplash_ok = psplash_init(psplash_pipe_path);
+			psplash_ok = psplash_init(psplash_pipe_path, psplash_args);
+			free_args(psplash_args);
 		}
 
 		if (!wait_update) {
