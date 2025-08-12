@@ -51,7 +51,7 @@ menu "Signature verification algorithm"
 	config SIGALG_RSAPSS
 		bool "RSA PSS"
 		default n
-		depends on SSL_IMPL_OPENSSL || SSL_IMPL_WOLFSSL
+		depends on SSL_IMPL_OPENSSL || SSL_IMPL_WOLFSSL || SSL_IMPL_MBEDTLS
 
 	config SIGALG_CMS
 		bool "Cryptographic Message Syntax (CMS) / PKCS#7"
