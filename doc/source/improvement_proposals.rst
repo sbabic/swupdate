@@ -248,17 +248,6 @@ Webserver that allows streaming.
 Security / Crypto engines
 =========================
 
-- rework support for crypto engine - let possible to load multiple libraries at
-  the same time. Currently, there is support for openSSL, WolfSSL and mbedTLS.
-  However, WolfSSL are missing together. There should be a way to select one or more
-  libraries and independently the algorithms that SWUpdate should support.
-  Some hacks are currently built to avoid conflicts (pkcs#7 and CMS are the same
-  thing, but supported by different libraries), and they should be solved.
-
-* Status: Development
-* Request for Support : Sponsored by iris-GmbH infrared & intelligent sensors
-* Priority : High
-
 - add support for asymmetric decryption
 
 * Status: Wait
@@ -486,3 +475,15 @@ written in Lua could be now be part of the compound image, because
 a unauthenticated handler cannot run.
 
 * Status : since 2024.05
+
+Security subsystem and support multiple engines
+-----------------------------------------------
+
+Rework support for crypto engine - let possible to load multiple libraries at
+the same time. Currently, there is support for openSSL, WolfSSL and mbedTLS.
+However, WolfSSL are missing together. There should be a way to select one or more
+libraries and independently the algorithms that SWUpdate should support.
+Some hacks are currently built to avoid conflicts (pkcs#7 and CMS are the same
+thing, but supported by different libraries), and they should be solved.
+
+* Status: after 2025.05
