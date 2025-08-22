@@ -15,7 +15,7 @@
 // Alternatively, you can license this software under a commercial
 // license, as set out in https://www.mongoose.ws/licensing/
 //
-// SPDX-License-Identifier: GPL-2.0-only
+// SPDX-License-Identifier: GPL-2.0-only or commercial
 
 #include "mongoose.h"
 
@@ -139,7 +139,7 @@ static void mg_sendnsreq(struct mg_connection *, struct mg_str *, int,
 
 static void mg_dns_free(struct dns_data **head, struct dns_data *d) {
   LIST_DELETE(struct dns_data, head, d);
-  free(d);
+  mg_free(d);
 }
 
 void mg_resolve_cancel(struct mg_connection *c) {
@@ -221,6 +221,7 @@ bool mg_dns_parse(const uint8_t *buf, size_t len, struct mg_dns_message *dm) {
   const struct mg_dns_header *h = (struct mg_dns_header *) buf;
   struct mg_dns_rr rr;
   size_t i, n, num_answers, ofs = sizeof(*h);
+  bool is_response;
   memset(dm, 0, sizeof(*dm));
 
   if (len < sizeof(*h)) return 0;                // Too small, headers dont fit
@@ -231,12 +232,22 @@ bool mg_dns_parse(const uint8_t *buf, size_t len, struct mg_dns_message *dm) {
     num_answers = 10;  // Sanity cap
   }
   dm->txnid = mg_ntohs(h->txnid);
+  is_response = mg_ntohs(h->flags) & 0x8000;
 
   for (i = 0; i < mg_ntohs(h->num_questions); i++) {
     if ((n = mg_dns_parse_rr(buf, len, ofs, true, &rr)) == 0) return false;
     // MG_INFO(("Q %lu %lu %hu/%hu", ofs, n, rr.atype, rr.aclass));
+    mg_dns_parse_name(buf, len, ofs, dm->name, sizeof(dm->name));
     ofs += n;
   }
+
+  if (!is_response) {
+    // For queries, there is no need to parse the answers. In this way,
+    // we also ensure the domain name (dm->name) is parsed from
+    // the question field.
+    return true;
+  }
+
   for (i = 0; i < num_answers; i++) {
     if ((n = mg_dns_parse_rr(buf, len, ofs, false, &rr)) == 0) return false;
     // MG_INFO(("A -- %lu %lu %hu/%hu %s", ofs, n, rr.atype, rr.aclass,
@@ -342,21 +353,26 @@ static bool mg_dns_send(struct mg_connection *c, const struct mg_str *name,
   return mg_send(c, &pkt, sizeof(pkt.header) + n);
 }
 
+bool mg_dnsc_init(struct mg_mgr *mgr, struct mg_dns *dnsc);
+bool mg_dnsc_init(struct mg_mgr *mgr, struct mg_dns *dnsc) {
+  if (dnsc->url == NULL) {
+    mg_error(0, "DNS server URL is NULL. Call mg_mgr_init()");
+    return false;
+  }
+  if (dnsc->c == NULL) {
+    dnsc->c = mg_connect(mgr, dnsc->url, NULL, NULL);
+    if (dnsc->c == NULL) return false;
+    dnsc->c->pfn = dns_cb;
+  }
+  return true;
+}
+
 static void mg_sendnsreq(struct mg_connection *c, struct mg_str *name, int ms,
                          struct mg_dns *dnsc, bool ipv6) {
   struct dns_data *d = NULL;
-  if (dnsc->url == NULL) {
-    mg_error(c, "DNS server URL is NULL. Call mg_mgr_init()");
-  } else if (dnsc->c == NULL) {
-    dnsc->c = mg_connect(c->mgr, dnsc->url, NULL, NULL);
-    if (dnsc->c != NULL) {
-      dnsc->c->pfn = dns_cb;
-      // dnsc->c->is_hexdumping = 1;
-    }
-  }
-  if (dnsc->c == NULL) {
+  if (!mg_dnsc_init(c->mgr, dnsc)) {
     mg_error(c, "resolver");
-  } else if ((d = (struct dns_data *) calloc(1, sizeof(*d))) == NULL) {
+  } else if ((d = (struct dns_data *) mg_calloc(1, sizeof(*d))) == NULL) {
     mg_error(c, "resolve OOM");
   } else {
     struct dns_data *reqs = (struct dns_data *) c->mgr->active_dns_requests;
@@ -386,6 +402,76 @@ void mg_resolve(struct mg_connection *c, const char *url) {
     mg_sendnsreq(c, &host, c->mgr->dnstimeout, dns, c->mgr->use_dns6);
   }
 }
+
+static const uint8_t mdns_answer[] = {
+    0, 1,          // 2 bytes - record type, A
+    0, 1,          // 2 bytes - address class, INET
+    0, 0, 0, 120,  // 4 bytes - TTL
+    0, 4           // 2 bytes - address length
+};
+
+static void mdns_cb(struct mg_connection *c, int ev, void *ev_data) {
+  if (ev == MG_EV_READ) {
+    struct mg_dns_header *qh = (struct mg_dns_header *) c->recv.buf;
+    if (c->recv.len > 12 && (qh->flags & mg_htons(0xF800)) == 0) {
+      // flags -> !resp, opcode=0 => query; ignore other opcodes and responses
+      struct mg_dns_rr rr;  // Parse first question, offset 12 is header size
+      size_t n = mg_dns_parse_rr(c->recv.buf, c->recv.len, 12, true, &rr);
+      MG_VERBOSE(("mDNS request parsed, result=%d", (int) n));
+      if (n > 0) {
+        // RFC-6762 Appendix C, RFC2181 11: m(n + 1-63), max 255 + 0x0
+        // buf and h declared here to ease future expansion to DNS-SD
+        uint8_t buf[sizeof(struct mg_dns_header) + 256 + sizeof(mdns_answer) + 4];
+        struct mg_dns_header *h = (struct mg_dns_header *) buf;
+        char local_name[63 + 7];  // name label + '.' + local label + '\0'
+        uint8_t name_len = (uint8_t) strlen((char *)c->fn_data);
+        struct mg_dns_message dm;
+        bool unicast = (rr.aclass & MG_BIT(15)) != 0;  // QU
+        // uint16_t q = mg_ntohs(qh->num_questions);
+        rr.aclass &= (uint16_t) ~MG_BIT(15);  // remove "QU" (unicast response)
+        qh->num_questions = mg_htons(1);      // parser sanity
+        mg_dns_parse(c->recv.buf, c->recv.len, &dm);
+        if (name_len > (sizeof(local_name) - 7))  // leave room for .local\0
+          name_len = sizeof(local_name) - 7;
+        memcpy(local_name, c->fn_data, name_len);
+        strcpy(local_name + name_len, ".local");  // ensure proper name.local\0
+        if (strcmp(local_name, dm.name) == 0) {
+          uint8_t *p = &buf[sizeof(*h)];
+          memset(h, 0, sizeof(*h));            // clear header
+          h->txnid = unicast ? qh->txnid : 0;  // RFC-6762 18.1
+          // RFC-6762 6: 0 questions, 1 Answer, 0 Auth, 0 Additional RRs
+          h->num_answers = mg_htons(1);  // only one answer
+          h->flags = mg_htons(0x8400);   // Authoritative response
+          *p++ = name_len;               // label 1
+          memcpy(p, c->fn_data, name_len), p += name_len;
+          *p++ = 5;  // label 2
+          memcpy(p, "local", 5), p += 5;
+          *p++ = 0;  // no more labels
+          memcpy(p, mdns_answer, sizeof(mdns_answer)), p += sizeof(mdns_answer);
+#if MG_ENABLE_TCPIP
+          memcpy(p, &c->mgr->ifp->ip, 4), p += 4;
+#else
+          memcpy(p, c->data, 4), p += 4;
+#endif
+          if (!unicast) memcpy(&c->rem, &c->loc, sizeof(c->rem));
+          mg_send(c, buf, (size_t)(p - buf));  // And send it!
+          MG_DEBUG(("mDNS %c response sent", unicast ? 'U' : 'M'));
+        }
+      }
+    }
+    mg_iobuf_del(&c->recv, 0, c->recv.len);
+  }
+  (void) ev_data;
+}
+
+void mg_multicast_add(struct mg_connection *c, char *ip);
+struct mg_connection *mg_mdns_listen(struct mg_mgr *mgr, char *name) {
+  struct mg_connection *c =
+      mg_listen(mgr, "udp://224.0.0.251:5353", mdns_cb, name);
+  if (c != NULL) mg_multicast_add(c, (char *)"224.0.0.251");
+  return c;
+}
+
 
 #ifdef MG_ENABLE_LINES
 #line 1 "src/event.c"
@@ -741,13 +827,14 @@ size_t mg_vxprintf(void (*out)(char, void *), void *param, const char *fmt,
 
 
 
+
 struct mg_fd *mg_fs_open(struct mg_fs *fs, const char *path, int flags) {
-  struct mg_fd *fd = (struct mg_fd *) calloc(1, sizeof(*fd));
+  struct mg_fd *fd = (struct mg_fd *) mg_calloc(1, sizeof(*fd));
   if (fd != NULL) {
     fd->fd = fs->op(path, flags);
     fd->fs = fs;
     if (fd->fd == NULL) {
-      free(fd);
+      mg_free(fd);
       fd = NULL;
     }
   }
@@ -757,7 +844,7 @@ struct mg_fd *mg_fs_open(struct mg_fs *fs, const char *path, int flags) {
 void mg_fs_close(struct mg_fd *fd) {
   if (fd != NULL) {
     fd->fs->cl(fd->fd);
-    free(fd);
+    mg_free(fd);
   }
 }
 
@@ -766,10 +853,10 @@ struct mg_str mg_file_read(struct mg_fs *fs, const char *path) {
   void *fp;
   fs->st(path, &result.len, NULL);
   if ((fp = fs->op(path, MG_FS_READ)) != NULL) {
-    result.buf = (char *) calloc(1, result.len + 1);
+    result.buf = (char *) mg_calloc(1, result.len + 1);
     if (result.buf != NULL &&
         fs->rd(fp, (void *) result.buf, result.len) != result.len) {
-      free((void *) result.buf);
+      mg_free((void *) result.buf);
       result.buf = NULL;
     }
     fs->cl(fp);
@@ -805,7 +892,7 @@ bool mg_file_printf(struct mg_fs *fs, const char *path, const char *fmt, ...) {
   data = mg_vmprintf(fmt, &ap);
   va_end(ap);
   result = mg_file_write(fs, path, data, strlen(data));
-  free(data);
+  mg_free(data);
   return result;
 }
 
@@ -908,7 +995,7 @@ static void *ff_open(const char *path, int flags) {
   if (flags & MG_FS_WRITE) mode |= FA_WRITE | FA_OPEN_ALWAYS | FA_OPEN_APPEND;
   if (f_open(&f, path, mode) == 0) {
     FIL *fp;
-    if ((fp = calloc(1, sizeof(*fp))) != NULL) {
+    if ((fp = mg_calloc(1, sizeof(*fp))) != NULL) {
       memcpy(fp, &f, sizeof(*fp));
       return fp;
     }
@@ -919,7 +1006,7 @@ static void *ff_open(const char *path, int flags) {
 static void ff_close(void *fp) {
   if (fp != NULL) {
     f_close((FIL *) fp);
-    free(fp);
+    mg_free(fp);
   }
 }
 
@@ -964,6 +1051,7 @@ struct mg_fs mg_fs_fat = {ff_stat,  ff_list, ff_open,   ff_close,  ff_read,
 #ifdef MG_ENABLE_LINES
 #line 1 "src/fs_packed.c"
 #endif
+
 
 
 
@@ -1038,7 +1126,7 @@ static void *packed_open(const char *path, int flags) {
   struct packed_file *fp = NULL;
   if (data == NULL) return NULL;
   if (flags & MG_FS_WRITE) return NULL;
-  if ((fp = (struct packed_file *) calloc(1, sizeof(*fp))) != NULL) {
+  if ((fp = (struct packed_file *) mg_calloc(1, sizeof(*fp))) != NULL) {
     fp->size = size;
     fp->data = data;
   }
@@ -1046,7 +1134,7 @@ static void *packed_open(const char *path, int flags) {
 }
 
 static void packed_close(void *fp) {
-  if (fp != NULL) free(fp);
+  if (fp != NULL) mg_free(fp);
 }
 
 static size_t packed_read(void *fd, void *buf, size_t len) {
@@ -1192,7 +1280,7 @@ DIR *opendir(const char *name) {
 
   if (name == NULL) {
     SetLastError(ERROR_BAD_ARGUMENTS);
-  } else if ((d = (DIR *) calloc(1, sizeof(*d))) == NULL) {
+  } else if ((d = (DIR *) mg_calloc(1, sizeof(*d))) == NULL) {
     SetLastError(ERROR_NOT_ENOUGH_MEMORY);
   } else {
     to_wchar(name, wpath, sizeof(wpath) / sizeof(wpath[0]));
@@ -1202,7 +1290,7 @@ DIR *opendir(const char *name) {
       d->handle = FindFirstFileW(wpath, &d->info);
       d->result.d_name[0] = '\0';
     } else {
-      free(d);
+      mg_free(d);
       d = NULL;
     }
   }
@@ -1214,7 +1302,7 @@ int closedir(DIR *d) {
   if (d != NULL) {
     if (d->handle != INVALID_HANDLE_VALUE)
       result = FindClose(d->handle) ? 0 : -1;
-    free(d);
+    mg_free(d);
   } else {
     result = -1;
     SetLastError(ERROR_BAD_ARGUMENTS);
@@ -1575,7 +1663,7 @@ static bool vcb(uint8_t c) {
 static size_t clen(const char *s, const char *end) {
   const unsigned char *u = (unsigned char *) s, c = *u;
   long n = (long) (end - s);
-  if (c > ' ' && c < '~') return 1;  // Usual ascii printed char
+  if (c > ' ' && c <= '~') return 1;  // Usual ascii printed char
   if ((c & 0xe0) == 0xc0 && n > 1 && vcb(u[1])) return 2;  // 2-byte UTF8
   if ((c & 0xf0) == 0xe0 && n > 2 && vcb(u[1]) && vcb(u[2])) return 3;
   if ((c & 0xf8) == 0xf0 && n > 3 && vcb(u[1]) && vcb(u[2]) && vcb(u[3]))
@@ -1639,17 +1727,17 @@ int mg_http_parse(const char *s, size_t len, struct mg_http_message *hm) {
   hm->uri.buf = (char *) s;
   while (s < end && (n = clen(s, end)) > 0) s += n, hm->uri.len += n;
   while (s < end && s[0] == ' ') s++;  // Skip spaces
-  is_response = hm->method.len > 5 &&
-                (mg_ncasecmp(hm->method.buf, "HTTP/", 5) == 0);
+  is_response =
+      hm->method.len > 5 && (mg_ncasecmp(hm->method.buf, "HTTP/", 5) == 0);
   if ((s = skiptorn(s, end, &hm->proto)) == NULL) return false;
   // If we're given a version, check that it is HTTP/x.x
-  version_prefix_valid = hm->proto.len > 5 &&
-                         (mg_ncasecmp(hm->proto.buf, "HTTP/", 5) == 0);
+  version_prefix_valid =
+      hm->proto.len > 5 && (mg_ncasecmp(hm->proto.buf, "HTTP/", 5) == 0);
   if (!is_response && hm->proto.len > 0 &&
-    (!version_prefix_valid || hm->proto.len != 8 ||
-    (hm->proto.buf[5] < '0' || hm->proto.buf[5] > '9') ||
-    (hm->proto.buf[6] != '.') ||
-    (hm->proto.buf[7] < '0' || hm->proto.buf[7] > '9'))) {
+      (!version_prefix_valid || hm->proto.len != 8 ||
+       (hm->proto.buf[5] < '0' || hm->proto.buf[5] > '9') ||
+       (hm->proto.buf[6] != '.') ||
+       (hm->proto.buf[7] < '0' || hm->proto.buf[7] > '9'))) {
     return -1;
   }
 
@@ -1861,6 +1949,7 @@ static struct mg_str s_known_types[] = {
     MG_C_STR("htm"), MG_C_STR("text/html; charset=utf-8"),
     MG_C_STR("css"), MG_C_STR("text/css; charset=utf-8"),
     MG_C_STR("js"), MG_C_STR("text/javascript; charset=utf-8"),
+    MG_C_STR("mjs"), MG_C_STR("text/javascript; charset=utf-8"),
     MG_C_STR("gif"), MG_C_STR("image/gif"),
     MG_C_STR("png"), MG_C_STR("image/png"),
     MG_C_STR("jpg"), MG_C_STR("image/jpeg"),
@@ -1947,13 +2036,11 @@ void mg_http_serve_file(struct mg_connection *c, struct mg_http_message *hm,
     // If a browser sends us "Accept-Encoding: gzip", try to open .gz first
     struct mg_str *ae = mg_http_get_header(hm, "Accept-Encoding");
     if (ae != NULL) {
-      char *ae_ = mg_mprintf("%.*s", ae->len, ae->buf);
-      if (ae_ != NULL && strstr(ae_, "gzip") != NULL) {
+      if (mg_match(*ae, mg_str("*gzip*"), NULL)) {
         mg_snprintf(tmp, sizeof(tmp), "%s.gz", path);
         fd = mg_fs_open(fs, tmp, MG_FS_READ);
         if (fd != NULL) gzip = true, path = tmp;
       }
-      free(ae_);
     }
     // No luck opening .gz? Open what we've told to open
     if (fd == NULL) fd = mg_fs_open(fs, path, MG_FS_READ);
@@ -2044,7 +2131,7 @@ static void printdirentry(const char *name, void *userdata) {
       sizeof(path)) {
     MG_ERROR(("%s truncated", name));
   } else if ((flags = fs->st(path, &size, &t)) == 0) {
-    MG_ERROR(("%lu stat(%s): %d", d->c->id, path, errno));
+    MG_ERROR(("%lu stat(%s)", d->c->id, path));
   } else {
     const char *slash = flags & MG_FS_DIR ? "/" : "";
     if (flags & MG_FS_DIR) {
@@ -2335,7 +2422,7 @@ long mg_http_upload(struct mg_connection *c, struct mg_http_message *hm,
       mg_http_reply(c, 400, "", "%s: offset mismatch", path);
       res = -5;
     } else if ((fd = mg_fs_open(fs, path, MG_FS_WRITE)) == NULL) {
-      mg_http_reply(c, 400, "", "open(%s): %d", path, errno);
+      mg_http_reply(c, 400, "", "open(%s)", path);
       res = -6;
     } else {
       res = offset + (long) fs->wr(fd->fd, hm->body.buf, hm->body.len);
@@ -2400,7 +2487,7 @@ static void http_cb(struct mg_connection *c, int ev, void *ev_data) {
         c->pfn = NULL;
         return;
       }
-      if (ev == MG_EV_CLOSE) {           // If client did not set Content-Length
+      if (ev == MG_EV_CLOSE) {  // If client did not set Content-Length
         hm.message.len = c->recv.len - ofs;  // and closes now, deliver MSG
         hm.body.len = hm.message.len - (size_t) (hm.body.buf - hm.message.buf);
       }
@@ -2431,7 +2518,8 @@ static void http_cb(struct mg_connection *c, int ev, void *ev_data) {
         }
         if (require_content_len) {
           if (!c->is_client) mg_http_reply(c, 411, "", "");
-          MG_ERROR(("Content length missing from %s", is_response ? "response" : "request"));
+          MG_ERROR(("Content length missing from %s",
+                    is_response ? "response" : "request"));
         }
       }
 
@@ -2478,39 +2566,9 @@ static void http_cb(struct mg_connection *c, int ev, void *ev_data) {
   (void) ev_data;
 }
 
-static void mg_hfn(struct mg_connection *c, int ev, void *ev_data) {
-  if (ev == MG_EV_HTTP_MSG) {
-    struct mg_http_message *hm = (struct mg_http_message *) ev_data;
-    if (mg_match(hm->uri, mg_str("/quit"), NULL)) {
-      mg_http_reply(c, 200, "", "ok\n");
-      c->is_draining = 1;
-      c->data[0] = 'X';
-    } else if (mg_match(hm->uri, mg_str("/debug"), NULL)) {
-      int level = (int) mg_json_get_long(hm->body, "$.level", MG_LL_DEBUG);
-      mg_log_set(level);
-      mg_http_reply(c, 200, "", "Debug level set to %d\n", level);
-    } else {
-      mg_http_reply(c, 200, "", "hi\n");
-    }
-  } else if (ev == MG_EV_CLOSE) {
-    if (c->data[0] == 'X') *(bool *) c->fn_data = true;
-  }
-}
-
-void mg_hello(const char *url) {
-  struct mg_mgr mgr;
-  bool done = false;
-  mg_mgr_init(&mgr);
-  if (mg_http_listen(&mgr, url, mg_hfn, &done) == NULL) done = true;
-  while (done == false) mg_mgr_poll(&mgr, 100);
-  mg_mgr_free(&mgr);
-}
-
 struct mg_connection *mg_http_connect(struct mg_mgr *mgr, const char *url,
                                       mg_event_handler_t fn, void *fn_data) {
-  struct mg_connection *c = mg_connect(mgr, url, fn, fn_data);
-  if (c != NULL) c->pfn = http_cb;
-  return c;
+  return mg_connect_svc(mgr, url, fn, fn_data, http_cb, NULL);
 }
 
 struct mg_connection *mg_http_listen(struct mg_mgr *mgr, const char *url,
@@ -2537,18 +2595,17 @@ int mg_iobuf_resize(struct mg_iobuf *io, size_t new_size) {
   new_size = roundup(new_size, io->align);
   if (new_size == 0) {
     mg_bzero(io->buf, io->size);
-    free(io->buf);
+    mg_free(io->buf);
     io->buf = NULL;
     io->len = io->size = 0;
   } else if (new_size != io->size) {
-    // NOTE(lsm): do not use realloc here. Use calloc/free only, to ease the
-    // porting to some obscure platforms like FreeRTOS
-    void *p = calloc(1, new_size);
+    // NOTE(lsm): do not use realloc here. Use mg_calloc/mg_free only
+    void *p = mg_calloc(1, new_size);
     if (p != NULL) {
       size_t len = new_size < io->len ? new_size : io->len;
       if (len > 0 && io->buf != NULL) memmove(p, io->buf, len);
       mg_bzero(io->buf, io->size);
-      free(io->buf);
+      mg_free(io->buf);
       io->buf = (unsigned char *) p;
       io->size = new_size;
     } else {
@@ -2594,6 +2651,7 @@ void mg_iobuf_free(struct mg_iobuf *io) {
 #ifdef MG_ENABLE_LINES
 #line 1 "src/json.c"
 #endif
+
 
 
 
@@ -2916,10 +2974,10 @@ char *mg_json_get_str(struct mg_str json, const char *path) {
   char *result = NULL;
   int len = 0, off = mg_json_get(json, path, &len);
   if (off >= 0 && len > 1 && json.buf[off] == '"') {
-    if ((result = (char *) calloc(1, (size_t) len)) != NULL &&
+    if ((result = (char *) mg_calloc(1, (size_t) len)) != NULL &&
         !mg_json_unescape(mg_str_n(json.buf + off + 1, (size_t) (len - 2)),
                           result, (size_t) len)) {
-      free(result);
+      mg_free(result);
       result = NULL;
     }
   }
@@ -2930,7 +2988,7 @@ char *mg_json_get_b64(struct mg_str json, const char *path, int *slen) {
   char *result = NULL;
   int len = 0, off = mg_json_get(json, path, &len);
   if (off >= 0 && json.buf[off] == '"' && len > 1 &&
-      (result = (char *) calloc(1, (size_t) len)) != NULL) {
+      (result = (char *) mg_calloc(1, (size_t) len)) != NULL) {
     size_t k = mg_base64_decode(json.buf + off + 1, (size_t) (len - 2), result,
                                 (size_t) len);
     if (slen != NULL) *slen = (int) k;
@@ -2942,7 +3000,7 @@ char *mg_json_get_hex(struct mg_str json, const char *path, int *slen) {
   char *result = NULL;
   int len = 0, off = mg_json_get(json, path, &len);
   if (off >= 0 && json.buf[off] == '"' && len > 1 &&
-      (result = (char *) calloc(1, (size_t) len / 2)) != NULL) {
+      (result = (char *) mg_calloc(1, (size_t) len / 2)) != NULL) {
     int i;
     for (i = 0; i < len - 2; i += 2) {
       mg_str_to_num(mg_str_n(json.buf + off + 1 + i, 2), 16, &result[i >> 1],
@@ -2969,7 +3027,7 @@ long mg_json_get_long(struct mg_str json, const char *path, long dflt) {
 
 
 
-int mg_log_level = MG_LL_INFO;
+int mg_log_level = MG_LL_DEBUG;
 static mg_pfn_t s_log_func = mg_pfn_stdout;
 static void *s_log_func_param = NULL;
 
@@ -3023,7 +3081,8 @@ void mg_hexdump(const void *buf, size_t len) {
   for (i = 0; i < len; i++) {
     if ((i % 16) == 0) {
       // Print buffered ascii chars
-      if (i > 0) logs("  ", 2), logs((char *) ascii, 16), logc('\n'), alen = 0;
+      if (i > 0)
+        logs("  ", 2), logs((char *) ascii, 16), logs("\r\n", 2), alen = 0;
       // Print hex address, then \t
       logc(nibble((i >> 12) & 15)), logc(nibble((i >> 8) & 15)),
           logc(nibble((i >> 4) & 15)), logc('0'), logs("   ", 3);
@@ -3033,7 +3092,7 @@ void mg_hexdump(const void *buf, size_t len) {
     ascii[alen++] = ISPRINT(p[i]) ? p[i] : '.';        // Add to the ascii buf
   }
   while (alen < 16) logs("   ", 3), ascii[alen++] = ' ';
-  logs("  ", 2), logs((char *) ascii, 16), logc('\n');
+  logs("  ", 2), logs((char *) ascii, 16), logs("\r\n", 2);
 }
 
 #ifdef MG_ENABLE_LINES
@@ -3776,12 +3835,11 @@ void mg_mqtt_disconnect(struct mg_connection *c,
 struct mg_connection *mg_mqtt_connect(struct mg_mgr *mgr, const char *url,
                                       const struct mg_mqtt_opts *opts,
                                       mg_event_handler_t fn, void *fn_data) {
-  struct mg_connection *c = mg_connect(mgr, url, fn, fn_data);
+  struct mg_connection *c = mg_connect_svc(mgr, url, fn, fn_data, mqtt_cb, NULL);
   if (c != NULL) {
     struct mg_mqtt_opts empty;
     memset(&empty, 0, sizeof(empty));
     mg_mqtt_login(c, opts == NULL ? &empty : opts);
-    c->pfn = mqtt_cb;
   }
   return c;
 }
@@ -3924,7 +3982,7 @@ bool mg_aton(struct mg_str str, struct mg_addr *addr) {
 
 struct mg_connection *mg_alloc_conn(struct mg_mgr *mgr) {
   struct mg_connection *c =
-      (struct mg_connection *) calloc(1, sizeof(*c) + mgr->extraconnsize);
+      (struct mg_connection *) mg_calloc(1, sizeof(*c) + mgr->extraconnsize);
   if (c != NULL) {
     c->mgr = mgr;
     c->send.align = c->recv.align = c->rtls.align = MG_IO_SIZE;
@@ -3951,11 +4009,12 @@ void mg_close_conn(struct mg_connection *c) {
   mg_iobuf_free(&c->send);
   mg_iobuf_free(&c->rtls);
   mg_bzero((unsigned char *) c, sizeof(*c));
-  free(c);
+  mg_free(c);
 }
 
-struct mg_connection *mg_connect(struct mg_mgr *mgr, const char *url,
-                                 mg_event_handler_t fn, void *fn_data) {
+struct mg_connection *mg_connect_svc(struct mg_mgr *mgr, const char *url,
+                                     mg_event_handler_t fn, void *fn_data,
+                                     mg_event_handler_t pfn, void *pfn_data) {
   struct mg_connection *c = NULL;
   if (url == NULL || url[0] == '\0') {
     MG_ERROR(("null url"));
@@ -3968,11 +4027,19 @@ struct mg_connection *mg_connect(struct mg_mgr *mgr, const char *url,
     c->fn = fn;
     c->is_client = true;
     c->fn_data = fn_data;
-    MG_DEBUG(("%lu %ld %s", c->id, c->fd, url));
+    c->is_tls = (mg_url_is_ssl(url) != 0);
+    c->pfn = pfn;
+    c->pfn_data = pfn_data;
     mg_call(c, MG_EV_OPEN, (void *) url);
+    MG_DEBUG(("%lu %ld %s", c->id, c->fd, url));
     mg_resolve(c, url);
   }
   return c;
+}
+
+struct mg_connection *mg_connect(struct mg_mgr *mgr, const char *url,
+                                 mg_event_handler_t fn, void *fn_data) {
+  return mg_connect_svc(mgr, url, fn, fn_data, NULL, NULL);
 }
 
 struct mg_connection *mg_listen(struct mg_mgr *mgr, const char *url,
@@ -3981,9 +4048,9 @@ struct mg_connection *mg_listen(struct mg_mgr *mgr, const char *url,
   if ((c = mg_alloc_conn(mgr)) == NULL) {
     MG_ERROR(("OOM %s", url));
   } else if (!mg_open_listener(c, url)) {
-    MG_ERROR(("Failed: %s, errno %d", url, errno));
+    MG_ERROR(("Failed: %s", url));
     MG_PROF_FREE(c);
-    free(c);
+    mg_free(c);
     c = NULL;
   } else {
     c->is_listening = 1;
@@ -3991,8 +4058,8 @@ struct mg_connection *mg_listen(struct mg_mgr *mgr, const char *url,
     LIST_ADD_HEAD(struct mg_connection, &mgr->conns, c);
     c->fn = fn;
     c->fn_data = fn_data;
+    c->is_tls = (mg_url_is_ssl(url) != 0);
     mg_call(c, MG_EV_OPEN, NULL);
-    if (mg_url_is_ssl(url)) c->is_tls = 1;  // Accepted connection must
     MG_DEBUG(("%lu %ld %s", c->id, c->fd, url));
   }
   return c;
@@ -4014,10 +4081,10 @@ struct mg_connection *mg_wrapfd(struct mg_mgr *mgr, int fd,
 
 struct mg_timer *mg_timer_add(struct mg_mgr *mgr, uint64_t milliseconds,
                               unsigned flags, void (*fn)(void *), void *arg) {
-  struct mg_timer *t = (struct mg_timer *) calloc(1, sizeof(*t));
+  struct mg_timer *t = (struct mg_timer *) mg_calloc(1, sizeof(*t));
   if (t != NULL) {
+    flags |= MG_TIMER_AUTODELETE;  // We have alloc'ed it, so autodelete
     mg_timer_init(&mgr->timers, t, milliseconds, flags, fn, arg);
-    t->id = mgr->timerid++;
   }
   return t;
 }
@@ -4033,7 +4100,7 @@ long mg_io_recv(struct mg_connection *c, void *buf, size_t len) {
 void mg_mgr_free(struct mg_mgr *mgr) {
   struct mg_connection *c;
   struct mg_timer *tmp, *t = mgr->timers;
-  while (t != NULL) tmp = t->next, free(t), t = tmp;
+  while (t != NULL) tmp = t->next, mg_free(t), t = tmp;
   mgr->timers = NULL;  // Important. Next call to poll won't touch timers
   for (c = mgr->conns; c != NULL; c = c->next) c->is_closing = 1;
   mg_mgr_poll(mgr, 0);
@@ -4045,6 +4112,9 @@ void mg_mgr_free(struct mg_mgr *mgr) {
   if (mgr->epoll_fd >= 0) close(mgr->epoll_fd), mgr->epoll_fd = -1;
 #endif
   mg_tls_ctx_free(mgr);
+#if MG_ENABLE_TCPIP
+  if (mgr->ifp) mg_tcpip_free(mgr->ifp);
+#endif
 }
 
 void mg_mgr_init(struct mg_mgr *mgr) {
@@ -4061,7 +4131,7 @@ void mg_mgr_init(struct mg_mgr *mgr) {
   // clang-format on
 #elif MG_ENABLE_FREERTOS_TCP
   mgr->ss = FreeRTOS_CreateSocketSet();
-#elif defined(__unix) || defined(__unix__) || defined(__APPLE__)
+#elif MG_ARCH == MG_ARCH_UNIX
   // Ignore SIGPIPE signal, so if client cancels the request, it
   // won't kill the whole process.
   signal(SIGPIPE, SIG_IGN);
@@ -4073,6 +4143,13 @@ void mg_mgr_init(struct mg_mgr *mgr) {
   mgr->dns4.url = "udp://8.8.8.8:53";
   mgr->dns6.url = "udp://[2001:4860:4860::8888]:53";
   mg_tls_ctx_init(mgr);
+  MG_DEBUG(("MG_IO_SIZE: %lu, TLS: %s", MG_IO_SIZE,
+            MG_TLS == MG_TLS_NONE      ? "none"
+            : MG_TLS == MG_TLS_MBED    ? "MbedTLS"
+            : MG_TLS == MG_TLS_OPENSSL ? "OpenSSL"
+            : MG_TLS == MG_TLS_BUILTIN ? "builtin"
+            : MG_TLS == MG_TLS_WOLFSSL ? "WolfSSL"
+                                       : "custom"));
 }
 
 #ifdef MG_ENABLE_LINES
@@ -4080,7 +4157,7 @@ void mg_mgr_init(struct mg_mgr *mgr) {
 #endif
 
 
-#if defined(MG_ENABLE_TCPIP) && MG_ENABLE_TCPIP
+#if MG_ENABLE_TCPIP
 #define MG_EPHEMERAL_PORT_BASE 32768
 #define PDIFF(a, b) ((size_t) (((char *) (b)) - ((char *) (a))))
 
@@ -4096,11 +4173,12 @@ void mg_mgr_init(struct mg_mgr *mgr) {
 
 struct connstate {
   uint32_t seq, ack;           // TCP seq/ack counters
-  uint64_t timer;              // TCP keep-alive / ACK timer
+  uint64_t timer;              // TCP timer (see 'ttype' below)
   uint32_t acked;              // Last ACK-ed number
   size_t unacked;              // Not acked bytes
+  uint16_t dmss;               // destination MSS (from TCP opts)
   uint8_t mac[6];              // Peer MAC address
-  uint8_t ttype;               // Timer type. 0: ack, 1: keep-alive
+  uint8_t ttype;               // Timer type:
 #define MIP_TTYPE_KEEPALIVE 0  // Connection is idle for long, send keepalive
 #define MIP_TTYPE_ACK 1        // Peer sent us data, we have to ack it soon
 #define MIP_TTYPE_ARP 2        // ARP resolve sent, waiting for response
@@ -4201,7 +4279,7 @@ struct dhcp {
   uint32_t ciaddr, yiaddr, siaddr, giaddr;
   uint8_t hwaddr[208];
   uint32_t magic;
-  uint8_t options[32];
+  uint8_t options[30 + sizeof(((struct mg_tcpip_if *) 0)->dhcp_name)];
 };
 
 #pragma pack(pop)
@@ -4240,7 +4318,7 @@ static uint32_t csumup(uint32_t sum, const void *buf, size_t len) {
 
 static uint16_t csumfin(uint32_t sum) {
   while (sum >> 16) sum = (sum & 0xffff) + (sum >> 16);
-  return mg_htons(~sum & 0xffff);
+  return mg_htons((uint16_t) ((uint16_t) ~sum & 0xffff));
 }
 
 static uint16_t ipcsum(const void *buf, size_t len) {
@@ -4256,6 +4334,7 @@ static void settmout(struct mg_connection *c, uint8_t type) {
                : type == MIP_TTYPE_SYN ? MIP_TCP_SYN_MS
                : type == MIP_TTYPE_FIN ? MIP_TCP_FIN_MS
                                        : MIP_TCP_KEEPALIVE_MS;
+  if (s->ttype == MIP_TTYPE_FIN) return;  // skip if 3-way closing
   s->timer = ifp->now + n;
   s->ttype = type;
   MG_VERBOSE(("%lu %d -> %llx", c->id, type, s->timer));
@@ -4288,10 +4367,8 @@ static void onstatechange(struct mg_tcpip_if *ifp) {
     MG_INFO(("       GW: %M", mg_print_ip4, &ifp->gw));
     MG_INFO(("      MAC: %M", mg_print_mac, &ifp->mac));
   } else if (ifp->state == MG_TCPIP_STATE_IP) {
-    MG_ERROR(("Got IP"));
     mg_tcpip_arp_request(ifp, ifp->gw, NULL);  // unsolicited GW ARP request
   } else if (ifp->state == MG_TCPIP_STATE_UP) {
-    MG_ERROR(("Link up"));
     srand((unsigned int) mg_millis());
   } else if (ifp->state == MG_TCPIP_STATE_DOWN) {
     MG_ERROR(("Link down"));
@@ -4319,18 +4396,20 @@ static struct ip *tx_ip(struct mg_tcpip_if *ifp, uint8_t *mac_dst,
   return ip;
 }
 
-static void tx_udp(struct mg_tcpip_if *ifp, uint8_t *mac_dst, uint32_t ip_src,
+static bool tx_udp(struct mg_tcpip_if *ifp, uint8_t *mac_dst, uint32_t ip_src,
                    uint16_t sport, uint32_t ip_dst, uint16_t dport,
                    const void *buf, size_t len) {
   struct ip *ip =
       tx_ip(ifp, mac_dst, 17, ip_src, ip_dst, len + sizeof(struct udp));
   struct udp *udp = (struct udp *) (ip + 1);
+  size_t eth_len;
+  uint32_t cs;
   // MG_DEBUG(("UDP XX LEN %d %d", (int) len, (int) ifp->tx.len));
   udp->sport = sport;
   udp->dport = dport;
   udp->len = mg_htons((uint16_t) (sizeof(*udp) + len));
   udp->csum = 0;
-  uint32_t cs = csumup(0, udp, sizeof(*udp));
+  cs = csumup(0, udp, sizeof(*udp));
   cs = csumup(cs, buf, len);
   cs = csumup(cs, &ip->src, sizeof(ip->src));
   cs = csumup(cs, &ip->dst, sizeof(ip->dst));
@@ -4338,7 +4417,8 @@ static void tx_udp(struct mg_tcpip_if *ifp, uint8_t *mac_dst, uint32_t ip_src,
   udp->csum = csumfin(cs);
   memmove(udp + 1, buf, len);
   // MG_DEBUG(("UDP LEN %d %d", (int) len, (int) ifp->frame_len));
-  ether_output(ifp, sizeof(struct eth) + sizeof(*ip) + sizeof(*udp) + len);
+  eth_len = sizeof(struct eth) + sizeof(*ip) + sizeof(*udp) + len;
+  return (ether_output(ifp, eth_len) == eth_len);
 }
 
 static void tx_dhcp(struct mg_tcpip_if *ifp, uint8_t *mac_dst, uint32_t ip_src,
@@ -4360,22 +4440,26 @@ static const uint8_t broadcast[] = {255, 255, 255, 255, 255, 255};
 // RFC-2131 #4.3.6, #4.4.1; RFC-2132 #9.8
 static void tx_dhcp_request_sel(struct mg_tcpip_if *ifp, uint32_t ip_req,
                                 uint32_t ip_srv) {
-  uint8_t opts[] = {
-      53, 1, 3,                   // Type: DHCP request
-      12, 3, 'm', 'i', 'p',       // Host name: "mip"
-      54, 4, 0,   0,   0,   0,    // DHCP server ID
-      50, 4, 0,   0,   0,   0,    // Requested IP
-      55, 2, 1,   3,   255, 255,  // GW, mask [DNS] [SNTP]
-      255                         // End of options
-  };
-  uint8_t addopts = 0;
-  memcpy(opts + 10, &ip_srv, sizeof(ip_srv));
-  memcpy(opts + 16, &ip_req, sizeof(ip_req));
-  if (ifp->enable_req_dns) opts[24 + addopts++] = 6;    // DNS
-  if (ifp->enable_req_sntp) opts[24 + addopts++] = 42;  // SNTP
-  opts[21] += addopts;
-  tx_dhcp(ifp, (uint8_t *) broadcast, 0, 0xffffffff, opts,
-          sizeof(opts) + addopts - 2, false);
+  uint8_t extra = (uint8_t) ((ifp->enable_req_dns ? 1 : 0) +
+                             (ifp->enable_req_sntp ? 1 : 0));
+  size_t len = strlen(ifp->dhcp_name);
+  size_t olen = 21 + len + extra + 2 + 1;  // Total length of options
+#define OPTS_MAXLEN (21 + sizeof(ifp->dhcp_name) + 2 + 2 + 1)
+  uint8_t opts[OPTS_MAXLEN];  // Allocate options (max size possible)
+  uint8_t *p = opts;
+  assert(olen <= sizeof(opts));
+  memset(opts, 0, sizeof(opts));
+  *p++ = 53, *p++ = 1, *p++ = 3;                       // Type: DHCP request
+  *p++ = 54, *p++ = 4, memcpy(p, &ip_srv, 4), p += 4;  // DHCP server ID
+  *p++ = 50, *p++ = 4, memcpy(p, &ip_req, 4), p += 4;  // Requested IP
+  *p++ = 12, *p++ = (uint8_t) (len & 255);             // DHCP host
+  memcpy(p, ifp->dhcp_name, len), p += len;            // name
+  *p++ = 55, *p++ = 2 + extra, *p++ = 1, *p++ = 3;     // GW, MASK
+  if (ifp->enable_req_dns) *p++ = 6;                   // DNS
+  if (ifp->enable_req_sntp) *p++ = 42;                 // SNTP
+  *p++ = 255;                                          // End of options
+  // assert((size_t) (p - opts) < olen);
+  tx_dhcp(ifp, (uint8_t *) broadcast, 0, 0xffffffff, opts, olen, 0);
   MG_DEBUG(("DHCP req sent"));
 }
 
@@ -4409,7 +4493,8 @@ static struct mg_connection *getpeer(struct mg_mgr *mgr, struct pkt *pkt,
       break;
     if (c->is_udp && pkt->udp && c->loc.port == pkt->udp->dport) break;
     if (!c->is_udp && pkt->tcp && c->loc.port == pkt->tcp->dport &&
-        lsn == c->is_listening && (lsn || c->rem.port == pkt->tcp->sport))
+        lsn == (bool) c->is_listening &&
+        (lsn || c->rem.port == pkt->tcp->sport))
       break;
   }
   return c;
@@ -4464,16 +4549,20 @@ static void rx_icmp(struct mg_tcpip_if *ifp, struct pkt *pkt) {
   if (pkt->icmp->type == 8 && pkt->ip != NULL && pkt->ip->dst == ifp->ip) {
     size_t hlen = sizeof(struct eth) + sizeof(struct ip) + sizeof(struct icmp);
     size_t space = ifp->tx.len - hlen, plen = pkt->pay.len;
+    struct ip *ip;
+    struct icmp *icmp;
     if (plen > space) plen = space;
-    struct ip *ip = tx_ip(ifp, pkt->eth->src, 1, ifp->ip, pkt->ip->src,
-                          sizeof(struct icmp) + plen);
-    struct icmp *icmp = (struct icmp *) (ip + 1);
+    ip = tx_ip(ifp, pkt->eth->src, 1, ifp->ip, pkt->ip->src,
+               sizeof(*icmp) + plen);
+    icmp = (struct icmp *) (ip + 1);
     memset(icmp, 0, sizeof(*icmp));        // Set csum to 0
     memcpy(icmp + 1, pkt->pay.buf, plen);  // Copy RX payload to TX
     icmp->csum = ipcsum(icmp, sizeof(*icmp) + plen);
     ether_output(ifp, hlen + plen);
   }
 }
+
+static void setdns4(struct mg_tcpip_if *ifp, uint32_t *ip);
 
 static void rx_dhcp_client(struct mg_tcpip_if *ifp, struct pkt *pkt) {
   uint32_t ip = 0, gw = 0, mask = 0, lease = 0, dns = 0, sntp = 0;
@@ -4514,17 +4603,19 @@ static void rx_dhcp_client(struct mg_tcpip_if *ifp, struct pkt *pkt) {
     ifp->state = MG_TCPIP_STATE_REQ;  // REQUESTING state
   } else if (msgtype == 5) {          // DHCPACK
     if (ifp->state == MG_TCPIP_STATE_REQ && ip && gw && lease) {  // got an IP
+      uint64_t rand;
       ifp->lease_expire = ifp->now + lease * 1000;
       MG_INFO(("Lease: %u sec (%lld)", lease, ifp->lease_expire / 1000));
       // assume DHCP server = router until ARP resolves
       memcpy(ifp->gwmac, pkt->eth->src, sizeof(ifp->gwmac));
       ifp->ip = ip, ifp->gw = gw, ifp->mask = mask;
       ifp->state = MG_TCPIP_STATE_IP;  // BOUND state
-      uint64_t rand;
       mg_random(&rand, sizeof(rand));
       srand((unsigned int) (rand + mg_millis()));
-      if (ifp->enable_req_dns && dns != 0)
+      if (ifp->enable_req_dns && dns != 0) {
+        setdns4(ifp, &dns);
         mg_tcpip_call(ifp, MG_TCPIP_EV_DHCP_DNS, &dns);
+      }
       if (ifp->enable_req_sntp && sntp != 0)
         mg_tcpip_call(ifp, MG_TCPIP_EV_DHCP_SNTP, &sntp);
     } else if (ifp->state == MG_TCPIP_STATE_READY && ifp->ip == ip) {  // renew
@@ -4539,9 +4630,9 @@ static void rx_dhcp_client(struct mg_tcpip_if *ifp, struct pkt *pkt) {
 static void rx_dhcp_server(struct mg_tcpip_if *ifp, struct pkt *pkt) {
   uint8_t op = 0, *p = pkt->dhcp->options,
           *end = (uint8_t *) &pkt->raw.buf[pkt->raw.len];
-  if (end < (uint8_t *) (pkt->dhcp + 1)) return;
   // struct dhcp *req = pkt->dhcp;
   struct dhcp res = {2, 1, 6, 0, 0, 0, 0, 0, 0, 0, 0, {0}, 0, {0}};
+  if (end < (uint8_t *) (pkt->dhcp + 1)) return;
   res.yiaddr = ifp->ip;
   ((uint8_t *) (&res.yiaddr))[3]++;                // Offer our IP + 1
   while (p + 1 < end && p[0] != 255) {             // Parse options
@@ -4580,9 +4671,9 @@ static void rx_udp(struct mg_tcpip_if *ifp, struct pkt *pkt) {
   if (c == NULL) {
     // No UDP listener on this port. Should send ICMP, but keep silent.
   } else {
+    struct connstate *s = (struct connstate *) (c + 1);
     c->rem.port = pkt->udp->sport;
     memcpy(c->rem.ip, &pkt->ip->src, sizeof(uint32_t));
-    struct connstate *s = (struct connstate *) (c + 1);
     memcpy(s->mac, pkt->eth->src, sizeof(s->mac));
     if (c->recv.len >= MG_MAX_RECV_SIZE) {
       mg_error(c, "max_recv_buf_size reached");
@@ -4600,17 +4691,17 @@ static void rx_udp(struct mg_tcpip_if *ifp, struct pkt *pkt) {
 static size_t tx_tcp(struct mg_tcpip_if *ifp, uint8_t *dst_mac, uint32_t dst_ip,
                      uint8_t flags, uint16_t sport, uint16_t dport,
                      uint32_t seq, uint32_t ack, const void *buf, size_t len) {
-#if 0
-  uint8_t opts[] = {2, 4, 5, 0xb4, 4, 2, 0, 0};  // MSS = 1460, SACK permitted
-  if (flags & TH_SYN) {
-    // Handshake? Set MSS
+  struct ip *ip;
+  struct tcp *tcp;
+  uint16_t opts[4 / 2];
+  if (flags & TH_SYN) {                              // Send MSS, RFC-9293 3.7.1
+    opts[0] = mg_htons(0x0204);                      // RFC-9293 3.2
+    opts[1] = mg_htons((uint16_t) (ifp->mtu - 40));  // RFC-6691
     buf = opts;
     len = sizeof(opts);
   }
-#endif
-  struct ip *ip =
-      tx_ip(ifp, dst_mac, 6, ifp->ip, dst_ip, sizeof(struct tcp) + len);
-  struct tcp *tcp = (struct tcp *) (ip + 1);
+  ip = tx_ip(ifp, dst_mac, 6, ifp->ip, dst_ip, sizeof(struct tcp) + len);
+  tcp = (struct tcp *) (ip + 1);
   memset(tcp, 0, sizeof(*tcp));
   if (buf != NULL && len) memmove(tcp + 1, buf, len);
   tcp->sport = sport;
@@ -4620,16 +4711,17 @@ static size_t tx_tcp(struct mg_tcpip_if *ifp, uint8_t *dst_mac, uint32_t dst_ip,
   tcp->flags = flags;
   tcp->win = mg_htons(MIP_TCP_WIN);
   tcp->off = (uint8_t) (sizeof(*tcp) / 4 << 4);
-  // if (flags & TH_SYN) tcp->off = 0x70;  // Handshake? header size 28 bytes
-
-  uint32_t cs = 0;
-  uint16_t n = (uint16_t) (sizeof(*tcp) + len);
-  uint8_t pseudo[] = {0, ip->proto, (uint8_t) (n >> 8), (uint8_t) (n & 255)};
-  cs = csumup(cs, tcp, n);
-  cs = csumup(cs, &ip->src, sizeof(ip->src));
-  cs = csumup(cs, &ip->dst, sizeof(ip->dst));
-  cs = csumup(cs, pseudo, sizeof(pseudo));
-  tcp->csum = csumfin(cs);
+  if (flags & TH_SYN) tcp->off += (uint8_t) (sizeof(opts) / 4 << 4);
+  {
+    uint32_t cs = 0;
+    uint16_t n = (uint16_t) (sizeof(*tcp) + len);
+    uint8_t pseudo[] = {0, ip->proto, (uint8_t) (n >> 8), (uint8_t) (n & 255)};
+    cs = csumup(cs, tcp, n);
+    cs = csumup(cs, &ip->src, sizeof(ip->src));
+    cs = csumup(cs, &ip->dst, sizeof(ip->dst));
+    cs = csumup(cs, pseudo, sizeof(pseudo));
+    tcp->csum = csumfin(cs);
+  }
   MG_VERBOSE(("TCP %M:%hu -> %M:%hu fl %x len %u", mg_print_ip4, &ip->src,
               mg_ntohs(tcp->sport), mg_print_ip4, &ip->dst,
               mg_ntohs(tcp->dport), tcp->flags, len));
@@ -4649,11 +4741,13 @@ static size_t tx_tcp_pkt(struct mg_tcpip_if *ifp, struct pkt *pkt,
 static struct mg_connection *accept_conn(struct mg_connection *lsn,
                                          struct pkt *pkt) {
   struct mg_connection *c = mg_alloc_conn(lsn->mgr);
+  struct connstate *s;
   if (c == NULL) {
     MG_ERROR(("OOM"));
     return NULL;
   }
-  struct connstate *s = (struct connstate *) (c + 1);
+  s = (struct connstate *) (c + 1);
+  s->dmss = 536;  // assume default, RFC-9293 3.7.1
   s->seq = mg_ntohl(pkt->tcp->ack), s->ack = mg_ntohl(pkt->tcp->seq);
   memcpy(s->mac, pkt->eth->src, sizeof(s->mac));
   settmout(c, MIP_TTYPE_KEEPALIVE);
@@ -4668,8 +4762,10 @@ static struct mg_connection *accept_conn(struct mg_connection *lsn,
   c->pfn_data = lsn->pfn_data;
   c->fn = lsn->fn;
   c->fn_data = lsn->fn_data;
+  c->is_tls = lsn->is_tls;
   mg_call(c, MG_EV_OPEN, NULL);
   mg_call(c, MG_EV_ACCEPT, NULL);
+  if (!c->is_tls_hs) c->is_tls = 0;  // user did not call mg_tls_init()
   return c;
 }
 
@@ -4706,11 +4802,14 @@ long mg_io_send(struct mg_connection *c, const void *buf, size_t len) {
   uint32_t dst_ip = *(uint32_t *) c->rem.ip;
   len = trim_len(c, len);
   if (c->is_udp) {
-    tx_udp(ifp, s->mac, ifp->ip, c->loc.port, dst_ip, c->rem.port, buf, len);
-  } else {
-    size_t sent =
-        tx_tcp(ifp, s->mac, dst_ip, TH_PUSH | TH_ACK, c->loc.port, c->rem.port,
-               mg_htonl(s->seq), mg_htonl(s->ack), buf, len);
+    if (!tx_udp(ifp, s->mac, ifp->ip, c->loc.port, dst_ip, c->rem.port, buf,
+                len))
+      return MG_IO_WAIT;
+  } else {  // TCP, cap to peer's MSS
+    size_t sent;
+    if (len > s->dmss) len = s->dmss;  // RFC-6691: reduce if sending opts
+    sent = tx_tcp(ifp, s->mac, dst_ip, TH_PUSH | TH_ACK, c->loc.port,
+                  c->rem.port, mg_htonl(s->seq), mg_htonl(s->ack), buf, len);
     if (sent == 0) {
       return MG_IO_WAIT;
     } else if (sent == (size_t) -1) {
@@ -4731,7 +4830,8 @@ static void handle_tls_recv(struct mg_connection *c) {
     mg_error(c, "oom");
   } else {
     // Decrypt data directly into c->recv
-    long n = mg_tls_recv(c, &io->buf[io->len], io->size - io->len);
+    long n = mg_tls_recv(c, io->buf != NULL ? &io->buf[io->len] : io->buf,
+                         io->size - io->len);
     if (n == MG_IO_ERR) {
       mg_error(c, "TLS recv error");
     } else if (n > 0) {
@@ -4749,10 +4849,16 @@ static void read_conn(struct mg_connection *c, struct pkt *pkt) {
   uint32_t rem_ip;
   memcpy(&rem_ip, c->rem.ip, sizeof(uint32_t));
   if (pkt->tcp->flags & TH_FIN) {
+    uint8_t flags = TH_ACK;
+    if (mg_ntohl(pkt->tcp->seq) != s->ack) {
+      MG_VERBOSE(("ignoring FIN, SEQ != ACK: %x %x", mg_ntohl(pkt->tcp->seq), s->ack));
+      tx_tcp(c->mgr->ifp, s->mac, rem_ip, TH_ACK, c->loc.port, c->rem.port,
+             mg_htonl(s->seq), mg_htonl(s->ack), "", 0);
+      return;
+    }
     // If we initiated the closure, we reply with ACK upon receiving FIN
     // If we didn't initiate it, we reply with FIN as part of the normal TCP
     // closure process
-    uint8_t flags = TH_ACK;
     s->ack = (uint32_t) (mg_htonl(pkt->tcp->seq) + pkt->pay.len + 1);
     s->fin_rcvd = true;
     if (c->is_draining && s->ttype == MIP_TTYPE_FIN) {
@@ -4769,8 +4875,16 @@ static void read_conn(struct mg_connection *c, struct pkt *pkt) {
     }
     tx_tcp(c->mgr->ifp, s->mac, rem_ip, flags, c->loc.port, c->rem.port,
            mg_htonl(s->seq), mg_htonl(s->ack), "", 0);
+    if (pkt->pay.len == 0) return;  // if no data, we're done
+  } else if (pkt->pay.len <= 1 && mg_ntohl(pkt->tcp->seq) == s->ack - 1) {
+    // Keep-Alive (RFC-9293 3.8.4, allow erroneous implementations)
+    MG_VERBOSE(("%lu keepalive ACK", c->id));
+    tx_tcp(c->mgr->ifp, s->mac, rem_ip, TH_ACK, c->loc.port, c->rem.port,
+           mg_htonl(s->seq), mg_htonl(s->ack), NULL, 0);
+    return;                        // no data to process
   } else if (pkt->pay.len == 0) {  // this is an ACK
     if (s->fin_rcvd && s->ttype == MIP_TTYPE_FIN) s->twclosure = true;
+    return;  // no data to process
   } else if (seq != s->ack) {
     uint32_t ack = (uint32_t) (mg_htonl(pkt->tcp->seq) + pkt->pay.len);
     if (s->ack == ack) {
@@ -4780,44 +4894,62 @@ static void read_conn(struct mg_connection *c, struct pkt *pkt) {
       tx_tcp(c->mgr->ifp, s->mac, rem_ip, TH_ACK, c->loc.port, c->rem.port,
              mg_htonl(s->seq), mg_htonl(s->ack), "", 0);
     }
+    return;  // drop it
   } else if (io->size - io->len < pkt->pay.len &&
              !mg_iobuf_resize(io, io->len + pkt->pay.len)) {
     mg_error(c, "oom");
+    return;  // drop it
+  }
+  // Copy TCP payload into the IO buffer. If the connection is plain text,
+  // we copy to c->recv. If the connection is TLS, this data is encrypted,
+  // therefore we copy that encrypted data to the c->rtls iobuffer instead,
+  // and then call mg_tls_recv() to decrypt it. NOTE: mg_tls_recv() will
+  // call back mg_io_recv() which grabs raw data from c->rtls
+  memcpy(&io->buf[io->len], pkt->pay.buf, pkt->pay.len);
+  io->len += pkt->pay.len;
+  MG_VERBOSE(("%lu SEQ %x -> %x", c->id, mg_htonl(pkt->tcp->seq), s->ack));
+  // Advance ACK counter
+  s->ack = (uint32_t) (mg_htonl(pkt->tcp->seq) + pkt->pay.len);
+  s->unacked += pkt->pay.len;
+  // size_t diff = s->acked <= s->ack ? s->ack - s->acked : s->ack;
+  if (s->unacked > MIP_TCP_WIN / 2 && s->acked != s->ack) {
+    // Send ACK immediately
+    MG_VERBOSE(("%lu imm ACK %lu", c->id, s->acked));
+    tx_tcp(c->mgr->ifp, s->mac, rem_ip, TH_ACK, c->loc.port, c->rem.port,
+           mg_htonl(s->seq), mg_htonl(s->ack), NULL, 0);
+    s->unacked = 0;
+    s->acked = s->ack;
+    if (s->ttype != MIP_TTYPE_KEEPALIVE) settmout(c, MIP_TTYPE_KEEPALIVE);
   } else {
-    // Copy TCP payload into the IO buffer. If the connection is plain text,
-    // we copy to c->recv. If the connection is TLS, this data is encrypted,
-    // therefore we copy that encrypted data to the c->rtls iobuffer instead,
-    // and then call mg_tls_recv() to decrypt it. NOTE: mg_tls_recv() will
-    // call back mg_io_recv() which grabs raw data from c->rtls
-    memcpy(&io->buf[io->len], pkt->pay.buf, pkt->pay.len);
-    io->len += pkt->pay.len;
+    // if not already running, setup a timer to send an ACK later
+    if (s->ttype != MIP_TTYPE_ACK) settmout(c, MIP_TTYPE_ACK);
+  }
+  if (c->is_tls && c->is_tls_hs) {
+    mg_tls_handshake(c);
+  } else if (c->is_tls) {
+    handle_tls_recv(c);
+  } else {
+    // Plain text connection, data is already in c->recv, trigger MG_EV_READ
+    mg_call(c, MG_EV_READ, &pkt->pay.len);
+  }
+}
 
-    MG_VERBOSE(("%lu SEQ %x -> %x", c->id, mg_htonl(pkt->tcp->seq), s->ack));
-    // Advance ACK counter
-    s->ack = (uint32_t) (mg_htonl(pkt->tcp->seq) + pkt->pay.len);
-    s->unacked += pkt->pay.len;
-    // size_t diff = s->acked <= s->ack ? s->ack - s->acked : s->ack;
-    if (s->unacked > MIP_TCP_WIN / 2 && s->acked != s->ack) {
-      // Send ACK immediately
-      MG_VERBOSE(("%lu imm ACK %lu", c->id, s->acked));
-      tx_tcp(c->mgr->ifp, s->mac, rem_ip, TH_ACK, c->loc.port, c->rem.port,
-             mg_htonl(s->seq), mg_htonl(s->ack), NULL, 0);
-      s->unacked = 0;
-      s->acked = s->ack;
-      if (s->ttype != MIP_TTYPE_KEEPALIVE) settmout(c, MIP_TTYPE_KEEPALIVE);
-    } else {
-      // if not already running, setup a timer to send an ACK later
-      if (s->ttype != MIP_TTYPE_ACK) settmout(c, MIP_TTYPE_ACK);
+// process options (MSS)
+static void handle_opt(struct connstate *s, struct tcp *tcp) {
+  uint8_t *opts = (uint8_t *) (tcp + 1);
+  int len = 4 * ((int) (tcp->off >> 4) - ((int) sizeof(*tcp) / 4));
+  s->dmss = 536;     // assume default, RFC-9293 3.7.1
+  while (len > 0) {  // RFC-9293 3.1 3.2
+    uint8_t kind = opts[0], optlen = 1;
+    if (kind != 1) {         // No-Operation
+      if (kind == 0) break;  // End of Option List
+      optlen = opts[1];
+      if (kind == 2 && optlen == 4)  // set received MSS
+        s->dmss = (uint16_t) (((uint16_t) opts[2] << 8) + opts[3]);
     }
-
-    if (c->is_tls && c->is_tls_hs) {
-      mg_tls_handshake(c);
-    } else if (c->is_tls) {
-      handle_tls_recv(c);
-    } else {
-      // Plain text connection, data is already in c->recv, trigger MG_EV_READ
-      mg_call(c, MG_EV_READ, &pkt->pay.len);
-    }
+    MG_VERBOSE(("kind: %u, optlen: %u, len: %d\n", kind, optlen, len));
+    opts += optlen;
+    len -= optlen;
   }
 }
 
@@ -4828,12 +4960,14 @@ static void rx_tcp(struct mg_tcpip_if *ifp, struct pkt *pkt) {
   MG_INFO(("%lu %hhu %d", c ? c->id : 0, pkt->tcp->flags, (int) pkt->pay.len));
 #endif
   if (c != NULL && c->is_connecting && pkt->tcp->flags == (TH_SYN | TH_ACK)) {
+    handle_opt(s, pkt->tcp);  // process options (MSS)
     s->seq = mg_ntohl(pkt->tcp->ack), s->ack = mg_ntohl(pkt->tcp->seq) + 1;
     tx_tcp_pkt(ifp, pkt, TH_ACK, pkt->tcp->ack, NULL, 0);
     c->is_connecting = 0;  // Client connected
     settmout(c, MIP_TTYPE_KEEPALIVE);
     mg_call(c, MG_EV_CONNECT, NULL);  // Let user know
     if (c->is_tls_hs) mg_tls_handshake(c);
+    if (!c->is_tls_hs) c->is_tls = 0;  // user did not call mg_tls_init()
   } else if (c != NULL && c->is_connecting && pkt->tcp->flags != TH_ACK) {
     // mg_hexdump(pkt->raw.buf, pkt->raw.len);
     tx_tcp_pkt(ifp, pkt, TH_RST | TH_ACK, pkt->tcp->ack, NULL, 0);
@@ -4857,6 +4991,8 @@ static void rx_tcp(struct mg_tcpip_if *ifp, struct pkt *pkt) {
     if (c->is_accepted) mg_error(c, "peer RST");  // RFC-1122 4.2.2.13
     // ignore RST if not connected
   } else if (pkt->tcp->flags & TH_SYN) {
+    // TODO(): handle_opt(s, pkt->tcp);  // process options (MSS)
+    // At this point, s = NULL, there is no connection.
     // Use peer's source port as ISN, in order to recognise the handshake
     uint32_t isn = mg_htonl((uint32_t) mg_ntohs(pkt->tcp->sport));
     tx_tcp_pkt(ifp, pkt, TH_SYN | TH_ACK, isn, NULL, 0);
@@ -4874,9 +5010,10 @@ static void rx_tcp(struct mg_tcpip_if *ifp, struct pkt *pkt) {
 static void rx_ip(struct mg_tcpip_if *ifp, struct pkt *pkt) {
   uint16_t frag = mg_ntohs(pkt->ip->frag);
   if (frag & IP_MORE_FRAGS_MSK || frag & IP_FRAG_OFFSET_MSK) {
+    struct mg_connection *c;
     if (pkt->ip->proto == 17) pkt->udp = (struct udp *) (pkt->ip + 1);
     if (pkt->ip->proto == 6) pkt->tcp = (struct tcp *) (pkt->ip + 1);
-    struct mg_connection *c = getpeer(ifp->mgr, pkt, false);
+    c = getpeer(ifp->mgr, pkt, false);
     if (c) mg_error(c, "Received fragmented packet");
   } else if (pkt->ip->proto == 1) {
     pkt->icmp = (struct icmp *) (pkt->ip + 1);
@@ -4902,11 +5039,12 @@ static void rx_ip(struct mg_tcpip_if *ifp, struct pkt *pkt) {
       rx_udp(ifp, pkt);
     }
   } else if (pkt->ip->proto == 6) {
+    uint16_t iplen, off;
     pkt->tcp = (struct tcp *) (pkt->ip + 1);
     if (pkt->pay.len < sizeof(*pkt->tcp)) return;
     mkpay(pkt, pkt->tcp + 1);
-    uint16_t iplen = mg_ntohs(pkt->ip->len);
-    uint16_t off = (uint16_t) (sizeof(*pkt->ip) + ((pkt->tcp->off >> 4) * 4U));
+    iplen = mg_ntohs(pkt->ip->len);
+    off = (uint16_t) (sizeof(*pkt->ip) + ((pkt->tcp->off >> 4) * 4U));
     if (iplen >= off) pkt->pay.len = (size_t) (iplen - off);
     MG_VERBOSE(("TCP %M:%hu -> %M:%hu len %u", mg_print_ip4, &pkt->ip->src,
                 mg_ntohs(pkt->tcp->sport), mg_print_ip4, &pkt->ip->dst,
@@ -4944,8 +5082,9 @@ static void mg_tcpip_rx(struct mg_tcpip_if *ifp, void *buf, size_t len) {
       memcmp(pkt.eth->dst, broadcast, sizeof(pkt.eth->dst)) != 0)
     return;
   if (ifp->enable_crc32_check && len > 4) {
+    uint32_t crc;
     len -= 4;  // TODO(scaprile): check on bigendian
-    uint32_t crc = mg_crc32(0, (const char *) buf, len);
+    crc = mg_crc32(0, (const char *) buf, len);
     if (memcmp((void *) ((size_t) buf + len), &crc, sizeof(crc))) return;
   }
   if (pkt.eth->type == mg_htons(0x806)) {
@@ -4994,24 +5133,27 @@ static void mg_tcpip_poll(struct mg_tcpip_if *ifp, uint64_t now) {
     ifp->state = MG_TCPIP_STATE_READY;  // keep best-effort MAC
     onstatechange(ifp);
   }
-  // Handle physical interface up/down status
-  if (expired_1000ms && ifp->driver->up) {
-    bool up = ifp->driver->up(ifp);
-    bool current = ifp->state != MG_TCPIP_STATE_DOWN;
-    if (!up && ifp->enable_dhcp_client) ifp->ip = 0;
-    if (up != current) {  // link state has changed
-      ifp->state = up == false ? MG_TCPIP_STATE_DOWN
-                   : ifp->enable_dhcp_client || ifp->ip == 0
-                       ? MG_TCPIP_STATE_UP
-                       : MG_TCPIP_STATE_IP;
-      onstatechange(ifp);
-    } else if (!ifp->enable_dhcp_client && ifp->state == MG_TCPIP_STATE_UP &&
-               ifp->ip) {
-      ifp->state = MG_TCPIP_STATE_IP;  // ifp->fn has set an IP
-      onstatechange(ifp);
+  // poll driver
+  if (ifp->driver->poll) {
+    bool up = ifp->driver->poll(ifp, expired_1000ms);
+    // Handle physical interface up/down status
+    if (expired_1000ms) {
+      bool current = ifp->state != MG_TCPIP_STATE_DOWN;
+      if (!up && ifp->enable_dhcp_client) ifp->ip = 0;
+      if (up != current) {  // link state has changed
+        ifp->state = up == false ? MG_TCPIP_STATE_DOWN
+                     : ifp->enable_dhcp_client || ifp->ip == 0
+                         ? MG_TCPIP_STATE_UP
+                         : MG_TCPIP_STATE_IP;
+        onstatechange(ifp);
+      } else if (!ifp->enable_dhcp_client && ifp->state == MG_TCPIP_STATE_UP &&
+                 ifp->ip) {
+        ifp->state = MG_TCPIP_STATE_IP;  // ifp->fn has set an IP
+        onstatechange(ifp);
+      }
+      if (ifp->state == MG_TCPIP_STATE_DOWN) MG_ERROR(("Network is down"));
+      mg_tcpip_call(ifp, MG_TCPIP_EV_TIMER_1S, NULL);
     }
-    if (ifp->state == MG_TCPIP_STATE_DOWN) MG_ERROR(("Network is down"));
-    mg_tcpip_call(ifp, MG_TCPIP_EV_TIMER_1S, NULL);
   }
   if (ifp->state == MG_TCPIP_STATE_DOWN) return;
 
@@ -5033,14 +5175,14 @@ static void mg_tcpip_poll(struct mg_tcpip_if *ifp, uint64_t now) {
   }
 
   // Read data from the network
-  if (ifp->driver->rx != NULL) {  // Polling driver. We must call it
+  if (ifp->driver->rx != NULL) {  // Simple polling driver, returns one frame
     size_t len =
         ifp->driver->rx(ifp->recv_queue.buf, ifp->recv_queue.size, ifp);
     if (len > 0) {
       ifp->nrecv++;
       mg_tcpip_rx(ifp, ifp->recv_queue.buf, len);
     }
-  } else {  // Interrupt-based driver. Fills recv queue itself
+  } else {  // Complex poll / Interrupt-based driver. Queues recvd frames
     char *buf;
     size_t len = mg_queue_next(&ifp->recv_queue, &buf);
     if (len > 0) {
@@ -5051,10 +5193,10 @@ static void mg_tcpip_poll(struct mg_tcpip_if *ifp, uint64_t now) {
 
   // Process timeouts
   for (c = ifp->mgr->conns; c != NULL; c = c->next) {
-    if ((c->is_udp && !c->is_arplooking) || c->is_listening || c->is_resolving)
-      continue;
     struct connstate *s = (struct connstate *) (c + 1);
     uint32_t rem_ip;
+    if ((c->is_udp && !c->is_arplooking) || c->is_listening || c->is_resolving)
+      continue;
     memcpy(&rem_ip, c->rem.ip, sizeof(uint32_t));
     if (ifp->now > s->timer) {
       if (s->ttype == MIP_TTYPE_ARP) {
@@ -5109,14 +5251,20 @@ void mg_tcpip_init(struct mg_mgr *mgr, struct mg_tcpip_if *ifp) {
     MG_INFO(("MAC not set. Generated random: %M", mg_print_mac, ifp->mac));
   }
 
+  // If DHCP name is not set, use "mip"
+  if (ifp->dhcp_name[0] == '\0') {
+    memcpy(ifp->dhcp_name, "mip", 4);
+  }
+  ifp->dhcp_name[sizeof(ifp->dhcp_name) - 1] = '\0';  // Just in case
+
   if (ifp->driver->init && !ifp->driver->init(ifp)) {
     MG_ERROR(("driver init failed"));
   } else {
     size_t framesize = 1540;
-    ifp->tx.buf = (char *) calloc(1, framesize), ifp->tx.len = framesize;
+    ifp->tx.buf = (char *) mg_calloc(1, framesize), ifp->tx.len = framesize;
     if (ifp->recv_queue.size == 0)
       ifp->recv_queue.size = ifp->driver->rx ? framesize : 8192;
-    ifp->recv_queue.buf = (char *) calloc(1, ifp->recv_queue.size);
+    ifp->recv_queue.buf = (char *) mg_calloc(1, ifp->recv_queue.size);
     ifp->timer_1000ms = mg_millis();
     mgr->ifp = ifp;
     ifp->mgr = mgr;
@@ -5132,8 +5280,9 @@ void mg_tcpip_init(struct mg_mgr *mgr, struct mg_tcpip_if *ifp) {
 }
 
 void mg_tcpip_free(struct mg_tcpip_if *ifp) {
-  free(ifp->recv_queue.buf);
-  free(ifp->tx.buf);
+  mg_free(ifp->recv_queue.buf);
+  mg_free(ifp->tx.buf);
+  mg_free(ifp->dns4_url);
 }
 
 static void send_syn(struct mg_connection *c) {
@@ -5153,6 +5302,13 @@ static void mac_resolved(struct mg_connection *c) {
     send_syn(c);
     settmout(c, MIP_TTYPE_SYN);
   }
+}
+
+static void ip4_mcastmac(uint8_t *mac, uint32_t *ip) {
+  uint8_t mcastp[3] = {0x01, 0x00, 0x5E};  // multicast group MAC
+  memcpy(mac, mcastp, 3);
+  memcpy(mac + 3, ((uint8_t *) ip) + 1, 3);  // 23 LSb
+  mac[3] &= 0x7F;
 }
 
 void mg_connect_resolved(struct mg_connection *c) {
@@ -5180,10 +5336,7 @@ void mg_connect_resolved(struct mg_connection *c) {
     c->is_arplooking = 1;
   } else if ((*((uint8_t *) &rem_ip) & 0xE0) == 0xE0) {
     struct connstate *s = (struct connstate *) (c + 1);  // 224 to 239, E0 to EF
-    uint8_t mcastp[3] = {0x01, 0x00, 0x5E};              // multicast group
-    memcpy(s->mac, mcastp, 3);
-    memcpy(s->mac + 3, ((uint8_t *) &rem_ip) + 1, 3);  // 23 LSb
-    s->mac[3] &= 0x7F;
+    ip4_mcastmac(s->mac, &rem_ip);                       // multicast group
     mac_resolved(c);
   } else {
     struct connstate *s = (struct connstate *) (c + 1);
@@ -5194,6 +5347,10 @@ void mg_connect_resolved(struct mg_connection *c) {
 
 bool mg_open_listener(struct mg_connection *c, const char *url) {
   c->loc.port = mg_htons(mg_url_port(url));
+  if (!mg_aton(mg_url_host(url), &c->loc)) {
+    MG_ERROR(("invalid listening URL: %s", url));
+    return false;
+  }
   return true;
 }
 
@@ -5238,17 +5395,20 @@ void mg_mgr_poll(struct mg_mgr *mgr, int ms) {
   if (mgr->ifp == NULL || mgr->ifp->driver == NULL) return;
   mg_tcpip_poll(mgr->ifp, now);
   for (c = mgr->conns; c != NULL; c = tmp) {
-    tmp = c->next;
     struct connstate *s = (struct connstate *) (c + 1);
+    bool is_tls = c->is_tls && !c->is_resolving && !c->is_arplooking &&
+                  !c->is_listening && !c->is_connecting;
+    tmp = c->next;
     mg_call(c, MG_EV_POLL, &now);
     MG_VERBOSE(("%lu .. %c%c%c%c%c %lu %lu", c->id, c->is_tls ? 'T' : 't',
                 c->is_connecting ? 'C' : 'c', c->is_tls_hs ? 'H' : 'h',
                 c->is_resolving ? 'R' : 'r', c->is_closing ? 'C' : 'c',
                 mg_tls_pending(c), c->rtls.len));
     // order is important, TLS conn close with > 1 record in buffer (below)
-    if (c->is_tls && (c->rtls.len > 0 || mg_tls_pending(c) > 0))
+    if (is_tls && (c->rtls.len > 0 || mg_tls_pending(c) > 0))
       handle_tls_recv(c);
     if (can_write(c)) write_conn(c);
+    if (is_tls && c->send.len == 0) mg_tls_flush(c);
     if (c->is_draining && c->send.len == 0 && s->ttype != MIP_TTYPE_FIN)
       init_closure(c);
     // For non-TLS, close immediately upon completing the 3-way closure
@@ -5274,13 +5434,36 @@ bool mg_send(struct mg_connection *c, const void *buf, size_t len) {
   } else if (c->is_udp) {
     struct connstate *s = (struct connstate *) (c + 1);
     len = trim_len(c, len);  // Trimming length if necessary
-    tx_udp(ifp, s->mac, ifp->ip, c->loc.port, rem_ip, c->rem.port, buf, len);
-    res = true;
+    res = tx_udp(ifp, s->mac, ifp->ip, c->loc.port, rem_ip, c->rem.port, buf,
+                 len);
   } else {
     res = mg_iobuf_add(&c->send, c->send.len, buf, len);
   }
   return res;
 }
+
+uint8_t mcast_addr[6] = {0x01, 0x00, 0x5e, 0x00, 0x00, 0xfb};
+void mg_multicast_add(struct mg_connection *c, char *ip) {
+  (void) ip;  // ip4_mcastmac(mcast_mac, &ip);
+  // TODO(): actual IP -> MAC; check database, update
+  c->mgr->ifp->update_mac_hash_table = true;  // mark dirty
+}
+
+bool mg_dnsc_init(struct mg_mgr *mgr, struct mg_dns *dnsc);
+
+static void setdns4(struct mg_tcpip_if *ifp, uint32_t *ip) {
+  struct mg_dns *dnsc;
+  mg_free(ifp->dns4_url);
+  ifp->dns4_url = mg_mprintf("udp://%M:53", mg_print_ip4, ip);
+  dnsc = &ifp->mgr->dns4;
+  dnsc->url = (const char *) ifp->dns4_url;
+  MG_DEBUG(("Set DNS URL to %s", dnsc->url));
+  if (ifp->mgr->use_dns6) return;
+  if (dnsc->c != NULL) mg_close_conn(dnsc->c);
+  if (!mg_dnsc_init(ifp->mgr, dnsc)) // create DNS connection
+    MG_ERROR(("DNS connection creation failed"));
+}
+
 #endif  // MG_ENABLE_TCPIP
 
 #ifdef MG_ENABLE_LINES
@@ -5476,6 +5659,374 @@ bool mg_ota_end(void) {
 #endif
 
 #ifdef MG_ENABLE_LINES
+#line 1 "src/ota_frdm.c"
+#endif
+
+
+
+
+#if MG_OTA == MG_OTA_FRDM
+
+MG_IRAM static bool mg_frdm_write(void *, const void *, size_t);
+static bool mg_frdm_swap(void);
+
+static struct mg_flash s_mg_flash_frdm = {(void *) 0x08000000,  // Start,
+                                          0x200000,             // Size
+                                          0x1000,               // Sector size
+                                          0x100,                // Align
+                                          mg_frdm_write,
+                                          mg_frdm_swap};
+
+struct mg_flexspi_lut_seq {
+  uint8_t seqNum;
+  uint8_t seqId;
+  uint16_t reserved;
+};
+
+struct mg_flexspi_mem_config {
+  uint32_t tag;
+  uint32_t version;
+  uint32_t reserved0;
+  uint8_t readSampleClkSrc;
+  uint8_t csHoldTime;
+  uint8_t csSetupTime;
+  uint8_t columnAddressWidth;
+  uint8_t deviceModeCfgEnable;
+  uint8_t deviceModeType;
+  uint16_t waitTimeCfgCommands;
+  struct mg_flexspi_lut_seq deviceModeSeq;
+  uint32_t deviceModeArg;
+  uint8_t configCmdEnable;
+  uint8_t configModeType[3];
+  struct mg_flexspi_lut_seq configCmdSeqs[3];
+  uint32_t reserved1;
+  uint32_t configCmdArgs[3];
+  uint32_t reserved2;
+  uint32_t controllerMiscOption;
+  uint8_t deviceType;
+  uint8_t sflashPadType;
+  uint8_t serialClkFreq;
+  uint8_t lutCustomSeqEnable;
+  uint32_t reserved3[2];
+  uint32_t sflashA1Size;
+  uint32_t sflashA2Size;
+  uint32_t sflashB1Size;
+  uint32_t sflashB2Size;
+  uint32_t csPadSettingOverride;
+  uint32_t sclkPadSettingOverride;
+  uint32_t dataPadSettingOverride;
+  uint32_t dqsPadSettingOverride;
+  uint32_t timeoutInMs;
+  uint32_t commandInterval;
+  uint16_t dataValidTime[2];
+  uint16_t busyOffset;
+  uint16_t busyBitPolarity;
+  uint32_t lookupTable[64];
+  struct mg_flexspi_lut_seq lutCustomSeq[12];
+  uint32_t reserved4[4];
+};
+
+struct mg_flexspi_nor_config {
+  struct mg_flexspi_mem_config memConfig;
+  uint32_t pageSize;
+  uint32_t sectorSize;
+  uint8_t ipcmdSerialClkFreq;
+  uint8_t isUniformBlockSize;
+  uint8_t isDataOrderSwapped;
+  uint8_t reserved0[1];
+  uint8_t serialNorType;
+  uint8_t needExitNoCmdMode;
+  uint8_t halfClkForNonReadCmd;
+  uint8_t needRestoreNoCmdMode;
+  uint32_t blockSize;
+  uint32_t flashStateCtx;
+  uint32_t reserve2[10];
+};
+
+struct mg_flexspi_nor_driver_interface {
+  uint32_t version;
+  uint32_t (*init)(uint32_t instance, struct mg_flexspi_nor_config *config);
+  uint32_t (*wait_busy)(uint32_t instance, struct mg_flexspi_nor_config *config,
+                        uint32_t address, bool keepState);
+  uint32_t (*page_program)(uint32_t instance,
+                           struct mg_flexspi_nor_config *config,
+                           uint32_t dstAddr, const uint32_t *src,
+                           bool keepState);
+  uint32_t (*erase_all)(uint32_t instance,
+                        struct mg_flexspi_nor_config *config);
+  uint32_t (*erase)(uint32_t instance, struct mg_flexspi_nor_config *config,
+                    uint32_t start, uint32_t length);
+  uint32_t (*erase_sector)(uint32_t instance,
+                           struct mg_flexspi_nor_config *config,
+                           uint32_t address);
+  uint32_t (*erase_block)(uint32_t instance,
+                          struct mg_flexspi_nor_config *config,
+                          uint32_t address);
+  uint32_t (*read)(uint32_t instance, struct mg_flexspi_nor_config *config,
+                   uint32_t *dst, uint32_t start, uint32_t bytes);
+  void (*config_clock)(uint32_t instance, uint32_t freqOption,
+                       uint32_t sampleClkMode);
+  uint32_t (*set_clock_source)(uint32_t clockSrc);
+  uint32_t (*get_config)(uint32_t instance,
+                         struct mg_flexspi_nor_config *config,
+                         uint32_t *option);
+  void (*hw_reset)(uint32_t instance, uint32_t reset_logic);
+  uint32_t (*xfer)(uint32_t instance, char *xfer);
+  uint32_t (*update_lut)(uint32_t instance, uint32_t seqIndex,
+                         const uint32_t *lutBase, uint32_t numberOfSeq);
+  uint32_t (*partial_program)(uint32_t instance,
+                              struct mg_flexspi_nor_config *config,
+                              uint32_t dstAddr, const uint32_t *src,
+                              uint32_t length, bool keepState);
+};
+
+#define MG_FLEXSPI_CFG_BLK_TAG (0x42464346UL)
+#define MG_FLEXSPI_BASE 0x40134000UL
+
+#define MG_CMD_SDR 0x01
+#define MG_RADDR_SDR 0x02
+#define MG_WRITE_SDR 0x08
+#define MG_READ_SDR 0x09
+#define MG_DUMMY_SDR 0x0C
+#define MG_STOP_EXE 0
+
+#define MG_FLEXSPI_1PAD 0
+#define MG_FLEXSPI_4PAD 2
+
+#define MG_FLEXSPI_LUT_OPERAND0(x) (((x) &0xFF) << 0)
+#define MG_FLEXSPI_LUT_NUM_PADS0(x) (((x) &0x3) << 8)
+#define MG_FLEXSPI_LUT_OPCODE0(x) (((x) &0x3F) << 10)
+#define MG_FLEXSPI_LUT_OPERAND1(x) (((x) &0xFF) << 16)
+#define MG_FLEXSPI_LUT_NUM_PADS1(x) (((x) &0x3) << 24)
+#define MG_FLEXSPI_LUT_OPCODE1(x) (((x) &0x3F) << 26)
+
+#define MG_FLEXSPI_LUT_SEQ(cmd0, pad0, op0, cmd1, pad1, op1)       \
+  (MG_FLEXSPI_LUT_OPERAND0(op0) | MG_FLEXSPI_LUT_NUM_PADS0(pad0) | \
+   MG_FLEXSPI_LUT_OPCODE0(cmd0) | MG_FLEXSPI_LUT_OPERAND1(op1) |   \
+   MG_FLEXSPI_LUT_NUM_PADS1(pad1) | MG_FLEXSPI_LUT_OPCODE1(cmd1))
+
+struct mg_flexspi_nor_config default_config = {
+    .memConfig =
+        {
+            .tag = MG_FLEXSPI_CFG_BLK_TAG,
+            .version = 0,
+            .readSampleClkSrc = 1,
+            .csHoldTime = 3,
+            .csSetupTime = 3,
+            .deviceModeCfgEnable = 1,
+            .deviceModeSeq = {.seqNum = 1, .seqId = 2},
+            .deviceModeArg = 0x0740,
+            .configCmdEnable = 0,
+            .deviceType = 0x1,
+            .sflashPadType = 4,
+            .serialClkFreq = 4,
+            .sflashA1Size = 0x4000000U,
+            .sflashA2Size = 0,
+            .sflashB1Size = 0,
+            .sflashB2Size = 0,
+            .lookupTable =
+                {
+                    [0] =
+                        MG_FLEXSPI_LUT_SEQ(MG_CMD_SDR, MG_FLEXSPI_1PAD, 0xEB,
+                                           MG_RADDR_SDR, MG_FLEXSPI_4PAD, 0x18),
+                    [1] =
+                        MG_FLEXSPI_LUT_SEQ(MG_DUMMY_SDR, MG_FLEXSPI_4PAD, 0x06,
+                                           MG_READ_SDR, MG_FLEXSPI_4PAD, 0x04),
+                    [4 * 1 + 0] =
+                        MG_FLEXSPI_LUT_SEQ(MG_CMD_SDR, MG_FLEXSPI_1PAD, 0x05,
+                                           MG_READ_SDR, MG_FLEXSPI_1PAD, 0x04),
+                    [4 * 2 + 0] =
+                        MG_FLEXSPI_LUT_SEQ(MG_CMD_SDR, MG_FLEXSPI_1PAD, 0x01,
+                                           MG_WRITE_SDR, MG_FLEXSPI_1PAD, 0x02),
+                    [4 * 3 + 0] =
+                        MG_FLEXSPI_LUT_SEQ(MG_CMD_SDR, MG_FLEXSPI_1PAD, 0x06,
+                                           MG_STOP_EXE, MG_FLEXSPI_1PAD, 0x00),
+                    [4 * 5 + 0] =
+                        MG_FLEXSPI_LUT_SEQ(MG_CMD_SDR, MG_FLEXSPI_1PAD, 0x20,
+                                           MG_RADDR_SDR, MG_FLEXSPI_1PAD, 0x18),
+                    [4 * 8 + 0] =
+                        MG_FLEXSPI_LUT_SEQ(MG_CMD_SDR, MG_FLEXSPI_1PAD, 0x52,
+                                           MG_RADDR_SDR, MG_FLEXSPI_1PAD, 0x18),
+                    [4 * 9 + 0] =
+                        MG_FLEXSPI_LUT_SEQ(MG_CMD_SDR, MG_FLEXSPI_1PAD, 0x02,
+                                           MG_RADDR_SDR, MG_FLEXSPI_1PAD, 0x18),
+                    [4 * 9 + 1] =
+                        MG_FLEXSPI_LUT_SEQ(MG_WRITE_SDR, MG_FLEXSPI_1PAD, 0x00,
+                                           MG_STOP_EXE, MG_FLEXSPI_1PAD, 0x00),
+                    [4 * 11 + 0] =
+                        MG_FLEXSPI_LUT_SEQ(MG_CMD_SDR, MG_FLEXSPI_1PAD, 0x60,
+                                           MG_STOP_EXE, MG_FLEXSPI_1PAD, 0x00),
+                },
+        },
+    .pageSize = 0x100,
+    .sectorSize = 0x1000,
+    .ipcmdSerialClkFreq = 0,
+    .blockSize = 0x8000,
+};
+
+#define MG_FLEXSPI_NOR_INSTANCE 0
+#define MG_ROMAPI_ADDRESS 0x13030000U
+#define flexspi_nor                              \
+  ((struct mg_flexspi_nor_driver_interface *) (( \
+      (uint32_t *) MG_ROMAPI_ADDRESS)[5]))
+
+MG_IRAM static bool flash_page_start(volatile uint32_t *dst) {
+  char *base = (char *) s_mg_flash_frdm.start,
+       *end = base + s_mg_flash_frdm.size;
+  volatile char *p = (char *) dst;
+  return p >= base && p < end && ((p - base) % s_mg_flash_frdm.secsz) == 0;
+}
+
+MG_IRAM static int flexspi_nor_get_config(
+    struct mg_flexspi_nor_config *config) {
+  uint32_t option = 0xc0000004;
+  return flexspi_nor->get_config(MG_FLEXSPI_NOR_INSTANCE, config, &option);
+}
+
+MG_IRAM static int flash_init(void) {
+  static bool initialized = false;
+  if (!initialized) {
+    struct mg_flexspi_nor_config config;
+    memset(&config, 0, sizeof(config));
+    flexspi_nor->set_clock_source(0);
+    flexspi_nor->config_clock(MG_FLEXSPI_NOR_INSTANCE, 1, 0);
+    if (flexspi_nor->init(MG_FLEXSPI_NOR_INSTANCE, &default_config)) {
+      return 1;
+    }
+    flexspi_nor_get_config(&config);
+    if (flexspi_nor->init(MG_FLEXSPI_NOR_INSTANCE, &config)) {
+      return 1;
+    }
+    initialized = true;
+  }
+  return 0;
+}
+
+MG_IRAM static bool flash_erase(struct mg_flexspi_nor_config *config,
+                                void *addr) {
+  if (flash_page_start(addr) == false) {
+    MG_ERROR(("%p is not on a sector boundary", addr));
+    return false;
+  }
+
+  void *dst = (void *) ((char *) addr - (char *) s_mg_flash_frdm.start);
+  bool ok = (flexspi_nor->erase_sector(MG_FLEXSPI_NOR_INSTANCE, config,
+                                       (uint32_t) dst) == 0);
+  MG_INFO(("Sector starting at %p erasure: %s", addr, ok ? "ok" : "fail"));
+  return ok;
+}
+
+MG_IRAM bool mg_frdm_swap(void) {
+  return true;
+}
+
+MG_IRAM static void flash_wait(void) {
+  while ((*((volatile uint32_t *) (MG_FLEXSPI_BASE + 0xE0)) & MG_BIT(1)) == 0)
+    (void) 0;
+}
+
+static bool s_flash_irq_disabled;
+
+MG_IRAM static bool mg_frdm_write(void *addr, const void *buf, size_t len) {
+  struct mg_flexspi_nor_config config;
+  bool ok = false;
+  MG_ARM_DISABLE_IRQ();
+  if (flash_init() != 0) goto fwxit;
+  if (flexspi_nor_get_config(&config) != 0) goto fwxit;
+  if ((len % s_mg_flash_frdm.align) != 0) {
+    MG_ERROR(("%lu is not aligned to %lu", len, s_mg_flash_frdm.align));
+    goto fwxit;
+  }
+  if ((char *) addr < (char *) s_mg_flash_frdm.start) {
+    MG_ERROR(("Invalid flash write address: %p", addr));
+    goto fwxit;
+  }
+
+  uint32_t *dst = (uint32_t *) addr;
+  uint32_t *src = (uint32_t *) buf;
+  uint32_t *end = (uint32_t *) ((char *) buf + len);
+  ok = true;
+
+  while (ok && src < end) {
+    if (flash_page_start(dst) && flash_erase(&config, dst) == false) {
+      ok = false;
+      break;
+    }
+    uint32_t status;
+    uint32_t dst_ofs = (uint32_t) dst - (uint32_t) s_mg_flash_frdm.start;
+    if ((char *) buf >= (char *) s_mg_flash_frdm.start &&
+        (char *) buf <
+            (char *) (s_mg_flash_frdm.start + s_mg_flash_frdm.size)) {
+      // If we copy from FLASH to FLASH, then we first need to copy the source
+      // to RAM
+      size_t tmp_buf_size = s_mg_flash_frdm.align / sizeof(uint32_t);
+      uint32_t tmp[tmp_buf_size];
+
+      for (size_t i = 0; i < tmp_buf_size; i++) {
+        flash_wait();
+        tmp[i] = src[i];
+      }
+      status = flexspi_nor->page_program(MG_FLEXSPI_NOR_INSTANCE, &config,
+                                         (uint32_t) dst_ofs, tmp, false);
+    } else {
+      status = flexspi_nor->page_program(MG_FLEXSPI_NOR_INSTANCE, &config,
+                                         (uint32_t) dst_ofs, src, false);
+    }
+    src = (uint32_t *) ((char *) src + s_mg_flash_frdm.align);
+    dst = (uint32_t *) ((char *) dst + s_mg_flash_frdm.align);
+    if (status != 0) {
+      ok = false;
+    }
+  }
+  MG_INFO(("Flash write %lu bytes @ %p: %s.", len, dst, ok ? "ok" : "fail"));
+fwxit:
+  if (!s_flash_irq_disabled) MG_ARM_ENABLE_IRQ();
+  return ok;
+}
+
+// just overwrite instead of swap
+MG_IRAM static void single_bank_swap(char *p1, char *p2, size_t s, size_t ss) {
+  // no stdlib calls here
+  for (size_t ofs = 0; ofs < s; ofs += ss) {
+    mg_frdm_write(p1 + ofs, p2 + ofs, ss);
+  }
+  *(volatile unsigned long *) 0xe000ed0c = 0x5fa0004;
+}
+
+bool mg_ota_begin(size_t new_firmware_size) {
+  return mg_ota_flash_begin(new_firmware_size, &s_mg_flash_frdm);
+}
+
+bool mg_ota_write(const void *buf, size_t len) {
+  return mg_ota_flash_write(buf, len, &s_mg_flash_frdm);
+}
+
+bool mg_ota_end(void) {
+  if (mg_ota_flash_end(&s_mg_flash_frdm)) {
+    if (0) {  // is_dualbank()
+      // TODO(): no devices so far
+      *(volatile unsigned long *) 0xe000ed0c = 0x5fa0004;
+    } else {
+      // Swap partitions. Pray power does not go away
+      MG_INFO(("Swapping partitions, size %u (%u sectors)",
+               s_mg_flash_frdm.size,
+               s_mg_flash_frdm.size / s_mg_flash_frdm.secsz));
+      MG_INFO(("Do NOT power off..."));
+      mg_log_level = MG_LL_NONE;
+      s_flash_irq_disabled = true;
+      // Runs in RAM, will reset when finished
+      single_bank_swap(
+          (char *) s_mg_flash_frdm.start,
+          (char *) s_mg_flash_frdm.start + s_mg_flash_frdm.size / 2,
+          s_mg_flash_frdm.size / 2, s_mg_flash_frdm.secsz);
+    }
+  }
+  return false;
+}
+
+#endif
+
+#ifdef MG_ENABLE_LINES
 #line 1 "src/ota_imxrt.c"
 #endif
 
@@ -5493,9 +6044,17 @@ static bool mg_imxrt_swap(void);
 #elif MG_OTA == MG_OTA_RT1064
 #define MG_IMXRT_FLASH_START 0x70000000
 #define FLEXSPI_NOR_INSTANCE 1
-#else // RT1170
+#else  // RT1170
 #define MG_IMXRT_FLASH_START 0x30000000
 #define FLEXSPI_NOR_INSTANCE 1
+#endif
+
+#if MG_OTA == MG_OTA_RT1050
+#define MG_IMXRT_SECTOR_SIZE (256 * 1024)
+#define MG_IMXRT_PAGE_SIZE 512
+#else
+#define MG_IMXRT_SECTOR_SIZE (4 * 1024)
+#define MG_IMXRT_PAGE_SIZE 256
 #endif
 
 // TODO(): fill at init, support more devices in a dynamic way
@@ -5503,8 +6062,8 @@ static bool mg_imxrt_swap(void);
 static struct mg_flash s_mg_flash_imxrt = {
     (void *) MG_IMXRT_FLASH_START,  // Start,
     4 * 1024 * 1024,                // Size, 4mb
-    4 * 1024,                       // Sector size, 4k
-    256,                            // Align,
+    MG_IMXRT_SECTOR_SIZE,           // Sector size
+    MG_IMXRT_PAGE_SIZE,             // Align
     mg_imxrt_write,
     mg_imxrt_swap,
 };
@@ -5586,8 +6145,10 @@ struct mg_flexspi_nor_config {
 #define MG_CMD_DDR 0x21
 #define MG_DUMMY_SDR 0x0C
 #define MG_DUMMY_DDR 0x2C
+#define MG_DUMMY_RWDS_DDR 0x2D
 #define MG_RADDR_SDR 0x02
 #define MG_RADDR_DDR 0x22
+#define MG_CADDR_DDR 0x23
 #define MG_READ_SDR 0x09
 #define MG_READ_DDR 0x29
 #define MG_WRITE_SDR 0x08
@@ -5621,6 +6182,131 @@ struct mg_flexspi_nor_config {
                                       MG_STOP, MG_FLEXSPI_1PAD, 0x0),          \
   }
 
+#define MG_FLEXSPI_HYPER_LUT                                                  \
+  {                                                                           \
+    [0] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0xA0, MG_RADDR_DDR, \
+                             MG_FLEXSPI_8PAD, 0x18),                          \
+    [1] = MG_FLEXSPI_LUT_SEQ(MG_CADDR_DDR, MG_FLEXSPI_8PAD, 0x10,             \
+                             MG_DUMMY_DDR, MG_FLEXSPI_8PAD, 0x0C),            \
+    [2] = MG_FLEXSPI_LUT_SEQ(MG_READ_DDR, MG_FLEXSPI_8PAD, 0x04, MG_STOP,     \
+                             MG_FLEXSPI_1PAD, 0x0),                           \
+    [4 * 1 + 0] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,        \
+                                     MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0),       \
+    [4 * 1 + 1] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,        \
+                                     MG_CMD_DDR, MG_FLEXSPI_8PAD, 0xAA),      \
+    [4 * 1 + 2] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,        \
+                                     MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x05),      \
+    [4 * 1 + 3] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,        \
+                                     MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x70),      \
+    [4 * 2 + 0] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0xA0,       \
+                                     MG_RADDR_DDR, MG_FLEXSPI_8PAD, 0x18),    \
+    [4 * 2 + 1] =                                                             \
+        MG_FLEXSPI_LUT_SEQ(MG_CADDR_DDR, MG_FLEXSPI_8PAD, 0x10,               \
+                           MG_DUMMY_RWDS_DDR, MG_FLEXSPI_8PAD, 0x0B),         \
+    [4 * 2 + 2] = MG_FLEXSPI_LUT_SEQ(MG_READ_DDR, MG_FLEXSPI_8PAD, 0x4,       \
+                                     MG_STOP, MG_FLEXSPI_1PAD, 0x0),          \
+    [4 * 3 + 0] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,        \
+                                     MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0),       \
+    [4 * 3 + 1] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,        \
+                                     MG_CMD_DDR, MG_FLEXSPI_8PAD, 0xAA),      \
+    [4 * 3 + 2] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,        \
+                                     MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x05),      \
+    [4 * 3 + 3] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,        \
+                                     MG_CMD_DDR, MG_FLEXSPI_8PAD, 0xAA),      \
+    [4 * 4 + 0] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,        \
+                                     MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0),       \
+    [4 * 4 + 1] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,        \
+                                     MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x55),      \
+    [4 * 4 + 2] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,        \
+                                     MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x02),      \
+    [4 * 4 + 3] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,        \
+                                     MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x55),      \
+    [4 * 5 + 0] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,        \
+                                     MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0),       \
+    [4 * 5 + 1] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,        \
+                                     MG_CMD_DDR, MG_FLEXSPI_8PAD, 0xAA),      \
+    [4 * 5 + 2] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,        \
+                                     MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x05),      \
+    [4 * 5 + 3] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,        \
+                                     MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x80),      \
+    [4 * 6 + 0] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,        \
+                                     MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0),       \
+    [4 * 6 + 1] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,        \
+                                     MG_CMD_DDR, MG_FLEXSPI_8PAD, 0xAA),      \
+    [4 * 6 + 2] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,        \
+                                     MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x05),      \
+    [4 * 6 + 3] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,        \
+                                     MG_CMD_DDR, MG_FLEXSPI_8PAD, 0xAA),      \
+    [4 * 7 + 0] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,        \
+                                     MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0),       \
+    [4 * 7 + 1] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,        \
+                                     MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x55),      \
+    [4 * 7 + 2] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,        \
+                                     MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x02),      \
+    [4 * 7 + 3] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,        \
+                                     MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x55),      \
+    [4 * 8 + 0] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,        \
+                                     MG_RADDR_DDR, MG_FLEXSPI_8PAD, 0x18),    \
+    [4 * 8 + 1] = MG_FLEXSPI_LUT_SEQ(MG_CADDR_DDR, MG_FLEXSPI_8PAD, 0x10,     \
+                                     MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0),       \
+    [4 * 8 + 2] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x30,       \
+                                     MG_STOP, MG_FLEXSPI_1PAD, 0x0),          \
+    [4 * 9 + 0] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,        \
+                                     MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0),       \
+    [4 * 9 + 1] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,        \
+                                     MG_CMD_DDR, MG_FLEXSPI_8PAD, 0xAA),      \
+    [4 * 9 + 2] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,        \
+                                     MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x05),      \
+    [4 * 9 + 3] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,        \
+                                     MG_CMD_DDR, MG_FLEXSPI_8PAD, 0xA0),      \
+    [4 * 10 + 0] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,       \
+                                      MG_RADDR_DDR, MG_FLEXSPI_8PAD, 0x18),   \
+    [4 * 10 + 1] = MG_FLEXSPI_LUT_SEQ(MG_CADDR_DDR, MG_FLEXSPI_8PAD, 0x10,    \
+                                      MG_WRITE_DDR, MG_FLEXSPI_8PAD, 0x80),   \
+    [4 * 11 + 0] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,       \
+                                      MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0),      \
+    [4 * 11 + 1] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,       \
+                                      MG_CMD_DDR, MG_FLEXSPI_8PAD, 0xAA),     \
+    [4 * 11 + 2] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,       \
+                                      MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x05),     \
+    [4 * 11 + 3] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,       \
+                                      MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x80),     \
+    [4 * 12 + 0] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,       \
+                                      MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0),      \
+    [4 * 12 + 1] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,       \
+                                      MG_CMD_DDR, MG_FLEXSPI_8PAD, 0xAA),     \
+    [4 * 12 + 2] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,       \
+                                      MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x05),     \
+    [4 * 12 + 3] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,       \
+                                      MG_CMD_DDR, MG_FLEXSPI_8PAD, 0xAA),     \
+    [4 * 13 + 0] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,       \
+                                      MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0),      \
+    [4 * 13 + 1] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,       \
+                                      MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x55),     \
+    [4 * 13 + 2] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,       \
+                                      MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x02),     \
+    [4 * 13 + 3] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,       \
+                                      MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x55),     \
+    [4 * 14 + 0] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,       \
+                                      MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0),      \
+    [4 * 14 + 1] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,       \
+                                      MG_CMD_DDR, MG_FLEXSPI_8PAD, 0xAA),     \
+    [4 * 14 + 2] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,       \
+                                      MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x05),     \
+    [4 * 14 + 3] = MG_FLEXSPI_LUT_SEQ(MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x0,       \
+                                      MG_CMD_DDR, MG_FLEXSPI_8PAD, 0x10),     \
+  }
+
+#define MG_LUT_CUSTOM_SEQ                          \
+  {                                                \
+    {.seqNum = 0, .seqId = 0, .reserved = 0},      \
+        {.seqNum = 2, .seqId = 1, .reserved = 0},  \
+        {.seqNum = 2, .seqId = 3, .reserved = 0},  \
+        {.seqNum = 4, .seqId = 5, .reserved = 0},  \
+        {.seqNum = 2, .seqId = 9, .reserved = 0},  \
+        {.seqNum = 4, .seqId = 11, .reserved = 0}, \
+  }
+
 #define MG_FLEXSPI_LUT_OPERAND0(x) (((uint32_t) (((uint32_t) (x)))) & 0xFFU)
 #define MG_FLEXSPI_LUT_NUM_PADS0(x) \
   (((uint32_t) (((uint32_t) (x)) << 8U)) & 0x300U)
@@ -5633,8 +6319,8 @@ struct mg_flexspi_nor_config {
 #define MG_FLEXSPI_LUT_OPCODE1(x) \
   (((uint32_t) (((uint32_t) (x)) << 26U)) & 0xFC000000U)
 
-#if MG_OTA == MG_OTA_RT1020
-// RT102X boards support ROM API version 1.4
+#if MG_OTA == MG_OTA_RT1020 || MG_OTA == MG_OTA_RT1050
+// RT102X and RT105x boards support ROM API version 1.4
 struct mg_flexspi_nor_driver_interface {
   uint32_t version;
   int (*init)(uint32_t instance, struct mg_flexspi_nor_config *config);
@@ -5692,10 +6378,10 @@ struct mg_flexspi_nor_driver_interface {
                      uint32_t address);
   void (*hw_reset)(uint32_t instance, uint32_t resetLogic);
   int (*wait_busy)(uint32_t instance, struct mg_flexspi_nor_config *config,
-                  bool isParallelMode, uint32_t address);
+                   bool isParallelMode, uint32_t address);
   int (*set_clock_source)(uint32_t instance, uint32_t clockSrc);
   void (*config_clock)(uint32_t instance, uint32_t freqOption,
-                  uint32_t sampleClkMode);
+                       uint32_t sampleClkMode);
 };
 #endif
 
@@ -5714,33 +6400,67 @@ struct mg_flexspi_nor_driver_interface {
 static bool s_flash_irq_disabled;
 
 MG_IRAM static bool flash_page_start(volatile uint32_t *dst) {
-  char *base = (char *) s_mg_flash_imxrt.start, *end = base + s_mg_flash_imxrt.size;
+  char *base = (char *) s_mg_flash_imxrt.start,
+       *end = base + s_mg_flash_imxrt.size;
   volatile char *p = (char *) dst;
   return p >= base && p < end && ((p - base) % s_mg_flash_imxrt.secsz) == 0;
 }
 
-// Note: the get_config function below works both for RT1020 and 1060
-// must reside in RAM, as flash will be erased
+#if MG_OTA == MG_OTA_RT1050
+// Configuration for Hyper flash memory
 static struct mg_flexspi_nor_config default_config = {
-  .memConfig = {.tag = MG_FLEXSPI_CFG_BLK_TAG,
-                .version = MG_FLEXSPI_CFG_BLK_VERSION,
-                .readSampleClkSrc = 1,  // ReadSampleClk_LoopbackFromDqsPad
-                .csHoldTime = 3,
-                .csSetupTime = 3,
-                .controllerMiscOption = MG_BIT(4),
-                .deviceType = 1,  // serial NOR
-                .sflashPadType = 4,
-                .serialClkFreq = 7,  // 133MHz
-                .sflashA1Size = 8 * 1024 * 1024,
-                .lookupTable = MG_FLEXSPI_QSPI_LUT},
-  .pageSize = 256,
-  .sectorSize = 4 * 1024,
-  .ipcmdSerialClkFreq = 1,
-  .blockSize = 64 * 1024,
-  .isUniformBlockSize = false
-};
+    .memConfig =
+        {
+            .tag = MG_FLEXSPI_CFG_BLK_TAG,
+            .version = MG_FLEXSPI_CFG_BLK_VERSION,
+            .readSampleClkSrc = 3,  // ReadSampleClk_LoopbackFromDqsPad
+            .csHoldTime = 3,
+            .csSetupTime = 3,
+            .columnAddressWidth = 3u,
+            .controllerMiscOption =
+                MG_BIT(6) | MG_BIT(4) | MG_BIT(3) | MG_BIT(0),
+            .deviceType = 1,  // serial NOR
+            .sflashPadType = 8,
+            .serialClkFreq = 7,  // 133MHz
+            .sflashA1Size = 64 * 1024 * 1024,
+            .dataValidTime = {15, 0},
+            .busyOffset = 15,
+            .busyBitPolarity = 1,
+            .lutCustomSeqEnable = 0x1,
+            .lookupTable = MG_FLEXSPI_HYPER_LUT,
+            .lutCustomSeq = MG_LUT_CUSTOM_SEQ,
+        },
+    .pageSize = 512,
+    .sectorSize = 256 * 1024,
+    .ipcmdSerialClkFreq = 1,
+    .serialNorType = 1u,
+    .blockSize = 256 * 1024,
+    .isUniformBlockSize = true};
+#else
+// Note: this QSPI configuration works for RTs supporting QSPI
+// Configuration for QSPI memory
+static struct mg_flexspi_nor_config default_config = {
+    .memConfig = {.tag = MG_FLEXSPI_CFG_BLK_TAG,
+                  .version = MG_FLEXSPI_CFG_BLK_VERSION,
+                  .readSampleClkSrc = 1,  // ReadSampleClk_LoopbackFromDqsPad
+                  .csHoldTime = 3,
+                  .csSetupTime = 3,
+                  .controllerMiscOption = MG_BIT(4),
+                  .deviceType = 1,  // serial NOR
+                  .sflashPadType = 4,
+                  .serialClkFreq = 7,  // 133MHz
+                  .sflashA1Size = 8 * 1024 * 1024,
+                  .lookupTable = MG_FLEXSPI_QSPI_LUT},
+    .pageSize = 256,
+    .sectorSize = 4 * 1024,
+    .ipcmdSerialClkFreq = 1,
+    .blockSize = 64 * 1024,
+    .isUniformBlockSize = false};
+#endif
+
+// must reside in RAM, as flash will be erased
 MG_IRAM static int flexspi_nor_get_config(
-  struct mg_flexspi_nor_config **config) {
+    struct mg_flexspi_nor_config **config) {
   *config = &default_config;
   return 0;
 }
@@ -6058,7 +6778,7 @@ fwxit:
 
 // try to swap (honor dual image), otherwise just overwrite
 MG_IRAM static void single_bank_swap(char *p1, char *p2, size_t s, size_t ss) {
-  char *tmp = malloc(ss);
+  char *tmp = mg_calloc(1, ss);
   // no stdlib calls here
   for (size_t ofs = 0; ofs < s; ofs += ss) {
     if (tmp != NULL)
@@ -6221,7 +6941,7 @@ static bool __no_inline_not_in_flash_func(mg_picosdk_write)(void *addr,
 static void __no_inline_not_in_flash_func(single_bank_swap)(char *p1, char *p2,
                                                             size_t s,
                                                             size_t ss) {
-  char *tmp = malloc(ss);
+  char *tmp = mg_calloc(1, ss);
   if (tmp == NULL) return;
 #if PICO_RP2040
   uint32_t xip[256 / sizeof(uint32_t)];
@@ -6493,6 +7213,10 @@ MG_IRAM void single_bank_swap(char *p1, char *p2, size_t size) {
 
 bool mg_ota_begin(size_t new_firmware_size) {
   s_mg_flash_stm32f.size = flash_size();
+#ifdef __ZEPHYR__
+  *((uint32_t *)0xE000ED94) = 0;
+  MG_DEBUG(("Jailbreak %s", *((uint32_t *)0xE000ED94) == 0 ? "successful" : "failed"));
+#endif
   return mg_ota_flash_begin(new_firmware_size, &s_mg_flash_stm32f);
 }
 
@@ -6658,6 +7382,10 @@ static bool mg_stm32h5_write(void *addr, const void *buf, size_t len) {
 }
 
 bool mg_ota_begin(size_t new_firmware_size) {
+#ifdef __ZEPHYR__
+  *((uint32_t *)0xE000ED94) = 0;
+  MG_DEBUG(("Jailbreak %s", *((uint32_t *)0xE000ED94) == 0 ? "successful" : "failed"));
+#endif
   return mg_ota_flash_begin(new_firmware_size, &s_mg_flash_stm32h5);
 }
 
@@ -6862,6 +7590,10 @@ bool mg_ota_begin(size_t new_firmware_size) {
     // Using only the 1st bank (mapped to CM7)
     s_mg_flash_stm32h7.size /= 2;
   }
+#ifdef __ZEPHYR__
+  *((uint32_t *)0xE000ED94) = 0;
+  MG_DEBUG(("Jailbreak %s", *((uint32_t *)0xE000ED94) == 0 ? "successful" : "failed"));
+#endif
   return mg_ota_flash_begin(new_firmware_size, &s_mg_flash_stm32h7);
 }
 
@@ -7175,9 +7907,10 @@ void mg_queue_del(struct mg_queue *q, size_t len) {
 
 
 
+
 void mg_rpc_add(struct mg_rpc **head, struct mg_str method,
                 void (*fn)(struct mg_rpc_req *), void *fn_data) {
-  struct mg_rpc *rpc = (struct mg_rpc *) calloc(1, sizeof(*rpc));
+  struct mg_rpc *rpc = (struct mg_rpc *) mg_calloc(1, sizeof(*rpc));
   if (rpc != NULL) {
     rpc->method = mg_strdup(method);
     rpc->fn = fn;
@@ -7191,8 +7924,8 @@ void mg_rpc_del(struct mg_rpc **head, void (*fn)(struct mg_rpc_req *)) {
   while ((r = *head) != NULL) {
     if (r->fn == fn || fn == NULL) {
       *head = r->next;
-      free((void *) r->method.buf);
-      free(r);
+      mg_free((void *) r->method.buf);
+      mg_free(r);
     } else {
       head = &(*head)->next;
     }
@@ -7666,15 +8399,11 @@ void mg_hmac_sha256(uint8_t dst[32], uint8_t *key, size_t keysz, uint8_t *data,
   mg_sha256_final(dst, &ctx);
 }
 
-//=====================================
-// TODO: rename macros
-#define ROTR64(x, n) (((x) >> (n)) | ((x) << (64 - (n))))
-#define CH(x, y, z) (((x) & (y)) ^ (~(x) & (z)))
-#define MAJ(x, y, z) (((x) & (y)) ^ ((x) & (z)) ^ ((y) & (z)))
-#define EP0(x) (ROTR64(x, 28) ^ ROTR64(x, 34) ^ ROTR64(x, 39))
-#define EP1(x) (ROTR64(x, 14) ^ ROTR64(x, 18) ^ ROTR64(x, 41))
-#define SIG0(x) (ROTR64(x, 1) ^ ROTR64(x, 8) ^ ((x) >> 7))
-#define SIG1(x) (ROTR64(x, 19) ^ ROTR64(x, 61) ^ ((x) >> 6))
+#define rotr64(x, n) (((x) >> (n)) | ((x) << (64 - (n))))
+#define ep064(x) (rotr64(x, 28) ^ rotr64(x, 34) ^ rotr64(x, 39))
+#define ep164(x) (rotr64(x, 14) ^ rotr64(x, 18) ^ rotr64(x, 41))
+#define sig064(x) (rotr64(x, 1) ^ rotr64(x, 8) ^ ((x) >> 7))
+#define sig164(x) (rotr64(x, 19) ^ rotr64(x, 61) ^ ((x) >> 6))
 
 static const uint64_t mg_sha256_k2[80] = {
     0x428a2f98d728ae22, 0x7137449123ef65cd, 0xb5c0fbcfec4d3b2f,
@@ -7716,7 +8445,7 @@ static void mg_sha384_transform(mg_sha384_ctx *ctx, const uint8_t data[]) {
            ((uint64_t) data[j + 4] << 24) | ((uint64_t) data[j + 5] << 16) |
            ((uint64_t) data[j + 6] << 8) | ((uint64_t) data[j + 7]);
   for (; i < 80; ++i)
-    m[i] = SIG1(m[i - 2]) + m[i - 7] + SIG0(m[i - 15]) + m[i - 16];
+    m[i] = sig164(m[i - 2]) + m[i - 7] + sig064(m[i - 15]) + m[i - 16];
 
   a = ctx->state[0];
   b = ctx->state[1];
@@ -7728,8 +8457,8 @@ static void mg_sha384_transform(mg_sha384_ctx *ctx, const uint8_t data[]) {
   h = ctx->state[7];
 
   for (i = 0; i < 80; ++i) {
-    uint64_t t1 = h + EP1(e) + CH(e, f, g) + mg_sha256_k2[i] + m[i];
-    uint64_t t2 = EP0(a) + MAJ(a, b, c);
+    uint64_t t1 = h + ep164(e) + ch(e, f, g) + mg_sha256_k2[i] + m[i];
+    uint64_t t2 = ep064(a) + maj(a, b, c);
     h = g;
     g = f;
     f = e;
@@ -7917,14 +8646,9 @@ void mg_sntp_request(struct mg_connection *c) {
 }
 
 struct mg_connection *mg_sntp_connect(struct mg_mgr *mgr, const char *url,
-                                      mg_event_handler_t fn, void *fnd) {
-  struct mg_connection *c = NULL;
+                                      mg_event_handler_t fn, void *fn_data) {
   if (url == NULL) url = "udp://time.google.com:123";
-  if ((c = mg_connect(mgr, url, fn, fnd)) != NULL) {
-    c->pfn = sntp_cb;
-    sntp_cb(c, MG_EV_OPEN, (void *) url);
-  }
-  return c;
+  return mg_connect_svc(mgr, url, fn, fn_data, sntp_cb, NULL);
 }
 
 #ifdef MG_ENABLE_LINES
@@ -8060,7 +8784,7 @@ long mg_io_send(struct mg_connection *c, const void *buf, size_t len) {
   }
   MG_VERBOSE(("%lu %ld %d", c->id, n, MG_SOCK_ERR(n)));
   if (MG_SOCK_PENDING(n)) return MG_IO_WAIT;
-  if (MG_SOCK_RESET(n)) return MG_IO_RESET; // MbedTLS, see #1507
+  if (MG_SOCK_RESET(n)) return MG_IO_RESET;  // MbedTLS, see #1507
   if (n <= 0) return MG_IO_ERR;
   return n;
 }
@@ -8092,8 +8816,10 @@ static void mg_set_non_blocking_mode(MG_SOCKET_TYPE fd) {
   if (setsockopt(fd, 0, FREERTOS_SO_SNDTIMEO, &off, sizeof(off)) != 0) (void) 0;
 #elif MG_ENABLE_LWIP
   lwip_fcntl(fd, F_SETFL, O_NONBLOCK);
-#elif MG_ARCH == MG_ARCH_AZURERTOS
-  fcntl(fd, F_SETFL, O_NONBLOCK);
+#elif MG_ARCH == MG_ARCH_THREADX
+  // NetxDuo fails to send large blocks of data to the non-blocking sockets
+  (void) fd;
+  //fcntl(fd, F_SETFL, O_NONBLOCK);
 #elif MG_ARCH == MG_ARCH_TIRTOS
   int val = 0;
   setsockopt(fd, SOL_SOCKET, SO_BLOCKING, &val, sizeof(val));
@@ -8105,6 +8831,29 @@ static void mg_set_non_blocking_mode(MG_SOCKET_TYPE fd) {
 #else
   fcntl(fd, F_SETFL, fcntl(fd, F_GETFL, 0) | O_NONBLOCK);  // Non-blocking mode
   fcntl(fd, F_SETFD, FD_CLOEXEC);                          // Set close-on-exec
+#endif
+}
+
+void mg_multicast_add(struct mg_connection *c, char *ip);
+void mg_multicast_add(struct mg_connection *c, char *ip) {
+#if MG_ENABLE_RL
+#error UNSUPPORTED
+#elif MG_ENABLE_FREERTOS_TCP
+  // TODO(): prvAllowIPPacketIPv4()
+#else
+  // lwIP, Unix, Windows, Zephyr 4+(, AzureRTOS ?)
+#if MG_ENABLE_LWIP && !LWIP_IGMP
+  MG_ERROR(("LWIP_IGMP not defined, no multicast support"));
+#else
+#if defined(__ZEPHYR__) && ZEPHYR_VERSION_CODE < 0x40000
+  MG_ERROR(("struct ip_mreq not defined"));
+#else
+  struct ip_mreq mreq;
+  mreq.imr_multiaddr.s_addr = inet_addr(ip);
+  mreq.imr_interface.s_addr = mg_htonl(INADDR_ANY);
+  setsockopt(FD(c), IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *) &mreq, sizeof(mreq));
+#endif // !Zephyr
+#endif // !lwIP
 #endif
 }
 
@@ -8182,7 +8931,7 @@ static long recv_raw(struct mg_connection *c, void *buf, size_t len) {
   }
   MG_VERBOSE(("%lu %ld %d", c->id, n, MG_SOCK_ERR(n)));
   if (MG_SOCK_PENDING(n)) return MG_IO_WAIT;
-  if (MG_SOCK_RESET(n)) return MG_IO_RESET; // MbedTLS, see #1507
+  if (MG_SOCK_RESET(n)) return MG_IO_RESET;  // MbedTLS, see #1507
   if (n <= 0) return MG_IO_ERR;
   return n;
 }
@@ -8219,11 +8968,11 @@ static void read_conn(struct mg_connection *c) {
       }
       // there can still be > 16K from last iteration, always mg_tls_recv()
       m = c->is_tls_hs ? (long) MG_IO_WAIT : mg_tls_recv(c, buf, len);
-      if (n == MG_IO_ERR || n == MG_IO_RESET) { // Windows, see #3031
+      if (n == MG_IO_ERR || n == MG_IO_RESET) {  // Windows, see #3031
         if (c->rtls.len == 0 || m < 0) {
           // Close only when we have fully drained both rtls and TLS buffers
           c->is_closing = 1;  // or there's nothing we can do about it.
-          m = MG_IO_ERR;
+          if (m < 0) m = MG_IO_ERR; // but return last record data, see #3104
         } else { // see #2885
           // TLS buffer is capped to max record size, even though, there can
           // be more than one record, give TLS a chance to process them.
@@ -8274,13 +9023,14 @@ static void connect_conn(struct mg_connection *c) {
     mg_call(c, MG_EV_CONNECT, NULL);
     MG_EPOLL_MOD(c, 0);
     if (c->is_tls_hs) mg_tls_handshake(c);
+    if (!c->is_tls_hs) c->is_tls = 0; // user did not call mg_tls_init()
   } else {
     mg_error(c, "socket error");
   }
 }
 
 static void setsockopts(struct mg_connection *c) {
-#if MG_ENABLE_FREERTOS_TCP || MG_ARCH == MG_ARCH_AZURERTOS || \
+#if MG_ENABLE_FREERTOS_TCP || MG_ARCH == MG_ARCH_THREADX || \
     MG_ARCH == MG_ARCH_TIRTOS
   (void) c;
 #else
@@ -8326,6 +9076,7 @@ void mg_connect_resolved(struct mg_connection *c) {
     if (rc == 0) {                       // Success
       setlocaddr(FD(c), &c->loc);
       mg_call(c, MG_EV_CONNECT, NULL);  // Send MG_EV_CONNECT to the user
+      if (!c->is_tls_hs) c->is_tls = 0; // user did not call mg_tls_init()
     } else if (MG_SOCK_PENDING(rc)) {   // Need to wait for TCP handshake
       MG_DEBUG(("%lu %ld -> %M pend", c->id, c->fd, mg_print_ip_port, &c->rem));
       c->is_connecting = 1;
@@ -8351,8 +9102,8 @@ static void accept_conn(struct mg_mgr *mgr, struct mg_connection *lsn) {
   socklen_t sa_len = sizeof(usa);
   MG_SOCKET_TYPE fd = raccept(FD(lsn), &usa, &sa_len);
   if (fd == MG_INVALID_SOCKET) {
-#if MG_ARCH == MG_ARCH_AZURERTOS || defined(__ECOS)
-    // AzureRTOS, in non-block socket mode can mark listening socket readable
+#if MG_ARCH == MG_ARCH_THREADX || defined(__ECOS)
+    // NetxDuo, in non-block socket mode can mark listening socket readable
     // even it is not. See comment for 'select' func implementation in
     // nx_bsd.c That's not an error, just should try later
     if (errno != EAGAIN)
@@ -8381,10 +9132,12 @@ static void accept_conn(struct mg_mgr *mgr, struct mg_connection *lsn) {
     c->pfn_data = lsn->pfn_data;
     c->fn = lsn->fn;
     c->fn_data = lsn->fn_data;
+    c->is_tls = lsn->is_tls;
     MG_DEBUG(("%lu %ld accepted %M -> %M", c->id, c->fd, mg_print_ip_port,
               &c->rem, mg_print_ip_port, &c->loc));
     mg_call(c, MG_EV_OPEN, NULL);
     mg_call(c, MG_EV_ACCEPT, NULL);
+    if (!c->is_tls_hs) c->is_tls = 0; // user did not call mg_tls_init()
   }
 }
 
@@ -8490,7 +9243,7 @@ static void mg_iotest(struct mg_mgr *mgr, int ms) {
     }
   }
 #else
-  struct timeval tv = {ms / 1000, (ms % 1000) * 1000}, tv_zero = {0, 0}, *tvp;
+  struct timeval tv = {ms / 1000, (ms % 1000) * 1000}, tv_1ms = {0, 1000}, *tvp;
   struct mg_connection *c;
   fd_set rset, wset, eset;
   MG_SOCKET_TYPE maxfd = 0;
@@ -8506,16 +9259,16 @@ static void mg_iotest(struct mg_mgr *mgr, int ms) {
     FD_SET(FD(c), &eset);
     if (can_read(c)) FD_SET(FD(c), &rset);
     if (can_write(c)) FD_SET(FD(c), &wset);
-    if (c->rtls.len > 0 || mg_tls_pending(c) > 0) tvp = &tv_zero;
+    if (c->rtls.len > 0 || mg_tls_pending(c) > 0) tvp = &tv_1ms;
     if (FD(c) > maxfd) maxfd = FD(c);
-    if (c->is_closing) tvp = &tv_zero;
+    if (c->is_closing) tvp = &tv_1ms;
   }
 
-  if ((rc = select((int) maxfd + 1, &rset, &wset, &eset, tvp)) < 0) {
+  if ((rc = select((int) maxfd + 1, &rset, &wset, &eset, tvp)) <= 0) {
 #if MG_ARCH == MG_ARCH_WIN32
     if (maxfd == 0) Sleep(ms);  // On Windows, select fails if no sockets
 #else
-    MG_ERROR(("select: %d %d", rc, MG_SOCK_ERR(rc)));
+    if (rc < 0) MG_ERROR(("select: %d %d", rc, MG_SOCK_ERR(rc)));
 #endif
     FD_ZERO(&rset);
     FD_ZERO(&wset);
@@ -8524,7 +9277,12 @@ static void mg_iotest(struct mg_mgr *mgr, int ms) {
 
   for (c = mgr->conns; c != NULL; c = c->next) {
     if (FD(c) != MG_INVALID_SOCKET && FD_ISSET(FD(c), &eset)) {
+#if MG_ARCH == MG_ARCH_THREADX
+      // NetxDuo stack returns exceptions for listening connection after accept
+      if (c->is_listening == 0) mg_error(c, "socket error");
+#else
       mg_error(c, "socket error");
+#endif
     } else {
       c->is_readable = FD(c) != MG_INVALID_SOCKET && FD_ISSET(FD(c), &rset);
       c->is_writable = FD(c) != MG_INVALID_SOCKET && FD_ISSET(FD(c), &wset);
@@ -8647,11 +9405,10 @@ void mg_mgr_poll(struct mg_mgr *mgr, int ms) {
       if (c->is_readable) accept_conn(mgr, c);
     } else if (c->is_connecting) {
       if (c->is_readable || c->is_writable) connect_conn(c);
-      //} else if (c->is_tls_hs) {
-      //  if ((c->is_readable || c->is_writable)) mg_tls_handshake(c);
     } else {
       if (c->is_readable) read_conn(c);
       if (c->is_writable) write_conn(c);
+      if (c->is_tls && !c->is_tls_hs && c->send.len == 0) mg_tls_flush(c);
     }
 
     if (c->is_draining && c->send.len == 0) c->is_closing = 1;
@@ -8663,6 +9420,7 @@ void mg_mgr_poll(struct mg_mgr *mgr, int ms) {
 #ifdef MG_ENABLE_LINES
 #line 1 "src/ssi.c"
 #endif
+
 
 
 
@@ -8696,7 +9454,7 @@ static char *mg_ssi(const char *path, const char *root, int depth) {
           if (depth < MG_MAX_SSI_DEPTH &&
               (data = mg_ssi(tmp, root, depth + 1)) != NULL) {
             mg_iobuf_add(&b, b.len, data, strlen(data));
-            free(data);
+            mg_free(data);
           } else {
             MG_ERROR(("%s: file=%s error or too deep", path, arg));
           }
@@ -8706,7 +9464,7 @@ static char *mg_ssi(const char *path, const char *root, int depth) {
           if (depth < MG_MAX_SSI_DEPTH &&
               (data = mg_ssi(tmp, root, depth + 1)) != NULL) {
             mg_iobuf_add(&b, b.len, data, strlen(data));
-            free(data);
+            mg_free(data);
           } else {
             MG_ERROR(("%s: virtual=%s error or too deep", path, arg));
           }
@@ -8752,7 +9510,7 @@ void mg_http_serve_ssi(struct mg_connection *c, const char *root,
   const char *headers = "Content-Type: text/html; charset=utf-8\r\n";
   char *data = mg_ssi(fullpath, root, 0);
   mg_http_reply(c, 200, headers, "%s", data == NULL ? "" : data);
-  free(data);
+  mg_free(data);
 }
 #else
 void mg_http_serve_ssi(struct mg_connection *c, const char *root,
@@ -8765,6 +9523,7 @@ void mg_http_serve_ssi(struct mg_connection *c, const char *root,
 #ifdef MG_ENABLE_LINES
 #line 1 "src/str.c"
 #endif
+
 
 
 struct mg_str mg_str_s(const char *s) {
@@ -8793,7 +9552,7 @@ int mg_casecmp(const char *s1, const char *s2) {
 struct mg_str mg_strdup(const struct mg_str s) {
   struct mg_str r = {NULL, 0};
   if (s.len > 0 && s.buf != NULL) {
-    char *sc = (char *) calloc(1, s.len + 1);
+    char *sc = (char *) mg_calloc(1, s.len + 1);
     if (sc != NULL) {
       memcpy(sc, s.buf, s.len);
       sc[s.len] = '\0';
@@ -8955,11 +9714,10 @@ bool mg_str_to_num(struct mg_str str, int base, void *val, size_t val_len) {
 
 
 
-#define MG_TIMER_CALLED 4
 
 void mg_timer_init(struct mg_timer **head, struct mg_timer *t, uint64_t ms,
                    unsigned flags, void (*fn)(void *), void *arg) {
-  t->id = 0, t->period_ms = ms, t->expire = 0;
+  t->period_ms = ms, t->expire = 0;
   t->flags = flags, t->fn = fn, t->arg = arg, t->next = *head;
   *head = t;
 }
@@ -8990,6 +9748,12 @@ void mg_timer_poll(struct mg_timer **head, uint64_t now_ms) {
       t->fn(t->arg);
     }
     t->flags |= MG_TIMER_CALLED;
+
+    // If this timer is not repeating and marked AUTODELETE, remove it
+    if (!(t->flags & MG_TIMER_REPEAT) && (t->flags & MG_TIMER_AUTODELETE)) {
+      mg_timer_free(head, t);
+      mg_free(t);
+    }
   }
 }
 
@@ -9018,6 +9782,9 @@ void mg_timer_poll(struct mg_timer **head, uint64_t now_ms) {
  *
  *******************************************************************************/
 
+
+
+#if MG_TLS == MG_TLS_BUILTIN
 /******************************************************************************/
 #define AES_DECRYPTION 1  // whether AES decryption is supported
 /******************************************************************************/
@@ -9027,9 +9794,6 @@ void mg_timer_poll(struct mg_timer **head, uint64_t now_ms) {
 
 
 
-
-
-#if MG_TLS == MG_TLS_BUILTIN
 /******************************************************************************
  *  AES_INIT_KEYGEN_TABLES : MUST be called once before any AES use
  ******************************************************************************/
@@ -9185,9 +9949,6 @@ static void gcm_zero_ctx(gcm_context *ctx);
  * REGARDING ITS FITNESS FOR ANY PARTICULAR PURPOSE. USE IT AT YOUR OWN RISK.
  *
  *******************************************************************************/
-
-
-
 
 static int aes_tables_inited = 0;  // run-once flag for performing key
                                    // expasion table generation (see below)
@@ -10142,8 +10903,6 @@ int mg_aes_gcm_decrypt(unsigned char *output, const unsigned char *input,
 
 #if MG_TLS == MG_TLS_BUILTIN
 
-#define CHACHA20 1
-
 /* TLS 1.3 Record Content Type (RFC8446 B.1) */
 #define MG_TLS_CHANGE_CIPHER 20
 #define MG_TLS_ALERT 21
@@ -10164,17 +10923,17 @@ int mg_aes_gcm_decrypt(unsigned char *output, const unsigned char *input,
 // refer to RFC8446#A.1
 enum mg_tls_hs_state {
   // Client state machine:
-  MG_TLS_STATE_CLIENT_START,          // Send ClientHello
-  MG_TLS_STATE_CLIENT_WAIT_SH,        // Wait for ServerHello
-  MG_TLS_STATE_CLIENT_WAIT_EE,        // Wait for EncryptedExtensions
-  MG_TLS_STATE_CLIENT_WAIT_CERT,      // Wait for Certificate
-  MG_TLS_STATE_CLIENT_WAIT_CV,        // Wait for CertificateVerify
-  MG_TLS_STATE_CLIENT_WAIT_FINISHED,  // Wait for Finished
-  MG_TLS_STATE_CLIENT_CONNECTED,      // Done
+  MG_TLS_STATE_CLIENT_START,        // Send ClientHello
+  MG_TLS_STATE_CLIENT_WAIT_SH,      // Wait for ServerHello
+  MG_TLS_STATE_CLIENT_WAIT_EE,      // Wait for EncryptedExtensions
+  MG_TLS_STATE_CLIENT_WAIT_CERT,    // Wait for Certificate
+  MG_TLS_STATE_CLIENT_WAIT_CV,      // Wait for CertificateVerify
+  MG_TLS_STATE_CLIENT_WAIT_FINISH,  // Wait for Finish
+  MG_TLS_STATE_CLIENT_CONNECTED,    // Done
 
   // Server state machine:
   MG_TLS_STATE_SERVER_START,       // Wait for ClientHello
-  MG_TLS_STATE_SERVER_NEGOTIATED,  // Wait for Finished
+  MG_TLS_STATE_SERVER_NEGOTIATED,  // Wait for Finish
   MG_TLS_STATE_SERVER_CONNECTED    // Done
 };
 
@@ -10280,10 +11039,10 @@ static int mg_der_parse(uint8_t *der, size_t dersz, struct mg_der_tlv *tlv) {
   if (dersz < 2) return -1;  // Invalid DER
   tlv->type = der[0];
   if (len > 0x7F) {  // long-form length
-    uint8_t len_bytes = len & 0x7F;
+    uint8_t len_bytes = len & 0x7F, i;
     if (dersz < (size_t) (2 + len_bytes)) return -1;
     len = 0;
-    for (uint8_t i = 0; i < len_bytes; i++) {
+    for (i = 0; i < len_bytes; i++) {
       len = (len << 8) | der[2 + i];
     }
     header_len += len_bytes;
@@ -10295,8 +11054,9 @@ static int mg_der_parse(uint8_t *der, size_t dersz, struct mg_der_tlv *tlv) {
 }
 
 static int mg_der_next(struct mg_der_tlv *parent, struct mg_der_tlv *child) {
+  int consumed;
   if (parent->len == 0) return 0;
-  int consumed = mg_der_parse(parent->value, parent->len, child);
+  consumed = mg_der_parse(parent->value, parent->len, child);
   if (consumed < 0) return -1;
   parent->value += consumed;
   parent->len -= (uint32_t) consumed;
@@ -10418,7 +11178,7 @@ static void mg_tls_generate_handshake_keys(struct mg_connection *c) {
   uint8_t hello_hash[32];
   uint8_t server_hs_secret[32];
   uint8_t client_hs_secret[32];
-#if CHACHA20
+#if MG_ENABLE_CHACHA20
   const size_t keysz = 32;
 #else
   const size_t keysz = 16;
@@ -10482,7 +11242,7 @@ static void mg_tls_generate_application_keys(struct mg_connection *c) {
   uint8_t master_secret[32];
   uint8_t server_secret[32];
   uint8_t client_secret[32];
-#if CHACHA20
+#if MG_ENABLE_CHACHA20
   const size_t keysz = 32;
 #else
   const size_t keysz = 16;
@@ -10546,7 +11306,8 @@ static void mg_tls_encrypt(struct mg_connection *c, const uint8_t *msg,
   uint8_t *iv =
       c->is_client ? tls->enc.client_write_iv : tls->enc.server_write_iv;
 
-#if !CHACHA20
+#if MG_ENABLE_CHACHA20
+#else
   mg_gcm_initialize();
 #endif
 
@@ -10562,11 +11323,11 @@ static void mg_tls_encrypt(struct mg_connection *c, const uint8_t *msg,
   tag = wio->buf + wio->len + msgsz + 1;
   memmove(outmsg, msg, msgsz);
   outmsg[msgsz] = msgtype;
-#if CHACHA20
+#if MG_ENABLE_CHACHA20
   (void) tag;  // tag is only used in aes gcm
   {
     size_t maxlen = MG_IO_SIZE > 16384 ? 16384 : MG_IO_SIZE;
-    uint8_t *enc = (uint8_t *) calloc(1, maxlen + 256 + 1);
+    uint8_t *enc = (uint8_t *) mg_calloc(1, maxlen + 256 + 1);
     if (enc == NULL) {
       mg_error(c, "TLS OOM");
       return;
@@ -10575,7 +11336,7 @@ static void mg_tls_encrypt(struct mg_connection *c, const uint8_t *msg,
                                               sizeof(associated_data), outmsg,
                                               msgsz + 1);
       memmove(outmsg, enc, n);
-      free(enc);
+      mg_free(enc);
     }
   }
 #else
@@ -10634,9 +11395,9 @@ static int mg_tls_recv_record(struct mg_connection *c) {
   nonce[9] ^= (uint8_t) ((seq >> 16) & 255U);
   nonce[10] ^= (uint8_t) ((seq >> 8) & 255U);
   nonce[11] ^= (uint8_t) ((seq) & 255U);
-#if CHACHA20
+#if MG_ENABLE_CHACHA20
   {
-    uint8_t *dec = (uint8_t *) calloc(1, msgsz);
+    uint8_t *dec = (uint8_t *) mg_calloc(1, msgsz);
     size_t n;
     if (dec == NULL) {
       mg_error(c, "TLS OOM");
@@ -10644,7 +11405,7 @@ static int mg_tls_recv_record(struct mg_connection *c) {
     }
     n = mg_chacha20_poly1305_decrypt(dec, key, nonce, msg, msgsz);
     memmove(msg, dec, n);
-    free(dec);
+    mg_free(dec);
   }
 #else
   mg_gcm_initialize();
@@ -10700,7 +11461,9 @@ static int mg_tls_server_recv_hello(struct mg_connection *c) {
     mg_error(c, "not a client hello packet");
     return -1;
   }
+  if (rio->len < 50) goto fail;
   msgsz = MG_LOAD_BE16(rio->buf + 3);
+  if (((uint32_t) msgsz + 4) > rio->len) goto fail;
   mg_sha256_update(&tls->sha256, rio->buf + 5, msgsz);
   // store client random
   memmove(tls->random, rio->buf + 11, sizeof(tls->random));
@@ -10712,27 +11475,29 @@ static int mg_tls_server_recv_hello(struct mg_connection *c) {
     MG_INFO(("bad session id len"));
   }
   cipher_suites_len = MG_LOAD_BE16(rio->buf + 44 + session_id_len);
-  if (cipher_suites_len > (rio->len - 46 - session_id_len)) goto fail;
+  if (((uint32_t) cipher_suites_len + 46 + session_id_len) > rio->len)
+    goto fail;
   ext_len = MG_LOAD_BE16(rio->buf + 48 + session_id_len + cipher_suites_len);
   ext = rio->buf + 50 + session_id_len + cipher_suites_len;
-  if (ext_len > (rio->len - 50 - session_id_len - cipher_suites_len)) goto fail;
+  if (((unsigned char *) ext + ext_len) > (rio->buf + rio->len)) goto fail;
   for (j = 0; j < ext_len;) {
     uint16_t k;
     uint16_t key_exchange_len;
     uint8_t *key_exchange;
     uint16_t n = MG_LOAD_BE16(ext + j + 2);
+    if (((uint32_t) n + j + 4) > ext_len) goto fail;
     if (MG_LOAD_BE16(ext + j) != 0x0033) {  // not a key share extension, ignore
       j += (uint16_t) (n + 4);
       continue;
     }
     key_exchange_len = MG_LOAD_BE16(ext + j + 4);
     key_exchange = ext + j + 6;
-    if (key_exchange_len >
-        rio->len - (uint16_t) ((size_t) key_exchange - (size_t) rio->buf))
+    if (((size_t) key_exchange_len +
+         ((size_t) key_exchange - (size_t) rio->buf)) > rio->len)
       goto fail;
     for (k = 0; k < key_exchange_len;) {
       uint16_t m = MG_LOAD_BE16(key_exchange + k + 2);
-      if (m > (key_exchange_len - k - 4)) goto fail;
+      if (((uint32_t) m + k + 4) > key_exchange_len) goto fail;
       if (m == 32 && key_exchange[k] == 0x00 && key_exchange[k + 1] == 0x1d) {
         memmove(tls->x25519_cli, key_exchange + k + 4, m);
         mg_tls_drop_record(c);
@@ -10764,7 +11529,7 @@ static void mg_tls_server_send_hello(struct mg_connection *c) {
       PLACEHOLDER_32B,
       // session ID length + session ID (32 bytes)
       0x20, PLACEHOLDER_32B,
-#if defined(CHACHA20) && CHACHA20
+#if MG_ENABLE_CHACHA20
       // TLS_CHACHA20_POLY1305_SHA256 + no compression
       0x13, 0x03, 0x00,
 #else
@@ -10814,7 +11579,7 @@ static void mg_tls_server_send_cert(struct mg_connection *c) {
   int send_ca = !c->is_client && tls->ca_der.len > 0;
   // server DER certificate + CA (optional)
   size_t n = tls->cert_der.len + (send_ca ? tls->ca_der.len + 5 : 0);
-  uint8_t *cert = (uint8_t *) calloc(1, 13 + n);
+  uint8_t *cert = (uint8_t *) mg_calloc(1, 13 + n);
   if (cert == NULL) {
     mg_error(c, "tls cert oom");
     return;
@@ -10837,7 +11602,7 @@ static void mg_tls_server_send_cert(struct mg_connection *c) {
   }
   mg_sha256_update(&tls->sha256, cert, 13 + n);
   mg_tls_encrypt(c, cert, 13 + n, MG_TLS_HANDSHAKE);
-  free(cert);
+  mg_free(cert);
 }
 
 // type adapter between uECC hash context and our sha256 implementation
@@ -10901,7 +11666,6 @@ static void mg_tls_send_cert_verify(struct mg_connection *c, int is_client) {
 
 static void mg_tls_server_send_finish(struct mg_connection *c) {
   struct tls_data *tls = (struct tls_data *) c->tls;
-  struct mg_iobuf *wio = &tls->send;
   mg_sha256_ctx sha256;
   uint8_t hash[32];
   uint8_t finish[36] = {0x14, 0, 0, 32};
@@ -10909,9 +11673,6 @@ static void mg_tls_server_send_finish(struct mg_connection *c) {
   mg_sha256_final(hash, &sha256);
   mg_hmac_sha256(finish + 4, tls->enc.server_finished_key, 32, hash, 32);
   mg_tls_encrypt(c, finish, sizeof(finish), MG_TLS_HANDSHAKE);
-  mg_io_send(c, wio->buf, wio->len);
-  wio->len = 0;
-
   mg_sha256_update(&tls->sha256, finish, sizeof(finish));
 }
 
@@ -10967,7 +11728,7 @@ static void mg_tls_client_send_hello(struct mg_connection *c) {
       // session ID length + session ID (32 bytes)
       0x20, PLACEHOLDER_32B, 0x00,
       0x02,  // size = 2 bytes
-#if defined(CHACHA20) && CHACHA20
+#if MG_ENABLE_CHACHA20
       // TLS_CHACHA20_POLY1305_SHA256
       0x13, 0x03,
 #else
@@ -11036,8 +11797,6 @@ static void mg_tls_client_send_hello(struct mg_connection *c) {
 
   // change cipher message
   mg_iobuf_add(wio, wio->len, (const char *) "\x14\x03\x03\x00\x01\x01", 6);
-  mg_io_send(c, wio->buf, wio->len);
-  wio->len = 0;
 }
 
 static int mg_tls_client_recv_hello(struct mg_connection *c) {
@@ -11121,6 +11880,7 @@ struct mg_tls_cert {
   int is_ec_pubkey;
   struct mg_str sn;
   struct mg_str pubkey;
+  struct mg_der_tlv subj;
   struct mg_str sig;    // signature
   uint8_t tbshash[48];  // 32b for sha256/secp256, 48b for sha384/secp384
   size_t tbshashsz;     // actual TBS hash size
@@ -11177,22 +11937,25 @@ static int mg_tls_parse_cert_der(void *buf, size_t dersz,
 
   MG_VERBOSE(("sig algo (oid): %M", mg_print_hex, algo.len, algo.value));
   // Signature algorithm OID mapping
-  if (memcmp(algo.value, "\x2A\x86\x48\xCE\x3D\x04\x03\x02", algo.len) == 0) {
+  if (algo.len == 8 &&
+      memcmp(algo.value, "\x2A\x86\x48\xCE\x3D\x04\x03\x02", 8) == 0) {
     MG_VERBOSE(("sig algo: ECDSA with SHA256"));
     mg_sha256(cert->tbshash, tbs, tbssz);
     cert->tbshashsz = 32;
-  } else if (memcmp(algo.value, "\x2A\x86\x48\x86\xF7\x0D\x01\x01\x0B",
-                    algo.len) == 0) {
+  } else if (algo.len == 9 &&
+             memcmp(algo.value, "\x2A\x86\x48\x86\xF7\x0D\x01\x01\x0B", 9) ==
+                 0) {
     MG_VERBOSE(("sig algo: RSA with SHA256"));
     mg_sha256(cert->tbshash, tbs, tbssz);
     cert->tbshashsz = 32;
-  } else if (memcmp(algo.value, "\x2A\x86\x48\xCE\x3D\x04\x03\x03", algo.len) ==
-             0) {
+  } else if (algo.len == 8 &&
+             memcmp(algo.value, "\x2A\x86\x48\xCE\x3D\x04\x03\x03", 8) == 0) {
     MG_VERBOSE(("sig algo: ECDSA with SHA384"));
     mg_sha384(cert->tbshash, tbs, tbssz);
     cert->tbshashsz = 48;
-  } else if (memcmp(algo.value, "\x2A\x86\x48\x86\xF7\x0D\x01\x01\x0C",
-                    algo.len) == 0) {
+  } else if (algo.len == 9 &&
+             memcmp(algo.value, "\x2A\x86\x48\x86\xF7\x0D\x01\x01\x0C", 9) ==
+                 0) {
     MG_VERBOSE(("sig algo: RSA with SHA384"));
     mg_sha384(cert->tbshash, tbs, tbssz);
     cert->tbshashsz = 48;
@@ -11213,7 +11976,7 @@ static int mg_tls_parse_cert_der(void *buf, size_t dersz,
     struct mg_der_tlv before, after;
     mg_der_next(&field, &before);
     mg_der_next(&field, &after);
-    if (memcmp(after.value, "250101000000Z", after.len) < 0) {
+    if (after.len == 13 && memcmp(after.value, "250101000000Z", 13) < 0) {
       MG_ERROR(("invalid validity dates: before=%M after=%M", mg_print_hex,
                 before.len, before.value, mg_print_hex, after.len,
                 after.value));
@@ -11223,6 +11986,7 @@ static int mg_tls_parse_cert_der(void *buf, size_t dersz,
 
   // subject
   if (mg_der_next(&tbs_cert, &field) <= 0 || field.type != 0x30) return -1;
+  cert->subj = field;
   mg_der_debug_cert_name("subject", &field);
 
   // subject public key info
@@ -11233,20 +11997,22 @@ static int mg_tls_parse_cert_der(void *buf, size_t dersz,
 
   // public key algorithm
   MG_VERBOSE(("pk algo (oid): %M", mg_print_hex, pki_algo.len, pki_algo.value));
-  if (memcmp(pki_algo.value, "\x2A\x86\x48\xCE\x3D\x03\x01\x07",
-             pki_algo.len) == 0) {
+  if (pki_algo.len == 8 &&
+      memcmp(pki_algo.value, "\x2A\x86\x48\xCE\x3D\x03\x01\x07", 8) == 0) {
     cert->is_ec_pubkey = 1;
     MG_VERBOSE(("pk algo: ECDSA secp256r1"));
-  } else if (memcmp(pki_algo.value, "\x2A\x86\x48\xCE\x3D\x03\x01\x08",
-                    pki_algo.len) == 0) {
+  } else if (pki_algo.len == 8 &&
+             memcmp(pki_algo.value, "\x2A\x86\x48\xCE\x3D\x03\x01\x08", 8) ==
+                 0) {
     cert->is_ec_pubkey = 1;
     MG_VERBOSE(("pk algo: ECDSA secp384r1"));
-  } else if (memcmp(pki_algo.value, "\x2A\x86\x48\xCE\x3D\x02\x01",
-                    pki_algo.len) == 0) {
+  } else if (pki_algo.len == 7 &&
+             memcmp(pki_algo.value, "\x2A\x86\x48\xCE\x3D\x02\x01", 7) == 0) {
     cert->is_ec_pubkey = 1;
     MG_VERBOSE(("pk algo: EC public key"));
-  } else if (memcmp(pki_algo.value, "\x2A\x86\x48\x86\xF7\x0D\x01\x01\x01",
-                    pki_algo.len) == 0) {
+  } else if (pki_algo.len == 9 &&
+             memcmp(pki_algo.value, "\x2A\x86\x48\x86\xF7\x0D\x01\x01\x01",
+                    9) == 0) {
     cert->is_ec_pubkey = 0;
     MG_VERBOSE(("pk algo: RSA"));
   } else {
@@ -11281,19 +12047,22 @@ static int mg_tls_parse_cert_der(void *buf, size_t dersz,
 static int mg_tls_verify_cert_san(const uint8_t *der, size_t dersz,
                                   const char *server_name) {
   struct mg_der_tlv root, field, name;
-  if (mg_der_parse((uint8_t *) der, dersz, &root) < 0 ||
-      mg_der_find_oid(&root, (uint8_t *) "\x55\x1d\x11", 3, &field) < 0) {
-    MG_ERROR(("failed to parse certificate to extract SAN"));
+  if (mg_der_parse((uint8_t *) der, dersz, &root) < 0) {
+    MG_ERROR(("failed to parse certificate"));
+    return -1;
+  }
+  if (mg_der_find_oid(&root, (uint8_t *) "\x55\x1d\x11", 3, &field) <= 0) {
+    MG_ERROR(("failed to extract SAN"));
     return -1;
   }
   if (mg_der_parse(field.value, field.len, &field) < 0) {
-    MG_ERROR(
-        ("certificate subject alternative names is not a constructed object"));
+    MG_ERROR(("SAN is not a constructed object"));
     return -1;
   }
   while (mg_der_next(&field, &name) > 0) {
-    if (mg_match(mg_str(server_name),
-                 mg_str_n((const char *) name.value, name.len), NULL)) {
+    MG_DEBUG(("Found SAN: %.*s", name.len, name.value));
+    if (mg_match(mg_str(server_name), mg_str_n((char *) name.value, name.len),
+                 NULL)) {
       // Found SAN that matches the host name
       return 1;
     }
@@ -11349,11 +12118,19 @@ static int mg_tls_verify_cert_signature(const struct mg_tls_cert *cert,
   }
 }
 
+static int mg_tls_verify_cert_cn(struct mg_der_tlv *subj, const char *host) {
+  struct mg_der_tlv v;
+  int matched = 0;
+  if (mg_der_find_oid(subj, (uint8_t *) "\x55\x04\x03", 3, &v) > 0) {
+    MG_DEBUG(("using CN: %.*s <-> %s", v.len, v.value, host));
+    matched = mg_match(mg_str(host), mg_str_n((char *) v.value, v.len), NULL);
+  }
+  return matched;
+}
+
 static int mg_tls_client_recv_cert(struct mg_connection *c) {
-  int subj_match = 0;
   struct tls_data *tls = (struct tls_data *) c->tls;
   unsigned char *recv_buf;
-  (void) subj_match;
 
   if (mg_tls_recv_record(c) < 0) {
     return -1;
@@ -11378,91 +12155,92 @@ static int mg_tls_client_recv_cert(struct mg_connection *c) {
     return -1;
   }
 
-  uint32_t full_cert_chain_len = MG_LOAD_BE24(recv_buf + 1);
-  uint32_t cert_chain_len = MG_LOAD_BE24(recv_buf + 5);
-  if (cert_chain_len != full_cert_chain_len - 4) {
-    MG_ERROR(("full chain length: %d, chain length: %d", full_cert_chain_len,
-              cert_chain_len));
-    mg_error(c, "certificate chain length mismatch");
-    return -1;
-  }
+  {
+    // Normally, there are 2-3 certs in a chain
+    struct mg_tls_cert certs[8];
+    int certnum = 0;
+    uint32_t full_cert_chain_len = MG_LOAD_BE24(recv_buf + 1);
+    uint32_t cert_chain_len = MG_LOAD_BE24(recv_buf + 5);
+    uint8_t *p = recv_buf + 8;
+    uint8_t *endp = recv_buf + cert_chain_len;
+    bool found_ca = false;
+    struct mg_tls_cert ca;
 
-  // Normally, there are 2-3 certs in a chain
-  struct mg_tls_cert certs[8];
-  int certnum = 0;
-  uint8_t *p = recv_buf + 8;
-  //uint8_t *endp = recv_buf + tls->recv_len;
-  uint8_t *endp = recv_buf + cert_chain_len;
-
-  int found_ca = 0;
-  struct mg_tls_cert ca;
-
-  memset(certs, 0, sizeof(certs));
-  memset(&ca, 0, sizeof(ca));
-
-  if (tls->ca_der.len > 0) {
-    if (mg_tls_parse_cert_der(tls->ca_der.buf, tls->ca_der.len, &ca) < 0) {
-      mg_error(c, "failed to parse CA certificate");
-      return -1;
-    }
-    MG_VERBOSE(("CA serial: %M", mg_print_hex, ca.sn.len, ca.sn.buf));
-  }
-
-  while (p < endp) {
-    struct mg_tls_cert *ci = &certs[certnum++];
-    uint32_t certsz = MG_LOAD_BE24(p);
-    uint8_t *cert = p + 3;
-    uint16_t certext = MG_LOAD_BE16(cert + certsz);
-    if (certext != 0) {
-      mg_error(c, "certificate extensions are not supported");
-      return -1;
-    }
-    p = cert + certsz + 2;
-
-    if (mg_tls_parse_cert_der(cert, certsz, ci) < 0) {
-      mg_error(c, "failed to parse certificate");
+    if (cert_chain_len != full_cert_chain_len - 4) {
+      MG_ERROR(("full chain length: %d, chain length: %d", full_cert_chain_len,
+                cert_chain_len));
+      mg_error(c, "certificate chain length mismatch");
       return -1;
     }
 
-    if (ci == certs) {
-      // First certificate in the chain is peer cert, check SAN and store
-      // public key for further CertVerify step
-      if (mg_tls_verify_cert_san(cert, certsz, tls->hostname) <= 0) {
-        mg_error(c, "failed to verify hostname");
+    memset(certs, 0, sizeof(certs));
+    memset(&ca, 0, sizeof(ca));
+
+    if (tls->ca_der.len > 0) {
+      if (mg_tls_parse_cert_der(tls->ca_der.buf, tls->ca_der.len, &ca) < 0) {
+        mg_error(c, "failed to parse CA certificate");
         return -1;
       }
-      memmove(tls->pubkey, ci->pubkey.buf, ci->pubkey.len);
-      tls->pubkeysz = ci->pubkey.len;
-    } else {
-      if (!mg_tls_verify_cert_signature(ci - 1, ci)) {
-        mg_error(c, "failed to verify certificate chain");
+      MG_VERBOSE(("CA serial: %M", mg_print_hex, ca.sn.len, ca.sn.buf));
+    }
+
+    while (p < endp) {
+      struct mg_tls_cert *ci = &certs[certnum++];
+      uint32_t certsz = MG_LOAD_BE24(p);
+      uint8_t *cert = p + 3;
+      uint16_t certext = MG_LOAD_BE16(cert + certsz);
+      if (certext != 0) {
+        mg_error(c, "certificate extensions are not supported");
+        return -1;
+      }
+      p = cert + certsz + 2;
+
+      if (mg_tls_parse_cert_der(cert, certsz, ci) < 0) {
+        mg_error(c, "failed to parse certificate");
+        return -1;
+      }
+
+      if (ci == certs) {
+        // First certificate in the chain is peer cert, check SAN and store
+        // public key for further CertVerify step
+        if (mg_tls_verify_cert_san(cert, certsz, tls->hostname) <= 0 &&
+            mg_tls_verify_cert_cn(&ci->subj, tls->hostname) <= 0) {
+          mg_error(c, "failed to verify hostname");
+          return -1;
+        }
+        memmove(tls->pubkey, ci->pubkey.buf, ci->pubkey.len);
+        tls->pubkeysz = ci->pubkey.len;
+      } else {
+        if (!mg_tls_verify_cert_signature(ci - 1, ci)) {
+          mg_error(c, "failed to verify certificate chain");
+          return -1;
+        }
+      }
+
+      if (ca.pubkey.len == ci->pubkey.len &&
+          memcmp(ca.pubkey.buf, ci->pubkey.buf, ca.pubkey.len) == 0) {
+        found_ca = true;
+        break;
+      }
+
+      if (certnum == sizeof(certs) / sizeof(certs[0]) - 1) {
+        mg_error(c, "too many certificates in the chain");
         return -1;
       }
     }
 
-    if (ca.pubkey.len == ci->pubkey.len &&
-        memcmp(ca.pubkey.buf, ci->pubkey.buf, ca.pubkey.len) == 0) {
-      found_ca = 1;
-      break;
-    }
-
-    if (certnum == sizeof(certs) / sizeof(certs[0]) - 1) {
-      mg_error(c, "too many certificates in the chain");
-      return -1;
-    }
-  }
-
-  if (!found_ca && tls->ca_der.len > 0) {
-    if (certnum < 1 ||
-        !mg_tls_verify_cert_signature(&certs[certnum - 1], &ca)) {
-      mg_error(c, "failed to verify CA");
-      return -1;
-    } else {
-      MG_VERBOSE(
-          ("CA was not in the chain, but verification with builtin CA passed"));
+    if (!found_ca && tls->ca_der.len > 0) {
+      if (certnum < 1 ||
+          !mg_tls_verify_cert_signature(&certs[certnum - 1], &ca)) {
+        mg_error(c, "failed to verify CA");
+        return -1;
+      } else {
+        MG_VERBOSE(
+            ("CA was not in the chain, but verification with builtin CA "
+             "passed"));
+      }
     }
   }
-
   mg_tls_drop_message(c);
   mg_tls_calc_cert_verify_hash(c, tls->sighash, 0);
   return 0;
@@ -11492,77 +12270,80 @@ static int mg_tls_client_recv_cert_verify(struct mg_connection *c) {
     return 0;
   }
 
-  uint16_t sigalg = MG_LOAD_BE16(recv_buf + 4);
-  uint16_t siglen = MG_LOAD_BE16(recv_buf + 6);
-  uint8_t *sigbuf = recv_buf + 8;
-  if (siglen > tls->recv_len - 8) {
-    mg_error(c, "invalid certverify signature length: %d, expected %d", siglen,
-             tls->recv_len - 8);
-    return -1;
-  }
-  MG_VERBOSE(("certificate verification, algo=%04x, siglen=%d", sigalg, siglen));
-
-  if (sigalg == 0x0804) {  // rsa_pss_rsae_sha256
-    uint8_t sig2[512];     // 2048 or 4096 bits
-    struct mg_der_tlv seq, modulus, exponent;
-
-    if (mg_der_parse(tls->pubkey, tls->pubkeysz, &seq) <= 0 ||
-        mg_der_next(&seq, &modulus) <= 0 || modulus.type != 2 ||
-        mg_der_next(&seq, &exponent) <= 0 || exponent.type != 2) {
-      mg_error(c, "invalid public key");
+  {
+    uint16_t sigalg = MG_LOAD_BE16(recv_buf + 4);
+    uint16_t siglen = MG_LOAD_BE16(recv_buf + 6);
+    uint8_t *sigbuf = recv_buf + 8;
+    if (siglen > tls->recv_len - 8) {
+      mg_error(c, "invalid certverify signature length: %d, expected %d",
+               siglen, tls->recv_len - 8);
       return -1;
     }
+    MG_VERBOSE(
+        ("certificate verification, algo=%04x, siglen=%d", sigalg, siglen));
 
-    mg_rsa_mod_pow(modulus.value, modulus.len, exponent.value, exponent.len,
-                   sigbuf, siglen, sig2, sizeof(sig2));
+    if (sigalg == 0x0804) {  // rsa_pss_rsae_sha256
+      uint8_t sig2[512];     // 2048 or 4096 bits
+      struct mg_der_tlv seq, modulus, exponent;
 
-    if (sig2[sizeof(sig2) - 1] != 0xbc) {
-      mg_error(c, "failed to verify RSA certificate (certverify)");
-      return -1;
-    }
-    MG_DEBUG(("certificate verification successful (RSA)"));
-  } else if (sigalg == 0x0403) {  // ecdsa_secp256r1_sha256
-    // Extract certificate signature and verify it using pubkey and sighash
-    uint8_t sig[64];
-    struct mg_der_tlv seq, r, s;
-    if (mg_der_to_tlv(sigbuf, siglen, &seq) < 0) {
-      mg_error(c, "verification message is not an ASN.1 DER sequence");
-      return -1;
-    }
-    if (mg_der_to_tlv(seq.value, seq.len, &r) < 0) {
-      mg_error(c, "missing first part of the signature");
-      return -1;
-    }
-    if (mg_der_to_tlv(r.value + r.len, seq.len - r.len, &s) < 0) {
-      mg_error(c, "missing second part of the signature");
-      return -1;
-    }
-    // Integers may be padded with zeroes
-    if (r.len > 32) r.value = r.value + (r.len - 32), r.len = 32;
-    if (s.len > 32) s.value = s.value + (s.len - 32), s.len = 32;
+      if (mg_der_parse(tls->pubkey, tls->pubkeysz, &seq) <= 0 ||
+          mg_der_next(&seq, &modulus) <= 0 || modulus.type != 2 ||
+          mg_der_next(&seq, &exponent) <= 0 || exponent.type != 2) {
+        mg_error(c, "invalid public key");
+        return -1;
+      }
 
-    memmove(sig, r.value, r.len);
-    memmove(sig + 32, s.value, s.len);
+      mg_rsa_mod_pow(modulus.value, modulus.len, exponent.value, exponent.len,
+                     sigbuf, siglen, sig2, sizeof(sig2));
 
-    if (mg_uecc_verify(tls->pubkey, tls->sighash, sizeof(tls->sighash), sig,
-                       mg_uecc_secp256r1()) != 1) {
-      mg_error(c, "failed to verify EC certificate (certverify)");
+      if (sig2[sizeof(sig2) - 1] != 0xbc) {
+        mg_error(c, "failed to verify RSA certificate (certverify)");
+        return -1;
+      }
+      MG_DEBUG(("certificate verification successful (RSA)"));
+    } else if (sigalg == 0x0403) {  // ecdsa_secp256r1_sha256
+      // Extract certificate signature and verify it using pubkey and sighash
+      uint8_t sig[64];
+      struct mg_der_tlv seq, r, s;
+      if (mg_der_to_tlv(sigbuf, siglen, &seq) < 0) {
+        mg_error(c, "verification message is not an ASN.1 DER sequence");
+        return -1;
+      }
+      if (mg_der_to_tlv(seq.value, seq.len, &r) < 0) {
+        mg_error(c, "missing first part of the signature");
+        return -1;
+      }
+      if (mg_der_to_tlv(r.value + r.len, seq.len - r.len, &s) < 0) {
+        mg_error(c, "missing second part of the signature");
+        return -1;
+      }
+      // Integers may be padded with zeroes
+      if (r.len > 32) r.value = r.value + (r.len - 32), r.len = 32;
+      if (s.len > 32) s.value = s.value + (s.len - 32), s.len = 32;
+
+      memmove(sig, r.value, r.len);
+      memmove(sig + 32, s.value, s.len);
+
+      if (mg_uecc_verify(tls->pubkey, tls->sighash, sizeof(tls->sighash), sig,
+                         mg_uecc_secp256r1()) != 1) {
+        mg_error(c, "failed to verify EC certificate (certverify)");
+        return -1;
+      }
+      MG_DEBUG(("certificate verification successful (EC)"));
+    } else {
+      // From
+      // https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml:
+      //   0805 = rsa_pss_rsae_sha384
+      //   0806 = rsa_pss_rsae_sha512
+      //   0807 = ed25519
+      //   0808 = ed448
+      //   0809 = rsa_pss_pss_sha256
+      //   080A = rsa_pss_pss_sha384
+      //   080B = rsa_pss_pss_sha512
+      MG_ERROR(("unsupported certverify signature scheme: %x of %d bytes",
+                sigalg, siglen));
       return -1;
     }
-    MG_DEBUG(("certificate verification successful (EC)"));
-  } else {
-    // From
-    // https://www.iana.org/assignments/tls-parameters/tls-parameters.xhtml:
-    //   0805 = rsa_pss_rsae_sha384
-    //   0806 = rsa_pss_rsae_sha512
-    //   0807 = ed25519
-    //   0808 = ed448
-    //   0809 = rsa_pss_pss_sha256
-    //   080A = rsa_pss_pss_sha384
-    //   080B = rsa_pss_pss_sha512
-    MG_ERROR(("unsupported certverify signature scheme: %x of %d bytes", sigalg,
-              siglen));
-    return -1;
   }
   mg_tls_drop_message(c);
   return 0;
@@ -11585,7 +12366,6 @@ static int mg_tls_client_recv_finish(struct mg_connection *c) {
 
 static void mg_tls_client_send_finish(struct mg_connection *c) {
   struct tls_data *tls = (struct tls_data *) c->tls;
-  struct mg_iobuf *wio = &tls->send;
   mg_sha256_ctx sha256;
   uint8_t hash[32];
   uint8_t finish[36] = {0x14, 0, 0, 32};
@@ -11593,8 +12373,6 @@ static void mg_tls_client_send_finish(struct mg_connection *c) {
   mg_sha256_final(hash, &sha256);
   mg_hmac_sha256(finish + 4, tls->enc.client_finished_key, 32, hash, 32);
   mg_tls_encrypt(c, finish, sizeof(finish), MG_TLS_HANDSHAKE);
-  mg_io_send(c, wio->buf, wio->len);
-  wio->len = 0;
 }
 
 static void mg_tls_client_handshake(struct mg_connection *c) {
@@ -11626,9 +12404,9 @@ static void mg_tls_client_handshake(struct mg_connection *c) {
       if (mg_tls_client_recv_cert_verify(c) < 0) {
         break;
       }
-      tls->state = MG_TLS_STATE_CLIENT_WAIT_FINISHED;
+      tls->state = MG_TLS_STATE_CLIENT_WAIT_FINISH;
       // Fallthrough
-    case MG_TLS_STATE_CLIENT_WAIT_FINISHED:
+    case MG_TLS_STATE_CLIENT_WAIT_FINISH:
       if (mg_tls_client_recv_finish(c) < 0) {
         break;
       }
@@ -11685,11 +12463,19 @@ static void mg_tls_server_handshake(struct mg_connection *c) {
 }
 
 void mg_tls_handshake(struct mg_connection *c) {
+  struct tls_data *tls = (struct tls_data *) c->tls;
+  long n;
   if (c->is_client) {
+    // will clear is_hs when sending last chunk
     mg_tls_client_handshake(c);
   } else {
     mg_tls_server_handshake(c);
   }
+  while (tls->send.len > 0 &&
+         (n = mg_io_send(c, tls->send.buf, tls->send.len)) > 0) {
+    mg_iobuf_del(&tls->send, 0, (size_t) n);
+  }  // if last chunk fails to be sent, it will be sent with first app data,
+     // otherwise, it needs to be flushed
 }
 
 static int mg_parse_pem(const struct mg_str pem, const struct mg_str label,
@@ -11705,7 +12491,7 @@ static int mg_parse_pem(const struct mg_str pem, const struct mg_str label,
   if (mg_strcmp(caps[1], label) != 0 || mg_strcmp(caps[3], label) != 0) {
     return -1;  // bad label
   }
-  if ((s = (char *) calloc(1, caps[2].len)) == NULL) {
+  if ((s = (char *) mg_calloc(1, caps[2].len)) == NULL) {
     return -1;
   }
 
@@ -11717,7 +12503,7 @@ static int mg_parse_pem(const struct mg_str pem, const struct mg_str label,
   }
   m = mg_base64_decode(s, n, s, n);
   if (m == 0) {
-    free(s);
+    mg_free(s);
     return -1;
   }
   der->buf = s;
@@ -11727,7 +12513,8 @@ static int mg_parse_pem(const struct mg_str pem, const struct mg_str label,
 
 void mg_tls_init(struct mg_connection *c, const struct mg_tls_opts *opts) {
   struct mg_str key;
-  struct tls_data *tls = (struct tls_data *) calloc(1, sizeof(struct tls_data));
+  struct tls_data *tls =
+      (struct tls_data *) mg_calloc(1, sizeof(struct tls_data));
   if (tls == NULL) {
     mg_error(c, "tls oom");
     return;
@@ -11792,7 +12579,7 @@ void mg_tls_init(struct mg_connection *c, const struct mg_tls_opts *opts) {
       MG_ERROR(("EC private key: ASN.1 bad data"));
     }
     memmove(tls->ec_key, key.buf + 7, 32);
-    free((void *) key.buf);
+    mg_free((void *) key.buf);
   } else if (mg_parse_pem(opts->key, mg_str_s("PRIVATE KEY"), &key) == 0) {
     mg_error(c, "PKCS8 private key format is not supported");
   } else {
@@ -11804,25 +12591,32 @@ void mg_tls_free(struct mg_connection *c) {
   struct tls_data *tls = (struct tls_data *) c->tls;
   if (tls != NULL) {
     mg_iobuf_free(&tls->send);
-    free((void *) tls->cert_der.buf);
-    free((void *) tls->ca_der.buf);
+    mg_free((void *) tls->cert_der.buf);
+    mg_free((void *) tls->ca_der.buf);
   }
-  free(c->tls);
+  mg_free(c->tls);
   c->tls = NULL;
 }
 
 long mg_tls_send(struct mg_connection *c, const void *buf, size_t len) {
   struct tls_data *tls = (struct tls_data *) c->tls;
   long n = MG_IO_WAIT;
-  if (len > MG_IO_SIZE) len = MG_IO_SIZE;
-  if (len > 16384) len = 16384;
-  mg_tls_encrypt(c, (const uint8_t *) buf, len, MG_TLS_APP_DATA);
+  bool was_throttled = c->is_tls_throttled;  // see #3074
+  if (!was_throttled) {                      // encrypt new data
+    if (len > MG_IO_SIZE) len = MG_IO_SIZE;
+    if (len > 16384) len = 16384;
+    mg_tls_encrypt(c, (const uint8_t *) buf, len, MG_TLS_APP_DATA);
+  }  // else, resend outstanding encrypted data in tls->send
   while (tls->send.len > 0 &&
          (n = mg_io_send(c, tls->send.buf, tls->send.len)) > 0) {
     mg_iobuf_del(&tls->send, 0, (size_t) n);
-  }
-  if (n == MG_IO_ERR || n == MG_IO_WAIT) return n;
-  return (long) len;
+  }  // if last chunk fails to be sent, it needs to be flushed
+  c->is_tls_throttled = (tls->send.len > 0 && n == MG_IO_WAIT);
+  MG_VERBOSE(("%lu %ld %ld %ld %c %c", c->id, (long) len, (long) tls->send.len,
+              n, was_throttled ? 'T' : 't', c->is_tls_throttled ? 'T' : 't'));
+  if (n == MG_IO_ERR) return MG_IO_ERR;
+  if (was_throttled) return MG_IO_WAIT;  // sent throttled data instead
+  return (long) len;  // return len even when throttled, already encripted that
 }
 
 long mg_tls_recv(struct mg_connection *c, void *buf, size_t len) {
@@ -11842,6 +12636,7 @@ long mg_tls_recv(struct mg_connection *c, void *buf, size_t len) {
     mg_tls_drop_record(c);
     return MG_IO_WAIT;
   }
+  if (buf == NULL || len == 0) return 0L;
   minlen = len < tls->recv_len ? len : tls->recv_len;
   memmove(buf, recv_buf, minlen);
   tls->recv_offset += minlen;
@@ -11855,6 +12650,15 @@ long mg_tls_recv(struct mg_connection *c, void *buf, size_t len) {
 size_t mg_tls_pending(struct mg_connection *c) {
   struct tls_data *tls = (struct tls_data *) c->tls;
   return tls != NULL ? tls->recv_len : 0;
+}
+
+void mg_tls_flush(struct mg_connection *c) {
+  struct tls_data *tls = (struct tls_data *) c->tls;
+  long n;
+  while (tls->send.len > 0 &&
+         (n = mg_io_send(c, tls->send.buf, tls->send.len)) > 0) {
+    mg_iobuf_del(&tls->send, 0, (size_t) n);
+  }
 }
 
 void mg_tls_ctx_init(struct mg_mgr *mgr) {
@@ -11891,8 +12695,8 @@ void mg_tls_ctx_free(struct mg_mgr *mgr) {
 
 #if defined(_MSC_VER) || defined(__cplusplus)
 // add restrict support
-#if (defined(_MSC_VER) && _MSC_VER >= 1900) || defined(__clang__) || \
-    defined(__GNUC__)
+#if ((defined(_MSC_VER) && _MSC_VER >= 1900) && !defined(__cplusplus)) || \
+    defined(__clang__) || defined(__GNUC__)
 #define restrict __restrict
 #else
 #define restrict
@@ -13239,6 +14043,9 @@ size_t mg_tls_pending(struct mg_connection *c) {
   (void) c;
   return 0;
 }
+void mg_tls_flush(struct mg_connection *c) {
+  (void) c;
+}
 void mg_tls_ctx_init(struct mg_mgr *mgr) {
   (void) mgr;
 }
@@ -13253,6 +14060,9 @@ void mg_tls_ctx_free(struct mg_mgr *mgr) {
 
 
 
+
+
+
 #if MG_TLS == MG_TLS_MBED
 
 #if defined(MBEDTLS_VERSION_NUMBER) && MBEDTLS_VERSION_NUMBER >= 0x03000000
@@ -13260,6 +14070,13 @@ void mg_tls_ctx_free(struct mg_mgr *mgr) {
 #else
 #define MG_MBEDTLS_RNG_GET
 #endif
+
+static int mg_tls_err(struct mg_connection *c, int rc) {
+  char s[80];
+  mbedtls_strerror(rc, s, sizeof(s));
+  MG_ERROR(("%lu %s", ((struct mg_connection *) c)->id, s));
+  return rc;
+}
 
 static int mg_mbed_rng(void *ctx, unsigned char *buf, size_t len) {
   mg_random(buf, len);
@@ -13301,7 +14118,7 @@ void mg_tls_free(struct mg_connection *c) {
 #ifdef MBEDTLS_SSL_SESSION_TICKETS
     mbedtls_ssl_ticket_free(&tls->ticket);
 #endif
-    free(tls);
+    mg_free(tls);
     c->tls = NULL;
   }
 }
@@ -13336,7 +14153,7 @@ void mg_tls_handshake(struct mg_connection *c) {
     MG_VERBOSE(("%lu pending, %d%d %d (-%#x)", c->id, c->is_connecting,
                 c->is_tls_hs, rc, -rc));
   } else {
-    mg_error(c, "TLS handshake: -%#x", -rc);  // Error
+    mg_error(c, "TLS handshake: -%#x", -mg_tls_err(c, rc));  // Error
   }
 }
 
@@ -13347,7 +14164,7 @@ static void debug_cb(void *c, int lev, const char *s, int n, const char *s2) {
 }
 
 void mg_tls_init(struct mg_connection *c, const struct mg_tls_opts *opts) {
-  struct mg_tls *tls = (struct mg_tls *) calloc(1, sizeof(*tls));
+  struct mg_tls *tls = (struct mg_tls *) mg_calloc(1, sizeof(*tls));
   int rc = 0;
   c->tls = tls;
   if (c->tls == NULL) {
@@ -13374,7 +14191,7 @@ void mg_tls_init(struct mg_connection *c, const struct mg_tls_opts *opts) {
            &tls->conf,
            c->is_client ? MBEDTLS_SSL_IS_CLIENT : MBEDTLS_SSL_IS_SERVER,
            MBEDTLS_SSL_TRANSPORT_STREAM, MBEDTLS_SSL_PRESET_DEFAULT)) != 0) {
-    mg_error(c, "tls defaults %#x", -rc);
+    mg_error(c, "tls defaults %#x", -mg_tls_err(c, rc));
     goto fail;
   }
   mbedtls_ssl_conf_rng(&tls->conf, mg_mbed_rng, c);
@@ -13390,7 +14207,7 @@ void mg_tls_init(struct mg_connection *c, const struct mg_tls_opts *opts) {
       char *host = mg_mprintf("%.*s", opts->name.len, opts->name.buf);
       mbedtls_ssl_set_hostname(&tls->ssl, host);
       MG_DEBUG(("%lu hostname verification: %s", c->id, host));
-      free(host);
+      mg_free(host);
     }
     mbedtls_ssl_conf_authmode(&tls->conf, MBEDTLS_SSL_VERIFY_REQUIRED);
   }
@@ -13398,7 +14215,7 @@ void mg_tls_init(struct mg_connection *c, const struct mg_tls_opts *opts) {
   if (!mg_load_key(opts->key, &tls->pk)) goto fail;
   if (tls->cert.version &&
       (rc = mbedtls_ssl_conf_own_cert(&tls->conf, &tls->cert, &tls->pk)) != 0) {
-    mg_error(c, "own cert %#x", -rc);
+    mg_error(c, "own cert %#x", -mg_tls_err(c, rc));
     goto fail;
   }
 
@@ -13409,7 +14226,7 @@ void mg_tls_init(struct mg_connection *c, const struct mg_tls_opts *opts) {
 #endif
 
   if ((rc = mbedtls_ssl_setup(&tls->ssl, &tls->conf)) != 0) {
-    mg_error(c, "setup err %#x", -rc);
+    mg_error(c, "setup err %#x", -mg_tls_err(c, rc));
     goto fail;
   }
   c->is_tls = 1;
@@ -13429,6 +14246,7 @@ size_t mg_tls_pending(struct mg_connection *c) {
 long mg_tls_recv(struct mg_connection *c, void *buf, size_t len) {
   struct mg_tls *tls = (struct mg_tls *) c->tls;
   long n = mbedtls_ssl_read(&tls->ssl, (unsigned char *) buf, len);
+  if (!c->is_tls_hs && buf == NULL && n == 0) return 0; // TODO(): MIP
   if (n == MBEDTLS_ERR_SSL_WANT_READ || n == MBEDTLS_ERR_SSL_WANT_WRITE)
     return MG_IO_WAIT;
 #if defined(MBEDTLS_ERR_SSL_RECEIVED_NEW_SESSION_TICKET)
@@ -13442,15 +14260,34 @@ long mg_tls_recv(struct mg_connection *c, void *buf, size_t len) {
 
 long mg_tls_send(struct mg_connection *c, const void *buf, size_t len) {
   struct mg_tls *tls = (struct mg_tls *) c->tls;
-  long n = mbedtls_ssl_write(&tls->ssl, (unsigned char *) buf, len);
-  if (n == MBEDTLS_ERR_SSL_WANT_READ || n == MBEDTLS_ERR_SSL_WANT_WRITE)
-    return MG_IO_WAIT;
+  long n;
+  bool was_throttled = c->is_tls_throttled;  // see #3074
+  n = was_throttled ? mbedtls_ssl_write(&tls->ssl, tls->throttled_buf,
+                                        tls->throttled_len) /* flush old data */
+                    : mbedtls_ssl_write(&tls->ssl, (unsigned char *) buf,
+                                        len);  // encrypt current data
+  c->is_tls_throttled =
+      (n == MBEDTLS_ERR_SSL_WANT_READ || n == MBEDTLS_ERR_SSL_WANT_WRITE);
+  if (was_throttled) return MG_IO_WAIT;  // flushed throttled data instead
+  if (c->is_tls_throttled) {
+    tls->throttled_buf = (unsigned char *)buf; // MbedTLS code actually ignores
+    tls->throttled_len = len; //  these, but let's play API rules
+    return (long) len;  // already encripted that when throttled
+  } // if last chunk fails to be sent, it needs to be flushed
   if (n <= 0) return MG_IO_ERR;
   return n;
 }
 
+void mg_tls_flush(struct mg_connection *c) {
+  struct mg_tls *tls = (struct mg_tls *) c->tls;
+  if (c->is_tls_throttled) {
+    long n = mbedtls_ssl_write(&tls->ssl, tls->throttled_buf, tls->throttled_len);
+    c->is_tls_throttled = (n == MBEDTLS_ERR_SSL_WANT_READ || n == MBEDTLS_ERR_SSL_WANT_WRITE);
+  }
+}
+
 void mg_tls_ctx_init(struct mg_mgr *mgr) {
-  struct mg_tls_ctx *ctx = (struct mg_tls_ctx *) calloc(1, sizeof(*ctx));
+  struct mg_tls_ctx *ctx = (struct mg_tls_ctx *) mg_calloc(1, sizeof(*ctx));
   if (ctx == NULL) {
     MG_ERROR(("TLS context init OOM"));
   } else {
@@ -13473,7 +14310,7 @@ void mg_tls_ctx_free(struct mg_mgr *mgr) {
 #ifdef MBEDTLS_SSL_SESSION_TICKETS
     mbedtls_ssl_ticket_free(&ctx->tickets);
 #endif
-    free(ctx);
+    mg_free(ctx);
     mgr->tls_ctx = NULL;
   }
 }
@@ -13482,6 +14319,7 @@ void mg_tls_ctx_free(struct mg_mgr *mgr) {
 #ifdef MG_ENABLE_LINES
 #line 1 "src/tls_openssl.c"
 #endif
+
 
 
 
@@ -13588,6 +14426,7 @@ static void ssl_keylog_cb(const SSL *ssl, const char *line) {
   fprintf(f, "%s\n", line);
   fflush(f);
   fclose(f);
+  (void) ssl;
 }
 #endif
 
@@ -13597,12 +14436,12 @@ void mg_tls_free(struct mg_connection *c) {
   SSL_free(tls->ssl);
   SSL_CTX_free(tls->ctx);
   BIO_meth_free(tls->bm);
-  free(tls);
+  mg_free(tls);
   c->tls = NULL;
 }
 
 void mg_tls_init(struct mg_connection *c, const struct mg_tls_opts *opts) {
-  struct mg_tls *tls = (struct mg_tls *) calloc(1, sizeof(*tls));
+  struct mg_tls *tls = (struct mg_tls *) mg_calloc(1, sizeof(*tls));
   const char *id = "mongoose";
   static unsigned char s_initialised = 0;
   BIO *bio = NULL;
@@ -13695,7 +14534,7 @@ void mg_tls_init(struct mg_connection *c, const struct mg_tls_opts *opts) {
     X509_VERIFY_PARAM_set1_host(SSL_get0_param(tls->ssl), s, 0);
 #endif
     SSL_set_tlsext_host_name(tls->ssl, s);
-    free(s);
+    mg_free(s);
   }
 #endif
 #if MG_TLS == MG_TLS_WOLFSSL
@@ -13740,6 +14579,7 @@ size_t mg_tls_pending(struct mg_connection *c) {
 long mg_tls_recv(struct mg_connection *c, void *buf, size_t len) {
   struct mg_tls *tls = (struct mg_tls *) c->tls;
   int n = SSL_read(tls->ssl, buf, (int) len);
+  if (!c->is_tls_hs && buf == NULL && n == 0) return 0; // TODO(): MIP
   if (n < 0 && mg_tls_err(c, tls, n) == 0) return MG_IO_WAIT;
   if (n <= 0) return MG_IO_ERR;
   return n;
@@ -13751,6 +14591,10 @@ long mg_tls_send(struct mg_connection *c, const void *buf, size_t len) {
   if (n < 0 && mg_tls_err(c, tls, n) == 0) return MG_IO_WAIT;
   if (n <= 0) return MG_IO_ERR;
   return n;
+}
+
+void mg_tls_flush(struct mg_connection *c) {
+  (void) c;
 }
 
 void mg_tls_ctx_init(struct mg_mgr *mgr) {
@@ -13767,7 +14611,9 @@ void mg_tls_ctx_free(struct mg_mgr *mgr) {
 #endif
 
 
-#if defined(MG_TLS) && MG_TLS == MG_TLS_BUILTIN
+
+
+#if MG_TLS == MG_TLS_BUILTIN
 
 #define NS_INTERNAL static
 typedef struct _bigint bigint; /**< An alias for _bigint */
@@ -13828,7 +14674,7 @@ typedef uint16_t comp;            /**< A single precision component. */
 typedef uint32_t long_comp;       /**< A double precision component. */
 typedef int32_t slong_comp;       /**< A signed double precision component. */
 #else                        /* regular 32 bit */
-#ifdef WIN32
+#ifdef _MSC_VER
 #define COMP_RADIX 4294967296i64
 #define COMP_MAX 0xFFFFFFFFFFFFFFFFui64
 #else
@@ -13924,10 +14770,10 @@ typedef struct _BI_CTX BI_CTX;
  */
 
 NS_INTERNAL BI_CTX *bi_initialize(void);
-//NS_INTERNAL void bi_terminate(BI_CTX *ctx);
+NS_INTERNAL void bi_terminate(BI_CTX *ctx);
 NS_INTERNAL void bi_permanent(bigint *bi);
 NS_INTERNAL void bi_depermanent(bigint *bi);
-//NS_INTERNAL void bi_clear_cache(BI_CTX *ctx);
+NS_INTERNAL void bi_clear_cache(BI_CTX *ctx);
 NS_INTERNAL void bi_free(BI_CTX *ctx, bigint *bi);
 NS_INTERNAL bigint *bi_copy(bigint *bi);
 NS_INTERNAL bigint *bi_clone(BI_CTX *ctx, const bigint *bi);
@@ -13949,7 +14795,7 @@ NS_INTERNAL bigint *bi_mod_power2(BI_CTX *ctx, bigint *bi,
 #endif
 NS_INTERNAL int bi_compare(bigint *bia, bigint *bib);
 NS_INTERNAL void bi_set_mod(BI_CTX *ctx, bigint *bim, int mod_offset);
-//NS_INTERNAL void bi_free_mod(BI_CTX *ctx, int mod_offset);
+NS_INTERNAL void bi_free_mod(BI_CTX *ctx, int mod_offset);
 
 #ifdef CONFIG_SSL_FULL_MODE
 NS_INTERNAL void bi_print(const char *label, bigint *bi);
@@ -14075,8 +14921,8 @@ static void check(const bigint *bi);
  * @return A bigint context.
  */
 NS_INTERNAL BI_CTX *bi_initialize(void) {
-  /* calloc() sets everything to zero */
-  BI_CTX *ctx = (BI_CTX *) calloc(1, sizeof(BI_CTX));
+  /* mg_calloc() sets everything to zero */
+  BI_CTX *ctx = (BI_CTX *) mg_calloc(1, sizeof(BI_CTX));
 
   /* the radix */
   ctx->bi_radix = alloc(ctx, 2);
@@ -14086,7 +14932,6 @@ NS_INTERNAL BI_CTX *bi_initialize(void) {
   return ctx;
 }
 
-#if 0
 /**
  * @brief Close the bigint context and free any resources.
  *
@@ -14106,7 +14951,7 @@ NS_INTERNAL void bi_terminate(BI_CTX *ctx) {
   }
 
   bi_clear_cache(ctx);
-  free(ctx);
+  mg_free(ctx);
 }
 
 /**
@@ -14119,14 +14964,13 @@ NS_INTERNAL void bi_clear_cache(BI_CTX *ctx) {
 
   for (p = ctx->free_list; p != NULL; p = pn) {
     pn = p->next;
-    free(p->comps);
-    free(p);
+    mg_free(p->comps);
+    mg_free(p);
   }
 
   ctx->free_count = 0;
   ctx->free_list = NULL;
 }
-#endif
 
 /**
  * @brief Increment the number of references to this object.
@@ -14696,7 +15540,6 @@ NS_INTERNAL void bi_set_mod(BI_CTX *ctx, bigint *bim, int mod_offset) {
 #endif
 }
 
-#if 0
 /**
  * @brief Used when cleaning various bigints at the end of a session.
  * @param ctx [in]  The bigint session context.
@@ -14718,7 +15561,6 @@ void bi_free_mod(BI_CTX *ctx, int mod_offset) {
   bi_depermanent(ctx->bi_normalised_mod[mod_offset]);
   bi_free(ctx, ctx->bi_normalised_mod[mod_offset]);
 }
-#endif
 
 /**
  * Perform a standard multiplication between two bigints.
@@ -14958,9 +15800,9 @@ NS_INTERNAL int bi_compare(bigint *bia, bigint *bib) {
 static void more_comps(bigint *bi, int n) {
   if (n > bi->max_comps) {
     int max = MAX(bi->max_comps * 2, n);
-    void *p = calloc(1, (size_t) max * COMP_BYTE_SIZE);
+    void *p = mg_calloc(1, (size_t) max * COMP_BYTE_SIZE);
     if (p != NULL && bi->size > 0) memcpy(p, bi->comps, (size_t) bi->max_comps * COMP_BYTE_SIZE);
-    free(bi->comps);
+    mg_free(bi->comps);
     bi->max_comps = (short) max;
     bi->comps = (comp *) p;
   }
@@ -14995,8 +15837,8 @@ static bigint *alloc(BI_CTX *ctx, int size) {
     more_comps(biR, size);
   } else {
     /* No free bigints available - create a new one. */
-    biR = (bigint *) calloc(1, sizeof(bigint));
-    biR->comps = (comp *) calloc(1, (size_t) size * COMP_BYTE_SIZE);
+    biR = (bigint *) mg_calloc(1, sizeof(bigint));
+    biR->comps = (comp *) mg_calloc(1, (size_t) size * COMP_BYTE_SIZE);
     biR->max_comps = (short) size; /* give some space to spare */
   }
 
@@ -15185,7 +16027,7 @@ static void precompute_slide_window(BI_CTX *ctx, int window, bigint *g1) {
     k <<= 1;
   }
 
-  ctx->g = (bigint **) calloc(1, k * sizeof(bigint *));
+  ctx->g = (bigint **) mg_calloc(1, k * sizeof(bigint *));
   ctx->g[0] = bi_clone(ctx, g1);
   bi_permanent(ctx->g[0]);
   g2 = bi_residue(ctx, bi_square(ctx, ctx->g[0])); /* g^2 */
@@ -15236,7 +16078,7 @@ NS_INTERNAL bigint *bi_mod_power(BI_CTX *ctx, bigint *bi, bigint *biexp) {
   /* work out the slide constants */
   precompute_slide_window(ctx, window_size, bi);
 #else /* just one constant */
-  ctx->g = (bigint **) calloc(1, sizeof(bigint *));
+  ctx->g = (bigint **) mg_calloc(1, sizeof(bigint *));
   ctx->g[0] = bi_clone(ctx, bi);
   ctx->window = 1;
   bi_permanent(ctx->g[0]);
@@ -15279,7 +16121,7 @@ NS_INTERNAL bigint *bi_mod_power(BI_CTX *ctx, bigint *bi, bigint *biexp) {
     bi_free(ctx, ctx->g[i]);
   }
 
-  free(ctx->g);
+  mg_free(ctx->g);
   bi_free(ctx, bi);
   bi_free(ctx, biexp);
 #if defined CONFIG_BIGINT_MONTGOMERY
@@ -15328,18 +16170,32 @@ NS_INTERNAL bigint *bi_crt(BI_CTX *ctx, bigint *bi, bigint *dP, bigint *dQ,
 }
 #endif
 
+
+// Proper lib usage:
+// - BI_CTX *c = bi_initialize()
+// - allocate bigints (e.g.: calling bi_import(), int_to_bi(), ...)
+// - function calls, allocate bigints, etc.
+// - bigint *n = bi_import(c, indata, insize)
+//   - bi_set_mod(c, n, x)
+//   - mod function calls
+//   - bigint *nn = bi_mod_pwr(c, m, e) <-- frees m, e
+//   - bi_free_mod(c, x)                <-- frees n
+// - bi_export(c, nn, outdata, outsize) <-- frees nn
+// - function calls
+// - free bigints calling bi_free()
+// - bi_terminate(c)                    <-- frees c
+
 int mg_rsa_mod_pow(const uint8_t *mod, size_t modsz, const uint8_t *exp, size_t expsz, const uint8_t *msg, size_t msgsz, uint8_t *out, size_t outsz) {
 	BI_CTX *bi_ctx = bi_initialize();
+	bigint *m1;
 	bigint *n = bi_import(bi_ctx, mod, (int) modsz);
 	bigint *e = bi_import(bi_ctx, exp, (int) expsz);
 	bigint *h = bi_import(bi_ctx, msg, (int) msgsz);
 	bi_set_mod(bi_ctx, n, 0);
-	bigint *m1 = bi_mod_power(bi_ctx, h, e);
+	m1 = bi_mod_power(bi_ctx, h, e);
+	bi_free_mod(bi_ctx, 0);
 	bi_export(bi_ctx, m1, out, (int) outsz);
-	bi_free(bi_ctx, n);
-	bi_free(bi_ctx, e);
-	bi_free(bi_ctx, h);
-	bi_free(bi_ctx, m1);
+	bi_terminate(bi_ctx);
 	return 0;
 }
 
@@ -15413,7 +16269,7 @@ int mg_rsa_mod_pow(const uint8_t *mod, size_t modsz, const uint8_t *exp, size_t 
 #define DEC_31 30
 #define DEC_32 31
 
-#define DEC(N) MG_UECC_CONCAT(DEC_, N)
+#define DEC_(N) MG_UECC_CONCAT(DEC_, N)
 
 #define SECOND_ARG(_, val, ...) val
 #define SOME_CHECK_0 ~, 0
@@ -15427,14 +16283,14 @@ int mg_rsa_mod_pow(const uint8_t *mod, size_t modsz, const uint8_t *exp, size_t 
 #define REPEAT_NAME_SOME() REPEAT_SOME
 #define REPEAT_0(...)
 #define REPEAT_SOME(N, stuff) \
-  DEFER(MG_UECC_CONCAT(REPEAT_NAME_, SOME_OR_0(DEC(N))))()(DEC(N), stuff) stuff
+  DEFER(MG_UECC_CONCAT(REPEAT_NAME_, SOME_OR_0(DEC_(N))))()(DEC_(N), stuff) stuff
 #define REPEAT(N, stuff) EVAL(REPEAT_SOME(N, stuff))
 
 #define REPEATM_NAME_0() REPEATM_0
 #define REPEATM_NAME_SOME() REPEATM_SOME
 #define REPEATM_0(...)
 #define REPEATM_SOME(N, macro) \
-  macro(N) DEFER(MG_UECC_CONCAT(REPEATM_NAME_, SOME_OR_0(DEC(N))))()(DEC(N), macro)
+  macro(N) DEFER(MG_UECC_CONCAT(REPEATM_NAME_, SOME_OR_0(DEC_(N))))()(DEC_(N), macro)
 #define REPEATM(N, macro) EVAL(REPEATM_SOME(N, macro))
 #endif
 
@@ -18586,6 +19442,9 @@ void mg_uecc_point_mult(mg_uecc_word_t *result, const mg_uecc_word_t *point,
 
 
 
+
+#if MG_TLS == MG_TLS_BUILTIN
+
 const uint8_t X25519_BASE_POINT[X25519_BYTES] = {9};
 
 #define X25519_WBITS 32
@@ -18835,6 +19694,8 @@ int mg_tls_x25519(uint8_t out[X25519_BYTES], const uint8_t scalar[X25519_BYTES],
   return ret;
 }
 
+#endif
+
 #ifdef MG_ENABLE_LINES
 #line 1 "src/url.c"
 #endif
@@ -18946,6 +19807,13 @@ bool mg_random(void *buf, size_t len) {
 #if MG_ARCH == MG_ARCH_ESP32
   while (len--) *p++ = (unsigned char) (esp_random() & 255);
   success = true;
+#elif MG_ARCH == MG_ARCH_CUBE && defined(HAL_RNG_MODULE_ENABLED)
+  extern RNG_HandleTypeDef hrng;
+  for (size_t n = 0; n < len; n += sizeof(uint32_t)) {
+    uint32_t r = HAL_RNG_ReadLastRandomNumber(&hrng);
+    memcpy((char *) buf + n, &r, n + sizeof(r) > len ? len - n : sizeof(r));
+  }
+  success = true;
 #elif MG_ARCH == MG_ARCH_PICOSDK
   while (len--) *p++ = (unsigned char) (get_rand_32() & 255);
   success = true;
@@ -19002,19 +19870,6 @@ char *mg_random_str(char *buf, size_t len) {
   return buf;
 }
 
-uint32_t mg_ntohl(uint32_t net) {
-  uint8_t data[4] = {0, 0, 0, 0};
-  memcpy(&data, &net, sizeof(data));
-  return (((uint32_t) data[3]) << 0) | (((uint32_t) data[2]) << 8) |
-         (((uint32_t) data[1]) << 16) | (((uint32_t) data[0]) << 24);
-}
-
-uint16_t mg_ntohs(uint16_t net) {
-  uint8_t data[2] = {0, 0};
-  memcpy(&data, &net, sizeof(data));
-  return (uint16_t) ((uint16_t) data[1] | (((uint16_t) data[0]) << 8));
-}
-
 uint32_t mg_crc32(uint32_t crc, const char *buf, size_t len) {
   static const uint32_t crclut[16] = {
       // table for polynomial 0xEDB88320 (reflected)
@@ -19069,6 +19924,7 @@ int mg_check_ip_acl(struct mg_str acl, struct mg_addr *remote_ip) {
 bool mg_path_is_sane(const struct mg_str path) {
   const char *s = path.buf;
   size_t n = path.len;
+  if (path.buf[0] == '~') return false;  // Starts with ~
   if (path.buf[0] == '.' && path.buf[1] == '.') return false;  // Starts with ..
   for (; s[0] != '\0' && n > 0; s++, n--) {
     if ((s[0] == '/' || s[0] == '\\') && n >= 2) {   // Subdir?
@@ -19088,7 +19944,9 @@ uint64_t mg_millis(void) {
 #elif MG_ARCH == MG_ARCH_ESP8266 || MG_ARCH == MG_ARCH_ESP32 || \
     MG_ARCH == MG_ARCH_FREERTOS
   return xTaskGetTickCount() * portTICK_PERIOD_MS;
-#elif MG_ARCH == MG_ARCH_AZURERTOS
+#elif MG_ARCH == MG_ARCH_CUBE
+  return (uint64_t) HAL_GetTick();
+#elif MG_ARCH == MG_ARCH_THREADX
   return tx_time_get() * (1000 /* MS per SEC */ / TX_TIMER_TICKS_PER_SECOND);
 #elif MG_ARCH == MG_ARCH_TIRTOS
   return (uint64_t) Clock_getTicks();
@@ -19125,6 +19983,70 @@ uint64_t mg_millis(void) {
   return (uint64_t) (time(NULL) * 1000);
 #endif
 }
+#endif
+
+// network format equates big endian order
+uint16_t mg_ntohs(uint16_t net) {
+  return MG_LOAD_BE16(&net);
+}
+
+uint32_t mg_ntohl(uint32_t net) {
+  return MG_LOAD_BE32(&net);
+}
+
+void mg_delayms(unsigned int ms) {
+  uint64_t to = mg_millis() + ms + 1;
+  while (mg_millis() < to) (void) 0;
+}
+
+
+#if MG_ENABLE_CUSTOM_CALLOC
+#else
+void *mg_calloc(size_t count, size_t size) {
+  return calloc(count, size);
+}
+
+void mg_free(void *ptr) {
+  free(ptr);
+}
+#endif
+
+#ifdef MG_ENABLE_LINES
+#line 1 "src/wifi_dummy.c"
+#endif
+
+
+#if (!defined(MG_ENABLE_DRIVER_PICO_W) || !MG_ENABLE_DRIVER_PICO_W) && \
+    (!defined(MG_ENABLE_DRIVER_CYW) || !MG_ENABLE_DRIVER_CYW) && \
+    (!defined(MG_ENABLE_DRIVER_CYW_SDIO) || !MG_ENABLE_DRIVER_CYW_SDIO)
+
+
+bool mg_wifi_scan(void) {
+  MG_ERROR(("No Wi-Fi driver enabled"));
+  return false;
+}
+
+bool mg_wifi_connect(char *ssid, char *pass) {
+  (void) ssid;
+  (void) pass;
+  return mg_wifi_scan();
+}
+
+bool mg_wifi_disconnect(void) {
+  return mg_wifi_scan();
+}
+
+bool mg_wifi_ap_start(char *ssid, char *pass, unsigned int channel) {
+  (void) ssid;
+  (void) pass;
+  (void) channel;
+  return mg_wifi_scan();
+}
+
+bool mg_wifi_ap_stop(void) {
+  return mg_wifi_scan();
+}
+
 #endif
 
 #ifdef MG_ENABLE_LINES
@@ -19351,7 +20273,7 @@ static void mg_ws_cb(struct mg_connection *c, int ev, void *ev_data) {
       // Remove non-fragmented frame
       if (final && op) mg_iobuf_del(&c->recv, ofs, len);
       // Last chunk of the fragmented frame
-      if (final && !op) {
+      if (final && !op && (ofs > 0)) {
         m.flags = c->recv.buf[0];
         m.data = mg_str_n((char *) &c->recv.buf[1], (size_t) (ofs - 1));
         mg_call(c, MG_EV_WS_MSG, &m);
@@ -19446,12 +20368,12 @@ static struct mg_tcpip_if *s_ifp;
 
 static void mac_cb(uint32_t);
 static bool cmsis_init(struct mg_tcpip_if *);
-static bool cmsis_up(struct mg_tcpip_if *);
+static bool cmsis_poll(struct mg_tcpip_if *, bool);
 static size_t cmsis_tx(const void *, size_t, struct mg_tcpip_if *);
 static size_t cmsis_rx(void *, size_t, struct mg_tcpip_if *);
 
 struct mg_tcpip_driver mg_tcpip_driver_cmsis = {cmsis_init, cmsis_tx, NULL,
-                                                cmsis_up};
+                                                cmsis_poll};
 
 static bool cmsis_init(struct mg_tcpip_if *ifp) {
   ARM_ETH_MAC_ADDR addr;
@@ -19489,7 +20411,21 @@ static size_t cmsis_tx(const void *buf, size_t len, struct mg_tcpip_if *ifp) {
   return len;
 }
 
-static bool cmsis_up(struct mg_tcpip_if *ifp) {
+static void cmsis_update_hash_table(struct mg_tcpip_if *ifp) {
+  // TODO(): read database, rebuild hash table
+  ARM_DRIVER_ETH_MAC *mac = &Driver_ETH_MAC0;
+  ARM_ETH_MAC_ADDR addr;
+  memcpy(&addr, mcast_addr, sizeof(addr));
+  mac->SetAddressFilter(&addr, 1);
+  (void) ifp;
+}
+
+static bool cmsis_poll(struct mg_tcpip_if *ifp, bool s1) {
+  if (ifp->update_mac_hash_table) {
+    cmsis_update_hash_table(ifp);
+    ifp->update_mac_hash_table = false;
+  }
+  if (!s1) return false;
   ARM_DRIVER_ETH_PHY *phy = &Driver_ETH_PHY0;
   ARM_DRIVER_ETH_MAC *mac = &Driver_ETH_MAC0;
   bool up = (phy->GetLinkState() == ARM_ETH_LINK_UP) ? 1 : 0;  // link state
@@ -19547,11 +20483,1412 @@ static size_t cmsis_rx(void *buf, size_t buflen, struct mg_tcpip_if *ifp) {
 #endif
 
 #ifdef MG_ENABLE_LINES
+#line 1 "src/drivers/cyw.c"
+#endif
+
+
+
+#if MG_ENABLE_TCPIP &&                                          \
+    ((defined(MG_ENABLE_DRIVER_CYW) && MG_ENABLE_DRIVER_CYW) || \
+     (defined(MG_ENABLE_DRIVER_CYW_SDIO) && MG_ENABLE_DRIVER_CYW_SDIO))
+
+#ifndef MG_ENABLE_DRIVER_CYW
+#define MG_ENABLE_DRIVER_CYW 0
+#endif
+#ifndef MG_ENABLE_DRIVER_CYW_SDIO
+#define MG_ENABLE_DRIVER_CYW_SDIO 0
+#endif
+
+static struct mg_tcpip_if *s_ifp;
+static bool s_link, s_auth, s_join;
+
+static bool cyw_init(uint8_t *mac);
+static void cyw_poll(void);
+
+static bool mg_tcpip_driver_cyw_init(struct mg_tcpip_if *ifp) {
+  struct mg_tcpip_driver_cyw_data *d =
+      (struct mg_tcpip_driver_cyw_data *) ifp->driver_data;
+  if (MG_BIG_ENDIAN) {
+    MG_ERROR(("Big-endian host"));
+    return false;
+  }
+  s_ifp = ifp;
+  s_link = s_auth = s_join = false;
+  if (!cyw_init(ifp->mac)) return false;
+
+  if (d->apmode) {
+    MG_DEBUG(("Starting AP '%s' (%u)", d->apssid, d->apchannel));
+    return mg_wifi_ap_start(d->apssid, d->appass, d->apchannel);
+  } else if (d->ssid != NULL && d->pass != NULL) {
+    MG_DEBUG(("Connecting to '%s'", d->ssid));
+    return mg_wifi_connect(d->ssid, d->pass);
+  }
+  return true;
+}
+
+static size_t mg_cyw_tx(unsigned int ifc, void *data, size_t len);
+size_t mg_tcpip_driver_cyw_output(const void *buf, size_t len,
+                                  struct mg_tcpip_if *ifp) {
+  struct mg_tcpip_driver_cyw_data *d =
+      (struct mg_tcpip_driver_cyw_data *) ifp->driver_data;
+  return mg_cyw_tx(d->apmode ? 1 : 0, (void *) buf, len) >= len ? len : 0;
+}
+
+static bool mg_tcpip_driver_cyw_poll(struct mg_tcpip_if *ifp, bool s1) {
+  cyw_poll();
+  if (!s1) return false;
+  struct mg_tcpip_driver_cyw_data *d =
+      (struct mg_tcpip_driver_cyw_data *) ifp->driver_data;
+  return d->apmode ? s_link : s_link && s_auth && s_join;
+}
+
+struct mg_tcpip_driver mg_tcpip_driver_cyw = {mg_tcpip_driver_cyw_init,
+                                              mg_tcpip_driver_cyw_output, NULL,
+                                              mg_tcpip_driver_cyw_poll};
+
+// - DS:
+// https://www.mouser.com/datasheet/2/196/Infineon_CYW43439_DataSheet_v03_00_EN-3074791.pdf
+// - WHD: https://github.com/Infineon/wifi-host-driver
+//
+//              |  e   <-- event data
+//              |-----
+//          net | vnd   <-- network (TCP/IP) | vendor header (Broadcom (bcm))
+//         -----|-----
+//  IOCTL | ETH | ETH  <-- IOCTL/IOVAR: chip control | ETH: Ethernet header
+// -------|-----|-----
+//   CDC  | BDC | BDC
+// ------- ----- -----
+//        SDPCM        <-- includes SDIO bus arbitration, not used in SPI
+// -------------------
+//    SPI   |  SDIO    <-- padded to 32-bit | 64-bytes
+//
+// - SDPCM has 3 channels (control, data, and asynchronous data)
+// - SPI has 4 "functions", F0 to F3, to access different blocks in the chip,
+// like the SPI/SDIO controller, chip backplane, and 2 DMA I/Os; these are
+// usually handled by SDPCM but we need to explicitly access the I/O controller
+// and chip backplane during initialization
+// - SDIO has 3 functions (proper SDIO terminology), F0 to F2, coincident with
+// those for SPI, accessed through standard SDIO practices. There is no F3.
+
+// Processor core firmware is loaded to TCM RAM, along with module-dependent
+// (hardware design) NVRAM data, via the chip backplane access through the bus
+// Once the chip has been initialized, information regarding regulatory
+// constraints (CLM blob, “Country Locale Matrix”), is loaded as an IOVAR. This
+// is tied to the module being certified, hence it is also module-dependent.
+// - Result: chip firmware + module NVRAM data + module CLM blob
+
+#pragma pack(push, 1)
+// all little endian
+
+struct cdc_hdr {
+  uint32_t cmd;   // ioctl command value
+  uint16_t olen;  // output buflen
+  uint16_t ilen;  // input buflen (excludes header)
+  uint32_t flags;
+  uint32_t status;
+};
+
+struct bdc_hdr {
+  uint8_t flags;     // Flags
+  uint8_t priority;  // 802.1d Priority (low 3 bits)
+  uint8_t flags2;
+  uint8_t data_offset;  // Offset from end of BDC header to packet data, in
+                        // 4-uint8_t words. Leaves room for optional headers.
+};
+
+struct sdpcm_sw_hdr {
+  uint8_t sequence;           // Sequence number of pkt
+  uint8_t channel_and_flags;  // IOCTL/IOVAR or User Data or Event
+  uint8_t next_length;
+  uint8_t header_length;  // Offset to BDC or CDC header
+  uint8_t wireless_flow_control;
+  uint8_t bus_data_credit;  // Credit from WLAN Chip
+  uint8_t _reserved[2];
+};
+
+struct sdpcm_hdr {
+  uint16_t len;
+  uint16_t _len;  // ~len
+  struct sdpcm_sw_hdr sw_hdr;
+};
+
+struct data_hdr {
+  struct sdpcm_hdr sdpcm;
+  uint8_t pad[2];
+  struct bdc_hdr bdc;
+};
+
+// gSPI, CYW43439 DS 4.2.1 Fig.12, 2-bit field
+#define CYW_SPID_FUNC_BUS 0   // F0
+#define CYW_SPID_FUNC_CHIP 1  // F1
+#define CYW_SPID_FUNC_WLAN 2  // F2
+
+// SDIO functions, 3-bit field; CYW4343W and CYW43439 DS 4.1
+#define CYW_SDIO_FUNC_BUS 0   // F0
+#define CYW_SDIO_FUNC_CHIP 1  // F1
+#define CYW_SDIO_FUNC_WLAN 2  // F2
+
+#define CYW_SDPCM_CTRL_HDR 0
+#define CYW_SDPCM_ASYNC_HDR 1
+#define CYW_SDPCM_DATA_HDR 2
+
+#pragma pack(pop)
+
+static uint8_t s_tx_seqno;
+static uint32_t txdata[2048 / 4], resp[2048 / 4];
+
+static void cyw_handle_cdc(struct cdc_hdr *cdc, size_t len);
+static void cyw_handle_bdc(struct bdc_hdr *bdc, size_t len);
+static void cyw_handle_bdc_evnt(struct bdc_hdr *bdc, size_t len);
+
+static size_t cyw_bus_specific_poll(uint32_t *dest);
+static void cyw_update_hash_table(void);
+
+// High-level comm stuff
+
+static void cyw_poll(void) {
+  struct sdpcm_hdr *sdpcm = (struct sdpcm_hdr *) resp;
+  unsigned int channel;
+  if (s_ifp->update_mac_hash_table) {
+    // first call to _poll() is after _init(), so this is safe
+    cyw_update_hash_table();
+    s_ifp->update_mac_hash_table = false;
+  }
+  if (cyw_bus_specific_poll(resp) == 0) return;
+  if ((sdpcm->len ^ sdpcm->_len) != 0xffff || sdpcm->len < sizeof(*sdpcm) ||
+      sdpcm->len > 2048 - sizeof(*sdpcm))
+    return;
+  channel = sdpcm->sw_hdr.channel_and_flags & 0x0F;
+  if (channel == CYW_SDPCM_CTRL_HDR) {
+    if (sdpcm->len >= sizeof(*sdpcm) + sizeof(struct cdc_hdr)) {
+      struct cdc_hdr *cdc =
+          (struct cdc_hdr *) ((size_t) sdpcm + sdpcm->sw_hdr.header_length);
+      size_t len = sdpcm->len - sdpcm->sw_hdr.header_length;
+      cyw_handle_cdc(cdc, len);
+    }
+  } else if (channel == CYW_SDPCM_DATA_HDR) {
+    if (sdpcm->len >= sizeof(*sdpcm) + sizeof(struct bdc_hdr)) {
+      struct bdc_hdr *bdc =
+          (struct bdc_hdr *) ((size_t) sdpcm + sdpcm->sw_hdr.header_length);
+      size_t len = sdpcm->len - sdpcm->sw_hdr.header_length;
+      cyw_handle_bdc(bdc, len);
+    }
+  } else if (channel == CYW_SDPCM_ASYNC_HDR) {
+    struct bdc_hdr *bdc =
+        (struct bdc_hdr *) ((size_t) sdpcm + sdpcm->sw_hdr.header_length);
+    size_t len_ = sdpcm->len - sdpcm->sw_hdr.header_length;
+    cyw_handle_bdc_evnt(bdc, len_);
+  }  // else silently discard
+}
+
+// WLAN frame reception
+static void cyw_handle_bdc(struct bdc_hdr *bdc, size_t len) {
+  uint8_t *payload = (uint8_t *) &bdc[bdc->data_offset + 1];
+  mg_tcpip_qwrite(payload, len - (payload - (uint8_t *) bdc), s_ifp);
+}
+
+static size_t cyw_bus_specific_tx(uint32_t *data, uint16_t len);
+
+// WLAN frame transmission
+static size_t mg_cyw_tx(unsigned int ifc, void *data, size_t len) {
+  struct data_hdr *hdr = (struct data_hdr *) txdata;
+  uint16_t txlen = (uint16_t) (len + sizeof(*hdr));
+  memset(txdata, 0, sizeof(*hdr));
+  memcpy((uint8_t *) txdata + sizeof(*hdr), data, len);
+  // TODO(): hdr->bdc.priority = map IP to TOS if supporting QoS/ToS
+  hdr->bdc.flags = 2 << 4;          // BDC version 2
+  hdr->bdc.flags2 = (uint8_t) ifc;  // 0 -> STA, 1 -> AP
+  // hdr->bdc.data_offset = 0; // actually zeroed above
+  hdr->sdpcm.len = txlen;
+  hdr->sdpcm._len = (uint16_t) ~txlen;
+  hdr->sdpcm.sw_hdr.sequence = ++s_tx_seqno;
+  hdr->sdpcm.sw_hdr.channel_and_flags = CYW_SDPCM_DATA_HDR,
+  hdr->sdpcm.sw_hdr.header_length = offsetof(struct data_hdr, bdc);
+  return cyw_bus_specific_tx(txdata, txlen);
+}
+
+// WLAN event handling
+#pragma pack(push, 1)
+// all in network order
+
+struct eth_hdr {  // TODO(scaprile) reuse 'eth' in net_builtin.c
+  uint8_t dest[6];
+  uint8_t src[6];
+  uint16_t type;
+};
+
+struct bcm_vendor_hdr {
+  uint16_t subtype;  // vendor specific: 0x8001
+  uint16_t length;   // bytes following this field
+  uint8_t version;   // 0
+  uint8_t oui[3];    // vendor specific: 0x00 0x10 0x18
+  uint16_t usr_subtype;
+};
+
+struct bcm_evnt_hdr {
+  uint16_t version;  // 1: fields up to ifname; 2: as shown
+  uint16_t flags;
+  uint32_t event_type;
+  uint32_t status;
+  uint32_t reason;
+  uint32_t auth_type;
+  uint32_t datalen;
+  uint8_t addr[6];  // Station address (if applicable)
+  char ifname[16];
+  uint8_t ifidx;
+  uint8_t bss_cfg_idx;
+};
+
+struct evnt_msg {
+  struct eth_hdr eth;
+  //  struct vendor_hdr; but we only handle Broadcom (Wi-Fi processor) events
+  struct bcm_vendor_hdr bcm;
+  struct bcm_evnt_hdr event;
+};
+
+#pragma pack(pop)
+
+struct scan_result;
+static void cyw_handle_scan_result(uint32_t status, struct scan_result *data,
+                                   size_t len);
+
+// Do not call any IOCTL functions here, otherwise revise cyw_ioctl_wait()
+static void cyw_handle_bdc_evnt(struct bdc_hdr *bdc, size_t len) {
+  struct evnt_msg *msg = (struct evnt_msg *) &bdc[bdc->data_offset + 1];
+  MG_VERBOSE(("%u bytes event", len));
+  if (mg_log_level >= MG_LL_VERBOSE) mg_hexdump((void *) bdc, len);
+  if (mg_ntohs(msg->eth.type) != 0x886C || msg->bcm.oui[0] != 0x00 ||
+      msg->bcm.oui[1] != 0x10 || msg->bcm.oui[2] != 0x18)
+    return;  // discard if not Broadcom
+  if (mg_ntohl(msg->event.datalen) <=
+      len - ((uint8_t *) msg - (uint8_t *) bdc)) {
+    uint32_t event_type = mg_ntohl(msg->event.event_type);
+    uint32_t status = mg_ntohl(msg->event.status);
+    uint32_t reason = mg_ntohl(msg->event.reason);
+    uint16_t flags = mg_ntohs(msg->event.flags);
+    MG_DEBUG(("BCM event %lu %lu %lu %p", event_type, status, reason, flags));
+    if (event_type == 16 && status == 0) {  // Link
+      s_link = flags & 1;
+    } else if (event_type == 46 && s_link) {  // PSK sup with link up
+      if (status == 6) {                      // Keyed
+      } else if ((status == 4 || status == 8 || status == 10) &&
+                 reason == 15) {  // Wait M1/M3/G1
+        MG_ERROR(("AUTH TIMEOUT"));
+        s_auth = false;
+      } else {
+        MG_ERROR(("AUTH FAILED"));
+        s_auth = false;
+      }
+    } else if (event_type == 3 && status != 6) {  // Auth (not unsolicited)
+      if (status == 0) {                          // Success
+        s_auth = true;
+      } else {
+        MG_ERROR(("AUTH TIMEOUT"));
+        s_auth = false;
+      }
+    } else if (event_type == 1) {  // Join
+      if (status == 0) {           // Success
+        s_join = true;
+      } else {
+        MG_ERROR(("%s", status == 3 /* No networks */ ? "SSID NOT FOUND"
+                                                      : "JOIN FAILED"));
+        s_join = false;
+        mg_tcpip_call(s_ifp, MG_TCPIP_EV_WIFI_CONNECT_ERR, &status);
+      }
+    } else if (event_type == 12 || event_type == 5) {  // Disassoc, Deauth
+      s_auth = false;
+    } else if (event_type == 69) {  // Scan result
+      struct scan_result *data = (struct scan_result *) (&msg->event + 1);
+      size_t dlen = mg_ntohl(msg->event.datalen);
+      if (dlen > len - ((uint8_t *) data - (uint8_t *) bdc)) return;
+      cyw_handle_scan_result(status, data, dlen);
+    }
+  }  // else silently discard
+}
+
+static bool cyw_ioctl_get_(unsigned int ifc, unsigned int cmd, void *data,
+                           size_t len);
+static bool cyw_ioctl_set_(unsigned int ifc, unsigned int cmd, void *data,
+                           size_t len);
+static bool cyw_ioctl_iovar_get_(unsigned int ifc, char *var, void *data,
+                                 size_t len);
+static bool cyw_ioctl_iovar_set_(unsigned int ifc, char *var, void *data,
+                                 size_t len);
+// clang-format off
+// convenience: ioctl funcs on default ifc (0), as only AP needs ifc 1
+__attribute__((unused)) static bool cyw_ioctl_get(unsigned int cmd, void *data, size_t len) { return cyw_ioctl_get_(0, cmd, data, len); }
+static bool cyw_ioctl_set(unsigned int cmd, void *data, size_t len) { return cyw_ioctl_set_(0, cmd, data, len); }
+static bool cyw_ioctl_iovar_get(char *var, void *data, size_t len) { return cyw_ioctl_iovar_get_(0, var, data, len); }
+static bool cyw_ioctl_iovar_set(char *var, void *data, size_t len) { return cyw_ioctl_iovar_set_(0, var, data, len); }
+// clang-format on
+
+// Wi-Fi network stuff
+
+// clang-format off
+static bool cyw_wifi_connect(char *ssid, char *pass) {
+  uint32_t sup_wpa[2] = {0, 1}; // bss index 0 = STA, not open
+  static const uint32_t eapver[2] = {0, (uint32_t) -1}, // accept AP version
+                              tmo[2] = {0, 2500};
+  uint32_t data[64/4 + 1]; // max pass length: 64 for WPA, 128 for WPA3 SAE
+  uint16_t *da = (uint16_t *) data;
+  unsigned int len;
+  uint32_t val; 
+  val = 4; // security type: 0 for none, 2 for WPA, 4 for WPA2/WPA3, 6 for mixed WPA/WPA2
+  // sup_wpa[1] = 0 if not using security
+  if (!(cyw_ioctl_set(134 /* SET_WSEC */, (uint8_t *)&val, sizeof(val))
+        && cyw_ioctl_iovar_set("bsscfg:sup_wpa", (void *)sup_wpa, sizeof(sup_wpa))
+        && cyw_ioctl_iovar_set("bsscfg:sup_wpa2_eapver", (void *)eapver, sizeof(eapver))
+        && cyw_ioctl_iovar_set("bsscfg:sup_wpa_tmo", (void *)tmo, sizeof(tmo)))
+     ) return false;
+  mg_delayms(2); // allow radio firmware to be ready
+  // skip if not using auth
+  memset(data, 0, sizeof(data));
+  len = strlen(pass);
+  da[0] = (uint16_t) len;
+  da[1] = 1; // indicates wireless security key, skip for WPA3 SAE
+  memcpy((uint8_t *)data + 2 * sizeof(uint16_t), pass, len); // skip for WPA3 SAE
+  if (!cyw_ioctl_set(268 /* SET_WSEC_PMK */, data, sizeof(data))) return false; // skip for WPA3 SAE, sizeof/2 if supporting SAE but using WPA
+  // for WPA3 SAE: memcpy((uint8_t *)data + sizeof(uint16_t), pass, len); cyw_ioctl_iovar_set("sae_password", data, sizeof(data));
+  // resume if not using auth
+  val = 1; if (!cyw_ioctl_set(20 /* SET_INFRA */, (uint8_t *)&val, sizeof(val))) return false;
+  val = 0; // auth type: 0 for open, 3 for SAE
+  if (!cyw_ioctl_set(22 /* SET_AUTH */, (uint8_t *)&val, sizeof(val))) return false;
+  val = 1; // MFP capable: 1 for yes, 0 for no; recommended to be set for WPA2+ (2 for 'required', WPA3)
+  cyw_ioctl_iovar_set("mfp", (uint8_t *)&val, sizeof(val)); // Old chipsets do not support MFP
+  val = 0x80; // auth type: 0 for none, 4 for WPA PSK, 0x80 for WPA2 PSK, 0x40000 for WPA3 SAE PSK
+  if (!cyw_ioctl_set(165 /* SET_WPA_AUTH */, (uint8_t *)&val, sizeof(val))) return false;
+  len = strlen(ssid);
+  data[0] = (uint32_t) len;
+  memcpy((uint8_t *)&data[1], ssid, len);
+  if (!cyw_ioctl_set(26 /* SET_SSID */, data, len + sizeof(uint32_t))) return false;
+  return true;
+}
+
+static bool cyw_wifi_disconnect(void) {
+  return cyw_ioctl_set(52 /* DISASSOC */, NULL, 0);
+}
+
+// For AP functions, we use explicit ifc selection; both for clarity and maintenance, as some actions are performed on ifc 0, with or without a bss_index, and others are performed on ifc 1
+
+static bool cyw_wifi_ap_start(char *ssid, char *pass, unsigned int channel) {
+  uint32_t data[64/4 + 2]; // max pass length: 64 for WPA, 128 for WPA3 SAE
+  uint16_t *da = (uint16_t *) data;
+  unsigned int len;
+  uint32_t val; 
+  // CHIP DEPENDENCY
+  // RPi set the AMPDU parameter for AP (window size = 2) *****************
+  // val = 2 ; cyw_ioctl_iovar_set_(0, "ampdu_ba_wsize", (uint8_t *)&val, sizeof(val));
+  // some chips might require to turn APSTA off and issue a SET_AP IOCTL
+  len = strlen(ssid);
+  data[0] = 1; // bss index 1 = AP
+  data[1] = (uint32_t) len;
+  memcpy((uint8_t *)&data[2], ssid, len);
+  // TODO(scaprile): this takes some time to process, or requires a delay before doing it
+  if (!cyw_ioctl_iovar_set_(0, "bsscfg:ssid", (uint8_t *)&data, len + 2 * sizeof(uint32_t))) return false;
+  // TODO(scaprile): but sometimes this one takes some time to process
+  val = (uint32_t) channel; if (!cyw_ioctl_set_(0, 30 /* SET_CHANNEL */, (uint8_t *)&val, sizeof(val))) return false;
+  data[0] = 1; // bss index 1 = AP
+  data[1] = 0x00400004; // security type: 0 for none, 0x00200002 for WPA, 0x00400004 for WPA2, 0x01000004 for WPA3, 0x01400004 for mixed WPA2/WPA3, 0x00400006 for mixed WPA/WPA2
+  // NOTE(): WHD writes & 0xFF if WPS is not enabled (?)
+  if (!cyw_ioctl_iovar_set_(0, "bsscfg:wsec", (uint8_t *)&data, 2 * sizeof(uint32_t))) return false;
+  val = 1; // MFP capable: 1 for yes, 0 for no; recommended to be set for WPA2+ (2 for 'required', WPA3)
+  cyw_ioctl_iovar_set_(1, "mfp", (uint8_t *)&val, sizeof(val)); // Old chipsets do not support MFP
+  mg_delayms(2); // allow radio firmware to be ready
+  // skip if not using auth
+  // WPA, WPA2, mixed WPA/WPA2, mixed WPA2/WPA3
+  // NOTE(): WHD does not set SAE password for shared WPA2/WPA3, same do we
+  memset(data, 0, sizeof(data));
+  len = strlen(pass);
+  da[0] = (uint16_t) len; // skip for WPA3 SAE (43430 does NOT support WPA3 in AP)
+  da[1] = 1; // indicates wireless security key, skip for WPA3 SAE
+  memcpy((uint8_t *)data + 2 * sizeof(uint16_t), pass, len); // skip for WPA3 SAE
+  if (!cyw_ioctl_set_(1, 268 /* SET_WSEC_PMK */, data, sizeof(data))) return false; // skip for WPA3 SAE, sizeof/2 if supporting SAE but using WPA
+  /* for WPA3 SAE: 
+    memcpy((uint8_t *)data + sizeof(uint16_t), pass, len);
+    cyw_ioctl_iovar_set_(1, "sae_password", data, sizeof(data)); */
+  /* for WPA3 or mixed WPA2/WPA3: 
+    val = 5 ; cyw_ioctl_iovar_set_(1, "sae_max_pwe_loop", (uint8_t *)&val, sizeof(val));  // Some chipsets do not support this */
+  // resume if not using auth
+
+  data[0] = 1; // bss index 1 = AP
+  data[1] = 0x80; // auth type: 0 for none, 4 for WPA PSK, 0x80 for WPA2 PSK, 0x40000 for WPA3 SAE PSK; ored if mixed
+  if (!cyw_ioctl_iovar_set_(0, "bsscfg:wpa_auth", (uint8_t *)&data, 2 * sizeof(uint32_t))) return false;
+
+  val = 1 /* auto */; if (!cyw_ioctl_set_(1, 110 /* SET_GMODE */, (uint8_t *)&val, sizeof(val))) return false;
+  // Set multicast tx rate to 11Mbps, may fail in some chipsets, we are enforcing it
+  val = 11000000 / 500000; if (!cyw_ioctl_iovar_set_(1, "2g_mrate", (uint8_t *)&val, sizeof(val))) return false;
+  val = 1; if (!cyw_ioctl_set_(1, 78 /* SET_DTIMPRD */, (uint8_t *)&val, sizeof(val))) return false;
+  data[0] = 1; // bss index 1 = AP
+  data[1] = 1; // UP
+  // TODO(scaprile): this takes a long time to process
+  if (!cyw_ioctl_iovar_set_(0, "bss", (uint8_t *)&data, 2 * sizeof(uint32_t))) return false;
+  return true;
+}
+
+static bool cyw_wifi_ap_stop(void) {
+  uint32_t data[2];
+  data[0] = 1; // bss index 1 = AP
+  data[1] = 0; // DOWN
+  if (!cyw_ioctl_iovar_set_(0, "bss", (uint8_t *)&data, 2 * sizeof(uint32_t))) return false;
+  // DO WE NEED TO CLEAR CHANNEL ???
+  // CHIP DEPENDENCY
+  //val = 8 ; cyw_ioctl_iovar_set_(0, "ampdu_ba_wsize", (uint8_t *)&val, sizeof(val));
+  return true;
+}
+
+// WLAN scan handling
+
+#pragma pack(push, 1)
+// in little endian
+
+struct wifi_scan_opt {
+    uint32_t version;
+    uint16_t action;
+    uint16_t _;
+    uint32_t ssid_len;
+    uint8_t ssid[32];
+    uint8_t bssid[6];
+    int8_t bss_type;
+    int8_t scan_type;
+    int32_t nprobes;
+    int32_t active_time;
+    int32_t passive_time;
+    int32_t home_time;
+    int32_t channel_num;
+    uint16_t channel_list[1];
+};
+#pragma pack(pop)
+
+static bool cyw_wifi_scan(void) {
+  struct wifi_scan_opt opts;
+  memset(&opts, 0, sizeof(opts));
+  opts.version = 1;
+  opts.action = 1; // start
+  opts._ = 0;
+  memset(opts.bssid, 0xff, sizeof(opts.bssid));
+  opts.bss_type = 2; // any
+  opts.nprobes = -1;
+  opts.active_time = -1;
+  opts.passive_time = -1;
+  opts.home_time = -1;
+  opts.channel_num = 0;
+  opts.channel_list[0] = 0;
+  return cyw_ioctl_iovar_set("escan", (uint8_t *)&opts, sizeof(opts));
+}
+
+
+#pragma pack(push, 1)
+// in little endian
+
+struct scan_bss {
+    uint32_t version;              // version field
+    uint32_t length;               // byte length of data in this record, starting at version and including IEs
+    uint8_t BSSID[6];              // Unique 6-byte MAC address
+    uint16_t beacon_period;        // Interval between two consecutive beacon frames. Units are Kusec
+    uint16_t capability;           // Capability information
+    uint8_t SSID_len;              // SSID length
+    uint8_t SSID[32];              // Array to store SSID
+    uint8_t reserved1[1];          // Reserved(padding)
+    uint32_t rateset_count;        // Count of rates in this set
+    uint8_t rateset_rates[16];     // rates in 500kbps units, higher bit set if basic
+    uint16_t chanspec;             // Channel specification for basic service set
+    uint16_t atim_window;          // Announcement traffic indication message window size. Units are Kusec
+    uint8_t dtim_period;           // Delivery traffic indication message period
+    uint8_t reserved2[1];          // Reserved(padding)
+    int16_t RSSI;                  // receive signal strength (in dBm)
+    int8_t phy_noise;              // noise (in dBm)
+    uint8_t n_cap;                 // BSS is 802.11n Capable
+    uint8_t reserved3[2];          // Reserved(padding)
+    uint32_t nbss_cap;             // 802.11n BSS Capabilities (based on HT_CAP_*)
+    uint8_t ctl_ch;                // 802.11n BSS control channel number
+    uint8_t reserved4[3];          // Reserved(padding)
+    uint32_t reserved32[1];        // Reserved for expansion of BSS properties
+    uint8_t flags;                 // flags
+    uint8_t vht_cap;               // BSS is vht capable
+    uint8_t reserved5[2];          // Reserved(padding)
+    uint8_t basic_mcs[16];         // 802.11N BSS required MCS set
+    uint16_t ie_offset;            // offset at which IEs start, from beginning
+    uint16_t reserved16[1];        // Reserved(padding)
+    uint32_t ie_length;            // byte length of Information Elements
+    int16_t SNR;                   // Average SNR during frame reception
+};
+
+struct scan_result {
+    uint32_t buflen;
+    uint32_t version;
+    uint16_t sync_id;
+    uint16_t bss_count;
+    struct scan_bss bss[1];
+};
+
+#pragma pack(pop)
+
+// CHIP DEPENDENCY
+#define CYW_BSS_BANDMASK 0xc000
+#define CYW_BSS_BAND2G 0
+//
+
+static void cyw_handle_scan_result(uint32_t status, struct scan_result *data, size_t len) {
+  MG_VERBOSE(("scan event, status: %ld", status));
+  if (status == 0) { // SUCCESS
+    MG_VERBOSE(("scan complete"));
+    mg_tcpip_call(s_ifp, MG_TCPIP_EV_WIFI_SCAN_END, NULL);
+  } else if (status == 8) { // PARTIAL
+    struct mg_wifi_scan_bss_data bss;
+    struct scan_bss *sbss = data->bss;
+    unsigned int band = sbss->chanspec & CYW_BSS_BANDMASK;
+    if (data->version != 109 || data->bss_count != 1) {
+      MG_ERROR(("Unsupported: %lu %u", data->version, data->bss_count));
+      return;
+    }
+    if (sbss->length > len - offsetof(struct scan_result, bss) || sbss->SSID_len > sizeof(sbss->SSID) || sbss->ie_offset < sizeof(*sbss) || sbss->ie_offset > (sizeof(*sbss) + sbss->ie_length) || sbss->ie_offset + sbss->ie_length > sbss->length)
+      return; // silently discard malformed data
+    if (!(sbss->flags & MG_BIT(2))) return; // RSSI_ONCHANNEL, ignore off-channel results
+    bss.SSID = mg_str_n((char *)sbss->SSID, sbss->SSID_len);
+    bss.BSSID = (char *)sbss->BSSID;
+    bss.RSSI = (int8_t)sbss->RSSI;
+    bss.has_n = sbss->n_cap != 0;
+    bss.channel = bss.has_n ? sbss->ctl_ch : (uint8_t)(sbss->chanspec & 0xff); // n 40MHz vs a/b/g and 20MHz
+    bss.band = band & CYW_BSS_BAND2G ? MG_WIFI_BAND_2G : MG_WIFI_BAND_5G;
+    bss.security = (sbss->capability & MG_BIT(4) /* CAP_PRIVACY */) ? MG_WIFI_SECURITY_WEP : MG_WIFI_SECURITY_OPEN;
+    { // travel IEs (Information Elements) in search of security definitions
+      const uint8_t wot1[4] = {0x00, 0x50, 0xf2, 0x01}; // WPA_OUI_TYPE1                     
+      uint8_t *ie = (uint8_t *)sbss + sbss->ie_offset;
+      int bytes = (int) sbss->ie_length;
+      while (bytes > 0 && ie[1] + 2 < bytes) { // ie[0] -> type, ie[1] -> bytes from ie[2]
+        if (ie[0] == 48 /* IE_ID_RSN */) bss.security |= MG_WIFI_SECURITY_WPA2;
+        if (ie[0] == 221 /* IE_ID_VENDOR_SPECIFIC */ && memcmp(&ie[2], wot1, 4) == 0)
+          bss.security |= MG_WIFI_SECURITY_WPA;
+        ie += ie[1] + 2;
+        bytes -= ie[1] + 2;
+      }
+    }
+    MG_VERBOSE(("BSS: %.*s (%u) (%M) %d dBm %u", bss.SSID.len, bss.SSID.buf, bss.channel, mg_print_mac, bss.BSSID, (int) bss.RSSI, bss.security));  
+    mg_tcpip_call(s_ifp, MG_TCPIP_EV_WIFI_SCAN_RESULT, &bss);
+  } else {
+    MG_ERROR(("scan error"));
+  } 
+}
+// clang-format on
+
+// IOCTL stuff. All values read and written are in little endian format
+
+static uint16_t s_ioctl_reqid;
+
+// CDC handler for waiting loop
+static uint8_t *s_ioctl_resp;
+static bool s_ioctl_err;
+
+static void cyw_handle_cdc(struct cdc_hdr *cdc, size_t len) {
+  uint8_t *r = (uint8_t *) cdc + sizeof(*cdc);
+  MG_VERBOSE(("%u bytes CDC frame", len));
+  if ((cdc->flags >> 16) != s_ioctl_reqid) return;
+  if (cdc->flags & 1) {
+    MG_ERROR(("IOCTL error: %ld", -cdc->status));
+    s_ioctl_err = true;
+    return;
+  }
+  if (mg_log_level >= MG_LL_VERBOSE) mg_hexdump((void *) cdc, len);
+  MG_DEBUG(("IOCTL result: %02x %02x %02x %02x ...", r[0], r[1], r[2], r[3]));
+  s_ioctl_resp = r;
+}
+// NOTE(): alt no loop handler dispatching IOCTL response to current handler:
+// static void *s_ioctl_hnd; *s_ioctl_hnd(ioctl, len);
+// app is a state machine calling get/sets and advancing via these callbacks
+
+#pragma pack(push, 1)
+// all little endian
+
+struct ctrl_hdr {
+  struct sdpcm_hdr sdpcm;
+  struct cdc_hdr cdc;
+};
+
+#pragma pack(pop)
+
+// IOCTL command send
+static void cyw_ioctl_send_cmd(unsigned int ifc, unsigned int cmd, bool set,
+                               size_t len) {
+  struct ctrl_hdr *hdr = (struct ctrl_hdr *) txdata;
+  uint16_t txlen = (uint16_t) (len + sizeof(*hdr));
+  memset(txdata, 0, sizeof(*hdr));
+  hdr->cdc.cmd = cmd;
+  hdr->cdc.olen = (uint16_t) len;
+  // hdr->cdc.ilen = 0; // actually zeroed above
+  hdr->cdc.flags = ((uint32_t) ++s_ioctl_reqid << 16) | ((ifc & 0xf) << 12) |
+                   (set ? MG_BIT(1) : 0);
+  hdr->sdpcm.len = txlen;
+  hdr->sdpcm._len = (uint16_t) ~txlen;
+  hdr->sdpcm.sw_hdr.sequence = ++s_tx_seqno;
+  hdr->sdpcm.sw_hdr.channel_and_flags = CYW_SDPCM_CTRL_HDR;
+  hdr->sdpcm.sw_hdr.header_length = offsetof(struct ctrl_hdr, cdc);
+  cyw_bus_specific_tx(txdata, txlen);
+}
+
+// just send respective commands, response handled via CDC handler
+static void cyw_ioctl_send_get(unsigned int ifc, unsigned int cmd) {
+  cyw_ioctl_send_cmd(ifc, cmd, false, 0);
+}
+
+static void cyw_ioctl_send_set(unsigned int ifc, unsigned int cmd, void *data,
+                               size_t len) {
+  if (data != NULL && len > 0)
+    memcpy((uint8_t *) txdata + sizeof(struct ctrl_hdr), data, len);
+  cyw_ioctl_send_cmd(ifc, cmd, true, (uint16_t) len);
+}
+
+static void cyw_ioctl_send_iovar_get(unsigned int ifc, char *var, size_t len) {
+  unsigned int namelen = strlen(var) + 1;  // include '\0'
+  // cmd = GET IOVAR, "set" the name...
+  cyw_ioctl_send_set(ifc, 262, var, len > namelen ? len : namelen);
+}
+
+static void cyw_ioctl_send_iovar_set2(unsigned int ifc, char *var, void *data1,
+                                      size_t len1, void *data2, size_t len2) {
+  struct ctrl_hdr *hdr = (struct ctrl_hdr *) txdata;
+  unsigned int namelen = strlen(var) + 1;  // include '\0'
+  uint16_t txlen, payload_len = (uint16_t) (namelen + len1 + len2);
+  memcpy((uint8_t *) txdata + sizeof(*hdr), var, namelen);
+  memcpy((uint8_t *) txdata + namelen + sizeof(*hdr), data1, len1);
+  if (data2 != NULL)
+    memcpy((uint8_t *) txdata + namelen + sizeof(*hdr) + len1, data2, len2);
+  txlen = (uint16_t) (payload_len + sizeof(*hdr));
+  cyw_ioctl_send_cmd(ifc, 263, true, txlen);  // cmd = SET IOVAR
+}
+
+__attribute__((unused)) static void cyw_ioctl_send_iovar_set(unsigned int ifc,
+                                                             char *var,
+                                                             void *data,
+                                                             size_t len) {
+  cyw_ioctl_send_iovar_set2(ifc, var, data, len, NULL, 0);
+}
+
+static inline bool delayms(unsigned int ms) {
+  mg_delayms(ms);
+  return true;
+}
+
+// wait for a response, meanwhile delivering received frames and events
+static bool cyw_ioctl_wait(void) {
+  unsigned int times = 100;
+  s_ioctl_resp = NULL;
+  s_ioctl_err = false;
+  do {  // IOCTL response processing does not call any other IOCTL function
+    cyw_poll();  // otherwise we can't allow them to pile up here
+    // network frames will be pushed to the queue so that is safe
+  } while (s_ioctl_resp == NULL && !s_ioctl_err && times-- > 0 && delayms(1));
+  MG_VERBOSE(("resp: %lp, err: %c, times: %d", s_ioctl_resp,
+              s_ioctl_err ? '1' : '0', (int) times));
+  return s_ioctl_resp != NULL;
+}
+
+static bool cyw_ioctl_waitdata(void *data, size_t len) {
+  if (!cyw_ioctl_wait()) return false;
+  memcpy(data, s_ioctl_resp, len);
+  return true;
+}
+
+// send respective commands, wait for a response or timeout
+static bool cyw_ioctl_get_(unsigned int ifc, unsigned int cmd, void *data,
+                           size_t len) {
+  cyw_ioctl_send_get(ifc, cmd);
+  return cyw_ioctl_waitdata(data, len);
+}
+static bool cyw_ioctl_set_(unsigned int ifc, unsigned int cmd, void *data,
+                           size_t len) {
+  cyw_ioctl_send_set(ifc, cmd, data, len);
+  return cyw_ioctl_wait();
+}
+
+static bool cyw_ioctl_iovar_get_(unsigned int ifc, char *var, void *data,
+                                 size_t len) {
+  cyw_ioctl_send_iovar_get(ifc, var, len);
+  return cyw_ioctl_waitdata(data, len);
+}
+static bool cyw_ioctl_iovar_set2_(unsigned int ifc, char *var, void *data1,
+                                  size_t len1, void *data2, size_t len2) {
+  cyw_ioctl_send_iovar_set2(ifc, var, data1, len1, data2, len2);
+  return cyw_ioctl_wait();
+}
+static bool cyw_ioctl_iovar_set_(unsigned int ifc, char *var, void *data,
+                                 size_t len) {
+  return cyw_ioctl_iovar_set2_(ifc, var, data, len, NULL, 0);
+}
+
+// CYW43 chipset specifics. All values read and written are in little endian
+// format
+
+#pragma pack(push, 1)
+// all little endian
+
+struct cyw_country {
+  uint32_t a;
+  int32_t rev;
+  uint32_t c;
+};
+
+struct clm_hdr {
+  uint16_t flag;
+  uint16_t type;
+  uint32_t len;
+  uint32_t crc;
+};
+
+#pragma pack(pop)
+
+// worlwide rev0, TODO(): try rev 17 for 4343W
+static const uint32_t country_code = 'X' + ('X' << 8) + (0 << 16);
+
+static bool cyw_bus_specific_init();
+static bool cyw_load_clmll(void *data, size_t len);
+
+static bool cyw_load_clm(struct mg_tcpip_driver_cyw_firmware *fw) {
+  return cyw_load_clmll((void *) fw->clm_addr, fw->clm_len);
+}
+
+// clang-format off
+static bool cyw_init(uint8_t *mac) {
+  struct mg_tcpip_driver_cyw_data *d = (struct mg_tcpip_driver_cyw_data *) s_ifp->driver_data;
+  uint32_t val = 0;
+  if (!cyw_bus_specific_init()) return false;
+  if (!cyw_load_clm(d->fw)) return false;  // Load CLM blob
+  // BT-ENABLED DEPENDENCY
+  // set Wi-Fi up
+  val = 0 /* disable */; cyw_ioctl_iovar_set("bus:txglom", (uint8_t *)&val, sizeof(val));
+  val = 1 /* on */; cyw_ioctl_iovar_set("apsta", (uint8_t *)&val, sizeof(val));
+  // CHIP DEPENDENCY
+  val = 8 ; cyw_ioctl_iovar_set("ampdu_ba_wsize", (uint8_t *)&val, sizeof(val));
+  val = 4 ; cyw_ioctl_iovar_set("ampdu_mpdu", (uint8_t *)&val, sizeof(val));
+  val = 0 /* 8K */; cyw_ioctl_iovar_set("ampdu_rx_factor", (uint8_t *)&val, sizeof(val));  
+  //
+  {
+    struct cyw_country c;
+    unsigned int rev = (unsigned int) (country_code >> 16) & 0xffff;
+    c.c = c.a = country_code & 0xffff;
+    c.rev = rev == 0 ? -1 : (int32_t) rev; // if rev is 0, set it to -1, the chip will use any NVRAM/OTP configured aggregate or default to rev 0
+    cyw_ioctl_iovar_set("country", (void *)&c, sizeof(c));
+  } // this takes some time to process
+  { // so do some retries while enabling events of interest
+    // we care for SET_SSID(0), JOIN(1), AUTH(3), DEAUTH(5), DISASSOC_IND(12), LINK(16), PSK_SUP(46), SCAN_RESULT(69); all < 128
+    uint32_t data[128/8/4 + 1];
+    data[0] = 0; // bss index: 0 = STA
+    memset(&data[1], 0, 128/8); // mark all as not desired
+    data[1] = MG_BIT(0) | MG_BIT(1) | MG_BIT(3) | MG_BIT(5) | MG_BIT(12) | MG_BIT(16); // events 0 to 31
+    data[2] = MG_BIT(46 - 32); // events 32 to 63
+    data[3] = MG_BIT(69 - 64); // events 64 to 95
+    unsigned int times = 100;
+    while (times --)
+      if (cyw_ioctl_iovar_set("bsscfg:event_msgs", (uint8_t *)data, sizeof(data))) break;
+    if (times == (unsigned int) ~0) return false;
+  }
+  val = 0; if (!cyw_ioctl_set(64 /* SET_ANTDIV */, (uint8_t *)&val, sizeof(val))) return false;
+  if (!cyw_ioctl_set(2 /* UP, interface up */, NULL, 0)) return false;
+  // use PM2 power saving for max throughput
+  val = 200 /* ms */; if (!cyw_ioctl_iovar_set("pm2_sleep_ret", (uint8_t *)&val, sizeof(val))) return false;
+  // set beacon intervals to reduce power consumption while associated to an AP but idle
+  val = 1; if (!cyw_ioctl_iovar_set("bcn_li_bcn", (uint8_t *)&val, sizeof(val))) return false;
+  val = 1; if (!cyw_ioctl_iovar_set("bcn_li_dtim", (uint8_t *)&val, sizeof(val))) return false;
+  val = 10; if (!cyw_ioctl_iovar_set("assoc_listen", (uint8_t *)&val, sizeof(val))) return false;
+  val = 1 /* auto */; if (!cyw_ioctl_set(110 /* SET_GMODE */, (uint8_t *)&val, sizeof(val))) return false;
+  val = 0 /* any */; if (!cyw_ioctl_set(142 /* SET_BAND */, (uint8_t *)&val, sizeof(val))) return false;
+  if (mg_log_level >= MG_LL_DEBUG) {
+    char text[256]; // this is huge, but we're just starting up
+    if (cyw_ioctl_iovar_get("ver", (uint8_t *)text, sizeof(text))) {
+      unsigned int len = strnlen(text, sizeof(text));
+      MG_DEBUG(("Firmware:\n%.*s", len, text));
+    }
+    text[0] = '\0';
+    if (cyw_ioctl_iovar_get("clmver", (uint8_t *)text, sizeof(text)) && text[0] != '\0') {
+      unsigned int len = strnlen(text, sizeof(text));
+      MG_DEBUG(("CLM:\n%.*s", len, text));
+    }
+  }
+  {
+    if(cyw_ioctl_iovar_get("cur_etheraddr", mac, 6)) {
+      MG_DEBUG(("MAC: %M", mg_print_mac, mac));
+    } else {
+      MG_ERROR(("read MAC failed"));
+    }
+  }
+  return true;
+}
+// clang-format on
+
+static bool cyw_load_fwll(void *fwdata, size_t fwlen, void *nvramdata,
+                          size_t nvramlen);
+
+static bool cyw_load_firmware(struct mg_tcpip_driver_cyw_firmware *fw) {
+  return cyw_load_fwll((void *) fw->code_addr, fw->code_len,
+                       (void *) fw->nvram_addr, fw->nvram_len);
+}
+
+// clang-format off
+static bool cyw_load_clmll(void *data, size_t len) {
+  unsigned int sent = 0, offset = 0;
+  struct clm_hdr hdr = {
+      .flag = 1 << 12 /* DLOAD_HANDLER_VER */ | MG_BIT(1) /* DL_BEGIN */,
+      .type = 2,
+      .crc = 0};
+  while (sent < len) {
+    unsigned int bytes = len - sent;
+    if (bytes > 1024) bytes = 1024;
+    if (sent + bytes >= len) hdr.flag |= MG_BIT(2);  // DL_END;
+    hdr.len = bytes;
+    if (!cyw_ioctl_iovar_set2_(0, "clmload", (void *) &hdr, sizeof(hdr), (uint8_t *) data + offset, bytes))
+      break;
+    sent += bytes;
+    offset += bytes;
+    hdr.flag &= (uint16_t)~MG_BIT(1);  // DL_BEGIN
+  }
+  return sent >= len;
+}
+// clang-format on
+
+static void cyw_update_hash_table(void) {
+  // TODO(): read database, rebuild hash table
+  uint32_t val = 0;
+  val = 1;
+  cyw_ioctl_iovar_set2_(0, "mcast_list", (uint8_t *) &val, sizeof(val),
+                        (uint8_t *) mcast_addr, sizeof(mcast_addr));
+  mg_delayms(50);
+}
+
+// CYW43 chip backplane specifics. All values read and written are in little
+// endian format
+
+// Access to chip backplane is done windowed in 32KB banks
+// - addr = area base address + register offset
+// - set the window address to addr & ~ADDRMSK
+// - access addr & ADDRMSK for non-32-bit quantities
+// - if accesing 32-bit quantities, do it on (addr & ADDRMSK) | ACCSS4B
+#define CYW_CHIP_CHIPCOMMON 0x18000000
+#define CYW_CHIP_BCKPLN_WINSZ 0x8000
+#define CYW_CHIP_BCKPLN_ADDRMSK 0x7fff
+#define CYW_CHIP_BCKPLN_ACCSS4B MG_BIT(15)
+#define CYW_CHIP_BCKPLN_WRAPPOFF 0x100000
+// BUS DEPENDENCY: max bus to backplane transfer size, bus function id
+#define CYW_CHIP_BCKPLN_SPIMAX 64
+#define CYW_CHIP_BCKPLN_SDIOMAX 1536
+#if MG_ENABLE_DRIVER_CYW_SDIO
+#define CYW_CHIP_BCKPLN_BUSMAX CYW_CHIP_BCKPLN_SDIOMAX
+#define CYW_BUS_FUNC_CHIP CYW_SDIO_FUNC_CHIP
+#else
+#define CYW_CHIP_BCKPLN_BUSMAX CYW_CHIP_BCKPLN_SPIMAX
+#define CYW_BUS_FUNC_CHIP CYW_SPID_FUNC_CHIP
+#endif
+
+// CHIP DEPENDENCY
+#define CYW_CHIP_ARMCORE_BASE (CYW_CHIP_CHIPCOMMON + 0x3000)
+#define CYW_CHIP_SOCSRAM_BASE (CYW_CHIP_CHIPCOMMON + 0x4000)
+#define CYW_CHIP_ARMCORE (CYW_CHIP_ARMCORE_BASE + CYW_CHIP_BCKPLN_WRAPPOFF)
+#define CYW_CHIP_SOCSRAM (CYW_CHIP_SOCSRAM_BASE + CYW_CHIP_BCKPLN_WRAPPOFF)
+#define CYW_CHIP_ATCMRAM_BASE 0
+#define CYW_CHIP_RAM_SIZE 0x80000
+//
+
+#define CYW_CHIP_ADDRLOW 0x1000a
+#define CYW_CHIP_ADDRMID 0x1000b
+#define CYW_CHIP_ADDRHIGH 0x1000c
+#define CYW_CHIP_SPIFRCTRL 0x1000d
+#define CYW_CHIP_CLOCKCSR 0x1000e
+#define CYW_CHIP_PULLUP 0x1000f
+#define CYW_CHIP_WAKEUPCTL 0x1001e
+#define CYW_CHIP_SLEEPCSR 0x1001f
+
+#define CYW_CHIP_SOCSRAM_BANKXIDX 0x010
+#define CYW_CHIP_SOCSRAM_BANKXPDA 0x044
+#define CYW_CHIP_AI_IOCTRL 0x408
+#define CYW_CHIP_AI_RESETCTRL 0x800
+
+static bool cyw_bus_write(unsigned int f, uint32_t addr, void *data,
+                          uint16_t len);
+static bool cyw_bus_read(unsigned int f, uint32_t addr, void *data,
+                         uint16_t len);
+
+// clang-format off
+// set backplane window to requested area.
+static void cyw_set_backplane_window(uint32_t addr) {
+  uint32_t val;
+  addr &= ~CYW_CHIP_BCKPLN_ADDRMSK;
+  val = (addr >> 24) & 0xff; cyw_bus_write(CYW_BUS_FUNC_CHIP, CYW_CHIP_ADDRHIGH, &val, 1);
+  val = (addr >> 16) & 0xff; cyw_bus_write(CYW_BUS_FUNC_CHIP, CYW_CHIP_ADDRMID, &val, 1);
+  val = (addr >> 8) & 0xff; cyw_bus_write(CYW_BUS_FUNC_CHIP, CYW_CHIP_ADDRLOW, &val, 1);
+}
+
+static bool cyw_core_reset(uint32_t core_base, bool check) {
+  uint32_t val = 0;
+  // core disabled after chip reset
+  cyw_set_backplane_window(core_base); // set backplane window for requested area; we do know offsets fall within that window
+  // possible CHIP DEPENDENCY: AI_RESETSTATUS check and wait (instead of these cool reads) to ensure backplane operations end
+  cyw_bus_read(CYW_BUS_FUNC_CHIP, (core_base + CYW_CHIP_AI_IOCTRL) & CYW_CHIP_BCKPLN_ADDRMSK, &val, 1); // ensure backplane operations end
+  val = MG_BIT(1) | MG_BIT(0) /* SICF_FGC | SICF_CLOCK_EN */; cyw_bus_write(CYW_BUS_FUNC_CHIP, (core_base + CYW_CHIP_AI_IOCTRL) & CYW_CHIP_BCKPLN_ADDRMSK, &val, 1); // reset
+  cyw_bus_read(CYW_BUS_FUNC_CHIP, (core_base + CYW_CHIP_AI_IOCTRL) & CYW_CHIP_BCKPLN_ADDRMSK, &val, 1); // ensure backplane operations end
+  val = 0x00; cyw_bus_write(CYW_BUS_FUNC_CHIP, (core_base + CYW_CHIP_AI_RESETCTRL) & CYW_CHIP_BCKPLN_ADDRMSK, &val, 1); // release reset
+  mg_delayms(1);
+  val = MG_BIT(0) /* SICF_CLOCK_EN */; cyw_bus_write(CYW_BUS_FUNC_CHIP, (core_base + CYW_CHIP_AI_IOCTRL) & CYW_CHIP_BCKPLN_ADDRMSK, &val, 1);
+  cyw_bus_read(CYW_BUS_FUNC_CHIP, (core_base + CYW_CHIP_AI_IOCTRL) & CYW_CHIP_BCKPLN_ADDRMSK, &val, 1); // ensure backplane operations end
+  mg_delayms(1);
+
+  if (check) {
+    // Verify only clock is enabled
+    cyw_bus_read(CYW_BUS_FUNC_CHIP, (core_base + CYW_CHIP_AI_IOCTRL) & CYW_CHIP_BCKPLN_ADDRMSK, &val, 1);
+    if ((val & (MG_BIT(1) | MG_BIT(0)) /* SICF_FGC | SICF_CLOCK_EN) */) != MG_BIT(0)) return false;
+    // Verify it is not in reset state
+    cyw_bus_read(CYW_BUS_FUNC_CHIP, (core_base + CYW_CHIP_AI_RESETCTRL) & CYW_CHIP_BCKPLN_ADDRMSK, &val, 1);
+    if (val & MG_BIT(0)) return false; // AIRC_RESET
+  }
+  return true;
+}
+
+static void cyw_socram_init(void) {
+  uint32_t val;
+  // CHIP DEPENDENCY: disable remap for SRAM_3: 43430 and 43439 only
+  cyw_set_backplane_window(CYW_CHIP_SOCSRAM_BASE); // set backplane window for requested area; we do know offsets fall within that window
+  val = 0x03; cyw_bus_write(CYW_BUS_FUNC_CHIP, ((CYW_CHIP_SOCSRAM_BASE + CYW_CHIP_SOCSRAM_BANKXIDX) & CYW_CHIP_BCKPLN_ADDRMSK), &val, sizeof(val));
+  val = 0x00; cyw_bus_write(CYW_BUS_FUNC_CHIP, ((CYW_CHIP_SOCSRAM_BASE + CYW_CHIP_SOCSRAM_BANKXPDA) & CYW_CHIP_BCKPLN_ADDRMSK), &val, sizeof(val));
+}
+
+// transfer is fractioned in bus-to-backplane-size units within backplane windows
+static void cyw_load_data(uint32_t dest, void *data, size_t len) {
+  size_t sent = 0, offset = 0;
+  uint32_t last_addr = (uint32_t) ~0;
+  while (sent < len)  {
+    size_t bytes = len - sent, avail;
+    uint32_t addr = dest + offset;
+    if (addr - last_addr >= CYW_CHIP_BCKPLN_WINSZ || last_addr == (uint32_t) ~0) {
+      cyw_set_backplane_window(addr); // set backplane window for requested area
+      last_addr = addr & ~CYW_CHIP_BCKPLN_ADDRMSK;
+    }
+    addr &= CYW_CHIP_BCKPLN_ADDRMSK;
+    avail = CYW_CHIP_BCKPLN_WINSZ - (unsigned int) addr; // internal backplane limit
+    if (bytes > avail) bytes = avail;
+    if (bytes > CYW_CHIP_BCKPLN_BUSMAX) bytes = CYW_CHIP_BCKPLN_BUSMAX; // bus to backplane transfer limit
+    cyw_bus_write(CYW_BUS_FUNC_CHIP, addr, (uint8_t *)data + offset, (uint16_t) bytes);
+    sent += bytes;
+    offset += bytes;
+  }
+}
+
+// CHIP DEPENDENCY: no SOCSRAM base address; start address in fwdata image (Cortex-R4 chips)
+static bool cyw_load_fwll(void *fwdata, size_t fwlen, void *nvramdata, size_t nvramlen) {
+  uint32_t val = ((~(nvramlen / 4) & 0xffff) << 16) | (nvramlen / 4); // ~len len in 32-bit words
+  cyw_core_reset(CYW_CHIP_SOCSRAM, false);  // cores were disabled at chip reset
+  cyw_socram_init();
+  cyw_load_data(CYW_CHIP_ATCMRAM_BASE, fwdata, fwlen);
+  mg_delayms(5); // TODO(scaprile): CHECK IF THIS IS ACTUALLY NEEDED
+  // Load NVRAM and place 'length ~length' at the end; end of chip RAM
+  { 
+    const uint32_t start = CYW_CHIP_RAM_SIZE - 4 - nvramlen;
+    cyw_load_data(start, nvramdata, nvramlen); // nvramlen must be a multiple of 4
+    // RAM_SIZE is a multiple of WINSZ, so the place for len ~len will be at the end of the window
+    cyw_bus_write(CYW_BUS_FUNC_CHIP, (CYW_CHIP_BCKPLN_WINSZ - 4), &val, sizeof(val));
+  }
+  // Reset ARM core and check it starts
+  if (!cyw_core_reset(CYW_CHIP_ARMCORE, true)) return false;
+  return true;
+}
+// clang-format on
+
+#if !MG_ENABLE_DRIVER_CYW_SDIO
+
+// CYW43 SPI bus specifics
+
+#define CYW_BUS_SPI_BUSCTRL 0x00     // 4 regs, 0 to 3
+#define CYW_BUS_SPI_INT 0x04         // 2 regs, 4 to 5
+#define CYW_BUS_SPI_INTEN 0x06       // 16-bit register
+#define CYW_BUS_SPI_STATUS 0x08      // 32-bit register
+#define CYW_BUS_SPI_TEST 0x14        // 32-bit register
+#define CYW_BUS_SPI_RESPDLY_F1 0x1d  // 8-bit register, F1: chip
+
+#define CYW_BUS_STS_LEN(x) ((x >> 9) & 0x7ff)
+
+static bool cyw_spi_write(unsigned int f, uint32_t addr, void *data,
+                          uint16_t len);
+static void cyw_spi_read(unsigned int f, uint32_t addr, void *data,
+                         uint16_t len);
+
+// clang-format off
+static size_t cyw_spi_poll(uint8_t *response) {
+  size_t len;
+  uint32_t res;
+  // SPI poll
+  cyw_spi_read(CYW_SPID_FUNC_BUS, CYW_BUS_SPI_STATUS, &res, sizeof(res));
+  if (res == (uint32_t) ~0 || !(res & MG_BIT(8) /* packet available */ )) return 0;
+  len = CYW_BUS_STS_LEN(res);
+  if (len == 0) { // just ack IRQ
+    uint16_t val = 1;
+    cyw_spi_write(CYW_SPID_FUNC_CHIP, CYW_CHIP_SPIFRCTRL, &val, 1);
+    cyw_spi_read(CYW_SPID_FUNC_BUS, CYW_BUS_SPI_INT, &val, sizeof(val));
+    cyw_spi_write(CYW_SPID_FUNC_BUS, CYW_BUS_SPI_INT, &val, sizeof(val));
+    return 0;
+  }
+  cyw_spi_read(CYW_SPID_FUNC_WLAN, 0,  response, len);
+  return len;
+}
+
+static size_t cyw_spi_tx(uint32_t *data, uint16_t len) {
+  while (len & 3) data[len++] = 0; // SPI 32-bit padding
+  return cyw_spi_write(CYW_SPID_FUNC_WLAN, 0, data, len) ? len: 0;
+}
+
+// this can be integrated in lowest level SPI read/write _driver_ functions
+// (those calling hal SPI transaction functions), though is only used at start
+uint32_t sw16_2(uint32_t data) {
+  return ((uint32_t)mg_htons((uint16_t)(data >> 16)) << 16) + mg_htons((uint16_t)data);
+}
+
+// DS 4.2.2 Table 6: signal we're working in 16-bit mode
+#define CYW_SPI_16bMODE MG_BIT(2) // arbitrary bit out of the FUNC space
+
+static bool cyw_spi_init() {
+  struct mg_tcpip_driver_cyw_data *d = (struct mg_tcpip_driver_cyw_data *) s_ifp->driver_data;
+  uint32_t val = 0;
+  // DS 4.2.3 Boot-Up Sequence; WHD: other chips might require more effort
+  unsigned int times = 51;
+  while (times--) {
+    cyw_spi_read(CYW_SPID_FUNC_BUS | CYW_SPI_16bMODE, CYW_BUS_SPI_TEST, &val, sizeof(val));
+    if (sw16_2(val) == 0xFEEDBEAD) break;
+    mg_delayms(1);
+  }
+  if (times == (unsigned int) ~0) return false;
+  // DS 4.2.3 Table 6. Chip starts in 16-bit little-endian mode.
+  // Configure SPI and switch to 32-bit big-endian mode:
+  // - High-speed mode: d->hs true
+  // - IRQ POLARITY high
+  // - SPI RESPONSE DELAY 4 bytes time [not in DS] TODO(scaprile): logic ana
+  // - Status not sent after command, IRQ with status
+  val = sw16_2(0x000204a3 | (d->hs ? MG_BIT(4) : 0)); // 4 reg content
+  cyw_spi_write(CYW_SPID_FUNC_BUS | CYW_SPI_16bMODE, CYW_BUS_SPI_BUSCTRL, &val, sizeof(val));
+  mg_tcpip_call(s_ifp, MG_TCPIP_EV_DRIVER, NULL);
+  cyw_spi_read(CYW_SPID_FUNC_BUS, CYW_BUS_SPI_TEST, &val, sizeof(val));
+  if (val != 0xFEEDBEAD) return false;
+  val = 4; cyw_spi_write(CYW_SPID_FUNC_BUS, CYW_BUS_SPI_RESPDLY_F1, &val, 1);
+  val = 0x99; // clear error bits DATA_UNAVAILABLE, COMMAND_ERROR, DATA_ERROR, F1_OVERFLOW
+  cyw_spi_write(CYW_SPID_FUNC_BUS, CYW_BUS_SPI_INT, &val, 1);
+  val = 0x00be; // Enable IRQs F2_F3_FIFO_RD_UNDERFLOW, F2_F3_FIFO_WR_OVERFLOW, COMMAND_ERROR, DATA_ERROR, F2_PACKET_AVAILABLE, F1_OVERFLOW
+  // BT-ENABLED DEPENDENCY: add F1_INTR (bit 13)
+  cyw_spi_write(CYW_SPID_FUNC_BUS, CYW_BUS_SPI_INTEN, &val, sizeof(uint16_t));
+
+  // chip backplane is ready, initialize it
+  // request ALP (Active Low Power) clock
+  val = MG_BIT(3) /* ALP_REQ */; cyw_spi_write(CYW_SPID_FUNC_CHIP, CYW_CHIP_CLOCKCSR, &val, 1);
+  // BT-ENABLED DEPENDENCY
+  times = 10;
+  while (times--) {
+    cyw_spi_read(CYW_SPID_FUNC_CHIP, CYW_CHIP_CLOCKCSR, &val, 1);
+    if (val & MG_BIT(6)) break; // ALP_AVAIL
+    mg_delayms(1);
+  }
+  if (times == (unsigned int) ~0) return false;
+  // clear request
+  val = 0; cyw_spi_write(CYW_SPID_FUNC_CHIP, CYW_CHIP_CLOCKCSR, &val, 1);
+  cyw_set_backplane_window(CYW_CHIP_CHIPCOMMON); // set backplane window to start of CHIPCOMMON area
+  cyw_spi_read(CYW_SPID_FUNC_CHIP, (CYW_CHIP_CHIPCOMMON + 0x00) & CYW_CHIP_BCKPLN_ADDRMSK, &val, 2);
+  if (val == 43430) val = 4343;
+  MG_INFO(("WLAN chip is CYW%u%c", val), val == 4343 ? 'W' : ' '));
+
+  // Load firmware (code and NVRAM)
+  if (!cyw_load_firmware(d->fw)) return false;
+
+  // Wait for High Throughput (HT) clock ready
+  times = 50;
+  while (times--) {
+    cyw_spi_read(CYW_SPID_FUNC_CHIP, CYW_CHIP_CLOCKCSR, &val, 1);
+    if (val & MG_BIT(7)) break; // HT_AVAIL
+    mg_delayms(1);
+  }
+  if (times == (unsigned int) ~0) return false;
+  // Wait for backplane ready
+  times = 1000;
+  while (times--) {
+    cyw_spi_read(CYW_SPID_FUNC_BUS, CYW_BUS_SPI_STATUS, &val, sizeof(val));
+    if (val & MG_BIT(5)) break; // F2_RX_READY
+    mg_delayms(1);
+  }
+  if (times == (unsigned int) ~0) return false;
+
+  // CHIP DEPENDENCY
+  // Enable save / restore
+  // Configure WakeupCtrl, set HT_AVAIL in CLOCK_CSR
+  cyw_spi_read(CYW_SPID_FUNC_CHIP, CYW_CHIP_WAKEUPCTL, &val, 1);
+  val |= MG_BIT(1) /* WAKE_TILL_HT_AVAIL */; cyw_spi_write(CYW_SPID_FUNC_CHIP, CYW_CHIP_WAKEUPCTL, &val, 1);
+#if 0
+  // Set BRCM_CARDCAP to CMD_NODEC. NOTE(): This is probably only necessary for SDIO, not SPI
+  val = MG_BIT(3); cyw_spi_write(CYW_SPID_FUNC_BUS, 0xf0 /* SDIOD_CCCR_BRCM_CARDCAP */, &val, 1);
+#endif
+  // Force HT request to chip backplane
+  val = MG_BIT(1) /* FORCE_HT */; cyw_spi_write(CYW_SPID_FUNC_CHIP, CYW_CHIP_CLOCKCSR, &val, 1);
+  // Enable Keep SDIO On (KSO)
+  cyw_spi_read(CYW_SPID_FUNC_CHIP, CYW_CHIP_SLEEPCSR, &val, 1);
+  if (!(val & MG_BIT(0))) {
+      val |= MG_BIT(0); cyw_spi_write(CYW_SPID_FUNC_CHIP, CYW_CHIP_SLEEPCSR, &val, 1);
+  }
+  // The SPI bus can be configured for sleep (KSO controls wlan block sleep)
+  cyw_spi_read(CYW_SPID_FUNC_BUS, CYW_BUS_SPI_BUSCTRL, &val, sizeof(val));
+  val &= ~MG_BIT(7) /* WAKE_UP */; cyw_spi_write(CYW_SPID_FUNC_BUS, CYW_BUS_SPI_BUSCTRL, &val, sizeof(val));
+  // Set SPI bus sleep
+  val = 0x0f; cyw_spi_write(CYW_SPID_FUNC_CHIP, CYW_CHIP_PULLUP, &val, 1);
+
+  // Clear pullups. NOTE(): ?
+  val = 0x00; cyw_spi_write(CYW_SPID_FUNC_CHIP, CYW_CHIP_PULLUP, &val, 1);
+  cyw_spi_read(CYW_SPID_FUNC_CHIP, CYW_CHIP_PULLUP, &val, 1);
+  // Clear possible data unavailable error
+  cyw_spi_read(CYW_SPID_FUNC_BUS, CYW_BUS_SPI_INTEN, &val, sizeof(uint16_t));
+  if (val & MG_BIT(0)) cyw_spi_write(CYW_SPID_FUNC_BUS, CYW_BUS_SPI_INTEN, &val, sizeof(uint16_t));
+
+  return true;
+}
+// clang-format on
+
+// gSPI, CYW43439 DS 4.2.1 Fig.12
+#define CYW_SPID_LEN(x) ((x) &0x7FF)             // bits 0-10
+#define CYW_SPID_ADDR(x) (((x) &0x1FFFF) << 11)  // bits 11-27,
+#define CYW_SPID_FUNC(x) (((x) &3) << 28)        // bits 28-29
+#define CYW_SPID_INC MG_BIT(30)
+#define CYW_SPID_WR MG_BIT(31)
+
+static bool cyw_spi_write(unsigned int f, uint32_t addr, void *data,
+                          uint16_t len) {
+  struct mg_tcpip_driver_cyw_data *d =
+      (struct mg_tcpip_driver_cyw_data *) s_ifp->driver_data;
+  struct mg_tcpip_spi_ *s = (struct mg_tcpip_spi_ *) d->bus;
+  uint32_t hdr = CYW_SPID_WR | CYW_SPID_INC | CYW_SPID_FUNC(f) |
+                 CYW_SPID_ADDR(addr) | CYW_SPID_LEN(len);  // gSPI header
+  // TODO(scaprile): check spin in between and timeout values, return false
+  if (f == CYW_SPID_FUNC_WLAN) {
+    uint32_t val = 0;
+    while ((val & MG_BIT(5)) != MG_BIT(5))  // F2 rx ready (FIFO ready)
+      cyw_spi_read(CYW_SPID_FUNC_BUS, CYW_BUS_SPI_STATUS, &val, sizeof(val));
+  }
+  if (f & CYW_SPI_16bMODE)
+    hdr = sw16_2(hdr);  // swap half-words in 16-bit little-endian mode
+
+  s->begin(NULL);
+  s->txn(NULL, (uint8_t *) &hdr, NULL, sizeof(hdr));
+  if (len <= 4) {
+    uint32_t pad = 0;
+    memcpy(&pad, data, len);
+    s->txn(NULL, (uint8_t *) &pad, NULL, sizeof(pad));
+  } else {
+    s->txn(NULL, (uint8_t *) data, NULL, len);
+  }
+  s->end(NULL);
+  return true;
+}
+
+// will write 32-bit aligned quantities to data if f == CYW_SPID_FUNC_WLAN
+static void cyw_spi_read(unsigned int f, uint32_t addr, void *data,
+                         uint16_t len) {
+  struct mg_tcpip_driver_cyw_data *d =
+      (struct mg_tcpip_driver_cyw_data *) s_ifp->driver_data;
+  struct mg_tcpip_spi_ *s = (struct mg_tcpip_spi_ *) d->bus;
+  uint32_t padding =
+      f == CYW_SPID_FUNC_CHIP
+          ? 4
+          : 0;  // add padding to chip backplane reads as a response delay
+  uint32_t hdr = CYW_SPID_INC | CYW_SPID_FUNC(f) | CYW_SPID_ADDR(addr) |
+                 CYW_SPID_LEN(len + padding);  // gSPI header
+  if (f == CYW_SPID_FUNC_WLAN && (len & 3))
+    len = (len + 4) & ~3;  // align WLAN transfers to 32-bit
+  if (f & CYW_SPI_16bMODE)
+    hdr = sw16_2(hdr);  // swap half-words in 16-bit little-endian mode
+
+  s->begin(NULL);
+  s->txn(NULL, (uint8_t *) &hdr, NULL, sizeof(hdr));
+  if (f == CYW_SPID_FUNC_CHIP) {
+    uint32_t pad;
+    s->txn(NULL, NULL, (uint8_t *) &pad, 4);  // read padding back and discard
+  }
+  s->txn(NULL, NULL, (uint8_t *) data, len);
+  s->end(NULL);
+}
+
+static bool cyw_bus_specific_init(void) {
+  return cyw_spi_init();
+}
+static size_t cyw_bus_specific_poll(uint32_t *response) {
+  return cyw_spi_poll((uint8_t *) response);
+}
+static size_t cyw_bus_specific_tx(uint32_t *data, uint16_t len) {
+  return cyw_spi_tx(data, len);
+}
+static bool cyw_bus_write(unsigned int f, uint32_t addr, void *data,
+                          uint16_t len) {
+  if (f == CYW_SPID_FUNC_CHIP && len >= 4) addr |= CYW_CHIP_BCKPLN_ACCSS4B;
+  return cyw_spi_write(f, addr, data, len);
+}
+static bool cyw_bus_read(unsigned int f, uint32_t addr, void *data,
+                         uint16_t len) {
+  cyw_spi_read(f, addr, data, len);
+  return true;
+}
+
+#else  // MG_ENABLE_DRIVER_CYW_SDIO
+
+
+
+// CYW43 SDIO bus specifics
+
+// CYW4343W and CYW43439 DS 4.1 SDIO v2.0:
+//- F0: max block size is  32 bytes
+//- F1: max block size is  64 bytes
+//- F2: max block size is 512 bytes
+
+// clang-format off
+static bool cyw_sdio_transfer(bool write, unsigned int f, uint32_t addr, void *data, uint32_t len) {
+  struct mg_tcpip_driver_cyw_data *d = (struct mg_tcpip_driver_cyw_data *) s_ifp->driver_data;
+  struct mg_tcpip_sdio *s = (struct mg_tcpip_sdio *) d->bus;
+  uint32_t *ptr = (uint32_t *) data; // assume 32-bit aligned data (all except firmware)
+  if (write && (size_t) data & 3) {  // missed, source data is not 32-bit aligned
+    memcpy(txdata, data, len);       // copy to an aligned buffer, we know it fits
+    ptr = txdata;
+  } // all possible read destinations are 32-bit aligned
+  // mg_sdio_transfer requires 32-bit alignment for > 1 byte transfers
+  return mg_sdio_transfer(s, write, f, addr, ptr, len);
+}
+
+static size_t cyw_sdio_poll(uint32_t *response) {
+  uint32_t res;
+  uint16_t *len = (uint16_t *)&res;
+  // WHD: internal docs, "tag" hinting a possible packet.
+  // This is actually the len / ~len field of a possible struct sdpcm_hdr, if there is a packet available, or 0 if there is none.
+  cyw_sdio_transfer(false, CYW_SDIO_FUNC_WLAN, 0, &res, sizeof(res)); // read "the tag"
+  if ((len[0] | len[1]) == 0 || (len[0] ^ len[1]) != 0xffff || *len <= 4) return 0;
+  response[0] = res; // copy what we already read, then read the rest
+  cyw_sdio_transfer(false, CYW_SDIO_FUNC_WLAN, 0, response + 1, *len - sizeof(res));
+  return (size_t)*len;
+}
+
+static size_t cyw_sdio_tx(uint32_t *data, uint16_t len) {
+  return cyw_sdio_transfer(true, CYW_SDIO_FUNC_WLAN, 0, data, len) ? len: 0;
+}
+
+static bool cyw_sdio_init() {
+  struct mg_tcpip_driver_cyw_data *d = (struct mg_tcpip_driver_cyw_data *) s_ifp->driver_data;
+  struct mg_tcpip_sdio *s = (struct mg_tcpip_sdio *) d->bus;
+  uint32_t val = 0;
+  if (!mg_sdio_init(s)) return false;
+  // no block transfers on F0. if (!mg_sdio_set_blksz(s, CYW_SDIO_FUNC_BUS, 32)) return false; 
+  if (!mg_sdio_set_blksz(s, CYW_SDIO_FUNC_CHIP, 64)) return false;
+  if (!mg_sdio_set_blksz(s, CYW_SDIO_FUNC_WLAN, 64)) return false;
+  // TODO(scaprile): we don't handle SDIO interrupts, study CCCR INTEN and SDIO support (SDIO 6.3, 8)
+  // Enable chip backplane (F1)
+  if (!mg_sdio_enable_f(s, CYW_SDIO_FUNC_CHIP)) return false;
+  // Wait for F1 to be ready
+  if (!mg_sdio_waitready_f(s, CYW_SDIO_FUNC_CHIP)) return false;
+  // chip backplane is ready, initialize it
+  // request ALP (Active Low Power) clock
+  val = MG_BIT(5) | MG_BIT(3) | MG_BIT(0); // HW_CLKREQ_OFF ALP_REQ FORCE_ALP
+  cyw_sdio_transfer(true, CYW_SDIO_FUNC_CHIP, CYW_CHIP_CLOCKCSR, &val, 1);
+  // BT-ENABLED DEPENDENCY
+  unsigned int times = 10;
+  while (times--) {
+    if(!cyw_sdio_transfer(false, CYW_SDIO_FUNC_CHIP, CYW_CHIP_CLOCKCSR, &val, 1)) return false;
+    if (val & MG_BIT(6)) break; // ALP_AVAIL
+    mg_delayms(1);
+  }
+  if (times == (unsigned int) ~0) return false;
+  // clear request
+  val = 0; cyw_sdio_transfer(true, CYW_SDIO_FUNC_CHIP, CYW_CHIP_CLOCKCSR, &val, 1);
+  // Enable WLAN (F2)
+  if (!mg_sdio_enable_f(s, CYW_SDIO_FUNC_WLAN)) return false;
+  // Clear pullups. NOTE(): ?
+  val = 0x00; cyw_sdio_transfer(true, CYW_SDIO_FUNC_CHIP, CYW_CHIP_PULLUP, &val, 1);
+  // we don't handle wake nor OOB interrupts; SEP_INT_CTL is a vendor specific SDIO register
+  // SDIO interrupts: enable F2 interrupt only
+
+  cyw_set_backplane_window(CYW_CHIP_CHIPCOMMON); // set backplane window to start of CHIPCOMMON area
+  cyw_sdio_transfer(false, CYW_SDIO_FUNC_CHIP, (CYW_CHIP_CHIPCOMMON + 0x00) & CYW_CHIP_BCKPLN_ADDRMSK, &val, 2);
+  if (val == 43430) val = 4343;
+  MG_INFO(("WLAN chip is CYW%u%c", val, val == 4343 ? 'W' : ' '));
+  // Load firmware (code and NVRAM)
+  if (!cyw_load_firmware(d->fw)) return false;
+
+  // Wait for High Throughput (HT) clock ready
+  times = 50;
+  while (times--) {
+    if(!cyw_sdio_transfer(false, CYW_SDIO_FUNC_CHIP, CYW_CHIP_CLOCKCSR, &val, 1)) return false;
+    if (val & MG_BIT(7)) break; // HT_AVAIL
+    mg_delayms(1);
+  }
+  if (times == (unsigned int) ~0) return false;
+  // Wait for WLAN ready
+  if (!mg_sdio_waitready_f(s, CYW_SDIO_FUNC_WLAN)) return false;
+
+  // CHIP DEPENDENCY
+  // Enable save / restore
+  // Configure WakeupCtrl, set HT_AVAIL in CLOCK_CSR
+  if(!cyw_sdio_transfer(false, CYW_SDIO_FUNC_CHIP, CYW_CHIP_WAKEUPCTL, &val, 1)) return false;
+  val |= MG_BIT(1) /* WAKE_TILL_HT_AVAIL */; cyw_sdio_transfer(true, CYW_SDIO_FUNC_CHIP, CYW_CHIP_WAKEUPCTL, &val, 1);
+#if 0 // TODO(scaprile): Check if this is actually necessary
+  // Set BRCM_CARDCAP to CMD_NODEC. This is a vendor specific SDIO register
+  val = MG_BIT(3); cyw_sdio_transfer(true, CYW_SDIO_FUNC_BUS, 0xf0 /* SDIOD_CCCR_BRCM_CARDCAP */, &val, 1);
+#endif
+  // Force HT request to chip backplane
+  val = MG_BIT(1) /* FORCE_HT */; if(!cyw_sdio_transfer(true, CYW_SDIO_FUNC_CHIP, CYW_CHIP_CLOCKCSR, &val, 1)) return false;
+  // Enable Keep SDIO On (KSO)
+  cyw_sdio_transfer(false, CYW_SDIO_FUNC_CHIP, CYW_CHIP_SLEEPCSR, &val, 1);
+  if (!(val & MG_BIT(0))) {
+      val |= MG_BIT(0); cyw_sdio_transfer(true, CYW_SDIO_FUNC_CHIP, CYW_CHIP_SLEEPCSR, &val, 1);
+  }
+  return true;
+}
+
+// clang-format on
+
+static bool cyw_bus_specific_init(void) {
+  return cyw_sdio_init();
+}
+static size_t cyw_bus_specific_poll(uint32_t *response) {
+  return cyw_sdio_poll(response);
+}
+static size_t cyw_bus_specific_tx(uint32_t *data, uint16_t len) {
+  return cyw_sdio_tx(data, len);
+}
+static bool cyw_bus_write(unsigned int f, uint32_t addr, void *data,
+                          uint16_t len) {
+  if (f == CYW_SDIO_FUNC_CHIP && len == 4) addr |= CYW_CHIP_BCKPLN_ACCSS4B;
+  return cyw_sdio_transfer(true, f, addr, data, (uint32_t) len);
+}
+static bool cyw_bus_read(unsigned int f, uint32_t addr, void *data,
+                         uint16_t len) {
+  return cyw_sdio_transfer(false, f, addr, data, (uint32_t) len);
+}
+
+#endif
+
+// Mongoose Wi-Fi API functions
+
+bool mg_wifi_scan(void) {
+  return cyw_wifi_scan();
+}
+
+bool mg_wifi_connect(char *ssid, char *pass) {
+  return cyw_wifi_connect(ssid, pass);
+}
+
+bool mg_wifi_disconnect(void) {
+  return cyw_wifi_disconnect();
+}
+
+bool mg_wifi_ap_start(char *ssid, char *pass, unsigned int channel) {
+  return cyw_wifi_ap_start(ssid, pass, channel);
+}
+
+bool mg_wifi_ap_stop(void) {
+  return cyw_wifi_ap_stop();
+}
+
+#endif
+
+#ifdef MG_ENABLE_LINES
 #line 1 "src/drivers/imxrt.c"
 #endif
 
 
-#if MG_ENABLE_TCPIP && defined(MG_ENABLE_DRIVER_IMXRT) && MG_ENABLE_DRIVER_IMXRT
+#if MG_ENABLE_TCPIP && \
+  (defined(MG_ENABLE_DRIVER_IMXRT10) && MG_ENABLE_DRIVER_IMXRT10) || \
+  (defined(MG_ENABLE_DRIVER_IMXRT11) && MG_ENABLE_DRIVER_IMXRT11)
 struct imxrt_enet {
   volatile uint32_t RESERVED0, EIR, EIMR, RESERVED1, RDAR, TDAR, RESERVED2[3],
       ECR, RESERVED3[6], MMFR, MSCR, RESERVED4[7], MIBC, RESERVED5[7], RCR,
@@ -19577,7 +21914,7 @@ struct imxrt_enet {
 };
 
 #undef ENET
-#if defined(MG_DRIVER_IMXRT_RT11) && MG_DRIVER_IMXRT_RT11
+#if defined(MG_ENABLE_DRIVER_IMXRT11) && MG_ENABLE_DRIVER_IMXRT11
 #define ENET ((struct imxrt_enet *) (uintptr_t) 0x40424000U)
 #define ETH_DESC_CNT 5     // Descriptors count
 #else
@@ -19666,8 +22003,13 @@ static bool mg_tcpip_driver_imxrt_init(struct mg_tcpip_if *ifp) {
   ENET->RDAR = MG_BIT(24);            // Receive Descriptors have changed
   ENET->TDAR = MG_BIT(24);            // Transmit Descriptors have changed
   // ENET->OPD = 0x10014;
+  ENET->IAUR = 0;
+  ENET->IALR = 0;
+  ENET->GAUR = 0;
+  ENET->GALR = 0;
   return true;
 }
+
 
 // Transmit frame
 static size_t mg_tcpip_driver_imxrt_tx(const void *buf, size_t len,
@@ -19693,7 +22035,24 @@ static size_t mg_tcpip_driver_imxrt_tx(const void *buf, size_t len,
   return len;
 }
 
-static bool mg_tcpip_driver_imxrt_up(struct mg_tcpip_if *ifp) {
+static void mg_tcpip_driver_imxrt_update_hash_table(struct mg_tcpip_if *ifp) {
+  // TODO(): read database, rebuild hash table
+  // RM 37.3.4.3.2
+  uint32_t hash_table[2] = {0, 0};
+  // uint8_t hash64 = ((~mg_crc32(0, mcast_addr, 6)) >> 26) & 0x3f;
+  // hash_table[((uint8_t)hash64) >> 5] |= (1 << (hash64 & 0x1f));
+  hash_table[1] = MG_BIT(1); // above reduces to this for mDNS addr
+  ENET->GAUR = hash_table[1];
+  ENET->GALR = hash_table[0];
+  (void) ifp;
+}
+
+static bool mg_tcpip_driver_imxrt_poll(struct mg_tcpip_if *ifp, bool s1) {
+  if (ifp->update_mac_hash_table) {
+    mg_tcpip_driver_imxrt_update_hash_table(ifp);
+    ifp->update_mac_hash_table = false;
+  }
+  if (!s1) return false;
   struct mg_tcpip_driver_imxrt_data *d =
       (struct mg_tcpip_driver_imxrt_data *) ifp->driver_data;
   uint8_t speed = MG_PHY_SPEED_10M;
@@ -19739,7 +22098,7 @@ void ENET_IRQHandler(void) {
 
 struct mg_tcpip_driver mg_tcpip_driver_imxrt = {mg_tcpip_driver_imxrt_init,
                                                 mg_tcpip_driver_imxrt_tx, NULL,
-                                                mg_tcpip_driver_imxrt_up};
+                                                mg_tcpip_driver_imxrt_poll};
 
 #endif
 
@@ -19748,14 +22107,16 @@ struct mg_tcpip_driver mg_tcpip_driver_imxrt = {mg_tcpip_driver_imxrt_init,
 #endif
 
 
-enum {                      // ID1  ID2
-  MG_PHY_KSZ8x = 0x22,      // 0022 1561 - KSZ8081RNB
+enum {                  // ID1  ID2
+  MG_PHY_KSZ8x = 0x22,  // 0022 1561 - KSZ8081RNB
   MG_PHY_DP83x = 0x2000,
   MG_PHY_DP83867 = 0xa231,  // 2000 a231 - TI DP83867I
   MG_PHY_DP83825 = 0xa140,  // 2000 a140 - TI DP83825I
   MG_PHY_DP83848 = 0x5ca2,  // 2000 5ca2 - TI DP83848I
   MG_PHY_LAN87x = 0x7,      // 0007 c0fx - LAN8720
-  MG_PHY_RTL8201 = 0x1C     // 001c c816 - RTL8201
+  MG_PHY_RTL8201 = 0x1C,    // 001c c816 - RTL8201,
+  MG_PHY_ICS1894x = 0x15,
+  MG_PHY_ICS189432 = 0xf450  // 0015 f450 - ICS1894
 };
 
 enum {
@@ -19771,7 +22132,8 @@ enum {
   MG_PHY_KSZ8x_REG_PC2R = 31,
   MG_PHY_LAN87x_REG_SCSR = 31,
   MG_PHY_RTL8201_REG_RMSR = 16,  // in page 7
-  MG_PHY_RTL8201_REG_PAGESEL = 31
+  MG_PHY_RTL8201_REG_PAGESEL = 31,
+  MG_PHY_ICS189432_REG_POLL = 17
 };
 
 static const char *mg_phy_id_to_str(uint16_t id1, uint16_t id2) {
@@ -19793,6 +22155,8 @@ static const char *mg_phy_id_to_str(uint16_t id1, uint16_t id2) {
       return "LAN87x";
     case MG_PHY_RTL8201:
       return "RTL8201";
+    case MG_PHY_ICS1894x:
+      return "ICS1894x";
     default:
       return "unknown";
   }
@@ -19825,11 +22189,13 @@ void mg_phy_init(struct mg_phy *phy, uint8_t phy_addr, uint8_t config) {
       phy->write_reg(phy_addr, MG_PHY_DP83x_REG_RCSR, MG_BIT(7) | MG_BIT(0));
     } else if (id1 == MG_PHY_KSZ8x) {
       // Disable isolation (override hw, it doesn't make sense at this point)
-      phy->write_reg(  // #2848, some NXP boards set ISO, even though
-          phy_addr, MG_PHY_REG_BCR,  // docs say they don't
-          phy->read_reg(phy_addr, MG_PHY_REG_BCR) & (uint16_t) ~MG_BIT(10));
-      phy->write_reg(phy_addr, MG_PHY_KSZ8x_REG_PC2R,  // now do clock stuff
-                     MG_BIT(15) | MG_BIT(8) | MG_BIT(7));
+      // - #2848, some NXP boards set ISO, even though docs say they don't
+      phy->write_reg(phy_addr, MG_PHY_REG_BCR,
+                     (uint16_t) (phy->read_reg(phy_addr, MG_PHY_REG_BCR) &
+                                 (uint16_t) ~MG_BIT(10)));
+      // now do clock stuff
+      phy->write_reg(phy_addr, MG_PHY_KSZ8x_REG_PC2R,
+                     (uint16_t) (MG_BIT(15) | MG_BIT(8) | MG_BIT(7)));
     } else if (id1 == MG_PHY_LAN87x) {
       // nothing to do
     } else if (id1 == MG_PHY_RTL8201) {
@@ -19882,6 +22248,10 @@ bool mg_phy_up(struct mg_phy *phy, uint8_t phy_addr, bool *full_duplex,
       uint16_t bcr = phy->read_reg(phy_addr, MG_PHY_REG_BCR);
       *full_duplex = bcr & MG_BIT(8);
       *speed = (bcr & MG_BIT(13)) ? MG_PHY_SPEED_100M : MG_PHY_SPEED_10M;
+    } else if (id1 == MG_PHY_ICS1894x) {
+      uint16_t poll_reg = phy->read_reg(phy_addr, MG_PHY_ICS189432_REG_POLL);
+      *full_duplex = poll_reg & MG_BIT(14);
+      *speed = (poll_reg & MG_BIT(15)) ? MG_PHY_SPEED_100M : MG_PHY_SPEED_10M;
     }
   }
   return up;
@@ -19905,50 +22275,151 @@ static bool mg_tcpip_driver_pico_w_init(struct mg_tcpip_if *ifp) {
   s_ifp = ifp;
   if (cyw43_arch_init() != 0)
     return false;  // initialize async_context and WiFi chip
-  cyw43_arch_enable_sta_mode();
-  // start connecting to network
-  if (cyw43_arch_wifi_connect_bssid_async(d->ssid, NULL, d->pass,
-                                          CYW43_AUTH_WPA2_AES_PSK) != 0)
-    return false;
-  cyw43_wifi_get_mac(&cyw43_state, CYW43_ITF_STA, ifp->mac);
+  if (d->apmode && d->apssid != NULL) {
+    MG_DEBUG(("Starting AP '%s' (%u)", d->apssid, d->apchannel));
+    if (!mg_wifi_ap_start(d->apssid, d->appass, d->apchannel)) return false;
+    cyw43_wifi_get_mac(&cyw43_state, CYW43_ITF_STA, ifp->mac);  // same MAC
+  } else {
+    cyw43_arch_enable_sta_mode();
+    cyw43_wifi_get_mac(&cyw43_state, CYW43_ITF_STA, ifp->mac);
+    if (d->ssid != NULL) {
+      MG_DEBUG(("Connecting to '%s'", d->ssid));
+      return mg_wifi_connect(d->ssid, d->pass);
+    } else {
+      cyw43_arch_disable_sta_mode();
+    }
+  }
   return true;
 }
 
 static size_t mg_tcpip_driver_pico_w_tx(const void *buf, size_t len,
                                         struct mg_tcpip_if *ifp) {
-  (void) ifp;
-  return cyw43_send_ethernet(&cyw43_state, CYW43_ITF_STA, len, buf, false)
-             ? 0
-             : len;
+  struct mg_tcpip_driver_pico_w_data *d =
+      (struct mg_tcpip_driver_pico_w_data *) ifp->driver_data;
+  return cyw43_send_ethernet(&cyw43_state,
+                             d->apmode ? CYW43_ITF_AP : CYW43_ITF_STA, len, buf,
+                             false) == 0
+             ? len
+             : 0;
 }
 
-static bool mg_tcpip_driver_pico_w_up(struct mg_tcpip_if *ifp) {
-  (void) ifp;
-  return (cyw43_wifi_link_status(&cyw43_state, CYW43_ITF_STA) ==
-          CYW43_LINK_JOIN);
+static bool s_aplink = false, s_scanning = false;
+static bool s_stalink = false, s_connecting = false;
+
+static bool mg_tcpip_driver_pico_w_poll(struct mg_tcpip_if *ifp, bool s1) {
+  cyw43_arch_poll();  // not necessary, except when IRQs are disabled (OTA)
+  if (s_scanning && !cyw43_wifi_scan_active(&cyw43_state)) {
+    MG_VERBOSE(("scan complete"));
+    s_scanning = 0;
+    mg_tcpip_call(s_ifp, MG_TCPIP_EV_WIFI_SCAN_END, NULL);
+  }
+  if (ifp->update_mac_hash_table) {
+    // first call to _poll() is after _init(), so this is safe
+    cyw43_wifi_update_multicast_filter(&cyw43_state, (uint8_t *)mcast_addr, true);
+    ifp->update_mac_hash_table = false;
+  }
+  if (!s1) return false;
+  struct mg_tcpip_driver_pico_w_data *d =
+      (struct mg_tcpip_driver_pico_w_data *) ifp->driver_data;
+  if (d->apmode) return s_aplink;
+  int sdkstate = cyw43_wifi_link_status(&cyw43_state, CYW43_ITF_STA);
+  MG_VERBOSE(("conn: %c state: %d", s_connecting ? '1' : '0', sdkstate));
+  if (sdkstate < 0 && s_connecting) {
+    mg_tcpip_call(s_ifp, MG_TCPIP_EV_WIFI_CONNECT_ERR, &sdkstate);
+    s_connecting = false;
+  }
+  return s_stalink;
 }
 
 struct mg_tcpip_driver mg_tcpip_driver_pico_w = {
     mg_tcpip_driver_pico_w_init,
     mg_tcpip_driver_pico_w_tx,
     NULL,
-    mg_tcpip_driver_pico_w_up,
+    mg_tcpip_driver_pico_w_poll,
 };
 
 // Called once per outstanding frame by async_context
 void cyw43_cb_process_ethernet(void *cb_data, int itf, size_t len,
                                const uint8_t *buf) {
-  if (itf != CYW43_ITF_STA) return;
   mg_tcpip_qwrite((void *) buf, len, s_ifp);
   (void) cb_data;
 }
 
 // Called by async_context
-void cyw43_cb_tcpip_set_link_up(cyw43_t *self, int itf) {}
-void cyw43_cb_tcpip_set_link_down(cyw43_t *self, int itf) {}
+void cyw43_cb_tcpip_set_link_up(cyw43_t *self, int itf) {
+  if (itf == CYW43_ITF_AP) {
+    s_aplink = true;
+  } else {
+    s_stalink = true;
+    s_connecting = false;
+  }
+}
+void cyw43_cb_tcpip_set_link_down(cyw43_t *self, int itf) {
+  if (itf == CYW43_ITF_AP) {
+     s_aplink = false;
+  } else {
+    s_stalink = false;
+    // SDK calls this before we check status, don't clear s_connecting here
+  }
+}
 
 // there's life beyond lwIP
-void pbuf_copy_partial(void) {(void) 0;}
+void pbuf_copy_partial(void) {
+  (void) 0;
+}
+
+static int result_cb(void *arg, const cyw43_ev_scan_result_t *data) {
+  struct mg_wifi_scan_bss_data bss;
+  bss.SSID = mg_str_n(data->ssid, data->ssid_len);
+  bss.BSSID = (char *) data->bssid;
+  bss.RSSI = (int8_t) data->rssi;
+  bss.has_n = 0;  // SDK ignores this
+  bss.channel = (uint8_t) data->channel;
+  bss.band = MG_WIFI_BAND_2G;
+  // SDK-internal dependency, 2.1.0
+  bss.security = data->auth_mode & MG_BIT(0) ? MG_WIFI_SECURITY_WEP
+                                             : MG_WIFI_SECURITY_OPEN;
+  if (data->auth_mode & MG_BIT(1)) bss.security |= MG_WIFI_SECURITY_WPA;
+  if (data->auth_mode & MG_BIT(2)) bss.security |= MG_WIFI_SECURITY_WPA2;
+  MG_VERBOSE(("BSS: %.*s (%u) (%M) %d dBm %u", bss.SSID.len, bss.SSID.buf,
+              bss.channel, mg_print_mac, bss.BSSID, (int) bss.RSSI,
+              bss.security));
+  mg_tcpip_call(s_ifp, MG_TCPIP_EV_WIFI_SCAN_RESULT, &bss);
+  return 0;
+}
+
+bool mg_wifi_scan(void) {
+  cyw43_wifi_scan_options_t opts;
+  memset(&opts, 0, sizeof(opts));
+  bool res = (cyw43_wifi_scan(&cyw43_state, &opts, NULL, result_cb) == 0);
+  if (res) s_scanning = true;
+  return res;
+}
+
+bool mg_wifi_connect(char *ssid, char *pass) {
+  cyw43_arch_enable_sta_mode();
+  int res = cyw43_arch_wifi_connect_async(ssid, pass, CYW43_AUTH_WPA2_AES_PSK);
+  MG_VERBOSE(("res: %d", res));
+  if (res == 0) s_connecting = true;
+  return (res == 0);
+}
+
+bool mg_wifi_disconnect(void) {
+  cyw43_arch_disable_sta_mode();
+  s_connecting = false;
+  return true;
+}
+
+bool mg_wifi_ap_start(char *ssid, char *pass, unsigned int channel) {
+  cyw43_wifi_ap_set_channel(&cyw43_state, channel);
+  cyw43_arch_enable_ap_mode(ssid, pass, CYW43_AUTH_WPA2_AES_PSK);
+  return true;
+}
+
+bool mg_wifi_ap_stop(void) {
+  cyw43_arch_disable_ap_mode();
+  return true;
+}
 
 #endif
 
@@ -20053,7 +22524,8 @@ static uint32_t fcs_do(uint32_t fcs, uint8_t x) {
   return fcs;
 }
 
-static bool mg_ppp_up(struct mg_tcpip_if *ifp) {
+static bool mg_ppp_poll(struct mg_tcpip_if *ifp, bool s1) {
+  (void) s1;
   return ifp->driver_data != NULL;
 }
 
@@ -20279,7 +22751,7 @@ static size_t mg_ppp_rx(void *ethbuf, size_t ethlen, struct mg_tcpip_if *ifp) {
 }
 
 struct mg_tcpip_driver mg_tcpip_driver_ppp = {mg_ppp_init, mg_ppp_tx, mg_ppp_rx,
-                                              mg_ppp_up};
+                                              mg_ppp_poll};
 
 #endif
 
@@ -20288,7 +22760,9 @@ struct mg_tcpip_driver mg_tcpip_driver_ppp = {mg_ppp_init, mg_ppp_tx, mg_ppp_rx,
 #endif
 
 
-#if MG_ENABLE_TCPIP && defined(MG_ENABLE_DRIVER_RA) && MG_ENABLE_DRIVER_RA
+#if MG_ENABLE_TCPIP && \
+  (defined(MG_ENABLE_DRIVER_RA6) && MG_ENABLE_DRIVER_RA6) || \
+  (defined(MG_ENABLE_DRIVER_RA8) && MG_ENABLE_DRIVER_RA8)
 struct ra_etherc {
   volatile uint32_t ECMR, RESERVED, RFLR, RESERVED1, ECSR, RESERVED2, ECSIPR,
       RESERVED3, PIR, RESERVED4, PSR, RESERVED5[5], RDMLR, RESERVED6[3], IPGR,
@@ -20306,13 +22780,20 @@ struct ra_edmac {
 };
 
 #undef ETHERC
-#define ETHERC ((struct ra_etherc *) (uintptr_t) 0x40114100U)
 #undef EDMAC
-#define EDMAC ((struct ra_edmac *) (uintptr_t) 0x40114000U)
 #undef RASYSC
-#define RASYSC ((uint32_t *) (uintptr_t) 0x4001E000U)
 #undef ICU_IELSR
+#if defined(MG_ENABLE_DRIVER_RA8) && MG_ENABLE_DRIVER_RA8
+#define ETHERC ((struct ra_etherc *) (uintptr_t) 0x40354100U)
+#define EDMAC ((struct ra_edmac *) (uintptr_t) 0x40354000U)
+#define RASYSC ((uint32_t *) (uintptr_t) 0x4001E000U)
+#define ICU_IELSR ((uint32_t *) (uintptr_t) 0x4000C300U)
+#else
+#define ETHERC ((struct ra_etherc *) (uintptr_t) 0x40114100U)
+#define EDMAC ((struct ra_edmac *) (uintptr_t) 0x40114000U)
+#define RASYSC ((uint32_t *) (uintptr_t) 0x4001E000U)
 #define ICU_IELSR ((uint32_t *) (uintptr_t) 0x40006300U)
+#endif
 
 #define ETH_PKT_SIZE 1536  // Max frame size, multiple of 32
 #define ETH_DESC_CNT 4     // Descriptors count
@@ -20389,9 +22870,9 @@ static uint16_t smi_rd(uint16_t header) {
     pir = 0;  // read, mdc = 0
     ETHERC->PIR = pir;
     raspin(s_smispin / 2);  // 1/4 clock period, 300ns max access time
-    data |= (uint16_t)(ETHERC->PIR & MG_BIT(3) ? 1 : 0);  // read mdio
-    raspin(s_smispin / 2);                    // 1/4 clock period
-    pir |= MG_BIT(0);                         // mdc = 1
+    data |= (uint16_t) (ETHERC->PIR & MG_BIT(3) ? 1 : 0);  // read mdio
+    raspin(s_smispin / 2);                                 // 1/4 clock period
+    pir |= MG_BIT(0);                                      // mdc = 1
     ETHERC->PIR = pir;
     raspin(s_smispin);
   }
@@ -20399,11 +22880,14 @@ static uint16_t smi_rd(uint16_t header) {
 }
 
 static uint16_t raeth_read_phy(uint8_t addr, uint8_t reg) {
-  return smi_rd((uint16_t)((1 << 14) | (2 << 12) | (addr << 7) | (reg << 2) | (2 << 0)));
+  return smi_rd(
+      (uint16_t) ((1 << 14) | (2 << 12) | (addr << 7) | (reg << 2) | (2 << 0)));
 }
 
 static void raeth_write_phy(uint8_t addr, uint8_t reg, uint16_t val) {
-  smi_wr((uint16_t)((1 << 14) | (1 << 12) | (addr << 7) | (reg << 2) | (2 << 0)), val);
+  smi_wr(
+      (uint16_t) ((1 << 14) | (1 << 12) | (addr << 7) | (reg << 2) | (2 << 0)),
+      val);
 }
 
 // MDC clock is generated manually; as per 802.3, it must not exceed 2.5MHz
@@ -20440,7 +22924,7 @@ static bool mg_tcpip_driver_ra_init(struct mg_tcpip_if *ifp) {
 
   MG_DEBUG(("PHY addr: %d, smispin: %d", d->phy_addr, s_smispin));
   struct mg_phy phy = {raeth_read_phy, raeth_write_phy};
-  mg_phy_init(&phy, d->phy_addr, 0); // MAC clocks PHY
+  mg_phy_init(&phy, d->phy_addr, 0);  // MAC clocks PHY
 
   // Select RMII mode,
   ETHERC->ECMR = MG_BIT(2) | MG_BIT(1);  // 100M, Full-duplex, CRC
@@ -20459,9 +22943,9 @@ static bool mg_tcpip_driver_ra_init(struct mg_tcpip_if *ifp) {
   EDMAC->FDR = 0x070f;                    // (27.2.11)
   EDMAC->RMCR = MG_BIT(0);                // (27.2.12)
   ETHERC->ECMR |= MG_BIT(6) | MG_BIT(5);  // TE RE
-  EDMAC->EESIPR = MG_BIT(18);             // Enable Rx IRQ
-  EDMAC->EDRRR = MG_BIT(0);               // Receive Descriptors have changed
-  EDMAC->EDTRR = MG_BIT(0);               // Transmit Descriptors have changed
+  EDMAC->EESIPR = MG_BIT(18);  // FR: Enable Rx (frame) IRQ
+  EDMAC->EDRRR = MG_BIT(0);  // Receive Descriptors have changed
+  EDMAC->EDTRR = MG_BIT(0);  // Transmit Descriptors have changed
   return true;
 }
 
@@ -20486,7 +22970,12 @@ static size_t mg_tcpip_driver_ra_tx(const void *buf, size_t len,
   return len;
 }
 
-static bool mg_tcpip_driver_ra_up(struct mg_tcpip_if *ifp) {
+static bool mg_tcpip_driver_ra_poll(struct mg_tcpip_if *ifp, bool s1) {
+  if (ifp->update_mac_hash_table) {
+    EDMAC->EESIPR = MG_BIT(18) | MG_BIT(7);  // FR, RMAF: Frame and mcast IRQ
+    ifp->update_mac_hash_table = false;
+  }
+  if (!s1) return false;
   struct mg_tcpip_driver_ra_data *d =
       (struct mg_tcpip_driver_ra_data *) ifp->driver_data;
   uint8_t speed = MG_PHY_SPEED_10M;
@@ -20512,7 +23001,7 @@ static uint32_t s_rxno;
 void EDMAC_IRQHandler(void) {
   struct mg_tcpip_driver_ra_data *d =
       (struct mg_tcpip_driver_ra_data *) s_ifp->driver_data;
-  EDMAC->EESR = MG_BIT(18);            // Ack IRQ in EDMAC 1st
+  EDMAC->EESR = MG_BIT(18) | MG_BIT(7);  // Ack IRQ in EDMAC 1st
   ICU_IELSR[d->irqno] &= ~MG_BIT(16);  // Ack IRQ in ICU last
   // Frame received, loop
   for (uint32_t i = 0; i < 10; i++) {  // read as they arrive but not forever
@@ -20533,7 +23022,7 @@ void EDMAC_IRQHandler(void) {
 
 struct mg_tcpip_driver mg_tcpip_driver_ra = {mg_tcpip_driver_ra_init,
                                              mg_tcpip_driver_ra_tx, NULL,
-                                             mg_tcpip_driver_ra_up};
+                                             mg_tcpip_driver_ra_poll};
 
 #endif
 
@@ -20631,6 +23120,10 @@ static bool mg_tcpip_driver_rw612_init(struct mg_tcpip_if *ifp) {
   ENET->PALR =
       ifp->mac[0] << 24 | ifp->mac[1] << 16 | ifp->mac[2] << 8 | ifp->mac[3];
   ENET->PAUR |= (ifp->mac[4] << 24 | ifp->mac[5] << 16);
+  ENET->IALR = 0;
+  ENET->IAUR = 0;
+  ENET->GALR = 0;
+  ENET->GAUR = 0;
   ENET->MSCR = ((d->mdc_cr & 0x3f) << 1) | ((d->mdc_holdtime & 7) << 8);
   ENET->EIMR = MG_BIT(25);             // Enable RX interrupt
   ENET->ECR |= MG_BIT(8) | MG_BIT(1);  // DBSWP, Enable
@@ -20663,7 +23156,19 @@ static size_t mg_tcpip_driver_rw612_tx(const void *buf, size_t len,
   return len;
 }
 
-static bool mg_tcpip_driver_rw612_up(struct mg_tcpip_if *ifp) {
+
+static void mg_tcpip_driver_rw612_update_hash_table(struct mg_tcpip_if *ifp) {
+  // TODO(): read database, rebuild hash table
+  ENET->GAUR = MG_BIT(1); // see imxrt, it reduces to this for mDNS
+  (void) ifp;
+}
+
+static bool mg_tcpip_driver_rw612_poll(struct mg_tcpip_if *ifp, bool s1) {
+  if (ifp->update_mac_hash_table) {
+    mg_tcpip_driver_rw612_update_hash_table(ifp);
+    ifp->update_mac_hash_table = false;
+  }
+  if (!s1) return false;
   struct mg_tcpip_driver_rw612_data *d =
       (struct mg_tcpip_driver_rw612_data *) ifp->driver_data;
   uint8_t speed = MG_PHY_SPEED_10M;
@@ -20699,7 +23204,7 @@ static bool mg_tcpip_driver_rw612_up(struct mg_tcpip_if *ifp) {
 
 void ENET_IRQHandler(void) {
   if (ENET->EIR & MG_BIT(25)) {
-    ENET->EIR = MG_BIT(25); // Ack RX
+    ENET->EIR = MG_BIT(25);              // Ack RX
     for (uint32_t i = 0; i < 10; i++) {  // read as they arrive but not forever
       if ((s_rxdesc[s_rxno][0] & MG_BIT(31)) != 0) break;  // exit when done
       // skip partial/errored frames
@@ -20719,7 +23224,7 @@ void ENET_IRQHandler(void) {
 
 struct mg_tcpip_driver mg_tcpip_driver_rw612 = {mg_tcpip_driver_rw612_init,
                                                 mg_tcpip_driver_rw612_tx, NULL,
-                                                mg_tcpip_driver_rw612_up};
+                                                mg_tcpip_driver_rw612_poll};
 #endif
 
 #ifdef MG_ENABLE_LINES
@@ -20727,9 +23232,38 @@ struct mg_tcpip_driver mg_tcpip_driver_rw612 = {mg_tcpip_driver_rw612_init,
 #endif
 
 
-#if MG_ENABLE_TCPIP && defined(MG_ENABLE_DRIVER_SAME54) && MG_ENABLE_DRIVER_SAME54
+#if MG_ENABLE_TCPIP && defined(MG_ENABLE_DRIVER_SAME54) && \
+    MG_ENABLE_DRIVER_SAME54
 
-#include <sam.h>
+struct GMAC_REGS_ {
+  uint32_t GMAC_NCR, GMAC_NCFGR, GMAC_NSR, GMAC_UR, GMAC_DCFGR, GMAC_TSR,
+      GMAC_RBQB, GMAC_TBQB, GMAC_RSR, GMAC_ISR, GMAC_IER, GMAC_IDR, GMAC_IMR,
+      GMAC_MAN, GMAC_RPQ, GMAC_TPQ, GMAC_TPSF, GMAC_RPSF, GMAC_RJFML,
+      Reserved1[13], GMAC_HRB, GMAC_HRT, GMAC_SAB0, GMAC_SAT0, GMAC_SAB1,
+      GMAC_SAT1, GMAC_SAB2, GMAC_SAT2, GMAC_SAB3, GMAC_SAT3, GMAC_TIDM[4],
+      GMAC_WOL, GMAC_IPGS, GMAC_SVLAN, GMAC_TPFCP, GMAC_SAMB1, GMAC_SAMT1,
+      Reserved2[3], GMAC_NSC, GMAC_SCL, GMAC_SCH, GMAC_EFTSH, GMAC_EFRSH,
+      GMAC_PEFTSH, GMAC_PEFRSH, Reserved3[2], GMAC_OTLO, GMAC_OTHI, GMAC_FT,
+      GMAC_BCFT, GMAC_MFT, GMAC_PFT, GMAC_BFT64, GMAC_TBFT127, GMAC_TBFT255,
+      GMAC_TBFT511, GMAC_TBFT1023, GMAC_TBFT1518, GMAC_GTBFT1518, GMAC_TUR,
+      GMAC_SCF, GMAC_MCF, GMAC_EC, GMAC_LC, GMAC_DTF, GMAC_CSE, GMAC_ORLO,
+      GMAC_ORHI, GMAC_FR, GMAC_BCFR, GMAC_MFR, GMAC_PFR, GMAC_BFR64,
+      GMAC_TBFR127, GMAC_TBFR255, GMAC_TBFR511, GMAC_TBFR1023, GMAC_TBFR1518,
+      GMAC_TMXBFR, GMAC_UFR, GMAC_OFR, GMAC_JR, GMAC_FCSE, GMAC_LFFE, GMAC_RSE,
+      GMAC_AE, GMAC_RRE, GMAC_ROE, GMAC_IHCE, GMAC_TCE, GMAC_UCE, Reserved4[2],
+      GMAC_TISUBN, GMAC_TSH, Reserved5, GMAC_TSSSL, GMAC_TSSN, GMAC_TSL,
+      GMAC_TN, GMAC_TA, GMAC_TI, GMAC_EFTSL, GMAC_EFTN, GMAC_EFRSL, GMAC_EFRN,
+      GMAC_PEFTSL, GMAC_PEFTN, GMAC_PEFRSL, GMAC_PEFRN, Reserved6[28],
+      GMAC_RLPITR, GMAC_RLPITI, GMAC_TLPITR, GMAC_TLPITI;
+};
+
+struct GCLK_REGS_ {
+  uint32_t GCLK_CTRLA_RESERVED, GCLK_SYNCBUSY, Reserved2[6], GCLK_GENCTRL[12],
+      Reserved3[12], GCLK_PCHCTRL[48];
+};
+
+#define GMAC_REGS ((struct GMAC_REGS_ *) 0x42000800)
+#define GCLK_REGS ((struct GCLK_REGS_ *) 0x40001c00)
 
 #define ETH_PKT_SIZE 1536  // Max frame size
 #define ETH_DESC_CNT 4     // Descriptors count
@@ -20743,72 +23277,67 @@ static uint8_t s_txno;                           // Current TX descriptor
 static uint8_t s_rxno;                           // Current RX descriptor
 
 static struct mg_tcpip_if *s_ifp;  // MIP interface
-enum { MG_PHY_ADDR = 0, MG_PHYREG_BCR = 0, MG_PHYREG_BSR = 1 };
-
-#define MG_PHYREGBIT_BCR_DUPLEX_MODE MG_BIT(8)
-#define MG_PHYREGBIT_BCR_SPEED MG_BIT(13)
-#define MG_PHYREGBIT_BSR_LINK_STATUS MG_BIT(2)
 
 static uint16_t eth_read_phy(uint8_t addr, uint8_t reg) {
-  GMAC_REGS->GMAC_MAN = GMAC_MAN_CLTTO_Msk |
-                        GMAC_MAN_OP(2) |  // Setting the read operation
-                        GMAC_MAN_WTN(2) | GMAC_MAN_PHYA(addr) |  // PHY address
-                        GMAC_MAN_REGA(reg);  // Setting the register
-  while (!(GMAC_REGS->GMAC_NSR & GMAC_NSR_IDLE_Msk)) (void) 0;
-  return GMAC_REGS->GMAC_MAN & GMAC_MAN_DATA_Msk;  // Getting the read value
+  GMAC_REGS->GMAC_MAN = MG_BIT(30) |  // Clause 22
+                        MG_BIT(29) |  // Setting the read operation
+                        MG_BIT(17) | ((addr & 0x1f) << 23) |  // PHY address
+                        ((reg & 0x1f) << 18);  // Setting the register
+  while (!(GMAC_REGS->GMAC_NSR & MG_BIT(2))) (void) 0;
+  return GMAC_REGS->GMAC_MAN & 0xffff;  // Getting the read value
 }
 
-#if 0
 static void eth_write_phy(uint8_t addr, uint8_t reg, uint16_t val) {
-  GMAC_REGS->GMAC_MAN = GMAC_MAN_CLTTO_Msk | GMAC_MAN_OP(1) |   // Setting the write operation
-                        GMAC_MAN_WTN(2) | GMAC_MAN_PHYA(addr) | // PHY address
-                        GMAC_MAN_REGA(reg) | GMAC_MAN_DATA(val);  // Setting the register
-  while (!(GMAC_REGS->GMAC_NSR & GMAC_NSR_IDLE_Msk)); // Waiting until the write op is complete
+  GMAC_REGS->GMAC_MAN = MG_BIT(30) |
+                        MG_BIT(28) |  // Setting the write operation
+                        MG_BIT(17) | ((addr & 0x1f) << 23) |  // PHY address
+                        ((reg & 0x1f) << 18) | val;  // Setting the register
+  while (!(GMAC_REGS->GMAC_NSR & MG_BIT(2)))
+    ;  // Waiting until the write op is complete
 }
-#endif
 
-int get_clock_rate(struct mg_tcpip_driver_same54_data *d) {
+uint32_t get_clock_rate(struct mg_tcpip_driver_same54_data *d) {
   if (d && d->mdc_cr >= 0 && d->mdc_cr <= 5) {
     return d->mdc_cr;
   } else {
     // get MCLK from GCLK_GENERATOR 0
     uint32_t div = 512;
     uint32_t mclk;
-    if (!(GCLK_REGS->GCLK_GENCTRL[0] & GCLK_GENCTRL_DIVSEL_Msk)) {
+    if (!(GCLK_REGS->GCLK_GENCTRL[0] & MG_BIT(12))) {
       div = ((GCLK_REGS->GCLK_GENCTRL[0] & 0x00FF0000) >> 16);
       if (div == 0) div = 1;
     }
-    switch (GCLK_REGS->GCLK_GENCTRL[0] & GCLK_GENCTRL_SRC_Msk) {
-      case GCLK_GENCTRL_SRC_XOSC0_Val:
-        mclk = 32000000UL; /* 32MHz */
+    switch (GCLK_REGS->GCLK_GENCTRL[0] & 0xF) {
+      case 0:               // GCLK_GENCTRL_SRC_XOSC0_Val
+        mclk = 32000000UL;  // 32MHz
         break;
-      case GCLK_GENCTRL_SRC_XOSC1_Val:
-        mclk = 32000000UL; /* 32MHz */
+      case 1:               // GCLK_GENCTRL_SRC_XOSC1_Val
+        mclk = 32000000UL;  // 32MHz
         break;
-      case GCLK_GENCTRL_SRC_OSCULP32K_Val:
-        mclk = 32000UL;
+      case 4:            // GCLK_GENCTRL_SRC_OSCULP32K_Val
+        mclk = 32000UL;  // 32Khz
         break;
-      case GCLK_GENCTRL_SRC_XOSC32K_Val:
-        mclk = 32000UL;
+      case 5:            // GCLK_GENCTRL_SRC_XOSC32K_Val
+        mclk = 32000UL;  // 32Khz
         break;
-      case GCLK_GENCTRL_SRC_DFLL_Val:
-        mclk = 48000000UL; /* 48MHz */
+      case 6:               // GCLK_GENCTRL_SRC_DFLL_Val
+        mclk = 48000000UL;  // 48MHz
         break;
-      case GCLK_GENCTRL_SRC_DPLL0_Val:
-        mclk = 200000000UL; /* 200MHz */
+      case 7:                // GCLK_GENCTRL_SRC_DPLL0_Val:
+        mclk = 200000000UL;  // 200MHz
         break;
-      case GCLK_GENCTRL_SRC_DPLL1_Val:
-        mclk = 200000000UL; /* 200MHz */
+      case 8:                // GCLK_GENCTRL_SRC_DPLL1_Val
+        mclk = 200000000UL;  // 200MHz
         break;
       default:
-        mclk = 200000000UL; /* 200MHz */
+        mclk = 200000000UL;  // 200MHz
     }
 
     mclk /= div;
     uint8_t crs[] = {0, 1, 2, 3, 4, 5};            // GMAC->NCFGR::CLK values
     uint8_t dividers[] = {8, 16, 32, 48, 64, 96};  // Respective CLK dividers
     for (int i = 0; i < 6; i++) {
-      if (mclk / dividers[i] <= 2375000UL /* 2.5MHz - 5% */) {
+      if (mclk / dividers[i] <= 2375000UL) {  // 2.5MHz - 5%
         return crs[i];
       }
     }
@@ -20822,11 +23351,12 @@ static bool mg_tcpip_driver_same54_init(struct mg_tcpip_if *ifp) {
       (struct mg_tcpip_driver_same54_data *) ifp->driver_data;
   s_ifp = ifp;
 
-  MCLK_REGS->MCLK_APBCMASK |= MCLK_APBCMASK_GMAC_Msk;
-  MCLK_REGS->MCLK_AHBMASK |= MCLK_AHBMASK_GMAC_Msk;
-  GMAC_REGS->GMAC_NCFGR = GMAC_NCFGR_CLK(get_clock_rate(d));  // Set MDC divider
-  GMAC_REGS->GMAC_NCR = 0;                                    // Disable RX & TX
-  GMAC_REGS->GMAC_NCR |= GMAC_NCR_MPE_Msk;  // Enable MDC & MDIO
+  GMAC_REGS->GMAC_NCFGR = get_clock_rate(d) << 18;  // Set MDC divider
+  GMAC_REGS->GMAC_NCR = 0;                          // Disable RX & TX
+  GMAC_REGS->GMAC_NCR |= MG_BIT(4);                 // Enable MDC & MDIO
+
+  struct mg_phy phy = {eth_read_phy, eth_write_phy};
+  mg_phy_init(&phy, d->phy_addr, 0);
 
   for (int i = 0; i < ETH_DESC_CNT; i++) {   // Init TX descriptors
     s_txdesc[i][0] = (uint32_t) s_txbuf[i];  // Point to data buffer
@@ -20834,38 +23364,33 @@ static bool mg_tcpip_driver_same54_init(struct mg_tcpip_if *ifp) {
   }
   s_txdesc[ETH_DESC_CNT - 1][1] |= MG_BIT(30);  // Last tx descriptor - wrap
 
-  GMAC_REGS->GMAC_DCFGR = GMAC_DCFGR_DRBS(0x18)  // DMA recv buf 1536
-                          | GMAC_DCFGR_RXBMS(GMAC_DCFGR_RXBMS_FULL_Val) |
-                          GMAC_DCFGR_TXPBMS(1);  // See #2487
-  for (int i = 0; i < ETH_DESC_CNT; i++) {       // Init RX descriptors
-    s_rxdesc[i][0] = (uint32_t) s_rxbuf[i];      // Address of the data buffer
-    s_rxdesc[i][1] = 0;                          // Clear status
+  GMAC_REGS->GMAC_DCFGR = (0x18 << 16) |     // DMA recv buf 1536
+                          (3 << 8) |         // RXBMS
+                          MG_BIT(10);        // See #2487
+  for (int i = 0; i < ETH_DESC_CNT; i++) {   // Init RX descriptors
+    s_rxdesc[i][0] = (uint32_t) s_rxbuf[i];  // Address of the data buffer
+    s_rxdesc[i][1] = 0;                      // Clear status
   }
   s_rxdesc[ETH_DESC_CNT - 1][0] |= MG_BIT(1);  // Last rx descriptor - wrap
 
   GMAC_REGS->GMAC_TBQB = (uint32_t) s_txdesc;  // about the descriptor addresses
   GMAC_REGS->GMAC_RBQB = (uint32_t) s_rxdesc;  // Let the controller know
 
-  GMAC_REGS->SA[0].GMAC_SAB =
+  GMAC_REGS->GMAC_SAB0 =
       MG_U32(ifp->mac[3], ifp->mac[2], ifp->mac[1], ifp->mac[0]);
-  GMAC_REGS->SA[0].GMAC_SAT = MG_U32(0, 0, ifp->mac[5], ifp->mac[4]);
+  GMAC_REGS->GMAC_SAT0 = MG_U32(0, 0, ifp->mac[5], ifp->mac[4]);
 
-  GMAC_REGS->GMAC_UR &= ~GMAC_UR_MII_Msk;  // Disable MII, use RMII
-  GMAC_REGS->GMAC_NCFGR |= GMAC_NCFGR_MAXFS_Msk | GMAC_NCFGR_MTIHEN_Msk |
-                           GMAC_NCFGR_EFRHD_Msk | GMAC_NCFGR_CAF_Msk;
-  GMAC_REGS->GMAC_TSR = GMAC_TSR_HRESP_Msk | GMAC_TSR_UND_Msk |
-                        GMAC_TSR_TXCOMP_Msk | GMAC_TSR_TFC_Msk |
-                        GMAC_TSR_TXGO_Msk | GMAC_TSR_RLE_Msk |
-                        GMAC_TSR_COL_Msk | GMAC_TSR_UBR_Msk;
-  GMAC_REGS->GMAC_RSR = GMAC_RSR_HNO_Msk | GMAC_RSR_RXOVR_Msk |
-                        GMAC_RSR_REC_Msk | GMAC_RSR_BNA_Msk;
+  GMAC_REGS->GMAC_UR &= ~MG_BIT(0);                 // Disable MII, use RMII
+  GMAC_REGS->GMAC_NCFGR |= MG_BIT(8) | MG_BIT(6) |  // MAXFX, MTIHEN
+                           MG_BIT(25) | MG_BIT(4);  // EFRHD, CAF
+  GMAC_REGS->GMAC_TSR = 0x17f;                      // all transmit statuses
+  GMAC_REGS->GMAC_RSR = 0xf;                        // all recv statuses
   GMAC_REGS->GMAC_IDR = ~0U;  // Disable interrupts, then enable required
-  GMAC_REGS->GMAC_IER = GMAC_IER_HRESP_Msk | GMAC_IER_ROVR_Msk |
-                        GMAC_IER_TCOMP_Msk | GMAC_IER_TFC_Msk |
-                        GMAC_IER_RLEX_Msk | GMAC_IER_TUR_Msk |
-                        GMAC_IER_RXUBR_Msk | GMAC_IER_RCOMP_Msk;
-  GMAC_REGS->GMAC_NCR |= GMAC_NCR_TXEN_Msk | GMAC_NCR_RXEN_Msk;
-  NVIC_EnableIRQ(GMAC_IRQn);
+  GMAC_REGS->GMAC_IER = MG_BIT(11) | MG_BIT(10) |  // HRESP, ROVR
+                        MG_BIT(7) | MG_BIT(6) |    // TCOMP, TFC
+                        MG_BIT(5) | MG_BIT(4) |    // RLEX, TUR
+                        MG_BIT(2) | MG_BIT(1);     // RXUBR, RCOMP
+  GMAC_REGS->GMAC_NCR |= MG_BIT(3) | MG_BIT(2);    // TXEN, RXEN
 
   return true;
 }
@@ -20886,25 +23411,42 @@ static size_t mg_tcpip_driver_same54_tx(const void *buf, size_t len,
     s_txdesc[s_txno][1] = status;
     if (++s_txno >= ETH_DESC_CNT) s_txno = 0;
   }
-  __DSB();  // Ensure descriptors have been written
-  GMAC_REGS->GMAC_NCR |= GMAC_NCR_TSTART_Msk;  // Enable transmission
+  MG_DSB();                          // Ensure descriptors have been written
+  GMAC_REGS->GMAC_NCR |= MG_BIT(9);  // Enable transmission
   return len;
 }
 
-static bool mg_tcpip_driver_same54_up(struct mg_tcpip_if *ifp) {
-  uint16_t bsr = eth_read_phy(MG_PHY_ADDR, MG_PHYREG_BSR);
-  bool up = bsr & MG_PHYREGBIT_BSR_LINK_STATUS ? 1 : 0;
+static void mg_tcpip_driver_same54_update_hash_table(struct mg_tcpip_if *ifp) {
+  // TODO(): read database, rebuild hash table
+  // Setting Hash Index for 01:00:5e:00:00:fb (multicast)
+  // 24.6.9 Hash addressing
+  // computed hash is 55, which means bit 23 (55 - 32) in
+  // HRT register must be set
+  GMAC_REGS->GMAC_HRT = MG_BIT(23);
+  GMAC_REGS->GMAC_NCFGR |= MG_BIT(6);  // enable multicast hash filtering
+  (void) ifp;
+}
 
-  // If PHY is ready, update NCFGR accordingly
-  if (ifp->state == MG_TCPIP_STATE_DOWN && up) {
-    uint16_t bcr = eth_read_phy(MG_PHY_ADDR, MG_PHYREG_BCR);
-    bool fd = bcr & MG_PHYREGBIT_BCR_DUPLEX_MODE ? 1 : 0;
-    bool spd = bcr & MG_PHYREGBIT_BCR_SPEED ? 1 : 0;
-    GMAC_REGS->GMAC_NCFGR = (GMAC_REGS->GMAC_NCFGR &
-                             ~(GMAC_NCFGR_SPD_Msk | MG_PHYREGBIT_BCR_SPEED)) |
-                            GMAC_NCFGR_SPD(spd) | GMAC_NCFGR_FD(fd);
+static bool mg_tcpip_driver_same54_poll(struct mg_tcpip_if *ifp, bool s1) {
+  if (ifp->update_mac_hash_table) {
+    mg_tcpip_driver_same54_update_hash_table(ifp);
+    ifp->update_mac_hash_table = false;
   }
 
+  bool up = false;
+  if (s1) {
+    uint8_t speed = MG_PHY_SPEED_10M;
+    bool full_duplex = false;
+    struct mg_phy phy = {eth_read_phy, eth_write_phy};
+    up = mg_phy_up(&phy, 0, &full_duplex, &speed);
+
+    // If PHY is ready, update NCFGR accordingly
+    if (ifp->state == MG_TCPIP_STATE_DOWN && up) {
+      GMAC_REGS->GMAC_NCFGR =
+          (GMAC_REGS->GMAC_NCFGR & ~(MG_BIT(0) | MG_BIT(1))) | (speed & 1) |
+          (full_duplex << 1);
+    }
+  }
   return up;
 }
 
@@ -20913,8 +23455,8 @@ void GMAC_Handler(void) {
   uint32_t isr = GMAC_REGS->GMAC_ISR;
   uint32_t rsr = GMAC_REGS->GMAC_RSR;
   uint32_t tsr = GMAC_REGS->GMAC_TSR;
-  if (isr & GMAC_ISR_RCOMP_Msk) {
-    if (rsr & GMAC_ISR_RCOMP_Msk) {
+  if (isr & MG_BIT(1)) {
+    if (rsr & MG_BIT(1)) {
       for (uint8_t i = 0; i < ETH_DESC_CNT; i++) {
         if ((s_rxdesc[s_rxno][0] & MG_BIT(0)) == 0) break;
         size_t len = s_rxdesc[s_rxno][1] & (MG_BIT(13) - 1);
@@ -20925,9 +23467,7 @@ void GMAC_Handler(void) {
     }
   }
 
-  if ((tsr & (GMAC_TSR_HRESP_Msk | GMAC_TSR_UND_Msk | GMAC_TSR_TXCOMP_Msk |
-              GMAC_TSR_TFC_Msk | GMAC_TSR_TXGO_Msk | GMAC_TSR_RLE_Msk |
-              GMAC_TSR_COL_Msk | GMAC_TSR_UBR_Msk)) != 0) {
+  if (tsr != 0) {
     // MG_INFO((" --> %#x %#x", s_txdesc[s_txno][1], tsr));
     if (!(s_txdesc[s_txno][1] & MG_BIT(31))) s_txdesc[s_txno][1] |= MG_BIT(31);
   }
@@ -20938,7 +23478,180 @@ void GMAC_Handler(void) {
 
 struct mg_tcpip_driver mg_tcpip_driver_same54 = {
     mg_tcpip_driver_same54_init, mg_tcpip_driver_same54_tx, NULL,
-    mg_tcpip_driver_same54_up};
+    mg_tcpip_driver_same54_poll};
+#endif
+
+#ifdef MG_ENABLE_LINES
+#line 1 "src/drivers/sdio.c"
+#endif
+
+
+#if MG_ENABLE_TCPIP && \
+    (defined(MG_ENABLE_DRIVER_CYW_SDIO) && MG_ENABLE_DRIVER_CYW_SDIO)
+
+// SDIO 6.9 Table 6-1 CCCR (Common Card Control Registers)
+#define MG_SDIO_CCCR_SDIOREV 0x000
+#define MG_SDIO_CCCR_SDREV 0x001
+#define MG_SDIO_CCCR_IOEN 0x002
+#define MG_SDIO_CCCR_IORDY 0x003
+#define MG_SDIO_CCCR_INTEN 0x004
+#define MG_SDIO_CCCR_BIC 0x007
+#define MG_SDIO_CCCR_CCAP 0x008
+#define MG_SDIO_CCCR_CCIS 0x009     // 3 registers
+#define MG_SDIO_CCCR_F0BLKSZ 0x010  // 2 registers
+#define MG_SDIO_CCCR_HISPD 0x013
+// SDIO 6.10 Table 6-3 FBR (Function Basic Registers)
+#define MG_SDIO_FBR_FnBLKSZ(n) (((n) &7) * 0x100 + 0x10)  // 2 registers
+
+// SDIO 5.1 IO_RW_DIRECT Command (CMD52)
+#define MG_SDIO_DATA(x) ((x) &0xFF)            // bits 0-7
+#define MG_SDIO_ADDR(x) (((x) &0x1FFFF) << 9)  // bits 9-25
+#define MG_SDIO_FUNC(x) (((x) &3) << 28)       // bits 28-30 (30 unused here)
+#define MG_SDIO_WR MG_BIT(31)
+
+// SDIO 5.3 IO_RW_EXTENDED Command (CMD53)
+#define MG_SDIO_LEN(x) ((x) &0x1FF)  // bits 0-8
+#define MG_SDIO_OPINC MG_BIT(26)
+#define MG_SDIO_BLKMODE MG_BIT(27)
+
+// - Drivers set blocksize, drivers request transfers. Requesting a read
+// transfer > blocksize means block transfer will be used.
+// - To simplify the use of DMA transfers and avoid intermediate buffers,
+// drivers must have room to accomodate a whole block transfer, e.g.: blocksize
+// = 64, read 65 => 2 blocks = 128 bytes
+// - Transfers of more than 1 byte assume (uint32_t *) data. 1-byte transfers
+// use (uint8_t *) data
+// - 'len' is the number of _bytes_ to transfer
+bool mg_sdio_transfer(struct mg_tcpip_sdio *sdio, bool write, unsigned int f,
+                      uint32_t addr, void *data, uint32_t len) {
+  uint32_t arg, val = 0;
+  unsigned int blksz = 64;  // TODO(): mg_sdio_set_blksz() stores in an array,
+                            // index on f, skip if 0
+  if (len == 1) {
+    arg = (write ? MG_SDIO_WR : 0) | MG_SDIO_FUNC(f) | MG_SDIO_ADDR(addr) |
+          (write ? MG_SDIO_DATA(*(uint8_t *) data) : 0);
+    bool res = sdio->txn(sdio, 52, arg, &val);  // IO_RW_DIRECT
+    if (!write) *(uint8_t *) data = (uint8_t) val;
+    return res;
+  }
+  // IO_RW_EXTENDED
+  arg = (write ? MG_SDIO_WR : 0) | MG_SDIO_OPINC | MG_SDIO_FUNC(f) |
+        MG_SDIO_ADDR(addr);
+  if (len > 512 || (blksz != 0 && len > blksz)) {  // SDIO 5.3 512 -> len=0
+    unsigned int blkcnt;
+    if (blksz == 0) return false;  // > 512 requires block size set
+    blkcnt = (len + blksz - 1) / blksz;
+    if (blkcnt > 511) return false;  // we don't support "infinite" blocks
+    arg |= MG_SDIO_BLKMODE | MG_SDIO_LEN(blkcnt);  // block transfer
+    len = blksz * blkcnt;
+  } else {
+    arg |= MG_SDIO_LEN(len);  // multi-byte transfer
+  }
+  return sdio->xfr(sdio, write, arg,
+                   (arg & MG_SDIO_BLKMODE) ? (uint16_t) blksz : 0,
+                   (uint32_t *) data, len, &val);
+}
+
+bool mg_sdio_set_blksz(struct mg_tcpip_sdio *sdio, unsigned int f,
+                       uint16_t blksz) {
+  uint32_t val = blksz & 0xff;
+  if (!mg_sdio_transfer(sdio, true, 0, MG_SDIO_FBR_FnBLKSZ(f), &val, 1))
+    return false;
+  val = (blksz >> 8) & 0x0f;  // SDIO 6.10 Table 6-4, max 2048
+  if (!mg_sdio_transfer(sdio, true, 0, MG_SDIO_FBR_FnBLKSZ(f) + 1, &val, 1))
+    return false;
+  // TODO(): store in an array, index on f. Static 8-element array
+  MG_VERBOSE(("F%c block size set", (f & 7) + '0'));
+  return true;
+}
+
+// Enable Fx
+bool mg_sdio_enable_f(struct mg_tcpip_sdio *sdio, unsigned int f) {
+  uint8_t bit = 1U << (f & 7), bits;
+  uint32_t val = 0;
+  if (!mg_sdio_transfer(sdio, false, 0, MG_SDIO_CCCR_IOEN, &val, 1))
+    return false;
+  bits = (uint8_t) val | bit;
+  unsigned int times = 501;
+  while (times--) {
+    val = bits; /* IOEf */
+    ;
+    if (!mg_sdio_transfer(sdio, true, 0, MG_SDIO_CCCR_IOEN, &val, 1))
+      return false;
+    mg_delayms(1);
+    val = 0;
+    if (!mg_sdio_transfer(sdio, false, 0, MG_SDIO_CCCR_IOEN, &val, 1))
+      return false;
+    if (val & bit) break;
+  }
+  if (times == (unsigned int) ~0) return false;
+  MG_VERBOSE(("F%c enabled", (f & 7) + '0'));
+  return true;
+}
+
+// Wait for Fx to be ready
+bool mg_sdio_waitready_f(struct mg_tcpip_sdio *sdio, unsigned int f) {
+  uint8_t bit = 1U << (f & 7);
+  unsigned int times = 501;
+  while (times--) {
+    uint32_t val;
+    if (!mg_sdio_transfer(sdio, false, 0, MG_SDIO_CCCR_IORDY, &val, 1))
+      return false;
+    if (val & bit) break;  // IORf
+    mg_delayms(1);
+  }
+  if (times == (unsigned int) ~0) return false;
+  MG_VERBOSE(("F%c ready", (f & 7) + '0'));
+  return true;
+}
+
+// SDIO 6.14 Bus State Diagram
+bool mg_sdio_init(struct mg_tcpip_sdio *sdio) {
+  uint32_t val = 0;
+  if (!sdio->txn(sdio, 0, 0, NULL)) return false;  // GO_IDLE_STATE
+  sdio->txn(sdio, 5, 0, &val);                     // IO_SEND_OP_COND, no CRC
+  MG_VERBOSE(("IO Functions: %u, Memory: %c", 1 + ((val >> 28) & 7),
+              (val & MG_BIT(27)) ? 'Y' : 'N'));
+  if (!sdio->txn(sdio, 3, 0, &val)) return false;  // SEND_RELATIVE_ADDR
+  val = ((uint32_t) val) >> 16;                    // RCA
+  if (!sdio->txn(sdio, 7, val << 16, &val))
+    return false;  // SELECT/DESELECT_CARD
+  mg_sdio_transfer(sdio, false, 0, MG_SDIO_CCCR_SDIOREV, &val, 1);
+  MG_DEBUG(("CCCR: %u.%u, SDIO: %u.%u", 1 + ((val >> 2) & 3), (val >> 0) & 3,
+            1 + ((val >> 6) & 3), (val >> 4) & 3));
+  mg_sdio_transfer(sdio, false, 0, MG_SDIO_CCCR_SDREV, &val, 1);
+  MG_VERBOSE(("SD: %u.%u", 1 + ((val >> 2) & 3), (val >> 0) & 3));
+  mg_sdio_transfer(sdio, false, 0, MG_SDIO_CCCR_BIC, &val, 1);
+  MG_SET_BITS(val, 3,
+              MG_BIT(7) | MG_BIT(1));  // SDIO 6.9 Tables 6-1 6-2, 4-bit bus
+  mg_sdio_transfer(sdio, true, 0, MG_SDIO_CCCR_BIC, &val, 1);
+  // All Full-Speed SDIO cards support a 4-bit bus. Skip for Low-Speed SDIO
+  // cards, we don't provide separate low-level functions for width and speed
+  sdio->cfg(sdio, 0);  // set DS;
+  if (!mg_sdio_transfer(sdio, false, 0, MG_SDIO_CCCR_HISPD, &val, 1))
+    return false;
+  if (val & MG_BIT(0) /* SHS */) {
+    val = MG_BIT(1); /* EHS */
+    if (!mg_sdio_transfer(sdio, true, 0, MG_SDIO_CCCR_HISPD, &val, 1))
+      return false;
+    sdio->cfg(sdio, 1);  // set HS;
+    MG_VERBOSE(("Bus set to 4-bit @50MHz"));
+  } else {
+    MG_VERBOSE(("Bus set to 4-bit @25MHz"));
+  }
+  return true;
+}
+
+// - 6.11 Card Information Structure (CIS): 0x0001000-0x017FF; for card common
+// and all functions
+// - 16.5 SDIO Card Metaformat
+// - 16.7.2 CISTPL_FUNCE (0x22): Function Extension Tuple, provides standard
+// information about the card (common) and each individual function. One
+// CISTPL_FUNCE in each function’s CIS, immediately following the CISTPL_FUNCID
+// tuple
+// - 16.7.3 CISTPL_FUNCE Tuple for Function 0 (common)
+// - 16.7.4 CISTPL_FUNCE Tuple for Function 1-7
+
 #endif
 
 #ifdef MG_ENABLE_LINES
@@ -21082,7 +23795,7 @@ static bool mg_tcpip_driver_stm32f_init(struct mg_tcpip_if *ifp) {
   // MG_BIT(25);
   ETH->MACIMR = MG_BIT(3) | MG_BIT(9);  // Mask timestamp & PMT IT
   ETH->MACFCR = MG_BIT(7);              // Disable zero quarta pause
-  // ETH->MACFFR = MG_BIT(31);                            // Receive all
+  ETH->MACFFR = MG_BIT(10);             // Perfect filtering
   struct mg_phy phy = {eth_read_phy, eth_write_phy};
   mg_phy_init(&phy, phy_addr, MG_PHY_CLOCKS_MAC);
   ETH->DMARDLAR = (uint32_t) (uintptr_t) s_rxdesc;  // RX descriptors
@@ -21124,7 +23837,22 @@ static size_t mg_tcpip_driver_stm32f_tx(const void *buf, size_t len,
   return len;
 }
 
-static bool mg_tcpip_driver_stm32f_up(struct mg_tcpip_if *ifp) {
+static void mg_tcpip_driver_stm32f_update_hash_table(struct mg_tcpip_if *ifp) {
+  // TODO(): read database, rebuild hash table
+  ETH->MACA1LR = (uint32_t) mcast_addr[3] << 24 |
+                 (uint32_t) mcast_addr[2] << 16 |
+                 (uint32_t) mcast_addr[1] << 8 | (uint32_t) mcast_addr[0];
+  ETH->MACA1HR = (uint32_t) mcast_addr[5] << 8 | (uint32_t) mcast_addr[4];
+  ETH->MACA1HR |= MG_BIT(31);  // AE
+  (void) ifp;
+}
+
+static bool mg_tcpip_driver_stm32f_poll(struct mg_tcpip_if *ifp, bool s1) {
+  if (ifp->update_mac_hash_table) {
+    mg_tcpip_driver_stm32f_update_hash_table(ifp);
+    ifp->update_mac_hash_table = false;
+  }
+  if (!s1) return false;
   struct mg_tcpip_driver_stm32f_data *d =
       (struct mg_tcpip_driver_stm32f_data *) ifp->driver_data;
   uint8_t phy_addr = d == NULL ? 0 : d->phy_addr;
@@ -21175,7 +23903,7 @@ void ETH_IRQHandler(void) {
 
 struct mg_tcpip_driver mg_tcpip_driver_stm32f = {
     mg_tcpip_driver_stm32f_init, mg_tcpip_driver_stm32f_tx, NULL,
-    mg_tcpip_driver_stm32f_up};
+    mg_tcpip_driver_stm32f_poll};
 #endif
 
 #ifdef MG_ENABLE_LINES
@@ -21185,7 +23913,7 @@ struct mg_tcpip_driver mg_tcpip_driver_stm32f = {
 
 #if MG_ENABLE_TCPIP && (MG_ENABLE_DRIVER_STM32H || MG_ENABLE_DRIVER_MCXN)
 // STM32H: vendor modded single-queue Synopsys v4.2
-// MCXNx4x: dual-queue Synopsys v5.2
+// MCXNx4x: dual-queue Synopsys v5.2 with no hash table option
 // RT1170 ENET_QOS: quad-queue Synopsys v5.1
 struct synopsys_enet_qos {
   volatile uint32_t MACCR, MACECR, MACPFR, MACWTR, MACHT0R, MACHT1R,
@@ -21285,7 +24013,9 @@ static bool mg_tcpip_driver_stm32h_init(struct mg_tcpip_if *ifp) {
   ETH->DMASBMR |= MG_BIT(12);  // AAL NOTE(scaprile): is this actually needed
   ETH->MACIER = 0;  // Do not enable additional irq sources (reset value)
   ETH->MACTFCR = MG_BIT(7);  // Disable zero-quanta pause
-  // ETH->MACPFR = MG_BIT(31);  // Receive all
+#if !MG_ENABLE_DRIVER_MCXN
+  ETH->MACPFR = MG_BIT(10);  // Perfect filtering
+#endif
   struct mg_phy phy = {eth_read_phy, eth_write_phy};
   mg_phy_init(&phy, phy_addr, phy_conf);
   ETH->DMACRDLAR =
@@ -21351,7 +24081,27 @@ static size_t mg_tcpip_driver_stm32h_tx(const void *buf, size_t len,
   (void) ifp;
 }
 
-static bool mg_tcpip_driver_stm32h_up(struct mg_tcpip_if *ifp) {
+static void mg_tcpip_driver_stm32h_update_hash_table(struct mg_tcpip_if *ifp) {
+#if MG_ENABLE_DRIVER_MCXN
+  ETH->MACPFR = MG_BIT(4);  // Pass Multicast (pass all multicast frames)
+#else
+  // TODO(): read database, rebuild hash table
+  // add mDNS / DNS-SD multicast address
+  ETH->MACA1LR = (uint32_t) mcast_addr[3] << 24 |
+                 (uint32_t) mcast_addr[2] << 16 |
+                 (uint32_t) mcast_addr[1] << 8 | (uint32_t) mcast_addr[0];
+  ETH->MACA1HR = (uint32_t) mcast_addr[5] << 8 | (uint32_t) mcast_addr[4];
+  ETH->MACA1HR |= MG_BIT(31);  // AE
+#endif
+(void) ifp;
+}
+
+static bool mg_tcpip_driver_stm32h_poll(struct mg_tcpip_if *ifp, bool s1) {
+  if (ifp->update_mac_hash_table) {
+    mg_tcpip_driver_stm32h_update_hash_table(ifp);
+    ifp->update_mac_hash_table = false;
+  }
+  if (!s1) return false;
   struct mg_tcpip_driver_stm32h_data *d =
       (struct mg_tcpip_driver_stm32h_data *) ifp->driver_data;
   uint8_t phy_addr = d == NULL ? 0 : d->phy_addr;
@@ -21406,7 +24156,7 @@ void ETH_IRQHandler(void) {
 
 struct mg_tcpip_driver mg_tcpip_driver_stm32h = {
     mg_tcpip_driver_stm32h_init, mg_tcpip_driver_stm32h_tx, NULL,
-    mg_tcpip_driver_stm32h_up};
+    mg_tcpip_driver_stm32h_poll};
 #endif
 
 #ifdef MG_ENABLE_LINES
@@ -21469,7 +24219,8 @@ static uint32_t emac_read_phy(uint8_t addr, uint8_t reg) {
 static void emac_write_phy(uint8_t addr, uint8_t reg, uint32_t val) {
   EMAC->EMACMIIDATA = val;
   EMAC->EMACMIIADDR &= (0xf << 2);
-  EMAC->EMACMIIADDR |= ((uint32_t) addr << 11) | ((uint32_t) reg << 6) | MG_BIT(1);
+  EMAC->EMACMIIADDR |=
+      ((uint32_t) addr << 11) | ((uint32_t) reg << 6) | MG_BIT(1);
   EMAC->EMACMIIADDR |= MG_BIT(0);
   while (EMAC->EMACMIIADDR & MG_BIT(0)) tm4cspin(1);
 }
@@ -21547,8 +24298,8 @@ static bool mg_tcpip_driver_tm4c_init(struct mg_tcpip_if *ifp) {
 
   // Init RX descriptors
   for (int i = 0; i < ETH_DESC_CNT; i++) {
-    s_rxdesc[i][0] = MG_BIT(31);                            // Own
-    s_rxdesc[i][1] = sizeof(s_rxbuf[i]) | MG_BIT(14);       // 2nd address chained
+    s_rxdesc[i][0] = MG_BIT(31);                         // Own
+    s_rxdesc[i][1] = sizeof(s_rxbuf[i]) | MG_BIT(14);    // 2nd address chained
     s_rxdesc[i][2] = (uint32_t) (uintptr_t) s_rxbuf[i];  // Point to data buffer
     s_rxdesc[i][3] =
         (uint32_t) (uintptr_t) s_rxdesc[(i + 1) % ETH_DESC_CNT];  // Chain
@@ -21562,8 +24313,9 @@ static bool mg_tcpip_driver_tm4c_init(struct mg_tcpip_if *ifp) {
         (uint32_t) (uintptr_t) s_txdesc[(i + 1) % ETH_DESC_CNT];  // Chain
   }
 
-  EMAC->EMACDMABUSMOD |= MG_BIT(0);                            // Software reset
-  while ((EMAC->EMACDMABUSMOD & MG_BIT(0)) != 0) tm4cspin(1);  // Wait until done
+  EMAC->EMACDMABUSMOD |= MG_BIT(0);  // Software reset
+  while ((EMAC->EMACDMABUSMOD & MG_BIT(0)) != 0)
+    tm4cspin(1);  // Wait until done
 
   // Set MDC clock divider. If user told us the value, use it. Otherwise, guess
   int cr = (d == NULL || d->mdc_cr < 0) ? guess_mdc_cr() : d->mdc_cr;
@@ -21571,25 +24323,25 @@ static bool mg_tcpip_driver_tm4c_init(struct mg_tcpip_if *ifp) {
 
   // NOTE(cpq): we do not use extended descriptor bit 7, and do not use
   // hardware checksum. Therefore, descriptor size is 4, not 8
-  // EMAC->EMACDMABUSMOD = MG_BIT(13) | MG_BIT(16) | MG_BIT(22) | MG_BIT(23) | MG_BIT(25);
+  // EMAC->EMACDMABUSMOD = MG_BIT(13) | MG_BIT(16) | MG_BIT(22) | MG_BIT(23) |
+  // MG_BIT(25);
   EMAC->EMACIM = MG_BIT(3) | MG_BIT(9);  // Mask timestamp & PMT IT
-  EMAC->EMACFLOWCTL = MG_BIT(7);      // Disable zero-quanta pause
-  // EMAC->EMACFRAMEFLTR = MG_BIT(31);   // Receive all
+  EMAC->EMACFLOWCTL = MG_BIT(7);         // Disable zero-quanta pause
+  EMAC->EMACFRAMEFLTR = MG_BIT(10);      // Perfect filtering
   // EMAC->EMACPC defaults to internal PHY (EPHY) in MMI mode
   emac_write_phy(EPHY_ADDR, EPHYBMCR, MG_BIT(15));  // Reset internal PHY (EPHY)
   emac_write_phy(EPHY_ADDR, EPHYBMCR, MG_BIT(12));  // Set autonegotiation
   EMAC->EMACRXDLADDR = (uint32_t) (uintptr_t) s_rxdesc;  // RX descriptors
   EMAC->EMACTXDLADDR = (uint32_t) (uintptr_t) s_txdesc;  // TX descriptors
-  EMAC->EMACDMAIM = MG_BIT(6) | MG_BIT(16);                    // RIE, NIE
-  EMAC->EMACCFG = MG_BIT(2) | MG_BIT(3) | MG_BIT(11) | MG_BIT(14);   // RE, TE, Duplex, Fast
+  EMAC->EMACDMAIM = MG_BIT(6) | MG_BIT(16);              // RIE, NIE
+  EMAC->EMACCFG =
+      MG_BIT(2) | MG_BIT(3) | MG_BIT(11) | MG_BIT(14);  // RE, TE, Duplex, Fast
   EMAC->EMACDMAOPMODE =
       MG_BIT(1) | MG_BIT(13) | MG_BIT(21) | MG_BIT(25);  // SR, ST, TSF, RSF
   EMAC->EMACADDR0H = ((uint32_t) ifp->mac[5] << 8U) | ifp->mac[4];
   EMAC->EMACADDR0L = (uint32_t) (ifp->mac[3] << 24) |
                      ((uint32_t) ifp->mac[2] << 16) |
                      ((uint32_t) ifp->mac[1] << 8) | ifp->mac[0];
-  // NOTE(scaprile) There are 3 additional slots for filtering, disabled by
-  // default. This also applies to the STM32 driver (at least for F7)
   return true;
 }
 
@@ -21614,12 +24366,28 @@ static size_t mg_tcpip_driver_tm4c_tx(const void *buf, size_t len,
     if (++s_txno >= ETH_DESC_CNT) s_txno = 0;
   }
   EMAC->EMACDMARIS = MG_BIT(2) | MG_BIT(5);  // Clear any prior TU/UNF
-  EMAC->EMACTXPOLLD = 0;               // and resume
+  EMAC->EMACTXPOLLD = 0;                     // and resume
   return len;
   (void) ifp;
 }
 
-static bool mg_tcpip_driver_tm4c_up(struct mg_tcpip_if *ifp) {
+static void mg_tcpip_driver_tm4c_update_hash_table(struct mg_tcpip_if *ifp) {
+  // TODO(): read database, rebuild hash table
+  // add mDNS / DNS-SD multicast address
+  EMAC->EMACADDR1L = (uint32_t) mcast_addr[3] << 24 |
+                     (uint32_t) mcast_addr[2] << 16 |
+                     (uint32_t) mcast_addr[1] << 8 | (uint32_t) mcast_addr[0];
+  EMAC->EMACADDR1H = (uint32_t) mcast_addr[5] << 8 | (uint32_t) mcast_addr[4];
+  EMAC->EMACADDR1H |= MG_BIT(31);  // AE
+  (void) ifp;
+}
+
+static bool mg_tcpip_driver_tm4c_poll(struct mg_tcpip_if *ifp, bool s1) {
+  if (ifp->update_mac_hash_table) {
+    mg_tcpip_driver_tm4c_update_hash_table(ifp);
+    ifp->update_mac_hash_table = false;
+  }
+  if (!s1) return false;
   uint32_t bmsr = emac_read_phy(EPHY_ADDR, EPHYBMSR);
   bool up = (bmsr & MG_BIT(2)) ? 1 : 0;
   if ((ifp->state == MG_TCPIP_STATE_DOWN) && up) {  // link state just went up
@@ -21627,9 +24395,10 @@ static bool mg_tcpip_driver_tm4c_up(struct mg_tcpip_if *ifp) {
     // tmp = reg with flags set to the most likely situation: 100M full-duplex
     // if(link is slow or half) set flags otherwise
     // reg = tmp
-    uint32_t emaccfg = EMAC->EMACCFG | MG_BIT(14) | MG_BIT(11);  // 100M, Full-duplex
-    if (sts & MG_BIT(1)) emaccfg &= ~MG_BIT(14);                 // 10M
-    if ((sts & MG_BIT(2)) == 0) emaccfg &= ~MG_BIT(11);          // Half-duplex
+    uint32_t emaccfg =
+        EMAC->EMACCFG | MG_BIT(14) | MG_BIT(11);         // 100M, Full-duplex
+    if (sts & MG_BIT(1)) emaccfg &= ~MG_BIT(14);         // 10M
+    if ((sts & MG_BIT(2)) == 0) emaccfg &= ~MG_BIT(11);  // Half-duplex
     EMAC->EMACCFG = emaccfg;  // IRQ handler does not fiddle with this register
     MG_DEBUG(("Link is %uM %s-duplex", emaccfg & MG_BIT(14) ? 100 : 10,
               emaccfg & MG_BIT(11) ? "full" : "half"));
@@ -21640,11 +24409,12 @@ static bool mg_tcpip_driver_tm4c_up(struct mg_tcpip_if *ifp) {
 void EMAC0_IRQHandler(void);
 static uint32_t s_rxno;
 void EMAC0_IRQHandler(void) {
-  if (EMAC->EMACDMARIS & MG_BIT(6)) {        // Frame received, loop
+  if (EMAC->EMACDMARIS & MG_BIT(6)) {           // Frame received, loop
     EMAC->EMACDMARIS = MG_BIT(16) | MG_BIT(6);  // Clear flag
-    for (uint32_t i = 0; i < 10; i++) {   // read as they arrive but not forever
+    for (uint32_t i = 0; i < 10; i++) {  // read as they arrive but not forever
       if (s_rxdesc[s_rxno][0] & MG_BIT(31)) break;  // exit when done
-      if (((s_rxdesc[s_rxno][0] & (MG_BIT(8) | MG_BIT(9))) == (MG_BIT(8) | MG_BIT(9))) &&
+      if (((s_rxdesc[s_rxno][0] & (MG_BIT(8) | MG_BIT(9))) ==
+           (MG_BIT(8) | MG_BIT(9))) &&
           !(s_rxdesc[s_rxno][0] & MG_BIT(15))) {  // skip partial/errored frames
         uint32_t len = ((s_rxdesc[s_rxno][0] >> 16) & (MG_BIT(14) - 1));
         //  printf("%lx %lu %lx %.8lx\n", s_rxno, len, s_rxdesc[s_rxno][0],
@@ -21656,12 +24426,12 @@ void EMAC0_IRQHandler(void) {
     }
   }
   EMAC->EMACDMARIS = MG_BIT(7);  // Clear possible RU while processing
-  EMAC->EMACRXPOLLD = 0;      // and resume RX
+  EMAC->EMACRXPOLLD = 0;         // and resume RX
 }
 
 struct mg_tcpip_driver mg_tcpip_driver_tm4c = {mg_tcpip_driver_tm4c_init,
                                                mg_tcpip_driver_tm4c_tx, NULL,
-                                               mg_tcpip_driver_tm4c_up};
+                                               mg_tcpip_driver_tm4c_poll};
 #endif
 
 #ifdef MG_ENABLE_LINES
@@ -21774,10 +24544,6 @@ static bool mg_tcpip_driver_tms570_init(struct mg_tcpip_if *ifp) {
   while (delay-- != 0) (void) 0;
   struct mg_phy phy = {emac_read_phy, emac_write_phy};
   mg_phy_init(&phy, d->phy_addr, MG_PHY_CLOCKS_MAC);
-  // set the mac address
-  EMAC->MACSRCADDRHI = ifp->mac[0] | (ifp->mac[1] << 8) | (ifp->mac[2] << 16) |
-                       (ifp->mac[3] << 24);
-  EMAC->MACSRCADDRLO = ifp->mac[4] | (ifp->mac[5] << 8);
   uint32_t channel;
   for (channel = 0; channel < 8; channel++) {
     EMAC->MACINDEX = channel;
@@ -21787,8 +24553,9 @@ static bool mg_tcpip_driver_tms570_init(struct mg_tcpip_if *ifp) {
                       MG_BIT(19) | (channel << 16);
   }
   EMAC->RXUNICASTSET = 1; // accept unicast frames;
-  EMAC->RXMBPENABLE = MG_BIT(30) | MG_BIT(13); // CRC, broadcast;
-  
+
+  EMAC->RXMBPENABLE |= MG_BIT(30) | MG_BIT(13); // CRC, broadcast
+
   // Initialize the descriptors
   for (i = 0; i < ETH_DESC_CNT; i++) {
     if (i < ETH_DESC_CNT - 1) {
@@ -21841,12 +24608,30 @@ static size_t mg_tcpip_driver_tms570_tx(const void *buf, size_t len,
   return len;
   (void) ifp;
 }
-static bool mg_tcpip_driver_tms570_up(struct mg_tcpip_if *ifp) {
+
+static void mg_tcpip_driver_tms570_update_hash_table(struct mg_tcpip_if *ifp) {
+  // TODO(): read database, rebuild hash table
+  // Setting Hash Index for 01:00:5e:00:00:fb (multicast)
+  // using TMS570 XOR method (32.5.37).
+  // computed hash is 55, which means bit 23 (55 - 32) in
+  // HASH2 register must be set
+  EMAC->MACHASH2 = MG_BIT(23);
+  EMAC->RXMBPENABLE = MG_BIT(5); // enable hash filtering
+  (void) ifp;
+}
+
+static bool mg_tcpip_driver_tms570_poll(struct mg_tcpip_if *ifp, bool s1) {
+  if (ifp->update_mac_hash_table) {
+    mg_tcpip_driver_tms570_update_hash_table(ifp);
+    ifp->update_mac_hash_table = false;
+  }
+  if (!s1) return false;
   struct mg_tcpip_driver_tms570_data *d =
       (struct mg_tcpip_driver_tms570_data *) ifp->driver_data;
   uint8_t speed = MG_PHY_SPEED_10M;
   bool up = false, full_duplex = false;
   struct mg_phy phy = {emac_read_phy, emac_write_phy};
+  if (!s1) return false;
   up = mg_phy_up(&phy, d->phy_addr, &full_duplex, &speed);
   if ((ifp->state == MG_TCPIP_STATE_DOWN) && up) {
     // link state just went up
@@ -21855,6 +24640,7 @@ static bool mg_tcpip_driver_tms570_up(struct mg_tcpip_if *ifp) {
   }
   return up;
 }
+
 #pragma CODE_STATE(EMAC_TX_IRQHandler, 32)
 #pragma INTERRUPT(EMAC_TX_IRQHandler, IRQ)
 void EMAC_TX_IRQHandler(void) {
@@ -21875,19 +24661,18 @@ void EMAC_RX_IRQHandler(void) {
     uint32_t i;
     //MG_INFO(("RX interrupt"));
     for (i = 0; i < 10; i++) {   // read as they arrive but not forever
-      if ((s_rxdesc[s_rxno][3] & SWAP32(MG_BIT(29))) == 0) {
-        uint32_t len = SWAP32(s_rxdesc[s_rxno][3]) & 0xffff;
-        //MG_INFO(("recv len: %d", len));
-        //mg_hexdump(s_rxbuf[s_rxno], len);
-        mg_tcpip_qwrite(s_rxbuf[s_rxno], len > 4 ? len - 4 : len, s_ifp);
-        uint32_t flags = s_rxdesc[s_rxno][3];
-        s_rxdesc[s_rxno][3] = SWAP32(MG_BIT(29));
-        s_rxdesc[s_rxno][2] = SWAP32(ETH_PKT_SIZE);
-        EMAC->RXCP[0] = (uint32_t) &s_rxdesc[s_rxno][0];
-        if (flags & SWAP32(MG_BIT(28))) {
-          //MG_INFO(("EOQ detected"));
-          EMAC->RXHDP[0] = (uint32_t) &s_rxdesc[0][0];
-        }
+      if (s_rxdesc[s_rxno][3] & SWAP32(MG_BIT(29))) break;
+      uint32_t len = SWAP32(s_rxdesc[s_rxno][3]) & 0xffff;
+      //MG_INFO(("recv len: %d", len));
+      //mg_hexdump(s_rxbuf[s_rxno], len);
+      mg_tcpip_qwrite(s_rxbuf[s_rxno], len > 4 ? len - 4 : len, s_ifp);
+      uint32_t flags = s_rxdesc[s_rxno][3];
+      s_rxdesc[s_rxno][3] = SWAP32(MG_BIT(29));
+      s_rxdesc[s_rxno][2] = SWAP32(ETH_PKT_SIZE);
+      EMAC->RXCP[0] = (uint32_t) &s_rxdesc[s_rxno][0];
+      if (flags & SWAP32(MG_BIT(28))) {
+        //MG_INFO(("EOQ detected"));
+        EMAC->RXHDP[0] = (uint32_t) &s_rxdesc[0][0];
       }
       if (++s_rxno >= ETH_DESC_CNT) s_rxno = 0;
     }
@@ -21897,7 +24682,7 @@ void EMAC_RX_IRQHandler(void) {
 }
 struct mg_tcpip_driver mg_tcpip_driver_tms570 = {mg_tcpip_driver_tms570_init,
                                                mg_tcpip_driver_tms570_tx, NULL,
-                                               mg_tcpip_driver_tms570_up};
+                                               mg_tcpip_driver_tms570_poll};
 #endif
 
 
@@ -21908,8 +24693,8 @@ struct mg_tcpip_driver mg_tcpip_driver_tms570 = {mg_tcpip_driver_tms570_init,
 
 #if MG_ENABLE_TCPIP && defined(MG_ENABLE_DRIVER_W5100) && MG_ENABLE_DRIVER_W5100
 
-static void w5100_txn(struct mg_tcpip_spi *s, uint16_t addr,
-                      bool wr, void *buf, size_t len) {
+static void w5100_txn(struct mg_tcpip_spi *s, uint16_t addr, bool wr, void *buf,
+                      size_t len) {
   size_t i;
   uint8_t *p = (uint8_t *) buf;
   uint8_t control = wr ? 0xF0 : 0x0F;
@@ -21934,8 +24719,8 @@ static  uint16_t w5100_r2(struct mg_tcpip_spi *s, uint16_t addr) { uint8_t buf[2
 
 static size_t w5100_rx(void *buf, size_t buflen, struct mg_tcpip_if *ifp) {
   struct mg_tcpip_spi *s = (struct mg_tcpip_spi *) ifp->driver_data;
-  uint16_t r = 0, n = 0, len = (uint16_t) buflen, n2;     // Read recv len
-  while ((n2 = w5100_r2(s, 0x426)) > n) n = n2;  // Until it is stable
+  uint16_t r = 0, n = 0, len = (uint16_t) buflen, n2;  // Read recv len
+  while ((n2 = w5100_r2(s, 0x426)) > n) n = n2;        // Until it is stable
   if (n > 0) {
     uint16_t ptr = w5100_r2(s, 0x428);  // Get read pointer
     if (n <= len + 2 && n > 1) {
@@ -21952,7 +24737,7 @@ static size_t w5100_rx(void *buf, size_t buflen, struct mg_tcpip_if *ifp) {
       w5100_rn(s, rxbuf_addr, buf + remaining_len, n - remaining_len);
     }
     w5100_w2(s, 0x428, (uint16_t) (ptr + n));
-    w5100_w1(s, 0x401, 0x40);                     // Sock0 CR -> RECV
+    w5100_w1(s, 0x401, 0x40);  // Sock0 CR -> RECV
   }
   return r;
 }
@@ -21961,27 +24746,27 @@ static size_t w5100_tx(const void *buf, size_t buflen,
                        struct mg_tcpip_if *ifp) {
   struct mg_tcpip_spi *s = (struct mg_tcpip_spi *) ifp->driver_data;
   uint16_t i, n = 0, ptr = 0, len = (uint16_t) buflen;
-  while (n < len) n = w5100_r2(s, 0x420);      // Wait for space
-  ptr = w5100_r2(s, 0x424);                    // Get write pointer
+  while (n < len) n = w5100_r2(s, 0x420);  // Wait for space
+  ptr = w5100_r2(s, 0x424);                // Get write pointer
   uint16_t txbuf_size = (1 << (w5100_r1(s, 0x1b) & 3)) * 1024;
   uint16_t ptr_ofs = ptr & (txbuf_size - 1);
   uint16_t txbuf_addr = 0x4000;
   if (ptr_ofs + len > txbuf_size) {
     uint16_t size = txbuf_size - ptr_ofs;
-    w5100_wn(s, txbuf_addr + ptr_ofs, (char*) buf, size);
-    w5100_wn(s, txbuf_addr, (char*) buf + size, len - size);
+    w5100_wn(s, txbuf_addr + ptr_ofs, (char *) buf, size);
+    w5100_wn(s, txbuf_addr, (char *) buf + size, len - size);
   } else {
-    w5100_wn(s, txbuf_addr + ptr_ofs, (char*) buf, len);
+    w5100_wn(s, txbuf_addr + ptr_ofs, (char *) buf, len);
   }
   w5100_w2(s, 0x424, (uint16_t) (ptr + len));  // Advance write pointer
-  w5100_w1(s, 0x401, 0x20);                       // Sock0 CR -> SEND
+  w5100_w1(s, 0x401, 0x20);                    // Sock0 CR -> SEND
   for (i = 0; i < 40; i++) {
     uint8_t ir = w5100_r1(s, 0x402);  // Read S0 IR
     if (ir == 0) continue;
     // printf("IR %d, len=%d, free=%d, ptr %d\n", ir, (int) len, (int) n, ptr);
-    w5100_w1(s, 0x402, ir);  // Write S0 IR: clear it!
-    if (ir & 8) len = 0;           // Timeout. Report error
-    if (ir & (16 | 8)) break;      // Stop on SEND_OK or timeout
+    w5100_w1(s, 0x402, ir);    // Write S0 IR: clear it!
+    if (ir & 8) len = 0;       // Timeout. Report error
+    if (ir & (16 | 8)) break;  // Stop on SEND_OK or timeout
   }
   return len;
 }
@@ -21989,26 +24774,27 @@ static size_t w5100_tx(const void *buf, size_t buflen,
 static bool w5100_init(struct mg_tcpip_if *ifp) {
   struct mg_tcpip_spi *s = (struct mg_tcpip_spi *) ifp->driver_data;
   s->end(s->spi);
-  w5100_w1(s, 0, 0x80);     // Reset chip: CR -> 0x80
-  w5100_w1(s, 0x72, 0x53);  // CR PHYLCKR -> unlock PHY
-  w5100_w1(s, 0x46, 0);     // CR PHYCR0 -> autonegotiation
-  w5100_w1(s, 0x47, 0);     // CR PHYCR1 -> reset
-  w5100_w1(s, 0x72, 0x00);  // CR PHYLCKR -> lock PHY
-  w5100_w1(s, 0x1a, 6);          // Sock0 RX buf size - 4KB
-  w5100_w1(s, 0x1b, 6);          // Sock0 TX buf size - 4KB
-  w5100_w1(s, 0x400, 4);              // Sock0 MR -> MACRAW
+  w5100_w1(s, 0, 0x80);               // Reset chip: CR -> 0x80
+  w5100_w1(s, 0x72, 0x53);            // CR PHYLCKR -> unlock PHY
+  w5100_w1(s, 0x46, 0);               // CR PHYCR0 -> autonegotiation
+  w5100_w1(s, 0x47, 0);               // CR PHYCR1 -> reset
+  w5100_w1(s, 0x72, 0x00);            // CR PHYLCKR -> lock PHY
+  w5100_wn(s, 0x09, ifp->mac, 6);     // SHAR
+  w5100_w1(s, 0x1a, 6);               // Sock0 RX buf size - 4KB
+  w5100_w1(s, 0x1b, 6);               // Sock0 TX buf size - 4KB
+  w5100_w1(s, 0x400, 0x44);           // Sock0 MR -> MACRAW, MAC filter
   w5100_w1(s, 0x401, 1);              // Sock0 CR -> OPEN
   return w5100_r1(s, 0x403) == 0x42;  // Sock0 SR == MACRAW
 }
 
-static bool w5100_up(struct mg_tcpip_if *ifp) {
+static bool w5100_poll(struct mg_tcpip_if *ifp, bool s1) {
   struct mg_tcpip_spi *spi = (struct mg_tcpip_spi *) ifp->driver_data;
-  uint8_t physr0 = w5100_r1(spi, 0x3c);
-  return physr0 & 1;  // Bit 0 of PHYSR is LNK (0 - down, 1 - up)
+  return s1 ? w5100_r1(spi, 0x3c /* PHYSR */) & 1
+            : false;  // Bit 0 of PHYSR is LNK (0 - down, 1 - up)
 }
 
 struct mg_tcpip_driver mg_tcpip_driver_w5100 = {w5100_init, w5100_tx, w5100_rx,
-                                                w5100_up};
+                                                w5100_poll};
 #endif
 
 #ifdef MG_ENABLE_LINES
@@ -22097,14 +24883,14 @@ static bool w5500_init(struct mg_tcpip_if *ifp) {
   return w5500_r1(s, W5500_S0, 3) == 0x42;  // Sock0 SR == MACRAW
 }
 
-static bool w5500_up(struct mg_tcpip_if *ifp) {
+static bool w5500_poll(struct mg_tcpip_if *ifp, bool s1) {
   struct mg_tcpip_spi *spi = (struct mg_tcpip_spi *) ifp->driver_data;
-  uint8_t phycfgr = w5500_r1(spi, W5500_CR, 0x2e);
-  return phycfgr & 1;  // Bit 0 of PHYCFGR is LNK (0 - down, 1 - up)
+  return s1 ? w5500_r1(spi, W5500_CR, 0x2e /* PHYCFGR */) & 1
+            : false;  // Bit 0 of PHYCFGR is LNK (0 - down, 1 - up)
 }
 
 struct mg_tcpip_driver mg_tcpip_driver_w5500 = {w5500_init, w5500_tx, w5500_rx,
-                                                w5500_up};
+                                                w5500_poll};
 #endif
 
 #ifdef MG_ENABLE_LINES
@@ -22116,34 +24902,34 @@ struct mg_tcpip_driver mg_tcpip_driver_w5500 = {w5500_init, w5500_tx, w5500_rx,
 
 struct ETH_GLOBAL_TypeDef {
   volatile uint32_t MAC_CONFIGURATION, MAC_FRAME_FILTER, HASH_TABLE_HIGH,
-  HASH_TABLE_LOW, GMII_ADDRESS, GMII_DATA, FLOW_CONTROL, VLAN_TAG, VERSION,
-  DEBUG, REMOTE_WAKE_UP_FRAME_FILTER, PMT_CONTROL_STATUS, RESERVED[2],
-  INTERRUPT_STATUS, INTERRUPT_MASK, MAC_ADDRESS0_HIGH, MAC_ADDRESS0_LOW,
-  MAC_ADDRESS1_HIGH, MAC_ADDRESS1_LOW, MAC_ADDRESS2_HIGH, MAC_ADDRESS2_LOW,
-  MAC_ADDRESS3_HIGH, MAC_ADDRESS3_LOW, RESERVED1[40], MMC_CONTROL,
-  MMC_RECEIVE_INTERRUPT, MMC_TRANSMIT_INTERRUPT, MMC_RECEIVE_INTERRUPT_MASK,
-  MMC_TRANSMIT_INTERRUPT_MASK, TX_STATISTICS[26], RESERVED2,
-  RX_STATISTICS_1[26], RESERVED3[6], MMC_IPC_RECEIVE_INTERRUPT_MASK,
-  RESERVED4, MMC_IPC_RECEIVE_INTERRUPT, RESERVED5, RX_STATISTICS_2[30],
-  RESERVED7[286], TIMESTAMP_CONTROL, SUB_SECOND_INCREMENT,
-  SYSTEM_TIME_SECONDS, SYSTEM_TIME_NANOSECONDS,
-  SYSTEM_TIME_SECONDS_UPDATE, SYSTEM_TIME_NANOSECONDS_UPDATE,
-  TIMESTAMP_ADDEND, TARGET_TIME_SECONDS, TARGET_TIME_NANOSECONDS,
-  SYSTEM_TIME_HIGHER_WORD_SECONDS, TIMESTAMP_STATUS,
-  PPS_CONTROL, RESERVED8[564], BUS_MODE, TRANSMIT_POLL_DEMAND,
-  RECEIVE_POLL_DEMAND, RECEIVE_DESCRIPTOR_LIST_ADDRESS,
-  TRANSMIT_DESCRIPTOR_LIST_ADDRESS, STATUS, OPERATION_MODE,
-  INTERRUPT_ENABLE, MISSED_FRAME_AND_BUFFER_OVERFLOW_COUNTER,
-  RECEIVE_INTERRUPT_WATCHDOG_TIMER, RESERVED9, AHB_STATUS,
-  RESERVED10[6], CURRENT_HOST_TRANSMIT_DESCRIPTOR,
-  CURRENT_HOST_RECEIVE_DESCRIPTOR, CURRENT_HOST_TRANSMIT_BUFFER_ADDRESS,
-  CURRENT_HOST_RECEIVE_BUFFER_ADDRESS, HW_FEATURE;
+      HASH_TABLE_LOW, GMII_ADDRESS, GMII_DATA, FLOW_CONTROL, VLAN_TAG, VERSION,
+      DEBUG, REMOTE_WAKE_UP_FRAME_FILTER, PMT_CONTROL_STATUS, RESERVED[2],
+      INTERRUPT_STATUS, INTERRUPT_MASK, MAC_ADDRESS0_HIGH, MAC_ADDRESS0_LOW,
+      MAC_ADDRESS1_HIGH, MAC_ADDRESS1_LOW, MAC_ADDRESS2_HIGH, MAC_ADDRESS2_LOW,
+      MAC_ADDRESS3_HIGH, MAC_ADDRESS3_LOW, RESERVED1[40], MMC_CONTROL,
+      MMC_RECEIVE_INTERRUPT, MMC_TRANSMIT_INTERRUPT, MMC_RECEIVE_INTERRUPT_MASK,
+      MMC_TRANSMIT_INTERRUPT_MASK, TX_STATISTICS[26], RESERVED2,
+      RX_STATISTICS_1[26], RESERVED3[6], MMC_IPC_RECEIVE_INTERRUPT_MASK,
+      RESERVED4, MMC_IPC_RECEIVE_INTERRUPT, RESERVED5, RX_STATISTICS_2[30],
+      RESERVED7[286], TIMESTAMP_CONTROL, SUB_SECOND_INCREMENT,
+      SYSTEM_TIME_SECONDS, SYSTEM_TIME_NANOSECONDS, SYSTEM_TIME_SECONDS_UPDATE,
+      SYSTEM_TIME_NANOSECONDS_UPDATE, TIMESTAMP_ADDEND, TARGET_TIME_SECONDS,
+      TARGET_TIME_NANOSECONDS, SYSTEM_TIME_HIGHER_WORD_SECONDS,
+      TIMESTAMP_STATUS, PPS_CONTROL, RESERVED8[564], BUS_MODE,
+      TRANSMIT_POLL_DEMAND, RECEIVE_POLL_DEMAND,
+      RECEIVE_DESCRIPTOR_LIST_ADDRESS, TRANSMIT_DESCRIPTOR_LIST_ADDRESS, STATUS,
+      OPERATION_MODE, INTERRUPT_ENABLE,
+      MISSED_FRAME_AND_BUFFER_OVERFLOW_COUNTER,
+      RECEIVE_INTERRUPT_WATCHDOG_TIMER, RESERVED9, AHB_STATUS, RESERVED10[6],
+      CURRENT_HOST_TRANSMIT_DESCRIPTOR, CURRENT_HOST_RECEIVE_DESCRIPTOR,
+      CURRENT_HOST_TRANSMIT_BUFFER_ADDRESS, CURRENT_HOST_RECEIVE_BUFFER_ADDRESS,
+      HW_FEATURE;
 };
 
 #undef ETH0
-#define ETH0  ((struct ETH_GLOBAL_TypeDef*) 0x5000C000UL)
+#define ETH0 ((struct ETH_GLOBAL_TypeDef *) 0x5000C000UL)
 
-#define ETH_PKT_SIZE 1536 // Max frame size
+#define ETH_PKT_SIZE 1536  // Max frame size
 #define ETH_DESC_CNT 4     // Descriptors count
 #define ETH_DS 4           // Descriptor size (words)
 
@@ -22155,27 +24941,27 @@ struct ETH_GLOBAL_TypeDef {
 
 static uint8_t s_rxbuf[ETH_DESC_CNT][ETH_PKT_SIZE] ETH_RAM_SECTION;
 static uint8_t s_txbuf[ETH_DESC_CNT][ETH_PKT_SIZE] ETH_RAM_SECTION;
-static uint32_t s_rxdesc[ETH_DESC_CNT][ETH_DS] ETH_RAM_SECTION;  // RX descriptors
-static uint32_t s_txdesc[ETH_DESC_CNT][ETH_DS] ETH_RAM_SECTION;  // TX descriptors
-static uint8_t s_txno;                           // Current TX descriptor
-static uint8_t s_rxno;                           // Current RX descriptor
+static uint32_t s_rxdesc[ETH_DESC_CNT]
+                        [ETH_DS] ETH_RAM_SECTION;  // RX descriptors
+static uint32_t s_txdesc[ETH_DESC_CNT]
+                        [ETH_DS] ETH_RAM_SECTION;  // TX descriptors
+static uint8_t s_txno;                             // Current TX descriptor
+static uint8_t s_rxno;                             // Current RX descriptor
 
 static struct mg_tcpip_if *s_ifp;  // MIP interface
 enum { MG_PHY_ADDR = 0, MG_PHYREG_BCR = 0, MG_PHYREG_BSR = 1 };
 
 static uint16_t eth_read_phy(uint8_t addr, uint8_t reg) {
-  ETH0->GMII_ADDRESS = (ETH0->GMII_ADDRESS & 0x3c) |
-                        ((uint32_t)addr << 11) |
-                        ((uint32_t)reg << 6) | 1;
+  ETH0->GMII_ADDRESS = (ETH0->GMII_ADDRESS & 0x3c) | ((uint32_t) addr << 11) |
+                       ((uint32_t) reg << 6) | 1;
   while ((ETH0->GMII_ADDRESS & 1) != 0) (void) 0;
-  return (uint16_t)(ETH0->GMII_DATA & 0xffff);
+  return (uint16_t) (ETH0->GMII_DATA & 0xffff);
 }
 
 static void eth_write_phy(uint8_t addr, uint8_t reg, uint16_t val) {
-  ETH0->GMII_DATA  = val;
-  ETH0->GMII_ADDRESS = (ETH0->GMII_ADDRESS & 0x3c) |
-                        ((uint32_t)addr << 11) |
-                        ((uint32_t)reg << 6) | 3;
+  ETH0->GMII_DATA = val;
+  ETH0->GMII_ADDRESS = (ETH0->GMII_ADDRESS & 0x3c) | ((uint32_t) addr << 11) |
+                       ((uint32_t) reg << 6) | 3;
   while ((ETH0->GMII_ADDRESS & 1) != 0) (void) 0;
 }
 
@@ -22210,22 +24996,22 @@ static bool mg_tcpip_driver_xmc_init(struct mg_tcpip_if *ifp) {
 
   // set the MAC address
   ETH0->MAC_ADDRESS0_HIGH = MG_U32(0, 0, ifp->mac[5], ifp->mac[4]);
-  ETH0->MAC_ADDRESS0_LOW = 
-        MG_U32(ifp->mac[3], ifp->mac[2], ifp->mac[1], ifp->mac[0]);
+  ETH0->MAC_ADDRESS0_LOW =
+      MG_U32(ifp->mac[3], ifp->mac[2], ifp->mac[1], ifp->mac[0]);
 
   // Configure the receive filter
-  ETH0->MAC_FRAME_FILTER = MG_BIT(10) | MG_BIT(2); // HFP, HMC
+  ETH0->MAC_FRAME_FILTER = MG_BIT(10);  // Perfect filter
   // Disable flow control
   ETH0->FLOW_CONTROL = 0;
   // Enable store and forward mode
-  ETH0->OPERATION_MODE = MG_BIT(25) | MG_BIT(21); // RSF, TSF
+  ETH0->OPERATION_MODE = MG_BIT(25) | MG_BIT(21);  // RSF, TSF
 
   // Configure DMA bus mode (AAL, USP, RPBL, PBL)
-  ETH0->BUS_MODE = MG_BIT(25) | MG_BIT(23) | (32 << 17) |  (32 << 8);
+  ETH0->BUS_MODE = MG_BIT(25) | MG_BIT(23) | (32 << 17) | (32 << 8);
 
   // init RX descriptors
   for (int i = 0; i < ETH_DESC_CNT; i++) {
-    s_rxdesc[i][0] = MG_BIT(31); // OWN descriptor
+    s_rxdesc[i][0] = MG_BIT(31);  // OWN descriptor
     s_rxdesc[i][1] = MG_BIT(14) | ETH_PKT_SIZE;
     s_rxdesc[i][2] = (uint32_t) s_rxbuf[i];
     if (i == ETH_DESC_CNT - 1) {
@@ -22255,9 +25041,9 @@ static bool mg_tcpip_driver_xmc_init(struct mg_tcpip_if *ifp) {
   ETH0->MMC_TRANSMIT_INTERRUPT_MASK = 0xFFFFFFFF;
   ETH0->MMC_RECEIVE_INTERRUPT_MASK = 0xFFFFFFFF;
   ETH0->MMC_IPC_RECEIVE_INTERRUPT_MASK = 0xFFFFFFFF;
-  ETH0->INTERRUPT_MASK = MG_BIT(9) | MG_BIT(3); // TSIM, PMTIM
+  ETH0->INTERRUPT_MASK = MG_BIT(9) | MG_BIT(3);  // TSIM, PMTIM
 
-  //Enable interrupts (NIE, RIE, TIE)
+  // Enable interrupts (NIE, RIE, TIE)
   ETH0->INTERRUPT_ENABLE = MG_BIT(16) | MG_BIT(6) | MG_BIT(0);
 
   // Enable MAC transmission and reception (TE, RE)
@@ -22268,7 +25054,7 @@ static bool mg_tcpip_driver_xmc_init(struct mg_tcpip_if *ifp) {
 }
 
 static size_t mg_tcpip_driver_xmc_tx(const void *buf, size_t len,
-                                        struct mg_tcpip_if *ifp) {
+                                     struct mg_tcpip_if *ifp) {
   if (len > sizeof(s_txbuf[s_txno])) {
     MG_ERROR(("Frame too big, %ld", (long) len));
     len = 0;  // Frame is too big
@@ -22286,12 +25072,27 @@ static size_t mg_tcpip_driver_xmc_tx(const void *buf, size_t len,
   }
 
   // Resume processing
-  ETH0->STATUS = MG_BIT(2); // clear Transmit unavailable
+  ETH0->STATUS = MG_BIT(2);  // clear Transmit unavailable
   ETH0->TRANSMIT_POLL_DEMAND = 0;
   return len;
 }
 
-static bool mg_tcpip_driver_xmc_up(struct mg_tcpip_if *ifp) {
+static void mg_tcpip_driver_xmc_update_hash_table(struct mg_tcpip_if *ifp) {
+  // TODO(): read database, rebuild hash table
+  // set the multicast address filter
+  ETH0->MAC_ADDRESS1_HIGH =
+      MG_U32(0, 0, mcast_addr[5], mcast_addr[4]) | MG_BIT(31);
+  ETH0->MAC_ADDRESS1_LOW =
+      MG_U32(mcast_addr[3], mcast_addr[2], mcast_addr[1], mcast_addr[0]);
+  (void) ifp;
+}
+
+static bool mg_tcpip_driver_xmc_poll(struct mg_tcpip_if *ifp, bool s1) {
+  if (ifp->update_mac_hash_table) {
+    mg_tcpip_driver_xmc_update_hash_table(ifp);
+    ifp->update_mac_hash_table = false;
+  }
+  if (!s1) return false;
   struct mg_tcpip_driver_xmc_data *d =
       (struct mg_tcpip_driver_xmc_data *) ifp->driver_data;
   uint8_t speed = MG_PHY_SPEED_10M;
@@ -22311,16 +25112,15 @@ void ETH0_0_IRQHandler(void) {
 
   // check if a frame was received
   if (irq_status & MG_BIT(6)) {
-    for (uint8_t i = 0; i < ETH_DESC_CNT; i++) {
-      if ((s_rxdesc[s_rxno][0] & MG_BIT(31)) == 0) {
-        size_t len = (s_rxdesc[s_rxno][0] & 0x3fff0000) >> 16;
-        mg_tcpip_qwrite(s_rxbuf[s_rxno], len, s_ifp);
-        s_rxdesc[s_rxno][0] = MG_BIT(31);   // OWN bit: handle control to DMA
-        // Resume processing
-        ETH0->STATUS = MG_BIT(7) | MG_BIT(6); // clear RU and RI
-        ETH0->RECEIVE_POLL_DEMAND = 0;
-        if (++s_rxno >= ETH_DESC_CNT) s_rxno = 0;
-      }
+    for (uint8_t i = 0; i < 10; i++) {  // read as they arrive, but not forever
+      if (s_rxdesc[s_rxno][0] & MG_BIT(31)) break;
+      size_t len = (s_rxdesc[s_rxno][0] & 0x3fff0000) >> 16;
+      mg_tcpip_qwrite(s_rxbuf[s_rxno], len, s_ifp);
+      s_rxdesc[s_rxno][0] = MG_BIT(31);  // OWN bit: handle control to DMA
+      // Resume processing
+      ETH0->STATUS = MG_BIT(7) | MG_BIT(6);  // clear RU and RI
+      ETH0->RECEIVE_POLL_DEMAND = 0;
+      if (++s_rxno >= ETH_DESC_CNT) s_rxno = 0;
     }
     ETH0->STATUS = MG_BIT(6);
   }
@@ -22336,9 +25136,9 @@ void ETH0_0_IRQHandler(void) {
   }
 }
 
-struct mg_tcpip_driver mg_tcpip_driver_xmc = {
-    mg_tcpip_driver_xmc_init, mg_tcpip_driver_xmc_tx, NULL,
-    mg_tcpip_driver_xmc_up};
+struct mg_tcpip_driver mg_tcpip_driver_xmc = {mg_tcpip_driver_xmc_init,
+                                              mg_tcpip_driver_xmc_tx, NULL,
+                                              mg_tcpip_driver_xmc_poll};
 #endif
 
 #ifdef MG_ENABLE_LINES
@@ -22412,8 +25212,8 @@ static uint8_t s_rxbuf[ETH_DESC_CNT][ETH_PKT_SIZE];
 static uint8_t s_txbuf[ETH_DESC_CNT][ETH_PKT_SIZE];
 static uint32_t s_rxdesc[ETH_DESC_CNT][ETH_DS] MG_8BYTE_ALIGNED;
 static uint32_t s_txdesc[ETH_DESC_CNT][ETH_DS] MG_8BYTE_ALIGNED;
-static uint8_t s_txno MG_8BYTE_ALIGNED;     // Current TX descriptor
-static uint8_t s_rxno MG_8BYTE_ALIGNED;     // Current RX descriptor
+static uint8_t s_txno MG_8BYTE_ALIGNED;  // Current TX descriptor
+static uint8_t s_rxno MG_8BYTE_ALIGNED;  // Current RX descriptor
 
 static struct mg_tcpip_if *s_ifp;  // MIP interface
 enum { MG_PHY_ADDR = 0, MG_PHYREG_BCR = 0, MG_PHYREG_BSR = 1 };
@@ -22450,8 +25250,7 @@ static bool mg_tcpip_driver_xmc7_init(struct mg_tcpip_if *ifp) {
   // set NSP change, ignore RX FCS, data bus width, clock rate
   // frame length 1536, full duplex, speed
   ETH0->NETWORK_CONFIG = MG_BIT(29) | MG_BIT(26) | MG_BIT(21) |
-                         ((cr & 7) << 18) | MG_BIT(8) | MG_BIT(4) | MG_BIT(1) |
-                         MG_BIT(0);
+                         ((cr & 7) << 18) | MG_BIT(8) | MG_BIT(1) | MG_BIT(0);
 
   // config DMA settings: Force TX burst, Discard on Error, set RX buffer size
   // to 1536, TX_PBUF_SIZE, RX_PBUF_SIZE, AMBA_BURST_LENGTH
@@ -22527,7 +25326,21 @@ static size_t mg_tcpip_driver_xmc7_tx(const void *buf, size_t len,
   return len;
 }
 
-static bool mg_tcpip_driver_xmc7_up(struct mg_tcpip_if *ifp) {
+static void mg_tcpip_driver_xmc7_update_hash_table(struct mg_tcpip_if *ifp) {
+  // TODO(): read database, rebuild hash table
+  // set multicast MAC address
+  ETH0->SPEC_ADD2_BOTTOM = mcast_addr[3] << 24 | mcast_addr[2] << 16 |
+                           mcast_addr[1] << 8 | mcast_addr[0];
+  ETH0->SPEC_ADD2_TOP = mcast_addr[5] << 8 | mcast_addr[4];
+  (void) ifp;
+}
+
+static bool mg_tcpip_driver_xmc7_poll(struct mg_tcpip_if *ifp, bool s1) {
+  if (ifp->update_mac_hash_table) {
+    mg_tcpip_driver_xmc7_update_hash_table(ifp);
+    ifp->update_mac_hash_table = false;
+  }
+  if (!s1) return false;
   struct mg_tcpip_driver_xmc7_data *d =
       (struct mg_tcpip_driver_xmc7_data *) ifp->driver_data;
   uint8_t speed = MG_PHY_SPEED_10M;
@@ -22565,13 +25378,12 @@ static bool mg_tcpip_driver_xmc7_up(struct mg_tcpip_if *ifp) {
 void ETH_IRQHandler(void) {
   uint32_t irq_status = ETH0->INT_STATUS;
   if (irq_status & MG_BIT(1)) {
-    for (uint8_t i = 0; i < ETH_DESC_CNT; i++) {
-      if (s_rxdesc[s_rxno][0] & MG_BIT(0)) {
-        size_t len = s_rxdesc[s_rxno][1] & (MG_BIT(13) - 1);
-        mg_tcpip_qwrite(s_rxbuf[s_rxno], len, s_ifp);
-        s_rxdesc[s_rxno][0] &= ~MG_BIT(0);  // OWN bit: handle control to DMA
-        if (++s_rxno >= ETH_DESC_CNT) s_rxno = 0;
-      }
+    for (uint8_t i = 0; i < 10; i++) {  // read as they arrive, but not forever
+      if ((s_rxdesc[s_rxno][0] & MG_BIT(0)) == 0) break;
+      size_t len = s_rxdesc[s_rxno][1] & (MG_BIT(13) - 1);
+      mg_tcpip_qwrite(s_rxbuf[s_rxno], len, s_ifp);
+      s_rxdesc[s_rxno][0] &= ~MG_BIT(0);  // OWN bit: handle control to DMA
+      if (++s_rxno >= ETH_DESC_CNT) s_rxno = 0;
     }
   }
 
@@ -22580,5 +25392,5 @@ void ETH_IRQHandler(void) {
 
 struct mg_tcpip_driver mg_tcpip_driver_xmc7 = {mg_tcpip_driver_xmc7_init,
                                                mg_tcpip_driver_xmc7_tx, NULL,
-                                               mg_tcpip_driver_xmc7_up};
+                                               mg_tcpip_driver_xmc7_poll};
 #endif
