@@ -21,7 +21,7 @@ static void *mbedtls_DECRYPT_init(unsigned char *key, char keylen, unsigned char
 	int error;
 
 	if ((key == NULL) || (iv == NULL)) {
-		ERROR("no key provided for decryption!");
+		ERROR("no key or iv provided for decryption!");
 		return NULL;
 	}
 
