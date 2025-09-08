@@ -164,7 +164,7 @@ static void usage(char *programname)
 		" -l, --loglevel <level>         : logging level\n"
 		" -L, --syslog                   : enable syslog logger\n"
 #ifdef CONFIG_SIGNED_IMAGES
-		" -6, --digest-provider <string> : the provider used to verify the update\n"
+		"     --digest-provider <string> : the provider used to verify the update\n"
 		" -k, --key <public key file>    : file with public key to verify images\n"
 		"     --cert-purpose <purpose>   : set expected certificate purpose\n"
 		"                                  [emailProtection|codeSigning] (default: emailProtection)\n"
@@ -181,10 +181,10 @@ static void usage(char *programname)
 #ifdef CONFIG_ENCRYPTED_IMAGES
 		" -K, --key-aes <key file>       : the file contains the symmetric key to be used\n"
 		"                                  to decrypt images\n"
-		" -8, --decrypt-provider <string>: the provider used for decryption\n"
+		"     --decrypt-provider <string>: the provider used for decryption\n"
 #endif
 #ifdef CONFIG_HASH_VERIFY
-		" -7, --hash-provider <string>   : the provider used to perform hashes\n"
+		"     --hash-provider <string>   : the provider used to perform hashes\n"
 #endif
 		" -n, --dry-run                  : run SWUpdate without installing the software\n"
 		" -N, --no-downgrading <version> : not install a release older as <version>\n"
