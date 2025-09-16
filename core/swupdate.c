@@ -109,6 +109,7 @@ static struct option long_options[] = {
 #endif
 #ifdef CONFIG_ENCRYPTED_IMAGES
 	{"key-aes", required_argument, NULL, 'K'},
+	{"decryption-key", required_argument, NULL, 'K'},
 	{"decrypt-provider", required_argument, NULL, '8'},
 #endif
 #ifdef CONFIG_HASH_VERIFY
@@ -179,8 +180,8 @@ static void usage(char *programname)
 #endif
 #endif
 #ifdef CONFIG_ENCRYPTED_IMAGES
-		" -K, --key-aes <key file>       : the file contains the symmetric key to be used\n"
-		"                                  to decrypt images\n"
+		" -K, --key-aes <key file>       : the file contains the decryption key to be used\n"
+		"     --decryption-key <key file>: to decrypt images\n"
 		"     --decrypt-provider <string>: the provider used for decryption\n"
 #endif
 #ifdef CONFIG_HASH_VERIFY
@@ -383,6 +384,8 @@ static int read_globals_settings(void *elem, void *data)
 				"ca-path", sw->publickeyfname);
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
 				"aes-key-file", sw->aeskeyfname);
+	GET_FIELD_STRING(LIBCFG_PARSER, elem,
+				"decryption-key-file", sw->aeskeyfname);
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
 				"mtd-blacklist", sw->mtdblacklist);
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
