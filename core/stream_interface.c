@@ -45,6 +45,7 @@
 #include "state.h"
 #include "bootloader.h"
 #include "hw-compatibility.h"
+#include "swupdate_crypto.h"
 
 #define BUFF_SIZE	 4096
 #define PERCENT_LB_INDEX	4
@@ -92,25 +93,33 @@ static int extract_file_to_tmp(int fd, const char *fname, unsigned long *poffs,
 	uint32_t checksum;
 	const char* TMPDIR = get_tmpdir();
 	cipher_t cipher = AES_CBC;
+	int ret = -1;
+
+#ifdef CONFIG_ASYM_ENCRYPTED_SW_DESCRIPTION
+	const char *cryptolib = get_cryptolib();
+	cipher = CMS;
+	if (encrypted)
+		set_cryptolib("opensslCMS");
+#endif
 
 	if (extract_cpio_header(fd, &fdh, poffs)) {
-		return -1;
+		goto err;
 	}
 	if (strcmp(fdh.filename, fname)) {
 		TRACE("description file name not the first of the list: %s instead of %s",
 			fdh.filename,
 			fname);
-		return -1;
+		goto err;
 	}
 	if (snprintf(output_file, sizeof(output_file), "%s%s", TMPDIR,
 		     fdh.filename) >= (int)sizeof(output_file)) {
 		ERROR("Path too long: %s%s", TMPDIR, fdh.filename);
-		return -1;
+		goto err;
 	}
 	if (max_size && fdh.size >= max_size) {
 		ERROR("%s size (%ld) exceeds configured max of %d, aborting",
 			fdh.filename, fdh.size, max_size);
-		return -1;
+		goto err;
 	}
 	TRACE("Found file");
 	TRACE("\tfilename %s", fdh.filename);
@@ -118,7 +127,7 @@ static int extract_file_to_tmp(int fd, const char *fname, unsigned long *poffs,
 
 	fdout = openfileoutput(output_file);
 	if (fdout < 0)
-		return -1;
+		goto err;
 
 	struct swupdate_copy copy = {
 		.fdin = fd,
@@ -130,16 +139,20 @@ static int extract_file_to_tmp(int fd, const char *fname, unsigned long *poffs,
 		.cipher = cipher,
 	};
 	if (copyfile(&copy) < 0) {
-		close(fdout);
-		return -1;
+		goto err;
 	}
 	if (!swupdate_verify_chksum(checksum, &fdh)) {
-		close(fdout);
-		return -1;
+		goto err;
 	}
-	close(fdout);
-
-	return 0;
+	ret = 0;
+err:
+#ifdef CONFIG_ASYM_ENCRYPTED_SW_DESCRIPTION
+	if (encrypted)
+		set_cryptolib(cryptolib);
+#endif
+	if (fdout >= 0)
+		close(fdout);
+	return ret;
 }
 
 static bool update_transaction_state(struct swupdate_cfg *software, update_state_t newstate)
