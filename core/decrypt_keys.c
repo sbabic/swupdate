@@ -24,7 +24,7 @@
 struct decryption_key {
 	char *key;
 	char keylen;
-	unsigned char ivt[AES_BLK_SIZE];
+	unsigned char *ivt;
 };
 
 static struct decryption_key *decrypt_keys = NULL;
@@ -49,7 +49,14 @@ int set_aes_key(const char *key, const char *ivt)
 		return -EINVAL;
 	}
 
-	ret = ascii_to_bin(decrypt_keys->ivt, sizeof(decrypt_keys->ivt), ivt);
+	if (decrypt_keys->ivt)
+		free(decrypt_keys->ivt);
+
+	decrypt_keys->ivt = calloc(1, AES_BLK_SIZE);
+	if (!decrypt_keys->ivt)
+		return -ENOMEM;
+
+	ret = ascii_to_bin(decrypt_keys->ivt, AES_BLK_SIZE, ivt);
 	keylen = strlen(key);
 
 	if (!strcmp("pkcs11", key)) {
