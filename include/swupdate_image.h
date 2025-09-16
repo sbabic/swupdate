@@ -59,6 +59,7 @@ struct img_type {
 	bool is_encrypted;
 	cipher_t cipher;
 	char ivt_ascii[33];
+	char aes_ascii[65]; /* AES_256_KEY_LEN*2+1 */
 	bool install_directly;
 	int is_script;
 	int is_partitioner;

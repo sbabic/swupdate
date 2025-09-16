@@ -437,6 +437,28 @@ static void get_ivt_value(parsertype p, void *elem, char *ivt_ascii)
 	}
 }
 
+static void get_aes_value(parsertype p, void *elem, char *aes_ascii)
+{
+	size_t keylen;
+	const char *s = NULL;
+	s = get_field_string(p, elem, "aes-key");
+	if (s) {
+		keylen = strnlen(s, SWUPDATE_GENERAL_STRING_SIZE);
+
+		switch (keylen) {
+		case AES_128_KEY_LEN * 2:
+		case AES_192_KEY_LEN * 2:
+		case AES_256_KEY_LEN * 2:
+			// valid hex string size for AES 128/192/256
+			break;
+		default:
+			ERROR("Invalid aes-key length");
+			return;
+		}
+		get_field_string_with_size(p, elem, "aes-key", aes_ascii, keylen);
+	}
+}
+
 static int parse_common_attributes(parsertype p, void *elem, struct img_type *image, struct swupdate_cfg *cfg)
 {
 	char seek_str[MAX_SEEK_STRING_SIZE];
@@ -508,6 +530,7 @@ static int parse_common_attributes(parsertype p, void *elem, struct img_type *im
 		image->cipher = AES_CBC;
 	}
 	get_ivt_value(p, elem, image->ivt_ascii);
+	get_aes_value(p, elem, image->aes_ascii);
 
 	if (is_image_installed(&cfg->installed_sw_list, image)) {
 		image->skip = SKIP_SAME;
