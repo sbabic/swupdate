@@ -26,7 +26,8 @@ static void wolfssl_debug(int __attribute__ ((__unused__)) level, const char *co
 #endif
 
 static void *wolfssl_DECRYPT_init(unsigned char *key,
-					char __attribute__ ((__unused__)) keylen, unsigned char *iv)
+					char __attribute__ ((__unused__)) keylen, unsigned char *iv,
+					cipher_t cipher)
 {
 	struct wolfssl_digest *dgst;
 	const char *library;
@@ -42,6 +43,9 @@ static void *wolfssl_DECRYPT_init(unsigned char *key,
 		ERROR("PKCS#11 URI or AES IV missing for decryption!");
 		return NULL;
 	}
+
+	/* Temporary to remove warning */
+	cipher = cipher;
 
 	dgst = calloc(1, sizeof(*dgst));
 	if (!dgst) {

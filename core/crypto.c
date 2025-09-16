@@ -139,14 +139,14 @@ void print_registered_cryptolib(void)
 	}
 }
 
-void *swupdate_DECRYPT_init(unsigned char *key, char keylen, unsigned char *iv)
+void *swupdate_DECRYPT_init(unsigned char *key, char keylen, unsigned char *iv, cipher_t cipher)
 {
 	swupdate_decrypt_lib *lib;
 	if (!get_cryptolib())
 		return NULL;
 
 	lib = (swupdate_decrypt_lib *)current[DECRYPTLIB]->lib;
-	return lib->DECRYPT_init(key, keylen, iv);
+	return lib->DECRYPT_init(key, keylen, iv, cipher);
 }
 
 int swupdate_DECRYPT_update(void *dgst, unsigned char *buf, 

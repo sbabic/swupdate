@@ -22,11 +22,14 @@
 static void openssl_probe(void);
 
 static swupdate_decrypt_lib openssl;
-static void *openssl_DECRYPT_init(unsigned char *key, char keylen, unsigned char *iv)
+static void *openssl_DECRYPT_init(unsigned char *key, char keylen, unsigned char *iv, cipher_t reqcipher)
 {
 	struct openssl_digest *dgst;
 	const EVP_CIPHER *cipher;
 	int ret;
+
+	/* Temporary to remove warning */
+	reqcipher = reqcipher;
 
 	if ((key == NULL) || (iv == NULL)) {
 		ERROR("no key or iv provided for decryption!");

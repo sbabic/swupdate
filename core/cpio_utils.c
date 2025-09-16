@@ -617,7 +617,7 @@ int copyfile(struct swupdate_copy *args)
 			ivt = ivtbuf;
 		} else
 			ivt = get_aes_ivt();
-		decrypt_state.dcrypt = swupdate_DECRYPT_init(aes_key, get_aes_keylen(), ivt);
+		decrypt_state.dcrypt = swupdate_DECRYPT_init(aes_key, get_aes_keylen(), ivt, AES_CBC);
 		if (!decrypt_state.dcrypt) {
 			ERROR("decrypt initialization failure, aborting");
 			ret = -EFAULT;

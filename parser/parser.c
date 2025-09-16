@@ -24,6 +24,7 @@
 #include "parselib.h"
 #include "parsers.h"
 #include "swupdate_dict.h"
+#include "swupdate_aes.h"
 #include "lua_util.h"
 
 #define MODULE_NAME	"PARSER"
@@ -439,7 +440,7 @@ static void get_ivt_value(parsertype p, void *elem, char *ivt_ascii)
 static int parse_common_attributes(parsertype p, void *elem, struct img_type *image, struct swupdate_cfg *cfg)
 {
 	char seek_str[MAX_SEEK_STRING_SIZE];
-	const char* compressed;
+	const char *compressed, *encrypted;
 	unsigned long offset = 0;
 
 	/*
@@ -498,7 +499,14 @@ static int parse_common_attributes(parsertype p, void *elem, struct img_type *im
 	GET_FIELD_BOOL(p, elem, "preserve-attributes", &image->preserve_attributes);
 	GET_FIELD_BOOL(p, elem, "install-if-different", &image->id.install_if_different);
 	GET_FIELD_BOOL(p, elem, "install-if-higher", &image->id.install_if_higher);
-	GET_FIELD_BOOL(p, elem, "encrypted", &image->is_encrypted);
+
+	if ((encrypted = get_field_string(p, elem, "encrypted")) != NULL) {
+		image->is_encrypted = true;
+		image->cipher = map_name_cipher(encrypted);
+	} else {
+		GET_FIELD_BOOL(p, elem, "encrypted", &image->is_encrypted);
+		image->cipher = AES_CBC;
+	}
 	get_ivt_value(p, elem, image->ivt_ascii);
 
 	if (is_image_installed(&cfg->installed_sw_list, image)) {

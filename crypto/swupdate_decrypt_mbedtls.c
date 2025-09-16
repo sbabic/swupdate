@@ -12,13 +12,16 @@
 
 static swupdate_decrypt_lib mbedtls;
 
-static void *mbedtls_DECRYPT_init(unsigned char *key, char keylen, unsigned char *iv)
+static void *mbedtls_DECRYPT_init(unsigned char *key, char keylen, unsigned char *iv, cipher_t cipher)
 {
 	struct mbedtls_digest *dgst;
 	mbedtls_cipher_type_t cipher_type;
 	const mbedtls_cipher_info_t *cipher_info;
 	int key_bitlen;
 	int error;
+
+	/* Temporary to remove warning */
+	cipher = cipher;
 
 	if ((key == NULL) || (iv == NULL)) {
 		ERROR("no key or iv provided for decryption!");

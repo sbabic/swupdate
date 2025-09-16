@@ -8,6 +8,7 @@
 
 #pragma once
 #include <stdbool.h>
+#include <swupdate_aes.h>
 
 #define SHA_DEFAULT	"sha256"
 
@@ -37,7 +38,7 @@ typedef enum {
 } ssl_cert_purpose_t;
 
 typedef struct {
-	void *(*DECRYPT_init)(unsigned char *key, char keylen, unsigned char *iv);
+	void *(*DECRYPT_init)(unsigned char *key, char keylen, unsigned char *iv, cipher_t cipher);
 	int (*DECRYPT_update)(void *ctx, unsigned char *buf, 
 				int *outlen, const unsigned char *cryptbuf, int inlen);
 
@@ -116,7 +117,7 @@ int swupdate_verify_file(void *ctx, const char *sigfile,
 				const char *file, const char *signer_name);
 int swupdate_HASH_compare(const unsigned char *hash1, const unsigned char *hash2);
 
-void *swupdate_DECRYPT_init(unsigned char *key, char keylen, unsigned char *iv);
+void *swupdate_DECRYPT_init(unsigned char *key, char keylen, unsigned char *iv, cipher_t cipher);
 int swupdate_DECRYPT_update(void *ctx, unsigned char *buf, 
 				int *outlen, const unsigned char *cryptbuf, int inlen);
 int swupdate_DECRYPT_final(void *ctx, unsigned char *buf,

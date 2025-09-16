@@ -33,6 +33,7 @@ struct cryptdata {
 	unsigned char *key;
 	unsigned char *iv;
 	unsigned char *crypttext;
+	cipher_t cipher;
 };
 
 static void hex2bin(unsigned char *dest, const unsigned char *source)
@@ -47,7 +48,7 @@ static void hex2bin(unsigned char *dest, const unsigned char *source)
 static void do_crypt(struct cryptdata *crypt, char keylen, unsigned char *CRYPTTEXT, unsigned char *PLAINTEXT)
 {
 	int len;
-	void *dcrypt = swupdate_DECRYPT_init(crypt->key, keylen, crypt->iv);
+	void *dcrypt = swupdate_DECRYPT_init(crypt->key, keylen, crypt->iv, crypt->cipher);
 	assert_non_null(dcrypt);
 
 	unsigned char *buffer = calloc(1, strlen((const char *)CRYPTTEXT) + EVP_MAX_BLOCK_LENGTH);
@@ -75,6 +76,7 @@ static void test_crypt_128(void **state)
 	hex2bin((crypt.key = calloc(1, strlen((const char *)KEY))), KEY);
 	hex2bin((crypt.iv = calloc(1, strlen((const char *)IV))), IV);
 	hex2bin((crypt.crypttext = calloc(1, strlen((const char *)CRYPTTEXT))), CRYPTTEXT);
+	crypt.cipher = AES_CBC_128;
 
 	do_crypt(&crypt, 16, &CRYPTTEXT[0], &PLAINTEXT[0]);
 
@@ -96,6 +98,7 @@ static void test_crypt_192(void **state)
 	hex2bin((crypt.key = calloc(1, strlen((const char *)KEY))), KEY);
 	hex2bin((crypt.iv = calloc(1, strlen((const char *)IV))), IV);
 	hex2bin((crypt.crypttext = calloc(1, strlen((const char *)CRYPTTEXT))), CRYPTTEXT);
+	crypt.cipher = AES_CBC_192;
 
 	do_crypt(&crypt, 24, &CRYPTTEXT[0], &PLAINTEXT[0]);
 
@@ -117,6 +120,7 @@ static void test_crypt_256(void **state)
 	hex2bin((crypt.key = calloc(1, strlen((const char *)KEY))), KEY);
 	hex2bin((crypt.iv = calloc(1, strlen((const char *)IV))), IV);
 	hex2bin((crypt.crypttext = calloc(1, strlen((const char *)CRYPTTEXT))), CRYPTTEXT);
+	crypt.cipher = AES_CBC; // AES_CBC_256
 
 	do_crypt(&crypt, 32, &CRYPTTEXT[0], &PLAINTEXT[0]);
 
@@ -137,9 +141,10 @@ static void test_crypt_failure(void **state)
 	hex2bin((crypt.key = calloc(1, strlen((const char *)KEY))), KEY);
 	hex2bin((crypt.iv = calloc(1, strlen((const char *)IV))), IV);
 	hex2bin((crypt.crypttext = calloc(1, strlen((const char *)CRYPTTEXT))), CRYPTTEXT);
+	crypt.cipher = AES_CBC;
 
 	int len;
-	void *dcrypt = swupdate_DECRYPT_init(crypt.key, 32, crypt.iv);
+	void *dcrypt = swupdate_DECRYPT_init(crypt.key, 32, crypt.iv, crypt.cipher);
 	assert_non_null(dcrypt);
 
 	unsigned char *buffer = calloc(1, strlen((const char *)CRYPTTEXT) + EVP_MAX_BLOCK_LENGTH);

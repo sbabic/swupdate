@@ -13,6 +13,7 @@
 #include "globals.h"
 #include "swupdate_dict.h"
 #include "lua_util.h"
+#include "swupdate_aes.h"
 
 typedef enum {
 	FLASH,
@@ -56,6 +57,7 @@ struct img_type {
 	int compressed;
 	bool preserve_attributes; /* whether to preserve attributes in archives */
 	bool is_encrypted;
+	cipher_t cipher;
 	char ivt_ascii[33];
 	bool install_directly;
 	int is_script;
