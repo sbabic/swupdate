@@ -629,8 +629,13 @@ int copyfile(struct swupdate_copy *args)
 				aes_key = aesbuf;
 				keylen = strlen(args->imgaes) / 2;
 		} else {
-			aes_key = (unsigned char *)swupdate_get_decrypt_key();
-			keylen = swupdate_get_decrypt_keylen();
+			/*
+			 * Only fall back to the default decryption key if the requested cipher matches.
+			 */
+			if (swupdate_get_decrypt_cipher() == args->cipher) {
+				aes_key = (unsigned char *)swupdate_get_decrypt_key();
+				keylen = swupdate_get_decrypt_keylen();
+			}
 		}
 
 		decrypt_state.dcrypt = swupdate_DECRYPT_init(aes_key, keylen, ivt, args->cipher);

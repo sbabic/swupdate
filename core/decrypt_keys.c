@@ -26,11 +26,12 @@ struct decryption_key {
 	char *key;
 	char keylen;
 	unsigned char *ivt;
+	cipher_t cipher;
 };
 
 static struct decryption_key *decrypt_keys = NULL;
 
-int set_filename_as_key(const char *fname)
+int set_filename_as_key(const char *fname, cipher_t cipher)
 {
 	size_t len;
 	if (!decrypt_keys) {
@@ -49,6 +50,7 @@ int set_filename_as_key(const char *fname)
 
 	decrypt_keys->keylen = len;
 	strncpy(decrypt_keys->key, fname, len);
+	decrypt_keys->cipher = cipher;
 	return 0;
 }
 
@@ -100,6 +102,8 @@ int set_aes_key(const char *key, const char *ivt)
 		}
 	}
 
+	decrypt_keys->cipher = AES_CBC;
+
 	if (decrypt_keys->key)
 		free(decrypt_keys->key);
 
@@ -129,7 +133,7 @@ int load_decryption_key(char *fname)
 	int ret;
 
 #ifdef CONFIG_ASYM_ENCRYPTED_SW_DESCRIPTION
-	return set_filename_as_key(fname);
+	return set_filename_as_key(fname, CMS);
 #endif
 
 	fp = fopen(fname, "r");
@@ -181,4 +185,10 @@ unsigned char *get_aes_ivt(void) {
 	if (!decrypt_keys)
 		return NULL;
 	return decrypt_keys->ivt;
+}
+
+cipher_t swupdate_get_decrypt_cipher(void) {
+	if (!decrypt_keys)
+		return AES_UNKNOWN;
+	return decrypt_keys->cipher;
 }
