@@ -330,7 +330,9 @@ static void lua_string_to_img(struct img_type *img, const char *key,
 	if (!strcmp(key, "ivt"))
 		strncpy(img->ivt_ascii, value,
 			sizeof(img->ivt_ascii));
-
+	if (!strcmp(key, "aes-key"))
+		strncpy(img->aes_ascii, value,
+			sizeof(img->aes_ascii));
 	if (!strncmp(key, offset, sizeof(offset))) {
 		strncpy(seek_str, value,
 			sizeof(seek_str));
@@ -514,6 +516,7 @@ static void update_table(lua_State* L, struct img_type *img)
 		LUA_PUSH_IMG_STRING(img, "data", type_data);
 		LUA_PUSH_IMG_STRING(img, "filesystem", filesystem);
 		LUA_PUSH_IMG_STRING(img, "ivt", ivt_ascii);
+		LUA_PUSH_IMG_STRING(img, "aes-key", aes_ascii);
 
 		LUA_PUSH_IMG_BOOL(img, "installed_directly", install_directly);
 		LUA_PUSH_IMG_BOOL(img, "install_if_different", id.install_if_different);
