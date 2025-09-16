@@ -296,6 +296,7 @@ char *swupdate_get_decrypt_key(void);
 char swupdate_get_decrypt_keylen(void);
 unsigned char *get_aes_ivt(void);
 int set_aes_key(const char *key, const char *ivt);
+int set_filename_as_key(const char *fname);
 
 /* Getting global information */
 int get_install_info(char *buf, size_t len);

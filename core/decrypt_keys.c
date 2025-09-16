@@ -17,7 +17,8 @@
 
 /*
  * key    is 256 bit for max aes_256
- *	  or is a pkcs#11 URL
+ *        or is a pkcs#11 URL
+ *        or a cms key file name
  * keylen is the actual aes key length
  * ivt    is 128 bit
  */
@@ -28,6 +29,28 @@ struct decryption_key {
 };
 
 static struct decryption_key *decrypt_keys = NULL;
+
+int set_filename_as_key(const char *fname)
+{
+	size_t len;
+	if (!decrypt_keys) {
+		decrypt_keys = (struct decryption_key *)calloc(1, sizeof(*decrypt_keys));
+		if (!decrypt_keys)
+			return -ENOMEM;
+	}
+	len = strlen(fname);
+
+	if (decrypt_keys->key)
+		free(decrypt_keys->key);
+
+	decrypt_keys->key = calloc(1, len + 1);
+	if (!decrypt_keys->key)
+		return -ENOMEM;
+
+	decrypt_keys->keylen = len;
+	strncpy(decrypt_keys->key, fname, len);
+	return 0;
+}
 
 int set_aes_key(const char *key, const char *ivt)
 {
@@ -104,6 +127,10 @@ int load_decryption_key(char *fname)
 	FILE *fp;
 	char *b1 = NULL, *b2 = NULL;
 	int ret;
+
+#ifdef CONFIG_ASYM_ENCRYPTED_SW_DESCRIPTION
+	return set_filename_as_key(fname);
+#endif
 
 	fp = fopen(fname, "r");
 	if (!fp)
