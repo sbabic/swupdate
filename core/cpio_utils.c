@@ -608,7 +608,7 @@ int copyfile(struct swupdate_copy *args)
 	}
 
 	if (args->encrypted) {
-		aes_key = (unsigned char *)get_aes_key();
+		aes_key = (unsigned char *)swupdate_get_decrypt_key();
 		if (args->imgivt && strlen(args->imgivt)) {
 			if (!is_hex_str(args->imgivt) || ascii_to_bin(ivtbuf, sizeof(ivtbuf), args->imgivt)) {
 				ERROR("Invalid image ivt");
@@ -617,7 +617,7 @@ int copyfile(struct swupdate_copy *args)
 			ivt = ivtbuf;
 		} else
 			ivt = get_aes_ivt();
-		decrypt_state.dcrypt = swupdate_DECRYPT_init(aes_key, get_aes_keylen(), ivt, AES_CBC);
+		decrypt_state.dcrypt = swupdate_DECRYPT_init(aes_key, swupdate_get_decrypt_keylen(), ivt, AES_CBC);
 		if (!decrypt_state.dcrypt) {
 			ERROR("decrypt initialization failure, aborting");
 			ret = -EFAULT;

@@ -289,8 +289,8 @@ void set_fwenv_config(const char *fname);
 
 /* Decryption key functions */
 int load_decryption_key(char *fname);
-char *get_aes_key(void);
-char get_aes_keylen(void);
+char *swupdate_get_decrypt_key(void);
+char swupdate_get_decrypt_keylen(void);
 unsigned char *get_aes_ivt(void);
 int set_aes_key(const char *key, const char *ivt);
 
