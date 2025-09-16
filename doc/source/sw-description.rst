@@ -1511,13 +1511,26 @@ There are 4 main sections inside sw-description:
    |             |          |            | compared with the entries in          |
    |             |          |            | sw-versions                           |
    +-------------+----------+------------+---------------------------------------+
-   | encrypted   | bool     | images     | flag                                  |
-   |             |          | files      | if set, file is encrypted             |
-   |             |          | scripts    | and must be decrypted before          |
-   |             |          |            | installing.                           |
+   | encrypted   | string   | images     | string to indicate the artefact is    |
+   |             |          | files      | encrypted with this cipher.           |
+   |             |          | scripts    | e.g 'encrypted = "aes-cbc"'.          |
+   |             |          |            | See swupdate_aes.h for supported      |
+   |             |          |            | values.                               |
    +-------------+----------+------------+---------------------------------------+
-   | ivt         | string   | images     | IVT in case of encrypted artefact     |
-   |             |          | files      | It has no value if "encrypted" is not |
+   | encrypted   | bool     | images     | Use the string form, if the key is    |
+   |             |          | files      | provided within the sw-description.   |
+   |             |          | scripts    | true is equal to                      |
+   |             |          |            | 'encrypted = "aes-cbc"'.              |
+   +-------------+----------+------------+---------------------------------------+
+   | aes-key     | string   | images     | AES key for encrypted artifacts       |
+   |             |          | files      | Note: This key should only be used if |
+   |             |          | scripts    | sw-description is encrypted           |
+   |             |          |            | (symmetrically or asymmetrically). It |
+   |             |          |            | must be provided as an ASCII hex      |
+   |             |          |            | string of 16, 24, or 32 characters.   |
+   +-------------+----------+------------+---------------------------------------+
+   | ivt         | string   | images     | Optional IVT for encrypted artefacts. |
+   |             |          | files      | It has no effect if "encrypted" is not|
    |             |          | scripts    | set. Each artefact can have an own    |
    |             |          |            | IVT to avoid attacker can guess the   |
    |             |          |            | the key.                              |

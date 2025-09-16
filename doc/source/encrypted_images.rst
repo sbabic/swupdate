@@ -1,6 +1,8 @@
 .. SPDX-FileCopyrightText: 2013-2021 Stefano Babic <stefano.babic@swupdate.org>
 .. SPDX-License-Identifier: GPL-2.0-only
 
+.. _sym-encrypted-images:
+
 Symmetrically Encrypted Update Images
 =====================================
 

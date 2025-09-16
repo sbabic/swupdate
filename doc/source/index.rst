@@ -41,6 +41,7 @@ SWUpdate Documentation
    sw-description.rst
    signed_images.rst
    encrypted_images.rst
+   asym_encrypted_images.rst
    handlers.rst
    mongoose.rst
    suricatta.rst
