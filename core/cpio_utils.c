@@ -532,6 +532,8 @@ int copyfile(struct swupdate_copy *args)
 	unsigned char *aes_key = NULL;
 	unsigned char *ivt = NULL;
 	unsigned char ivtbuf[AES_BLK_SIZE];
+	unsigned char aesbuf[AES_256_KEY_LEN];
+	char keylen = 0;
 
 	struct InputState input_state = {
 		.fdin = args->fdin,
@@ -608,7 +610,6 @@ int copyfile(struct swupdate_copy *args)
 	}
 
 	if (args->encrypted) {
-		aes_key = (unsigned char *)swupdate_get_decrypt_key();
 		if (args->imgivt && strlen(args->imgivt)) {
 			if (!is_hex_str(args->imgivt) || ascii_to_bin(ivtbuf, sizeof(ivtbuf), args->imgivt)) {
 				ERROR("Invalid image ivt");
@@ -617,7 +618,20 @@ int copyfile(struct swupdate_copy *args)
 			ivt = ivtbuf;
 		} else
 			ivt = get_aes_ivt();
-		decrypt_state.dcrypt = swupdate_DECRYPT_init(aes_key, swupdate_get_decrypt_keylen(), ivt, AES_CBC);
+
+		if (args->imgaes && strlen(args->imgaes)) {
+				if (!is_hex_str(args->imgaes) || ascii_to_bin(aesbuf, sizeof(aesbuf), args->imgaes)) {
+					ERROR("Invalid image aes-key");
+					return -EINVAL;
+				}
+				aes_key = aesbuf;
+				keylen = strlen(args->imgaes) / 2;
+		} else {
+			aes_key = (unsigned char *)swupdate_get_decrypt_key();
+			keylen = swupdate_get_decrypt_keylen();
+		}
+
+		decrypt_state.dcrypt = swupdate_DECRYPT_init(aes_key, keylen, ivt, args->cipher);
 		if (!decrypt_state.dcrypt) {
 			ERROR("decrypt initialization failure, aborting");
 			ret = -EFAULT;
