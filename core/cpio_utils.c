@@ -319,7 +319,9 @@ static int decrypt_step(void *state, void *buffer, size_t size)
 			 */
 			ret = swupdate_DECRYPT_final(s->dcrypt,
 				s->output, &s->outlen);
-			s->eof = true;
+			if (ret == 0) {
+				s->eof = true;
+			}
 		}
 		if (ret < 0) {
 			return ret;
@@ -728,6 +730,9 @@ int copyfile(struct swupdate_copy *args)
 
 	for (;;) {
 		ret = step(state, buffer, sizeof buffer);
+		if (ret == -EAGAIN) {
+			continue;
+		}
 		if (ret < 0) {
 			goto copyfile_exit;
 		}
