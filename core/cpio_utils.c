@@ -801,6 +801,8 @@ int copyimage(void *out, struct img_type *img, writeimage callback)
 		.hash = img->sha256,
 		.encrypted = img->is_encrypted,
 		.imgivt = img->ivt_ascii,
+		.imgaes = img->aes_ascii,
+		.cipher = img->cipher,
 	};
 	return copyfile(&copy);
 }

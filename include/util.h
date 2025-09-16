@@ -23,6 +23,7 @@
 #include "swupdate_status.h"
 #include "swupdate_dict.h"
 #include "compat.h"
+#include "swupdate_aes.h"
 
 #define NOTIFY_BUF_SIZE 	2048
 #define ENOMEM_ASPRINTF		-1
@@ -92,6 +93,8 @@ struct swupdate_copy {
 	/* encryption */
 	bool encrypted;
 	const char *imgivt;
+	const char *imgaes;
+	cipher_t cipher;
 };
 
 /*

@@ -91,6 +91,7 @@ static int extract_file_to_tmp(int fd, const char *fname, unsigned long *poffs,
 	int fdout;
 	uint32_t checksum;
 	const char* TMPDIR = get_tmpdir();
+	cipher_t cipher = AES_CBC;
 
 	if (extract_cpio_header(fd, &fdh, poffs)) {
 		return -1;
@@ -126,6 +127,7 @@ static int extract_file_to_tmp(int fd, const char *fname, unsigned long *poffs,
 		.offs = poffs,
 		.checksum = &checksum,
 		.encrypted = encrypted,
+		.cipher = cipher,
 	};
 	if (copyfile(&copy) < 0) {
 		close(fdout);

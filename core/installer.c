@@ -157,6 +157,8 @@ static int extract_scripts(struct imglist *head)
 			.hash = script->sha256,
 			.encrypted = script->is_encrypted,
 			.imgivt = script->ivt_ascii,
+			.imgaes = script->aes_ascii,
+			.cipher = script->cipher,
 		};
 		ret = copyfile(&copy);
 		close(fdin);
