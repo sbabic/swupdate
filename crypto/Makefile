@@ -8,6 +8,7 @@ obj-$(CONFIG_SIGALG_RAWRSA)	+= swupdate_rsa_verify_openssl.o
 obj-$(CONFIG_SIGALG_RSAPSS)	+= swupdate_rsa_verify_openssl.o
 obj-$(CONFIG_SIGALG_CMS)	+= swupdate_cms_verify_openssl.o
 obj-$(CONFIG_ENCRYPTED_IMAGES)	+= swupdate_decrypt_openssl.o
+obj-$(CONFIG_SIGALG_ASYM_DEC_CMS) += swupdate_decrypt_openssl_cms.o
 endif
 
 ifeq ($(CONFIG_SSL_IMPL_WOLFSSL),y)

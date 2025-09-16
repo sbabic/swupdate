@@ -94,6 +94,24 @@ config ENCRYPTED_SW_DESCRIPTION
 	  if this is set. It is a compile time option, and mix of plain and
 	  encrypted sw-descriptions is not possible.
 
+config ASYM_ENCRYPTED_SW_DESCRIPTION
+	bool "Asymmetrical encrypted sw-description"
+	depends on ENCRYPTED_SW_DESCRIPTION
+	select SIGALG_ASYM_DEC_CMS
+	default n
+	help
+	  This option enables support for asymmetrical encrypted sw-description,
+	  making it possible to decrypt images device specific.
+
+menu "Asymmetric decryption algorithm"
+	depends on ASYM_ENCRYPTED_SW_DESCRIPTION
+
+	config SIGALG_ASYM_DEC_CMS
+		bool "Cryptographic Message Syntax (CMS) / PKCS#7"
+		default n
+		depends on SSL_IMPL_OPENSSL
+endmenu
+
 config ENCRYPTED_IMAGES_HARDEN_LOGGING
 	bool "Harden logging for encrypted images"
 	default n

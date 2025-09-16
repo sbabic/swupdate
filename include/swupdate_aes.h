@@ -25,6 +25,7 @@ typedef enum {
 	AES_CTR_128,
 	AES_CTR_192,
 	AES_CTR_256,
+	CMS,
 	AES_UNKNOWN
 } cipher_t;
 
