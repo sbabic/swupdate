@@ -62,13 +62,14 @@ gulp.task('minify-js', async function () {
 
 gulp.task('minify-html', async function () {
   return gulp.src('*.html')
-    .pipe(replace('node_modules/bootstrap/dist/css', 'css'))
     .pipe(useref({ noconcat: true }))
     .pipe(filter('*.html'))
-    .pipe(replace(/node_modules\/.*\/([^/]+)\.css/g, 'css/$1.css'))
-    .pipe(replace(/node_modules\/.*\/([^/]+)\.js/g, 'js/$1.js'))
-    .pipe(replace('.css', '.min.css'))
-    .pipe(replace('.js', '.min.js'))
+    .pipe(replace('vendor/bootstrap/bootstrap.min.css', 'css/bootstrap.min.css'))
+    .pipe(replace('vendor/dropzone/dropzone.min.css', 'css/dropzone.min.css'))
+    .pipe(replace('vendor/fontawesome/all.min.css', 'css/fontawesome.min.css'))
+    .pipe(replace('vendor/bootstrap/bootstrap.bundle.min.js', 'js/bootstrap.bundle.min.js'))
+    .pipe(replace('vendor/dropzone/dropzone.min.js', 'js/dropzone.min.js'))
+    .pipe(replace('vendor/jquery/jquery-3.7.1.min.js', 'js/jquery.min.js'))
     .pipe(htmlmin({ collapseWhitespace: true }))
     .pipe(gulp.dest('dist'))
 })
@@ -104,9 +105,9 @@ gulp.task('copy-js', async function () {
 
 gulp.task('copy-fonts', async function () {
   return gulp.src([
-    'node_modules/@fortawesome/fontawesome-free/webfonts/fa-solid-900.{ttf,woff,woff2}'
+    'vendor/fontawesome/webfonts/*'
   ])
-    .pipe(gulp.dest('dist/webfonts'))
+  .pipe(gulp.dest('dist/webfonts'))
 })
 
 gulp.task('resize-images', async function () {

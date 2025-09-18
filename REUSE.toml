@@ -131,3 +131,75 @@ path = "doc/source/images/**"
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2013-2021 Stefano Babic <stefano.babic@swupdate.org>"
 SPDX-License-Identifier = "GPL-2.0-only"
+
+[[annotations]]
+path = "web-app/images/Icon-192.png"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Provizio <support@provizio.ai>"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "web-app/images/Icon-512.png"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Provizio <support@provizio.ai>"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "web-app/images/Icon-maskable-192.png"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Provizio <support@provizio.ai>"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "web-app/images/Icon-maskable-512.png"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Provizio <support@provizio.ai>"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "web-app/images/provizio-favicon.png"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2025 Provizio <support@provizio.ai>"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "web-app/vendor/bootstrap/bootstrap.min.css"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2011-2023 the Bootstrap Authors"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "web-app/vendor/bootstrap/bootstrap.bundle.min.js"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2011-2023 the Bootstrap Authors"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "web-app/vendor/dropzone/dropzone.min.css"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2021 Matias Meno <m@tias.me>"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "web-app/vendor/dropzone/dropzone.min.js"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2021 Matias Meno <m@tias.me>"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "web-app/vendor/fontawesome/all.min.css"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2019 Font Awesome"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = "web-app/vendor/fontawesome/webfonts/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2016 Font Awesome"
+SPDX-License-Identifier = "OFL-1.1"
+
+[[annotations]]
+path = "web-app/vendor/jquery/jquery-3.7.1.min.js"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2011-2023 OpenJS Foundation and other contributors"
+SPDX-License-Identifier = "MIT"
