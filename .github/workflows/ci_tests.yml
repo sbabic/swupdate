@@ -19,7 +19,7 @@ jobs:
     container: ${{ matrix.container }}
     steps:
     - uses: actions/checkout@v4
-    - name: Install dependencies for Provizio build
-      run: ./provizio/install_dependencies.sh
+    - name: Install dependencies (using standard SWUpdate setup)
+      run: ./ci/setup.sh
     - name: Build Provizio SWUpdate
       run: ./provizio/build.sh
