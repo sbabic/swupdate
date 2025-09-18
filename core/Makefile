@@ -28,6 +28,7 @@ obj-y += swupdate.o \
 	 parsing_library.o \
 	 artifacts_versions.o \
 	 swupdate_dict.o \
-	 swupdate_vars.o \
 	 semver.o \
 	 strlcpy.o
+
+obj-$(CONFIG_SWUPDATE_VARS) += swupdate_vars.o
