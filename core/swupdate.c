@@ -51,7 +51,9 @@
 #include "bootloader.h"
 #include "versions.h"
 #include "hw-compatibility.h"
+#ifdef CONFIG_SWUPDATE_VARS
 #include "swupdate_vars.h"
+#endif
 
 #ifdef CONFIG_SYSTEMD
 #include <systemd/sd-daemon.h>
@@ -325,10 +327,12 @@ static int read_globals_settings(void *elem, void *data)
 				"namespace-vars", sw->namespace_for_vars);
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
 				"gen-swversions", sw->output_swversions);
+#ifdef CONFIG_SWUPDATE_VARS
 	if (strlen(sw->namespace_for_vars)) {
 		if (!swupdate_set_default_namespace(sw->namespace_for_vars))
 			WARN("Default Namaspace for SWUpdate vars cannot be set, possible side-effects");
 	}
+#endif
 
 	GET_FIELD_BOOL(LIBCFG_PARSER, elem, "verbose", &sw->verbose);
 	GET_FIELD_INT(LIBCFG_PARSER, elem, "loglevel", &sw->loglevel);

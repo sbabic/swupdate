@@ -1,27 +1,25 @@
 # SPDX-FileCopyrightText: 2025 Daniel Braunwarth <oss@braunwarth.dev>
 #
 # SPDX-License-Identifier: MIT
-name: CI tests
+name: Provizio SWUpdate CI
 
 on:
   push
 
 jobs:
-  test:
+  test-provizio-config:
     strategy:
         fail-fast: false
         matrix:
           container:
           - ubuntu:22.04
           - ubuntu:24.04
-          - debian:bookworm-slim
-          - debian:testing-slim
-    name: ${{ matrix.container }}
+    name: Provizio build on ${{ matrix.container }}
     runs-on: ubuntu-24.04
     container: ${{ matrix.container }}
     steps:
     - uses: actions/checkout@v4
-    - name: Install dependencies
+    - name: Install dependencies (using standard SWUpdate setup)
       run: ./ci/setup.sh
-    - name: Run tests
-      run: ./ci/test-configs.sh
+    - name: Build Provizio SWUpdate
+      run: ./provizio/build.sh

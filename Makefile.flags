@@ -108,8 +108,13 @@ KBUILD_CFLAGS += --sysroot=$(CONFIG_SYSROOT)
 export SYSROOT=$(CONFIG_SYSROOT)
 endif
 
-# Links always pthread
-LDLIBS += pthread ubootenv json-c
+# Always link pthread and json-c
+LDLIBS += pthread json-c
+
+# Link libubootenv only if U-Boot support is enabled
+ifdef CONFIG_HAVE_LIBUBOOTENV
+LDLIBS += ubootenv
+endif
 # lua
 ifneq ($(CONFIG_LUA),)
 LDFLAGS_swupdate += -Wl,-E

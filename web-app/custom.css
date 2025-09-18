@@ -1,0 +1,134 @@
+/*
+ * SPDX-FileCopyrightText: 2025 Provizio <support@provizio.ai>
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
+/* Enhanced Provizio Custom Styles - Dark Dashboard Theme */
+
+/* Dashboard-style message styling */
+#messages p {
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  padding: 0.5rem 0.75rem;
+  margin: 0.25rem 0;
+  border-radius: 0.375rem;
+  background: rgba(30, 41, 59, 0.3);
+  border-left: 3px solid rgba(148, 163, 184, 0.3);
+  color: #F1F5F9;
+}
+
+#messages p:last-child {
+  margin-bottom: 0;
+}
+
+#messages p.text-danger {
+  background: rgba(255, 77, 87, 0.1) !important;
+  border-left-color: #FF4D57 !important;
+  color: #FF4D57 !important;
+}
+
+/* Dashboard-style empty state */
+#messages .text-muted.text-center {
+  color: rgba(148, 163, 184, 0.7) !important;
+  font-style: italic;
+  padding: 2rem;
+  background: rgba(15, 23, 34, 0.3);
+  border-radius: 0.5rem;
+  border: 1px dashed rgba(148, 163, 184, 0.3);
+}
+
+/* Enhanced dropzone with dashboard styling */
+.dropzone:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(0, 180, 216, 0.1) 0%, rgba(255, 77, 87, 0.1) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  border-radius: 0.75rem;
+}
+
+.dropzone:hover:before {
+  opacity: 1;
+}
+
+/* Custom dark scrollbar for messages */
+#messages {
+  max-height: 300px;
+  overflow-y: auto;
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  background: rgba(15, 23, 34, 0.2);
+}
+
+#messages::-webkit-scrollbar {
+  width: 8px;
+}
+
+#messages::-webkit-scrollbar-track {
+  background: rgba(30, 41, 59, 0.3);
+  border-radius: 4px;
+}
+
+#messages::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 4px;
+}
+
+#messages::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.6);
+}
+
+/* Dashboard status indicators */
+.progress-status {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: rgba(15, 23, 34, 0.4);
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+/* Enhanced navbar logo styling for dark theme */
+.navbar-brand img {
+  transition: all 0.2s ease;
+}
+
+.navbar-brand:hover img {
+  transform: scale(1.05);
+}
+
+/* Dashboard-style card header icons */
+.card-header i {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  background: rgba(255, 77, 87, 0.1);
+  border-radius: 0.375rem;
+  margin-right: 0.75rem;
+}
+
+/* Status badge enhancements */
+.badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.375rem;
+}
+
+/* Progress container styling */
+.progress-container {
+  background: rgba(15, 23, 34, 0.3);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-top: 1rem;
+}

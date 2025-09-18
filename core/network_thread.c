@@ -34,7 +34,9 @@
 #include "pctl.h"
 #include "generated/autoconf.h"
 #include "state.h"
+#ifdef CONFIG_SWUPDATE_VARS
 #include "swupdate_vars.h"
+#endif
 
 #define NUM_CACHED_MESSAGES 100
 #define DEFAULT_INTERNAL_TIMEOUT 60
@@ -376,7 +378,9 @@ void *network_thread (void *data)
 	struct subprocess_msg_elem *subprocess_msg;
 	bool should_close_socket;
 	struct swupdate_cfg *cfg;
+#ifdef CONFIG_SWUPDATE_VARS
 	char *varvalue;
+#endif
 
 	if (!instp) {
 		TRACE("Fatal error: Network thread aborting...");
@@ -611,11 +615,16 @@ void *network_thread (void *data)
 				msg.type = ACK;
 				break;
 			case SET_SWUPDATE_VARS:
+#ifdef CONFIG_SWUPDATE_VARS
 				msg.type = swupdate_vars_set(msg.data.vars.varname,
 						  strlen(msg.data.vars.varvalue) ? msg.data.vars.varvalue : NULL,
-						  msg.data.vars.varnamespace) == 0 ? ACK : NACK;
+						  msg.data.vars.varnamespace) == 0 ? ACK : NACK;\
+#else
+			msg.type = NACK;
+#endif
 				break;
 			case GET_SWUPDATE_VARS:
+#ifdef CONFIG_SWUPDATE_VARS
 				varvalue = swupdate_vars_get(msg.data.vars.varname,
 						  msg.data.vars.varnamespace);
 				memset(msg.data.vars.varvalue, 0, sizeof(msg.data.vars.varvalue));
@@ -625,6 +634,9 @@ void *network_thread (void *data)
 					msg.type = ACK;
 				} else
 					msg.type = NACK;
+#else
+				msg.type = NACK;
+#endif
 				break;
 			default:
 				msg.type = NACK;

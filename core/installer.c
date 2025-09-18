@@ -32,7 +32,9 @@
 #include "bootloader.h"
 #include "progress.h"
 #include "pctl.h"
+#ifdef CONFIG_SWUPDATE_VARS
 #include "swupdate_vars.h"
+#endif
 #include "lua_util.h"
 
 /*
@@ -231,6 +233,7 @@ static int update_bootloader_env(struct swupdate_cfg *cfg, const char *script)
 	return ret;
 }
 
+#ifdef CONFIG_SWUPDATE_VARS
 static int update_swupdate_vars(struct swupdate_cfg *cfg, const char *script)
 {
 	int ret = 0;
@@ -244,6 +247,7 @@ static int update_swupdate_vars(struct swupdate_cfg *cfg, const char *script)
 	}
 	return ret;
 }
+#endif
 
 int run_prepost_scripts(struct imglist *list, script_fn type)
 {
@@ -461,12 +465,15 @@ int install_images(struct swupdate_cfg *sw)
 	char* script = alloca(strlen(TMPDIR)+strlen(BOOT_SCRIPT_SUFFIX)+1);
 	sprintf(script, "%s%s", TMPDIR, BOOT_SCRIPT_SUFFIX);
 
+
+#ifdef CONFIG_SWUPDATE_VARS
 	if (!LIST_EMPTY(&sw->vars)) {
 		ret = update_swupdate_vars(sw, script);
 		if (ret) {
 			return ret;
 		}
 	}
+#endif
 
 	if (!LIST_EMPTY(&sw->bootloader)) {
 		ret = update_bootloader_env(sw, script);

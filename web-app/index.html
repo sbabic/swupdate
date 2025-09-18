@@ -5,32 +5,37 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-  <link rel="icon" href="images/favicon.png" type="image/png">
+  <link rel="icon" href="images/provizio-favicon.png" type="image/png">
+  <link rel="icon" type="image/png" sizes="192x192" href="images/Icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="images/Icon-512.png">
 
-  <link rel="stylesheet" href="node_modules/bootstrap/dist/css/bootstrap.css">
   <!-- build:css -->
-  <link rel="stylesheet" href="node_modules/dropzone/dist/dropzone.css">
-  <link rel="stylesheet" href="node_modules/@fortawesome/fontawesome-free/css/fontawesome.css">
-  <link rel="stylesheet" href="node_modules/@fortawesome/fontawesome-free/css/solid.css">
+  <link rel="stylesheet" href="vendor/bootstrap/bootstrap.min.css">
+  <link rel="stylesheet" href="vendor/dropzone/dropzone.min.css">
+  <link rel="stylesheet" href="vendor/fontawesome/all.min.css">
   <link rel="stylesheet" href="css/swupdate.css">
+  <link rel="stylesheet" href="css/provizio-theme.css">
   <!-- endbuild -->
 
   <!-- build:js -->
-  <script src="node_modules/jquery/dist/jquery.js"></script>
-  <script src="node_modules/bootstrap/dist/js/bootstrap.js"></script>
-  <script src="node_modules/dropzone/dist/dropzone.js"></script>
+  <script src="vendor/jquery/jquery-3.7.1.min.js"></script>
+  <script src="vendor/bootstrap/bootstrap.bundle.min.js"></script>
+  <script src="vendor/dropzone/dropzone.min.js"></script>
+  <script src="js/swupdate.js"></script>
   <!-- endbuild -->
   <script src="js/swupdate.js"></script>
 
-  <title>SWUpdate - Software Update for Embedded Systems</title>
+  <title>Provizio - Software Update System</title>
+<link rel="stylesheet" href="custom.css">
 </head>
 
 <body>
   <!-- Navigation Header -->
-  <nav class="navbar sticky-top navbar-expand-sm navbar-dark bg-primary">
+  <nav class="navbar sticky-top navbar-expand-sm">
     <div class="container">
       <a class="navbar-brand" href="#">
-        <img class="d-inline-block align-top" src="images/logo.png" alt="">
+        <img class="d-inline-block align-top" src="images/Icon-maskable-192.png" alt="Provizio Logo">
+        <span class="ms-2 fw-bold text-dark">Provizio</span>
       </a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -38,7 +43,7 @@
       <div class="collapse navbar-collapse" id="navbarText">
         <ul class="navbar-nav ms-auto">
           <li class="nav-item">
-            <a id="swu-restart" class="nav-link" href="#"><i class="fas fa-sync"></i> Restart System</a>
+            <a id="swu-restart" class="nav-link" href="#"><i class="fas fa-power-off"></i> Restart System</a>
           </li>
         </ul>
       </div>
@@ -48,57 +53,87 @@
   <!-- Use Bootstrap Grid Container -->
   <div class="container">
     <!-- Header -->
-    <div class="row my-3">
+    <div class="row my-4">
       <div class="col">
-        <div class="card opacity-75">
-          <div class="card-header pb-0">
-            <h1 class="display-4"><span class="text-primary">SW</span>Update</h1>
-            <p class="lead">Software update for embedded systems</p>
-            <p>Upload a software image below, or restart the system at the top right corner.</p>
+        <div class="card">
+          <div class="card-header">
+            <h1 class="display-4">System <span class="text-primary">Update</span></h1>
+            <p class="mb-0">Upload a verified software package below to update your system.</p>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="row my-3">
+    <div class="row my-4">
       <div class="col">
-        <div class="card opacity-75">
-          <div class="card-header pb-0">
-            <h5><i class="fas fa-wrench"></i> Software Update</h5>
+        <div class="card">
+          <div class="card-header">
+            <h5><i class="fas fa-upload"></i> Software Update</h5>
           </div>
           <div class="card-body">
             <!-- Dropzone Button for drag&drop files -->
-            <form class="dropzone border rounded mb-3" id="dropzone" action="./upload" method="post" enctype="multipart/form-data">
+            <form class="dropzone mb-4" id="dropzone" action="./upload" method="post" enctype="multipart/form-data">
               <div class="dz-default dz-message">
-                <span class="dz-message">Click here, or drag and drop a software update image file to this area.</span>
+                <i class="fas fa-cloud-upload-alt fa-3x mb-3 text-primary"></i>
+                <div class="dz-message">
+                  <strong>Drop your software update file here</strong><br>
+                  <span class="text-muted">or click to browse for files</span>
+                </div>
+                <small class="text-muted d-block mt-2">Supported format: .swu files only</small>
               </div>
             </form>
 
-            <!-- Status -->
-            <div id="swu-idle" class="alert alert-secondary">
-              <i class="fas fa-info-circle"></i> Update not started.
-            </div>
-            <div id="swu-run" class="alert alert-warning" style="display: none;">
-              <i class="fas fa-exclamation-triangle"></i>
-              Updating may take a few minutes, please don't turn off the power.
-            </div>
-            <div id="swu-success" class="alert alert-success" style="display: none;">
-              <i class="fas fa-check-circle"></i> Updated successfully.
-            </div>
-            <div id="swu-failure" class="alert alert-danger" style="display: none;">
-              <i class="fas fa-times-circle"></i> Update failed.
-            </div>
-            <div id="swu-done" class="alert alert-info" style="display: none;">
-              <i class="fas fa-sync"></i> Restarting system.
+            <!-- Status Messages -->
+            <div class="mb-4">
+              <div id="swu-idle" class="alert alert-secondary">
+                <i class="fas fa-circle-notch"></i> <strong>System Ready</strong> - Waiting for software update package
+              </div>
+              <div id="swu-run" class="alert alert-warning" style="display: none;">
+                <i class="fas fa-cog fa-spin"></i>
+                <div>
+                  <strong>Update In Progress</strong><br>
+                  <span class="small">System update is running. Do not power off the device.</span>
+                </div>
+              </div>
+              <div id="swu-success" class="alert alert-success" style="display: none;">
+                <i class="fas fa-check-circle"></i> 
+                <div>
+                  <strong>Update Completed Successfully</strong><br>
+                  <span class="small">The software update has been applied successfully.</span>
+                </div>
+              </div>
+              <div id="swu-failure" class="alert alert-danger" style="display: none;">
+                <i class="fas fa-exclamation-triangle"></i> 
+                <div>
+                  <strong>Update Failed</strong><br>
+                  <span class="small">The update process encountered an error. Check system messages for details.</span>
+                </div>
+              </div>
+              <div id="swu-done" class="alert alert-info" style="display: none;">
+                <i class="fas fa-power-off"></i> 
+                <div>
+                  <strong>System Restart Initiated</strong><br>
+                  <span class="small">Please wait for the system to restart and come back online.</span>
+                </div>
+              </div>
             </div>
 
             <!-- Progress -->
-            <i id="swu-progress-spinner" class="spinner-border invisible" role="status"></i>
-            <strong id="swu-progress-run" style="display: none;">Updating:</strong>
-            <span id="swu-progress-name"></span>
-            <span id="swu-progress-value" class="float-right"></span>
-            <div class="progress" role="progressbar">
-              <div id="swu-progress-bar" class="progress-bar progress-bar-striped" style="height: 1.5rem"></div>
+            <div class="progress-container" style="display: none;" id="swu-progress-container">
+              <div class="d-flex align-items-center justify-content-between mb-3">
+                <div class="d-flex align-items-center">
+                  <i id="swu-progress-spinner" class="spinner-border me-2" role="status"></i>
+                  <div>
+                    <strong id="swu-progress-run" class="text-light">Update Progress</strong>
+                    <div id="swu-progress-name" class="text-muted small"></div>
+                  </div>
+                </div>
+                <span id="swu-progress-value" class="badge bg-primary fs-6"></span>
+              </div>
+              <div class="progress mb-2" role="progressbar">
+                <div id="swu-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated"></div>
+              </div>
+              <div class="text-muted small">Please do not power off the device during the update process.</div>
             </div>
           </div>
         </div>
@@ -106,16 +141,18 @@
     </div>
 
     <!-- Messages -->
-    <div class="row my-3">
+    <div class="row my-4">
       <div class="col">
-        <div class="card opacity-75">
+        <div class="card">
           <div class="card-header" id="headingMessages">
             <a class="h5 collapsed" data-bs-toggle="collapse" data-bs-target="#collapseMessages" aria-expanded="false" aria-controls="collapseMessages">
-              <i class="fas"></i> Messages
+              <i class="fas fa-list-alt"></i> System Messages
             </a>
           </div>
           <div id="collapseMessages" class="collapse" aria-labelledby="headingMessages">
-            <div class="card-body" id="messages"></div>
+            <div class="card-body" id="messages">
+              <p class="text-muted text-center">No messages to display</p>
+            </div>
           </div>
         </div>
       </div>
@@ -126,8 +163,13 @@
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
           <div class="modal-body">
-            <i class="spinner-border" role="status"></i>
-            <h5>The system will restart. Please be patient, as restarting takes about one minute.</h5>
+            <div class="text-center">
+              <i class="fas fa-power-off fa-3x text-primary mb-3"></i>
+              <div class="spinner-border text-primary mb-3" role="status"></div>
+              <h5 class="mb-3">System Restart in Progress</h5>
+              <p class="text-muted">Please wait while the system restarts. This process typically takes about one minute.</p>
+              <p class="text-muted"><small>Do not close this browser window or power off the device.</small></p>
+            </div>
           </div>
         </div>
       </div>
