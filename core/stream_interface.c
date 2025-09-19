@@ -742,6 +742,10 @@ void *network_initializer(void *data)
 				swupdate_progress_info(RUN, CAUSE_REBOOT_MODE , "{ \"reboot-mode\" : \"no-reboot\"}");
 			}
 
+			if (software->parms.dry_run) {
+				swupdate_progress_info(RUN, CAUSE_DRY_RUN_MODE , "{ \"dry-run\" : true }");
+			}
+
 			ret = install_images(software);
 			if (ret != 0) {
 				update_transaction_state(software, STATE_FAILED);

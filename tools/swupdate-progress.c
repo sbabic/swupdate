@@ -378,6 +378,11 @@ int main(int argc, char **argv)
 					}
 				}
 			}
+
+			n = sscanf(msg.info, "{\"%d\": { \"dry-run\" : true }}", &cause);
+			if (n == 1 && cause == CAUSE_DRY_RUN_MODE) {
+				disable_reboot = true;
+			}
 		}
 		msg.cur_image[sizeof(msg.cur_image) - 1] = '\0';
 

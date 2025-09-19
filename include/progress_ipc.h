@@ -20,6 +20,7 @@ extern "C" {
 typedef enum progress_cause {
 	CAUSE_NONE,
 	CAUSE_REBOOT_MODE,
+	CAUSE_DRY_RUN_MODE,
 } progress_cause_t;
 
 extern char* SOCKET_PROGRESS_PATH;
