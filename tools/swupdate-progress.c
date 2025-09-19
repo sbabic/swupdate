@@ -477,11 +477,11 @@ int main(int argc, char **argv)
 					psplash_progress(psplash_pipe_path, &msg);
 					psplash_ok = 0;
 				}
-				if (opt_r && strcasestr(msg.info, "firmware")) {
+				if (opt_r && strcasestr(msg.info, "\"dry_run\": false") && strcasestr(msg.info, "firmware")) {
 					reboot_device(reboot_script);
 					break;
 				}
-				fprintf(stdout, "\nDon't know how to activate this update, doing nothing.\n");
+				fprintf(stdout, "No --reboot given, dry run, or not type firmware, not rebooting.\n");
 			}
 			break;
 		default:

@@ -1156,6 +1156,16 @@ function M.job.definition:is_firmware()
     return self.type[M.dau.DEFAULT_UPDATE_TYPE] ~= nil
 end
 
+--- Test whether update artifact should be installed in dry-run mode.
+--
+-- If one of `.type`'s tags matches `dry-run`, a dry-run installation of the
+-- artifact is performed.
+--
+--- @return boolean  # `true` if dry-run should be performed, `false` if not
+function M.job.definition:is_dry_run()
+    return self.type["dry-run"] ~= nil
+end
+
 -- ┌───────────────────────────────────────────────────────────────────────────
 -- │  DeviceArtifactUpdate :: Transitions
 -- └───────────────────────────────────────────────────────────────────────────
@@ -1229,10 +1239,16 @@ local function send_progress_activation_msg(job)
             "module": "wfx",
             "state": "ACTIVATING",
             "progress": 100,
-            "message": "%s"
+            "message": "%s",
+            "dry_run": %s
         }
         ]])
-        :format(suricatta.ipc.sourcetype.SOURCE_SURICATTA, table.concat(job.definition.type, ":")))
+        :format(
+            suricatta.ipc.sourcetype.SOURCE_SURICATTA,
+            table.concat(job.definition.type, ":"),
+            job.definition:is_dry_run()
+        )
+    )
 end
 
 --- Helper function to set persistent bootloader state.
@@ -1495,7 +1511,11 @@ M.job.workflow.dispatch:set(
                 artifact.name,
                 source_uri
             )
-            local res, _, updatelog = suricatta.install { channel = M.channel.main, url = source_uri }
+            local res, _, updatelog = suricatta.install({ 
+                channel = M.channel.main,
+                url = source_uri, 
+                dry_run = job.definition:is_dry_run()
+            })
             -- Unconditionally remove the artifact file ignoring errors, e.g., if run in streaming mode.
             os.remove(("%s%s_%d.swu"):format(suricatta.get_tmpdir(), job.id, count))
             if not res then
@@ -1653,7 +1673,7 @@ M.job.workflow.dispatch:set(
     --- @return transition.result
     function(self, job)
         if not job.definition:is_firmware() then
-            if M.device.pstate ~= suricatta.pstate.OK then
+            if M.device.pstate ~= suricatta.pstate.OK and not job.definition:is_dry_run() then
                 suricatta.notify.warn("Persistent state is not OK (is %s).", suricatta.pstate[M.device.pstate])
                 if not save_pstate(suricatta.pstate.OK) then
                     return M.transition.result.FAIL_YIELD
@@ -1668,12 +1688,15 @@ M.job.workflow.dispatch:set(
             return job.workflow:call(M.state.dau.ACTIVATING, M.state.dau.ACTIVATED, job)
         end
 
-        suricatta.notify.debug("Job activation mode is 'firmware'.")
-        if suricatta.pstate.get() == suricatta.pstate.INSTALLED then
-            suricatta.notify.warn("Persistent state is already set to INSTALLED.")
+        if job.definition:is_dry_run() then
+            suricatta.notify.info("Job mode is 'dry-run', not persisting state.")
         else
-            if not save_pstate(suricatta.pstate.IN_PROGRESS) or not save_pstate(suricatta.pstate.INSTALLED) then
-                return M.transition.result.FAIL_YIELD
+            if suricatta.pstate.get() == suricatta.pstate.INSTALLED then
+                suricatta.notify.warn("Persistent state is already set to INSTALLED.")
+            else
+                if not save_pstate(suricatta.pstate.IN_PROGRESS) or not save_pstate(suricatta.pstate.INSTALLED) then
+                    return M.transition.result.FAIL_YIELD
+                end
             end
         end
         M.device.pstate = suricatta.pstate.INSTALLED
@@ -1716,6 +1739,12 @@ M.job.workflow.dispatch:set(
             return job.workflow:call(M.state.dau.ACTIVATING, M.state.dau.ACTIVATED, job)
         end
 
+        if job.definition:is_dry_run() then
+            sync_job_status { self, job, message = "Update installed. Notifying Progress Client(s) to dry-run activate." }
+            send_progress_activation_msg(job)
+            return job.workflow:call(M.state.dau.ACTIVATING, M.state.dau.ACTIVATED, job)
+        end
+
         -- Refresh `pstate` if dispatched in response to wfx query.
         M.device.pstate = pstate or suricatta.pstate.get()
 
@@ -1726,7 +1755,7 @@ M.job.workflow.dispatch:set(
         end
 
         if M.device.pstate == suricatta.pstate.INSTALLED then
-            sync_job_status { self, job, message = "Update installed. Notifying Progress Client(s) to reboot." }
+            sync_job_status { self, job, message = "Update installed. Notifying Progress Client(s) to activate." }
             send_progress_activation_msg(job)
             return M.transition.result.COMPLETED
         end
