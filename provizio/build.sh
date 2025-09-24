@@ -4,8 +4,8 @@
 #
 # SPDX-License-Identifier: GPL-2.0-only
 
-# SWUpdate Build Script
-# This script builds SWUpdate with Provizio-specific configuration
+# SWUpdate Build Script with Encryption Support
+# This script builds SWUpdate with Provizio-specific configuration including encryption
 # Usage: ./build.sh [config_file]
 
 set -euo pipefail
@@ -17,7 +17,7 @@ CONFIG_FILE="${1:-$DEFAULT_CONFIG}"
 # Change to repository root
 cd "$(dirname "$0")/.."
 
-echo "=== SWUpdate Build Script ==="
+echo "=== SWUpdate Build Script with Encryption Support ==="
 echo "Configuration: $CONFIG_FILE"
 echo "Working directory: $(pwd)"
 echo "Build started at: $(date)"
@@ -44,6 +44,12 @@ echo "WEBSERVER: $(grep 'CONFIG_WEBSERVER' .config || echo 'not set')"
 echo "MONGOOSE: $(grep 'CONFIG_MONGOOSE' .config || echo 'not set')"
 echo "SSL_IMPL: $(grep 'CONFIG_SSL_IMPL' .config || echo 'not set')"
 
+# NEW: Verify encryption configuration settings
+echo "=== Verifying encryption configuration ==="
+echo "ENCRYPTED: $(grep 'CONFIG_ENCRYPTED' .config || echo 'not set')"
+echo "ENCRYPTED_SW_DESCRIPTION: $(grep 'CONFIG_ENCRYPTED_SW_DESCRIPTION' .config || echo 'not set')"
+echo "PKCS11: $(grep 'CONFIG_PKCS11' .config || echo 'not set')"
+
 # Build SWUpdate
 echo "=== Building SWUpdate ==="
 NPROC=$(nproc)
@@ -66,6 +72,14 @@ readelf -d swupdate_unstripped | awk -F'[][]' '/Shared library/{print $2}' || tr
 if readelf -d swupdate_unstripped | grep -q 'libubootenv\.so'; then
     echo "ERROR: swupdate links to libubootenv - this violates Provizio configuration requirements" >&2
     exit 1
+fi
+
+# NEW: Verify encryption support is compiled in
+echo "=== Verifying encryption support ==="
+if strings swupdate_unstripped | grep -q "AES"; then
+    echo "AES encryption support detected"
+else
+    echo "Warning: AES encryption support may not be available"
 fi
 
 # Create output directory and copy artifacts
