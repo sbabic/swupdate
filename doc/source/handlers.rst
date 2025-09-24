@@ -1043,8 +1043,8 @@ The archive handler extracts an archive to a destination path.
 It supports whatever format libarchive has been compiled to support, for example even if SWUpdate
 itself has no direct support for xz it can be possible to extract tar.xz files with it.
 
-The attribute `preserve-attributes` must be set to preserve timestamps. uid/gid (numeric),
-permissions (except +x, always preserved) and extended attributes.
+The attribute `preserve-attributes` must be set to preserve timestamps. uid/gid (numeric) and
+extended attributes. File modes (such as chmod 0755/0600) are always preserved.
 
 The property `create-destination` can be set to the string `true` to have SWUpdate create
 the destination path before extraction.
