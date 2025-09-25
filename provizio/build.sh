@@ -43,6 +43,8 @@ echo "HAVE_LIBUBOOTENV: $(grep 'CONFIG_HAVE_LIBUBOOTENV' .config || echo 'not se
 echo "WEBSERVER: $(grep 'CONFIG_WEBSERVER' .config || echo 'not set')"
 echo "MONGOOSE: $(grep 'CONFIG_MONGOOSE' .config || echo 'not set')"
 echo "SSL_IMPL: $(grep 'CONFIG_SSL_IMPL' .config || echo 'not set')"
+echo "ENCRYPTED_IMAGES: $(grep 'CONFIG_ENCRYPTED_IMAGES' .config || echo 'not set')"
+echo "SIGNED_IMAGES: $(grep 'CONFIG_SIGNED_IMAGES' .config || echo 'not set')"
 
 # NEW: Verify encryption configuration settings
 echo "=== Verifying encryption configuration ==="
