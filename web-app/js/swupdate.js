@@ -46,19 +46,9 @@ function tryReload () {
 }
 
 let currentStatus = StatusEnum.IDLE
-let rebootRequired = true // Default to true, will be set to false if we receive no-reboot info
-
-function getCurrentStatus () {
-  return currentStatus
-}
-
-function isRebootRequired () {
-  return rebootRequired
-}
 
 function updateStatus (status) {
   if (!isStatusInEnum(status)) return
-  currentStatus = status
   
   $('#swu-idle').hide()
   $('#swu-success').hide()
@@ -81,13 +71,7 @@ function updateStatus (status) {
       $('#swu-failure').show()
       break
     case StatusEnum.DONE:
-      // Only show restart message if reboot is actually required
-      if (isRebootRequired()) {
-        $('#swu-done').show()
-      } else {
-        // For no-reboot updates, show success message instead
-        $('#swu-success').show()
-      }
+      $('#swu-done').show()
       break
     default:
       break
@@ -162,15 +146,7 @@ window.onload = function () {
   }
 
   ws.onclose = function (event) {
-    // Only show restart modal if it's an unexpected disconnection
-    // Don't show it after successful updates that don't require restart
-    const status = getCurrentStatus()
-    if (status !== 'SUCCESS' && status !== 'DONE') {
-      showRestart()
-    } else if (status === 'DONE' && isRebootRequired()) {
-      // Only show restart modal for DONE status if reboot is actually required
-      showRestart()
-    }
+    showRestart()
   }
 
   ws.onmessage = function (event) {
@@ -193,10 +169,6 @@ window.onload = function () {
         break
       }
       case 'status': {
-        // Reset reboot flag at the start of each update
-        if (msg.status === StatusEnum.START) {
-          rebootRequired = true // Default to requiring reboot, will be overridden by info message if needed
-        }
         updateStatus(msg.status)
         updateProgressBarStatus(msg.status)
         break
@@ -209,19 +181,6 @@ window.onload = function () {
         const value = percent + '%' + ' (' + msg.step + ' of ' + msg.number + ')'
 
         updateProgressBar(percent, msg.name, value)
-        break
-      }
-      case 'info': {
-        // Handle info messages, particularly reboot-mode information
-        if (msg.source && msg.source.includes('reboot-mode')) {
-          if (msg.source.includes('no-reboot')) {
-            rebootRequired = false
-            console.log('Update will not require reboot')
-          } else {
-            rebootRequired = true
-            console.log('Update will require reboot')
-          }
-        }
         break
       }
     }
