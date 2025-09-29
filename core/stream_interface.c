@@ -89,7 +89,7 @@ static int extract_file_to_tmp(int fd, const char *fname, unsigned long *poffs,
 {
 	char output_file[MAX_IMAGE_FNAME];
 	struct filehdr fdh;
-	int fdout;
+	int fdout = -1;
 	uint32_t checksum;
 	const char* TMPDIR = get_tmpdir();
 	cipher_t cipher = AES_CBC;
