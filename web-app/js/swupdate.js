@@ -45,8 +45,16 @@ function tryReload () {
   })
 }
 
+let currentStatus = StatusEnum.IDLE
+
+function getCurrentStatus () {
+  return currentStatus
+}
+
 function updateStatus (status) {
   if (!isStatusInEnum(status)) return
+  currentStatus = status
+  
   $('#swu-idle').hide()
   $('#swu-success').hide()
   $('#swu-failure').hide()
@@ -143,7 +151,12 @@ window.onload = function () {
   }
 
   ws.onclose = function (event) {
-    showRestart()
+    // Only show restart modal if it's an unexpected disconnection
+    // Don't show it after successful updates that don't require restart
+    const currentStatus = getCurrentStatus()
+    if (currentStatus !== 'SUCCESS') {
+      showRestart()
+    }
   }
 
   ws.onmessage = function (event) {
@@ -151,11 +164,18 @@ window.onload = function () {
 
     switch (msg.type) {
       case 'message': {
+        // Remove "No messages to display" text when first message arrives
+        const messagesContainer = $('#messages')
+        const noMessagesText = messagesContainer.find('.text-muted.text-center')
+        if (noMessagesText.length > 0) {
+          noMessagesText.remove()
+        }
+        
         const p = $('<p></p>')
         p.text(msg.text)
         p.addClass('mb-1')
         if (msg.level <= 3) { p.addClass('text-danger') }
-        $('#messages').append(p)
+        messagesContainer.append(p)
         break
       }
       case 'status': {
