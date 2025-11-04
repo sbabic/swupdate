@@ -310,7 +310,7 @@ int install_single_image(struct img_type *img, bool dry_run)
 	return ret;
 }
 
-static int update_installed_image_version(struct swver *sw_ver_list,
+int update_installed_image_version(struct swver *sw_ver_list,
 		struct img_type *img)
 {
 	struct sw_version *swver;

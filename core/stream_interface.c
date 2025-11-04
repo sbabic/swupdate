@@ -344,6 +344,9 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 					ERROR("Error streaming %s", img->fname);
 					return -1;
 				}
+
+				update_installed_image_version(&software->installed_sw_list, img);
+
 				TRACE("END INSTALLING STREAMING");
 				break;
 			}
