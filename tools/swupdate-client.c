@@ -42,7 +42,8 @@ static void usage(void) {
 		" -d : ask the server to only perform a dry run\n"
 		" -e <software>,<mode> : Select software images set and source\n"
 		"                        Ex.: stable,main\n"
-		" -s <path>            : path to swupdate IPC socket\n"
+		" -s <path>            : path to SWUpdate's IPC socket\n"
+		" -g <path>            : path to SWUpdate's progress socket\n"
 		" -q : go quiet, resets verbosity\n"
 		" -v : go verbose, essentially print upgrade status messages from server\n"
 		" -p : ask the server to run post-update commands if upgrade succeeds\n"
@@ -56,8 +57,10 @@ bool dry_run = false;
 bool run_postupdate = false;
 int end_status = EXIT_SUCCESS;
 char *software_set = NULL, *running_mode = NULL;
-char *socketpath = NULL;
+char *socket_ctrl_path = NULL;
+char *socket_progress_path = NULL;
 extern char* SOCKET_CTRL_PATH;
+extern char* SOCKET_PROGRESS_PATH;
 
 static pthread_mutex_t mymutex;
 static pthread_cond_t cv_end = PTHREAD_COND_INITIALIZER;
@@ -171,8 +174,10 @@ static int send_file(const char* filename) {
  * Cleanup internal state and exit with exit code
  */
 static void __attribute__ ((__noreturn__)) cleanup_and_exit(int status){
-	free(socketpath);
-	socketpath = NULL;
+	free(socket_progress_path);
+	free(socket_ctrl_path);
+	socket_progress_path = NULL;
+	socket_ctrl_path = NULL;
 	exit(status);
 }
 
@@ -186,7 +191,7 @@ int main(int argc, char *argv[]) {
 	pthread_mutex_init(&mymutex, NULL);
 
 	/* parse command line options */
-	while ((c = getopt(argc, argv, "dhqvpe:s:")) != EOF) {
+	while ((c = getopt(argc, argv, "dhqvpe:g:s:")) != EOF) {
 		switch (c) {
 		case 'd':
 			dry_run = true;
@@ -213,13 +218,21 @@ int main(int argc, char *argv[]) {
 		case 'p':
 			run_postupdate = true;
 			break;
-		case 's':
-			socketpath = strdup(optarg);
-			if(!socketpath) {
+		case 'g':
+			socket_progress_path = strdup(optarg);
+			if(!socket_progress_path) {
 				fprintf(stderr, "Out of memory\n");
 				cleanup_and_exit(EXIT_FAILURE);
 			}
-			SOCKET_CTRL_PATH = socketpath;
+			SOCKET_PROGRESS_PATH = socket_progress_path;
+			break;
+		case 's':
+			socket_ctrl_path = strdup(optarg);
+			if(!socket_ctrl_path) {
+				fprintf(stderr, "Out of memory\n");
+				cleanup_and_exit(EXIT_FAILURE);
+			}
+			SOCKET_CTRL_PATH = socket_ctrl_path;
 			break;
 		default:
 			usage();

@@ -23,6 +23,10 @@ DESCRIPTION
        ask the server to only perform a dry-run
 -e     <software>,<mode>
        select software image set and source (for example: stable,main)
+-s
+       path to SWUpdate's IPC socket
+-g
+       path to SWUpdate's progress socket
 -q
        go quiet, resets verbosity
 -v
