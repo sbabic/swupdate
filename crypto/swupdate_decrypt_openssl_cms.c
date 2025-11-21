@@ -23,7 +23,6 @@
 static void openssl_cms_probe(void);
 static swupdate_decrypt_lib opensslCMS;
 
-//int swupdate_dgst_add_asym_keypair(struct swupdate_cfg *sw, const char *keypair_file)
 static void *openssl_CMS_DECRYPT_init(unsigned char *key,
 				      __attribute__ ((__unused__)) char keylen, 
 				      __attribute__ ((__unused__)) unsigned char *iv,
