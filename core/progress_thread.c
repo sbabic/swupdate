@@ -333,6 +333,7 @@ void *progress_bar_thread (void __attribute__ ((__unused__)) *data)
 		conn = (struct progress_conn *)calloc(1, sizeof(*conn));
 		if (!conn) {
 			ERROR("Out of memory, skipping...");
+			close(connfd);
 			continue;
 		}
 		conn->sockfd = connfd;
