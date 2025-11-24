@@ -15,27 +15,10 @@ GNU General Public License -- see individual files for exceptions.
 
 To make this easier, license headers in the source files will be
 replaced with a single line reference to Unique License Identifiers
-as defined by the Linux Foundation's SPDX project [1].  For example,
-in a source file the full "GPL v2.0 only" header text will be
-replaced by a single line:
-
-::
-
-	SPDX-License-Identifier:	GPL-2.0-only
-
+as defined by the Linux Foundation's SPDX project [1].
 Ideally, the license terms of all files in the source tree should be
 defined by such License Identifiers; in no case a file can contain
 more than one such License Identifier list.
-
-If a "SPDX-License-Identifier:" line references more than one Unique
-License Identifier, then this means that the respective file can be
-used under the terms of either of these licenses, i. e. with
-
-::
-
-	SPDX-License-Identifier:	GPL-2.0-only OR BSD-3-Clause
-
-you can choose between GPL-2.0-only and BSD-3-Clause licensing.
 
 We use the SPDX_ Unique License Identifiers (SPDX-Identifiers_)
 
