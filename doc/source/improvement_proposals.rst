@@ -328,8 +328,8 @@ The authentication to the hawkBit Server does not work in case of delta. In fact
 is performed by the backend connector, but the download of .zck files is done by a different
 process ("downloader") that don't use the setup from suricatta.
 
-* Status: Wait
-* Request for Support : Sponsor
+* Status: In progress
+* Request for Support : Sponsored by Orica Digital Solutions
 * Priority : Medium
 
 Back-end: support for generic down-loader
