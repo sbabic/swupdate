@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Updating an embedded system &mdash; Embedded Software Update Documentation 2025.05 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=86f27845" />
+
+  
+    <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
+  
+        <script src="_static/jquery.js?v=8dae8fb0"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=ffeffead"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Software Management on embedded systems" href="overview.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="#" class="icon icon-home">
+            Embedded Software Update Documentation
+          </a>
+              <div class="version">
+                2025.05
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Software Management on embedded systems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="licensing.html">License</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="swupdate.html">SWUpdate: software update for embedded system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scenarios.html">Update strategy examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sw-description.html">SWUpdate: syntax and tags with the default parser</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed_images.html">Update images from verified source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="encrypted_images.html">Symmetrically Encrypted Update Images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="handlers.html">Handlers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mongoose.html">Mongoose daemon mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hawkbit-setup.html">Config for hawkBit under SSL/TLS using private CA / sub CA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-ipc-interface.html">SWUpdate: API for external programs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bindings.html">Language Bindings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bootloader_interface.html">Bootloader Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building-with-yocto.html">meta-swupdate: building with Yocto</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-best-practise.html">SWUpdate Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="delta-update.html">Delta Update with SWUpdate</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-client.html">swupdate-client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-progress.html">swupdate-progress</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">swupdate-ipc</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="help_and_support.html">Help and support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to SWUpdate</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="improvement_proposals.html">Proposals to improve SWUpdate</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="previous-releases.html">Documentation for previous releases</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">Embedded Software Update Documentation</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Updating an embedded system</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <a class="reference internal image-reference" href="_images/SWUpdate.png"><img alt="_images/SWUpdate.png" class="align-center" src="_images/SWUpdate.png" style="width: 256.25px; height: 256.25px;" /></a>
+<section id="updating-an-embedded-system">
+<h1>Updating an embedded system<a class="headerlink" href="#updating-an-embedded-system" title="Link to this heading"></a></h1>
+<p>SWUpdate provides a reliable way to update
+the software on an embedded system.
+Sources are hosted at <a class="reference external" href="https://github.com/sbabic/swupdate">https://github.com/sbabic/swupdate</a>. Do not
+forget to <cite>star</cite> SWUpdate.</p>
+<center>
+<a class="github-button" href="https://github.com/sbabic/swupdate" data-icon="octicon-star" data-size="large" aria-label="Star sbabic/swupdate on GitHub">Do not forget to Star SWUpdate on Github</a>
+<script async defer src="https://buttons.github.io/buttons.js"></script>
+</center><div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Software Management on embedded systems</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="overview.html#updating-through-the-boot-loader">Updating through the boot loader</a></li>
+<li class="toctree-l2"><a class="reference internal" href="overview.html#updating-through-a-package-manager">Updating through a package manager</a></li>
+<li class="toctree-l2"><a class="reference internal" href="overview.html#strategies-for-an-application-doing-software-upgrade">Strategies for an application doing software upgrade</a></li>
+<li class="toctree-l2"><a class="reference internal" href="overview.html#something-went-wrong">Something went wrong ?</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="licensing.html">License</a></li>
+</ul>
+</div>
+</section>
+<section id="swupdate-documentation">
+<h1>SWUpdate Documentation<a class="headerlink" href="#swupdate-documentation" title="Link to this heading"></a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="swupdate.html">SWUpdate: software update for embedded system</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="swupdate.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="swupdate.html#features">Features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="swupdate.html#configuration-and-build">Configuration and Build</a></li>
+<li class="toctree-l2"><a class="reference internal" href="swupdate.html#running-swupdate">Running SWUpdate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="swupdate.html#changes-in-boot-loader-code">Changes in boot-loader code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="swupdate.html#image-file-format">Image File Format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="swupdate.html#building-a-single-image">Building a single image</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="scenarios.html">Update strategy examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="scenarios.html#single-copy-running-as-standalone-image">Single copy - running as standalone image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scenarios.html#double-copy-with-fall-back">Double copy with fall-back</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scenarios.html#combine-double-copy-with-rescue-system">Combine double-copy with rescue system</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scenarios.html#split-system-update-with-application-update">Split system update with application update</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scenarios.html#configuration-update">Configuration update</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="sw-description.html">SWUpdate: syntax and tags with the default parser</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="sw-description.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sw-description.html#handling-configuration-differences">Handling configuration differences</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sw-description.html#software-collections">Software collections</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sw-description.html#priority-finding-the-elements-in-the-file">Priority finding the elements in the file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sw-description.html#using-links">Using links</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sw-description.html#hardware-compatibility">hardware-compatibility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sw-description.html#partitions-ubi-layout">partitions : UBI layout</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sw-description.html#images">images</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sw-description.html#files">Files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sw-description.html#scripts">Scripts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sw-description.html#update-transaction-and-status-marker">Update Transaction and Status Marker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sw-description.html#reboot-flag">reboot flag</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sw-description.html#bootloader">bootloader</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sw-description.html#swupdate-persistent-variables">SWUpdate persistent variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sw-description.html#board-specific-settings">Board specific settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sw-description.html#software-collections-and-operation-modes">Software collections and operation modes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sw-description.html#versioning-schemas-in-swupdate">Versioning schemas in SWUpdate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sw-description.html#semantic-version">Semantic version</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sw-description.html#checking-version-of-installed-software">Checking version of installed software</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sw-description.html#embedded-script">Embedded Script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sw-description.html#attribute-reference">Attribute reference</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="signed_images.html">Update images from verified source</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="signed_images.html#signing-the-compound-image">Signing the compound image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="signed_images.html#signing-the-sub-images">Signing the sub-images</a></li>
+<li class="toctree-l2"><a class="reference internal" href="signed_images.html#combining-signing-sw-description-with-hash-verification">Combining signing sw-description with hash verification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="signed_images.html#choice-of-algorithm">Choice of algorithm</a></li>
+<li class="toctree-l2"><a class="reference internal" href="signed_images.html#tool-to-generate-keys-certificates">Tool to generate keys / certificates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="signed_images.html#usage-with-rsa-pkcs-1-5-or-rsa-pss">Usage with RSA PKCS#1.5 or RSA PSS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="signed_images.html#usage-with-certificates-and-cms">Usage with certificates and CMS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="signed_images.html#usage-with-gnu-pg">Usage with GNU PG</a></li>
+<li class="toctree-l2"><a class="reference internal" href="signed_images.html#building-a-signed-swu-image">Building a signed SWU image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="signed_images.html#example-for-sw-description-with-signed-image">Example for sw-description with signed image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="signed_images.html#running-swupdate-with-signed-images">Running SWUpdate with signed images</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="encrypted_images.html">Symmetrically Encrypted Update Images</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="encrypted_images.html#building-an-encrypted-swu-image">Building an Encrypted SWU Image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="encrypted_images.html#encryption-of-ubi-volumes">Encryption of UBI volumes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="encrypted_images.html#example-sw-description-with-encrypted-image">Example sw-description with Encrypted Image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="encrypted_images.html#running-swupdate-with-encrypted-images">Running SWUpdate with Encrypted Images</a></li>
+<li class="toctree-l2"><a class="reference internal" href="encrypted_images.html#decrypting-with-a-pkcs-11-token">Decrypting with a PKCS#11 token</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="handlers.html">Handlers</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="handlers.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="handlers.html#supplied-handlers">Supplied handlers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="handlers.html#creating-own-handlers">Creating own handlers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="handlers.html#ubi-volume-handler">UBI Volume Handler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="handlers.html#lua-handlers">Lua Handlers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="handlers.html#shell-script-handler">Shell script handler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="handlers.html#lua-script-handler">Lua script handler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="handlers.html#remote-handler">Remote handler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="handlers.html#swu-forwarder">SWU forwarder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="handlers.html#rdiff-handler">rdiff handler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="handlers.html#ucfw-handler">ucfw handler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="handlers.html#ssbl-handler">SSBL Handler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="handlers.html#readback-handler">Readback Handler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="handlers.html#copy-handler">Copy handler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="handlers.html#bootloader-handler">Bootloader handler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="handlers.html#archive-handler">Archive handler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="handlers.html#disk-partitioner">Disk partitioner</a></li>
+<li class="toctree-l2"><a class="reference internal" href="handlers.html#toggleboot-handler">Toggleboot Handler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="handlers.html#gpt-partition-handler">GPT Partition Handler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="handlers.html#diskformat-handler">Diskformat Handler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="handlers.html#unique-uuid-handler">Unique UUID Handler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="handlers.html#btrfs-handler">BTRFS Handler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="handlers.html#generic-executor-handler">Generic Executor Handler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="handlers.html#delta-update-handler">Delta Update Handler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="handlers.html#docker-handlers">Docker Handlers</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mongoose.html">Mongoose daemon mode</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mongoose.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mongoose.html#startup">Startup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mongoose.html#example">Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mongoose.html#customize">Customize</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mongoose.html#develop">Develop</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mongoose.html#contribute">Contribute</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="suricatta.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="suricatta.html#running-suricatta">Running suricatta</a></li>
+<li class="toctree-l2"><a class="reference internal" href="suricatta.html#the-suricatta-interface">The Suricatta Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="suricatta.html#support-for-wfx">Support for wfx</a></li>
+<li class="toctree-l2"><a class="reference internal" href="suricatta.html#support-for-general-purpose-http-server">Support for general purpose HTTP server</a></li>
+<li class="toctree-l2"><a class="reference internal" href="suricatta.html#support-for-suricatta-modules-in-lua">Support for Suricatta Modules in Lua</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="hawkbit-setup.html">Config for hawkBit under SSL/TLS using private CA / sub CA</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="hawkbit-setup.html#purpose">Purpose</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hawkbit-setup.html#recipe">Recipe</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-ipc-interface.html">SWUpdate: API for external programs</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="swupdate-ipc-interface.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="swupdate-ipc-interface.html#api-description">API Description</a></li>
+<li class="toctree-l2"><a class="reference internal" href="swupdate-ipc-interface.html#client-library">Client Library</a></li>
+<li class="toctree-l2"><a class="reference internal" href="swupdate-ipc-interface.html#api-to-the-integrated-webserver">API to the integrated Webserver</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="progress.html#api-description">API Description</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="bindings.html">Language Bindings</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="bindings.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bindings.html#lua-language-binding">Lua Language Binding</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="bootloader_interface.html">Bootloader Interface</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="bootloader_interface.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bootloader_interface.html#bootloader-interface-description">Bootloader Interface Description</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bootloader_interface.html#bootloader-build-system-integration">Bootloader Build System Integration</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="building-with-yocto.html">meta-swupdate: building with Yocto</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="building-with-yocto.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="building-with-yocto.html#what-about-libubootenv">What about libubootenv ?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="building-with-yocto.html#the-swupdate-class">The swupdate class</a></li>
+<li class="toctree-l2"><a class="reference internal" href="building-with-yocto.html#what-about-grub">What about grub ?</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-best-practise.html">SWUpdate Best Practice</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="swupdate-best-practise.html#update-concept">Update Concept</a></li>
+<li class="toctree-l2"><a class="reference internal" href="swupdate-best-practise.html#swupdate-builtin-configuration">SWUpdate builtin configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="swupdate-best-practise.html#swupdate-startup">SWUpdate startup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="swupdate-best-practise.html#write-sw-description">Write sw-description</a></li>
+<li class="toctree-l2"><a class="reference internal" href="swupdate-best-practise.html#plan-to-have-a-rescue-system">Plan to have a rescue system</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="delta-update.html">Delta Update with SWUpdate</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="delta-update.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="delta-update.html#foss-projects-for-delta-encoding">FOSS projects for delta encoding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="delta-update.html#design-delta-update-in-swupdate">Design Delta Update in SWUpdate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="delta-update.html#changes-in-zchunk-project">Changes in ZCHUNK project</a></li>
+<li class="toctree-l2"><a class="reference internal" href="delta-update.html#integration-in-sw-description">Integration in sw-description</a></li>
+<li class="toctree-l2"><a class="reference internal" href="delta-update.html#integration-in-swupdate-the-delta-handler">Integration in SWUpdate: the delta handler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="delta-update.html#creation-of-zck-header-and-zck-file-for-swupdate">Creation of ZCK Header and ZCK file for SWUpdate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="delta-update.html#using-zck-tools-to-foresee-download-size">Using ZCK tools to foresee download size</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="utilities-and-tools">
+<h1>Utilities and tools<a class="headerlink" href="#utilities-and-tools" title="Link to this heading"></a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-client.html">swupdate-client</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="swupdate-client.html#synopsis">SYNOPSIS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="swupdate-client.html#description">DESCRIPTION</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-progress.html">swupdate-progress</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="swupdate-progress.html#synopsis">SYNOPSIS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="swupdate-progress.html#description">DESCRIPTION</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">swupdate-ipc</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="swupdate-ipc.html#aes">aes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="swupdate-ipc.html#setversion">setversion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="swupdate-ipc.html#gethawkbit">gethawkbit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="swupdate-ipc.html#sendtohawkbit">sendtohawkbit</a></li>
+<li class="toctree-l2"><a class="reference internal" href="swupdate-ipc.html#sysrestart">sysrestart</a></li>
+<li class="toctree-l2"><a class="reference internal" href="swupdate-ipc.html#synopsis">SYNOPSIS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="swupdate-ipc.html#description">DESCRIPTION</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="help-and-support">
+<h1>Help and support<a class="headerlink" href="#help-and-support" title="Link to this heading"></a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="help_and_support.html">Help and support</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="help_and_support.html#mailing-list">Mailing List</a></li>
+<li class="toctree-l2"><a class="reference internal" href="help_and_support.html#swupdate-flyer">SWUpdate Flyer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="help_and_support.html#workshop-and-swupdate-integration-in-project">Workshop and SWUpdate integration in project</a></li>
+<li class="toctree-l2"><a class="reference internal" href="help_and_support.html#commercial-support-and-board-integration">Commercial support and board integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="help_and_support.html#talks-about-swupdate">Talks about SWUpdate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="help_and_support.html#useful-references">Useful references</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to SWUpdate</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#contribution-checklist">Contribution Checklist</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#developer-s-certificate-of-origin-1-1">Developer’s Certificate of Origin 1.1</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="future-ideas">
+<h1>Future ideas<a class="headerlink" href="#future-ideas" title="Link to this heading"></a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="improvement_proposals.html">Proposals to improve SWUpdate</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="improvement_proposals.html#legende">Legende</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improvement_proposals.html#main-goal">Main goal</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improvement_proposals.html#core-features">Core features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improvement_proposals.html#fetcher-and-interfaces">Fetcher and interfaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improvement_proposals.html#tools-and-utilities">Tools and utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improvement_proposals.html#lua">Lua</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improvement_proposals.html#handlers">Handlers:</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improvement_proposals.html#internal-webserver">Internal Webserver</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improvement_proposals.html#security-crypto-engines">Security / Crypto engines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improvement_proposals.html#back-end-support-suricatta-mode">Back-end support (suricatta mode)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improvement_proposals.html#test-and-continuous-integration">Test and Continuous Integration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improvement_proposals.html#binding-to-languages">Binding to languages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improvement_proposals.html#documentation">Documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improvement_proposals.html#already-completed-and-mainlined">Already completed and mainlined</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improvement_proposals.html#parser">Parser</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="previous-releases">
+<h1>Previous releases<a class="headerlink" href="#previous-releases" title="Link to this heading"></a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="previous-releases.html">Documentation for previous releases</a></li>
+</ul>
+</div>
+<section id="indices-and-tables">
+<h2>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="overview.html" class="btn btn-neutral float-right" title="Software Management on embedded systems" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2013-2025, Stefano Babic.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

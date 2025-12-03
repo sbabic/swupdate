@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SWUpdate: API for external programs &mdash; Embedded Software Update Documentation 2025.05 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=86f27845" />
+
+  
+    <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
+  
+        <script src="_static/jquery.js?v=8dae8fb0"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=ffeffead"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Getting information on running update" href="progress.html" />
+    <link rel="prev" title="Config for hawkBit under SSL/TLS using private CA / sub CA" href="hawkbit-setup.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Embedded Software Update Documentation
+          </a>
+              <div class="version">
+                2025.05
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Software Management on embedded systems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="licensing.html">License</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="swupdate.html">SWUpdate: software update for embedded system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scenarios.html">Update strategy examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sw-description.html">SWUpdate: syntax and tags with the default parser</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed_images.html">Update images from verified source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="encrypted_images.html">Symmetrically Encrypted Update Images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="handlers.html">Handlers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mongoose.html">Mongoose daemon mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hawkbit-setup.html">Config for hawkBit under SSL/TLS using private CA / sub CA</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">SWUpdate: API for external programs</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#api-description">API Description</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#client-library">Client Library</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#functions-to-start-an-update">Functions to start an update</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#functions-to-set-aes-keys">Functions to set AES keys</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#functions-to-control-swupdate">Functions to control SWUpdate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#messages-for-suricatta">Messages for suricatta</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#setting-the-polling-time">Setting the polling time</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#enable-disable-suricatta-daemon">Enable / disable Suricatta daemon</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#set-custom-device-attributes-for-suricatta-for-hawkbit-implementation">Set custom device attributes for Suricatta (for Hawkbit implementation)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#trigger-a-check-on-the-server">Trigger a check on the server</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#activate-an-already-installed-software">Activate an already installed Software</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#get-hawkbit-server-status">Get hawkBit Server Status</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#api-to-the-integrated-webserver">API to the integrated Webserver</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id1">Install API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restart-api">Restart API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#websocket-api">WebSocket API</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#status-change-event">Status Change Event</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#source-event">Source Event</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#info-event">Info Event</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#message-event">Message Event</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-event">Step event</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bindings.html">Language Bindings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bootloader_interface.html">Bootloader Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building-with-yocto.html">meta-swupdate: building with Yocto</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-best-practise.html">SWUpdate Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="delta-update.html">Delta Update with SWUpdate</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-client.html">swupdate-client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-progress.html">swupdate-progress</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">swupdate-ipc</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="help_and_support.html">Help and support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to SWUpdate</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="improvement_proposals.html">Proposals to improve SWUpdate</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="previous-releases.html">Documentation for previous releases</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Embedded Software Update Documentation</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">SWUpdate: API for external programs</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/swupdate-ipc-interface.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="swupdate-api-for-external-programs">
+<h1>SWUpdate: API for external programs<a class="headerlink" href="#swupdate-api-for-external-programs" title="Link to this heading"></a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>SWUpdate contains an integrated web-server to allow remote updating.
+However, which protocols are involved during an update is project
+specific and differs significantly. Some projects can decide
+to use FTP to load an image from an external server, or using
+even a proprietary protocol.
+The integrated web-server uses this interface.</p>
+<p>SWUpdate has a simple interface to let external programs
+to communicate with the installer. Clients can start an upgrade
+and stream an image to the installer, querying then for the status
+and the final result. The API is at the moment very simple, but it can
+easy be extended in the future if new use cases will arise.</p>
+</section>
+<section id="api-description">
+<span id="install-api"></span><h2>API Description<a class="headerlink" href="#api-description" title="Link to this heading"></a></h2>
+<p>The communication runs via Unix Domain Socket (UDS). The socket path
+is determined by</p>
+<ul class="simple">
+<li><p>the <code class="docutils literal notranslate"><span class="pre">CONFIG_SOCKET_CTRL_PATH</span></code> compile-time configuration,</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">$RUNTIME_DIRECTORY/sockinstctrl</span></code> if <code class="docutils literal notranslate"><span class="pre">$RUNTIME_DIRECTORY</span></code> is set,</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">$TMPDIR/sockinstctrl</span></code> if <code class="docutils literal notranslate"><span class="pre">$TMPDIR</span></code> is set, or</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">/tmp/sockinstctrl</span></code>,</p></li>
+</ul>
+<p>in this order, and taken over from systemd or created by SWUpdate.
+This socket should, however, not be used directly but instead by the Client
+Library explained below.</p>
+<p>The exchanged packets are described in network_ipc.h</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">typedef</span> <span class="n">struct</span> <span class="p">{</span>
+        <span class="nb">int</span> <span class="n">magic</span><span class="p">;</span>
+        <span class="nb">int</span> <span class="nb">type</span><span class="p">;</span>
+        <span class="n">msgdata</span> <span class="n">data</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">ipc_message</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Where the fields have the meaning:</p>
+<ul class="simple">
+<li><p>magic : a magic number as simple proof of the packet</p></li>
+<li><p>type : one of REQ_INSTALL, ACK, NACK,
+GET_STATUS, POST_UPDATE, SWUPDATE_SUBPROCESS, SET_AES_KEY</p></li>
+<li><p>msgdata : a buffer used by the client to send the image
+or by SWUpdate to report back notifications and status.</p></li>
+</ul>
+<p>The client sends a REQ_INSTALL packet and waits for an answer.
+SWUpdate sends back ACK or NACK, if for example an update is already in progress.</p>
+<p>After the ACK, the client sends the whole image as a stream. SWUpdate
+expects that all bytes after the ACK are part of the image to be installed.
+SWUpdate recognizes the size of the image from the CPIO header.
+Any error lets SWUpdate to leave the update state, and further packets
+will be ignored until a new REQ_INSTALL will be received.</p>
+<img alt="_images/API.png" src="_images/API.png" />
+<p>It is recommended to use the client library to communicate with SWUpdate. On the lower
+level with direct socket communication, it cannot be guaranteed that the structures
+will remain compatible in the future. The client library was affected by this issue, too, and it is
+changed to accept an opaque interface that will survive API changes. Compatibility
+layers could be added on-demand in the future due to API changes.</p>
+</section>
+<section id="client-library">
+<h2>Client Library<a class="headerlink" href="#client-library" title="Link to this heading"></a></h2>
+<section id="functions-to-start-an-update">
+<h3>Functions to start an update<a class="headerlink" href="#functions-to-start-an-update" title="Link to this heading"></a></h3>
+<p>A library simplifies the usage of the IPC making available a way to
+start asynchronously an update.</p>
+<p>The library consists of one function and several call-backs.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">int</span> <span class="n">swupdate_async_start</span><span class="p">(</span><span class="n">writedata</span> <span class="n">wr_func</span><span class="p">,</span> <span class="n">getstatus</span> <span class="n">status_func</span><span class="p">,</span>
+        <span class="n">terminated</span> <span class="n">end_func</span><span class="p">,</span> <span class="n">void</span> <span class="o">*</span><span class="n">req</span><span class="p">,</span> <span class="n">ssize_t</span> <span class="n">size</span><span class="p">)</span>
+<span class="n">typedef</span> <span class="nb">int</span> <span class="p">(</span><span class="o">*</span><span class="n">writedata</span><span class="p">)(</span><span class="n">char</span> <span class="o">**</span><span class="n">buf</span><span class="p">,</span> <span class="nb">int</span> <span class="o">*</span><span class="n">size</span><span class="p">);</span>
+<span class="n">typedef</span> <span class="nb">int</span> <span class="p">(</span><span class="o">*</span><span class="n">getstatus</span><span class="p">)(</span><span class="n">ipc_message</span> <span class="o">*</span><span class="n">msg</span><span class="p">);</span>
+<span class="n">typedef</span> <span class="nb">int</span> <span class="p">(</span><span class="o">*</span><span class="n">terminated</span><span class="p">)(</span><span class="n">RECOVERY_STATUS</span> <span class="n">status</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>swupdate_async_start creates a new thread and start the communication with SWUpdate,
+triggering for a new update. The wr_func is called to get the image to be installed.
+It is responsibility of the callback to provide the buffer and the size of
+the chunk of data.</p>
+<p>The getstatus call-back is called after the stream was downloaded to check
+how upgrade is going on. It can be omitted if only the result is required.</p>
+<p>The terminated call-back is called when SWUpdate has finished with the result
+of the upgrade.</p>
+<p>Example about using this library is in the examples/client directory.</p>
+<p>The <cite>req</cite> structure is casted to void to ensure API compatibility. Am user
+should instantiate it as <cite>struct swupdate_request</cite>. This contains fields that can control
+the update process:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">struct</span> <span class="n">swupdate_request</span> <span class="p">{</span>
+        <span class="n">unsigned</span> <span class="nb">int</span> <span class="n">apiversion</span><span class="p">;</span>
+        <span class="n">sourcetype</span> <span class="n">source</span><span class="p">;</span>
+        <span class="nb">int</span> <span class="n">dry_run</span><span class="p">;</span>
+        <span class="n">size_t</span> <span class="nb">len</span><span class="p">;</span>
+        <span class="n">char</span> <span class="n">info</span><span class="p">[</span><span class="mi">512</span><span class="p">];</span>
+        <span class="n">char</span> <span class="n">software_set</span><span class="p">[</span><span class="mi">256</span><span class="p">];</span>
+        <span class="n">char</span> <span class="n">running_mode</span><span class="p">[</span><span class="mi">256</span><span class="p">];</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+<p>A user should first call <cite>swupdate_prepare_req()</cite></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">void</span> <span class="n">swupdate_prepare_req</span><span class="p">(</span><span class="n">struct</span> <span class="n">swupdate_request</span> <span class="o">*</span><span class="n">req</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>This fills the request structure with default values. After that, the user can fill the
+other fields as:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><em>sourcetype</em> : one of SOURCE_UNKNOWN, SOURCE_WEBSERVER,
+SOURCE_SURICATTA, SOURCE_DOWNLOADER, SOURCE_LOCAL</p></li>
+<li><p><em>dry_run</em> : one of RUN_DEFAULT (set from command line), RUN_DRYRUN, RUN_INSTALL.</p></li>
+<li><p><em>info, len</em> : a variable length data that can be forwarded to the progress
+interface. The installer in SWUpdate does not evaluate it.</p></li>
+<li><p><em>software_set</em> and <em>running_mode</em> : this allows one to set the <cite>selection</cite> for the update,
+it should be accepted by swupdate (-q, –accepted-select option when swupdate is launched).</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="functions-to-set-aes-keys">
+<h3>Functions to set AES keys<a class="headerlink" href="#functions-to-set-aes-keys" title="Link to this heading"></a></h3>
+<p>The key for decryption can be set with command line parameter (see <cite>-K</cite>), but it is possible
+to set it via IPC. In this way, each update could have a different key.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">int</span> <span class="n">swupdate_set_aes</span><span class="p">(</span><span class="n">char</span> <span class="o">*</span><span class="n">key</span><span class="p">,</span> <span class="n">char</span> <span class="o">*</span><span class="n">ivt</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The key is for AES-256. The length for key and ivt are then defined by the algorithm amd they are passed as ASCII string, so the length <em>must</em> be 64 bytes for key and 32 bytes for IVT.</p>
+</section>
+<section id="functions-to-control-swupdate">
+<h3>Functions to control SWUpdate<a class="headerlink" href="#functions-to-control-swupdate" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">int</span> <span class="n">ipc_send_cmd</span><span class="p">(</span><span class="n">ipc_message</span> <span class="o">*</span><span class="n">msg</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>ipc_send_cmd is used to send a command to a SWUpdate subprocess (as suricatta). The function is synchron,
+that means it clocks until the subprocess has answered with ACK or NACK. This function sets <cite>type</cite> to SWUPDATE_SUBPROCESS.
+The caller must then set the other fields in message according to the destination.
+The msgdata field is a structure as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">struct</span> <span class="p">{</span>
+   <span class="n">sourcetype</span> <span class="n">source</span><span class="p">;</span> <span class="o">/*</span> <span class="n">Who</span> <span class="n">triggered</span> <span class="n">the</span> <span class="n">update</span> <span class="o">*/</span>
+   <span class="nb">int</span>     <span class="n">cmd</span><span class="p">;</span>       <span class="o">/*</span> <span class="n">Optional</span> <span class="n">encoded</span> <span class="n">command</span> <span class="o">*/</span>
+   <span class="nb">int</span>     <span class="n">timeout</span><span class="p">;</span>     <span class="o">/*</span> <span class="n">timeout</span> <span class="ow">in</span> <span class="n">seconds</span> <span class="k">if</span> <span class="n">an</span> <span class="n">aswer</span> <span class="ow">is</span> <span class="n">expected</span> <span class="o">*/</span>
+   <span class="n">unsigned</span> <span class="nb">int</span> <span class="nb">len</span><span class="p">;</span>    <span class="o">/*</span> <span class="n">Len</span> <span class="n">of</span> <span class="n">data</span> <span class="n">valid</span> <span class="ow">in</span> <span class="n">buf</span> <span class="o">*/</span>
+   <span class="n">char</span>    <span class="n">buf</span><span class="p">[</span><span class="mi">2048</span><span class="p">];</span>   <span class="o">/*</span>
+                         <span class="o">*</span> <span class="n">Buffer</span> <span class="n">that</span> <span class="n">each</span> <span class="n">source</span> <span class="n">can</span> <span class="n">fill</span>
+                         <span class="o">*</span> <span class="k">with</span> <span class="n">additional</span> <span class="n">information</span>
+                         <span class="o">*/</span>
+   <span class="p">}</span>
+</pre></div>
+</div>
+<p>The caller fills <cite>source</cite> with the subprocess that accepts the command. Values of cmd
+are in <cite>network_ipc.h</cite>.</p>
+</section>
+<section id="messages-for-suricatta">
+<h3>Messages for suricatta<a class="headerlink" href="#messages-for-suricatta" title="Link to this heading"></a></h3>
+<p>suricatta accepts messages in JSON format. The message must be formatted in the <cite>buf</cite> field of
+the message data.</p>
+<section id="setting-the-polling-time">
+<h4>Setting the polling time<a class="headerlink" href="#setting-the-polling-time" title="Link to this heading"></a></h4>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="s2">&quot;polling&quot;</span> <span class="p">:</span> <span class="o">&lt;</span><span class="n">value</span> <span class="ow">in</span> <span class="n">seconds</span><span class="p">,</span> <span class="nb">range</span> <span class="mf">0.</span><span class="o">.</span><span class="n">X</span><span class="o">&gt;</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>Setting it to 0 has the special meaning that the polling time is retrieved from the Backend
+(if this is supported by the server).</p>
+</section>
+<section id="enable-disable-suricatta-daemon">
+<h4>Enable / disable Suricatta daemon<a class="headerlink" href="#enable-disable-suricatta-daemon" title="Link to this heading"></a></h4>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="s2">&quot;enable&quot;</span> <span class="p">:</span> <span class="n">true</span> <span class="p">}</span>
+<span class="p">{</span> <span class="s2">&quot;enable&quot;</span> <span class="p">:</span> <span class="n">false</span> <span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="set-custom-device-attributes-for-suricatta-for-hawkbit-implementation">
+<h4>Set custom device attributes for Suricatta (for Hawkbit implementation)<a class="headerlink" href="#set-custom-device-attributes-for-suricatta-for-hawkbit-implementation" title="Link to this heading"></a></h4>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="s2">&quot;identify&quot;</span> <span class="p">:</span> <span class="p">[</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span>  <span class="p">:</span> <span class="s2">&quot;customizableAttributeOne&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;value&quot;</span> <span class="p">:</span> <span class="s2">&quot;valueOne&quot;</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span>  <span class="p">:</span> <span class="s2">&quot;customizableAttributeTwo&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;value&quot;</span> <span class="p">:</span> <span class="s2">&quot;valueTwo&quot;</span>
+    <span class="p">}</span>
+<span class="p">]}</span>
+</pre></div>
+</div>
+<p>New attributes can be added at runtime, and existing attributes can be modified in the same
+way. Changes will be reflected on the server in the next poll iteration.</p>
+</section>
+<section id="trigger-a-check-on-the-server">
+<h4>Trigger a check on the server<a class="headerlink" href="#trigger-a-check-on-the-server" title="Link to this heading"></a></h4>
+<p>This is useful in case the device is mostly offline, and when it is online, it should check
+immediately if an update exists and run it. In fact, after enabling the suricatta daemon,
+the update follows the usual states, and the daemon waits for a polling time before
+loading the new software. This command forces an update (if available) without changing the
+polling time.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="s2">&quot;trigger&quot;</span> <span class="p">:</span> <span class="n">true</span> <span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="activate-an-already-installed-software">
+<h4>Activate an already installed Software<a class="headerlink" href="#activate-an-already-installed-software" title="Link to this heading"></a></h4>
+<p>After a software was installed, the new software boots and if everything runs fine,
+an acknowledge should be sent to the hawkBit server. If this feature is used, for example
+to let the end user decide if the new software is accepted, the parameters used by the installation
+should be stored during the update process.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="s2">&quot;id&quot;</span> <span class="p">:</span> <span class="o">&lt;</span><span class="n">action</span> <span class="nb">id</span><span class="o">&gt;</span><span class="p">,</span>
+  <span class="s2">&quot;finished&quot;</span> <span class="p">:</span> <span class="s2">&quot;success&quot;</span><span class="p">,</span> <span class="s2">&quot;failure&quot;</span><span class="p">,</span> <span class="s2">&quot;none&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;execution&quot;</span> <span class="p">:</span> <span class="p">[</span><span class="s2">&quot;closed&quot;</span><span class="p">,</span> <span class="s2">&quot;proceeding&quot;</span><span class="p">,</span> <span class="n">canceled</span><span class="s2">&quot;, &quot;</span><span class="n">rejected</span><span class="s2">&quot;, &quot;</span><span class="n">resumed</span><span class="s2">&quot;]</span>
+  <span class="s2">&quot;details&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="get-hawkbit-server-status">
+<h4>Get hawkBit Server Status<a class="headerlink" href="#get-hawkbit-server-status" title="Link to this heading"></a></h4>
+<p>To provide the hawkBit server status to other processes, it can be requested by
+sending an empty message with message type CMD_GET_STATUS.</p>
+<p>The response is a JSON object containing the hawkBit server status &lt;status&gt;.
+&lt;status&gt; is a number representing the value of the channel_op_res_t enum from
+channel_op_res.h. As the hawkBit server is polled, its status can only be
+updated when it has been polled. Therefore the response also contains the
+time &lt;time&gt;, when the hawkBit server has been polled the last time. It is
+provided as ISO 8601 date and time string. (2021-10-14T13:42:37.000+00)</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span> <span class="s2">&quot;server&quot;</span> <span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;status&quot;</span> <span class="p">:</span> <span class="o">&lt;</span><span class="n">status</span><span class="o">&gt;</span>
+                <span class="s2">&quot;time&quot;</span> <span class="p">:</span> <span class="o">&lt;</span><span class="n">time</span><span class="o">&gt;</span>
+             <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>An example application can be found under tools/swupdate-gethawkbitstatus.c</p>
+</section>
+</section>
+</section>
+<section id="api-to-the-integrated-webserver">
+<h2>API to the integrated Webserver<a class="headerlink" href="#api-to-the-integrated-webserver" title="Link to this heading"></a></h2>
+<p>The integrated Webserver provides REST resources to push a SWU package and to get inform about the update process.
+This API is based on HTTP standards. There are to kind of interface:</p>
+<ul class="simple">
+<li><p>Install API to push a SWU and to restart the device after update.</p></li>
+<li><p>A WebSocket interface to send the status of the update process.</p></li>
+</ul>
+<section id="id1">
+<h3>Install API<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">POST</span> <span class="o">/</span><span class="n">upload</span>
+</pre></div>
+</div>
+<p>This initiates an update: the initiator sends the request and start to stream the SWU in the same
+way as described in <a class="reference internal" href="#install-api"><span class="std std-ref">API Description</span></a>.
+The <code class="docutils literal notranslate"><span class="pre">POST</span> <span class="pre">/upload</span></code> request contains:</p>
+<ul>
+<li><p>the SWU file in its body</p></li>
+<li><p>the following header field</p>
+<blockquote>
+<div><p><code class="docutils literal notranslate"><span class="pre">Content-Type:</span> <span class="pre">multipart/form-data;</span> <span class="pre">boundary...</span></code></p>
+</div></blockquote>
+</li>
+</ul>
+<p>For example to stream the SWU file and start the update procedure using <code class="docutils literal notranslate"><span class="pre">curl</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">curl</span> <span class="o">-</span><span class="n">F</span> <span class="n">file</span><span class="o">=</span><span class="nd">@update_file</span><span class="o">.</span><span class="n">swu</span> <span class="n">http</span><span class="p">:</span><span class="o">//</span><span class="n">host</span><span class="p">:</span><span class="mi">8080</span><span class="o">/</span><span class="n">upload</span>
+</pre></div>
+</div>
+</section>
+<section id="restart-api">
+<h3>Restart API<a class="headerlink" href="#restart-api" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">POST</span> <span class="o">/</span><span class="n">restart</span>
+</pre></div>
+</div>
+<p>If configured (see post update command), this request will restart the device.</p>
+</section>
+<section id="websocket-api">
+<h3>WebSocket API<a class="headerlink" href="#websocket-api" title="Link to this heading"></a></h3>
+<p>The integrated Webserver exposes a WebSocket API. The WebSocket protocol specification defines ws (WebSocket) and wss (WebSocket Secure) as two new uniform resource identifier (URI) schemes that are used for unencrypted and encrypted connections, respectively and both of them are supported by SWUpdate.
+A WebSocket provides full-duplex communication but it is used in SWUpdate to send events to an external host after
+each change in the update process. The Webserver sends JSON formatted responses as results of internal events.</p>
+<p>The response contains the field type, that defines which event is sent.</p>
+<table class="docutils align-default" id="id2">
+<caption><span class="caption-text">Event Type</span><a class="headerlink" href="#id2" title="Link to this table"></a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p>type</p></th>
+<th class="head"><p>Description of event</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>status</p></td>
+<td><p>Event sent when SWUpdate’s internal state changes</p></td>
+</tr>
+<tr class="row-odd"><td><p>source</p></td>
+<td><p>Event to inform from which interface an update is received</p></td>
+</tr>
+<tr class="row-even"><td><p>info</p></td>
+<td><p>Event with custom message to be passed to an external process</p></td>
+</tr>
+<tr class="row-odd"><td><p>message</p></td>
+<td><p>Event that contains the error message in case of error</p></td>
+</tr>
+<tr class="row-even"><td><p>step</p></td>
+<td><p>Event to inform about the running update</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="status-change-event">
+<h3>Status Change Event<a class="headerlink" href="#status-change-event" title="Link to this heading"></a></h3>
+<p>This event is sent when the internal SWUpdate status change. Following status are supported:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">IDLE</span>
+<span class="n">START</span>
+<span class="n">RUN</span>
+<span class="n">SUCCESS</span>
+<span class="n">FAILURE</span>
+<span class="n">DONE</span>
+</pre></div>
+</div>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;status&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;SUCCESS&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="source-event">
+<h3>Source Event<a class="headerlink" href="#source-event" title="Link to this heading"></a></h3>
+<p>This event informs from which interface a SWU is loaded.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;source&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;source&quot;</span><span class="p">:</span> <span class="s2">&quot;WEBSERVER&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The field <cite>source</cite> can have one of the following values:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">UNKNOWN</span>
+<span class="n">WEBSERVER</span>
+<span class="n">SURICATTA</span>
+<span class="n">DOWNLOADER</span>
+<span class="n">LOCAL</span>
+</pre></div>
+</div>
+</section>
+<section id="info-event">
+<h3>Info Event<a class="headerlink" href="#info-event" title="Link to this heading"></a></h3>
+<p>This event forwards all internal logs sent with level=INFO.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;info&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;source&quot;</span><span class="p">:</span> <span class="o">&lt;</span> <span class="n">text</span> <span class="n">message</span> <span class="o">&gt;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="message-event">
+<h3>Message Event<a class="headerlink" href="#message-event" title="Link to this heading"></a></h3>
+<p>This event contains the error message in case of failure.</p>
+<table class="docutils align-default" id="id3">
+<caption><span class="caption-text">Fields for message event</span><a class="headerlink" href="#id3" title="Link to this table"></a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p>name</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>status</p></td>
+<td><p>“message”</p></td>
+</tr>
+<tr class="row-odd"><td><p>level</p></td>
+<td><p>“3” in case of error, “6” as info</p></td>
+</tr>
+<tr class="row-even"><td><p>text</p></td>
+<td><p>Message associated to the event</p></td>
+</tr>
+</tbody>
+</table>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;message&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;level&quot;</span><span class="p">:</span> <span class="s2">&quot;3&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;text&quot;</span> <span class="p">:</span> <span class="s2">&quot;[ERROR] : SWUPDATE failed [0] ERROR core/cpio_utils.c : &quot;</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="step-event">
+<h3>Step event<a class="headerlink" href="#step-event" title="Link to this heading"></a></h3>
+<p>This event contains which is the current step running and which percentage of this step is currently installed.</p>
+<table class="docutils align-default" id="id4">
+<caption><span class="caption-text">Fields for step event</span><a class="headerlink" href="#id4" title="Link to this table"></a></caption>
+<thead>
+<tr class="row-odd"><th class="head"><p>name</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>number</p></td>
+<td><p>total number of steps N for this update</p></td>
+</tr>
+<tr class="row-odd"><td><p>step</p></td>
+<td><p>running step in range [1..N]</p></td>
+</tr>
+<tr class="row-even"><td><p>name</p></td>
+<td><p>filename of artefact to be installed</p></td>
+</tr>
+<tr class="row-odd"><td><p>percent</p></td>
+<td><p>percentage of the running step</p></td>
+</tr>
+</tbody>
+</table>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;step&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;number&quot;</span><span class="p">:</span> <span class="s2">&quot;7&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;step&quot;</span><span class="p">:</span> <span class="s2">&quot;2&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;rootfs.ext4.gz&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;percent&quot;</span><span class="p">:</span> <span class="s2">&quot;18&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="hawkbit-setup.html" class="btn btn-neutral float-left" title="Config for hawkBit under SSL/TLS using private CA / sub CA" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="progress.html" class="btn btn-neutral float-right" title="Getting information on running update" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2013-2025, Stefano Babic.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

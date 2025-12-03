@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Language Bindings &mdash; Embedded Software Update Documentation 2025.12 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=86f27845" />
+
+  
+    <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
+  
+        <script src="_static/jquery.js?v=8dae8fb0"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=50a9be24"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Bootloader Interface" href="bootloader_interface.html" />
+    <link rel="prev" title="Getting information on running update" href="progress.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Embedded Software Update Documentation
+          </a>
+              <div class="version">
+                2025.12
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Software Management on embedded systems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="licensing.html">License</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="swupdate.html">SWUpdate: software update for embedded system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scenarios.html">Update strategy examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sw-description.html">SWUpdate: syntax and tags with the default parser</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed_images.html">Update images from verified source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="encrypted_images.html">Symmetrically Encrypted Update Images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="asym_encrypted_images.html">Asymmetrically Encrypted Update Images</a></li>
+<li class="toctree-l1"><a class="reference internal" href="handlers.html">Handlers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mongoose.html">Mongoose daemon mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hawkbit-setup.html">Config for hawkBit under SSL/TLS using private CA / sub CA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-ipc-interface.html">SWUpdate: API for external programs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Language Bindings</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#lua-language-binding">Lua Language Binding</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#control-interface">Control Interface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#progress-interface">Progress Interface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ipv4-interface">IPv4 Interface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#lua-language-binding-interface-specification">Lua Language Binding Interface Specification</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="bootloader_interface.html">Bootloader Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building-with-yocto.html">meta-swupdate: building with Yocto</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-best-practise.html">SWUpdate Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="delta-update.html">Delta Update with SWUpdate</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-client.html">swupdate-client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-progress.html">swupdate-progress</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">swupdate-ipc</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="help_and_support.html">Help and support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to SWUpdate</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="improvement_proposals.html">Proposals to improve SWUpdate</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="previous-releases.html">Documentation for previous releases</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Embedded Software Update Documentation</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Language Bindings</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/bindings.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="language-bindings">
+<h1>Language Bindings<a class="headerlink" href="#language-bindings" title="Link to this heading"></a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>In general, SWUpdate is agnostic to a particular language it is operated from,
+thanks to <a class="reference internal" href="swupdate-ipc.html"><span class="doc">SWUpdate’s socket-based control</span></a> and
+<a class="reference internal" href="progress.html"><span class="doc">progress APIs</span></a> for external programs. As long as the language
+of choice has proper socket (library) support, SWUpdate can be operated with it.</p>
+<p>However, for convenience, a Lua language binding in terms of a shared library,
+currently <code class="docutils literal notranslate"><span class="pre">lua_swupdate.so.0.1</span></code>, is provided.</p>
+</section>
+<section id="lua-language-binding">
+<h2>Lua Language Binding<a class="headerlink" href="#lua-language-binding" title="Link to this heading"></a></h2>
+<p>The Lua language binding is realized in terms of the <code class="docutils literal notranslate"><span class="pre">lua_swupdate</span></code> module
+that defines three bindings, namely for the control interface, the progress
+interface, and a convenience function yielding a table holding all local
+network interfaces including their IP addresses and submasks.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">lua_swupdate</span></code> Lua module interface specification that details what
+functionality is made available by <code class="docutils literal notranslate"><span class="pre">bindings/lua_swupdate.c</span></code> is found
+in <code class="docutils literal notranslate"><span class="pre">bindings/lua_swupdate.lua</span></code>, reproduced for convenience in
+Section <a class="reference internal" href="#bindings-lua-specification"><span class="std std-ref">Lua Language Binding Interface Specification</span></a>.
+It serves as reference, for mocking purposes, and type checking thanks to
+the EmmyLua-inspired annotations.</p>
+<p>Note that, depending on the filesystem location of the Lua binding’s shared
+library, Lua’s <code class="docutils literal notranslate"><span class="pre">package.cpath</span></code> may have to be adapted by setting the
+environment variable <code class="docutils literal notranslate"><span class="pre">LUA_CPATH</span></code>, modifying <code class="docutils literal notranslate"><span class="pre">package.cpath</span></code> prior to
+a <code class="docutils literal notranslate"><span class="pre">require('lua_swupdate')</span></code>, or , as last resort, using <code class="docutils literal notranslate"><span class="pre">package.loadlib()</span></code>
+instead of <code class="docutils literal notranslate"><span class="pre">require('lua_swupdate')</span></code>.</p>
+<section id="control-interface">
+<h3>Control Interface<a class="headerlink" href="#control-interface" title="Link to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">lua_swupdate</span></code> module’s control interface binding conveniently makes
+<a class="reference internal" href="swupdate-ipc.html"><span class="doc">SWUpdate’s socket-based control API</span></a> available to pure Lua.</p>
+<p>The binding is captured in the <code class="docutils literal notranslate"><span class="pre">swupdate_control</span></code> object that is returned
+by a call to <code class="docutils literal notranslate"><span class="pre">swupdate.control()</span></code>. This object offers the three methods
+<code class="docutils literal notranslate"><span class="pre">connect()</span></code>, <code class="docutils literal notranslate"><span class="pre">write(&lt;chunkdata&gt;)</span></code>, and <code class="docutils literal notranslate"><span class="pre">close()</span></code>:</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">connect()</span></code> method initializes the connection to SWUpdate’s control
+socket, sends <code class="docutils literal notranslate"><span class="pre">REQ_INSTALL</span></code>, and waits for <code class="docutils literal notranslate"><span class="pre">ACK</span></code> or <code class="docutils literal notranslate"><span class="pre">NACK</span></code>, returning the
+socket connection file descriptor, mostly for information purposes, or, in case
+of an error, <code class="docutils literal notranslate"><span class="pre">nil</span></code> plus an error message.</p>
+<p>The artifact’s data can then be sent to SWUpdate via the <code class="docutils literal notranslate"><span class="pre">write(&lt;chunkdata&gt;)</span></code>
+method, returning <code class="docutils literal notranslate"><span class="pre">true</span></code>, or, in case of errors, <code class="docutils literal notranslate"><span class="pre">nil</span></code> plus an error message.</p>
+<p>Finally, the <code class="docutils literal notranslate"><span class="pre">close()</span></code> method closes the connection to SWUpdate’s control
+socket after which it waits for SWUpdate to complete the update transaction and
+executes the post-install command, if given.</p>
+<p>The following example snippet illustrates how to use the control interface binding:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">local</span> <span class="n">artifact</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;/some/path/to/artifact.swu&quot;</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span> <span class="p">)</span>
+<span class="n">swupdate</span> <span class="o">=</span> <span class="n">require</span><span class="p">(</span><span class="s1">&#39;lua_swupdate&#39;</span><span class="p">)</span>
+<span class="n">local</span> <span class="n">ctrl</span> <span class="o">=</span> <span class="n">swupdate</span><span class="o">.</span><span class="n">control</span><span class="p">()</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">ctrl</span><span class="p">:</span><span class="n">connect</span><span class="p">()</span> <span class="n">then</span>
+        <span class="o">--</span> <span class="n">Deliberately</span> <span class="n">neglecting</span> <span class="n">error</span> <span class="n">message</span><span class="o">.</span>
+        <span class="n">io</span><span class="o">.</span><span class="n">stderr</span><span class="p">:</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Error connecting to SWUpdate control socket.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span>
+<span class="n">end</span>
+
+<span class="k">while</span> <span class="n">true</span> <span class="n">do</span>
+        <span class="n">local</span> <span class="n">chunk</span> <span class="o">=</span> <span class="n">artifact</span><span class="p">:</span><span class="n">read</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">chunk</span> <span class="n">then</span> <span class="k">break</span> <span class="n">end</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ctrl</span><span class="p">:</span><span class="n">write</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span> <span class="n">then</span>
+                <span class="o">--</span> <span class="n">Deliberately</span> <span class="n">neglecting</span> <span class="n">error</span> <span class="n">message</span><span class="o">.</span>
+                <span class="n">io</span><span class="o">.</span><span class="n">stderr</span><span class="p">:</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Error writing to SWUpdate control socket.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">break</span>
+        <span class="n">end</span>
+<span class="n">end</span>
+
+<span class="n">local</span> <span class="n">res</span><span class="p">,</span> <span class="n">msg</span> <span class="o">=</span> <span class="n">ctrl</span><span class="p">:</span><span class="n">close</span><span class="p">()</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">res</span> <span class="n">then</span>
+        <span class="n">io</span><span class="o">.</span><span class="n">stderr</span><span class="p">:</span><span class="n">write</span><span class="p">(</span><span class="n">string</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;Error finalizing update: </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">msg</span><span class="p">))</span>
+<span class="n">end</span>
+</pre></div>
+</div>
+</section>
+<section id="progress-interface">
+<h3>Progress Interface<a class="headerlink" href="#progress-interface" title="Link to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">lua_swupdate</span></code> module’s progress interface binding conveniently makes
+<a class="reference internal" href="progress.html"><span class="doc">SWUpdate’s socket-based progress API</span></a> available to pure Lua.</p>
+<p>The binding is captured in the <code class="docutils literal notranslate"><span class="pre">swupdate_progress</span></code> object that is returned
+by a call to <code class="docutils literal notranslate"><span class="pre">swupdate.progress()</span></code>. This object offers the three methods
+<code class="docutils literal notranslate"><span class="pre">connect()</span></code>, <code class="docutils literal notranslate"><span class="pre">receive()</span></code>, and <code class="docutils literal notranslate"><span class="pre">close()</span></code>:</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">connect()</span></code> method connects to SWUpdate’s progress socket, waiting until
+the connection has been established. Note that it is only really required to
+explicitly call <code class="docutils literal notranslate"><span class="pre">connect()</span></code> to reestablish a broken connection as the
+<code class="docutils literal notranslate"><span class="pre">swupdate_progress</span></code> object’s instantiation already initiates the connection.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">receive()</span></code> method returns a table representation of the <code class="docutils literal notranslate"><span class="pre">struct</span>
+<span class="pre">progress_msg</span></code> described in the <a class="reference internal" href="progress.html"><span class="doc">progress interface’s API description</span></a>.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">close()</span></code> method deliberately closes the connection to SWUpdate’s progress
+socket.</p>
+</section>
+<section id="ipv4-interface">
+<h3>IPv4 Interface<a class="headerlink" href="#ipv4-interface" title="Link to this heading"></a></h3>
+<p>For convenience, the <code class="docutils literal notranslate"><span class="pre">lua_swupdate</span></code> module provides the <code class="docutils literal notranslate"><span class="pre">ipv4()</span></code> method
+returning a table holding the local network interfaces as the table’s keys and
+their space-separated IP addresses plus subnet masks as respective values.</p>
+</section>
+<section id="lua-language-binding-interface-specification">
+<span id="bindings-lua-specification"></span><h3>Lua Language Binding Interface Specification<a class="headerlink" href="#lua-language-binding-interface-specification" title="Link to this heading"></a></h3>
+<div class="highlight-lua notranslate"><div class="highlight"><pre><span></span><span class="linenos">  1</span><span class="cm">--[[</span>
+<span class="linenos">  2</span>
+<span class="linenos">  3</span><span class="cm">    SWUpdate IPC Lua Module Interface.</span>
+<span class="linenos">  4</span>
+<span class="linenos">  5</span><span class="cm">    Interface specification for the Lua IPC module.</span>
+<span class="linenos">  6</span><span class="cm">    See: bindings/lua_swupdate.c</span>
+<span class="linenos">  7</span>
+<span class="linenos">  8</span><span class="cm">    Copyright (C) 2022, Siemens AG</span>
+<span class="linenos">  9</span><span class="cm">    Author: Christian Storm &lt;christian.storm@siemens.com&gt;</span>
+<span class="linenos"> 10</span>
+<span class="linenos"> 11</span><span class="cm">    SPDX-License-Identifier: GPL-2.0-or-later</span>
+<span class="linenos"> 12</span>
+<span class="linenos"> 13</span><span class="cm">--]]</span>
+<span class="linenos"> 14</span>
+<span class="linenos"> 15</span><span class="c1">---@diagnostic disable: missing-return</span>
+<span class="linenos"> 16</span><span class="c1">---@diagnostic disable: unused-local</span>
+<span class="linenos"> 17</span><span class="c1">-- luacheck: no unused args</span>
+<span class="linenos"> 18</span>
+<span class="linenos"> 19</span>
+<span class="linenos"> 20</span><span class="c1">--- SWUpdate IPC Lua Module.</span>
+<span class="linenos"> 21</span><span class="c1">--- @class lua_swupdate</span>
+<span class="linenos"> 22</span><span class="kd">local</span> <span class="n">lua_swupdate</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="linenos"> 23</span>
+<span class="linenos"> 24</span>
+<span class="linenos"> 25</span><span class="c1">--- Get local IPv4 network interface(s) information.</span>
+<span class="linenos"> 26</span><span class="c1">--</span>
+<span class="linenos"> 27</span><span class="c1">-- The returned Table contains the network interface names</span>
+<span class="linenos"> 28</span><span class="c1">-- as keys and a space-separated IP address and subnet mask</span>
+<span class="linenos"> 29</span><span class="c1">-- as values, e.g., {[&#39;eth0&#39;]=&quot;192.168.1.1 255.255.255.0&quot;}.</span>
+<span class="linenos"> 30</span><span class="c1">--</span>
+<span class="linenos"> 31</span><span class="c1">--- @return table&lt;string, string&gt;</span>
+<span class="linenos"> 32</span><span class="n">lua_swupdate</span><span class="p">.</span><span class="n">ipv4</span> <span class="o">=</span> <span class="kr">function</span><span class="p">()</span> <span class="kr">end</span>
+<span class="linenos"> 33</span>
+<span class="linenos"> 34</span>
+<span class="linenos"> 35</span><span class="c1">--- @enum lua_swupdate.RECOVERY_STATUS</span>
+<span class="linenos"> 36</span><span class="c1">--- Lua equivalent of `RECOVERY_STATUS` as in `include/swupdate_status.h`.</span>
+<span class="linenos"> 37</span><span class="n">lua_swupdate</span><span class="p">.</span><span class="n">RECOVERY_STATUS</span> <span class="o">=</span> <span class="p">{</span>
+<span class="linenos"> 38</span>    <span class="n">IDLE</span>       <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+<span class="linenos"> 39</span>    <span class="n">START</span>      <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos"> 40</span>    <span class="n">RUN</span>        <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+<span class="linenos"> 41</span>    <span class="n">SUCCESS</span>    <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+<span class="linenos"> 42</span>    <span class="n">FAILURE</span>    <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+<span class="linenos"> 43</span>    <span class="n">DOWNLOAD</span>   <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
+<span class="linenos"> 44</span>    <span class="n">DONE</span>       <span class="o">=</span> <span class="mi">6</span><span class="p">,</span>
+<span class="linenos"> 45</span>    <span class="n">SUBPROCESS</span> <span class="o">=</span> <span class="mi">7</span><span class="p">,</span>
+<span class="linenos"> 46</span>    <span class="n">PROGRESS</span>   <span class="o">=</span> <span class="mi">8</span>
+<span class="linenos"> 47</span><span class="p">}</span>
+<span class="linenos"> 48</span>
+<span class="linenos"> 49</span>
+<span class="linenos"> 50</span><span class="c1">--- @enum lua_swupdate.sourcetype</span>
+<span class="linenos"> 51</span><span class="c1">--- Lua equivalent of `sourcetype` as in `include/swupdate_status.h`.</span>
+<span class="linenos"> 52</span><span class="n">lua_swupdate</span><span class="p">.</span><span class="n">sourcetype</span> <span class="o">=</span> <span class="p">{</span>
+<span class="linenos"> 53</span>    <span class="n">SOURCE_UNKNOWN</span>           <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+<span class="linenos"> 54</span>    <span class="n">SOURCE_WEBSERVER</span>         <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos"> 55</span>    <span class="n">SOURCE_SURICATTA</span>         <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+<span class="linenos"> 56</span>    <span class="n">SOURCE_DOWNLOADER</span>        <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+<span class="linenos"> 57</span>    <span class="n">SOURCE_LOCAL</span>             <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+<span class="linenos"> 58</span>    <span class="n">SOURCE_CHUNKS_DOWNLOADER</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="linenos"> 59</span><span class="p">}</span>
+<span class="linenos"> 60</span>
+<span class="linenos"> 61</span>
+<span class="linenos"> 62</span><span class="c1">--- Lua equivalent of `struct progress_msg` as in `include/progress_ipc.h`.</span>
+<span class="linenos"> 63</span><span class="c1">--- @class lua_swupdate.progress_msg</span>
+<span class="linenos"> 64</span><span class="c1">--- @field apiversion number  API Version for compatibility check</span>
+<span class="linenos"> 65</span><span class="c1">--- @field status     lua_swupdate.RECOVERY_STATUS  Update status, one of `lua_swupdate.RECOVERY_STATUS`&#39;s values</span>
+<span class="linenos"> 66</span><span class="c1">--- @field download   number  Downloaded data percentage</span>
+<span class="linenos"> 67</span><span class="c1">--- @field source     lua_swupdate.sourcetype  Interface that triggered the update, one of `lua_swupdate.sourcetype`&#39;s values</span>
+<span class="linenos"> 68</span><span class="c1">--- @field nsteps     number  Total number of steps</span>
+<span class="linenos"> 69</span><span class="c1">--- @field step       number  Current step</span>
+<span class="linenos"> 70</span><span class="c1">--- @field percent    number  Percentage done in current step</span>
+<span class="linenos"> 71</span><span class="c1">--- @field artifact   string  Name of image to be installed</span>
+<span class="linenos"> 72</span><span class="c1">--- @field handler    string  Name of running Handler</span>
+<span class="linenos"> 73</span><span class="c1">--- @field info       string  Additional information about installation</span>
+<span class="linenos"> 74</span>
+<span class="linenos"> 75</span>
+<span class="linenos"> 76</span><span class="c1">--- SWUpdate progress socket binding.</span>
+<span class="linenos"> 77</span><span class="c1">--</span>
+<span class="linenos"> 78</span><span class="c1">-- The returned Class Table contains methods to</span>
+<span class="linenos"> 79</span><span class="c1">-- interact with SWUpdate&#39;s progress socket.</span>
+<span class="linenos"> 80</span><span class="c1">--</span>
+<span class="linenos"> 81</span><span class="n">lua_swupdate</span><span class="p">.</span><span class="n">progress</span> <span class="o">=</span> <span class="kr">function</span><span class="p">()</span>
+<span class="linenos"> 82</span>    <span class="kr">return</span> <span class="p">{</span>
+<span class="linenos"> 83</span>        <span class="c1">--- Connect to SWUpdate&#39;s progress socket.</span>
+<span class="linenos"> 84</span>        <span class="c1">--</span>
+<span class="linenos"> 85</span>        <span class="c1">--- @param  self  table   This `lua_swupdate.progress` instance</span>
+<span class="linenos"> 86</span>        <span class="c1">--- @return number | nil  # The connection handle or nil in case of error</span>
+<span class="linenos"> 87</span>        <span class="c1">--- @return nil | string  # nil or an error message in case of error</span>
+<span class="linenos"> 88</span>        <span class="n">connect</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">self</span><span class="p">)</span> <span class="kr">end</span><span class="p">,</span>
+<span class="linenos"> 89</span>
+<span class="linenos"> 90</span>        <span class="c1">--- Receive data from SWUpdate&#39;s progress socket.</span>
+<span class="linenos"> 91</span>        <span class="c1">--</span>
+<span class="linenos"> 92</span>        <span class="c1">--- @param  self  table                        This `lua_swupdate.progress` instance</span>
+<span class="linenos"> 93</span>        <span class="c1">--- @return table | lua_swupdate.progress_msg  # This `lua_swupdate.progress` instance on error or the received progress message</span>
+<span class="linenos"> 94</span>        <span class="c1">--- @return nil                                # nil in case of error</span>
+<span class="linenos"> 95</span>        <span class="n">receive</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">self</span><span class="p">)</span> <span class="kr">end</span><span class="p">,</span>
+<span class="linenos"> 96</span>
+<span class="linenos"> 97</span>        <span class="c1">--- Close connection to SWUpdate&#39;s progress socket.</span>
+<span class="linenos"> 98</span>        <span class="c1">--</span>
+<span class="linenos"> 99</span>        <span class="c1">--- @param  self  table  This `lua_swupdate.progress` instance</span>
+<span class="linenos">100</span>        <span class="c1">--- @return table        # This `lua_swupdate.progress` instance</span>
+<span class="linenos">101</span>        <span class="n">close</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">self</span><span class="p">)</span> <span class="kr">end</span><span class="p">,</span>
+<span class="linenos">102</span>    <span class="p">}</span>
+<span class="linenos">103</span><span class="kr">end</span>
+<span class="linenos">104</span>
+<span class="linenos">105</span>
+<span class="linenos">106</span><span class="c1">--- SWUpdate control socket binding.</span>
+<span class="linenos">107</span><span class="c1">--</span>
+<span class="linenos">108</span><span class="c1">-- The returned Class Table contains methods to</span>
+<span class="linenos">109</span><span class="c1">-- interact with SWUpdate&#39;s control socket.</span>
+<span class="linenos">110</span><span class="c1">--</span>
+<span class="linenos">111</span><span class="n">lua_swupdate</span><span class="p">.</span><span class="n">control</span> <span class="o">=</span> <span class="kr">function</span><span class="p">()</span>
+<span class="linenos">112</span>    <span class="kr">return</span> <span class="p">{</span>
+<span class="linenos">113</span>        <span class="c1">--- Connect to SWUpdate&#39;s control socket.</span>
+<span class="linenos">114</span>        <span class="c1">--</span>
+<span class="linenos">115</span>        <span class="c1">--- @param  self  table   This `lua_swupdate.control` instance</span>
+<span class="linenos">116</span>        <span class="c1">--- @return number | nil  # Connection handle or nil in case of error</span>
+<span class="linenos">117</span>        <span class="c1">--- @return nil | string  # nil or an error message in case of error</span>
+<span class="linenos">118</span>        <span class="n">connect</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">self</span><span class="p">)</span> <span class="kr">end</span><span class="p">,</span>
+<span class="linenos">119</span>
+<span class="linenos">120</span>        <span class="c1">--- Write to connected SWUpdate control socket.</span>
+<span class="linenos">121</span>        <span class="c1">--</span>
+<span class="linenos">122</span>        <span class="c1">--- @param  self  table    This `lua_swupdate.control` instance</span>
+<span class="linenos">123</span>        <span class="c1">--- @param  data  string   Chunk data to write to SWUpdate&#39;s control socket</span>
+<span class="linenos">124</span>        <span class="c1">--- @return boolean | nil  # true or nil in case of error</span>
+<span class="linenos">125</span>        <span class="c1">--- @return nil | string   # nil or an error message in case of error</span>
+<span class="linenos">126</span>        <span class="n">write</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span> <span class="kr">end</span><span class="p">,</span>
+<span class="linenos">127</span>
+<span class="linenos">128</span>        <span class="c1">--- Close connection to SWUpdate&#39;s control socket.</span>
+<span class="linenos">129</span>        <span class="c1">--</span>
+<span class="linenos">130</span>        <span class="c1">--- @param  self  table    This `lua_swupdate.control` instance</span>
+<span class="linenos">131</span>        <span class="c1">--- @return boolean | nil  # true or nil in case of error</span>
+<span class="linenos">132</span>        <span class="c1">--- @return nil | string   # nil or an error message in case of error</span>
+<span class="linenos">133</span>        <span class="n">close</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">self</span><span class="p">)</span> <span class="kr">end</span><span class="p">,</span>
+<span class="linenos">134</span>    <span class="p">}</span>
+<span class="linenos">135</span><span class="kr">end</span>
+<span class="linenos">136</span>
+<span class="linenos">137</span>
+<span class="linenos">138</span><span class="kr">return</span> <span class="n">lua_swupdate</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="progress.html" class="btn btn-neutral float-left" title="Getting information on running update" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="bootloader_interface.html" class="btn btn-neutral float-right" title="Bootloader Interface" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2013-2025, Stefano Babic.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
