@@ -215,6 +215,10 @@ swupdate.set_bootenv = function(key, value) end
 --- @return string       # Bootloader environment key's value, empty if key absent
 swupdate.get_bootenv = function(key) end
 
+--- Get table with linux kernel command line
+--
+--- @return table       # Table with keys and value, for example t[root] return root device
+swupdate.get_cmdline = function() end
 
 --- @enum swupdate.HANDLER_MASK
 --- Lua equivalent of `HANDLER_MASK` as in `include/handler.h`.
