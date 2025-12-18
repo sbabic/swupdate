@@ -19,6 +19,7 @@
 #define BUFSIZE	(1024 * 8)
 
 #define MODNAME	"opensslRSA"
+#define MODNAME_PSS	"opensslRSAPSS"
 
 static swupdate_dgst_lib	libs;
 
@@ -63,18 +64,18 @@ static int dgst_verify_init(struct openssl_digest *dgst)
 		return -EFAULT; /* failed */
 	}
 
-#if defined(CONFIG_SIGALG_RSAPSS)
-	rc = EVP_PKEY_CTX_set_rsa_padding(dgst->ckey, RSA_PKCS1_PSS_PADDING);
-	if (rc <= 0) {
-		ERROR("EVP_PKEY_CTX_set_rsa_padding failed, error 0x%lx", ERR_get_error());
-		return -EFAULT; /* failed */
+	if (get_dgstlib() == MODNAME_PSS) {
+		rc = EVP_PKEY_CTX_set_rsa_padding(dgst->ckey, RSA_PKCS1_PSS_PADDING);
+		if (rc <= 0) {
+			ERROR("EVP_PKEY_CTX_set_rsa_padding failed, error 0x%lx", ERR_get_error());
+			return -EFAULT; /* failed */
+		}
+		rc = EVP_PKEY_CTX_set_rsa_pss_saltlen(dgst->ckey, -2);
+		if (rc <= 0) {
+			ERROR("EVP_PKEY_CTX_set_rsa_pss_saltlen failed, error 0x%lx", ERR_get_error());
+			return -EFAULT; /* failed */
+		}
 	}
-	rc = EVP_PKEY_CTX_set_rsa_pss_saltlen(dgst->ckey, -2);
-	if (rc <= 0) {
-		ERROR("EVP_PKEY_CTX_set_rsa_pss_saltlen failed, error 0x%lx", ERR_get_error());
-		return -EFAULT; /* failed */
-	}
-#endif
 
 	return 0;
 }
@@ -262,5 +263,10 @@ static void openssl_dgst(void)
 {
 	libs.dgst_init = openssl_rsa_dgst_init;
 	libs.verify_file = openssl_rsa_verify_file;
+#if defined(CONFIG_SIGALG_RAWRSA)
 	(void)register_dgstlib(MODNAME, &libs);
+#endif
+#if defined(CONFIG_SIGALG_RSAPSS)
+	(void)register_dgstlib(MODNAME_PSS, &libs);
+#endif
 }

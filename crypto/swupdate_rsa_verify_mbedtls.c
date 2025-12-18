@@ -19,6 +19,7 @@
 #include "swupdate_mbedtls.h"
 
 #define MODNAME	"mbedtlsRSA"
+#define MODNAME_PSS	"mbedtlsRSAPSS"
 
 static swupdate_dgst_lib	libs;
 
@@ -58,14 +59,14 @@ static int mbedtls_rsa_verify_file(void *ctx, const char *sigfile,
 	mbedtls_pk_type_t pk_type = MBEDTLS_PK_RSA;
 	uint8_t signature[256];
 	void *pss_options = NULL;
-#if defined(CONFIG_SIGALG_RSAPSS)
-	pk_type = MBEDTLS_PK_RSASSA_PSS;
-	mbedtls_pk_rsassa_pss_options options = {
-		.mgf1_hash_id = MBEDTLS_MD_SHA256,
-		.expected_salt_len = MBEDTLS_RSA_SALT_LEN_ANY
-	};
-	pss_options = &options;
-#endif
+	if (get_dgstlib() == MODNAME_PSS) {
+		pk_type = MBEDTLS_PK_RSASSA_PSS;
+		mbedtls_pk_rsassa_pss_options options = {
+			.mgf1_hash_id = MBEDTLS_MD_SHA256,
+			.expected_salt_len = MBEDTLS_RSA_SALT_LEN_ANY
+		};
+		pss_options = &options;
+	}
 
 	(void)signer_name;
 
@@ -125,5 +126,10 @@ static void mbedtls_rsa_dgst(void)
 {
 	libs.dgst_init = mbedtls_rsa_dgst_init;
 	libs.verify_file = mbedtls_rsa_verify_file;
+#if defined(CONFIG_SIGALG_RAWRSA)
 	(void)register_dgstlib(MODNAME, &libs);
+#endif
+#if defined(CONFIG_SIGALG_RSAPSS)
+	(void)register_dgstlib(MODNAME_PSS, &libs);
+#endif
 }
