@@ -149,6 +149,8 @@ static int _is_mount_point(const char *path, const char *parent_path) {
 	struct stat path_stat, parent_stat;
 
 	if (stat(path, &path_stat)) {
+		if (errno == ENOENT)
+			return 0;
 		ERROR("stat for path %s failed: %s", path, strerror(errno));
 		return -errno;
 	}

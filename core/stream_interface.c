@@ -619,6 +619,10 @@ void *network_initializer(void *data)
 		TRACE("Software update started");
 
 		/* Create directories for scripts/datadst */
+		if (swupdate_remove_directory(SCRIPTS_DIR_SUFFIX) || swupdate_remove_directory(DATADST_DIR_SUFFIX)) {
+			ERROR("Previous dirs cannot be removed, something wrong, skipping...");
+			continue;
+		}
 		swupdate_create_directory(SCRIPTS_DIR_SUFFIX);
 		swupdate_create_directory(DATADST_DIR_SUFFIX);
 
