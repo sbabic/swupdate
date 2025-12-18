@@ -144,7 +144,6 @@ void swupdate_create_directory(const char* path) {
 	free(dpath);
 }
 
-#ifndef CONFIG_NOCLEANUP
 static int _is_mount_point(const char *path, const char *parent_path) {
 	struct stat path_stat, parent_stat;
 
@@ -203,7 +202,6 @@ out:
 	free(dpath);
 	return ret;
 }
-#endif
 
 char **splitargs(char *args, int *argc)
 {

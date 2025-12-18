@@ -321,9 +321,7 @@ const char* get_tmpdir(void);
 const char* get_tmpdirscripts(void);
 
 void swupdate_create_directory(const char* path);
-#ifndef CONFIG_NOCLEANUP
 int swupdate_remove_directory(const char* path);
-#endif
 
 int swupdate_mount(const char *device, const char *dir, const char *fstype);
 int swupdate_umount(const char *dir);
