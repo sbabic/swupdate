@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <stdarg.h>
 #include <unistd.h>
 #include <string.h>
@@ -176,6 +177,7 @@ static int _remove_directory_cb(const char *fpath, const struct stat *sb,
 int swupdate_remove_directory(const char* path)
 {
 	char* dpath;
+	struct stat path_stat;
 	int ret;
 	if (asprintf(&dpath, "%s%s", get_tmpdir(), path) ==
 		ENOMEM_ASPRINTF) {
@@ -183,6 +185,17 @@ int swupdate_remove_directory(const char* path)
 		return -ENOMEM;
 	}
 
+	if (stat(dpath, &path_stat)) {
+		/* not exist, return ok */
+		if (errno == ENOENT)
+			return 0;
+		ERROR("stat for path %s failed: %s", path, strerror(errno));
+		return -errno;
+	}
+	if (!S_ISDIR(path_stat.st_mode)) {
+		ERROR("Tried to remove %s dir, but it is not a dir", path);
+		return -ENODEV;
+	}
 	ret = _is_mount_point(dpath, get_tmpdir());
 	if (ret < 0)
 		goto out;
