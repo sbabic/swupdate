@@ -624,9 +624,6 @@ int main(int argc, char **argv)
 #endif
 #ifdef CONFIG_SIGNED_IMAGES
 	strcat(main_options, "k:");
-#ifndef CONFIG_SIGALG_GPG
-	public_key_mandatory = 1;
-#endif
 #endif
 #ifdef CONFIG_ENCRYPTED_IMAGES
 	strcat(main_options, "K:");
@@ -949,6 +946,10 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
+#ifdef CONFIG_SIGNED_IMAGES
+	public_key_mandatory = strcmp(get_dgstlib(), "GPG");
+#endif
+
 	/*
 	 * Parameters are parsed: now performs plausibility
 	 * tests before starting processes and threads
@@ -960,12 +961,12 @@ int main(int argc, char **argv)
 	}
 
 #ifdef CONFIG_SIGALG_GPG
-	if (!strlen(swcfg.gpg_home_directory)) {
+	if (!public_key_mandatory && !strlen(swcfg.gpg_home_directory)) {
 		fprintf(stderr,
 			 "Error: SWUpdate is built for signed images, provide a GnuPG home directory.\n");
 		exit(EXIT_FAILURE);
 	}
-	if (!strlen(swcfg.gpgme_protocol)) {
+	if (!public_key_mandatory && !strlen(swcfg.gpgme_protocol)) {
 		fprintf(stderr,
 			"Error: SWUpdate is built for signed images, please specify GnuPG protocol.\n");
 		exit(EXIT_FAILURE);
