@@ -61,6 +61,7 @@ static void test_crypt_pkcs11_256(void **state)
 
 	unsigned char buffer[BUFFER_SIZE + AES_BLK_SIZE];
 
+	set_cryptolib("pkcs11");
 	struct swupdate_digest *dgst = swupdate_DECRYPT_init((unsigned char *)uri, 0, &iv[0], AES_CBC_256);
 	assert_non_null(dgst);
 
