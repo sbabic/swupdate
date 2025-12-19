@@ -13,6 +13,8 @@
 #include "swupdate_pkcs11.h"
 #include "util.h"
 
+static swupdate_decrypt_lib pkcs11;
+
 static CK_SLOT_ID find_slot(CK_FUNCTION_LIST_PTR module, P11KitUri *uri)
 {
 	CK_RV rv;
@@ -78,8 +80,8 @@ static CK_RV find_key(CK_FUNCTION_LIST_PTR module, CK_SESSION_HANDLE session,
 	return CKR_OK;
 }
 
-struct pkcs11_digest *pkcs11_DECRYPT_init(unsigned char *uri,
-	char __attribute__ ((__unused__)) keylen, unsigned char *iv, cipher_t cipher)
+static void *pkcs11_DECRYPT_init(unsigned char *uri,
+	char __attribute__ ((__unused__)) keylen, unsigned char *iv, cipher_t __attribute__ ((__unused__)) cipher)
 {
 	struct pkcs11_digest *dgst;
 	CK_SLOT_ID slot_id;
@@ -185,9 +187,10 @@ free_digest:
 	return NULL;
 }
 
-int pkcs11_DECRYPT_update(struct pkcs11_digest *dgst, unsigned char *buf,
+static int pkcs11_DECRYPT_update(void *ctx, unsigned char *buf,
 	int *outlen, const unsigned char *cryptbuf, int inlen)
 {
+	struct pkcs11_digest *dgst = (struct pkcs11_digest *)ctx;
 	// precondition: len(buf) >= inlen + AES_BLK_SIZE
 	unsigned long buf_len = inlen + AES_BLK_SIZE;
 	CK_RV rv;
@@ -224,8 +227,9 @@ int pkcs11_DECRYPT_update(struct pkcs11_digest *dgst, unsigned char *buf,
 	return 0;
 }
 
-int pkcs11_DECRYPT_final(struct pkcs11_digest *dgst, unsigned char *buf, int *outlen)
+static int pkcs11_DECRYPT_final(void *ctx, unsigned char *buf, int *outlen)
 {
+	struct pkcs11_digest *dgst = (struct pkcs11_digest *)ctx;
 	CK_RV rv;
 	unsigned long extra_len = 0;
 
@@ -270,8 +274,9 @@ int pkcs11_DECRYPT_final(struct pkcs11_digest *dgst, unsigned char *buf, int *ou
 	return 0;
 }
 
-void pkcs11_DECRYPT_cleanup(struct pkcs11_digest *dgst)
+static void pkcs11_DECRYPT_cleanup(void *ctx)
 {
+	struct pkcs11_digest *dgst = (struct pkcs11_digest *)ctx;
 	if (dgst) {
 		if (dgst->uri)
 			p11_kit_uri_free(dgst->uri);
@@ -287,4 +292,14 @@ void pkcs11_DECRYPT_cleanup(struct pkcs11_digest *dgst)
 		free(dgst);
 		dgst = NULL;
 	}
+}
+
+__attribute__((constructor))
+static void pkcs11_probe(void)
+{
+	pkcs11.DECRYPT_init = pkcs11_DECRYPT_init;
+	pkcs11.DECRYPT_update = pkcs11_DECRYPT_update;
+	pkcs11.DECRYPT_final = pkcs11_DECRYPT_final;
+	pkcs11.DECRYPT_cleanup = pkcs11_DECRYPT_cleanup;
+	(void)register_cryptolib("pkcs11", &pkcs11);
 }
