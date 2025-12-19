@@ -163,8 +163,6 @@ endif
 ifeq ($(CONFIG_SSL_IMPL_WOLFSSL),y)
 KBUILD_CPPFLAGS += -DOPENSSL_ALL
 LDLIBS += wolfssl
-else ifeq ($(CONFIG_PKCS11),y)
-LDLIBS += wolfssl
 endif
 
 ifeq ($(CONFIG_SSL_IMPL_MBEDTLS),y)

@@ -17,9 +17,10 @@
 ## along with this program; if not, write to the Free Software
 ## Foundation, Inc.
 
-ifneq ($(CONFIG_PKCS11),y)
-tests-$(CONFIG_ENCRYPTED_IMAGES) += test_crypt
+ifeq ($(CONFIG_PKCS11),y)
+tests-$(CONFIG_ENCRYPTED_IMAGES) += test_crypt_pkcs11
 endif
+tests-$(CONFIG_ENCRYPTED_IMAGES) += test_crypt
 tests-$(CONFIG_HASH_VERIFY) += test_hash
 ifeq ($(CONFIG_SIGALG_RAWRSA),y)
 tests-$(CONFIG_SIGNED_IMAGES) += test_verify
@@ -66,7 +67,7 @@ quiet_cmd_linktestexe = LD      $(basename $@)
 						"$(SWLIBS)" \
 						"$(LDLIBS) cmocka"
 
-EXECUTE_TEST = echo "RUN $(subst $(obj)/,,$(var))"; LD_LIBRARY_PATH=$(objtree) CMOCKA_MESSAGE_OUTPUT=TAP $(var)
+EXECUTE_TEST = echo "RUN $(subst $(obj)/,,$(var))"; LD_LIBRARY_PATH=$(objtree) CMOCKA_MESSAGE_OUTPUT=TAP SOFTHSM2_CONF=$(DATADIR)/token/softhsm.conf $(var)
 
 PHONY += default
 default:
@@ -110,5 +111,30 @@ $(DATADIR)/signing-pubkey.pem: $(DATADIR)/signing-secret.pem
 $(DATADIR)/signing-secret.pem:
 	$(if $(Q),@echo "  GEN     $@")
 	$(Q)openssl genrsa -out $@ 2>/dev/null
+
+ifeq ($(CONFIG_PKCS11),y)
+$(obj)/test_crypt_pkcs11.o: $(DATADIR)/softshm
+
+TOKEN_AES_KEY := dd020ce5ebd5c468556288d6a75169c88a5b335d9f569e30751c50401467d230
+TOKEN_AES_IV := c1f390d21dd06118cbd333144a3318ca
+
+.INTERMEDIATE: $(DATADIR)/softshm
+$(DATADIR)/softshm: export SOFTHSM2_CONF=$(DATADIR)/token/softhsm.conf
+$(DATADIR)/softshm: $(DATADIR)/token/softhsm.conf
+	$(if $(Q),@echo "  INIT     $@")
+	$(Q)rm -rf $(DATADIR)/token/*/
+
+	$(if $(Q),@echo "  GEN      $(DATADIR)/token/original.data")
+	$(Q)openssl rand 131075 > $(DATADIR)/token/original.data
+
+	$(if $(Q),@echo "  ENCRYPT  $(DATADIR)/token/original.data")
+	$(Q)openssl enc -aes-256-cbc -in $(DATADIR)/token/original.data -out $(DATADIR)/token/encrypted.data -K $(TOKEN_AES_KEY) -iv $(TOKEN_AES_IV)
+	$(Q)echo -n "$(TOKEN_AES_IV)" | xxd -p -r > $(DATADIR)/token/encrypted.data.iv
+
+	$(if $(Q),@echo "  IMPORT   $(DATADIR)/token/aes.key")
+	$(Q)echo -n "$(TOKEN_AES_KEY)" | xxd -p -r > $(DATADIR)/token/aes.key
+	$(Q)softhsm2-util --init-token --slot 0 --label "TestToken" --so-pin 123456 --pin 1234
+	$(Q)softhsm2-util --import $(DATADIR)/token/aes.key --aes --token "TestToken" --label "AES key" --id A1B2 --pin 1234
+endif
 
 .PHONY: $(PHONY)

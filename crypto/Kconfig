@@ -21,6 +21,10 @@ menu "Crypto libraries"
 	config SSL_IMPL_GPGME
 		bool "gpgme"
 		depends on HAVE_GPGME
+
+	config PKCS11
+		bool "PKCS#11 (p11-kit)"
+		depends on HAVE_P11KIT
 endmenu
 
 config HASH_VERIFY
@@ -82,9 +86,9 @@ menu "Encryption"
 
 config ENCRYPTED_IMAGES
 	bool "Images can be encrypted with a symmetric key"
-	depends on SSL_IMPL_OPENSSL || SSL_IMPL_WOLFSSL || SSL_IMPL_MBEDTLS
+	depends on SSL_IMPL_OPENSSL || SSL_IMPL_WOLFSSL || SSL_IMPL_MBEDTLS || PKCS11
 comment "Image encryption needs an SSL implementation"
-	depends on !SSL_IMPL_OPENSSL && !SSL_IMPL_WOLFSSL && !SSL_IMPL_MBEDTLS
+	depends on !SSL_IMPL_OPENSSL && !SSL_IMPL_WOLFSSL && !SSL_IMPL_MBEDTLS && !PKCS11
 
 config ENCRYPTED_SW_DESCRIPTION
 	bool "Even sw-description is encrypted"
@@ -126,13 +130,5 @@ config ENCRYPTED_IMAGES_HARDEN_LOGGING
 	  hash mismatch and errors in the decryption finalization (padding) of a
 	  streamed image are suppressed.
 
-config PKCS11
-	bool "Enable PKCS#11 cryptographic operations"
-	default n
-	depends on SSL_IMPL_WOLFSSL && HAVE_P11KIT && ENCRYPTED_IMAGES
-	help
-	  Enable using PKCS#11 for AES decryption instead of having the plain
-	  key available in a file. This is implemented with wolfSSL independent
-	  from the SSL implementation and replaces the plain key method.
 endmenu
 
