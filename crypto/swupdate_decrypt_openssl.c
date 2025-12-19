@@ -13,11 +13,12 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include "swupdate.h"
+#if !defined(NO_INCLUDE_OPENSSL)
+#define MODNAME	"opensslAES"
 #include "swupdate_openssl.h"
+#endif
 #include "util.h"
 #include "swupdate_crypto.h"
-
-#define MODNAME	"opensslAES"
 
 static void openssl_probe(void);
 
