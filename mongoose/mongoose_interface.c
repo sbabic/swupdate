@@ -550,6 +550,16 @@ static void timer_ev_handler(void *fn_data)
 /*
  * Code common to V1 and V2
  */
+void mongoose_upload_ok_reply(struct mg_connection *nc,
+			      const struct mg_str *filename, size_t len)
+{
+	mg_http_reply(nc, 200,
+		      "Content-Type: text/plain\r\n"
+		      "Connection: close\r\n",
+		      "Ok, %s - %d bytes.\r\n", filename->buf, (int)len);
+	nc->is_draining = 1;
+}
+
 static void upload_handler(struct mg_connection *nc, int ev, void *ev_data)
 {
 	struct mg_http_multipart *mp;
@@ -655,12 +665,7 @@ static void upload_handler(struct mg_connection *nc, int ev, void *ev_data)
 
 			ipc_end(fus->fd);
 
-			mg_http_reply(nc, 200, "%s",
-								  "Content-Type: text/plain\r\n"
-								  "Connection: close");
-			mg_send(nc, "\r\n", 2);
-			mg_printf(nc, "Ok, %s - %d bytes.\r\n", mp->part.filename, (int) fus->len);
-			nc->is_draining = 1;
+			mongoose_upload_ok_reply(nc, &mp->part.filename, fus->len);
 
 			mp->user_data = NULL;
 			mg_timer_free(&fus->c->mgr->timers, fus->timer);
