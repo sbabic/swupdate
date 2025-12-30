@@ -553,11 +553,10 @@ static void timer_ev_handler(void *fn_data)
 void mongoose_upload_ok_reply(struct mg_connection *nc,
 			      const struct mg_str *filename, size_t len)
 {
-	mg_http_reply(nc, 200, "%s",
+	mg_http_reply(nc, 200,
 		      "Content-Type: text/plain\r\n"
-		      "Connection: close");
-	mg_send(nc, "\r\n", 2);
-	mg_printf(nc, "Ok, %s - %d bytes.\r\n", filename->buf, (int)len);
+		      "Connection: close\r\n",
+		      "Ok, %s - %d bytes.\r\n", filename->buf, (int)len);
 	nc->is_draining = 1;
 }
 
