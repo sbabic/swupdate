@@ -1081,46 +1081,15 @@ static void *process_notification_thread(void *data)
 	return NULL;
 }
 
-server_op_res_t server_process_update_artifact(int action_id,
-						json_object *json_data_artifact,
-						const char *update_action,
-						const char *part,
-						const char *version,
-						const char *name)
+static server_op_res_t json_extract_artifact(struct array_list *json_data_artifact_array, int json_data_artifact_max,
+				      artifact_t *artifacts)
 {
-	channel_t *channel = server_hawkbit.channel;
-	assert(channel != NULL);
-	assert(json_data_artifact != NULL);
-	assert(json_object_get_type(json_data_artifact) == json_type_array);
-	server_op_res_t result = SERVER_OK;
-	pthread_t notify_to_hawkbit_thread;
 
-	/* Initialize list of errors */
-	for (int i = 0; i < HAWKBIT_MAX_REPORTED_ERRORS; i++)
-		server_hawkbit.errors[i] = NULL;
-	server_hawkbit.errorcnt = 0;
-
-	struct array_list *json_data_artifact_array =
-	    json_object_get_array(json_data_artifact);
-	int json_data_artifact_max =
-	    json_object_array_length(json_data_artifact);
-	int json_data_artifact_installed = 0;
 	json_object *json_data_artifact_item = NULL;
-
-	char *action_id_str;
-	if (asprintf(&action_id_str, "%d", action_id) == ENOMEM_ASPRINTF) {
-		ERROR("OOM reached when saving action_id");
-		return SERVER_EERR;
-	}
-	if (swupdate_vars_set("action_id", action_id_str, NULL)) {
-		WARN("Action_id cannot be stored, do yourself");
-	}
-	free(action_id_str);
 
 	for (int json_data_artifact_count = 0;
 	     json_data_artifact_count < json_data_artifact_max;
 	     json_data_artifact_count++) {
-		int thread_ret = -1;
 		json_data_artifact_item = array_list_get_idx(
 		    json_data_artifact_array, json_data_artifact_count);
 		TRACE("Iterating over JSON, key=%s",
@@ -1147,8 +1116,7 @@ server_op_res_t server_process_update_artifact(int action_id,
 		if (json_data_artifact_url_http == NULL) {
 			server_hawkbit_error("No artifact download HTTP URL reported by "
 			      "server.");
-			result = SERVER_EBADMSG;
-			goto cleanup;
+			return SERVER_EBADMSG;
 		}
 #endif
 		/* TODO fall-back to HTTP in case HTTPS isn't available? */
@@ -1158,8 +1126,7 @@ server_op_res_t server_process_update_artifact(int action_id,
 			: json_data_artifact_url_https;
 		if (json_data_artifact_url == NULL) {
 			server_hawkbit_error("No artifact download URL reported by server.\n");
-			result = SERVER_EBADMSG;
-			goto cleanup;
+			return SERVER_EBADMSG;
 		}
 
 		if (json_data_artifact_filename == NULL ||
@@ -1170,8 +1137,7 @@ server_op_res_t server_process_update_artifact(int action_id,
 			    "'filename', 'hashes->sha1', or 'size' in JSON.\n");
 			DEBUG("Got JSON: %s", json_object_to_json_string(
 						    json_data_artifact_item));
-			result = SERVER_EBADMSG;
-			goto cleanup;
+			return SERVER_EBADMSG;
 		}
 		assert(json_object_get_type(json_data_artifact_filename) ==
 		       json_type_string);
@@ -1182,25 +1148,96 @@ server_op_res_t server_process_update_artifact(int action_id,
 		assert(json_object_get_type(json_data_artifact_url) ==
 		       json_type_string);
 
+		artifacts[json_data_artifact_count].url =
+		    strdup(json_object_get_string(json_data_artifact_url));
+		artifacts[json_data_artifact_count].filename = strdup(json_object_get_string(json_data_artifact_filename));
+		artifacts[json_data_artifact_count].sha1hash = strdup(json_object_get_string(json_data_artifact_sha1hash));
+		artifacts[json_data_artifact_count].skip = false;
+		artifacts[json_data_artifact_count].size = json_object_get_int(json_data_artifact_size);
+
 		/*
 		 * Check if the file is a .swu image
 		 * and skip if it not
 		 */
-		const char *s = json_object_get_string(json_data_artifact_filename);
+		const char *s = artifacts[json_data_artifact_count].filename;
 		int endfilename = strlen(s) - strlen(".swu");
 		if (endfilename <= 0 ||
 		    strncmp(&s[endfilename], ".swu", 4)) {
 			DEBUG("File '%s' is not a SWU image, skipping", s);
-			continue;
+			artifacts[json_data_artifact_count].skip = true;
 		}
+	}
+
+	return SERVER_OK;
+}
+
+server_op_res_t server_process_update_artifact(int action_id,
+						json_object *json_data_artifact,
+						const char *update_action,
+						const char *part,
+						const char *version,
+						const char *name)
+{
+	channel_t *channel = server_hawkbit.channel;
+	assert(channel != NULL);
+	assert(json_data_artifact != NULL);
+	assert(json_object_get_type(json_data_artifact) == json_type_array);
+	server_op_res_t result = SERVER_OK;
+	pthread_t notify_to_hawkbit_thread;
+
+	/* Initialize list of errors */
+	for (int i = 0; i < HAWKBIT_MAX_REPORTED_ERRORS; i++)
+		server_hawkbit.errors[i] = NULL;
+	server_hawkbit.errorcnt = 0;
+
+	struct array_list *json_data_artifact_array =
+	    json_object_get_array(json_data_artifact);
+	int json_data_artifact_max =
+	    json_object_array_length(json_data_artifact);
+	int json_data_artifact_installed = 0;
+
+	char *action_id_str;
+	if (asprintf(&action_id_str, "%d", action_id) == ENOMEM_ASPRINTF) {
+		ERROR("OOM reached when saving action_id");
+		return SERVER_EERR;
+	}
+	if (swupdate_vars_set("action_id", action_id_str, NULL)) {
+		WARN("Action_id cannot be stored, do yourself");
+	}
+	free(action_id_str);
+
+	/*
+	 * Allocate space for meta information extracted from JSON
+	 */
+	artifact_t *artifacts = (artifact_t *)(calloc(json_data_artifact_max, sizeof(*artifacts)));
+	if (!artifacts) {
+		ERROR("OOM reached when allocating artifacts metadata");
+		return SERVER_EERR;
+	}
+
+	/*
+	 * Elaborate aritifacts, extract URL for download
+	 * and check if some of them need some extra work or should be skipped
+	 */
+	if (json_extract_artifact(json_data_artifact_array, json_data_artifact_max, artifacts) != SERVER_OK)
+		goto cleanup;
+
+	for (int json_data_artifact_count = 0;
+	     json_data_artifact_count < json_data_artifact_max;
+	     json_data_artifact_count++) {
+		int thread_ret = -1;
+		artifact_t *artifact = &artifacts[json_data_artifact_count];
+
+		if (artifact->skip)
+			continue;
 
 		DEBUG("Processing '%s' from '%s'",
-		      json_object_get_string(json_data_artifact_filename),
-		      json_object_get_string(json_data_artifact_url));
+		      artifact->filename,
+		      artifact->url);
 
 		channel_data_t channel_data = channel_data_defaults;
-		channel_data.url =
-		    strdup(json_object_get_string(json_data_artifact_url));
+		channel_data.url = 
+		    strdup(artifact->url);
 
 		static const char* const update_info = STRINGIFY(
 		{
@@ -1273,12 +1310,12 @@ server_op_res_t server_process_update_artifact(int action_id,
 
 #ifdef CONFIG_SURICATTA_SSL
 		if (strncmp((char *)&channel_data.sha1hash,
-			    json_object_get_string(json_data_artifact_sha1hash),
+			    artifact->sha1hash,
 			    SWUPDATE_SHA_DIGEST_LENGTH) != 0) {
 				ERROR(
 			    "Checksum does not match: Should be '%s', but "
 			    "actually is '%s'.\n",
-			    json_object_get_string(json_data_artifact_sha1hash),
+			    artifact->sha1hash,
 			    channel_data.sha1hash);
 			ipc_wait_for_complete(server_update_status_callback);
 			result = SERVER_EBADMSG;
@@ -1331,6 +1368,13 @@ cleanup:
 		free(server_hawkbit.cached_file);
 		server_hawkbit.cached_file = NULL;
 	}
+	for (int count = 0; count < json_data_artifact_max; count++) {
+		artifact_t *artifact = &artifacts[count];
+		free(artifact->filename);
+		free(artifact->url);
+		free(artifact->sha1hash);
+	}
+	free(artifacts);
 
 	return result;
 }

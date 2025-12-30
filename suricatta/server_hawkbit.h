@@ -10,6 +10,7 @@
 #include <state.h>
 #include <swupdate_dict.h>
 #include <channel.h>
+#include <json-c/json.h>
 #include "suricatta/server.h"
 
 /* Have a queue for errors reported by installer */
@@ -81,3 +82,11 @@ static const struct {
 	const char *forced;
 } deployment_update_action = {
     .skip = "skip", .attempt = "attempt", .forced = "forced"};
+
+typedef struct {
+	char *filename;
+	char *url;
+	char *sha1hash; 
+	ssize_t size;
+	bool skip;
+} artifact_t;
