@@ -7,6 +7,11 @@
 
 #pragma once
 
+#include <stddef.h>
+
+struct mg_connection;
+struct mg_str;
+
 /*
  * Max number of command line options
  * to be passed to the mongoose webserver
@@ -18,3 +23,5 @@
 int start_mongoose(const char *cfgfname, int argc, char *argv[]);
 
 void mongoose_print_help(void);
+void mongoose_upload_ok_reply(struct mg_connection *nc,
+			      const struct mg_str *filename, size_t len);
