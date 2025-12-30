@@ -90,3 +90,5 @@ typedef struct {
 	ssize_t size;
 	bool skip;
 } artifact_t;
+
+typedef bool(*rule)(artifact_t *artifact);

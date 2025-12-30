@@ -38,6 +38,39 @@
 #define JSON_OBJECT_FREED 1
 #define SERVER_NAME "hawkbit"
 
+/*
+ * Rules depending on artifact extension
+ * Standard SWU are always forwarded to SWUpdate core
+ * Other files can be managed according to the rule
+ * Previous version have always rejected not SWU files,
+ * so add a rule to reject if previous rules do not apply.
+ */
+static bool swu_rule(artifact_t __attribute__ ((__unused__)) *artifact) {
+	return true;
+}
+static bool zck_rule(artifact_t *artifact) {
+	artifact = artifact;
+	return true;
+}
+static bool reject_rule(artifact_t __attribute__ ((__unused__)) *artifact) {
+	return false;
+}
+
+struct artifact_rule {
+	const char *fileext;
+	rule fn;
+};
+
+/*
+ * Rule to be applied when an artifact is found
+ * Last rule in the array is applied when there is not match
+ */
+static struct artifact_rule rules[] = {
+	{ "swu", swu_rule },
+	{ "zck", zck_rule },
+	{ "*" , reject_rule }
+};
+
 static struct option long_options[] = {
     {"tenant", required_argument, NULL, 't'},
     {"id", required_argument, NULL, 'i'},
@@ -1156,16 +1189,31 @@ static server_op_res_t json_extract_artifact(struct array_list *json_data_artifa
 		artifacts[json_data_artifact_count].size = json_object_get_int(json_data_artifact_size);
 
 		/*
-		 * Check if the file is a .swu image
-		 * and skip if it not
+		 * Check filename and apply rules
+		 * default: skip if it is not a SWU
 		 */
-		const char *s = artifacts[json_data_artifact_count].filename;
-		int endfilename = strlen(s) - strlen(".swu");
-		if (endfilename <= 0 ||
-		    strncmp(&s[endfilename], ".swu", 4)) {
-			DEBUG("File '%s' is not a SWU image, skipping", s);
+		char **fnames;
+		fnames = string_split(artifacts[json_data_artifact_count].filename, '.');
+		int cnt = count_string_array((const char **)fnames);
+		TRACE("Number of strings CNT %d", cnt);
+		if (cnt > 0) {
+			int iter;
+			for (iter = 0; iter < ARRAY_SIZE(rules); iter++) {
+				if (!strcmp(rules[iter].fileext, fnames[cnt - 1])) {
+					TRACE("FOUND RULE %s", rules[iter].fileext);
+					rules[iter].fn(&artifacts[json_data_artifact_count]);
+					break;
+				}
+			}
+			/* Not found, run last rule */
+			if (iter == ARRAY_SIZE(rules))
+				rules[ARRAY_SIZE(rules) - 1].fn(&artifacts[json_data_artifact_count]);
+		} else {
+			/* No file without extension, rejected */
+			TRACE("File '%s' has no extension, skipping", fnames[cnt - 1]);
 			artifacts[json_data_artifact_count].skip = true;
 		}
+		free_string_array(fnames);
 	}
 
 	return SERVER_OK;
@@ -1216,7 +1264,7 @@ server_op_res_t server_process_update_artifact(int action_id,
 	}
 
 	/*
-	 * Elaborate aritifacts, extract URL for download
+	 * Elaborate artifacts, extract URL for download
 	 * and check if some of them need some extra work or should be skipped
 	 */
 	if (json_extract_artifact(json_data_artifact_array, json_data_artifact_max, artifacts) != SERVER_OK)
