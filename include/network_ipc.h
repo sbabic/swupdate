@@ -40,6 +40,7 @@ typedef enum {
 	GET_HW_REVISION,
 	SET_SWUPDATE_VARS,
 	GET_SWUPDATE_VARS,
+	SET_DELTA_URL,
 } msgtype;
 
 /*
@@ -127,6 +128,10 @@ typedef union {
 		char varname[256];
 		char varvalue[256];
 	} vars;
+	struct {
+		char filename[256];
+		char url[1024];
+	} dwl_url;
 } msgdata;
 	
 typedef struct {
@@ -164,6 +169,8 @@ int swupdate_set_version_range_type(const char *updatetype,
 				const char *minversion,
 				const char *maxversion,
 				const char *currentversion);
+int swupdate_dwl_url (const char *artifact_name, const char *url);
+
 #ifdef __cplusplus
 }   // extern "C"
 #endif

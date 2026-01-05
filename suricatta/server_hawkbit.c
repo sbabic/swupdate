@@ -49,8 +49,8 @@ static bool swu_rule(artifact_t __attribute__ ((__unused__)) *artifact) {
 	return true;
 }
 static bool zck_rule(artifact_t *artifact) {
-	artifact = artifact;
-	return true;
+	artifact->skip = true;
+	return swupdate_dwl_url(artifact->filename, artifact->url);
 }
 static bool reject_rule(artifact_t __attribute__ ((__unused__)) *artifact) {
 	return false;

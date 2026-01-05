@@ -104,6 +104,7 @@ struct swupdate_cfg {
 	struct dict bootloader;
 	struct dict vars;
 	struct dict accepted_set;
+	struct dict external_urls;
 	struct proclist extprocs;
 	void *dgst;	/* Structure for signed images */
 	struct swupdate_parms parms;

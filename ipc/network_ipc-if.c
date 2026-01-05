@@ -405,6 +405,23 @@ int swupdate_set_version_range(const char *minversion,
 						      NULL);
 }
 
+int swupdate_dwl_url (const char *artifact_name, const char *url)
+{
+	ipc_message msg;
+
+	memset(&msg, 0, sizeof(msg));
+	msg.magic = IPC_MAGIC;
+	msg.type = SET_DELTA_URL;
+
+	strlcpy(msg.data.dwl_url.filename,
+			artifact_name,
+			sizeof(msg.data.dwl_url.filename) - 1);
+	strlcpy(msg.data.dwl_url.url,
+			url,
+			sizeof(msg.data.dwl_url.url) - 1);
+	return ipc_send_cmd(&msg);
+}
+
 void swupdate_prepare_req(struct swupdate_request *req) {
 	if (!req)
 		return;

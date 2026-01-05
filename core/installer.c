@@ -558,6 +558,11 @@ void cleanup_files(struct swupdate_cfg *software) {
 	dict_drop_db(&software->vars);
 
 	/*
+	 * Drop per update URLs
+	 */
+	dict_drop_db(&software->external_urls);
+
+	/*
 	 * Drop Lua State if instantiated
 	 */
 	if (software->lua_state) {

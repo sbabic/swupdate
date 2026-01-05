@@ -629,6 +629,23 @@ void *network_thread (void *data)
 				} else
 					msg.type = NACK;
 				break;
+			case SET_DELTA_URL:
+				cfg = get_swupdate_cfg();
+
+				/*
+				 * check strings in IPC
+				 */
+				msg.data.dwl_url.filename[sizeof(msg.data.dwl_url.filename) - 1] = '\0';
+				msg.data.dwl_url.url[sizeof(msg.data.dwl_url.url) - 1] = '\0';
+				/*
+				 * Check for mutex: there is currently no other users, one writer and one reader
+				 * for the list (the handler).
+				 */
+				TRACE("EXTERNAL URL: %s:%s",msg.data.dwl_url.filename, msg.data.dwl_url.url );
+				msg.type = dict_insert_value(&cfg->external_urls,
+							     msg.data.dwl_url.filename,
+							     msg.data.dwl_url.url) == 0 ? ACK : NACK;
+				break;
 			default:
 				msg.type = NACK;
 			}
