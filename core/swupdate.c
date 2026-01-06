@@ -297,6 +297,7 @@ static void swupdate_init(struct swupdate_cfg *sw)
 	LIST_INIT(&sw->bootloader);
 	LIST_INIT(&sw->extprocs);
 	LIST_INIT(&sw->swupdate_types);
+	LIST_INIT(&sw->external_urls);
 	strlcpy(update_type->type_name, "default", sizeof(update_type->type_name));
 	LIST_INSERT_HEAD(&sw->swupdate_types, update_type, next);
 	sw->update_type = update_type;

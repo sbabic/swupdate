@@ -406,6 +406,7 @@ static int is_image_higher(struct swver *sw_ver_list,
 static void set_img_globals(struct img_type *img, struct swupdate_cfg *sw)
 {
 	img->bootloader = &sw->bootloader;
+	img->urls = &sw->external_urls;
 	img->L = sw->lua_state;
 }
 

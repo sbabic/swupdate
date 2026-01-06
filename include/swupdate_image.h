@@ -70,6 +70,7 @@ struct img_type {
 	 * that are alive during an installation. They can be used by handlers
 	 */
 	struct dict *bootloader;/* pointer to swupdate_cfg's bootloader dict for handlers to modify */
+	struct dict *urls;	/* pointer to swupdate_cfg's external URL */
 	lua_State *L;		/* pointer to swupdate_cfg's LUa state created by parser */
 
 	long long partsize;

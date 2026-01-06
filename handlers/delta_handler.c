@@ -306,17 +306,33 @@ static int delta_retrieve_attributes(struct img_type *img, struct hnd_priv *priv
 
 	priv->zckloglevel = ZCK_LOG_DDEBUG;
 	priv->url = dict_get_value(&img->properties, "url");
+
+	/*
+	 * Check if URL is not set and must be retrieved from the global list
+	 */
+	if (!priv->url || !strcmp(priv->url, "dynamic")) {
+		char *zckfile;
+		zckfile = dict_get_value(&img->properties, "zckfile");
+		if (!zckfile) {
+			ERROR("External URL is not set neither in sw-description nor passed as URL");
+			return -EINVAL;
+		}
+		priv->url = dict_get_value(img->urls, zckfile);
+		if (priv->url) {
+			TRACE("ZCK Url set to %s", priv->url);
+		}
+	}
+
 	priv->srcdev = dict_get_value(&img->properties, "source");
 	priv->chainhandler = dict_get_value(&img->properties, "chain");
+
 	if (!priv->url || !priv->srcdev ||
 		!priv->chainhandler || !strcmp(priv->chainhandler, handlername)) {
 		ERROR("Wrong Attributes in sw-description: url=%s source=%s, handler=%s",
 			priv->url, priv->srcdev, priv->chainhandler);
-		free(priv->url);
-		free(priv->srcdev);
-		free(priv->chainhandler);
 		return -EINVAL;
 	}
+
 	errno = 0;
 	if (dict_get_value(&img->properties, "max-ranges"))
 		priv->max_ranges = strtoul(dict_get_value(&img->properties, "max-ranges"), NULL, 10);

@@ -1422,6 +1422,9 @@ The resulting header file must be packed inside the SWU.
    |             |             | that is called after reassembling                  |
    |             |             | the artifact.                                      |
    +-------------+-------------+----------------------------------------------------+
+   | zckfile     | string      | name of the external ZCK file. This is used only   |
+   |             |             | if URL is not present or it is set to "dynamic"    |
+   +-------------+-------------+----------------------------------------------------+
    | max-ranges  | string      | Max number of ranges that a server can             |
    |             |             | accept. Default value (150) should be ok           |
    |             |             | for most servers.                                  |
@@ -1463,6 +1466,56 @@ Example:
                         /* debug-chunks = "true"; */
                 };
         }
+
+It is not always possible to set the URL into sw-description. Hawkbit for example generates a URL when an
+artifact is uploaded, and URL is not available during build. The Hawkbit connector will send the URL to
+SWUpdate, that adds it to an own list. If the URL is not present as property, or it is set to "dynamic",
+the handler asks the core for the URL for the "zckfile" property.
+Note that the URL is then not part of sw-description and for this reason not verified. Anyway, this is not a
+security issue, because all hashes related to the ZCK file are part of sw-description (as ZCK header),
+and each mismatch will stop the update.
+
+The steps to use Delta Update are:
+
+Hawkbit
+.......
+
+- create a distribution
+- add a software module to the distribution
+- in the "Upload", adds both the SWU and the ZCK file. If you have multiple artifacts that will be
+  installed as delta update, upload all required ZCK.
+
+sw-description
+..............
+
+Use the `dynamic` keyword to set the URL in the properties. SWUpdate will then check if there is
+a URL for the value of `zckfile`. Value of zckfile must be set to the filename of the ZCK file uploaded
+to the Hawkbit server. Example:
+
+::
+
+  images: (
+	{
+                filename = "software.zck.header";
+		type = "delta";
+
+		device = "/dev/sde4";
+		properties: {
+			url = "dynamic";
+			chain = "raw";
+			source = "/dev/sde5";
+			zckloglevel = "info";
+			source-size = "detect";
+			zckfile = "software.rootfs.ext4.zck";
+		};
+	}
+
+
+Hawkbit has also some DOS countermeasures that should be deactivated, else Hawkbit thinks to be under attack and does not
+deliver the required chunks.
+
+hawkbit.server.security.dos.filter.enabled=false
+hawkbit.server.security.dos.maxStatusEntriesPerAction=-1
 
 Memory issue with zchunk
 ........................
