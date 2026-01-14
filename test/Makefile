@@ -26,6 +26,7 @@ tests-$(CONFIG_SIGNED_IMAGES) += test_verify
 endif
 tests-$(CONFIG_SURICATTA_HAWKBIT) += test_json
 tests-$(CONFIG_SURICATTA_HAWKBIT) += test_server_hawkbit
+tests-$(CONFIG_MONGOOSE) += test_mongoose_upload
 tests-y += test_util
 tests-$(CONFIG_CFI) += test_flash_handler
 
