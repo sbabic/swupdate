@@ -14,12 +14,13 @@
 #include "swupdate.h"
 #include "util.h"
 #include "swupdate_crypto.h"
+#if !defined(NO_INCLUDE_OPENSSL)
 #include "swupdate_openssl.h"
-
-#define BUFSIZE	(1024 * 8)
-
 #define MODNAME	"opensslRSA"
 #define MODNAME_PSS	"opensslRSAPSS"
+#endif
+
+#define BUFSIZE	(1024 * 8)
 
 static swupdate_dgst_lib	libs;
 

@@ -13,6 +13,8 @@ endif
 
 ifeq ($(CONFIG_SSL_IMPL_WOLFSSL),y)
 obj-$(CONFIG_HASH_VERIFY)	+= swupdate_HASH_wolfssl.o
+obj-$(CONFIG_SIGALG_RAWRSA)	+= swupdate_rsa_verify_wolfssl.o
+obj-$(CONFIG_SIGALG_RSAPSS)	+= swupdate_rsa_verify_wolfssl.o
 obj-$(CONFIG_SIGALG_CMS)	+= swupdate_pkcs7_verify_wolfssl.o
 obj-$(CONFIG_ENCRYPTED_IMAGES)	+= swupdate_decrypt_wolfssl.o
 endif
