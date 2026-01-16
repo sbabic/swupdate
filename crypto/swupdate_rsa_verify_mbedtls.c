@@ -59,12 +59,12 @@ static int mbedtls_rsa_verify_file(void *ctx, const char *sigfile,
 	mbedtls_pk_type_t pk_type = MBEDTLS_PK_RSA;
 	uint8_t signature[256];
 	void *pss_options = NULL;
+	mbedtls_pk_rsassa_pss_options options = {
+		.mgf1_hash_id = MBEDTLS_MD_SHA256,
+		.expected_salt_len = MBEDTLS_RSA_SALT_LEN_ANY
+	};
 	if (get_dgstlib() && !strcmp(get_dgstlib(), MODNAME_PSS)) {
 		pk_type = MBEDTLS_PK_RSASSA_PSS;
-		mbedtls_pk_rsassa_pss_options options = {
-			.mgf1_hash_id = MBEDTLS_MD_SHA256,
-			.expected_salt_len = MBEDTLS_RSA_SALT_LEN_ANY
-		};
 		pss_options = &options;
 	}
 
