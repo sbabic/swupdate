@@ -57,6 +57,7 @@ $_SUDO apt-get -qq update && apt-get install --yes --no-install-recommends \
         npm \
         python3 \
         uuid-dev \
+	xxd \
         zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
 # packages are too old in Ubuntu Jammy and Debian Bookworm
