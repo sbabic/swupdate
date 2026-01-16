@@ -120,7 +120,7 @@ TOKEN_AES_IV := c1f390d21dd06118cbd333144a3318ca
 
 .INTERMEDIATE: $(DATADIR)/softshm
 $(DATADIR)/softshm: export SOFTHSM2_CONF=$(DATADIR)/token/softhsm.conf
-$(DATADIR)/softshm: $(DATADIR)/token/softhsm.conf
+$(DATADIR)/softshm: $(DATADIR)/token/softhsm.conf PREPARE_DATA
 	$(if $(Q),@echo "  INIT     $@")
 	$(Q)rm -rf $(DATADIR)/token/*/
 
