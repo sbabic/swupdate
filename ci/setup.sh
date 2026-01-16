@@ -56,6 +56,7 @@ $_SUDO apt-get -qq update && apt-get install --yes --no-install-recommends \
         make \
         npm \
         python3 \
+	softhsm2 \
         uuid-dev \
 	xxd \
         zlib1g-dev \
