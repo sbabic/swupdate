@@ -64,7 +64,7 @@ static int dgst_verify_init(struct openssl_digest *dgst)
 		return -EFAULT; /* failed */
 	}
 
-	if (get_dgstlib() == MODNAME_PSS) {
+	if (get_dgstlib() && !strcmp(get_dgstlib(), MODNAME_PSS)) {
 		rc = EVP_PKEY_CTX_set_rsa_padding(dgst->ckey, RSA_PKCS1_PSS_PADDING);
 		if (rc <= 0) {
 			ERROR("EVP_PKEY_CTX_set_rsa_padding failed, error 0x%lx", ERR_get_error());
