@@ -580,7 +580,9 @@ int main(int argc, char **argv)
 	bool opt_c = false;
 	char image_url[MAX_URL];
 	char main_options[256];
+#ifdef CONFIG_SIGNED_IMAGES
 	unsigned int public_key_mandatory = 0;
+#endif
 	struct sigaction sa;
 #ifdef CONFIG_SURICATTA
 	int opt_u = 0;
@@ -946,33 +948,10 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-#ifdef CONFIG_SIGNED_IMAGES
-	public_key_mandatory = strcmp(get_dgstlib(), "GPG");
-#endif
-
 	/*
 	 * Parameters are parsed: now performs plausibility
 	 * tests before starting processes and threads
 	 */
-	if (public_key_mandatory && !strlen(swcfg.publickeyfname)) {
-		fprintf(stderr,
-			 "Error: SWUpdate is built for signed images, provide a public key file.\n");
-		exit(EXIT_FAILURE);
-	}
-
-#ifdef CONFIG_SIGALG_GPG
-	if (!public_key_mandatory && !strlen(swcfg.gpg_home_directory)) {
-		fprintf(stderr,
-			 "Error: SWUpdate is built for signed images, provide a GnuPG home directory.\n");
-		exit(EXIT_FAILURE);
-	}
-	if (!public_key_mandatory && !strlen(swcfg.gpgme_protocol)) {
-		fprintf(stderr,
-			"Error: SWUpdate is built for signed images, please specify GnuPG protocol.\n");
-		exit(EXIT_FAILURE);
-	}
-#endif
-
 	if (opt_c && !opt_i) {
 		fprintf(stderr,
 			"Error: Checking local images requires -i <file>.\n");
@@ -1014,6 +993,33 @@ int main(int argc, char **argv)
 			exit(EXIT_FAILURE);
 		}
 	}
+
+#ifdef CONFIG_SIGNED_IMAGES
+	const char *dgstlib = get_dgstlib();
+	if (!dgstlib) {
+		fprintf(stderr,
+			 "Error: SWUpdate is built for signed images but no verification provider is registered.\n");
+		exit(EXIT_FAILURE);
+	}
+	public_key_mandatory = (strcmp(dgstlib, "GPG") != 0);
+	if (public_key_mandatory && !strlen(swcfg.publickeyfname)) {
+		fprintf(stderr,
+			 "Error: SWUpdate is built for signed images, provide a public key file.\n");
+		exit(EXIT_FAILURE);
+	}
+#ifdef CONFIG_SIGALG_GPG
+	if (!public_key_mandatory && !strlen(swcfg.gpg_home_directory)) {
+		fprintf(stderr,
+			 "Error: SWUpdate is built for signed images, provide a GnuPG home directory.\n");
+		exit(EXIT_FAILURE);
+	}
+	if (!public_key_mandatory && !strlen(swcfg.gpgme_protocol)) {
+		fprintf(stderr,
+			"Error: SWUpdate is built for signed images, please specify GnuPG protocol.\n");
+		exit(EXIT_FAILURE);
+	}
+#endif
+#endif
 
 	printf("%s\n\n", BANNER);
 	printf("Licensed under GPLv2. See source distribution for detailed "
