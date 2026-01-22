@@ -708,6 +708,28 @@ Alternatively, for the handler “flash”, the *mtdname* can be specified, inst
 			type = "flash";
 		}
 
+The flash handler supports optional properties for NAND devices:
+
+- ``noecc = "true"``: write in raw mode without ECC (equivalent to
+  ``nandwrite --noecc``).
+- ``oob = "true"``: the input image contains OOB data and SWUpdate writes it
+  alongside page data (equivalent to ``nandwrite --oob``). The input layout is
+  ``[page data][oob]`` repeated for each page.
+
+Example:
+
+::
+
+		{
+			filename = "raw-nand.bin";
+			device = "mtd7";
+			type = "flash";
+			properties = {
+				noecc = "true";
+				oob = "true";
+			};
+		}
+
 
 Files
 -----

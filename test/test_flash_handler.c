@@ -11,6 +11,7 @@
 
 #include <stdint.h>
 #include <libmtd.h>
+#include <sys/ioctl.h>
 #include <mtd/mtd-user.h>
 
 #include <stdbool.h>
@@ -69,11 +70,24 @@ static unsigned char *bad_blocks;
 static unsigned char *locked_blocks;
 static unsigned char *written_pages;
 static unsigned char *flash_memory;
+static unsigned char *oob_memory;
 /* Expected flash state after test run: */
 static unsigned char *expected_bad_blocks;
 static unsigned char *expected_locked_blocks;
 static unsigned char *expected_written_pages;
 static unsigned char *expected_flash_memory;
+static unsigned char *expected_oob_memory;
+static int oob_bytes;
+
+static bool expect_oob;
+static int expected_oob_len;
+static bool expect_write_mode;
+static uint8_t expected_write_mode;
+static bool expect_ioctl;
+static unsigned long expected_ioctl_request;
+static uintptr_t expected_ioctl_arg;
+static int ioctl_return;
+static int ioctl_errno;
 
 void *__real_malloc(size_t size);
 static void *(*impl_malloc)(size_t size) = __real_malloc;
@@ -122,6 +136,26 @@ off_t __wrap_lseek(int fd, off_t offset, int whence)
 		return offset;
 	}
 	return __real_lseek(fd, offset, whence);
+}
+
+int __wrap_ioctl(int fd, unsigned long request, ...);
+int __wrap_ioctl(int fd, unsigned long request, ...)
+{
+	va_list ap;
+	void *arg;
+
+	va_start(ap, request);
+	arg = va_arg(ap, void *);
+	va_end(ap);
+
+	assert_true(expect_ioctl);
+	assert_int_equal(MTD_FD, fd);
+	assert_true(request == expected_ioctl_request);
+	assert_true((uintptr_t)arg == expected_ioctl_arg);
+
+	if (ioctl_return < 0)
+		errno = ioctl_errno;
+	return ioctl_return;
 }
 
 int __wrap_mtd_dev_present(libmtd_t desc, int mtd_num);
@@ -275,8 +309,12 @@ static int default_mtd_erase(libmtd_t UNUSED desc,
 	unsigned int page;
 	memset(flash_memory + eb * mtd->eb_size, FLASH_EMPTY_BYTE,
 	       mtd->eb_size);
-	FOREACH_PAGE_IN_EB(page, mtd, eb)
+	FOREACH_PAGE_IN_EB(page, mtd, eb) {
 		clear_bit(written_pages, page);
+		if (oob_memory)
+			memset(oob_memory + page * mtd->oob_size,
+			       FLASH_EMPTY_BYTE, mtd->oob_size);
+	}
 	return 0;
 }
 static int (*impl_mtd_erase)(libmtd_t desc, const struct mtd_dev_info *mtd,
@@ -294,8 +332,8 @@ int __wrap_mtd_erase(libmtd_t desc, const struct mtd_dev_info *mtd, int fd,
 
 static int default_mtd_write(libmtd_t UNUSED desc,
 		const struct mtd_dev_info *mtd, int UNUSED fd, int eb,
-		int offs, void *data, int len, void UNUSED *oob,
-		int UNUSED ooblen, uint8_t UNUSED mode)
+		int offs, void *data, int len, void *oob,
+		int ooblen, uint8_t UNUSED mode)
 {
 	unsigned int page;
 	unsigned int flash_offset = eb * mtd->eb_size + offs;
@@ -305,6 +343,14 @@ static int default_mtd_write(libmtd_t UNUSED desc,
 		memcpy(flash_memory + flash_offset, pdata, mtd->min_io_size);
 		flash_offset += mtd->min_io_size;
 		pdata += mtd->min_io_size;
+	}
+	if (oob && oob_memory) {
+		const unsigned char *poob = (const unsigned char *)oob;
+		FOREACH_PAGE_WRITTEN(page, mtd, eb, offs, len) {
+			memcpy(oob_memory + page * mtd->oob_size, poob,
+			       mtd->oob_size);
+			poob += ooblen;
+		}
 	}
 	return 0;
 }
@@ -326,13 +372,20 @@ int __wrap_mtd_write(libmtd_t desc, const struct mtd_dev_info *mtd, int fd,
 	assert_ptr_not_equal(NULL, data);
 	assert_true(len > 0);
 	assert_true(offs + len <= mtd->eb_size);
-	assert_ptr_equal(NULL, oob);
-	assert_int_equal(0, ooblen);
+	if (expect_oob) {
+		assert_ptr_not_equal(NULL, oob);
+		assert_int_equal(expected_oob_len, ooblen);
+	} else {
+		assert_ptr_equal(NULL, oob);
+		assert_int_equal(0, ooblen);
+	}
 	assert_false(get_bit(bad_blocks, eb));
 	assert_false(get_bit(locked_blocks, eb));
 	assert_true(offs <= mtd->eb_size - mtd->min_io_size);
 	assert_int_equal(0, offs % mtd->min_io_size);
 	assert_int_equal(0, len % mtd->min_io_size);
+	if (expect_write_mode)
+		assert_int_equal(expected_write_mode, mode);
 
 	if (mtd->type == MTD_NANDFLASH) {
 		/* Follow "write once rule" for NAND flash. */
@@ -466,6 +519,13 @@ static void copy_flash_state(void)
 	expected_flash_memory = malloc(mtd->size);
 	assert_ptr_not_equal(NULL, expected_flash_memory);
 	memcpy(expected_flash_memory, flash_memory, mtd->size);
+
+	expected_oob_memory = NULL;
+	if (oob_memory) {
+		expected_oob_memory = malloc(oob_bytes);
+		assert_ptr_not_equal(NULL, expected_oob_memory);
+		memcpy(expected_oob_memory, oob_memory, oob_bytes);
+	}
 }
 
 static void init_flash_state(void)
@@ -496,6 +556,17 @@ static void init_flash_state(void)
 	assert_ptr_not_equal(NULL, flash_memory);
 	/* Fill flash memory with initial pattern: */
 	memset(flash_memory, 0xA5, mtd->size);
+
+	oob_memory = NULL;
+	oob_bytes = 0;
+	if ((mtd->type == MTD_NANDFLASH || mtd->type == MTD_MLCNANDFLASH) &&
+	    mtd->oob_size > 0) {
+		int pages = (int)(mtd->size / mtd->min_io_size);
+		oob_bytes = pages * mtd->oob_size;
+		oob_memory = malloc(oob_bytes);
+		assert_ptr_not_equal(NULL, oob_memory);
+		memset(oob_memory, 0xA5, oob_bytes);
+	}
 }
 
 static void test_init(void)
@@ -525,6 +596,8 @@ static void verify_flash_state(void)
 	assert_memory_equal(expected_written_pages, written_pages,
 	                    pages_bytes);
 	assert_memory_equal(expected_flash_memory, flash_memory, mtd->size);
+	if (oob_memory)
+		assert_memory_equal(expected_oob_memory, oob_memory, oob_bytes);
 }
 
 static void run_flash_test(void UNUSED **state, int expected_return_code)
@@ -556,11 +629,24 @@ static int test_setup(void UNUSED **state)
 	locked_blocks = NULL;
 	written_pages = NULL;
 	flash_memory = NULL;
+	oob_memory = NULL;
 
 	expected_bad_blocks = NULL;
 	expected_locked_blocks = NULL;
 	expected_written_pages = NULL;
 	expected_flash_memory = NULL;
+	expected_oob_memory = NULL;
+	oob_bytes = 0;
+
+	expect_oob = false;
+	expected_oob_len = 0;
+	expect_write_mode = false;
+	expected_write_mode = 0;
+	expect_ioctl = false;
+	expected_ioctl_request = 0;
+	expected_ioctl_arg = 0;
+	ioctl_return = 0;
+	ioctl_errno = 0;
 
 	/* Tests can overwrite the following default implementations to inject
 	 * errors: */
@@ -582,6 +668,8 @@ static int test_setup(void UNUSED **state)
 	mtd_ubi_info_s.mtd.size = 1024;
 	mtd_ubi_info_s.mtd.eb_size = 16;
 	mtd_ubi_info_s.mtd.min_io_size = 8;
+	mtd_ubi_info_s.mtd.oob_size = 0;
+	dict_drop_db(&image.properties);
 	return 0;
 }
 
@@ -592,11 +680,13 @@ static int test_teardown(void UNUSED **state)
 		locked_blocks,
 		written_pages,
 		flash_memory,
+		oob_memory,
 
 		expected_bad_blocks,
 		expected_locked_blocks,
 		expected_written_pages,
 		expected_flash_memory,
+		expected_oob_memory,
 
 		image_buf,
 	};
@@ -607,6 +697,7 @@ static int test_teardown(void UNUSED **state)
 		int ret = close(image.fdin);
 		assert_int_equal(0, ret);
 	}
+	dict_drop_db(&image.properties);
 	return 0;
 }
 
@@ -623,6 +714,87 @@ static void test_simple(void **state)
 	memcpy(expected_flash_memory, image_buf, image.size);
 	for (int i = 0; i <= 2; i++)
 		clear_bit(expected_locked_blocks, i);
+
+	run_flash_test(state, 0);
+}
+
+static void test_noecc_write_mode(void **state)
+{
+	image.seek = 0;
+	image.size = 16;
+	mtd_ubi_info_s.mtd.size = 1024;
+	mtd_ubi_info_s.mtd.eb_size = 16;
+	mtd_ubi_info_s.mtd.min_io_size = 8;
+	dict_set_value(&image.properties, "noecc", "true");
+	test_init();
+
+	expect_write_mode = true;
+	expected_write_mode = MTD_OPS_RAW;
+	expect_ioctl = true;
+	expected_ioctl_request = MTDFILEMODE;
+	expected_ioctl_arg = (uintptr_t)MTD_FILE_MODE_RAW;
+	ioctl_return = 0;
+
+	copy_flash_state();
+	memcpy(expected_flash_memory, image_buf, image.size);
+	clear_bit(expected_locked_blocks, 0);
+
+	run_flash_test(state, 0);
+}
+
+static void test_oob_write_basic(void **state)
+{
+	image.seek = 0;
+	image.size = 24;
+	mtd_ubi_info_s.mtd.size = 1024;
+	mtd_ubi_info_s.mtd.eb_size = 16;
+	mtd_ubi_info_s.mtd.min_io_size = 8;
+	mtd_ubi_info_s.mtd.oob_size = 4;
+	dict_set_value(&image.properties, "oob", "true");
+	test_init();
+
+	expect_oob = true;
+	expected_oob_len = mtd_ubi_info_s.mtd.oob_size;
+	expect_write_mode = true;
+	expected_write_mode = MTD_OPS_PLACE_OOB;
+
+	copy_flash_state();
+	memcpy(expected_flash_memory, image_buf, 8);
+	memcpy(expected_flash_memory + 8, image_buf + 12, 8);
+	memcpy(expected_oob_memory, image_buf + 8, 4);
+	memcpy(expected_oob_memory + 4, image_buf + 20, 4);
+	clear_bit(expected_locked_blocks, 0);
+
+	run_flash_test(state, 0);
+}
+
+static void test_oob_write_noecc(void **state)
+{
+	image.seek = 0;
+	image.size = 24;
+	mtd_ubi_info_s.mtd.size = 1024;
+	mtd_ubi_info_s.mtd.eb_size = 16;
+	mtd_ubi_info_s.mtd.min_io_size = 8;
+	mtd_ubi_info_s.mtd.oob_size = 4;
+	dict_set_value(&image.properties, "oob", "true");
+	dict_set_value(&image.properties, "noecc", "true");
+	test_init();
+
+	expect_oob = true;
+	expected_oob_len = mtd_ubi_info_s.mtd.oob_size;
+	expect_write_mode = true;
+	expected_write_mode = MTD_OPS_RAW;
+	expect_ioctl = true;
+	expected_ioctl_request = MTDFILEMODE;
+	expected_ioctl_arg = (uintptr_t)MTD_FILE_MODE_RAW;
+	ioctl_return = 0;
+
+	copy_flash_state();
+	memcpy(expected_flash_memory, image_buf, 8);
+	memcpy(expected_flash_memory + 8, image_buf + 12, 8);
+	memcpy(expected_oob_memory, image_buf + 8, 4);
+	memcpy(expected_oob_memory + 4, image_buf + 20, 4);
+	clear_bit(expected_locked_blocks, 0);
 
 	run_flash_test(state, 0);
 }
@@ -1177,6 +1349,17 @@ static void patch_image_buf_empty_bytes_2(unsigned char *buf)
 	memset(buf, FLASH_EMPTY_BYTE, 16);
 }
 
+static void patch_image_buf_oob_data_empty(unsigned char *buf)
+{
+	struct mtd_dev_info *mtd = &mtd_ubi_info_s.mtd;
+	int page_len = mtd->min_io_size + mtd->oob_size;
+	int pages = image.size / page_len;
+
+	for (int page = 0; page < pages; page++)
+		memset(buf + page * page_len, FLASH_EMPTY_BYTE,
+		       mtd->min_io_size);
+}
+
 static void test_no_mtd_write_empty_image_bytes(void **state)
 {
 	image.seek = 0;
@@ -1197,6 +1380,33 @@ static void test_no_mtd_write_empty_image_bytes(void **state)
 		clear_bit(expected_locked_blocks, i);
 	clear_bit(expected_written_pages, 0);
 	clear_bit(expected_written_pages, 1);
+
+	run_flash_test(state, 0);
+}
+
+static void test_oob_write_data_empty(void **state)
+{
+	image.seek = 0;
+	image.size = 24;
+	mtd_ubi_info_s.mtd.size = 1024;
+	mtd_ubi_info_s.mtd.eb_size = 16;
+	mtd_ubi_info_s.mtd.min_io_size = 8;
+	mtd_ubi_info_s.mtd.oob_size = 4;
+	patch_image_buf = patch_image_buf_oob_data_empty;
+	dict_set_value(&image.properties, "oob", "true");
+	test_init();
+
+	expect_oob = true;
+	expected_oob_len = mtd_ubi_info_s.mtd.oob_size;
+	expect_write_mode = true;
+	expected_write_mode = MTD_OPS_PLACE_OOB;
+
+	copy_flash_state();
+	memset(expected_flash_memory, FLASH_EMPTY_BYTE,
+	       mtd_ubi_info_s.mtd.eb_size);
+	memcpy(expected_oob_memory, image_buf + 8, 4);
+	memcpy(expected_oob_memory + 4, image_buf + 20, 4);
+	clear_bit(expected_locked_blocks, 0);
 
 	run_flash_test(state, 0);
 }
@@ -1422,6 +1632,9 @@ int main(void)
 {
 	static const struct CMUnitTest tests[] = {
 		TEST(simple),
+		TEST(noecc_write_mode),
+		TEST(oob_write_basic),
+		TEST(oob_write_noecc),
 		TEST(simple_NOR),
 		TEST(padding_less_than_page),
 		TEST(padding_page),
@@ -1450,6 +1663,7 @@ int main(void)
 		TEST(mtd_erase_failure),
 		TEST(mtd_erase_failure_EIO),
 		TEST(no_mtd_write_empty_image_bytes),
+		TEST(oob_write_data_empty),
 		TEST(mtd_write_failure),
 		TEST(mtd_write_bad_block),
 		TEST(mtd_write_bad_block_erase_failure),

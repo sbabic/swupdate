@@ -20,9 +20,9 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <errno.h>
 #include <assert.h>
-#include <linux/version.h>
 #include <sys/ioctl.h>
 
 #include <mtd/mtd-user.h>
@@ -111,7 +111,7 @@ struct flash_priv {
 	unsigned char *filebuf;
 	/* Amount of bytes we've read from image file into filebuf: */
 	int filebuf_len;
-	/* An offset within filebuf to write to flash starting from: */
+	/* An offset within the erase block (data bytes) to write from: */
 	int writebuf_offset;
 	/* Current flash erase block: */
 	int eb;
@@ -125,6 +125,11 @@ struct flash_priv {
 	bool check_bad; /* do we need to check for bad blocks? */
 	bool check_locked; /* do we need to check whether a block is locked? */
 	bool do_unlock; /* do we need to try to unlock a block? */
+	bool write_oob; /* input contains OOB data */
+	bool no_ecc; /* write without ECC */
+	uint8_t write_mode; /* MTD_OPS_* mode */
+	int page_len; /* data + oob per page when write_oob is set */
+	int filebuf_size; /* bytes allocated for filebuf */
 	unsigned char *readout_buf; /* a buffer to read erase block into */
 };
 
@@ -186,15 +191,19 @@ static int read_data(struct flash_priv *priv, const unsigned char **p_in_buf,
 		size_t *p_in_len, unsigned char **p_wbuf, int *p_to_write)
 {
 	int read_available, to_read, write_available, to_write;
+	int page_len = priv->page_len;
+	int page_index = priv->writebuf_offset / priv->mtd->min_io_size;
+	int filebuf_offset = page_index * page_len;
 	size_t in_len = *p_in_len;
 
-	assert(priv->filebuf_len <= priv->mtd->eb_size);
-	assert(priv->writebuf_offset <= priv->filebuf_len);
+	assert(priv->filebuf_len <= priv->filebuf_size);
+	assert(priv->writebuf_offset <= priv->mtd->eb_size);
 	assert((priv->writebuf_offset % priv->mtd->min_io_size) == 0);
+	assert(filebuf_offset <= priv->filebuf_len);
 	assert(priv->imglen >= in_len);
 
 	/* Read as much as possible data from (*p_in_buf) to priv->filebuf: */
-	read_available = priv->mtd->eb_size - priv->filebuf_len;
+	read_available = priv->filebuf_size - priv->filebuf_len;
 	assert(read_available >= 0);
 	to_read = (in_len > read_available) ? read_available : in_len;
 	assert(to_read <= read_available);
@@ -209,38 +218,40 @@ static int read_data(struct flash_priv *priv, const unsigned char **p_in_buf,
 		/* We've read all image data available.
 		 * Add padding to priv->filebuf if necessary: */
 		int len, pad_bytes;
-		len = ROUND_UP(priv->filebuf_len, priv->mtd->min_io_size);
+		len = ROUND_UP(priv->filebuf_len, page_len);
 		assert(len >= priv->filebuf_len);
-		assert(len <= priv->mtd->eb_size);
+		assert(len <= priv->filebuf_size);
 		pad_bytes = len - priv->filebuf_len;
 		assert(pad_bytes >= 0);
 		erase_buffer(priv->filebuf + priv->filebuf_len, pad_bytes);
 		priv->filebuf_len = len;
 	}
 
-	write_available = priv->filebuf_len - priv->writebuf_offset;
+	write_available = priv->filebuf_len - filebuf_offset;
 	assert(write_available >= 0);
 
-	to_write = ROUND_DOWN(write_available, priv->mtd->min_io_size);
-	assert(to_write <= write_available);
-	assert((to_write % priv->mtd->min_io_size) == 0);
-
-	if (to_write == 0) {
-		/* Got not enough data to write. */
-		return -1; /* Wait for more data in next flash_write() call. */
-	}
-
 	if (priv->is_nand) {
+		if (write_available < page_len) {
+			/* Got not enough data to write. */
+			return -1; /* Wait for more data in next flash_write() call. */
+		}
 		/* For NAND flash limit amount of data to be written to a
 		 * single page. This allows us to skip writing "empty" pages
-		 * (filled with FLASH_EMPTY_BYTE).
-		 *
-		 * Note: for NOR flash typical min_io_size is 1. Writing 1 byte
-		 * at time is not practical. */
+		 * (filled with FLASH_EMPTY_BYTE). */
 		to_write = priv->mtd->min_io_size;
+	} else {
+		/* For NOR flash typical min_io_size is 1. Writing 1 byte at a
+		 * time is not practical. */
+		to_write = ROUND_DOWN(write_available, priv->mtd->min_io_size);
+		assert(to_write <= write_available);
+		assert((to_write % priv->mtd->min_io_size) == 0);
+		if (to_write == 0) {
+			/* Got not enough data to write. */
+			return -1; /* Wait for more data in next flash_write() call. */
+		}
 	}
 
-	*p_wbuf = priv->filebuf + priv->writebuf_offset;
+	*p_wbuf = priv->filebuf + filebuf_offset;
 	*p_to_write = to_write;
 	return 0; /* Need to write some data. */
 }
@@ -359,6 +370,14 @@ static int prepare_new_erase_block(struct flash_priv *priv)
 	return too_many_bad_blocks(priv->mtdnum);
 }
 
+static inline bool flash_has_pending_data(const struct flash_priv *priv)
+{
+	int page_index = priv->writebuf_offset / priv->mtd->min_io_size;
+	int filebuf_offset = page_index * priv->page_len;
+
+	return filebuf_offset < priv->filebuf_len;
+}
+
 /*
  * A callback to be passed to copyimage().
  * Write as much input data to flash as possible at this time.
@@ -374,9 +393,11 @@ static int flash_write(void *out, const void *buf, size_t len)
 	struct flash_priv *priv = (struct flash_priv *)out;
 	const unsigned char **pbuf = (const unsigned char**)&buf;
 
-	while ((len > 0) || (priv->writebuf_offset < priv->filebuf_len)) {
+	while ((len > 0) || flash_has_pending_data(priv)) {
 		unsigned char *wbuf;
+		unsigned char *oob = NULL;
 		int to_write;
+		int data_offset;
 
 		assert(priv->eb <= priv->eb_end);
 		if (priv->eb == priv->eb_end)
@@ -399,14 +420,23 @@ static int flash_write(void *out, const void *buf, size_t len)
 		/* Now priv->eb points to a valid erased block we can write
 		 * data into. */
 
+		data_offset = priv->writebuf_offset;
+		if (priv->write_oob) {
+			oob = wbuf + priv->mtd->min_io_size;
+		}
+
 		ret = buffer_check_pattern(wbuf, to_write, FLASH_EMPTY_BYTE);
+		if (ret && priv->write_oob)
+			ret = buffer_check_pattern(oob, priv->mtd->oob_size,
+			                           FLASH_EMPTY_BYTE);
 		if (ret) {
 			ret = 0; /* There is no need to write "empty" bytes. */
 		} else {
 			/* Write data to flash: */
 			ret = mtd_write(priv->libmtd, priv->mtd, priv->fdout,
-			                priv->eb, priv->writebuf_offset, wbuf,
-			                to_write, NULL, 0, MTD_OPS_PLACE_OOB);
+			                priv->eb, data_offset, wbuf, to_write,
+			                oob, oob ? priv->mtd->oob_size : 0,
+			                priv->write_mode);
 		}
 		if (ret) {
 			if (errno != EIO)
@@ -428,8 +458,8 @@ static int flash_write(void *out, const void *buf, size_t len)
 		}
 
 		priv->writebuf_offset += to_write;
-		assert(priv->writebuf_offset <= priv->filebuf_len);
-		assert(priv->filebuf_len <= priv->mtd->eb_size);
+		assert(priv->writebuf_offset <= priv->mtd->eb_size);
+		assert(priv->filebuf_len <= priv->filebuf_size);
 		if (priv->writebuf_offset == priv->mtd->eb_size) {
 			priv->eb++;
 			priv->writebuf_offset = 0;
@@ -445,9 +475,34 @@ static int flash_write_image(int mtdnum, struct img_type *img)
 	struct flash_priv priv;
 	char mtd_device[LINESIZE];
 	int ret;
+	long long data_len;
 	struct flash_description *flash = get_flash_info();
 	priv.mtd = &flash->mtd_info[mtdnum].mtd;
 	assert((priv.mtd->eb_size % priv.mtd->min_io_size) == 0);
+	priv.libmtd = flash->libmtd;
+	priv.is_nand = isNand(flash, mtdnum);
+	priv.write_oob = strtobool(dict_get_value(&img->properties, "oob"));
+	priv.no_ecc = strtobool(dict_get_value(&img->properties, "noecc"));
+	if (priv.write_oob && !priv.is_nand) {
+		ERROR("OOB write is supported only for NAND flashes");
+		return -EINVAL;
+	}
+	if (priv.write_oob && !priv.mtd->oob_size) {
+		ERROR("OOB write requested but no OOB size is available");
+		return -EINVAL;
+	}
+	if (priv.no_ecc && !priv.is_nand) {
+		WARN("noecc property ignored for non-NAND flashes");
+		priv.no_ecc = false;
+	}
+	priv.write_mode = priv.no_ecc ? MTD_OPS_RAW : MTD_OPS_PLACE_OOB;
+	priv.page_len = priv.mtd->min_io_size +
+		(priv.write_oob ? priv.mtd->oob_size : 0);
+	priv.filebuf_size = priv.mtd->eb_size;
+	if (priv.write_oob) {
+		int pages_per_eb = priv.mtd->eb_size / priv.mtd->min_io_size;
+		priv.filebuf_size = pages_per_eb * priv.page_len;
+	}
 
 	if (!mtd_dev_present(flash->libmtd, mtdnum)) {
 		ERROR("MTD %d does not exist", mtdnum);
@@ -474,7 +529,13 @@ static int flash_write_image(int mtdnum, struct img_type *img)
 	if (!priv.imglen)
 		return 0;
 
-	if (priv.imglen > priv.mtd->size - img->seek) {
+	data_len = priv.imglen;
+	if (priv.write_oob) {
+		long long pages = (priv.imglen + priv.page_len - 1) /
+			priv.page_len;
+		data_len = pages * priv.mtd->min_io_size;
+	}
+	if (data_len > priv.mtd->size - img->seek) {
 		ERROR("Image %s does not fit into mtd%d", img->fname, mtdnum);
 		return -ENOSPC;
 	}
@@ -487,17 +548,25 @@ static int flash_write_image(int mtdnum, struct img_type *img)
 		return -ret;
 	}
 
+	if (priv.no_ecc) {
+		if (ioctl(priv.fdout, MTDFILEMODE,
+			  (void *) MTD_FILE_MODE_RAW)) {
+			ret = errno;
+			ERROR("RAW mode access failed: %s", STRERROR(ret));
+			ret = -ret;
+			goto end;
+		}
+	}
+
 	priv.mtdnum = mtdnum;
 	priv.filebuf_len = 0;
 	priv.writebuf_offset = 0;
 	priv.eb = (int)(img->seek / priv.mtd->eb_size);
 	priv.eb_end = (int)(priv.mtd->size / priv.mtd->eb_size);
-	priv.libmtd = flash->libmtd;
-	priv.is_nand = isNand(flash, mtdnum);
 	priv.check_bad = true;
 	priv.check_locked = true;
 
-	ret = priv.mtd->eb_size;
+	ret = priv.filebuf_size;
 	if (!priv.is_nand)
 		ret += priv.mtd->eb_size;
 	priv.filebuf = malloc(ret);
@@ -507,7 +576,7 @@ static int flash_write_image(int mtdnum, struct img_type *img)
 		goto end;
 	}
 	if (!priv.is_nand)
-		priv.readout_buf = priv.filebuf + priv.mtd->eb_size;
+		priv.readout_buf = priv.filebuf + priv.filebuf_size;
 
 	ret = copyimage(&priv, img, flash_write);
 	free(priv.filebuf);
