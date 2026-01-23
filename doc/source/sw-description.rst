@@ -1408,7 +1408,7 @@ There are 4 main sections inside sw-description:
   value.
 
 
-.. tabularcolumns:: |p{1.5cm}|p{1.5cm}|p{1.5cm}|L|
+.. tabularcolumns:: |p{1.5cm}|p{1.5cm}|p{1.5cm}|l|
 .. table:: Attributes in sw-description
 
 
