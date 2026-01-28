@@ -307,6 +307,11 @@ For example to stream the SWU file and start the update procedure using ``curl``
 
         curl -F file=@update_file.swu http://host:8080/upload
 
+And, in case authentication is needed, the previous example can be tranformed to 
+
+::
+		curl -u username:password -F file=@update_file.swu http://host:8080/upload
+
 Restart API
 -----------
 
