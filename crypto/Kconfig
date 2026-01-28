@@ -49,7 +49,7 @@ menu "Signature verification algorithm"
 
 	config SIGALG_RAWRSA
 		bool "RSA PKCS#1.5"
-		default n
+		default y
 		depends on SSL_IMPL_OPENSSL || SSL_IMPL_WOLFSSL || SSL_IMPL_MBEDTLS
 
 	config SIGALG_RSAPSS
