@@ -19,7 +19,7 @@ SWUpdate has a simple interface to let external programs
 to communicate with the installer. Clients can start an upgrade
 and stream an image to the installer, querying then for the status
 and the final result. The API is at the moment very simple, but it can
-easy be extended in the future if new use cases will arise.
+easily be extended in the future if new use cases will arise.
 
 .. _install_api:
 
@@ -106,7 +106,7 @@ of the upgrade.
 
 Example about using this library is in the examples/client directory.
 
-The `req` structure is casted to void to ensure API compatibility. Am user
+The `req` structure is casted to void to ensure API compatibility. A user
 should instantiate it as `struct swupdate_request`. This contains fields that can control
 the update process:
 
@@ -149,7 +149,7 @@ to set it via IPC. In this way, each update could have a different key.
 
         int swupdate_set_aes(char *key, char *ivt)
 
-The key is for AES-256. The length for key and ivt are then defined by the algorithm amd they are passed as ASCII string, so the length *must* be 64 bytes for key and 32 bytes for IVT.
+The key is for AES-256. The length for key and ivt are then defined by the algorithm and they are passed as ASCII string, so the length *must* be 64 bytes for key and 32 bytes for IVT.
 
 Functions to control SWUpdate
 -----------------------------
@@ -158,7 +158,7 @@ Functions to control SWUpdate
 
         int ipc_send_cmd(ipc_message *msg);
 
-ipc_send_cmd is used to send a command to a SWUpdate subprocess (as suricatta). The function is synchron,
+ipc_send_cmd is used to send a command to a SWUpdate subprocess (as suricatta). The function is synchronous,
 that means it clocks until the subprocess has answered with ACK or NACK. This function sets `type` to SWUPDATE_SUBPROCESS.
 The caller must then set the other fields in message according to the destination.
 The msgdata field is a structure as:
@@ -168,7 +168,7 @@ The msgdata field is a structure as:
      struct {
         sourcetype source; /* Who triggered the update */
         int	cmd;	   /* Optional encoded command */
-        int	timeout;     /* timeout in seconds if an aswer is expected */
+        int	timeout;     /* timeout in seconds if an answer is expected */
         unsigned int len;    /* Len of data valid in buf */
         char	buf[2048];   /*
                               * Buffer that each source can fill
@@ -279,8 +279,8 @@ An example application can be found under tools/swupdate-gethawkbitstatus.c
 API to the integrated Webserver
 ===============================
 
-The integrated Webserver provides REST resources to push a SWU package and to get inform about the update process.
-This API is based on HTTP standards. There are to kind of interface:
+The integrated Webserver provides REST resources to push a SWU package and to get some information about the update process.
+This API is based on HTTP standards. There are two kinds of interfaces:
 
 - Install API to push a SWU and to restart the device after update.
 - A WebSocket interface to send the status of the update process.
@@ -292,7 +292,7 @@ Install API
 
         POST /upload
 
-This initiates an update: the initiator sends the request and start to stream the SWU in the same
+This initiates an update: the initiator sends the request and starts to stream the SWU in the same
 way as described in :ref:`install_api`.
 The ``POST /upload`` request contains:
 
@@ -444,7 +444,7 @@ This event contains which is the current step running and which percentage of th
         +-----------+----------------------------------------------------------------+
         | step      | running step in range [1..N]                                   |
         +-----------+----------------------------------------------------------------+
-        | name      | filename of artefact to be installed                           |
+        | name      | filename of artifact to be installed                           |
         +-----------+----------------------------------------------------------------+
         | percent   | percentage of the running step                                 |
         +-----------+----------------------------------------------------------------+
