@@ -80,6 +80,10 @@ config CMS_IGNORE_CERTIFICATE_PURPOSE
 config CMS_SKIP_UNKNOWN_SIGNERS
 	bool "Ignore unverifiable signatures if known signer verifies"
 	depends on SIGALG_CMS
+
+config CMS_IGNORE_ADDITIONAL_CERTS
+	bool "Use only direct signer certificates from CMS signature"
+	depends on SIGALG_CMS
 endmenu
 
 menu "Encryption"

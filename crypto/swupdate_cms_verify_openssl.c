@@ -16,10 +16,10 @@
 #include "util.h"
 #include "swupdate_crypto.h"
 
-#if defined(CONFIG_CMS_SKIP_UNKNOWN_SIGNERS)
-#define VERIFY_UNKNOWN_SIGNER_FLAGS (CMS_NO_SIGNER_CERT_VERIFY)
+#if defined(CONFIG_CMS_SKIP_UNKNOWN_SIGNERS) || defined(CONFIG_CMS_IGNORE_ADDITIONAL_CERTS)
+#define VERIFY_CMS_FLAGS (CMS_NO_SIGNER_CERT_VERIFY)
 #else
-#define VERIFY_UNKNOWN_SIGNER_FLAGS (0)
+#define VERIFY_CMS_FLAGS (0)
 #endif
 
 #define MODNAME	"opensslCMS"
@@ -223,11 +223,10 @@ static int check_signer_name(CMS_ContentInfo *cms, const char *name)
 	return ret;
 }
 
-#if defined(CONFIG_CMS_SKIP_UNKNOWN_SIGNERS)
-static int check_verified_signer(CMS_ContentInfo* cms, X509_STORE* store)
+#if defined(CONFIG_CMS_SKIP_UNKNOWN_SIGNERS) || defined(CONFIG_CMS_IGNORE_ADDITIONAL_CERTS)
+static int verify_signer_certs(CMS_ContentInfo* cms, X509_STORE* store)
 {
-	int i, ret = 1;
-
+	int i, valid_signers, needed_signers, ret = 1;
 	X509_STORE_CTX *ctx = X509_STORE_CTX_new();
 	STACK_OF(CMS_SignerInfo) *infos = CMS_get0_SignerInfos(cms);
 	STACK_OF(X509)* cms_certs = CMS_get1_certs(cms);
@@ -242,7 +241,25 @@ static int check_verified_signer(CMS_ContentInfo* cms, X509_STORE* store)
 		return ret;
 	}
 
-	for (i = 0; i < sk_CMS_SignerInfo_num(infos) && ret != 0; ++i) {
+#if defined(CONFIG_CMS_IGNORE_ADDITIONAL_CERTS)
+	/*
+	 * we want all signers need to be valid, but do not use any additionaly
+	 * certs from CMS signedData. This way we prevent adjacent intermediate certs
+	 * to our trusted cert chain from being used and only validate actual
+	 * signing certificates without using any additional certificates
+	 * besides the one in the trust store.
+	 */
+	needed_signers = sk_CMS_SignerInfo_num(infos);
+	cms_certs = NULL;
+#endif
+
+#if defined(CONFIG_CMS_SKIP_UNKNOWN_SIGNERS)
+	/* we only need a single valid signer */
+	needed_signers = 1;
+#endif
+
+	valid_signers = 0;
+	for (i = 0; i < sk_CMS_SignerInfo_num(infos); ++i) {
 		CMS_SignerInfo *si = sk_CMS_SignerInfo_value(infos, i);
 		X509 *signer = NULL;
 
@@ -255,12 +272,17 @@ static int check_verified_signer(CMS_ContentInfo* cms, X509_STORE* store)
 		X509_STORE_CTX_set_default(ctx, "smime_sign");
 		if (X509_verify_cert(ctx) > 0) {
 			TRACE("Verified signature %d in signer sequence", i);
-			ret = 0;
+			valid_signers++;
 		} else {
 			TRACE("Failed to verify certificate %d in signer sequence", i);
 		}
 
 		X509_STORE_CTX_cleanup(ctx);
+
+		if (valid_signers == needed_signers) {
+			ret = 0;
+			break;
+		}
 	}
 
 	X509_STORE_CTX_free(ctx);
@@ -380,16 +402,15 @@ static int openssl_cms_verify_file(void  *ctx, const char *sigfile,
 
 	/* Then try to verify signature */
 	if (!CMS_verify(cms, NULL, dgst->certs, content_bio,
-			NULL, CMS_BINARY | VERIFY_UNKNOWN_SIGNER_FLAGS)) {
+			NULL, CMS_BINARY | VERIFY_CMS_FLAGS)) {
 		ERR_print_errors_fp(stderr);
 		ERROR("Signature verification failed");
 		status = -EBADMSG;
 		goto out;
 	}
 
-#if defined(CONFIG_CMS_SKIP_UNKNOWN_SIGNERS)
-	/* Verify at least one signer authenticates */
-	if (check_verified_signer(cms, dgst->certs)) {
+#if defined(CONFIG_CMS_SKIP_UNKNOWN_SIGNERS) || defined(CONFIG_CMS_IGNORE_ADDITIONAL_CERTS)
+	if (verify_signer_certs(cms, dgst->certs)) {
 		ERROR("Authentication of all signatures failed");
 		status = -EBADMSG;
 		goto out;
