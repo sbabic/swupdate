@@ -237,6 +237,11 @@ static int check_verified_signer(CMS_ContentInfo* cms, X509_STORE* store)
 		return ret;
 	}
 
+	if (infos == NULL || cms_certs == NULL) {
+		ERROR("Invalid CMS signed data payload");
+		return ret;
+	}
+
 	for (i = 0; i < sk_CMS_SignerInfo_num(infos) && ret != 0; ++i) {
 		CMS_SignerInfo *si = sk_CMS_SignerInfo_value(infos, i);
 		X509 *signer = NULL;
