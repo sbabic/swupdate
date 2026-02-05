@@ -24,6 +24,7 @@
 #include <netinet/in.h>
 #include <pthread.h>
 #include <getopt.h>
+#include <signal.h>
 
 #include <progress_ipc.h>
 
@@ -121,7 +122,7 @@ static void psplash_write_fifo(char *pipe, char *buf)
 	int   psplash_pipe_fd, ret;
 
 	if ((psplash_pipe_fd = open(pipe, O_WRONLY | O_NONBLOCK)) == -1) {
-		fprintf(stderr, "Error unable to open psplash pipe, closing...\n");
+		fprintf(stderr, "Error unable to open psplash pipe %s:%s, closing...\n", pipe, strerror(errno));
 		return;
 	}
 
@@ -245,6 +246,7 @@ int main(int argc, char **argv)
 	bool disable_reboot = false;
 	bool redirected = false;
 
+	signal(SIGPIPE, SIG_IGN);
 	/* Process options with getopt */
 	while ((c = getopt_long(argc, argv, "cwprhs:e:q",
 				long_options, NULL)) != EOF) {
