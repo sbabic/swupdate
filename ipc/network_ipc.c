@@ -32,7 +32,7 @@ char *get_ctrl_socket(void) {
 			socketdir = getenv("TMPDIR");
 		}
 		if (!socketdir)
-			socketdir = "/tmp";
+			socketdir = "/run/swupdate";
 		if (asprintf(&SOCKET_CTRL_PATH, "%s/%s", socketdir, SOCKET_CTRL_DEFAULT) == -1)
 			return (char *)"/tmp/"SOCKET_CTRL_DEFAULT;
 	}
