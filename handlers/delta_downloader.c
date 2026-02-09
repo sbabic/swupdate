@@ -203,7 +203,7 @@ int start_delta_downloader(const char __attribute__ ((__unused__)) *fname,
 		swupdate_cfg_handle handle;
 		swupdate_cfg_init(&handle);
 
-		if (swupdate_cfg_read_file(&handle, fname) == 0) {
+		if (fname && swupdate_cfg_read_file(&handle, fname) == 0) {
 			read_module_settings(&handle, "delta", channel_settings, &channel_data);
 		}
 
