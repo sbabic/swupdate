@@ -193,6 +193,7 @@ int start_delta_downloader(const char __attribute__ ((__unused__)) *fname,
 		priv.answer = answer;
 		channel_data.url = req->data;
 		channel_data.noipc = true;
+		channel_data.usessl = true;
 		channel_data.method = CHANNEL_GET;
 		channel_data.content_type = "*";
 		channel_data.headers = delta_callback_headers;
