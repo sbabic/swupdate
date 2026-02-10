@@ -201,6 +201,10 @@ int start_delta_downloader(const char __attribute__ ((__unused__)) *fname,
 		channel_data.range = &req->data[req->urllen + 1];
 		channel_data.user = &priv;
 
+		if (loglevel >= DEBUGLEVEL) {
+			channel_data_defaults.debug = true;
+		}
+
 		swupdate_cfg_handle handle;
 		swupdate_cfg_init(&handle);
 
