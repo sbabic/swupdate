@@ -51,6 +51,8 @@ struct img_type {
 	char type_data[SWUPDATE_GENERAL_STRING_SIZE];	/* Data for handler */
 	char extract_file[MAX_IMAGE_FNAME];
 	char filesystem[MAX_IMAGE_FNAME];
+	char lua_fcn_pre[SWUPDATE_GENERAL_STRING_SIZE];	/* If present, call before installing */
+	char lua_fcn_post[SWUPDATE_GENERAL_STRING_SIZE];	/* If present, call after successful install */
 	unsigned long long seek;
 	skip_t skip;
 	int provided;

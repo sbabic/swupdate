@@ -298,11 +298,32 @@ int install_single_image(struct img_type *img, bool dry_run)
 
 	swupdate_progress_inc_step(img->fname, hnd->desc);
 
+	/*
+	 * Run a preinstall Lua function, if any
+	 */
+	if (strlen(img->lua_fcn_pre)) {
+		ret = lua_parser_fn(img->L, img->lua_fcn_pre, img);
+		if (ret) {
+			TRACE("Pre-install function %s for %s fails !",
+			      img->lua_fcn_pre,
+			      hnd->desc);
+		}
+	}
+
 	/* TODO : check callback to push results / progress */
 	ret = hnd->installer(img, hnd->data);
 	if (ret != 0) {
 		TRACE("Installer for %s not successful !",
 			hnd->desc);
+	} else {
+		if (strlen(img->lua_fcn_post)) {
+			ret = lua_parser_fn(img->L, img->lua_fcn_post, img);
+			if (ret) {
+				TRACE("Post-install function %s for %s fails !",
+				      img->lua_fcn_post,
+				      hnd->desc);
+			}
+		}
 	}
 
 	swupdate_progress_step_completed();

@@ -541,6 +541,9 @@ static int parse_common_attributes(parsertype p, void *elem, struct img_type *im
 		image->skip = SKIP_NONE;
 	}
 
+	GET_FIELD_STRING(p, elem, "preinstall", image->lua_fcn_pre);
+	GET_FIELD_STRING(p, elem, "postinstall", image->lua_fcn_post);
+
 	return 0;
 }
 
