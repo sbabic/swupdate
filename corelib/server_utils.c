@@ -119,3 +119,22 @@ struct json_object *server_tokenize_msg(char *buf, size_t size)
 
 	return json_root;
 }
+
+/*
+ * Just called once to setup the tokens
+ */
+void channel_settoken(const char *type, const char *token, channel_data_t *chan)
+{
+	char *tokens_header = NULL;
+	if (!token)
+		return;
+
+	if (ENOMEM_ASPRINTF ==
+		asprintf(&tokens_header, "Authorization: %s %s", type, token)) {
+			ERROR("OOM when setting %s.", type);
+		return;
+	}
+	if (tokens_header != NULL && strlen(tokens_header))
+		SETSTRING(chan->auth_token, tokens_header);
+	free(tokens_header);
+}

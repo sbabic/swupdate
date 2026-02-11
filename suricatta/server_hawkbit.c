@@ -183,25 +183,6 @@ static channel_data_t channel_data_defaults = {.debug = false,
 static struct timeval server_time;
 
 /*
- * Just called once to setup the tokens
- */
-static inline void server_hawkbit_settoken(const char *type, const char *token)
-{
-	char *tokens_header = NULL;
-	if (!token)
-		return;
-
-	if (ENOMEM_ASPRINTF ==
-		asprintf(&tokens_header, "Authorization: %s %s", type, token)) {
-			ERROR("OOM when setting %s.", type);
-		return;
-	}
-	if (tokens_header != NULL && strlen(tokens_header))
-		SETSTRING(channel_data_defaults.auth_token, tokens_header);
-	free(tokens_header);
-}
-
-/*
  * This is called when a general error is found before sending the stream
  * to the installer. In this way, errors are collected in the same way as
  * when the installer is called.
@@ -2045,8 +2026,8 @@ static server_op_res_t server_start(const char *fname, int argc, char *argv[])
 		      "but just one at a time is supported.\n");
 		exit(EXIT_FAILURE);
 	}
-	server_hawkbit_settoken("TargetToken", server_hawkbit.targettoken);
-	server_hawkbit_settoken("GatewayToken", server_hawkbit.gatewaytoken);
+	channel_settoken("TargetToken", server_hawkbit.targettoken, &channel_data_defaults);
+	channel_settoken("GatewayToken", server_hawkbit.gatewaytoken, &channel_data_defaults);
 
 	/*
 	 * Allocate a channel to communicate with the server
