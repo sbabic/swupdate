@@ -42,7 +42,7 @@
 #include "handler_helpers.h"
 #include "swupdate_image.h"
 
-#define DEFAULT_MAX_RANGES	150	/* Apache has default = 200 */
+#define DEFAULT_MAX_RANGES	10	/* Apache has default = 200 */
 #define BUFF_SIZE		16384
 
 const char *handlername = "delta";
