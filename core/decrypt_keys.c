@@ -84,10 +84,10 @@ int set_aes_key(const char *key, const char *ivt)
 	ret = ascii_to_bin(decrypt_keys->ivt, AES_BLK_SIZE, ivt);
 	keylen = strlen(key);
 
-	if (!strcmp("pkcs11", key)) {
+	const char *pkcs11_prefix = "pkcs11";
+	if (strncmp(key, pkcs11_prefix, strlen(pkcs11_prefix)) == 0) {
 		is_pkcs11 = true;
 		decrypt_keys->keylen = keylen;
-
 	} else {
 		switch (keylen) {
 		case AES_128_KEY_LEN * 2:
