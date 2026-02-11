@@ -36,6 +36,16 @@
 #include "delta_process.h"
 #include "swupdate_settings.h"
 #include "server_utils.h"
+#include "parselib.h"
+
+/*
+ * Structure to maintain transferate data
+ * of the downloader
+ */
+typedef struct {
+	char *targettoken;
+	char *gatewaytoken;
+} dwl_priv_t;
 
 /*
  * Structure used in curl callbacks
@@ -44,7 +54,7 @@ typedef struct {
 	unsigned int id;	/* Request id */
 	int writefd;		/* IPC file descriptor */
 	range_answer_t *answer;
-} dwl_data_t;
+} dwl_transfer_t;
 
 extern channel_op_res_t channel_curl_init(void);
 
@@ -71,7 +81,7 @@ static size_t wrdata_callback(char *buffer, size_t size, size_t nmemb, void *dat
 		return 0;
 
 	channel_data_t *channel_data = (channel_data_t *)data;
-	dwl_data_t *dwl = (dwl_data_t *)channel_data->user;
+	dwl_transfer_t *dwl = (dwl_transfer_t *)channel_data->user;
 	ssize_t nbytes = nmemb * size;
 	int ret;
 	if (!nmemb) {
@@ -112,7 +122,7 @@ static size_t wrdata_callback(char *buffer, size_t size, size_t nmemb, void *dat
 static size_t delta_callback_headers(char *buffer, size_t size, size_t nitems, void *data)
 {
 	channel_data_t *channel_data = (channel_data_t *)data;
-	dwl_data_t *dwl = (dwl_data_t *)channel_data->user;
+	dwl_transfer_t *dwl = (dwl_transfer_t *)channel_data->user;
 	int ret;
 
 	range_answer_t *answer = dwl->answer;
@@ -133,9 +143,27 @@ static size_t delta_callback_headers(char *buffer, size_t size, size_t nitems, v
 }
 
 /*
+ * Read setup from configuration file
+ */
+static int delta_downloader_settings(void *elem, void *data)
+{
+	char tmp[128];
+	dwl_priv_t *priv = (dwl_priv_t *)data;
+
+	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "targettoken", tmp);
+	if (strlen(tmp))
+		SETSTRING(priv->targettoken, tmp);
+	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "gatewaytoken", tmp);
+	if (strlen(tmp))
+		SETSTRING(priv->gatewaytoken, tmp);
+
+	return 0;
+}
+
+/*
  * Process that is spawned by the handler to download the missing chunks.
  * Downloading should be done in a separate process to not break
- * privilige separation
+ * privilege separation
  */
 int start_delta_downloader(const char __attribute__ ((__unused__)) *fname,
 				int __attribute__ ((__unused__)) argc,
@@ -143,12 +171,16 @@ int start_delta_downloader(const char __attribute__ ((__unused__)) *fname,
 {
 	ssize_t ret;
 	range_request_t *req = NULL;
-	channel_op_res_t transfer;
+	swupdate_cfg_handle handle;
+	channel_op_res_t result;
 	range_answer_t *answer;
 	struct dict httpheaders;
-	dwl_data_t priv;
+	dwl_transfer_t dwltransfer;
+	dwl_priv_t dwldata;
 
 	TRACE("Starting Internal process for downloading chunks");
+	memset (&dwldata, 0, sizeof(dwldata));
+
 	if (channel_curl_init() != CHANNEL_OK) {
 		ERROR("Cannot initialize curl");
 		return SERVER_EINIT;
@@ -177,6 +209,16 @@ int start_delta_downloader(const char __attribute__ ((__unused__)) *fname,
 		exit (EXIT_FAILURE);
 	}
 
+	swupdate_cfg_init(&handle);
+	if (fname && swupdate_cfg_read_file(&handle, fname) == 0) {
+		read_module_settings(&handle, "delta", channel_settings, &channel_data);
+		read_module_settings(&handle, "delta", delta_downloader_settings, &dwldata);
+	}
+	swupdate_cfg_destroy(&handle);
+
+	channel_settoken("TargetToken", dwldata.targettoken, &channel_data);
+	channel_settoken("GatewayToken", dwldata.gatewaytoken, &channel_data);
+
 	for (;;) {
 		ret = read(sw_sockfd, req, sizeof(range_request_t));
 		if (ret < 0) {
@@ -188,9 +230,9 @@ int start_delta_downloader(const char __attribute__ ((__unused__)) *fname,
 			ERROR("Malformed data");
 			continue;
 		}
-		priv.writefd = sw_sockfd;
-		priv.id = req->id;
-		priv.answer = answer;
+		dwltransfer.writefd = sw_sockfd;
+		dwltransfer.id = req->id;
+		dwltransfer.answer = answer;
 		channel_data.url = req->data;
 		channel_data.noipc = true;
 		channel_data.usessl = true;
@@ -199,30 +241,22 @@ int start_delta_downloader(const char __attribute__ ((__unused__)) *fname,
 		channel_data.headers = delta_callback_headers;
 		channel_data.dwlwrdata = wrdata_callback;
 		channel_data.range = &req->data[req->urllen + 1];
-		channel_data.user = &priv;
+		channel_data.user = &dwltransfer;
 
 		if (loglevel >= DEBUGLEVEL) {
 			channel_data_defaults.debug = true;
-		}
-
-		swupdate_cfg_handle handle;
-		swupdate_cfg_init(&handle);
-
-		if (fname && swupdate_cfg_read_file(&handle, fname) == 0) {
-			read_module_settings(&handle, "delta", channel_settings, &channel_data);
-		}
-
-		swupdate_cfg_destroy(&handle);
+		} else
+			channel_data_defaults.debug = false;
 
 		if (channel->open(channel, &channel_data) == CHANNEL_OK) {
-			transfer = channel->get_file(channel, (void *)&channel_data);
+			result = channel->get_file(channel, (void *)&channel_data);
 		} else {
 			ERROR("Cannot open channel for communication");
-			transfer = CHANNEL_EINIT;
+			result = CHANNEL_EINIT;
 		}
 
 		answer->id = req->id;
-		answer->type = (transfer == CHANNEL_OK) ? RANGE_COMPLETED : RANGE_ERROR;
+		answer->type = (result == CHANNEL_OK) ? RANGE_COMPLETED : RANGE_ERROR;
 		answer->len = 0;
 		if (write(sw_sockfd, answer, sizeof(*answer)) != sizeof(*answer)) {
 			ERROR("Answer cannot be sent back, maybe deadlock !!");
