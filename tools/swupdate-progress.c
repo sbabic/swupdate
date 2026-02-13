@@ -464,6 +464,9 @@ int main(int argc, char **argv)
 			break;
 		case DONE:
 			fprintf(stdout, "\nDONE.\n\n");
+			if (opt_r && strcasestr(msg.info, "\"reboot\": \"true\"")) {
+				reboot_device();
+			}
 			break;
 		case PROGRESS:
 			/*
