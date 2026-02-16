@@ -40,8 +40,11 @@ char *get_prog_socket(void) {
 		if(!socketdir){
 			socketdir = getenv("TMPDIR");
 		}
-		if(!socketdir){
-			socketdir = "/run/swupdate";
+		if (!socketdir) {
+			if (access("/run/swupdate", W_OK) == 0)
+				socketdir = "/run/swupdate";
+			else
+				socketdir = "/tmp";
 		}
 		if (asprintf(&SOCKET_PROGRESS_PATH, "%s/%s", socketdir, SOCKET_PROGRESS_DEFAULT) == -1)
 			return (char *)"/tmp/"SOCKET_PROGRESS_DEFAULT;
