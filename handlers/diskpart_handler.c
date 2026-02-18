@@ -1456,6 +1456,17 @@ static int diskpart(struct img_type *img,
 	ret = diskpart_write_table(cxt, createtable, oldtb, priv.nolock, priv.noinuse);
 
 handler_exit:
+
+	/*
+	 * Kernel rereads the partition table and add just a delay to be sure
+	 * that SWUpdate does not try to access the partitions before the kernel is
+	 * ready
+	 */
+
+	if (!ret) {
+		ret = fdisk_reread_partition_table(cxt);
+	}
+
 	if (tb)
 		diskpart_unref_table(tb);
 	if (oldtb)
@@ -1467,12 +1478,6 @@ handler_exit:
 handler_release:
 	if (cxt)
 		diskpart_unref_context(cxt);
-
-	/*
-	 * Kernel rereads the partition table and add just a delay to be sure
-	 * that SWUpdate does not try to access the partitions before the kernel is
-	 * ready
-	 */
 
 	sleep(2);
 
