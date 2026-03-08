@@ -60,7 +60,7 @@ char *copyfrom;
 struct img_type *base_img;
 char *chained_handler;
 
-static int copy_single_file(const char *path, ssize_t size, struct img_type *img, const char *chained)
+static int copy_single_file(const char *path, off_t skipbytes, ssize_t size, struct img_type *img, const char *chained)
 {
 	int fdout, fdin, ret;
 	struct stat statbuf;
@@ -89,6 +89,14 @@ static int copy_single_file(const char *path, ssize_t size, struct img_type *img
 		return -ENODEV;
 	}
 
+	if (skipbytes > 0) {
+		if (lseek(fdin, skipbytes, SEEK_SET) < 0) {
+			ERROR("Source offset wrong, cannot be set: 0x%lx", skipbytes);
+			close(fdin);
+			return -EINVAL;
+		}
+	}
+
 	/*
 	 * try to detect the size if was not set in sw-description
 	 */
@@ -114,10 +122,16 @@ static int copy_single_file(const char *path, ssize_t size, struct img_type *img
 		else {
 			size = -1;
 		}
+		/*
+		 * if size is detected, the offset
+		 * must be subtracted.
+		 */
+		if (size > 0)
+			size -= skipbytes;
 	}
 
 	if (size < 0) {
-		ERROR("Size cannot be detected for %s", path);
+		ERROR("Size cannot be detected for %s or it is before offset 0x%lx", path, skipbytes);
 		close(fdin);
 		return -ENODEV;
 	}
@@ -213,7 +227,7 @@ static int recurse_directory(const char *fpath, const struct stat *sb,
 		 * of steps. So increase it before copying.
 		 */
 		swupdate_progress_addstep();
-		if (copy_single_file(fpath, 0, &cpyimg, chained_handler))
+		if (copy_single_file(fpath, 0, 0, &cpyimg, chained_handler))
 			result = FTW_STOP;
 	}
 
@@ -229,6 +243,7 @@ static int copy_image_file(struct img_type *img, void *data)
 	struct dict_list *proplist;
 	struct dict_list_elem *entry;
 	size_t size = 0;
+	off_t skipbytes = 0;
 	struct script_handler_data *script_data;
 	bool recursive, createdest;
 
@@ -301,6 +316,14 @@ static int copy_image_file(struct img_type *img, void *data)
 	}
 
 	/*
+	 * Detect the source must be read from an offset
+	 */
+	tmp = dict_get_value(&img->properties, "offset");
+	if (tmp) {
+		skipbytes = ustrtoull(tmp, NULL, 0);
+	}
+
+	/*
 	 * No chain set, fallback to rawcopy
 	 */
 	proplist = dict_get_list(&img->properties, "chain");
@@ -346,7 +369,7 @@ static int copy_image_file(struct img_type *img, void *data)
 
 		} else {
 			swupdate_progress_addstep();
-			ret = copy_single_file(copyfrom, size, img, chained_handler);
+			ret = copy_single_file(copyfrom, skipbytes, size, img, chained_handler);
 		}
 	}
 

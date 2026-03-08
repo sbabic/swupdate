@@ -976,6 +976,9 @@ is called twice.
     |             |          | If 0 or not set, the handler will try to find the  |
     |             |          | size from the device.                              |
     +-------------+----------+----------------------------------------------------+
+    | offset      | string   | Value in dec or hex with the offset to be set for  |
+    |             |          | the source file (to copy just a part).              |
+    +-------------+----------+----------------------------------------------------+
     | chain       | string   | Handler to be called to install the data read      |
     |             |          | from the "copyfrom" source.                        |
     +-------------+----------+----------------------------------------------------+
