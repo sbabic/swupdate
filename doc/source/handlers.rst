@@ -1036,6 +1036,42 @@ not set, variables set in bootenv are overwritten.
 
 In the example above, bootenv01key is not overwritten by a value in uEnv.txt because the flag "nooverride" is set.
 
+eMMC handler
+------------
+
+This is a script handler used to manage the eMMC boot partitions.
+
+The ``emmc_boot`` selects the eMMC hardware boot partition based
+on the device name. The number following ``boot`` in the device path
+is used to determine the boot partition to be selected:
+
+- ``/dev/mmcblkXboot0`` selects boot partition 0
+- ``/dev/mmcblkXboot1`` selects boot partition 1
+
+The ``emmc_boot_toggle`` toggles the active eMMC hardware boot
+partition for the specified device.
+
+Example selecting boot partition 1:
+
+::
+
+	scripts: (
+	{
+	   type = "emmc_boot";
+	   device = "/dev/mmcblk1boot1";
+        }
+
+Example toggling the active boot partition:
+
+::
+
+	scripts: (
+	{
+	   type = "emmc_boot_toggle";
+	   device = "/dev/mmcblk1";
+        }
+
+
 Archive handler
 ---------------
 
