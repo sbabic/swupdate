@@ -1,5 +1,5 @@
 /*
- * Copyright:  David Alonso de la Torre
+ * SPDX-FileCopyrightText:  2026 David Alonso de la Torre
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
