@@ -413,12 +413,13 @@ int swupdate_dwl_url (const char *artifact_name, const char *url)
 	msg.magic = IPC_MAGIC;
 	msg.type = SET_DELTA_URL;
 
-	strlcpy(msg.data.dwl_url.filename,
-			artifact_name,
-			sizeof(msg.data.dwl_url.filename) - 1);
-	strlcpy(msg.data.dwl_url.url,
-			url,
-			sizeof(msg.data.dwl_url.url) - 1);
+	strncpy(msg.data.dwl_url.filename,
+		artifact_name,
+		sizeof(msg.data.dwl_url.filename) - 1);
+	strncpy(msg.data.dwl_url.url,
+		url,
+		sizeof(msg.data.dwl_url.url) - 1);
+
 	return ipc_send_cmd(&msg);
 }
 

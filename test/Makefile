@@ -29,7 +29,10 @@ tests-$(CONFIG_SURICATTA_HAWKBIT) += test_json
 tests-$(CONFIG_SURICATTA_HAWKBIT) += test_server_hawkbit
 tests-$(CONFIG_MONGOOSE) += test_mongoose_upload
 tests-y += test_util
+tests-y += test_network_ipc_if
 tests-$(CONFIG_CFI) += test_flash_handler
+
+test_network_ipc_if-extra-objs := $(objtree)/ipc/network_ipc-if.o
 
 ccflags-y += -I$(src)/../
 
@@ -64,7 +67,7 @@ quiet_cmd_linktestexe = LD      $(basename $@)
 						"$(CC)" \
 						"$(KBUILD_CFLAGS)" \
 						"$(LDFLAGS) $(EXTRA_LDFLAGS) $(LDMOCKS)" \
-						"$(basename $@).o $(subst core/built-in.o,core/built-in.o.tmp,$(SWOBJS))" \
+						"$(basename $@).o $($(notdir $(basename $@))-extra-objs) $(subst core/built-in.o,core/built-in.o.tmp,$(SWOBJS))" \
 						"$(SWLIBS)" \
 						"$(LDLIBS) cmocka"
 
@@ -86,6 +89,8 @@ endif
 
 $(objtree)/core/built-in.o.tmp: $(objtree)/core/built-in.o
 	$(Q)$(STRIP) -N main -o $(objtree)/core/built-in.o.tmp $(objtree)/core/built-in.o
+
+$(obj)/test_network_ipc_if.lnk: $(test_network_ipc_if-extra-objs)
 
 $(obj)/%.lnk: $(obj)/%.o $(objtree)/core/built-in.o.tmp
 	$(Q)$(call cmd,linktestexe)
