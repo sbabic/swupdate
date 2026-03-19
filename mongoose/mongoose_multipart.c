@@ -261,12 +261,12 @@ static int mg_http_multipart_continue_wait_for_chunk(struct mg_connection *c) {
 		}
 		return 0;
 	} else {
-		size_t data_len = io->len - (mp_stream->boundary.len + 8);
+		size_t data_len = io->len - (mp_stream->boundary.len + 6);
 		size_t consumed = mg_http_multipart_call_handler(c, MG_EV_HTTP_PART_DATA,
-														 (char *) io->buf, data_len);
+				 (char *) io->buf, data_len);
 		mg_iobuf_del(io, 0, consumed);
 		if (consumed == data_len) {
-			mg_iobuf_del(io, 0, mp_stream->boundary.len + 8);
+			mg_iobuf_del(io, 0, mp_stream->boundary.len + 6);
 			mp_stream->state = MPS_FINALIZE;
 			return 1;
 		} else {
