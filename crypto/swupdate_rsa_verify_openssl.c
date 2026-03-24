@@ -71,11 +71,6 @@ static int dgst_verify_init(struct openssl_digest *dgst)
 			ERROR("EVP_PKEY_CTX_set_rsa_padding failed, error 0x%lx", ERR_get_error());
 			return -EFAULT; /* failed */
 		}
-		rc = EVP_PKEY_CTX_set_rsa_pss_saltlen(dgst->ckey, -2);
-		if (rc <= 0) {
-			ERROR("EVP_PKEY_CTX_set_rsa_pss_saltlen failed, error 0x%lx", ERR_get_error());
-			return -EFAULT; /* failed */
-		}
 	}
 
 	return 0;
