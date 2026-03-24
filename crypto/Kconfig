@@ -27,9 +27,13 @@ menu "Crypto libraries"
 		depends on HAVE_P11KIT
 endmenu
 
+config SWUPDATE_CRYPTO
+	bool
+
 config HASH_VERIFY
 	bool "Allow to add sha256 hash to each image"
 	depends on SSL_IMPL_OPENSSL || SSL_IMPL_WOLFSSL || SSL_IMPL_MBEDTLS
+	select SWUPDATE_CRYPTO
 	help
 	  Allow to add a sha256 hash to an artifact.
 	  This is automatically set in case of Signed Image
@@ -91,6 +95,7 @@ menu "Encryption"
 config ENCRYPTED_IMAGES
 	bool "Images can be encrypted with a symmetric key"
 	depends on SSL_IMPL_OPENSSL || SSL_IMPL_WOLFSSL || SSL_IMPL_MBEDTLS || PKCS11
+	select SWUPDATE_CRYPTO
 comment "Image encryption needs an SSL implementation"
 	depends on !SSL_IMPL_OPENSSL && !SSL_IMPL_WOLFSSL && !SSL_IMPL_MBEDTLS && !PKCS11
 
