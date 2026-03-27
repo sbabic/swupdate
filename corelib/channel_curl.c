@@ -1176,7 +1176,7 @@ channel_op_res_t channel_put(channel_t *this, void *data)
 	case CHANNEL_DELETE:
 		return channel_post_method(this, data, channel_data->method);
 	default:
-		TRACE("Channel method (POST, PUT, PATCH) is not set !");
+		TRACE("Channel method (POST, PUT, PATCH, DELETE) is not set !");
 		return CHANNEL_EINIT;
 	}
 }
