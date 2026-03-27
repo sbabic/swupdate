@@ -66,6 +66,7 @@ static const char *method_desc[] = {
 	[CHANNEL_PUT] = "PUT",
 	[CHANNEL_PATCH] = "PATCH",
 	[CHANNEL_DELETE] = "DELETE"
+	[CHANNEL_HEAD] = "HEAD",
 };
 
 /* Prototypes for "internal" functions */
@@ -1108,7 +1109,8 @@ static channel_op_res_t channel_post_method(channel_t *this, void *data, int met
 		break;
 
 	case CHANNEL_DELETE:
-		curl_result = curl_easy_setopt(channel_curl->handle, CURLOPT_CUSTOMREQUEST, "DELETE");
+	case CHANNEL_HEAD:
+		curl_result = curl_easy_setopt(channel_curl->handle, CURLOPT_CUSTOMREQUEST, method_desc[method]);
 		break;
 
 	case CHANNEL_PUT:
@@ -1174,9 +1176,10 @@ channel_op_res_t channel_put(channel_t *this, void *data)
 	case CHANNEL_POST:
 	case CHANNEL_PATCH:
 	case CHANNEL_DELETE:
+	case CHANNEL_HEAD:
 		return channel_post_method(this, data, channel_data->method);
 	default:
-		TRACE("Channel method (POST, PUT, PATCH, DELETE) is not set !");
+		TRACE("Channel method (POST, PUT, PATCH, DELETE, HEAD) is not set !");
 		return CHANNEL_EINIT;
 	}
 }

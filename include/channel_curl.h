@@ -23,6 +23,7 @@ typedef enum {
 	CHANNEL_PUT,
 	CHANNEL_PATCH,
 	CHANNEL_DELETE,
+	CHANNEL_HEAD,
 } channel_method_t;
 
 /*
