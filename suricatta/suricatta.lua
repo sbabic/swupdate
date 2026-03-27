@@ -218,6 +218,7 @@ suricatta.channel = {
         POST  = 1,
         PUT   = 2,
         PATCH = 3,
+        DELETE = 4,
     },
 
     --- Channel options as in `include/channel_curl.h`.

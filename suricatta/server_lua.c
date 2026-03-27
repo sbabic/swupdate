@@ -1662,6 +1662,7 @@ static int suricatta_lua_module(lua_State *L)
 	push_to_table(L, "POST",  CHANNEL_POST);
 	push_to_table(L, "PUT",   CHANNEL_PUT);
 	push_to_table(L, "PATCH", CHANNEL_PATCH);
+	push_to_table(L, "DELETE",  CHANNEL_DELETE);
 	lua_settable(L, -3);
 
 	lua_settable(L, -3);
