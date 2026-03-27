@@ -65,7 +65,7 @@ static const char *method_desc[] = {
 	[CHANNEL_POST] = "POST",
 	[CHANNEL_PUT] = "PUT",
 	[CHANNEL_PATCH] = "PATCH",
-	[CHANNEL_DELETE] = "DELETE"
+	[CHANNEL_DELETE] = "DELETE",
 	[CHANNEL_HEAD] = "HEAD",
 };
 
