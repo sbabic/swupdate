@@ -97,12 +97,72 @@ static X509_STORE *load_cert_chain(const char *file)
 	return castore;
 }
 
-static int check_signer_name(const char *name)
+static inline int next_common_name(X509_NAME *subject, int i)
 {
-	// TODO work around wolfSSL's PKCS7_get0_signers always returning NULL
-	if (name)
-		WARN("The X.509 common name might not be equal to %s.", name);
-	return 0;
+	return X509_NAME_get_index_by_NID(subject, NID_commonName, i);
+}
+
+static int check_common_name(X509_NAME *subject, const char *name)
+{
+	int i = -1, ret = 1;
+
+	while ((i = next_common_name(subject, i)) > -1) {
+		X509_NAME_ENTRY *e = X509_NAME_get_entry(subject, i);
+		ASN1_STRING *d = X509_NAME_ENTRY_get_data(e);
+		unsigned char *cn;
+		size_t len = strlen(name);
+		bool matches = (ASN1_STRING_to_UTF8(&cn, d) == (int)len)
+				&& (strncmp(name, (const char *)cn, len) == 0);
+
+		OPENSSL_free(cn);
+		if (!matches) {
+			char *subj = X509_NAME_oneline(subject, NULL, 0);
+
+			ERROR("common name of '%s' does not match expected '%s'",
+				subj, name);
+			OPENSSL_free(subj);
+			return 2;
+		} else {
+			ret = 0;
+		}
+	}
+
+	if (ret == 0) {
+		char *subj = X509_NAME_oneline(subject, NULL, 0);
+
+		TRACE("verified signer cert: %s", subj);
+		OPENSSL_free(subj);
+	}
+
+	return ret;
+}
+
+static int check_signer_name(WOLFSSL_PKCS7 *pkcs7, const char *name)
+{
+	if ((name == NULL) || (name[0] == '\0'))
+		return 0;
+
+	const unsigned char *cert;
+	X509 *crt;
+	int ret;
+
+	if ((pkcs7->pkcs7.verifyCert == NULL) ||
+			(pkcs7->pkcs7.verifyCertSz == 0)) {
+		ERROR("failed to access signer certificate for common name check");
+		return 1;
+	}
+
+	cert = pkcs7->pkcs7.verifyCert;
+	crt = d2i_X509(NULL, &cert, pkcs7->pkcs7.verifyCertSz);
+	if (crt == NULL) {
+		ERROR("failed to decode signer certificate for common name check");
+		return 1;
+	}
+
+	ret = check_common_name(X509_get_subject_name(crt), name);
+	X509_free(crt);
+
+	return ret;
 }
 
 static int wolfssl_pkcs7_dgst_init(struct swupdate_cfg *sw, const char *keyfile)
@@ -202,7 +262,7 @@ static int wolfssl_pkcs7_verify_file(void *ctx, const char *sigfile,
 		goto out;
 	}
 
-	if (check_signer_name(signer_name)) {
+	if (check_signer_name(pkcs7, signer_name)) {
 		ERROR("failed to verify signer name");
 		status = -EFAULT;
 		goto out;
