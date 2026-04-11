@@ -133,7 +133,7 @@ void swupdate_progress_init(unsigned int nsteps) {
 	pprog->msg.nsteps = nsteps;
 	pprog->msg.cur_step = 0;
 	pprog->msg.status = START;
-		pprog->msg.cur_percent = 0;
+	pprog->msg.cur_percent = 0;
 	pprog->msg.infolen = get_install_info(pprog->msg.info,
 						sizeof(pprog->msg.info));
 	pprog->msg.source = get_install_source();
