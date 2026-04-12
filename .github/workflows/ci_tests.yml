@@ -12,7 +12,6 @@ jobs:
         fail-fast: false
         matrix:
           container:
-          - ubuntu:22.04
           - ubuntu:24.04
           - debian:bookworm-slim
           - debian:testing-slim

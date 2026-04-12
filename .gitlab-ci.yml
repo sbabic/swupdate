@@ -9,10 +9,6 @@
   script:
     - ./ci/test-configs.sh
 
-ubuntu-jammy:
-  extends: .build
-  image: ubuntu:jammy
-
 ubuntu-noble:
   extends: .build
   image: ubuntu:noble
