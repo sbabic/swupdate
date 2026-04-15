@@ -399,10 +399,10 @@ int swupdate_set_version_range(const char *minversion,
 				const char *currentversion)
 
 {
-	return swupdate_set_version_range_type(minversion,
+	return swupdate_set_version_range_type(NULL,
+						      minversion,
 						      maxversion,
-						      currentversion,
-						      NULL);
+						      currentversion);
 }
 
 int swupdate_dwl_url (const char *artifact_name, const char *url)
