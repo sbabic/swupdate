@@ -267,116 +267,157 @@ int run_lua_script(lua_State *L, const char *script, bool load, const char *func
 	return ret;
 }
 
+typedef void (*lua_img_string_handler_fn)(struct img_type *img, const char *value);
+typedef void (*lua_img_bool_handler_fn)(struct img_type *img, bool val);
+typedef void (*lua_img_number_handler_fn)(struct img_type *img, double val);
+
+struct lua_img_string_handler_entry {
+	const char *key;
+	lua_img_string_handler_fn handler;
+};
+
+struct lua_img_bool_handler_entry {
+	const char *key;
+	lua_img_bool_handler_fn handler;
+};
+
+struct lua_img_number_handler_entry {
+	const char *key;
+	lua_img_number_handler_fn handler;
+};
+
+static void lua_set_compressed_string(struct img_type *img, const char *value)
+{
+	if (compressed_string_to_type(value, &img->compressed) < 0) {
+		ERROR("compressed argument: '%s' invalid", value);
+		img->compressed = COMPRESSED_FALSE;
+	}
+}
+
+DEFINE_IMG_STRLCPY_SETTER(lua_set_name, id.name)
+DEFINE_IMG_STRLCPY_SETTER(lua_set_version, id.version)
+DEFINE_IMG_STRLCPY_SETTER(lua_set_filename, fname)
+DEFINE_IMG_STRLCPY_SETTER(lua_set_volume, volname)
+DEFINE_IMG_STRLCPY_SETTER(lua_set_type, type)
+DEFINE_IMG_STRLCPY_SETTER(lua_set_device, device)
+DEFINE_IMG_STRLCPY_SETTER(lua_set_mtdname, mtdname)
+DEFINE_IMG_STRLCPY_SETTER(lua_set_path, path)
+DEFINE_IMG_STRLCPY_SETTER(lua_set_data, type_data)
+DEFINE_IMG_STRLCPY_SETTER(lua_set_filesystem, filesystem)
+DEFINE_IMG_STRLCPY_SETTER(lua_set_ivt, ivt_ascii)
+DEFINE_IMG_STRLCPY_SETTER(lua_set_aes_key, aes_ascii)
+
+static void lua_set_sha256(struct img_type *img, const char *value)
+{
+	ascii_to_hash(img->sha256, value);
+}
+
+static void lua_set_offset_string(struct img_type *img, const char *value)
+{
+	char seek_str[MAX_SEEK_STRING_SIZE];
+
+	strlcpy(seek_str, value, sizeof(seek_str));
+	/* convert the offset handling multiplicative suffixes */
+	errno = 0;
+	img->seek = ustrtoull(seek_str, NULL, 0);
+	if (errno) {
+		ERROR("offset argument: ustrtoull failed");
+	}
+}
+
+static const struct lua_img_string_handler_entry lua_string_handlers[] = {
+	{ "compressed", lua_set_compressed_string },
+	{ "name", lua_set_name },
+	{ "version", lua_set_version },
+	{ "filename", lua_set_filename },
+	{ "volume", lua_set_volume },
+	{ "type", lua_set_type },
+	{ "device", lua_set_device },
+	{ "mtdname", lua_set_mtdname },
+	{ "path", lua_set_path },
+	{ "data", lua_set_data },
+	{ "filesystem", lua_set_filesystem },
+	{ "sha256", lua_set_sha256 },
+	{ "ivt", lua_set_ivt },
+	{ "aes-key", lua_set_aes_key },
+	{ "offset", lua_set_offset_string },
+};
+
 /**
  * @brief convert an image description struct to a lua table
  *
  * @param L [inout] the Lua stack
  * @param software [in] the software struct
  */
-
 static void lua_string_to_img(struct img_type *img, const char *key,
 	       const char *value)
 {
-	const char offset[] = "offset";
-	char seek_str[MAX_SEEK_STRING_SIZE];
+	size_t i;
 
-	if (!strcmp(key, "compressed")) {
-		if (!strcmp(value, "zlib")) {
-			img->compressed = COMPRESSED_ZLIB;
-		} else if (!strcmp(value, "xz")) {
-			img->compressed = COMPRESSED_XZ;
-		} else if (!strcmp(value, "zstd")) {
-			img->compressed = COMPRESSED_ZSTD;
-		} else {
-			ERROR("compressed argument: '%s' invalid", value);
-			img->compressed = COMPRESSED_FALSE;
-		}
-	}
-	if (!strcmp(key, "name")) {
-		strncpy(img->id.name, value,
-			sizeof(img->id.name));
-	}
-	if (!strcmp(key, "version")) {
-		strncpy(img->id.version, value,
-			sizeof(img->id.version));
-	}
-	if (!strcmp(key, "filename")) {
-		strncpy(img->fname, value,
-			sizeof(img->fname));
-	}
-	if (!strcmp(key, "volume"))
-		strncpy(img->volname, value,
-			sizeof(img->volname));
-	if (!strcmp(key, "type"))
-		strncpy(img->type, value,
-			sizeof(img->type));
-	if (!strcmp(key, "device"))
-		strncpy(img->device, value,
-			sizeof(img->device));
-	if (!strcmp(key, "mtdname"))
-		strncpy(img->mtdname, value,
-			sizeof(img->mtdname));
-	if (!strcmp(key, "path"))
-		strncpy(img->path, value,
-			sizeof(img->path));
-	if (!strcmp(key, "data"))
-		strncpy(img->type_data, value,
-			sizeof(img->type_data));
-	if (!strcmp(key, "filesystem"))
-		strncpy(img->filesystem, value,
-			sizeof(img->filesystem));
-	if (!strcmp(key, "sha256"))
-		ascii_to_hash(img->sha256, value);
-	if (!strcmp(key, "ivt"))
-		strncpy(img->ivt_ascii, value,
-			sizeof(img->ivt_ascii));
-	if (!strcmp(key, "aes-key"))
-		strncpy(img->aes_ascii, value,
-			sizeof(img->aes_ascii));
-	if (!strncmp(key, offset, sizeof(offset))) {
-		strncpy(seek_str, value,
-			sizeof(seek_str));
-		/* convert the offset handling multiplicative suffixes */
-		img->seek = ustrtoull(seek_str, NULL, 0);
-		if (errno){
-			ERROR("offset argument: ustrtoull failed");
+	for (i = 0; i < ARRAY_SIZE(lua_string_handlers); i++) {
+		if (!strcmp(key, lua_string_handlers[i].key)) {
+			lua_string_handlers[i].handler(img, value);
+			return;
 		}
 	}
 }
 
+DEFINE_IMG_BOOL_SETTER(lua_set_compressed_bool, compressed)
+DEFINE_IMG_BOOL_SETTER(lua_set_installed_directly, install_directly)
+DEFINE_IMG_BOOL_SETTER(lua_set_install_if_different, id.install_if_different)
+DEFINE_IMG_BOOL_SETTER(lua_set_install_if_higher, id.install_if_higher)
+DEFINE_IMG_BOOL_SETTER(lua_set_encrypted, is_encrypted)
+DEFINE_IMG_BOOL_SETTER(lua_set_partition, is_partitioner)
+DEFINE_IMG_BOOL_SETTER(lua_set_script, is_script)
+DEFINE_IMG_BOOL_SETTER(lua_set_preserve_attributes, preserve_attributes)
+
+static const struct lua_img_bool_handler_entry lua_bool_handlers[] = {
+	{ "compressed", lua_set_compressed_bool },
+	{ "installed_directly", lua_set_installed_directly },
+	{ "install_if_different", lua_set_install_if_different },
+	{ "install_if_higher", lua_set_install_if_higher },
+	{ "encrypted", lua_set_encrypted },
+	{ "partition", lua_set_partition },
+	{ "script", lua_set_script },
+	{ "preserve_attributes", lua_set_preserve_attributes },
+};
 
 static void lua_bool_to_img(struct img_type *img, const char *key,
 	       bool val)
 {
-	if (!strcmp(key, "compressed"))
-		img->compressed = (bool)val;
-	if (!strcmp(key, "installed_directly"))
-		img->install_directly = (bool)val;
-	if (!strcmp(key, "install_if_different"))
-		img->id.install_if_different = (bool)val;
-	if (!strcmp(key, "install_if_higher"))
-		img->id.install_if_higher = (bool)val;
-	if (!strcmp(key, "encrypted"))
-		img->is_encrypted = (bool)val;
-	if (!strcmp(key, "partition"))
-		img->is_partitioner = (bool)val;
-	if (!strcmp(key, "script"))
-		img->is_script = (bool)val;
-	if (!strcmp(key, "preserve_attributes"))
-		img->preserve_attributes = (bool)val;
+	size_t i;
+
+	for (i = 0; i < ARRAY_SIZE(lua_bool_handlers); i++) {
+		if (!strcmp(key, lua_bool_handlers[i].key)) {
+			lua_bool_handlers[i].handler(img, val);
+			return;
+		}
+	}
 }
+
+DEFINE_IMG_NUMBER_SETTER(lua_set_offset_number, seek, unsigned long long)
+DEFINE_IMG_NUMBER_SETTER(lua_set_size, size, long long)
+DEFINE_IMG_NUMBER_SETTER(lua_set_checksum, checksum, unsigned int)
+DEFINE_IMG_NUMBER_SETTER(lua_set_skip, skip, unsigned int)
+
+static const struct lua_img_number_handler_entry lua_number_handlers[] = {
+	{ "offset", lua_set_offset_number },
+	{ "size", lua_set_size },
+	{ "checksum", lua_set_checksum },
+	{ "skip", lua_set_skip },
+};
 
 static void lua_number_to_img(struct img_type *img, const char *key,
 	       double val)
 {
-	if (!strcmp(key, "offset"))
-		img->seek = (unsigned long long)val;
-	if (!strcmp(key, "size"))
-		img->size = (long long)val;
-	if (!strcmp(key, "checksum"))
-		img->checksum = (unsigned int)val;
-	if (!strcmp(key, "skip"))
-		img->skip = (unsigned int)val;
+	size_t i;
+
+	for (i = 0; i < ARRAY_SIZE(lua_number_handlers); i++) {
+		if (!strcmp(key, lua_number_handlers[i].key)) {
+			lua_number_handlers[i].handler(img, val);
+			return;
+		}
+	}
 }
 
 static int l_copy2file(lua_State *L)
@@ -540,6 +581,9 @@ static void update_table(lua_State* L, struct img_type *img)
 				break;
 			case COMPRESSED_ZSTD:
 				LUA_PUSH_IMG_STRING_VALUE(img, "compressed", "zstd");
+				break;
+			case COMPRESSED_LZ4:
+				LUA_PUSH_IMG_STRING_VALUE(img, "compressed", "lz4");
 				break;
 			default:
 				LUA_PUSH_IMG_BOOL(img, "compressed", compressed);
