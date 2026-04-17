@@ -184,6 +184,23 @@ void notifier_set_color(int level, char *col);
 	p = strdup(v); \
 } while (0)
 
+#define DEFINE_IMG_STRLCPY_SETTER(_name, _field) \
+static void _name(struct img_type *img, const char *value) \
+{ \
+	strlcpy(img->_field, value, sizeof(img->_field)); \
+}
+
+#define DEFINE_IMG_BOOL_SETTER(_name, _field) \
+static void _name(struct img_type *img, bool val) \
+{ \
+	img->_field = (bool)val; \
+}
+
+#define DEFINE_IMG_NUMBER_SETTER(_name, _field, _type) \
+static void _name(struct img_type *img, double val) \
+{ \
+	img->_field = (_type)val; \
+}
 
 #define IS_STR_EQUAL(s,s1) (s && s1 && !strcmp(s,s1))
 #define UNUSED __attribute__((__unused__))
@@ -197,6 +214,7 @@ int ascii_to_bin(unsigned char *dest, size_t dstlen, const char *src);
 void hash_to_ascii(const unsigned char *hash, char *s);
 int IsValidHash(const unsigned char *hash);
 bool is_hex_str(const char *ascii);
+int compressed_string_to_type(const char *s, int *out_type);
 
 #ifndef typeof
 #define typeof __typeof__

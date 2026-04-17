@@ -76,6 +76,28 @@ int ascii_to_bin(unsigned char *dest, size_t dstlen, const char *src)
 	return 0;
 }
 
+static const struct {
+	const char *name;
+	int type;
+} compressed_by_name[] = {
+	{ "zlib", COMPRESSED_ZLIB },
+	{ "xz", COMPRESSED_XZ },
+	{ "zstd", COMPRESSED_ZSTD },
+};
+
+int compressed_string_to_type(const char *s, int *out_type)
+{
+	size_t i;
+
+	for (i = 0; i < ARRAY_SIZE(compressed_by_name); i++) {
+		if (!strcmp(s, compressed_by_name[i].name)) {
+			*out_type = compressed_by_name[i].type;
+			return 0;
+		}
+	}
+	return -1;
+}
+
 static int countargc(char *args, char **argv)
 {
 	int count = 0;
