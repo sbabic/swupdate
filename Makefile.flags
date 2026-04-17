@@ -197,6 +197,10 @@ ifeq ($(CONFIG_ZSTD),y)
 LDLIBS += zstd
 endif
 
+ifeq ($(CONFIG_LZ4),y)
+LDLIBS += lz4
+endif
+
 ifeq ($(CONFIG_DISKPART),y)
 LDLIBS += fdisk
 endif

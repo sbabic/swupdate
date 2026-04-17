@@ -51,6 +51,7 @@ $_SUDO apt-get -qq update && apt-get install --yes --no-install-recommends \
         liburiparser-dev \
         libwebsockets-dev \
 	liblzma-dev \
+        liblz4-dev \
         libwolfssl-dev \
         libzstd-dev \
         make \

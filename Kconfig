@@ -85,6 +85,10 @@ config HAVE_ZSTD
 	bool
 	option env="HAVE_ZSTD"
 
+config HAVE_LZ4
+	bool
+	option env="HAVE_LZ4"
+
 config HAVE_LIBSSL
 	bool
 	option env="HAVE_LIBSSL"
@@ -420,6 +424,10 @@ config XZ
 config ZSTD
 	bool "Zstd compression support"
 	depends on HAVE_ZSTD
+
+config LZ4
+	bool "LZ4 compression support"
+	depends on HAVE_LZ4
 
 comment "Parsers"
 source "parser/Kconfig"

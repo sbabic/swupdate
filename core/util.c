@@ -83,6 +83,7 @@ static const struct {
 	{ "zlib", COMPRESSED_ZLIB },
 	{ "xz", COMPRESSED_XZ },
 	{ "zstd", COMPRESSED_ZSTD },
+	{ "lz4", COMPRESSED_LZ4 },
 };
 
 int compressed_string_to_type(const char *s, int *out_type)

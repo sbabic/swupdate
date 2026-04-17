@@ -273,7 +273,7 @@ swupdate.register_handler = function(name, funcptr, mask) end
 --- @field size                  number    Artifact size
 --- @field checksum              number    Computed checksum
 --- @field skip                  number    `skip_t` enum number as in `include/swupdate.h`
---- @field compressed            string    `zlib` or `zstd` (boolean value is deprecated)
+--- @field compressed            string    `zlib`, `xz`, `zstd` or `lz4` (boolean value is deprecated)
 --- @field properties            table     Properties Table equivalent as specified in `sw-description`
 --- @field sha256                string    sha256 hash of the image, file, or script
 local img_type = {

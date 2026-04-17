@@ -64,6 +64,7 @@ enum compression_type {
   COMPRESSED_ZLIB,
   COMPRESSED_XZ,
   COMPRESSED_ZSTD,
+  COMPRESSED_LZ4,
 };
 
 typedef int (*writeimage) (void *out, const void *buf, size_t len);

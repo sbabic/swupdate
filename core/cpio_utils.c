@@ -22,6 +22,9 @@
 #ifdef CONFIG_ZSTD
 #include <zstd.h>
 #endif
+#ifdef CONFIG_LZ4
+#include <lz4frame.h>
+#endif
 
 #include "generated/autoconf.h"
 #include "cpiohdr.h"
@@ -341,7 +344,7 @@ static int decrypt_step(void *state, void *buffer, size_t size)
 	return 0;
 }
 
-#if defined(CONFIG_GUNZIP) || defined(CONFIG_ZSTD) || defined(CONFIG_XZ)
+#if defined(CONFIG_GUNZIP) || defined(CONFIG_ZSTD) || defined(CONFIG_XZ) || defined(CONFIG_LZ4)
 typedef int (*DecompressStep)(void *state, void *buffer, size_t size);
 
 struct DecompressState {
@@ -494,6 +497,70 @@ static int zstd_step(void* state, void* buffer, size_t size)
 
 #endif
 
+#ifdef CONFIG_LZ4
+
+struct Lz4State {
+	LZ4F_decompressionContext_t dctx;
+	const uint8_t *input_src;
+	size_t input_size;
+	size_t input_pos;
+};
+
+static int lz4_step(void *state, void *buffer, size_t size)
+{
+	struct DecompressState *ds = (struct DecompressState *)state;
+	struct Lz4State *s = (struct Lz4State *)ds->impl_state;
+	size_t decompress_ret = 0;
+	size_t produced = 0;
+	int ret;
+
+	do {
+		if (s->input_pos == s->input_size) {
+			ret = ds->upstream_step(ds->upstream_state, ds->input, sizeof ds->input);
+			if (ret < 0) {
+				return ret;
+			} else if (ret == 0) {
+				ds->eof = true;
+				break;
+			}
+			s->input_src = ds->input;
+			s->input_size = ret;
+			s->input_pos = 0;
+		}
+
+		size_t out_len = size - produced;
+		size_t in_len = s->input_size - s->input_pos;
+		size_t old_produced = produced;
+		size_t old_in_pos = s->input_pos;
+
+		decompress_ret = LZ4F_decompress(s->dctx,
+						 (uint8_t *)buffer + produced, &out_len,
+						 s->input_src + s->input_pos, &in_len,
+						 NULL);
+		if (LZ4F_isError(decompress_ret)) {
+			ERROR("LZ4F_decompress failed: %s", LZ4F_getErrorName(decompress_ret));
+			return -1;
+		}
+
+		produced += out_len;
+		s->input_pos += in_len;
+
+		if (old_produced == produced && old_in_pos == s->input_pos) {
+			ERROR("LZ4F_decompress made no progress");
+			return -1;
+		}
+
+		if (decompress_ret == 0) {
+			ds->eof = true;
+			break;
+		}
+	} while (produced == 0 && !ds->eof);
+
+	return produced;
+}
+
+#endif
+
 static int hash_compare(void *dgst, unsigned char *hash)
 {
 	/*
@@ -554,7 +621,7 @@ int copyfile(struct swupdate_copy *args)
 		.outlen = 0, .eof = false
 	};
 
-#if defined(CONFIG_GUNZIP) || defined(CONFIG_ZSTD) || defined(CONFIG_XZ)
+#if defined(CONFIG_GUNZIP) || defined(CONFIG_ZSTD) || defined(CONFIG_XZ) || defined(CONFIG_LZ4)
 	struct DecompressState decompress_state = {
 		.upstream_step = NULL, .upstream_state = NULL,
 		.impl_state = NULL
@@ -581,6 +648,14 @@ int copyfile(struct swupdate_copy *args)
 	struct ZstdState zstd_state = {
 		.dctx = NULL,
 		.input_view = { NULL, 0, 0 },
+	};
+#endif
+#ifdef CONFIG_LZ4
+	struct Lz4State lz4_state = {
+		.dctx = NULL,
+		.input_src = NULL,
+		.input_size = 0,
+		.input_pos = 0,
 	};
 #endif
 #endif
@@ -691,6 +766,21 @@ int copyfile(struct swupdate_copy *args)
 			decompress_state.impl_state = &zstd_state;
 		} else
 #endif
+#ifdef CONFIG_LZ4
+		if (args->compressed == COMPRESSED_LZ4) {
+			size_t create_ret;
+
+			create_ret = LZ4F_createDecompressionContext(&lz4_state.dctx, LZ4F_VERSION);
+			if (LZ4F_isError(create_ret)) {
+				ERROR("LZ4F_createDecompressionContext failed: %s",
+				      LZ4F_getErrorName(create_ret));
+				ret = -EFAULT;
+				goto copyfile_exit;
+			}
+			decompress_step = &lz4_step;
+			decompress_state.impl_state = &lz4_state;
+		} else
+#endif
 		{
 			TRACE("Requested decompression method (%d) is not configured!", args->compressed);
 			ret = -EINVAL;
@@ -724,7 +814,7 @@ int copyfile(struct swupdate_copy *args)
 		state = &decrypt_state;
 	}
 
-#if defined(CONFIG_GUNZIP) || defined(CONFIG_ZSTD) || defined(CONFIG_XZ)
+#if defined(CONFIG_GUNZIP) || defined(CONFIG_ZSTD) || defined(CONFIG_XZ) || defined(CONFIG_LZ4)
 	if (args->compressed) {
 		decompress_state.upstream_step = step;
 		decompress_state.upstream_state = state;
@@ -804,6 +894,11 @@ copyfile_exit:
 #ifdef CONFIG_ZSTD
 	if (zstd_state.dctx != NULL) {
 		ZSTD_freeDStream(zstd_state.dctx);
+	}
+#endif
+#ifdef CONFIG_LZ4
+	if (lz4_state.dctx != NULL) {
+		LZ4F_freeDecompressionContext(lz4_state.dctx);
 	}
 #endif
 
