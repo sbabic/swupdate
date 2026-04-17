@@ -503,16 +503,13 @@ static int parse_common_attributes(parsertype p, void *elem, struct img_type *im
 	}
 
 	if ((compressed = get_field_string(p, elem, "compressed")) != NULL) {
-		if (!strcmp(compressed, "zlib")) {
-			image->compressed = COMPRESSED_ZLIB;
-		} else if (!strcmp(compressed, "xz")) {
-			image->compressed = COMPRESSED_XZ;
-		} else if (!strcmp(compressed, "zstd")) {
-			image->compressed = COMPRESSED_ZSTD;
-		} else {
+		int ctype;
+
+		if (compressed_string_to_type(compressed, &ctype) < 0) {
 			ERROR("compressed argument: '%s' unknown", compressed);
 			return -1;
 		}
+		image->compressed = ctype;
 	} else {
 		bool img_compressed = false;
 		GET_FIELD_BOOL(p, elem, "compressed", &img_compressed);

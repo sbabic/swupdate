@@ -28,82 +28,117 @@
 #define LUA_PARSER	(CONFIG_EXTPARSERNAME)
 #endif
 
+typedef void (*stream_handler_fn)(struct img_type *img, const char *value);
+
+struct stream_handler_entry {
+	const char *key;
+	stream_handler_fn handler;
+};
+
+DEFINE_IMG_STRLCPY_SETTER(sw_set_type, type)
+DEFINE_IMG_STRLCPY_SETTER(sw_set_name, id.name)
+DEFINE_IMG_STRLCPY_SETTER(sw_set_version, id.version)
+DEFINE_IMG_STRLCPY_SETTER(sw_set_mtdname, mtdname)
+DEFINE_IMG_STRLCPY_SETTER(sw_set_filesystem, filesystem)
+DEFINE_IMG_STRLCPY_SETTER(sw_set_volume, volname)
+DEFINE_IMG_STRLCPY_SETTER(sw_set_device, device)
+DEFINE_IMG_STRLCPY_SETTER(sw_set_path, path)
+
+static void sw_set_filename(struct img_type *img, const char *value)
+{
+	strlcpy(img->fname, value, sizeof(img->fname));
+	img->skip = SKIP_NONE;
+}
+
+static void sw_set_offset(struct img_type *img, const char *value)
+{
+	char seek_str[MAX_SEEK_STRING_SIZE];
+
+	strlcpy(seek_str, value, sizeof(seek_str));
+	/* convert the offset handling multiplicative suffixes */
+	img->seek = ustrtoull(seek_str, NULL, 0);
+	if (errno) {
+		ERROR("offset argument: ustrtoull failed");
+	}
+}
+
+static void sw_set_script(struct img_type *img, const char *value)
+{
+	(void)value;
+	img->is_script = 1;
+}
+
+static void sw_set_sha256(struct img_type *img, const char *value)
+{
+	ascii_to_hash(img->sha256, value);
+}
+
+static void sw_set_encrypted(struct img_type *img, const char *value)
+{
+	(void)value;
+	img->is_encrypted = true;
+}
+
+static void sw_set_compressed(struct img_type *img, const char *value)
+{
+	if (value == NULL || compressed_string_to_type(value, &img->compressed) < 0) {
+		img->compressed = COMPRESSED_TRUE;
+	}
+
+}
+
+static void sw_set_install_directly(struct img_type *img, const char *value)
+{
+	(void)value;
+	img->install_directly = 1;
+}
+
+static void sw_set_install_if_different(struct img_type *img, const char *value)
+{
+	(void)value;
+	img->id.install_if_different = 1;
+}
+
+static void sw_set_install_if_higher(struct img_type *img, const char *value)
+{
+	(void)value;
+	img->id.install_if_higher = 1;
+}
+
+static const struct stream_handler_entry handlers[] = {
+	{ "type", sw_set_type },
+	{ "filename", sw_set_filename },
+	{ "name", sw_set_name },
+	{ "version", sw_set_version },
+	{ "mtdname", sw_set_mtdname },
+	{ "dest", sw_set_mtdname },
+	{ "filesystem", sw_set_filesystem },
+	{ "volume", sw_set_volume },
+	{ "device_id", sw_set_device },
+	{ "device", sw_set_device },
+	{ "offset", sw_set_offset },
+	{ "script", sw_set_script },
+	{ "path", sw_set_path },
+	{ "sha256", sw_set_sha256 },
+	{ "encrypted", sw_set_encrypted },
+	{ "compressed", sw_set_compressed },
+	{ "installed-directly", sw_set_install_directly },
+	{ "install-if-different", sw_set_install_if_different },
+	{ "install-if-higher", sw_set_install_if_higher },
+};
+
 static void sw_append_stream(struct img_type *img, const char *key,
 	       const char *value)
 {
-	const char offset[] = "offset";
-	char seek_str[MAX_SEEK_STRING_SIZE];
+	size_t i;
 
-	if (!strcmp(key, "type"))
-		strlcpy(img->type, value,
-			sizeof(img->type));
-	if (!strcmp(key, "filename")) {
-		strlcpy(img->fname, value,
-			sizeof(img->fname));
-		img->skip = SKIP_NONE;
+	for (i = 0; i < sizeof(handlers) / sizeof(handlers[0]); i++) {
+		if (strcmp(key, handlers[i].key))
+			continue;
+
+		handlers[i].handler(img, value);
+		return;
 	}
-	if (!strcmp(key, "name")) {
-		strlcpy(img->id.name, value,
-			sizeof(img->id.name));
-	}
-	if (!strcmp(key, "version")) {
-		strlcpy(img->id.version, value,
-			sizeof(img->id.version));
-	}
-	if (!strcmp(key, "mtdname") || !strcmp(key, "dest"))
-		strlcpy(img->mtdname, value,
-			sizeof(img->mtdname));
-	if (!strcmp(key, "filesystem"))
-		strlcpy(img->filesystem, value,
-			sizeof(img->filesystem));
-	if (!strcmp(key, "volume"))
-		strlcpy(img->volname, value,
-			sizeof(img->volname));
-	if (!strcmp(key, "device_id"))
-		strlcpy(img->device, value,
-			sizeof(img->device));
-	if (!strcmp(key, "device"))
-		strlcpy(img->device, value,
-			sizeof(img->device));
-	if (!strncmp(key, offset, sizeof(offset))) {
-		strlcpy(seek_str, value,
-			sizeof(seek_str));
-		/* convert the offset handling multiplicative suffixes */
-		img->seek = ustrtoull(seek_str, NULL, 0);
-		if (errno){
-			ERROR("offset argument: ustrtoull failed");
-		}
-	}
-	if (!strcmp(key, "script"))
-		img->is_script = 1;
-	if (!strcmp(key, "path"))
-		strlcpy(img->path, value,
-			sizeof(img->path));
-	if (!strcmp(key, "sha256"))
-		ascii_to_hash(img->sha256, value);
-	if (!strcmp(key, "encrypted"))
-		img->is_encrypted = true;
-	if (!strcmp(key, "compressed")) {
-		if (value != NULL) {
-			if (!strcmp(value, "zlib")) {
-				img->compressed = COMPRESSED_ZLIB;
-			} else if (!strcmp(value, "xz")) {
-				img->compressed = COMPRESSED_XZ;
-			} else if (!strcmp(value, "zstd")) {
-				img->compressed = COMPRESSED_ZSTD;
-			} else {
-				img->compressed = COMPRESSED_TRUE;
-			}
-		} else {
-			img->compressed = COMPRESSED_TRUE;
-		}
-	}
-	if (!strcmp(key, "installed-directly"))
-		img->install_directly = 1;
-	if (!strcmp(key, "install-if-different"))
-		img->id.install_if_different = 1;
-	if (!strcmp(key, "install-if-higher"))
-		img->id.install_if_higher = 1;
 }
 
 int parse_external(struct swupdate_cfg *software, const char *filename,
