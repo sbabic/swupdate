@@ -919,15 +919,6 @@ static void test_seek(void **state)
 	run_flash_test(state, 0);
 }
 
-static void test_seek_not_multiple_of_eb_size(void **state)
-{
-	image.seek = 8;
-	mtd_ubi_info_s.mtd.eb_size = 16;
-	test_init();
-	copy_flash_state();
-	run_flash_test(state, -EINVAL);
-}
-
 static void test_not_enough_flash(void **state)
 {
 	image.seek = 16;
@@ -1641,7 +1632,6 @@ int main(void)
 		TEST(skip_write_page_empty_bytes),
 		TEST(padding_more_than_page),
 		TEST(seek),
-		TEST(seek_not_multiple_of_eb_size),
 		TEST(not_enough_flash),
 		TEST(invalid_mtd_device),
 		TEST(invalid_image_size),

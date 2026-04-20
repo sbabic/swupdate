@@ -113,6 +113,10 @@ struct flash_priv {
 	int filebuf_len;
 	/* An offset within the erase block (data bytes) to write from: */
 	int writebuf_offset;
+	/* Start offset (it is img->seek) */
+	off_t start_offset;
+	/* Detect if this is first run to handle start_offset */
+	bool first_run;
 	/* Current flash erase block: */
 	int eb;
 	/*
@@ -392,6 +396,53 @@ static int flash_write(void *out, const void *buf, size_t len)
 	int ret;
 	struct flash_priv *priv = (struct flash_priv *)out;
 	const unsigned char **pbuf = (const unsigned char**)&buf;
+	void *rdbuf = NULL;
+	unsigned char *read_modify_buf;
+
+	/* 
+	 * If we want to write to an offset not aligned
+	 * with sectore, create a new buffer by reading data from the device
+	 * until the offset and concatenate with the received data
+	 * to get again data aligned with sector start.
+	 */
+	if (priv->first_run) {
+		/*
+		 * Check if offset is not aligned with sector
+		 */
+		if (priv->start_offset & (priv->mtd->eb_size - 1)) {
+			int rdlen = priv->start_offset %  priv->mtd->eb_size;
+			read_modify_buf = (unsigned char *)malloc(rdlen + len);
+			if (!read_modify_buf) {
+				ERROR("OOM to allocate %lu bytes of memory", rdlen + len);
+				return -ENOMEM;
+			}
+			rdbuf = read_modify_buf;
+			/* We can use fdout because we have not yet written into it */
+			if (lseek(priv->fdout, priv->mtd->eb_size * priv->eb, SEEK_SET) < 0) {
+				ERROR("lseek error by resetting MTD file descriptor");
+				free(read_modify_buf);
+				return -EIO;
+			}
+			ret = read(priv->fdout, read_modify_buf, rdlen);
+			if (ret < 0) {
+				ERROR("Cannot read back from mtd%d", priv->mtdnum);
+				free(read_modify_buf);
+				return -EIO;
+			}
+			if (lseek(priv->fdout, 0, SEEK_SET) < 0) {
+				ERROR("lseek error by resetting MTD file descriptor");
+				free(read_modify_buf);
+				return -EIO;
+			}
+			/*
+			 * Concatenate the data
+			 */
+			memcpy(&read_modify_buf[rdlen], buf, len);
+			pbuf = (const unsigned char**)&read_modify_buf;
+			len += rdlen;
+			priv->first_run = false;
+		}
+	}
 
 	while ((len > 0) || flash_has_pending_data(priv)) {
 		unsigned char *wbuf;
@@ -467,6 +518,9 @@ static int flash_write(void *out, const void *buf, size_t len)
 		}
 	}
 
+	if (rdbuf) {
+		free(rdbuf);
+	}
 	return 0;
 }
 
@@ -507,13 +561,6 @@ static int flash_write_image(int mtdnum, struct img_type *img)
 	if (!mtd_dev_present(flash->libmtd, mtdnum)) {
 		ERROR("MTD %d does not exist", mtdnum);
 		return -ENODEV;
-	}
-
-	if (img->seek & (priv.mtd->eb_size - 1)) {
-		ERROR("The start address is not erase-block-aligned!\n"
-		      "The erase block of this flash is 0x%x.\n",
-		      priv.mtd->eb_size);
-		return -EINVAL;
 	}
 
 	priv.imglen = get_output_size(img, true);
@@ -562,9 +609,11 @@ static int flash_write_image(int mtdnum, struct img_type *img)
 	priv.filebuf_len = 0;
 	priv.writebuf_offset = 0;
 	priv.eb = (int)(img->seek / priv.mtd->eb_size);
+	priv.start_offset = img->seek;
 	priv.eb_end = (int)(priv.mtd->size / priv.mtd->eb_size);
 	priv.check_bad = true;
 	priv.check_locked = true;
+	priv.first_run = true;
 
 	ret = priv.filebuf_size;
 	if (!priv.is_nand)
