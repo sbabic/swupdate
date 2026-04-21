@@ -279,12 +279,7 @@ static int json_push_to_table(lua_State *L, json_object *jsobj)
 {
 	switch (json_object_get_type(jsobj)) {
 	case json_type_string: {
-		/* Unquote JSON string to push it unquoted to Lua. */
-		char *trimmed = strdupa(json_object_to_json_string(jsobj));
-		trimmed = trimmed[0] == '"' ? trimmed + 1 : trimmed;
-		size_t len = strlen(trimmed);
-		trimmed[len - 1] = trimmed[len - 1] == '"' ? '\0' : trimmed[len - 1];
-		lua_pushstring(L, trimmed);
+		lua_pushstring(L, json_object_get_string(jsobj));
 		break;
 	}
 	case json_type_boolean:
