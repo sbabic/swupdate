@@ -99,7 +99,7 @@ static int mbedtls_HASH_final(void *ctx, unsigned char *md_value,
 		*md_len = mbedtls_md_get_size(dgst->mbedtls_md_context.md_info);
 #endif
 	}
-	return 1;
+	return 0;
 
 }
 

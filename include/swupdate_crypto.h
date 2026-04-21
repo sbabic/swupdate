@@ -46,6 +46,10 @@ typedef struct {
 	void (*DECRYPT_cleanup)(void *ctx);
 } swupdate_decrypt_lib;
 
+/*
+ * Return:
+ *  0 on success, < 0 on error
+ */
 typedef struct {
 	void *(*HASH_init)(const char *SHAlength);
 	int (*HASH_update)(void *ctx, const unsigned char *buf, size_t len);
