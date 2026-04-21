@@ -87,7 +87,10 @@ static int openssl_HASH_final(void *ctx, unsigned char *md_value,
 	if (!dgst)
 		return -EFAULT;
 
-	return EVP_DigestFinal_ex (dgst->ctx, md_value, md_len);
+	if (EVP_DigestFinal_ex (dgst->ctx, md_value, md_len) != 1)
+		return -EIO;
+
+	return 0;
 
 }
 
