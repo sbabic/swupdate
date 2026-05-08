@@ -45,7 +45,7 @@ static int grubenv_open(struct grubenv_t *grubenv)
 	}
 
 	/* grubenv is a block of 'size' bytes not null-terminated, and this is a
-	 * problem when using strtok, which is expecting a null-terminated
+	 * problem when using strchr, which is expecting a null-terminated
 	 * string. Allocate an extra byte to terminate the buffer or strtok will
 	 * overrun it and use calloc() to get a cleared buffer.
 	 * . */
@@ -68,39 +68,45 @@ static int grubenv_open(struct grubenv_t *grubenv)
 		goto cleanup;
 	}
 
-	/* load key - value pairs from buffer into dictionary list */
-	/* Following approach fails if grubenv block contains empty variable,
-	 * such as `var=`. GRUB env tool allows this situation to happen so it
-	 * should probably be reconsidered. dict_set_value seems to cannot
-	 * assign NULL to a variable, which complicates things a little bit?
+	/* load key - value pairs from buffer into dictionary list
+	 * To keep things simple, it is assumed that values do not contain newlines,
+	 * but they may be empty. Also, escape sequences aren't handled in any way.
 	 */
 	char *entry = buf;
-	char *p_char = buf;
-	while(*p_char != '\0') {
-		if (*p_char != '\n') {
-			p_char++;
-			continue;
-		}
+	while(*entry != '\0') {
+		char *equals = NULL;
+		char *newline = strchr(entry, '\n');
+
+		if (!newline)
+			break;
 
 		/* ignore comments */
 		if (*entry == '#') {
-			entry = p_char + 1;
-			p_char++;
+			entry = newline + 1;
 			continue;
 		}
 
-		key = strtok(entry, "=");
-		value = strtok(NULL, "\n");
-		if (value != NULL && key != NULL) {
+		equals = strchr(entry, '=');
+		if (!equals) {
+			/* invalid or empty line, skip it */
+			entry = newline + 1;
+			continue;
+		}
+
+		key = entry;
+		value = equals + 1;
+		*equals = *newline = '\0';
+
+		if (*key != '\0') {
 			ret = dict_set_value(&grubenv->vars, key, value);
 			if (ret) {
 				ERROR("Adding pair [%s] = %s into dictionary list"
 					"failed\n", key, value);
-				return ret;
+				goto cleanup;
 			}
 		}
-		entry = p_char + 1;
-		p_char++;
+
+		entry = newline + 1;
 	}
 
 cleanup:
