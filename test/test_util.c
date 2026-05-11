@@ -39,12 +39,23 @@ static void test_util_ustrtoull(void **state)
 	assert_string_equal(suffix, ", some fancy things");
 }
 
+static void test_util_is_filename_valid(void **state)
+{
+	(void)state;
+	assert_true(is_filename_valid("a.swu"));
+	assert_true(is_filename_valid( "sub/d.swu"));
+	assert_false(is_filename_valid("/c.swu"));
+	assert_false(is_filename_valid("../b.swu"));
+	assert_false(is_filename_valid("sub/../e.swu"));
+}
+
 int main(void)
 {
 	int error_count = 0;
 	const struct CMUnitTest util_tests[] = {
 	    cmocka_unit_test(test_util_ustrtoull),
-	    cmocka_unit_test(test_util_size_delimiter_match)
+	    cmocka_unit_test(test_util_size_delimiter_match),
+	    cmocka_unit_test(test_util_is_filename_valid)
 	};
 	error_count += cmocka_run_group_tests_name("util", util_tests,
 						   util_setup, util_teardown);

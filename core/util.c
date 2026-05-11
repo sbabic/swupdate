@@ -1282,3 +1282,8 @@ bool check_same_file(int fd1, int fd2) {
     if(fstat(fd2, &stat2) < 0) return false;
     return (stat1.st_dev == stat2.st_dev) && (stat1.st_ino == stat2.st_ino);
 }
+
+bool is_filename_valid (const char *file_name)
+{
+	return file_name != NULL && file_name[0] != '/' && strstr(file_name, "../") == NULL;
+}

@@ -121,6 +121,11 @@ static int extract_file_to_tmp(int fd, const char *fname, unsigned long *poffs,
 			fdh.filename, fdh.size, max_size);
 		goto err;
 	}
+	if (!is_filename_valid(fdh.filename)) {
+		ERROR("%s is an invalid filename, aborting", fdh.filename);
+		return -1;
+	}
+
 	TRACE("Found file");
 	TRACE("\tfilename %s", fdh.filename);
 	TRACE("\tsize %u", (unsigned int)fdh.size);
@@ -259,6 +264,10 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 
 				if (skip != SKIP_FILE)
 					break;
+			}
+			if (!is_filename_valid(fdh.filename)) {
+				ERROR("%s is an invalid filename, aborting", fdh.filename);
+				return -1;
 			}
 
 			TRACE("Found file");
