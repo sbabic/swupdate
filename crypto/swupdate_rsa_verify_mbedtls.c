@@ -23,41 +23,16 @@
 
 static swupdate_dgst_lib	libs;
 
-static int read_file_into_buffer(uint8_t *buffer, int size, const char *filename)
-{
-	int fd;
-	ssize_t rd;
-	int result = -1;
-
-	fd = open(filename, O_RDONLY);
-	if (fd == -1) {
-		ERROR("Failed to open file \"%s\"", filename);
-		return -errno;
-	}
-
-	rd = read(fd, buffer, size);
-	if (rd != size) {
-		ERROR("Failed to read %d bytes from file \"%s\"", size, filename);
-		result = -EMSGSIZE;
-		goto exit;
-	}
-
-	result = 0;
-
-exit:
-	close(fd);
-	return result;
-}
-
 static int mbedtls_rsa_verify_file(void *ctx, const char *sigfile,
 		const char *file, const char *signer_name)
 {
 	struct mbedtls_digest *dgst = (struct mbedtls_digest *)ctx;
+	unsigned char *sigbuf = NULL;
+	size_t sigbuf_len = 0;
 	int error;
 	uint8_t hash_computed[32];
 	const mbedtls_md_info_t *md_info;
 	mbedtls_pk_type_t pk_type = MBEDTLS_PK_RSA;
-	uint8_t signature[256];
 	void *pss_options = NULL;
 	mbedtls_pk_rsassa_pss_options options = {
 		.mgf1_hash_id = MBEDTLS_MD_SHA256,
@@ -84,17 +59,18 @@ static int mbedtls_rsa_verify_file(void *ctx, const char *sigfile,
 		return error;
 	}
 
-	error = read_file_into_buffer(signature, sizeof(signature), sigfile);
+	error = read_file_into_buf(sigfile, &sigbuf, &sigbuf_len);
 	if (error) {
 		return error;
 	}
 
-	return mbedtls_pk_verify_ext(
+	int ret = mbedtls_pk_verify_ext(
 		pk_type, pss_options,
 		&dgst->mbedtls_pk_context, mbedtls_md_get_type(md_info),
 		hash_computed, sizeof(hash_computed),
-		signature, sizeof(signature)
-	);
+		sigbuf, sigbuf_len);
+	free(sigbuf);
+	return ret;
 }
 
 static int mbedtls_rsa_dgst_init(struct swupdate_cfg *sw, const char *keyfile)

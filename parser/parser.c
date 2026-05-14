@@ -1154,42 +1154,16 @@ int parse_cfg(struct swupdate_cfg *swcfg, const char *filename, char **error)
 
 int parse_json(struct swupdate_cfg *swcfg, const char *filename, char **error)
 {
-	int fd, ret;
-	struct stat stbuf;
-	unsigned int size;
-	char *string;
+	int ret;
+	size_t read_len = 0;
+	char *string = NULL;
 	json_object *cfg;
 	parsertype p = JSON_PARSER;
 
 	DEBUG("Parsing config file %s", filename);
-	/* Read the file. If there is an error, report it and exit. */
-	ret = stat(filename, &stbuf);
-
+	ret = read_file_into_buf(filename, (unsigned char **)&string, &read_len);
 	if (ret)
-		return -EBADF;
-
-	size = stbuf.st_size;
-	string = (char *)malloc(size+1);
-	if (!string)
-		return -ENOMEM;
-
-	fd = open(filename, O_RDONLY);
-	if (fd < 0) {
-		free(string);
-		return -EBADF;
-	}
-
-	ret = read(fd, string, size);
-	close(fd);
-	if (ret < 0) {
-		ret = -errno;
-		free(string);
 		return ret;
-	}
-	if (ret != size) {
-		ERROR("partial read of %s, proceeding anyway", filename);
-	}
-	string[ret] = '\0';
 
 	cfg = json_tokener_parse(string);
 	if (!cfg) {
