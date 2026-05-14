@@ -317,6 +317,7 @@ int set_version_range(const char *updatetype,
 
 int size_delimiter_match(const char *size);
 unsigned long long ustrtoull(const char *cp, char **endptr, unsigned int base);
+int read_file_into_buf(const char *filename, unsigned char **buffer, size_t *len);
 
 const char* get_tmpdir(void);
 const char* get_tmpdirscripts(void);

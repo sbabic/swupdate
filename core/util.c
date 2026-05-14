@@ -353,6 +353,64 @@ int openfileoutput(const char *filename)
 	return fdout;
 }
 
+int read_file_into_buf(const char *filename, unsigned char **buffer, size_t *len)
+{
+	struct stat st;
+	unsigned char *data = NULL;
+	int fd = -1;
+	ssize_t rd;
+	size_t offset = 0;
+
+	if (!buffer || !len)
+		return -EINVAL;
+
+	fd = open(filename, O_RDONLY);
+	if (fd < 0) {
+		ERROR("Failed to open file \"%s\"", filename);
+		return -errno;
+	}
+
+	if (fstat(fd, &st) < 0) {
+		ERROR("Failed to stat file \"%s\"", filename);
+		close(fd);
+		return -errno;
+	}
+
+	if (st.st_size < 0) {
+		close(fd);
+		return -EIO;
+	}
+
+	/* Allocate st.st_size + 1 so the buffer is always null-terminated
+	 * (useful for text callers; binary callers simply ignore the extra byte). */
+	data = calloc(1, st.st_size ? (size_t)st.st_size + 1 : 1U);
+	if (!data) {
+		close(fd);
+		return -ENOMEM;
+	}
+
+	while (offset < (size_t)st.st_size) {
+		rd = read(fd, data + offset, (size_t)st.st_size - offset);
+		if (rd < 0) {
+			ERROR("Failed to read file \"%s\"", filename);
+			free(data);
+			close(fd);
+			return -errno;
+		}
+		if (rd == 0) {
+			free(data);
+			close(fd);
+			return -EMSGSIZE;
+		}
+		offset += (size_t)rd;
+	}
+
+	close(fd);
+	*buffer = data;
+	*len = (size_t)st.st_size;
+	return 0;
+}
+
 int mkpath(char *dir, mode_t mode)
 {
 	if (!dir) {
