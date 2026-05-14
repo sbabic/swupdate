@@ -24,6 +24,7 @@ obj-$(CONFIG_HASH_VERIFY)	+= swupdate_HASH_mbedtls.o
 obj-$(CONFIG_ENCRYPTED_IMAGES)	+= swupdate_decrypt_mbedtls.o
 obj-$(CONFIG_SIGALG_RAWRSA)	+= swupdate_rsa_verify_mbedtls.o
 obj-$(CONFIG_SIGALG_RSAPSS)	+= swupdate_rsa_verify_mbedtls.o
+obj-$(CONFIG_SIGALG_CMS)	+= swupdate_pkcs7_verify_mbedtls.o
 endif
 ifeq ($(CONFIG_SSL_IMPL_GPGME),y)
 obj-$(CONFIG_SIGALG_GPG)	+= swupdate_gpg_verify.o
