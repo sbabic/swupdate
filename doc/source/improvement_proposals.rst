@@ -165,8 +165,6 @@ SWUGenerator is thought to support multiple subcommands, but it currently suppor
 It is thinkable, even if this can be done with other tools, to implement further commands like:
 
 - extract: take a SWU and extracts all artifacts in a directory
-- sign: take a SWU and resign with a new key. This is useful when it is required to install a new
-  Software, but the certificate or the key on the device is older and rejects the installation.
 - verify: just verify if the SWU is correctly signed.
 
 SWUGenerator does not yet support all features present in meta-swupdate. As replacement for meta-swupdate
@@ -176,15 +174,6 @@ to SWUGenerator.
 
 * Status: Wait
 * Request for Support : Sponsor
-* Priority : Medium
-
-LZMA support to SWUGenerator
-----------------------------
-
-XZ (LZMA) decompression was added to SWUpdate, but SWUGenerator is not able to create XZ compressed images.
-
-* Status: Wait
-* Request for Support : Not required
 * Priority : Medium
 
 swupdate-progress start up
@@ -204,7 +193,7 @@ installed or not.
 Lua
 ===
 
-- API between SWUpdate and Lua is poorly documented.
+- Improve documentation / add examples.
 - Store in SWUpdate's repo Lua libraries and common functions to be reused by projects.
 
 * Status : Running
@@ -247,12 +236,6 @@ Webserver that allows streaming.
 
 Security / Crypto engines
 =========================
-
-- add support for asymmetric decryption
-
-* Status: Wait
-* Request for Support : Sponsor
-* Priority : High
 
 - add more algorithms for decryption, as AES-CTR can be very useful to decrypt
   chunks in delta updates.
@@ -371,7 +354,7 @@ SWUpdate. This makes adding new binding very easy, and often not necessary.
 
 * Status: Wait
 * Request for Support : Sponsor
-* Priority : Low
+* Priority : Medium
 
 Bindings for other languages
 ----------------------------
@@ -463,6 +446,22 @@ thing, but supported by different libraries), and they should be solved.
 
 * Status: after 2025.05
 
+Support for asymmetric decryption
+---------------------------------
+
+It makes no sense to encrypt big artifacts with an asymettric key, but asymetric decription
+is realized by encrypting sw-description multiple times with a per-device (public) certificate.
+
+This allows to reach two main goal:
+
+- revocation list: if a device is compromised, next update won't contain the device.
+- dynamic / autometic deployment of the AES symmetric key: because sw-description is encrypted,
+  the AES key can be part of sw-description and only devices with a valid certificate can
+  retrieve it.
+
+* Status: since 2026.xx
+
+
 Backend: hawkBit support for Delta Update
 -----------------------------------------
 
@@ -486,3 +485,11 @@ process ("downloader") that don't use the setup from suricatta.
 
 * Status: since 2026.xx
 * Sponsored by Orica Digital Solutions
+
+SWUGenerator sign command
+-------------------------
+
+- sign: take a SWU and resign with a new key. This is useful when it is required to install a new
+  Software, but the certificate or the key on the device is older and rejects the installation.
+
+since version 0.6
