@@ -405,6 +405,16 @@ function M.utils.validate_json_schema(data, schema, path)
     return true
 end
 
+--- Test string for POSIX Portable Filename Character Set compliance.
+--
+-- Test whether `str` contains non-portable characters.
+--
+--- @param  str      string  string to check
+--- @return boolean          # Whether `str` contains non-portable characters
+local function has_posix_nonportable_chars(str)
+    return string.match(str, "[^A-Za-z0-9%._-]") ~= nil
+end
+
 -- ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
 -- ▏
 -- ▏  wfx Job Definitions & Types
@@ -1303,6 +1313,12 @@ M.job.workflow.dispatch:set(
             return M.transition.result.FAIL_YIELD
         end
 
+        if has_posix_nonportable_chars(job.id) then
+            local msg = "Invalid wfx job ID, only POSIX portable filename characters allowed"
+            suricatta.notify.error(msg)
+            return job.workflow:fail(job, msg)
+        end
+
         if not sync_job_status { self, job, message = ("Start %s."):format(self.from.name), progress = 0 } then
             return M.transition.result.FAIL_YIELD
         end
@@ -1464,6 +1480,12 @@ M.job.workflow.dispatch:set(
         local ok = is_pstate_ok(self, job)
         if not ok then
             return M.transition.result.FAIL_YIELD
+        end
+
+        if has_posix_nonportable_chars(job.id) then
+            local msg = "Invalid wfx job ID, only POSIX portable filename characters allowed"
+            suricatta.notify.error(msg)
+            return job.workflow:fail(job, msg)
         end
 
         if job.workflow.transitions[M.state.dau.DOWNLOAD] then
