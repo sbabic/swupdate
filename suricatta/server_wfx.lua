@@ -2182,7 +2182,7 @@ function M.suricatta_funcs.server_start(defaults, argv, fconfig)
         headers_to_send = M.utils.table.merge({
             ["X-Client-Version"] = M.device.version,
             ["X-Client-Id"] = M.device.id,
-        }, configuration.custom_http_headers)
+        }, configuration.custom_http_headers or {}),
     }, configuration))
     if not M.channel.main then
         suricatta.notify.error("Cannot initialize channel.")
