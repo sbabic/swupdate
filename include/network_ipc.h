@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <sys/types.h>
 #include "swupdate_status.h"
 
 #ifdef __cplusplus
