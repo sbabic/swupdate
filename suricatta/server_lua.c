@@ -1043,6 +1043,7 @@ static void join_progress_threads(pthread_t *thread, const char *thread_name)
  * @return [Lua] True, or, in case of error, nil.
  *         [Lua] A suricatta.status value.
  *         [Lua] Table with messages in case of error, else empty Table.
+ *         [Lua] Table with HTTP response code and headers.
  * @see lua_suricatta_{install,download}() for parameter details.
  *
  * @param  L      The Lua state.
@@ -1130,6 +1131,11 @@ static void do_install(lua_State *L, int fdout)
 		callback_data.thread_offloader = &_thread_progress_offloader;
 	}
 
+	/* Setup received HTTP headers dict. */
+	struct dict received_headers;
+	LIST_INIT(&received_headers);
+	channel_data.received_headers = &received_headers;
+
 	/* Perform the operation.... */
 	server_op_res_t result = map_channel_retcode(
 	    udc->channel->get_file(udc->channel, (void *)&channel_data));
@@ -1166,10 +1172,26 @@ static void do_install(lua_State *L, int fdout)
 		ipc_journal = NULL;
 	}
 
+	lua_newtable(L);
+	push_to_table(L, "http_response_code", channel_data.http_response_code);
+	lua_pushstring(L, "received_headers");
+	lua_newtable(L);
+	if (!LIST_EMPTY(channel_data.received_headers)) {
+		struct dict_entry *entry;
+		LIST_FOREACH(entry, channel_data.received_headers, next) {
+			lua_pushstring(L, dict_entry_get_key(entry));
+			lua_pushstring(L, dict_entry_get_value(entry));
+			lua_settable(L, -3);
+		}
+	}
+	lua_settable(L, -3);
+	dict_drop_db(&received_headers);
+
 	goto done;
 error:
 	lua_pushnil(L);
 	lua_pushinteger(L, SERVER_EINIT);
+	lua_newtable(L);
 	lua_newtable(L);
 done:
 	if (callback_data.progress_msgq_lock) {
@@ -1197,12 +1219,13 @@ done:
  * @return [Lua] True, or, in case of error, nil.
  *         [Lua] A suricatta.status value.
  *         [Lua] Table with messages in case of error, else empty Table.
+ *         [Lua] Table with HTTP response codes and headers.
  */
 static int lua_suricatta_install(lua_State *L)
 {
 	luaL_checktype(L, -1, LUA_TTABLE);
 	do_install(L, -1);
-	return 3;
+	return 4;
 }
 
 
@@ -1214,6 +1237,7 @@ static int lua_suricatta_install(lua_State *L)
  * @return [Lua] True, or, in case of error, nil.
  *         [Lua] A suricatta.status value.
  *         [Lua] Table with messages in case of error, else empty Table.
+ *         [Lua] Table with HTTP response codes and headers.
  */
 static int lua_suricatta_download(lua_State *L)
 {
@@ -1228,12 +1252,13 @@ static int lua_suricatta_download(lua_State *L)
 		lua_pushnil(L);
 		lua_pushinteger(L, SERVER_EINIT);
 		lua_newtable(L);
-		return 3;
+		lua_newtable(L);
+		return 4;
 	}
 	lua_pop(L, 1);
 	do_install(L, fdout);
 	(void)close(fdout);
-	return 3;
+	return 4;
 }
 
 

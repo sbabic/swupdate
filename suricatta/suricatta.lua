@@ -274,6 +274,15 @@ suricatta.channel = {
 --- @field drain_messages   boolean  | nil                   Whether to flush all progress messages or only those while in-flight operation (default)
 --- @field ∈                suricatta.channel.options | nil  Channel options to override for this operation
 
+--- Channel HTTP response table.
+--
+-- HTTP response information in return of a channel operation.
+--
+--- @class suricatta.channel_operation_response
+--- @field http_response_code  number
+--- @field received_headers    table<string, string>
+
+
 --- Install an update artifact from remote server or local file.
 --
 -- If the protocol specified in Table `install_channel`'s `url` field is `file://`,
@@ -286,6 +295,7 @@ suricatta.channel = {
 --- @return boolean                                       # Whether operation was successful or not
 --- @return suricatta.status                              # Suricatta return code
 --- @return table<number, string>                         # Error messages, if any
+--- @return suricatta.channel_operation_response          # if `nocheckanswer` is not set, HTTP response information, if any
 suricatta.install = function(install_channel) end
 
 --- Download an update artifact from remote server.
@@ -300,6 +310,7 @@ suricatta.install = function(install_channel) end
 --- @return boolean                                        # Whether operation was successful or not
 --- @return suricatta.status                               # Suricatta return code
 --- @return table<number, string>                          # Error messages, if any
+--- @return suricatta.channel_operation_response           # if `nocheckanswer` is not set, HTTP response information, if any
 suricatta.download = function(download_channel, localpath) end
 
 

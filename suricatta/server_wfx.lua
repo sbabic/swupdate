@@ -1330,7 +1330,15 @@ M.job.workflow.dispatch:set(
                 artifact.name,
                 source_uri
             )
-            local res, _, updatelog = suricatta.download({ channel = M.channel.main, url = source_uri }, target_uri)
+            local res, _, updatelog, response = suricatta.download({ channel = M.channel.main, url = source_uri }, target_uri)
+            if response ~= {} then
+                suricatta.notify.trace("Got HTTP response code %d from server.", response.http_response_code)
+                if response.received_headers then
+                    for k, v in pairs(response.received_headers) do
+                        suricatta.notify.trace("Got HTTP response header: %s = %s", k, v)
+                    end
+                end
+            end
             if not res then
                 local msg = ("Error downloading artifact %d/%d."):format(count, #job.definition.artifacts)
                 suricatta.notify.error(msg)
@@ -1511,11 +1519,19 @@ M.job.workflow.dispatch:set(
                 artifact.name,
                 source_uri
             )
-            local res, _, updatelog = suricatta.install({ 
+            local res, _, updatelog, response = suricatta.install({
                 channel = M.channel.main,
                 url = source_uri, 
                 dry_run = job.definition:is_dry_run()
             })
+            if response ~= {} then
+                suricatta.notify.trace("Got HTTP response code %d from server.", response.http_response_code)
+                if response.received_headers then
+                    for k, v in pairs(response.received_headers) do
+                        suricatta.notify.trace("Got HTTP response header: %s = %s", k, v)
+                    end
+                end
+            end
             -- Unconditionally remove the artifact file ignoring errors, e.g., if run in streaming mode.
             os.remove(("%s%s_%d.swu"):format(suricatta.get_tmpdir(), job.id, count))
             if not res then
