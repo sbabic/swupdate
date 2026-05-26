@@ -452,8 +452,8 @@ static int pkcs7_verify_with_signed_attrs(unsigned char *sigbuf, size_t sigbuf_l
 		}
 
 		/* Step 2: messageDigest attribute must equal hash(content) */
-		const unsigned char *md_attr_val;
-		size_t md_attr_len;
+		const unsigned char *md_attr_val = NULL;
+		size_t md_attr_len = 0;
 		if (pkcs7_find_attr(sa_value, sa_value_len,
 					OID_MSG_DIGEST,
 					sizeof(OID_MSG_DIGEST) - 1,
