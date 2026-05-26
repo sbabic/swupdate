@@ -42,7 +42,6 @@ $_SUDO apt-get -qq update && apt-get install --yes --no-install-recommends \
         libjson-c-dev \
         liblua5.2-dev \
         libluajit-5.1-dev \
-        libmbedtls-dev \
         libp11-kit-dev \
         librsync-dev \
         libssl-dev \
@@ -66,6 +65,7 @@ $_SUDO apt-get -qq update && apt-get install --yes --no-install-recommends \
 if ! grep -qP "VERSION_CODENAME=(jammy|bookworm)" /etc/os-release; then
     $_SUDO apt-get -qq update && apt-get install --yes --no-install-recommends \
             libebgenv-dev \
+            libmbedtls-dev \
             libmtd-dev \
             libubi-dev \
             libubootenv-dev \

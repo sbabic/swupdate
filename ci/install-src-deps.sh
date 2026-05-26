@@ -15,6 +15,17 @@ if [ $(id -u) = 0 ]; then
     _SUDO=
 fi
 
+install_mbedtls() {
+    rm -rf /tmp/mbedtls
+    git clone https://github.com/Mbed-TLS/mbedtls.git /tmp/mbedtls
+    cd /tmp/mbedtls
+    git checkout v3.6.6
+    git submodule update --init
+    cmake -DENABLE_TESTING=OFF -DENABLE_PROGRAMS=OFF .
+    cmake --build .
+    $_SUDO cmake --install .
+}
+
 install_mtd_utils() {
     $_SUDO mkdir -p /usr/local/lib
     $_SUDO mkdir -p /usr/local/include
@@ -61,6 +72,7 @@ install_zchunk() {
     $_SUDO meson install -C build
 }
 
+install_mbedtls
 install_mtd_utils
 install_libubootenv
 install_efibootguard
