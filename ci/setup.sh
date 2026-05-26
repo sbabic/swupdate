@@ -61,8 +61,8 @@ $_SUDO apt-get -qq update && apt-get install --yes --no-install-recommends \
 	xxd \
         zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
-# packages are too old in Ubuntu Jammy and Debian Bookworm
-if ! grep -qP "VERSION_CODENAME=(jammy|bookworm)" /etc/os-release; then
+# packages are too old in Ubuntu Noble and Debian Bookworm
+if ! grep -qP "VERSION_CODENAME=(noble|bookworm)" /etc/os-release; then
     $_SUDO apt-get -qq update && apt-get install --yes --no-install-recommends \
             libebgenv-dev \
             libmbedtls-dev \
