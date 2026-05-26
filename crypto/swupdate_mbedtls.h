@@ -16,7 +16,9 @@
 #include <mbedtls/cipher.h>
 #include <mbedtls/version.h>
 #include <mbedtls/oid.h>
+#if defined(CONFIG_SIGALG_CMS)
 #include <mbedtls/pkcs7.h>
+#endif
 #if defined(MBEDTLS_USE_PSA_CRYPTO)
 #include <psa/crypto.h>
 #endif
@@ -24,7 +26,9 @@
 struct mbedtls_digest {
 	mbedtls_md_context_t mbedtls_md_context;
 	mbedtls_pk_context mbedtls_pk_context;
+#if defined(CONFIG_SIGALG_CMS)
 	mbedtls_x509_crt trusted_certs;
+#endif
 	mbedtls_cipher_context_t mbedtls_cipher_context;
 	int cert_purpose;
 };
