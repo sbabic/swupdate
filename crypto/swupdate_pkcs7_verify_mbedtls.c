@@ -2,6 +2,8 @@
 //
 // SPDX-License-Identifier: GPL-2.0-only
 
+#include <mbedtls/version.h>
+#if defined(CONFIG_SIGALG_CMS) && MBEDTLS_VERSION_NUMBER >= 0x03040000
 #include <errno.h>
 #include <fcntl.h>
 #include <stdbool.h>
@@ -743,3 +745,6 @@ static void mbedtls_pkcs7_dgst(void)
 	libs.verify_file = mbedtls_pkcs7_verify_file;
 	(void)register_dgstlib("pkcs#7mbedtls", &libs);
 }
+#else
+#warning "mbedtls is too old, pkcs#7 with mbedtls is disabled."
+#endif
