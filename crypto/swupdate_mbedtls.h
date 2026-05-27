@@ -16,7 +16,6 @@
 #include <mbedtls/cipher.h>
 #include <mbedtls/version.h>
 #include <mbedtls/oid.h>
-#include <mbedtls/version.h>
 #if defined(CONFIG_SIGALG_CMS) && MBEDTLS_VERSION_NUMBER >= 0x03040000
 #include <mbedtls/pkcs7.h>
 #endif
