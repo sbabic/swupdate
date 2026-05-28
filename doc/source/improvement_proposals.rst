@@ -128,9 +128,12 @@ multiple devices, and each of them needs a subset of the whole SWU. Like the del
 SWUpdate knows from sw-description which artifacts are to be installed, and reading the stream
 could decide to skip unnecessary components.
 
+Note: this feature is not the same than delta update, but most users are happier with delta update.
+This feature request will be removed in next release if there won't be interest.
+
 * Status: Wait
 * Request for Support : Sponsor
-* Priority : Medium
+* Priority : Low
 
 Tools and utilities
 ===================
@@ -230,6 +233,14 @@ However, upgrading the Webserver code requires to adjust the interface and code.
 will be nice to have further implementation of the Webserver, and/or to open to
 Webserver that allows streaming.
 
+Reported from ML there is this place for enhancement:
+
+- use Mopngoose as library
+- use alternative Webserver. Civetweb is a fork from Mongoose and could be integrated.
+- Webserver itself is not doing a lot - it just provides API to push a SWU and Websocket to report progress.
+  If SWUpdate is behind a reverse-proxy, an easy own developed internal Webserver
+  can be a solution.
+
 * Status: Wait
 * Request for Support : Sponsor
 * Priority : Medium
@@ -237,18 +248,36 @@ Webserver that allows streaming.
 Security / Crypto engines
 =========================
 
-- add more algorithms for decryption, as AES-CTR can be very useful to decrypt
-  chunks in delta updates.
+- Support for encrypted Delta Update:
+
+  Remote ZCK files are not encrypted because a chunk difference is evaluated.
+  A mechanism can be implemented to encrypt chunks as well.
 
 * Status: Wait
 * Request for Support : Sponsor
 * Priority : High
 
-- Support for TPM2 / HSM to store secrets (requires rework above).
+- add more algorithms for decryption nea AES-CBC
 
 * Status: Wait
 * Request for Support : Sponsor
 * Priority : High
+
+- Support for TPM2 / HSM to store secrets.
+
+* Status: Wait
+* Request for Support : Sponsor
+* Priority : High
+
+- Support for Linux Trusted Keys
+
+  Linux Kernel has introduced "trusted keys" and the keys are never exposed to User Space.
+  Currently, SWUpdate reads keys at the start up from files.
+
+* Status: Wait
+* Request for Support : Sponsor
+* Priority : High
+
 
 Back-end support (suricatta mode)
 =================================
@@ -326,7 +355,7 @@ and tested on real hardware.
 
 * Status: Wait
 * Request for Support : Sponsor
-* Priority : Medium
+* Priority : High
 
 Bootloader interface
 ====================
@@ -346,6 +375,16 @@ Binding to languages
 libswupdate allows to write an application that can control SWUpdate's behavior and be informed
 about a running update. There are bindings for C/C++, Lua and nodejs (just progress).
 
+Applications can be written in other languages, and binding to Python and Rust can be
+implemented, too.
+
+* Status: Wait
+* Request for Support : Sponsor
+* Priority : Low
+
+IPC / Daemon control
+====================
+
 Use a JSON interface to exchange IPC messeges.
 ----------------------------------------------
 
@@ -355,16 +394,6 @@ SWUpdate. This makes adding new binding very easy, and often not necessary.
 * Status: Wait
 * Request for Support : Sponsor
 * Priority : Medium
-
-Bindings for other languages
-----------------------------
-
-Applications can be written in other languages, and binding to Python and Rust can be
-implemented, too.
-
-* Status: Wait
-* Request for Support : Sponsor
-* Priority : Low
 
 Documentation
 =============
@@ -445,6 +474,7 @@ Some hacks are currently built to avoid conflicts (pkcs#7 and CMS are the same
 thing, but supported by different libraries), and they should be solved.
 
 * Status: after 2025.05
+* Sponsored by iris-GmbH infrared & intelligent sensors
 
 Support for asymmetric decryption
 ---------------------------------
@@ -460,7 +490,7 @@ This allows to reach two main goal:
   retrieve it.
 
 * Status: since 2026.xx
-
+* Sponsored by iris-GmbH infrared & intelligent sensors
 
 Backend: hawkBit support for Delta Update
 -----------------------------------------
