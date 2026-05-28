@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Asymmetrically Encrypted Update Images &mdash; Embedded Software Update Documentation 2025.12 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=86f27845" />
+
+  
+    <link rel="shortcut icon" href="_static/SWUpdate.ico"/>
+  
+        <script src="_static/jquery.js?v=8dae8fb0"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=50a9be24"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Handlers" href="handlers.html" />
+    <link rel="prev" title="Symmetrically Encrypted Update Images" href="encrypted_images.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Embedded Software Update Documentation
+          </a>
+              <div class="version">
+                2025.12
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Software Management on embedded systems</a></li>
+<li class="toctree-l1"><a class="reference internal" href="licensing.html">License</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="swupdate.html">SWUpdate: software update for embedded system</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scenarios.html">Update strategy examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sw-description.html">SWUpdate: syntax and tags with the default parser</a></li>
+<li class="toctree-l1"><a class="reference internal" href="signed_images.html">Update images from verified source</a></li>
+<li class="toctree-l1"><a class="reference internal" href="encrypted_images.html">Symmetrically Encrypted Update Images</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Asymmetrically Encrypted Update Images</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#use-cases">Use Cases</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#create-a-self-signed-device-key-pair">Create a Self-Signed Device Key Pair</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#symmetric-encryption-of-artifacts">Symmetric Encryption of Artifacts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#encryption-of-sw-description-for-multiple-devices">Encryption of sw-description for Multiple Devices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#decryption-of-sw-description-for-a-single-device">Decryption of sw-description for a Single Device</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#example-asymmetrically-encrypted-image">Example Asymmetrically Encrypted Image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-swupdate-with-asymmetrically-encrypted-images">Running SWUpdate with Asymmetrically Encrypted Images</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#security-considerations">Security Considerations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="handlers.html">Handlers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mongoose.html">Mongoose daemon mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="suricatta.html">Suricatta daemon mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="hawkbit-setup.html">Config for hawkBit under SSL/TLS using private CA / sub CA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-ipc-interface.html">SWUpdate: API for external programs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="progress.html">Getting information on running update</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bindings.html">Language Bindings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bootloader_interface.html">Bootloader Interface</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building-with-yocto.html">meta-swupdate: building with Yocto</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-best-practise.html">SWUpdate Best Practice</a></li>
+<li class="toctree-l1"><a class="reference internal" href="delta-update.html">Delta Update with SWUpdate</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-client.html">swupdate-client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-progress.html">swupdate-progress</a></li>
+<li class="toctree-l1"><a class="reference internal" href="swupdate-ipc.html">swupdate-ipc</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="help_and_support.html">Help and support</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to SWUpdate</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="improvement_proposals.html">Proposals to improve SWUpdate</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="previous-releases.html">Documentation for previous releases</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Embedded Software Update Documentation</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Asymmetrically Encrypted Update Images</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/asym_encrypted_images.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="asymmetrically-encrypted-update-images">
+<h1>Asymmetrically Encrypted Update Images<a class="headerlink" href="#asymmetrically-encrypted-update-images" title="Link to this heading"></a></h1>
+<p>Asymmetrically encrypted update images are realized by an asymmetrical
+encrypted sw-description, making it possible to decrypt images device specific.
+The artifacts themselves are still encrypted symmetrically. An AES key must be
+provided in the sw-description. At the moment only Cryptographic Message Syntax
+(CMS) is available for asymmetic decryption.</p>
+<section id="use-cases">
+<h2>Use Cases<a class="headerlink" href="#use-cases" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Asymmetrically encrypted update images, with individual device key pairs, are
+inherently more secure than a purely symmetrical solution, because one
+compromised private device key does not affect the security of the others.</p></li>
+<li><p>If <code class="docutils literal notranslate"><span class="pre">CONFIG_SIGNED_IMAGES</span></code> is enabled too and a device’s private key is
+compromised, the key pair can be excluded from the list of eligible devices
+for receiving new update images.</p></li>
+<li><p>The AES key can be securely <strong>exchanged</strong> with each new update image, as it is
+part of the sw-description, even in the absence of direct access to the
+device.</p></li>
+</ul>
+</section>
+<section id="create-a-self-signed-device-key-pair">
+<h2>Create a Self-Signed Device Key Pair<a class="headerlink" href="#create-a-self-signed-device-key-pair" title="Link to this heading"></a></h2>
+<p>As an example, an elliptic curve key pair (PEM) is generated for a single
+device. These steps must be repeated for all other devices. An RSA key pair
+could be used in the same way.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create a private key and a self-signed certificate</span>
+<span class="n">openssl</span> <span class="n">ecparam</span> <span class="o">-</span><span class="n">name</span> <span class="n">secp521r1</span> <span class="o">-</span><span class="n">genkey</span> <span class="o">-</span><span class="n">noout</span> <span class="o">-</span><span class="n">out</span> <span class="n">device</span><span class="o">-</span><span class="n">key</span><span class="o">-</span><span class="mf">001.</span><span class="n">pem</span>
+<span class="n">openssl</span> <span class="n">req</span> <span class="o">-</span><span class="n">new</span> <span class="o">-</span><span class="n">x509</span> <span class="o">-</span><span class="n">key</span> <span class="n">device</span><span class="o">-</span><span class="n">key</span><span class="o">-</span><span class="mf">001.</span><span class="n">pem</span> <span class="o">-</span><span class="n">out</span> <span class="n">device</span><span class="o">-</span><span class="n">cert</span><span class="o">-</span><span class="mf">001.</span><span class="n">pem</span> <span class="o">-</span><span class="n">subj</span> <span class="s2">&quot;/O=SWUpdate /CN=target&quot;</span>
+
+<span class="c1"># Combine the private key and the certificate into a single file</span>
+<span class="c1"># Note: The certificate is optional, but it speeds up key matching,</span>
+<span class="c1"># especially when there are many different device keys.</span>
+<span class="n">cat</span> <span class="n">device</span><span class="o">-</span><span class="n">key</span><span class="o">-</span><span class="mf">001.</span><span class="n">pem</span> <span class="n">device</span><span class="o">-</span><span class="n">cert</span><span class="o">-</span><span class="mf">001.</span><span class="n">pem</span> <span class="o">&gt;</span> <span class="n">device</span><span class="o">-</span><span class="mf">001.</span><span class="n">pem</span>
+</pre></div>
+</div>
+</section>
+<section id="symmetric-encryption-of-artifacts">
+<h2>Symmetric Encryption of Artifacts<a class="headerlink" href="#symmetric-encryption-of-artifacts" title="Link to this heading"></a></h2>
+<p>Generate an AES key and IV, as familiar from
+<a class="reference internal" href="encrypted_images.html#sym-encrypted-images"><span class="std std-ref">symmetric image encryption</span></a>. The encryption
+process for the artifacts remains unchanged.</p>
+</section>
+<section id="encryption-of-sw-description-for-multiple-devices">
+<h2>Encryption of sw-description for Multiple Devices<a class="headerlink" href="#encryption-of-sw-description-for-multiple-devices" title="Link to this heading"></a></h2>
+<p>All device certificates togther are used for encryption.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span># Encrypt sw-description for multiple devices
+openssl cms -encrypt -aes-256-cbc -in sw-description.in -out sw-description -outform DER $(printf &#39; -recip %q&#39; certs/device-cert-*.pem)
+</pre></div>
+</div>
+<p>Assume <cite>sw-description.in</cite> is the plaintext input and <cite>sw-description</cite> is the
+encrypted output. After <cite>-recip</cite>, a list of all device certificates is expected.
+One for each device you want to encrypt for.</p>
+</section>
+<section id="decryption-of-sw-description-for-a-single-device">
+<h2>Decryption of sw-description for a Single Device<a class="headerlink" href="#decryption-of-sw-description-for-a-single-device" title="Link to this heading"></a></h2>
+<p>The combined key pair (private key and certificate) is used for decryption.
+SWUpdate handles the decryption process autonomously. Manually executing this
+step is not necessary and is provided here solely for development purposes.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Decrypt sw-description for a single device</span>
+<span class="n">openssl</span> <span class="n">cms</span> <span class="o">-</span><span class="n">decrypt</span> <span class="o">-</span><span class="ow">in</span> <span class="n">sw</span><span class="o">-</span><span class="n">description</span>  <span class="o">-</span><span class="n">out</span> <span class="n">sw</span><span class="o">-</span><span class="n">description</span><span class="o">.</span><span class="n">out</span> <span class="o">-</span><span class="n">inform</span> <span class="n">DER</span> <span class="o">-</span><span class="n">inkey</span> <span class="n">device</span><span class="o">-</span><span class="n">privatekey</span><span class="o">-</span><span class="mf">001.</span><span class="n">pem</span> <span class="o">-</span><span class="n">recip</span> <span class="n">device</span><span class="o">-</span><span class="n">cert</span><span class="o">-</span><span class="mf">001.</span><span class="n">pem</span>
+</pre></div>
+</div>
+<p>Assume <cite>sw-description</cite> is the encrypted sw-description and <cite>sw-description.out</cite>
+is the plaintext output. The device private key is required for decryption,
+while the certificate itself is optional, but helps speed up the key matching
+process.</p>
+</section>
+<section id="example-asymmetrically-encrypted-image">
+<h2>Example Asymmetrically Encrypted Image<a class="headerlink" href="#example-asymmetrically-encrypted-image" title="Link to this heading"></a></h2>
+<p>The image artifacts should be symmetrically encrypted and signed in advance.
+Now, create a plain <cite>sw-description.in</cite> file. The attributes: <code class="docutils literal notranslate"><span class="pre">encrypted</span></code>,
+<code class="docutils literal notranslate"><span class="pre">aes-key</span></code> and <code class="docutils literal notranslate"><span class="pre">ivt</span></code> are necessary for artifact decryption. It is okay that
+the AES key is included here, because the sw-description file will be encrypted
+afterwards.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">software</span> <span class="o">=</span>
+<span class="p">{</span>
+    <span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;1.0.0&quot;</span><span class="p">;</span>
+    <span class="n">images</span><span class="p">:</span> <span class="p">({</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;rootfs.ext4.enc&quot;</span><span class="p">;</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;/dev/mmcblk0p3&quot;</span><span class="p">;</span>
+        <span class="n">sha256</span> <span class="o">=</span> <span class="s2">&quot;131159df3a4efaa890ff80173664a125c496c458dd432a8a6acae18872e35822&quot;</span><span class="p">;</span>
+        <span class="n">encrypted</span> <span class="o">=</span> <span class="s2">&quot;aes-cbc&quot;</span><span class="p">;</span>  <span class="o">//</span> <span class="n">former</span><span class="p">:</span> <span class="n">encrypted</span> <span class="o">=</span> <span class="n">true</span><span class="p">;</span>
+        <span class="n">aes</span><span class="o">-</span><span class="n">key</span> <span class="o">=</span> <span class="s2">&quot;ed73b9d3bf9c655d5a0b04836d8be48660a4a4bb6f4aa07c6778e00e342881ac&quot;</span><span class="p">;</span>
+        <span class="n">ivt</span> <span class="o">=</span> <span class="s2">&quot;ea34a55a0c3476ed78f238ac87a7970c&quot;</span><span class="p">;</span>
+    <span class="p">});</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="signed_images.html#signed-images"><span class="std std-ref">Sign</span></a> <cite>sw-description.in</cite> and create the signature file <cite>sw-description.sig</cite>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">openssl</span> <span class="n">cms</span> <span class="o">-</span><span class="n">sign</span> <span class="o">-</span><span class="ow">in</span> <span class="n">sw</span><span class="o">-</span><span class="n">description</span><span class="o">.</span><span class="ow">in</span> <span class="o">-</span><span class="n">out</span> <span class="n">sw</span><span class="o">-</span><span class="n">description</span><span class="o">.</span><span class="n">sig</span> <span class="o">-</span><span class="n">signer</span> <span class="n">signing</span><span class="o">-</span><span class="n">cert</span><span class="o">.</span><span class="n">pem</span> <span class="o">-</span><span class="n">inkey</span> <span class="n">signing</span><span class="o">-</span><span class="n">key</span><span class="o">.</span><span class="n">pem</span> <span class="o">-</span><span class="n">outform</span> <span class="n">DER</span> <span class="o">-</span><span class="n">nosmimecap</span> <span class="o">-</span><span class="n">binary</span>
+</pre></div>
+</div>
+<p>Asymmetrically encrypt the <cite>sw-description</cite> for multiple devices:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>openssl cms -encrypt -aes-256-cbc -in sw-description.in -out sw-description -outform DER $(printf &#39; -recip %q&#39; certs/device-cert-*.pem)
+</pre></div>
+</div>
+<p>Create the new update image (SWU):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>#!/bin/sh
+
+FILES=&quot;sw-description sw-description.sig rootfs.ext4.enc&quot;
+
+for i in $FILES; do
+    echo $i;done | cpio -ov -H crc &gt;  firmware.swu
+</pre></div>
+</div>
+</section>
+<section id="running-swupdate-with-asymmetrically-encrypted-images">
+<h2>Running SWUpdate with Asymmetrically Encrypted Images<a class="headerlink" href="#running-swupdate-with-asymmetrically-encrypted-images" title="Link to this heading"></a></h2>
+<p>Asymmetric encryption support can be enabled by configuring the compile-time
+option <code class="docutils literal notranslate"><span class="pre">CONFIG_ASYM_ENCRYPTED_SW_DESCRIPTION</span></code>, which depends on
+<code class="docutils literal notranslate"><span class="pre">CONFIG_ENCRYPTED_SW_DESCRIPTION</span></code>. To pass the combined key pair
+(PEM) generated earlier to SWUpdate, use the <code class="docutils literal notranslate"><span class="pre">-K</span></code> argument. Alternatively,
+use the <code class="docutils literal notranslate"><span class="pre">decryption-key</span></code> parameter in the <code class="docutils literal notranslate"><span class="pre">swupdate.cfg</span></code>.</p>
+</section>
+<section id="security-considerations">
+<h2>Security Considerations<a class="headerlink" href="#security-considerations" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Ideally, generate the private key on the device during factory provisioning,
+ensuring it never leaves the device. Only the public certificate leaves the
+device for encrypting future update packages.</p></li>
+<li><p>This feature should be used in conjunction with signature verification
+(<code class="docutils literal notranslate"><span class="pre">CONFIG_SIGNED_IMAGES</span></code>) to ensure data integrity. In principle, anyone
+with the corresponding device certificate can create update packages.</p></li>
+<li><p>As a side effect, the size of the update package may significantly increase
+in a large-scale deployment. To enhance scalability, consider using group
+keys. Smaller groups should be preferred over larger ones. For example,
+1000 device keys (using secp521r1) increase the sw-description size to
+0.35 MB. This means that by forming groups of 1000, it is possible to support
+1 million devices. Alternatively, groups of 100 increase the sw-description
+size to 3.5 MB accordingly.</p></li>
+<li><p>Exchange the AES key in the sw-description with each update package.</p></li>
+<li><p>Avoid encrypting new update packages for compromised devices, if there is no
+direct access to the device or if unauthorized users have access to new update
+packages.</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="encrypted_images.html" class="btn btn-neutral float-left" title="Symmetrically Encrypted Update Images" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="handlers.html" class="btn btn-neutral float-right" title="Handlers" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2013-2025, Stefano Babic.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
