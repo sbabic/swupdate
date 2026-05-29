@@ -20,3 +20,6 @@ find configs -type f | while read -r fname; do
     make O="${BUILD_DIR}" "-j$(nproc)"
     make O="${BUILD_DIR}" tests
 done
+
+# Build doc
+make html
