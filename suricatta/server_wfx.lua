@@ -3,7 +3,7 @@
     wfx SWUpdate Suricatta Lua Module.
 
     Author: Christian Storm <christian.storm@siemens.com>
-    Copyright © 2023, Siemens AG
+    Copyright (C) 2023, Siemens AG
 
     SPDX-License-Identifier: GPL-2.0-or-later
 
