@@ -179,6 +179,16 @@ to SWUGenerator.
 * Request for Support : Sponsor
 * Priority : Medium
 
+Enhance "Custom" "signing
+-------------------------
+
+The custom signing implementation should provide a way to also receive the sw_desc_sig and sw_desc parameters
+via command line.
+
+* Status: Wait
+* Request for Support : Sponsor
+* Priority : Medium
+
 swupdate-progress start up
 --------------------------
 
