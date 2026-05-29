@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Proposals to improve SWUpdate &mdash; Embedded Software Update Documentation 2025.12 documentation</title>
+  <title>Proposals to improve SWUpdate &mdash; Embedded Software Update Documentation 2026.05 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=86f27845" />
 
@@ -13,7 +13,7 @@
   
         <script src="_static/jquery.js?v=8dae8fb0"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=50a9be24"></script>
+        <script src="_static/documentation_options.js?v=c8a5ba83"></script>
         <script src="_static/doctools.js?v=888ff710"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
@@ -35,7 +35,7 @@
             Embedded Software Update Documentation
           </a>
               <div class="version">
-                2025.12
+                2026.05
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -94,7 +94,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#tools-and-utilities">Tools and utilities</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#single-tool-to-create-swu">Single tool to create SWU</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#further-enhancement-to-swugenerator">Further enhancement to SWUGenerator</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#lzma-support-to-swugenerator">LZMA support to SWUGenerator</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#enhance-custom-signing">Enhance “Custom” “signing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#swupdate-progress-start-up">swupdate-progress start up</a></li>
 </ul>
 </li>
@@ -109,16 +109,15 @@
 <li class="toctree-l3"><a class="reference internal" href="#back-end-responsiveness-for-ipc">Back-end: responsiveness for IPC</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#back-end-check-before-installing">Back-end: check before installing</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#back-end-hawkbit-offline-support">Back-end: hawkBit Offline support</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#backend-hawkbit-support-for-delta-update">Backend: hawkBit support for Delta Update</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#back-end-support-for-generic-down-loader">Back-end: support for generic down-loader</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#back-end-further-connectors">Back-end: further connectors</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#test-and-continuous-integration">Test and Continuous Integration</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#bootloader-interface">Bootloader interface</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#binding-to-languages">Binding to languages</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#binding-to-languages">Binding to languages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ipc-daemon-control">IPC / Daemon control</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#use-a-json-interface-to-exchange-ipc-messeges">Use a JSON interface to exchange IPC messeges.</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#bindings-for-other-languages">Bindings for other languages</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#documentation">Documentation</a></li>
@@ -130,6 +129,9 @@
 <li class="toctree-l3"><a class="reference internal" href="#support-for-different-update-types">Support for different Update Types</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#handlers-installable-as-plugin-at-runtime">Handlers installable as plugin at runtime</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#security-subsystem-and-support-multiple-engines">Security subsystem and support multiple engines</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#support-for-asymmetric-decryption">Support for asymmetric decryption</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#backend-hawkbit-support-for-delta-update">Backend: hawkBit support for Delta Update</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#swugenerator-sign-command">SWUGenerator sign command</a></li>
 </ul>
 </li>
 </ul>
@@ -301,10 +303,12 @@ the whole SWU. An example for this use case is in case a single SWU contains sof
 multiple devices, and each of them needs a subset of the whole SWU. Like the delta handler,
 SWUpdate knows from sw-description which artifacts are to be installed, and reading the stream
 could decide to skip unnecessary components.</p>
+<p>Note: this feature is not the same than delta update, but most users are happier with delta update.
+This feature request will be removed in next release if there won’t be interest.</p>
 <ul class="simple">
 <li><p>Status: Wait</p></li>
 <li><p>Request for Support : Sponsor</p></li>
-<li><p>Priority : Medium</p></li>
+<li><p>Priority : Low</p></li>
 </ul>
 </section>
 </section>
@@ -338,8 +342,6 @@ SWUGenerator should be enhanced to understand and write sw-description in JSON, 
 It is thinkable, even if this can be done with other tools, to implement further commands like:</p>
 <ul class="simple">
 <li><p>extract: take a SWU and extracts all artifacts in a directory</p></li>
-<li><p>sign: take a SWU and resign with a new key. This is useful when it is required to install a new
-Software, but the certificate or the key on the device is older and rejects the installation.</p></li>
 <li><p>verify: just verify if the SWU is correctly signed.</p></li>
 </ul>
 <p>SWUGenerator does not yet support all features present in meta-swupdate. As replacement for meta-swupdate
@@ -352,12 +354,13 @@ to SWUGenerator.</p>
 <li><p>Priority : Medium</p></li>
 </ul>
 </section>
-<section id="lzma-support-to-swugenerator">
-<h3>LZMA support to SWUGenerator<a class="headerlink" href="#lzma-support-to-swugenerator" title="Link to this heading"></a></h3>
-<p>XZ (LZMA) decompression was added to SWUpdate, but SWUGenerator is not able to create XZ compressed images.</p>
+<section id="enhance-custom-signing">
+<h3>Enhance “Custom” “signing<a class="headerlink" href="#enhance-custom-signing" title="Link to this heading"></a></h3>
+<p>The custom signing implementation should provide a way to also receive the sw_desc_sig and sw_desc parameters
+via command line.</p>
 <ul class="simple">
 <li><p>Status: Wait</p></li>
-<li><p>Request for Support : Not required</p></li>
+<li><p>Request for Support : Sponsor</p></li>
 <li><p>Priority : Medium</p></li>
 </ul>
 </section>
@@ -378,7 +381,7 @@ installed or not.</p>
 <section id="lua">
 <h2>Lua<a class="headerlink" href="#lua" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p>API between SWUpdate and Lua is poorly documented.</p></li>
+<li><p>Improve documentation / add examples.</p></li>
 <li><p>Store in SWUpdate’s repo Lua libraries and common functions to be reused by projects.</p></li>
 </ul>
 <ul class="simple">
@@ -418,6 +421,14 @@ requirements and allows to stream a SWU without temporary copy.
 However, upgrading the Webserver code requires to adjust the interface and code. It
 will be nice to have further implementation of the Webserver, and/or to open to
 Webserver that allows streaming.</p>
+<p>Reported from ML there is this place for enhancement:</p>
+<ul class="simple">
+<li><p>use Mongoose as library</p></li>
+<li><p>use alternative Webserver. Civetweb is a fork from Mongoose and could be integrated.</p></li>
+<li><p>Webserver itself is not doing a lot - it just provides API to push a SWU and Websocket to report progress.
+If SWUpdate is behind a reverse-proxy, an easy own developed internal Webserver
+can be a solution.</p></li>
+</ul>
 <ul class="simple">
 <li><p>Status: Wait</p></li>
 <li><p>Request for Support : Sponsor</p></li>
@@ -426,8 +437,11 @@ Webserver that allows streaming.</p>
 </section>
 <section id="security-crypto-engines">
 <h2>Security / Crypto engines<a class="headerlink" href="#security-crypto-engines" title="Link to this heading"></a></h2>
-<ul class="simple">
-<li><p>add support for asymmetric decryption</p></li>
+<ul>
+<li><p>Support for encrypted Delta Update:</p>
+<p>Remote ZCK files are not encrypted because a chunk difference is evaluated.
+A mechanism can be implemented to encrypt chunks as well.</p>
+</li>
 </ul>
 <ul class="simple">
 <li><p>Status: Wait</p></li>
@@ -435,8 +449,7 @@ Webserver that allows streaming.</p>
 <li><p>Priority : High</p></li>
 </ul>
 <ul class="simple">
-<li><p>add more algorithms for decryption, as AES-CTR can be very useful to decrypt
-chunks in delta updates.</p></li>
+<li><p>add more algorithms for decryption and not only AES-CBC</p></li>
 </ul>
 <ul class="simple">
 <li><p>Status: Wait</p></li>
@@ -444,7 +457,18 @@ chunks in delta updates.</p></li>
 <li><p>Priority : High</p></li>
 </ul>
 <ul class="simple">
-<li><p>Support for TPM2 / HSM to store secrets (requires rework above).</p></li>
+<li><p>Support for TPM2 / HSM to store secrets.</p></li>
+</ul>
+<ul class="simple">
+<li><p>Status: Wait</p></li>
+<li><p>Request for Support : Sponsor</p></li>
+<li><p>Priority : High</p></li>
+</ul>
+<ul>
+<li><p>Support for Linux Trusted Keys</p>
+<p>Linux Kernel has introduced “trusted keys” and the keys are never exposed to User Space.
+Currently, SWUpdate reads keys at the start up from files.</p>
+</li>
 </ul>
 <ul class="simple">
 <li><p>Status: Wait</p></li>
@@ -491,29 +515,6 @@ changes must be implemented in SWUpdate.</p>
 <li><p>Priority : Low</p></li>
 </ul>
 </section>
-<section id="backend-hawkbit-support-for-delta-update">
-<h3>Backend: hawkBit support for Delta Update<a class="headerlink" href="#backend-hawkbit-support-for-delta-update" title="Link to this heading"></a></h3>
-<p>Delta Update requires two or more files:</p>
-<ul class="simple">
-<li><p>the SWU</p></li>
-<li><p>one file “.zck” for each artifact that is upgraded via delta handler.</p></li>
-</ul>
-<p>The .zck must be uploaded somewhere and the URL is defined inside sw-description, that
-is then signed. This causes a chicken-egg issue, because the buzild cannot be completed
-with hawkBit until the “.zck” files are not uploaded. In fact, hawkBit assigns to each
-Software Module an “id” that is unknown at the moment of the build.</p>
-<p>It is required to implement a mechanism that let suricatta to inform the core about URLs
-passed by the hawkBit server, and they can override the URL set inside sw-description.
-This lets the URL for ZCK unknown during the build and it will be detected at runtime.</p>
-<p>The authentication to the hawkBit Server does not work in case of delta. In fact, authentication
-is performed by the backend connector, but the download of .zck files is done by a different
-process (“downloader”) that don’t use the setup from suricatta.</p>
-<ul class="simple">
-<li><p>Status: In progress</p></li>
-<li><p>Request for Support : Sponsored by Orica Digital Solutions</p></li>
-<li><p>Priority : Medium</p></li>
-</ul>
-</section>
 <section id="back-end-support-for-generic-down-loader">
 <h3>Back-end: support for generic down-loader<a class="headerlink" href="#back-end-support-for-generic-down-loader" title="Link to this heading"></a></h3>
 <p>SWUpdate in down-loader mode works as one-shot: it simply try to download a SWU
@@ -549,7 +550,7 @@ and tested on real hardware.</p>
 <ul class="simple">
 <li><p>Status: Wait</p></li>
 <li><p>Request for Support : Sponsor</p></li>
-<li><p>Priority : Medium</p></li>
+<li><p>Priority : High</p></li>
 </ul>
 </section>
 <section id="bootloader-interface">
@@ -568,6 +569,16 @@ function.</p>
 <h2>Binding to languages<a class="headerlink" href="#binding-to-languages" title="Link to this heading"></a></h2>
 <p>libswupdate allows to write an application that can control SWUpdate’s behavior and be informed
 about a running update. There are bindings for C/C++, Lua and nodejs (just progress).</p>
+<p>Applications can be written in other languages, and binding to Python and Rust can be
+implemented, too.</p>
+<ul class="simple">
+<li><p>Status: Wait</p></li>
+<li><p>Request for Support : Sponsor</p></li>
+<li><p>Priority : Low</p></li>
+</ul>
+</section>
+<section id="ipc-daemon-control">
+<h2>IPC / Daemon control<a class="headerlink" href="#ipc-daemon-control" title="Link to this heading"></a></h2>
 <section id="use-a-json-interface-to-exchange-ipc-messeges">
 <h3>Use a JSON interface to exchange IPC messeges.<a class="headerlink" href="#use-a-json-interface-to-exchange-ipc-messeges" title="Link to this heading"></a></h3>
 <p>Instead of using binary message, use JSON to exchange messages between a client and
@@ -575,17 +586,7 @@ SWUpdate. This makes adding new binding very easy, and often not necessary.</p>
 <ul class="simple">
 <li><p>Status: Wait</p></li>
 <li><p>Request for Support : Sponsor</p></li>
-<li><p>Priority : Low</p></li>
-</ul>
-</section>
-<section id="bindings-for-other-languages">
-<h3>Bindings for other languages<a class="headerlink" href="#bindings-for-other-languages" title="Link to this heading"></a></h3>
-<p>Applications can be written in other languages, and binding to Python and Rust can be
-implemented, too.</p>
-<ul class="simple">
-<li><p>Status: Wait</p></li>
-<li><p>Request for Support : Sponsor</p></li>
-<li><p>Priority : Low</p></li>
+<li><p>Priority : Medium</p></li>
 </ul>
 </section>
 </section>
@@ -663,7 +664,54 @@ Some hacks are currently built to avoid conflicts (pkcs#7 and CMS are the same
 thing, but supported by different libraries), and they should be solved.</p>
 <ul class="simple">
 <li><p>Status: after 2025.05</p></li>
+<li><p>Sponsored by iris-GmbH infrared &amp; intelligent sensors</p></li>
 </ul>
+</section>
+<section id="support-for-asymmetric-decryption">
+<h3>Support for asymmetric decryption<a class="headerlink" href="#support-for-asymmetric-decryption" title="Link to this heading"></a></h3>
+<p>It makes no sense to encrypt big artifacts with an asymettric key, but asymetric decription
+is realized by encrypting sw-description multiple times with a per-device (public) certificate.</p>
+<p>This allows to reach two main goal:</p>
+<ul class="simple">
+<li><p>revocation list: if a device is compromised, next update won’t contain the device.</p></li>
+<li><p>dynamic / autometic deployment of the AES symmetric key: because sw-description is encrypted,
+the AES key can be part of sw-description and only devices with a valid certificate can
+retrieve it.</p></li>
+</ul>
+<ul class="simple">
+<li><p>Status: since 2026.xx</p></li>
+<li><p>Sponsored by iris-GmbH infrared &amp; intelligent sensors</p></li>
+</ul>
+</section>
+<section id="backend-hawkbit-support-for-delta-update">
+<h3>Backend: hawkBit support for Delta Update<a class="headerlink" href="#backend-hawkbit-support-for-delta-update" title="Link to this heading"></a></h3>
+<p>Delta Update requires two or more files:</p>
+<ul class="simple">
+<li><p>the SWU</p></li>
+<li><p>one file “.zck” for each artifact that is upgraded via delta handler.</p></li>
+</ul>
+<p>The .zck must be uploaded somewhere and the URL is defined inside sw-description, that
+is then signed. This causes a chicken-egg issue, because the buzild cannot be completed
+with hawkBit until the “.zck” files are not uploaded. In fact, hawkBit assigns to each
+Software Module an “id” that is unknown at the moment of the build.</p>
+<p>It is required to implement a mechanism that let suricatta to inform the core about URLs
+passed by the hawkBit server, and they can override the URL set inside sw-description.
+This lets the URL for ZCK unknown during the build and it will be detected at runtime.</p>
+<p>The authentication to the hawkBit Server does not work in case of delta. In fact, authentication
+is performed by the backend connector, but the download of .zck files is done by a different
+process (“downloader”) that don’t use the setup from suricatta.</p>
+<ul class="simple">
+<li><p>Status: since 2026.xx</p></li>
+<li><p>Sponsored by Orica Digital Solutions</p></li>
+</ul>
+</section>
+<section id="swugenerator-sign-command">
+<h3>SWUGenerator sign command<a class="headerlink" href="#swugenerator-sign-command" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>sign: take a SWU and resign with a new key. This is useful when it is required to install a new
+Software, but the certificate or the key on the device is older and rejects the installation.</p></li>
+</ul>
+<p>since version 0.6</p>
 </section>
 </section>
 </section>
@@ -679,7 +727,7 @@ thing, but supported by different libraries), and they should be solved.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2013-2025, Stefano Babic.</p>
+    <p>&#169; Copyright 2013-2026, Stefano Babic.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Suricatta daemon mode &mdash; Embedded Software Update Documentation 2025.12 documentation</title>
+  <title>Suricatta daemon mode &mdash; Embedded Software Update Documentation 2026.05 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=86f27845" />
 
@@ -13,7 +13,7 @@
   
         <script src="_static/jquery.js?v=8dae8fb0"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=50a9be24"></script>
+        <script src="_static/documentation_options.js?v=c8a5ba83"></script>
         <script src="_static/doctools.js?v=888ff710"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
@@ -35,7 +35,7 @@
             Embedded Software Update Documentation
           </a>
               <div class="version">
-                2025.12
+                2026.05
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -965,200 +965,213 @@ bootloader’s environment.</p>
 <span class="linenos">218</span>        <span class="n">POST</span>  <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
 <span class="linenos">219</span>        <span class="n">PUT</span>   <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
 <span class="linenos">220</span>        <span class="n">PATCH</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
-<span class="linenos">221</span>    <span class="p">},</span>
-<span class="linenos">222</span>
-<span class="linenos">223</span>    <span class="c1">--- Channel options as in `include/channel_curl.h`.</span>
-<span class="linenos">224</span>    <span class="c1">--</span>
-<span class="linenos">225</span>    <span class="c1">--- @class suricatta.channel.options</span>
-<span class="linenos">226</span>    <span class="c1">--- @field url                 string | nil   `CURLOPT_URL` - URL for this transfer</span>
-<span class="linenos">227</span>    <span class="c1">--- @field cached_file         string | nil   Resume download from cached file at path</span>
-<span class="linenos">228</span>    <span class="c1">--- @field auth                string | nil   `CURLOPT_USERPWD` - user name and password to use in authentication</span>
-<span class="linenos">229</span>    <span class="c1">--- @field request_body        string | nil   Data to send to server for `PUT` and `POST`</span>
-<span class="linenos">230</span>    <span class="c1">--- @field iface               string | nil   `CURLOPT_INTERFACE` - source interface for outgoing traffic</span>
-<span class="linenos">231</span>    <span class="c1">--- @field dry_run             boolean | nil  `swupdate_request`&#39;s dry_run field as in `include/network_ipc.h`</span>
-<span class="linenos">232</span>    <span class="c1">--- @field cafile              string | nil   `CURLOPT_CAINFO` - path to Certificate Authority (CA) bundle</span>
-<span class="linenos">233</span>    <span class="c1">--- @field sslkey              string | nil   `CURLOPT_SSLKEY` - private key file for TLS and SSL client cert</span>
-<span class="linenos">234</span>    <span class="c1">--- @field sslcert             string | nil   `CURLOPT_SSLCERT` - SSL client certificate</span>
-<span class="linenos">235</span>    <span class="c1">--- @field ciphers             string | nil   `CURLOPT_SSL_CIPHER_LIST` - ciphers to use for TLS</span>
-<span class="linenos">236</span>    <span class="c1">--- @field proxy               string | nil   `CURLOPT_PROXY` - proxy to use</span>
-<span class="linenos">237</span>    <span class="c1">--- @field info                string | nil   `swupdate_request`&#39;s info field as in `include/network_ipc.h`</span>
-<span class="linenos">238</span>    <span class="c1">--- @field auth_token          string | nil   String appended to Header</span>
-<span class="linenos">239</span>    <span class="c1">--- @field content_type        string | nil   `Content-Type:` and `Accept:` appended to Header</span>
-<span class="linenos">240</span>    <span class="c1">--- @field retry_sleep         number | nil   Time to wait prior to retry and resume a download</span>
-<span class="linenos">241</span>    <span class="c1">--- @field method              suricatta.channel.method | nil  Channel transfer method to use</span>
-<span class="linenos">242</span>    <span class="c1">--- @field retries             number | nil   Maximal download attempt count</span>
-<span class="linenos">243</span>    <span class="c1">--- @field low_speed_timeout   number | nil   `CURLOPT_LOW_SPEED_TIME` - low speed limit time period</span>
-<span class="linenos">244</span>    <span class="c1">--- @field connection_timeout  number | nil   `CURLOPT_CONNECTTIMEOUT` - timeout for the connect phase</span>
-<span class="linenos">245</span>    <span class="c1">--- @field format              suricatta.channel.content | nil  Content type passed over the channel</span>
-<span class="linenos">246</span>    <span class="c1">--- @field debug               boolean | nil  Set channel debug logging</span>
-<span class="linenos">247</span>    <span class="c1">--- @field usessl              boolean | nil  Enable SSL hash sum calculation</span>
-<span class="linenos">248</span>    <span class="c1">--- @field strictssl           boolean | nil  `CURLOPT_SSL_VERIFYHOST` + `CURLOPT_SSL_VERIFYPEER`</span>
-<span class="linenos">249</span>    <span class="c1">--- @field nocheckanswer       boolean | nil  Whether the reply is interpreted/logged and tried to be parsed</span>
-<span class="linenos">250</span>    <span class="c1">--- @field nofollow            boolean | nil  `CURLOPT_FOLLOWLOCATION` - follow HTTP 3xx redirects</span>
-<span class="linenos">251</span>    <span class="c1">--- @field max_download_speed  string | nil   `CURLOPT_MAX_RECV_SPEED_LARGE` - rate limit data download speed</span>
-<span class="linenos">252</span>    <span class="c1">--- @field headers_to_send     table&lt;string, string&gt; | nil  Header to send</span>
-<span class="linenos">253</span>    <span class="n">options</span> <span class="o">=</span> <span class="p">{},</span>
-<span class="linenos">254</span>
-<span class="linenos">255</span>    <span class="c1">--- Open a new channel.</span>
-<span class="linenos">256</span>    <span class="c1">--</span>
-<span class="linenos">257</span>    <span class="c1">--- @param  options  suricatta.channel.options  Channel default options overridable per operation</span>
-<span class="linenos">258</span>    <span class="c1">--- @return boolean                             # Whether operation was successful or not</span>
-<span class="linenos">259</span>    <span class="c1">--- @return suricatta.open_channel              # Options of and operations on the opened channel</span>
-<span class="linenos">260</span>    <span class="n">open</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">options</span><span class="p">)</span> <span class="kr">end</span><span class="p">,</span>
-<span class="linenos">261</span><span class="p">}</span>
-<span class="linenos">262</span>
-<span class="linenos">263</span>
-<span class="linenos">264</span><span class="c1">--- Channel and Options Table to use for an operation.</span>
-<span class="linenos">265</span><span class="c1">--</span>
-<span class="linenos">266</span><span class="c1">-- Channel to use for the download / installation operation as returned by `suricatta.channel.open()`</span>
-<span class="linenos">267</span><span class="c1">-- plus channel options overriding the defaults per operation (@see suricatta.channel.options)</span>
-<span class="linenos">268</span><span class="c1">-- and specific options to the download / installation operation, e.g., `drain_messages`.</span>
-<span class="linenos">269</span><span class="c1">--</span>
-<span class="linenos">270</span><span class="c1">--- @class suricatta.operation_channel</span>
-<span class="linenos">271</span><span class="c1">--- @field channel          suricatta.open_channel           Channel table as returned by `suricatta.channel.open()`</span>
-<span class="linenos">272</span><span class="c1">--- @field drain_messages   boolean  | nil                   Whether to flush all progress messages or only those while in-flight operation (default)</span>
-<span class="linenos">273</span><span class="c1">--- @field ∈                suricatta.channel.options | nil  Channel options to override for this operation</span>
-<span class="linenos">274</span>
-<span class="linenos">275</span><span class="c1">--- Install an update artifact from remote server or local file.</span>
-<span class="linenos">276</span><span class="c1">--</span>
-<span class="linenos">277</span><span class="c1">-- If the protocol specified in Table `install_channel`&#39;s `url` field is `file://`,</span>
-<span class="linenos">278</span><span class="c1">-- a local update artifact file is installed. If it is, e.g., `https://`, the</span>
-<span class="linenos">279</span><span class="c1">-- update artifact is downloaded *and* installed.</span>
-<span class="linenos">280</span><span class="c1">-- Note that this file is to be deleted, if applicable, from the Lua realm.</span>
-<span class="linenos">281</span><span class="c1">--</span>
-<span class="linenos">282</span><span class="c1">--- @see suricatta.download</span>
-<span class="linenos">283</span><span class="c1">--- @param  install_channel  suricatta.operation_channel  Channel to use for the download+installation operation</span>
-<span class="linenos">284</span><span class="c1">--- @return boolean                                       # Whether operation was successful or not</span>
-<span class="linenos">285</span><span class="c1">--- @return suricatta.status                              # Suricatta return code</span>
-<span class="linenos">286</span><span class="c1">--- @return table&lt;number, string&gt;                         # Error messages, if any</span>
-<span class="linenos">287</span><span class="n">suricatta</span><span class="p">.</span><span class="n">install</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">install_channel</span><span class="p">)</span> <span class="kr">end</span>
-<span class="linenos">288</span>
-<span class="linenos">289</span><span class="c1">--- Download an update artifact from remote server.</span>
-<span class="linenos">290</span><span class="c1">--</span>
-<span class="linenos">291</span><span class="c1">-- `suricatta.download()` just downloads an update artifact from the remote server</span>
-<span class="linenos">292</span><span class="c1">-- without installing it. For later installation, call `suricatta.install()` with</span>
-<span class="linenos">293</span><span class="c1">-- an appropriate `install_channel` Table&#39;s `url` field.</span>
-<span class="linenos">294</span><span class="c1">--</span>
-<span class="linenos">295</span><span class="c1">--- @see suricatta.install</span>
-<span class="linenos">296</span><span class="c1">--- @param  download_channel  suricatta.operation_channel  Channel to use for the download operation</span>
-<span class="linenos">297</span><span class="c1">--- @param  localpath         string                       Path where to store the downloaded artifact to</span>
-<span class="linenos">298</span><span class="c1">--- @return boolean                                        # Whether operation was successful or not</span>
-<span class="linenos">299</span><span class="c1">--- @return suricatta.status                               # Suricatta return code</span>
-<span class="linenos">300</span><span class="c1">--- @return table&lt;number, string&gt;                          # Error messages, if any</span>
-<span class="linenos">301</span><span class="n">suricatta</span><span class="p">.</span><span class="n">download</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">download_channel</span><span class="p">,</span> <span class="n">localpath</span><span class="p">)</span> <span class="kr">end</span>
-<span class="linenos">302</span>
-<span class="linenos">303</span>
-<span class="linenos">304</span><span class="c1">--- Sleep for a number of seconds.</span>
-<span class="linenos">305</span><span class="c1">--</span>
-<span class="linenos">306</span><span class="c1">-- Call `SLEEP(3)` via C realm.</span>
-<span class="linenos">307</span><span class="c1">--</span>
-<span class="linenos">308</span><span class="c1">--- @param seconds number  # Number of seconds to sleep</span>
-<span class="linenos">309</span><span class="n">suricatta</span><span class="p">.</span><span class="n">sleep</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">seconds</span><span class="p">)</span> <span class="kr">end</span>
-<span class="linenos">310</span>
-<span class="linenos">311</span>
-<span class="linenos">312</span><span class="c1">--- Get TMPDIR from SWUpdate.</span>
-<span class="linenos">313</span><span class="c1">--</span>
-<span class="linenos">314</span><span class="c1">-- @see `core/util.c` :: get_tmpdir()</span>
-<span class="linenos">315</span><span class="c1">--</span>
-<span class="linenos">316</span><span class="c1">--- @return string  # TMPDIR path</span>
-<span class="linenos">317</span><span class="n">suricatta</span><span class="p">.</span><span class="n">get_tmpdir</span> <span class="o">=</span> <span class="kr">function</span><span class="p">()</span> <span class="kr">end</span>
-<span class="linenos">318</span>
-<span class="linenos">319</span>
-<span class="linenos">320</span><span class="c1">--- SWUpdate version information.</span>
-<span class="linenos">321</span><span class="c1">--- @class suricatta.version</span>
-<span class="linenos">322</span><span class="c1">--- @field [1]         number  SWUpdate&#39;s version</span>
-<span class="linenos">323</span><span class="c1">--- @field [2]         number  SWUpdate&#39;s patch level</span>
-<span class="linenos">324</span><span class="c1">--- @field [3]         number  SWUpdate&#39;s sub level</span>
-<span class="linenos">325</span><span class="c1">--- @field version     number  SWUpdate&#39;s version</span>
-<span class="linenos">326</span><span class="c1">--- @field patchlevel  number  SWUpdate&#39;s patch level</span>
-<span class="linenos">327</span><span class="c1">--- @field sublevel    number  SWUpdate&#39;s sub level</span>
-<span class="linenos">328</span>
-<span class="linenos">329</span><span class="c1">--- Get SWUpdate version.</span>
-<span class="linenos">330</span><span class="c1">--</span>
-<span class="linenos">331</span><span class="c1">--- @return suricatta.version  # Table with `version` and `patchlevel` fields</span>
-<span class="linenos">332</span><span class="n">suricatta</span><span class="p">.</span><span class="n">getversion</span> <span class="o">=</span> <span class="kr">function</span><span class="p">()</span> <span class="kr">end</span>
-<span class="linenos">333</span>
-<span class="linenos">334</span>
-<span class="linenos">335</span><span class="c1">--- SWUpdate IPC types and definitions.</span>
-<span class="linenos">336</span><span class="c1">--</span>
-<span class="linenos">337</span><span class="c1">--- @class suricatta.ipc</span>
-<span class="linenos">338</span><span class="n">suricatta</span><span class="p">.</span><span class="n">ipc</span> <span class="o">=</span> <span class="p">{}</span>
-<span class="linenos">339</span>
-<span class="linenos">340</span><span class="c1">--- @enum suricatta.ipc.sourcetype</span>
-<span class="linenos">341</span><span class="c1">--- Lua equivalent of `sourcetype` as in `include/swupdate_status.h`.</span>
-<span class="linenos">342</span><span class="n">suricatta</span><span class="p">.</span><span class="n">ipc</span><span class="p">.</span><span class="n">sourcetype</span> <span class="o">=</span> <span class="p">{</span>
-<span class="linenos">343</span>    <span class="n">SOURCE_UNKNOWN</span>           <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
-<span class="linenos">344</span>    <span class="n">SOURCE_WEBSERVER</span>         <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-<span class="linenos">345</span>    <span class="n">SOURCE_SURICATTA</span>         <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
-<span class="linenos">346</span>    <span class="n">SOURCE_DOWNLOADER</span>        <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
-<span class="linenos">347</span>    <span class="n">SOURCE_LOCAL</span>             <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
-<span class="linenos">348</span>    <span class="n">SOURCE_CHUNKS_DOWNLOADER</span> <span class="o">=</span> <span class="mi">5</span>
-<span class="linenos">349</span><span class="p">}</span>
-<span class="linenos">350</span>
-<span class="linenos">351</span><span class="c1">--- @enum suricatta.ipc.RECOVERY_STATUS</span>
-<span class="linenos">352</span><span class="c1">--- Lua equivalent of `RECOVERY_STATUS` as in `include/swupdate_status.h`.</span>
-<span class="linenos">353</span><span class="n">suricatta</span><span class="p">.</span><span class="n">ipc</span><span class="p">.</span><span class="n">RECOVERY_STATUS</span> <span class="o">=</span> <span class="p">{</span>
-<span class="linenos">354</span>    <span class="n">IDLE</span>       <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
-<span class="linenos">355</span>    <span class="n">START</span>      <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-<span class="linenos">356</span>    <span class="n">RUN</span>        <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
-<span class="linenos">357</span>    <span class="n">SUCCESS</span>    <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
-<span class="linenos">358</span>    <span class="n">FAILURE</span>    <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
-<span class="linenos">359</span>    <span class="n">DOWNLOAD</span>   <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
-<span class="linenos">360</span>    <span class="n">DONE</span>       <span class="o">=</span> <span class="mi">6</span><span class="p">,</span>
-<span class="linenos">361</span>    <span class="n">SUBPROCESS</span> <span class="o">=</span> <span class="mi">7</span><span class="p">,</span>
-<span class="linenos">362</span>    <span class="n">PROGRESS</span>   <span class="o">=</span> <span class="mi">8</span>
-<span class="linenos">363</span><span class="p">}</span>
-<span class="linenos">364</span>
-<span class="linenos">365</span><span class="c1">--- @enum suricatta.ipc.progress_cause</span>
-<span class="linenos">366</span><span class="c1">--- Lua equivalent of `progress_cause_t` as in `include/progress_ipc.h`.</span>
-<span class="linenos">367</span><span class="n">suricatta</span><span class="p">.</span><span class="n">ipc</span><span class="p">.</span><span class="n">progress_cause</span> <span class="o">=</span> <span class="p">{</span>
-<span class="linenos">368</span>    <span class="n">CAUSE_NONE</span>        <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
-<span class="linenos">369</span>    <span class="n">CAUSE_REBOOT_MODE</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-<span class="linenos">370</span><span class="p">}</span>
-<span class="linenos">371</span>
-<span class="linenos">372</span><span class="c1">--- Lua-alike of `progress_msg` as in `include/progress_ipc.h`.</span>
-<span class="linenos">373</span><span class="c1">--</span>
-<span class="linenos">374</span><span class="c1">--- @class suricatta.ipc.progress_msg</span>
-<span class="linenos">375</span><span class="c1">--- @field magic        number                         SWUpdate IPC magic number</span>
-<span class="linenos">376</span><span class="c1">--- @field status       suricatta.ipc.RECOVERY_STATUS  Update status</span>
-<span class="linenos">377</span><span class="c1">--- @field dwl_percent  number                         Percent of downloaded data</span>
-<span class="linenos">378</span><span class="c1">--- @field nsteps       number                         Total steps count</span>
-<span class="linenos">379</span><span class="c1">--- @field cur_step     number                         Current step</span>
-<span class="linenos">380</span><span class="c1">--- @field cur_percent  number                         Percent in current step</span>
-<span class="linenos">381</span><span class="c1">--- @field cur_image    string                         Name of the current image to be installed (max: 256 chars)</span>
-<span class="linenos">382</span><span class="c1">--- @field hnd_name     string                         Name of the running handler (max: 64 chars)</span>
-<span class="linenos">383</span><span class="c1">--- @field source       suricatta.ipc.sourcetype       The source that has triggered the update</span>
-<span class="linenos">384</span><span class="c1">--- @field info         string                         Additional information about the installation (max: 2048 chars)</span>
-<span class="linenos">385</span><span class="c1">--- @field jsoninfo     table                          If `info` is JSON, according Lua Table</span>
-<span class="linenos">386</span>
-<span class="linenos">387</span><span class="c1">--- Lua enum of IPC commands as in `include/network_ipc.h`.</span>
-<span class="linenos">388</span><span class="c1">--</span>
-<span class="linenos">389</span><span class="c1">-- `CMD_ENABLE` is not passed through and hence not in `ipc_commands`</span>
-<span class="linenos">390</span><span class="c1">-- as it&#39;s handled directly in `suricatta/suricatta.c`.</span>
-<span class="linenos">391</span><span class="c1">--</span>
-<span class="linenos">392</span><span class="c1">--- @type  {[string]: number}</span>
-<span class="linenos">393</span><span class="c1">--- @class suricatta.ipc.ipc_commands</span>
-<span class="linenos">394</span><span class="c1">--- @field ACTIVATION  number  0</span>
-<span class="linenos">395</span><span class="c1">--- @field CONFIG      number  1</span>
-<span class="linenos">396</span><span class="c1">--- @field GET_STATUS  number  3</span>
-<span class="linenos">397</span>
-<span class="linenos">398</span><span class="c1">--- Lua-alike of `ipc_message` as in `include/network_ipc.h`.</span>
-<span class="linenos">399</span><span class="c1">--</span>
-<span class="linenos">400</span><span class="c1">-- Note: Some members are deliberately not passed through to the Lua</span>
-<span class="linenos">401</span><span class="c1">-- realm such as `ipc_message.data.len` since that&#39;s transparently</span>
-<span class="linenos">402</span><span class="c1">-- handled by the C-to-Lua bridge.</span>
-<span class="linenos">403</span><span class="c1">-- Note: This is not a direct equivalent but rather a &quot;sensible&quot; selection</span>
-<span class="linenos">404</span><span class="c1">-- as, e.g., the `json` field is not present in `struct ipc_message`.</span>
-<span class="linenos">405</span><span class="c1">--</span>
-<span class="linenos">406</span><span class="c1">--- @class suricatta.ipc.ipc_message</span>
-<span class="linenos">407</span><span class="c1">--- @field magic     number                      SWUpdate IPC magic number</span>
-<span class="linenos">408</span><span class="c1">--- @field commands  suricatta.ipc.ipc_commands  IPC commands</span>
-<span class="linenos">409</span><span class="c1">--- @field cmd       number                      Command number, one of `ipc_commands`&#39;s values</span>
-<span class="linenos">410</span><span class="c1">--- @field msg       string                      String data sent via IPC</span>
-<span class="linenos">411</span><span class="c1">--- @field json      table                       If `msg` is JSON, JSON as Lua Table</span>
-<span class="linenos">412</span>
-<span class="linenos">413</span>
-<span class="linenos">414</span><span class="kr">return</span> <span class="n">suricatta</span>
+<span class="linenos">221</span>        <span class="n">DELETE</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+<span class="linenos">222</span>        <span class="n">HEAD</span>  <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
+<span class="linenos">223</span>    <span class="p">},</span>
+<span class="linenos">224</span>
+<span class="linenos">225</span>    <span class="c1">--- Channel options as in `include/channel_curl.h`.</span>
+<span class="linenos">226</span>    <span class="c1">--</span>
+<span class="linenos">227</span>    <span class="c1">--- @class suricatta.channel.options</span>
+<span class="linenos">228</span>    <span class="c1">--- @field url                 string | nil   `CURLOPT_URL` - URL for this transfer</span>
+<span class="linenos">229</span>    <span class="c1">--- @field cached_file         string | nil   Resume download from cached file at path</span>
+<span class="linenos">230</span>    <span class="c1">--- @field auth                string | nil   `CURLOPT_USERPWD` - user name and password to use in authentication</span>
+<span class="linenos">231</span>    <span class="c1">--- @field request_body        string | nil   Data to send to server for `PUT` and `POST`</span>
+<span class="linenos">232</span>    <span class="c1">--- @field iface               string | nil   `CURLOPT_INTERFACE` - source interface for outgoing traffic</span>
+<span class="linenos">233</span>    <span class="c1">--- @field dry_run             boolean | nil  `swupdate_request`&#39;s dry_run field as in `include/network_ipc.h`</span>
+<span class="linenos">234</span>    <span class="c1">--- @field cafile              string | nil   `CURLOPT_CAINFO` - path to Certificate Authority (CA) bundle</span>
+<span class="linenos">235</span>    <span class="c1">--- @field sslkey              string | nil   `CURLOPT_SSLKEY` - private key file for TLS and SSL client cert</span>
+<span class="linenos">236</span>    <span class="c1">--- @field sslcert             string | nil   `CURLOPT_SSLCERT` - SSL client certificate</span>
+<span class="linenos">237</span>    <span class="c1">--- @field ciphers             string | nil   `CURLOPT_SSL_CIPHER_LIST` - ciphers to use for TLS</span>
+<span class="linenos">238</span>    <span class="c1">--- @field proxy               string | nil   `CURLOPT_PROXY` - proxy to use</span>
+<span class="linenos">239</span>    <span class="c1">--- @field info                string | nil   `swupdate_request`&#39;s info field as in `include/network_ipc.h`</span>
+<span class="linenos">240</span>    <span class="c1">--- @field auth_token          string | nil   String appended to Header</span>
+<span class="linenos">241</span>    <span class="c1">--- @field content_type        string | nil   `Content-Type:` and `Accept:` appended to Header</span>
+<span class="linenos">242</span>    <span class="c1">--- @field retry_sleep         number | nil   Time to wait prior to retry and resume a download</span>
+<span class="linenos">243</span>    <span class="c1">--- @field method              suricatta.channel.method | nil  Channel transfer method to use</span>
+<span class="linenos">244</span>    <span class="c1">--- @field retries             number | nil   Maximal download attempt count</span>
+<span class="linenos">245</span>    <span class="c1">--- @field low_speed_timeout   number | nil   `CURLOPT_LOW_SPEED_TIME` - low speed limit time period</span>
+<span class="linenos">246</span>    <span class="c1">--- @field connection_timeout  number | nil   `CURLOPT_CONNECTTIMEOUT` - timeout for the connect phase</span>
+<span class="linenos">247</span>    <span class="c1">--- @field format              suricatta.channel.content | nil  Content type passed over the channel</span>
+<span class="linenos">248</span>    <span class="c1">--- @field debug               boolean | nil  Set channel debug logging</span>
+<span class="linenos">249</span>    <span class="c1">--- @field usessl              boolean | nil  Enable SSL hash sum calculation</span>
+<span class="linenos">250</span>    <span class="c1">--- @field strictssl           boolean | nil  `CURLOPT_SSL_VERIFYHOST` + `CURLOPT_SSL_VERIFYPEER`</span>
+<span class="linenos">251</span>    <span class="c1">--- @field nocheckanswer       boolean | nil  Whether the reply is interpreted/logged and tried to be parsed</span>
+<span class="linenos">252</span>    <span class="c1">--- @field nofollow            boolean | nil  `CURLOPT_FOLLOWLOCATION` - follow HTTP 3xx redirects</span>
+<span class="linenos">253</span>    <span class="c1">--- @field max_download_speed  string | nil   `CURLOPT_MAX_RECV_SPEED_LARGE` - rate limit data download speed</span>
+<span class="linenos">254</span>    <span class="c1">--- @field headers_to_send     table&lt;string, string&gt; | nil  Header to send</span>
+<span class="linenos">255</span>    <span class="n">options</span> <span class="o">=</span> <span class="p">{},</span>
+<span class="linenos">256</span>
+<span class="linenos">257</span>    <span class="c1">--- Open a new channel.</span>
+<span class="linenos">258</span>    <span class="c1">--</span>
+<span class="linenos">259</span>    <span class="c1">--- @param  options  suricatta.channel.options  Channel default options overridable per operation</span>
+<span class="linenos">260</span>    <span class="c1">--- @return boolean                             # Whether operation was successful or not</span>
+<span class="linenos">261</span>    <span class="c1">--- @return suricatta.open_channel              # Options of and operations on the opened channel</span>
+<span class="linenos">262</span>    <span class="n">open</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">options</span><span class="p">)</span> <span class="kr">end</span><span class="p">,</span>
+<span class="linenos">263</span><span class="p">}</span>
+<span class="linenos">264</span>
+<span class="linenos">265</span>
+<span class="linenos">266</span><span class="c1">--- Channel and Options Table to use for an operation.</span>
+<span class="linenos">267</span><span class="c1">--</span>
+<span class="linenos">268</span><span class="c1">-- Channel to use for the download / installation operation as returned by `suricatta.channel.open()`</span>
+<span class="linenos">269</span><span class="c1">-- plus channel options overriding the defaults per operation (@see suricatta.channel.options)</span>
+<span class="linenos">270</span><span class="c1">-- and specific options to the download / installation operation, e.g., `drain_messages`.</span>
+<span class="linenos">271</span><span class="c1">--</span>
+<span class="linenos">272</span><span class="c1">--- @class suricatta.operation_channel</span>
+<span class="linenos">273</span><span class="c1">--- @field channel          suricatta.open_channel           Channel table as returned by `suricatta.channel.open()`</span>
+<span class="linenos">274</span><span class="c1">--- @field drain_messages   boolean  | nil                   Whether to flush all progress messages or only those while in-flight operation (default)</span>
+<span class="linenos">275</span><span class="c1">--- @field ∈                suricatta.channel.options | nil  Channel options to override for this operation</span>
+<span class="linenos">276</span>
+<span class="linenos">277</span><span class="c1">--- Channel HTTP response table.</span>
+<span class="linenos">278</span><span class="c1">--</span>
+<span class="linenos">279</span><span class="c1">-- HTTP response information in return of a channel operation.</span>
+<span class="linenos">280</span><span class="c1">--</span>
+<span class="linenos">281</span><span class="c1">--- @class suricatta.channel_operation_response</span>
+<span class="linenos">282</span><span class="c1">--- @field http_response_code  number</span>
+<span class="linenos">283</span><span class="c1">--- @field received_headers    table&lt;string, string&gt;</span>
+<span class="linenos">284</span>
+<span class="linenos">285</span>
+<span class="linenos">286</span><span class="c1">--- Install an update artifact from remote server or local file.</span>
+<span class="linenos">287</span><span class="c1">--</span>
+<span class="linenos">288</span><span class="c1">-- If the protocol specified in Table `install_channel`&#39;s `url` field is `file://`,</span>
+<span class="linenos">289</span><span class="c1">-- a local update artifact file is installed. If it is, e.g., `https://`, the</span>
+<span class="linenos">290</span><span class="c1">-- update artifact is downloaded *and* installed.</span>
+<span class="linenos">291</span><span class="c1">-- Note that this file is to be deleted, if applicable, from the Lua realm.</span>
+<span class="linenos">292</span><span class="c1">--</span>
+<span class="linenos">293</span><span class="c1">--- @see suricatta.download</span>
+<span class="linenos">294</span><span class="c1">--- @param  install_channel  suricatta.operation_channel  Channel to use for the download+installation operation</span>
+<span class="linenos">295</span><span class="c1">--- @return boolean                                       # Whether operation was successful or not</span>
+<span class="linenos">296</span><span class="c1">--- @return suricatta.status                              # Suricatta return code</span>
+<span class="linenos">297</span><span class="c1">--- @return table&lt;number, string&gt;                         # Error messages, if any</span>
+<span class="linenos">298</span><span class="c1">--- @return suricatta.channel_operation_response          # if `nocheckanswer` is not set, HTTP response information, if any</span>
+<span class="linenos">299</span><span class="n">suricatta</span><span class="p">.</span><span class="n">install</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">install_channel</span><span class="p">)</span> <span class="kr">end</span>
+<span class="linenos">300</span>
+<span class="linenos">301</span><span class="c1">--- Download an update artifact from remote server.</span>
+<span class="linenos">302</span><span class="c1">--</span>
+<span class="linenos">303</span><span class="c1">-- `suricatta.download()` just downloads an update artifact from the remote server</span>
+<span class="linenos">304</span><span class="c1">-- without installing it. For later installation, call `suricatta.install()` with</span>
+<span class="linenos">305</span><span class="c1">-- an appropriate `install_channel` Table&#39;s `url` field.</span>
+<span class="linenos">306</span><span class="c1">--</span>
+<span class="linenos">307</span><span class="c1">--- @see suricatta.install</span>
+<span class="linenos">308</span><span class="c1">--- @param  download_channel  suricatta.operation_channel  Channel to use for the download operation</span>
+<span class="linenos">309</span><span class="c1">--- @param  localpath         string                       Path where to store the downloaded artifact to</span>
+<span class="linenos">310</span><span class="c1">--- @return boolean                                        # Whether operation was successful or not</span>
+<span class="linenos">311</span><span class="c1">--- @return suricatta.status                               # Suricatta return code</span>
+<span class="linenos">312</span><span class="c1">--- @return table&lt;number, string&gt;                          # Error messages, if any</span>
+<span class="linenos">313</span><span class="c1">--- @return suricatta.channel_operation_response           # if `nocheckanswer` is not set, HTTP response information, if any</span>
+<span class="linenos">314</span><span class="n">suricatta</span><span class="p">.</span><span class="n">download</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">download_channel</span><span class="p">,</span> <span class="n">localpath</span><span class="p">)</span> <span class="kr">end</span>
+<span class="linenos">315</span>
+<span class="linenos">316</span>
+<span class="linenos">317</span><span class="c1">--- Sleep for a number of seconds.</span>
+<span class="linenos">318</span><span class="c1">--</span>
+<span class="linenos">319</span><span class="c1">-- Call `SLEEP(3)` via C realm.</span>
+<span class="linenos">320</span><span class="c1">--</span>
+<span class="linenos">321</span><span class="c1">--- @param seconds number  # Number of seconds to sleep</span>
+<span class="linenos">322</span><span class="n">suricatta</span><span class="p">.</span><span class="n">sleep</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">seconds</span><span class="p">)</span> <span class="kr">end</span>
+<span class="linenos">323</span>
+<span class="linenos">324</span>
+<span class="linenos">325</span><span class="c1">--- Get TMPDIR from SWUpdate.</span>
+<span class="linenos">326</span><span class="c1">--</span>
+<span class="linenos">327</span><span class="c1">-- @see `core/util.c` :: get_tmpdir()</span>
+<span class="linenos">328</span><span class="c1">--</span>
+<span class="linenos">329</span><span class="c1">--- @return string  # TMPDIR path</span>
+<span class="linenos">330</span><span class="n">suricatta</span><span class="p">.</span><span class="n">get_tmpdir</span> <span class="o">=</span> <span class="kr">function</span><span class="p">()</span> <span class="kr">end</span>
+<span class="linenos">331</span>
+<span class="linenos">332</span>
+<span class="linenos">333</span><span class="c1">--- SWUpdate version information.</span>
+<span class="linenos">334</span><span class="c1">--- @class suricatta.version</span>
+<span class="linenos">335</span><span class="c1">--- @field [1]         number  SWUpdate&#39;s version</span>
+<span class="linenos">336</span><span class="c1">--- @field [2]         number  SWUpdate&#39;s patch level</span>
+<span class="linenos">337</span><span class="c1">--- @field [3]         number  SWUpdate&#39;s sub level</span>
+<span class="linenos">338</span><span class="c1">--- @field version     number  SWUpdate&#39;s version</span>
+<span class="linenos">339</span><span class="c1">--- @field patchlevel  number  SWUpdate&#39;s patch level</span>
+<span class="linenos">340</span><span class="c1">--- @field sublevel    number  SWUpdate&#39;s sub level</span>
+<span class="linenos">341</span>
+<span class="linenos">342</span><span class="c1">--- Get SWUpdate version.</span>
+<span class="linenos">343</span><span class="c1">--</span>
+<span class="linenos">344</span><span class="c1">--- @return suricatta.version  # Table with `version` and `patchlevel` fields</span>
+<span class="linenos">345</span><span class="n">suricatta</span><span class="p">.</span><span class="n">getversion</span> <span class="o">=</span> <span class="kr">function</span><span class="p">()</span> <span class="kr">end</span>
+<span class="linenos">346</span>
+<span class="linenos">347</span>
+<span class="linenos">348</span><span class="c1">--- SWUpdate IPC types and definitions.</span>
+<span class="linenos">349</span><span class="c1">--</span>
+<span class="linenos">350</span><span class="c1">--- @class suricatta.ipc</span>
+<span class="linenos">351</span><span class="n">suricatta</span><span class="p">.</span><span class="n">ipc</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="linenos">352</span>
+<span class="linenos">353</span><span class="c1">--- @enum suricatta.ipc.sourcetype</span>
+<span class="linenos">354</span><span class="c1">--- Lua equivalent of `sourcetype` as in `include/swupdate_status.h`.</span>
+<span class="linenos">355</span><span class="n">suricatta</span><span class="p">.</span><span class="n">ipc</span><span class="p">.</span><span class="n">sourcetype</span> <span class="o">=</span> <span class="p">{</span>
+<span class="linenos">356</span>    <span class="n">SOURCE_UNKNOWN</span>           <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+<span class="linenos">357</span>    <span class="n">SOURCE_WEBSERVER</span>         <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">358</span>    <span class="n">SOURCE_SURICATTA</span>         <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+<span class="linenos">359</span>    <span class="n">SOURCE_DOWNLOADER</span>        <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+<span class="linenos">360</span>    <span class="n">SOURCE_LOCAL</span>             <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+<span class="linenos">361</span>    <span class="n">SOURCE_CHUNKS_DOWNLOADER</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="linenos">362</span><span class="p">}</span>
+<span class="linenos">363</span>
+<span class="linenos">364</span><span class="c1">--- @enum suricatta.ipc.RECOVERY_STATUS</span>
+<span class="linenos">365</span><span class="c1">--- Lua equivalent of `RECOVERY_STATUS` as in `include/swupdate_status.h`.</span>
+<span class="linenos">366</span><span class="n">suricatta</span><span class="p">.</span><span class="n">ipc</span><span class="p">.</span><span class="n">RECOVERY_STATUS</span> <span class="o">=</span> <span class="p">{</span>
+<span class="linenos">367</span>    <span class="n">IDLE</span>       <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+<span class="linenos">368</span>    <span class="n">START</span>      <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">369</span>    <span class="n">RUN</span>        <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+<span class="linenos">370</span>    <span class="n">SUCCESS</span>    <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+<span class="linenos">371</span>    <span class="n">FAILURE</span>    <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+<span class="linenos">372</span>    <span class="n">DOWNLOAD</span>   <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
+<span class="linenos">373</span>    <span class="n">DONE</span>       <span class="o">=</span> <span class="mi">6</span><span class="p">,</span>
+<span class="linenos">374</span>    <span class="n">SUBPROCESS</span> <span class="o">=</span> <span class="mi">7</span><span class="p">,</span>
+<span class="linenos">375</span>    <span class="n">PROGRESS</span>   <span class="o">=</span> <span class="mi">8</span>
+<span class="linenos">376</span><span class="p">}</span>
+<span class="linenos">377</span>
+<span class="linenos">378</span><span class="c1">--- @enum suricatta.ipc.progress_cause</span>
+<span class="linenos">379</span><span class="c1">--- Lua equivalent of `progress_cause_t` as in `include/progress_ipc.h`.</span>
+<span class="linenos">380</span><span class="n">suricatta</span><span class="p">.</span><span class="n">ipc</span><span class="p">.</span><span class="n">progress_cause</span> <span class="o">=</span> <span class="p">{</span>
+<span class="linenos">381</span>    <span class="n">CAUSE_NONE</span>        <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+<span class="linenos">382</span>    <span class="n">CAUSE_REBOOT_MODE</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">383</span><span class="p">}</span>
+<span class="linenos">384</span>
+<span class="linenos">385</span><span class="c1">--- Lua-alike of `progress_msg` as in `include/progress_ipc.h`.</span>
+<span class="linenos">386</span><span class="c1">--</span>
+<span class="linenos">387</span><span class="c1">--- @class suricatta.ipc.progress_msg</span>
+<span class="linenos">388</span><span class="c1">--- @field magic        number                         SWUpdate IPC magic number</span>
+<span class="linenos">389</span><span class="c1">--- @field status       suricatta.ipc.RECOVERY_STATUS  Update status</span>
+<span class="linenos">390</span><span class="c1">--- @field dwl_percent  number                         Percent of downloaded data</span>
+<span class="linenos">391</span><span class="c1">--- @field nsteps       number                         Total steps count</span>
+<span class="linenos">392</span><span class="c1">--- @field cur_step     number                         Current step</span>
+<span class="linenos">393</span><span class="c1">--- @field cur_percent  number                         Percent in current step</span>
+<span class="linenos">394</span><span class="c1">--- @field cur_image    string                         Name of the current image to be installed (max: 256 chars)</span>
+<span class="linenos">395</span><span class="c1">--- @field hnd_name     string                         Name of the running handler (max: 64 chars)</span>
+<span class="linenos">396</span><span class="c1">--- @field source       suricatta.ipc.sourcetype       The source that has triggered the update</span>
+<span class="linenos">397</span><span class="c1">--- @field info         string                         Additional information about the installation (max: 2048 chars)</span>
+<span class="linenos">398</span><span class="c1">--- @field jsoninfo     table                          If `info` is JSON, according Lua Table</span>
+<span class="linenos">399</span>
+<span class="linenos">400</span><span class="c1">--- Lua enum of IPC commands as in `include/network_ipc.h`.</span>
+<span class="linenos">401</span><span class="c1">--</span>
+<span class="linenos">402</span><span class="c1">-- `CMD_ENABLE` is not passed through and hence not in `ipc_commands`</span>
+<span class="linenos">403</span><span class="c1">-- as it&#39;s handled directly in `suricatta/suricatta.c`.</span>
+<span class="linenos">404</span><span class="c1">--</span>
+<span class="linenos">405</span><span class="c1">--- @type  {[string]: number}</span>
+<span class="linenos">406</span><span class="c1">--- @class suricatta.ipc.ipc_commands</span>
+<span class="linenos">407</span><span class="c1">--- @field ACTIVATION  number  0</span>
+<span class="linenos">408</span><span class="c1">--- @field CONFIG      number  1</span>
+<span class="linenos">409</span><span class="c1">--- @field GET_STATUS  number  3</span>
+<span class="linenos">410</span>
+<span class="linenos">411</span><span class="c1">--- Lua-alike of `ipc_message` as in `include/network_ipc.h`.</span>
+<span class="linenos">412</span><span class="c1">--</span>
+<span class="linenos">413</span><span class="c1">-- Note: Some members are deliberately not passed through to the Lua</span>
+<span class="linenos">414</span><span class="c1">-- realm such as `ipc_message.data.len` since that&#39;s transparently</span>
+<span class="linenos">415</span><span class="c1">-- handled by the C-to-Lua bridge.</span>
+<span class="linenos">416</span><span class="c1">-- Note: This is not a direct equivalent but rather a &quot;sensible&quot; selection</span>
+<span class="linenos">417</span><span class="c1">-- as, e.g., the `json` field is not present in `struct ipc_message`.</span>
+<span class="linenos">418</span><span class="c1">--</span>
+<span class="linenos">419</span><span class="c1">--- @class suricatta.ipc.ipc_message</span>
+<span class="linenos">420</span><span class="c1">--- @field magic     number                      SWUpdate IPC magic number</span>
+<span class="linenos">421</span><span class="c1">--- @field commands  suricatta.ipc.ipc_commands  IPC commands</span>
+<span class="linenos">422</span><span class="c1">--- @field cmd       number                      Command number, one of `ipc_commands`&#39;s values</span>
+<span class="linenos">423</span><span class="c1">--- @field msg       string                      String data sent via IPC</span>
+<span class="linenos">424</span><span class="c1">--- @field json      table                       If `msg` is JSON, JSON as Lua Table</span>
+<span class="linenos">425</span>
+<span class="linenos">426</span>
+<span class="linenos">427</span><span class="kr">return</span> <span class="n">suricatta</span>
 </pre></div>
 </div>
 </section>
@@ -1176,7 +1189,7 @@ bootloader’s environment.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2013-2025, Stefano Babic.</p>
+    <p>&#169; Copyright 2013-2026, Stefano Babic.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

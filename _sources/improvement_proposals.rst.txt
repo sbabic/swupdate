@@ -128,9 +128,12 @@ multiple devices, and each of them needs a subset of the whole SWU. Like the del
 SWUpdate knows from sw-description which artifacts are to be installed, and reading the stream
 could decide to skip unnecessary components.
 
+Note: this feature is not the same than delta update, but most users are happier with delta update.
+This feature request will be removed in next release if there won't be interest.
+
 * Status: Wait
 * Request for Support : Sponsor
-* Priority : Medium
+* Priority : Low
 
 Tools and utilities
 ===================
@@ -165,8 +168,6 @@ SWUGenerator is thought to support multiple subcommands, but it currently suppor
 It is thinkable, even if this can be done with other tools, to implement further commands like:
 
 - extract: take a SWU and extracts all artifacts in a directory
-- sign: take a SWU and resign with a new key. This is useful when it is required to install a new
-  Software, but the certificate or the key on the device is older and rejects the installation.
 - verify: just verify if the SWU is correctly signed.
 
 SWUGenerator does not yet support all features present in meta-swupdate. As replacement for meta-swupdate
@@ -178,13 +179,14 @@ to SWUGenerator.
 * Request for Support : Sponsor
 * Priority : Medium
 
-LZMA support to SWUGenerator
-----------------------------
+Enhance "Custom" "signing
+-------------------------
 
-XZ (LZMA) decompression was added to SWUpdate, but SWUGenerator is not able to create XZ compressed images.
+The custom signing implementation should provide a way to also receive the sw_desc_sig and sw_desc parameters
+via command line.
 
 * Status: Wait
-* Request for Support : Not required
+* Request for Support : Sponsor
 * Priority : Medium
 
 swupdate-progress start up
@@ -204,7 +206,7 @@ installed or not.
 Lua
 ===
 
-- API between SWUpdate and Lua is poorly documented.
+- Improve documentation / add examples.
 - Store in SWUpdate's repo Lua libraries and common functions to be reused by projects.
 
 * Status : Running
@@ -241,6 +243,14 @@ However, upgrading the Webserver code requires to adjust the interface and code.
 will be nice to have further implementation of the Webserver, and/or to open to
 Webserver that allows streaming.
 
+Reported from ML there is this place for enhancement:
+
+- use Mongoose as library
+- use alternative Webserver. Civetweb is a fork from Mongoose and could be integrated.
+- Webserver itself is not doing a lot - it just provides API to push a SWU and Websocket to report progress.
+  If SWUpdate is behind a reverse-proxy, an easy own developed internal Webserver
+  can be a solution.
+
 * Status: Wait
 * Request for Support : Sponsor
 * Priority : Medium
@@ -248,24 +258,36 @@ Webserver that allows streaming.
 Security / Crypto engines
 =========================
 
-- add support for asymmetric decryption
+- Support for encrypted Delta Update:
+
+  Remote ZCK files are not encrypted because a chunk difference is evaluated.
+  A mechanism can be implemented to encrypt chunks as well.
 
 * Status: Wait
 * Request for Support : Sponsor
 * Priority : High
 
-- add more algorithms for decryption, as AES-CTR can be very useful to decrypt
-  chunks in delta updates.
+- add more algorithms for decryption and not only AES-CBC
 
 * Status: Wait
 * Request for Support : Sponsor
 * Priority : High
 
-- Support for TPM2 / HSM to store secrets (requires rework above).
+- Support for TPM2 / HSM to store secrets.
 
 * Status: Wait
 * Request for Support : Sponsor
 * Priority : High
+
+- Support for Linux Trusted Keys
+
+  Linux Kernel has introduced "trusted keys" and the keys are never exposed to User Space.
+  Currently, SWUpdate reads keys at the start up from files.
+
+* Status: Wait
+* Request for Support : Sponsor
+* Priority : High
+
 
 Back-end support (suricatta mode)
 =================================
@@ -307,31 +329,6 @@ changes must be implemented in SWUpdate.
 * Request for Support : Sponsor
 * Priority : Low
 
-Backend: hawkBit support for Delta Update
------------------------------------------
-
-Delta Update requires two or more files:
-
-- the SWU
-- one file ".zck" for each artifact that is upgraded via delta handler.
-
-The .zck must be uploaded somewhere and the URL is defined inside sw-description, that
-is then signed. This causes a chicken-egg issue, because the buzild cannot be completed
-with hawkBit until the ".zck" files are not uploaded. In fact, hawkBit assigns to each
-Software Module an "id" that is unknown at the moment of the build.
-
-It is required to implement a mechanism that let suricatta to inform the core about URLs
-passed by the hawkBit server, and they can override the URL set inside sw-description.
-This lets the URL for ZCK unknown during the build and it will be detected at runtime.
-
-The authentication to the hawkBit Server does not work in case of delta. In fact, authentication
-is performed by the backend connector, but the download of .zck files is done by a different
-process ("downloader") that don't use the setup from suricatta.
-
-* Status: In progress
-* Request for Support : Sponsored by Orica Digital Solutions
-* Priority : Medium
-
 Back-end: support for generic down-loader
 -----------------------------------------
 
@@ -368,7 +365,7 @@ and tested on real hardware.
 
 * Status: Wait
 * Request for Support : Sponsor
-* Priority : Medium
+* Priority : High
 
 Bootloader interface
 ====================
@@ -388,6 +385,16 @@ Binding to languages
 libswupdate allows to write an application that can control SWUpdate's behavior and be informed
 about a running update. There are bindings for C/C++, Lua and nodejs (just progress).
 
+Applications can be written in other languages, and binding to Python and Rust can be
+implemented, too.
+
+* Status: Wait
+* Request for Support : Sponsor
+* Priority : Low
+
+IPC / Daemon control
+====================
+
 Use a JSON interface to exchange IPC messeges.
 ----------------------------------------------
 
@@ -396,17 +403,7 @@ SWUpdate. This makes adding new binding very easy, and often not necessary.
 
 * Status: Wait
 * Request for Support : Sponsor
-* Priority : Low
-
-Bindings for other languages
-----------------------------
-
-Applications can be written in other languages, and binding to Python and Rust can be
-implemented, too.
-
-* Status: Wait
-* Request for Support : Sponsor
-* Priority : Low
+* Priority : Medium
 
 Documentation
 =============
@@ -487,3 +484,52 @@ Some hacks are currently built to avoid conflicts (pkcs#7 and CMS are the same
 thing, but supported by different libraries), and they should be solved.
 
 * Status: after 2025.05
+* Sponsored by iris-GmbH infrared & intelligent sensors
+
+Support for asymmetric decryption
+---------------------------------
+
+It makes no sense to encrypt big artifacts with an asymettric key, but asymetric decription
+is realized by encrypting sw-description multiple times with a per-device (public) certificate.
+
+This allows to reach two main goal:
+
+- revocation list: if a device is compromised, next update won't contain the device.
+- dynamic / autometic deployment of the AES symmetric key: because sw-description is encrypted,
+  the AES key can be part of sw-description and only devices with a valid certificate can
+  retrieve it.
+
+* Status: since 2026.xx
+* Sponsored by iris-GmbH infrared & intelligent sensors
+
+Backend: hawkBit support for Delta Update
+-----------------------------------------
+
+Delta Update requires two or more files:
+
+- the SWU
+- one file ".zck" for each artifact that is upgraded via delta handler.
+
+The .zck must be uploaded somewhere and the URL is defined inside sw-description, that
+is then signed. This causes a chicken-egg issue, because the buzild cannot be completed
+with hawkBit until the ".zck" files are not uploaded. In fact, hawkBit assigns to each
+Software Module an "id" that is unknown at the moment of the build.
+
+It is required to implement a mechanism that let suricatta to inform the core about URLs
+passed by the hawkBit server, and they can override the URL set inside sw-description.
+This lets the URL for ZCK unknown during the build and it will be detected at runtime.
+
+The authentication to the hawkBit Server does not work in case of delta. In fact, authentication
+is performed by the backend connector, but the download of .zck files is done by a different
+process ("downloader") that don't use the setup from suricatta.
+
+* Status: since 2026.xx
+* Sponsored by Orica Digital Solutions
+
+SWUGenerator sign command
+-------------------------
+
+- sign: take a SWU and resign with a new key. This is useful when it is required to install a new
+  Software, but the certificate or the key on the device is older and rejects the installation.
+
+since version 0.6

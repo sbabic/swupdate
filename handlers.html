@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Handlers &mdash; Embedded Software Update Documentation 2025.12 documentation</title>
+  <title>Handlers &mdash; Embedded Software Update Documentation 2026.05 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=86f27845" />
 
@@ -13,7 +13,7 @@
   
         <script src="_static/jquery.js?v=8dae8fb0"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=50a9be24"></script>
+        <script src="_static/documentation_options.js?v=c8a5ba83"></script>
         <script src="_static/doctools.js?v=888ff710"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
@@ -35,7 +35,7 @@
             Embedded Software Update Documentation
           </a>
               <div class="version">
-                2025.12
+                2026.05
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
@@ -82,6 +82,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#readback-handler">Readback Handler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#copy-handler">Copy handler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#bootloader-handler">Bootloader handler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#emmc-handler">eMMC handler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#archive-handler">Archive handler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#disk-partitioner">Disk partitioner</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#toggleboot-handler">Toggleboot Handler</a></li>
@@ -99,6 +100,8 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#generic-executor-handler">Generic Executor Handler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#delta-update-handler">Delta Update Handler</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#hawkbit">Hawkbit</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#sw-description">sw-description</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#memory-issue-with-zchunk">Memory issue with zchunk</a></li>
 </ul>
 </li>
@@ -782,159 +785,163 @@ dynamically.</p>
 <span class="linenos">215</span><span class="c1">--- @return string       # Bootloader environment key&#39;s value, empty if key absent</span>
 <span class="linenos">216</span><span class="n">swupdate</span><span class="p">.</span><span class="n">get_bootenv</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="kr">end</span>
 <span class="linenos">217</span>
-<span class="linenos">218</span>
-<span class="linenos">219</span><span class="c1">--- @enum swupdate.HANDLER_MASK</span>
-<span class="linenos">220</span><span class="c1">--- Lua equivalent of `HANDLER_MASK` as in `include/handler.h`.</span>
-<span class="linenos">221</span><span class="n">swupdate</span><span class="p">.</span><span class="n">HANDLER_MASK</span> <span class="o">=</span> <span class="p">{</span>
-<span class="linenos">222</span>    <span class="n">IMAGE_HANDLER</span>      <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-<span class="linenos">223</span>    <span class="n">FILE_HANDLER</span>       <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
-<span class="linenos">224</span>    <span class="n">SCRIPT_HANDLER</span>     <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
-<span class="linenos">225</span>    <span class="n">BOOTLOADER_HANDLER</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span>
-<span class="linenos">226</span>    <span class="n">PARTITION_HANDLER</span>  <span class="o">=</span> <span class="mi">16</span><span class="p">,</span>
-<span class="linenos">227</span>    <span class="n">NO_DATA_HANDLER</span>    <span class="o">=</span> <span class="mi">32</span><span class="p">,</span>
-<span class="linenos">228</span>    <span class="n">ANY_HANDLER</span>        <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">4</span> <span class="o">+</span> <span class="mi">8</span> <span class="o">+</span> <span class="mi">16</span> <span class="o">+</span> <span class="mi">32</span>
-<span class="linenos">229</span><span class="p">}</span>
-<span class="linenos">230</span>
-<span class="linenos">231</span><span class="c1">--- Register a Lua function as Handler implementation.</span>
-<span class="linenos">232</span><span class="c1">--</span>
-<span class="linenos">233</span><span class="c1">-- The signature of the function to be registered as Handler implementation is:</span>
-<span class="linenos">234</span><span class="c1">--</span>
-<span class="linenos">235</span><span class="c1">-- --- @param  image     img_type  Lua equivalent of `struct img_type`</span>
-<span class="linenos">236</span><span class="c1">-- --- @param  fn | nil  string    `preinst` or `postinst` for `SCRIPT_HANDLER`s, else nil</span>
-<span class="linenos">237</span><span class="c1">-- --- @return number    # 0 on success, 1 on error</span>
-<span class="linenos">238</span><span class="c1">-- function lua_handler(image, fn)</span>
-<span class="linenos">239</span><span class="c1">--     ...</span>
-<span class="linenos">240</span><span class="c1">-- end</span>
-<span class="linenos">241</span><span class="c1">--</span>
-<span class="linenos">242</span><span class="c1">--- @param name     string    Registered Handler&#39;s name</span>
-<span class="linenos">243</span><span class="c1">--- @param funcptr  function  Function to register as Handler implementation</span>
-<span class="linenos">244</span><span class="c1">--- @param mask     number    Type(s) for which to register the Handler, one or more ORed values of `swupdate.HANDLER_MASK`</span>
-<span class="linenos">245</span><span class="n">swupdate</span><span class="p">.</span><span class="n">register_handler</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">funcptr</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span> <span class="kr">end</span>
-<span class="linenos">246</span>
-<span class="linenos">247</span>
-<span class="linenos">248</span><span class="c1">--- Lua equivalent of `struct img_type {...}` as in `include/swupdate.h` plus `read()` and `copy2file()` functions.</span>
-<span class="linenos">249</span><span class="c1">--- @class img_type</span>
-<span class="linenos">250</span><span class="c1">--- @field name                  string    `sw-component` name to check with `sw-versions`</span>
-<span class="linenos">251</span><span class="c1">--- @field version               string    `sw-component` version to check with `sw-versions`</span>
-<span class="linenos">252</span><span class="c1">--- @field filename              string    File name in CPIO archive</span>
-<span class="linenos">253</span><span class="c1">--- @field volume                string    If handler is &quot;ubivol&quot;, the UBI volume name</span>
-<span class="linenos">254</span><span class="c1">--- @field type                  string    The Handler name</span>
-<span class="linenos">255</span><span class="c1">--- @field device                string    Device node to operate on for mounting, flashing, ...</span>
-<span class="linenos">256</span><span class="c1">--- @field path                  string    For FILE_HANDLERs: the relative destination path</span>
-<span class="linenos">257</span><span class="c1">--- @field mtdname               string    MTD device where image must be installed</span>
-<span class="linenos">258</span><span class="c1">--- @field data                  string    Handler-specific arbitrary data</span>
-<span class="linenos">259</span><span class="c1">--- @field filesystem            string    For FILE_HANDLERs: the filesystem to mount</span>
-<span class="linenos">260</span><span class="c1">--- @field ivt                   string    IVT of an encrypted artifact</span>
-<span class="linenos">261</span><span class="c1">--- @field installed_directly    boolean   Whether to stream image to `device` w/o temporary copy</span>
-<span class="linenos">262</span><span class="c1">--- @field install_if_different  boolean   Whether to compare `name` and `version` accordingly</span>
-<span class="linenos">263</span><span class="c1">--- @field install_if_higher     boolean   Whether to compare `name` and `version` accordingly</span>
-<span class="linenos">264</span><span class="c1">--- @field encrypted             boolean   Whether the artifact is encrypted</span>
-<span class="linenos">265</span><span class="c1">--- @field partition             boolean   Whether the artifact is a partitioner</span>
-<span class="linenos">266</span><span class="c1">--- @field script                boolean   Whether the artifact is a script</span>
-<span class="linenos">267</span><span class="c1">--- @field preserve_attributes   boolean   Whether to preserve attributes in archives</span>
-<span class="linenos">268</span><span class="c1">--- @field offset                number    Offset to seek to in artifact</span>
-<span class="linenos">269</span><span class="c1">--- @field size                  number    Artifact size</span>
-<span class="linenos">270</span><span class="c1">--- @field checksum              number    Computed checksum</span>
-<span class="linenos">271</span><span class="c1">--- @field skip                  number    `skip_t` enum number as in `include/swupdate.h`</span>
-<span class="linenos">272</span><span class="c1">--- @field compressed            string    `zlib` or `zstd` (boolean value is deprecated)</span>
-<span class="linenos">273</span><span class="c1">--- @field properties            table     Properties Table equivalent as specified in `sw-description`</span>
-<span class="linenos">274</span><span class="c1">--- @field sha256                string    sha256 hash of the image, file, or script</span>
-<span class="linenos">275</span><span class="kd">local</span> <span class="n">img_type</span> <span class="o">=</span> <span class="p">{</span>
-<span class="linenos">276</span>    <span class="c1">--- Store the current image artifact to disk.</span>
-<span class="linenos">277</span>    <span class="c1">--</span>
-<span class="linenos">278</span>    <span class="c1">--- @param  self  img_type  This `img_type` instance</span>
-<span class="linenos">279</span>    <span class="c1">--- @param  path  string    Path to store the current image artifact to</span>
-<span class="linenos">280</span>    <span class="c1">--- @return number          # 0 on success, -1 on error</span>
-<span class="linenos">281</span>    <span class="c1">--- @return string | nil    # nil on success, error message on failure</span>
-<span class="linenos">282</span>    <span class="p">[</span><span class="s1">&#39;copy2file&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span> <span class="kr">end</span><span class="p">,</span>
-<span class="linenos">283</span>
-<span class="linenos">284</span>    <span class="c1">--- Process the current image artifact in Lua.</span>
-<span class="linenos">285</span>    <span class="c1">--</span>
-<span class="linenos">286</span>    <span class="c1">-- The `callback = function(chunk) ... end` is repeatedly called with</span>
-<span class="linenos">287</span>    <span class="c1">-- chunked artifact data of type `string` in its `chunk` parameter as</span>
-<span class="linenos">288</span>    <span class="c1">-- long as there is data available.</span>
-<span class="linenos">289</span>    <span class="c1">-- The callback function must completely consume the artifact data so</span>
-<span class="linenos">290</span>    <span class="c1">-- that SWUpdate can continue with the stream&#39;s next artifact after</span>
-<span class="linenos">291</span>    <span class="c1">-- the Lua Handler returns.</span>
-<span class="linenos">292</span>    <span class="c1">--</span>
-<span class="linenos">293</span>    <span class="c1">--- @param  self      img_type  This `img_type` instance</span>
-<span class="linenos">294</span>    <span class="c1">--- @param  callback  function  Callback `function(chunk) ... end` that is fed the current image artifact in chunks.</span>
-<span class="linenos">295</span>    <span class="c1">--- @return number              # 0 on success, -1 on error</span>
-<span class="linenos">296</span>    <span class="c1">--- @return string | nil        # nil on success, error message on failure</span>
-<span class="linenos">297</span>    <span class="p">[</span><span class="s1">&#39;read&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span> <span class="kr">end</span><span class="p">,</span>
-<span class="linenos">298</span><span class="p">}</span>
-<span class="linenos">299</span>
-<span class="linenos">300</span>
-<span class="linenos">301</span><span class="c1">--- @class swupdate.handler</span>
-<span class="linenos">302</span><span class="c1">--- Chain-callable SWUpdate Handlers (Non-exhaustive).</span>
-<span class="linenos">303</span><span class="c1">--</span>
-<span class="linenos">304</span><span class="c1">-- Note: This list of built-in Handlers is non-exhaustive and</span>
-<span class="linenos">305</span><span class="c1">-- purely illustrative. At run-time, SWUpdate populates this</span>
-<span class="linenos">306</span><span class="c1">-- Table with the actually available Handlers according to its</span>
-<span class="linenos">307</span><span class="c1">-- compile-time configuration and Lua Handlers loaded.</span>
-<span class="linenos">308</span><span class="c1">--</span>
-<span class="linenos">309</span><span class="c1">--- @type table&lt;string, number&gt;</span>
-<span class="linenos">310</span><span class="n">swupdate</span><span class="p">.</span><span class="n">handler</span> <span class="o">=</span> <span class="p">{</span>
-<span class="linenos">311</span>    <span class="c1">--- Archive Handler (See: `handlers/archive_handler.c`).</span>
-<span class="linenos">312</span>    <span class="p">[</span><span class="s2">&quot;archive&quot;</span><span class="p">]</span>        <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-<span class="linenos">313</span>    <span class="c1">--- `tar` Archive Handler (See: `handlers/archive_handler.c`).</span>
-<span class="linenos">314</span>    <span class="p">[</span><span class="s2">&quot;tar&quot;</span><span class="p">]</span>            <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-<span class="linenos">315</span>    <span class="c1">--- Bootloader Handler (See: `handlers/boot_handler.c`).</span>
-<span class="linenos">316</span>    <span class="p">[</span><span class="s2">&quot;bootloader&quot;</span><span class="p">]</span>     <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-<span class="linenos">317</span>    <span class="c1">--- &quot;dummy&quot; Handler (See: `handlers/dummy_handler.c`).</span>
-<span class="linenos">318</span>    <span class="p">[</span><span class="s2">&quot;dummy&quot;</span><span class="p">]</span>          <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-<span class="linenos">319</span>    <span class="c1">--- Delta Handler (See: `handlers/delta_handler.c`).</span>
-<span class="linenos">320</span>    <span class="p">[</span><span class="s2">&quot;delta&quot;</span><span class="p">]</span>          <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-<span class="linenos">321</span>    <span class="c1">--- Disk Format Handler (See: `handlers/diskformat_handler.c`).</span>
-<span class="linenos">322</span>    <span class="p">[</span><span class="s2">&quot;diskformat&quot;</span><span class="p">]</span>     <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-<span class="linenos">323</span>    <span class="c1">--- Disk Partition Handler (See: `handlers/diskpart_handler.c`).</span>
-<span class="linenos">324</span>    <span class="p">[</span><span class="s2">&quot;diskpart&quot;</span><span class="p">]</span>       <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-<span class="linenos">325</span>    <span class="c1">--- Toggle Boot Flag Handler (See: `handlers/diskpart_handler.c`).</span>
-<span class="linenos">326</span>    <span class="p">[</span><span class="s2">&quot;toggleboot&quot;</span><span class="p">]</span>     <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-<span class="linenos">327</span>    <span class="c1">--- Flash Hamming1 Handler (See: `handlers/flash_hamming1_handler.c`).</span>
-<span class="linenos">328</span>    <span class="p">[</span><span class="s2">&quot;flash-hamming1&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-<span class="linenos">329</span>    <span class="c1">--- Flash Handler (See: `handlers/flash_handler.c`).</span>
-<span class="linenos">330</span>    <span class="p">[</span><span class="s2">&quot;flash&quot;</span><span class="p">]</span>          <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-<span class="linenos">331</span>    <span class="c1">--- Raw Image Handler (See: `handlers/raw_handler.c`).</span>
-<span class="linenos">332</span>    <span class="p">[</span><span class="s2">&quot;raw&quot;</span><span class="p">]</span>            <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-<span class="linenos">333</span>    <span class="c1">--- Raw File Handler (See: `handlers/raw_handler.c`).</span>
-<span class="linenos">334</span>    <span class="p">[</span><span class="s2">&quot;rawfile&quot;</span><span class="p">]</span>        <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-<span class="linenos">335</span>    <span class="c1">--- Raw Copy Handler (See: `handlers/raw_handler.c`).</span>
-<span class="linenos">336</span>    <span class="p">[</span><span class="s2">&quot;rawcopy&quot;</span><span class="p">]</span>        <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-<span class="linenos">337</span>    <span class="c1">--- rdiff Image Handler (See: `handlers/rdiff_handler.c`).</span>
-<span class="linenos">338</span>    <span class="p">[</span><span class="s2">&quot;rdiff_image&quot;</span><span class="p">]</span>    <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-<span class="linenos">339</span>    <span class="c1">--- rdiff File Handler (See: `handlers/rdiff_handler.c`).</span>
-<span class="linenos">340</span>    <span class="p">[</span><span class="s2">&quot;rdiff_file&quot;</span><span class="p">]</span>     <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-<span class="linenos">341</span>    <span class="c1">--- Readback Handler (See: `handlers/readback_handler.c`).</span>
-<span class="linenos">342</span>    <span class="p">[</span><span class="s2">&quot;readback&quot;</span><span class="p">]</span>       <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-<span class="linenos">343</span>    <span class="c1">--- Remote Handler (See: `handlers/remote_handler.c`).</span>
-<span class="linenos">344</span>    <span class="p">[</span><span class="s2">&quot;remote&quot;</span><span class="p">]</span>         <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-<span class="linenos">345</span>    <span class="c1">--- SSBL Handler (See: `handlers/ssbl_handler.c`).</span>
-<span class="linenos">346</span>    <span class="p">[</span><span class="s2">&quot;ssblswitch&quot;</span><span class="p">]</span>     <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-<span class="linenos">347</span>    <span class="c1">--- SWU Forward Handler (See: `handlers/swuforward_handler.c`).</span>
-<span class="linenos">348</span>    <span class="p">[</span><span class="s2">&quot;swuforward&quot;</span><span class="p">]</span>     <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-<span class="linenos">349</span>    <span class="c1">--- UBI Volume Handler (See: `handlers/ubivol_handler.c`).</span>
-<span class="linenos">350</span>    <span class="p">[</span><span class="s2">&quot;ubivol&quot;</span><span class="p">]</span>         <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-<span class="linenos">351</span>    <span class="c1">--- UBI Partition Handler (See: `handlers/ubivol_handler.c`).</span>
-<span class="linenos">352</span>    <span class="p">[</span><span class="s2">&quot;ubipartition&quot;</span><span class="p">]</span>   <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-<span class="linenos">353</span>    <span class="c1">--- UBI Swap Handler (See: `handlers/ubivol_handler.c`).</span>
-<span class="linenos">354</span>    <span class="p">[</span><span class="s2">&quot;ubiswap&quot;</span><span class="p">]</span>        <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-<span class="linenos">355</span>    <span class="c1">--- ucfw Handler (See: `handlers/ucfw_handler.c`).</span>
-<span class="linenos">356</span>    <span class="p">[</span><span class="s2">&quot;ucfw&quot;</span><span class="p">]</span>           <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-<span class="linenos">357</span>    <span class="c1">--- Unique UUID Handler (See: `handlers/uniqueuuid_handler.c`).</span>
-<span class="linenos">358</span>    <span class="p">[</span><span class="s2">&quot;uniqueuuid&quot;</span><span class="p">]</span>     <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-<span class="linenos">359</span><span class="p">}</span>
-<span class="linenos">360</span>
-<span class="linenos">361</span><span class="c1">--- Chain-call another Handler.</span>
-<span class="linenos">362</span><span class="c1">--</span>
-<span class="linenos">363</span><span class="c1">--- @param  handler  string    Chain-called Handler&#39;s name</span>
-<span class="linenos">364</span><span class="c1">--- @param  image    img_type  Lua equivalent of `struct img_type` as in `include/swupdate.h`</span>
-<span class="linenos">365</span><span class="c1">--- @return number             # 0 on success, 1 on failure</span>
-<span class="linenos">366</span><span class="c1">--- @return string | nil       # nil on success, error message on failure</span>
-<span class="linenos">367</span><span class="n">swupdate</span><span class="p">.</span><span class="n">call_handler</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">handler</span><span class="p">,</span> <span class="n">image</span><span class="p">)</span> <span class="kr">end</span>
-<span class="linenos">368</span>
-<span class="linenos">369</span>
-<span class="linenos">370</span><span class="kr">return</span> <span class="n">swupdate</span>
+<span class="linenos">218</span><span class="c1">--- Get table with linux kernel command line</span>
+<span class="linenos">219</span><span class="c1">--</span>
+<span class="linenos">220</span><span class="c1">--- @return table       # Table with keys and value, for example t[root] return root device</span>
+<span class="linenos">221</span><span class="n">swupdate</span><span class="p">.</span><span class="n">get_cmdline</span> <span class="o">=</span> <span class="kr">function</span><span class="p">()</span> <span class="kr">end</span>
+<span class="linenos">222</span>
+<span class="linenos">223</span><span class="c1">--- @enum swupdate.HANDLER_MASK</span>
+<span class="linenos">224</span><span class="c1">--- Lua equivalent of `HANDLER_MASK` as in `include/handler.h`.</span>
+<span class="linenos">225</span><span class="n">swupdate</span><span class="p">.</span><span class="n">HANDLER_MASK</span> <span class="o">=</span> <span class="p">{</span>
+<span class="linenos">226</span>    <span class="n">IMAGE_HANDLER</span>      <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">227</span>    <span class="n">FILE_HANDLER</span>       <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+<span class="linenos">228</span>    <span class="n">SCRIPT_HANDLER</span>     <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+<span class="linenos">229</span>    <span class="n">BOOTLOADER_HANDLER</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span>
+<span class="linenos">230</span>    <span class="n">PARTITION_HANDLER</span>  <span class="o">=</span> <span class="mi">16</span><span class="p">,</span>
+<span class="linenos">231</span>    <span class="n">NO_DATA_HANDLER</span>    <span class="o">=</span> <span class="mi">32</span><span class="p">,</span>
+<span class="linenos">232</span>    <span class="n">ANY_HANDLER</span>        <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">4</span> <span class="o">+</span> <span class="mi">8</span> <span class="o">+</span> <span class="mi">16</span> <span class="o">+</span> <span class="mi">32</span>
+<span class="linenos">233</span><span class="p">}</span>
+<span class="linenos">234</span>
+<span class="linenos">235</span><span class="c1">--- Register a Lua function as Handler implementation.</span>
+<span class="linenos">236</span><span class="c1">--</span>
+<span class="linenos">237</span><span class="c1">-- The signature of the function to be registered as Handler implementation is:</span>
+<span class="linenos">238</span><span class="c1">--</span>
+<span class="linenos">239</span><span class="c1">-- --- @param  image     img_type  Lua equivalent of `struct img_type`</span>
+<span class="linenos">240</span><span class="c1">-- --- @param  fn | nil  string    `preinst` or `postinst` for `SCRIPT_HANDLER`s, else nil</span>
+<span class="linenos">241</span><span class="c1">-- --- @return number    # 0 on success, 1 on error</span>
+<span class="linenos">242</span><span class="c1">-- function lua_handler(image, fn)</span>
+<span class="linenos">243</span><span class="c1">--     ...</span>
+<span class="linenos">244</span><span class="c1">-- end</span>
+<span class="linenos">245</span><span class="c1">--</span>
+<span class="linenos">246</span><span class="c1">--- @param name     string    Registered Handler&#39;s name</span>
+<span class="linenos">247</span><span class="c1">--- @param funcptr  function  Function to register as Handler implementation</span>
+<span class="linenos">248</span><span class="c1">--- @param mask     number    Type(s) for which to register the Handler, one or more ORed values of `swupdate.HANDLER_MASK`</span>
+<span class="linenos">249</span><span class="n">swupdate</span><span class="p">.</span><span class="n">register_handler</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">funcptr</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span> <span class="kr">end</span>
+<span class="linenos">250</span>
+<span class="linenos">251</span>
+<span class="linenos">252</span><span class="c1">--- Lua equivalent of `struct img_type {...}` as in `include/swupdate.h` plus `read()` and `copy2file()` functions.</span>
+<span class="linenos">253</span><span class="c1">--- @class img_type</span>
+<span class="linenos">254</span><span class="c1">--- @field name                  string    `sw-component` name to check with `sw-versions`</span>
+<span class="linenos">255</span><span class="c1">--- @field version               string    `sw-component` version to check with `sw-versions`</span>
+<span class="linenos">256</span><span class="c1">--- @field filename              string    File name in CPIO archive</span>
+<span class="linenos">257</span><span class="c1">--- @field volume                string    If handler is &quot;ubivol&quot;, the UBI volume name</span>
+<span class="linenos">258</span><span class="c1">--- @field type                  string    The Handler name</span>
+<span class="linenos">259</span><span class="c1">--- @field device                string    Device node to operate on for mounting, flashing, ...</span>
+<span class="linenos">260</span><span class="c1">--- @field path                  string    For FILE_HANDLERs: the relative destination path</span>
+<span class="linenos">261</span><span class="c1">--- @field mtdname               string    MTD device where image must be installed</span>
+<span class="linenos">262</span><span class="c1">--- @field data                  string    Handler-specific arbitrary data</span>
+<span class="linenos">263</span><span class="c1">--- @field filesystem            string    For FILE_HANDLERs: the filesystem to mount</span>
+<span class="linenos">264</span><span class="c1">--- @field ivt                   string    IVT of an encrypted artifact</span>
+<span class="linenos">265</span><span class="c1">--- @field installed_directly    boolean   Whether to stream image to `device` w/o temporary copy</span>
+<span class="linenos">266</span><span class="c1">--- @field install_if_different  boolean   Whether to compare `name` and `version` accordingly</span>
+<span class="linenos">267</span><span class="c1">--- @field install_if_higher     boolean   Whether to compare `name` and `version` accordingly</span>
+<span class="linenos">268</span><span class="c1">--- @field encrypted             boolean   Whether the artifact is encrypted</span>
+<span class="linenos">269</span><span class="c1">--- @field partition             boolean   Whether the artifact is a partitioner</span>
+<span class="linenos">270</span><span class="c1">--- @field script                boolean   Whether the artifact is a script</span>
+<span class="linenos">271</span><span class="c1">--- @field preserve_attributes   boolean   Whether to preserve attributes in archives</span>
+<span class="linenos">272</span><span class="c1">--- @field offset                number    Offset to seek to in artifact</span>
+<span class="linenos">273</span><span class="c1">--- @field size                  number    Artifact size</span>
+<span class="linenos">274</span><span class="c1">--- @field checksum              number    Computed checksum</span>
+<span class="linenos">275</span><span class="c1">--- @field skip                  number    `skip_t` enum number as in `include/swupdate.h`</span>
+<span class="linenos">276</span><span class="c1">--- @field compressed            string    `zlib`, `xz`, `zstd` or `lz4` (boolean value is deprecated)</span>
+<span class="linenos">277</span><span class="c1">--- @field properties            table     Properties Table equivalent as specified in `sw-description`</span>
+<span class="linenos">278</span><span class="c1">--- @field sha256                string    sha256 hash of the image, file, or script</span>
+<span class="linenos">279</span><span class="kd">local</span> <span class="n">img_type</span> <span class="o">=</span> <span class="p">{</span>
+<span class="linenos">280</span>    <span class="c1">--- Store the current image artifact to disk.</span>
+<span class="linenos">281</span>    <span class="c1">--</span>
+<span class="linenos">282</span>    <span class="c1">--- @param  self  img_type  This `img_type` instance</span>
+<span class="linenos">283</span>    <span class="c1">--- @param  path  string    Path to store the current image artifact to</span>
+<span class="linenos">284</span>    <span class="c1">--- @return number          # 0 on success, -1 on error</span>
+<span class="linenos">285</span>    <span class="c1">--- @return string | nil    # nil on success, error message on failure</span>
+<span class="linenos">286</span>    <span class="p">[</span><span class="s1">&#39;copy2file&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span> <span class="kr">end</span><span class="p">,</span>
+<span class="linenos">287</span>
+<span class="linenos">288</span>    <span class="c1">--- Process the current image artifact in Lua.</span>
+<span class="linenos">289</span>    <span class="c1">--</span>
+<span class="linenos">290</span>    <span class="c1">-- The `callback = function(chunk) ... end` is repeatedly called with</span>
+<span class="linenos">291</span>    <span class="c1">-- chunked artifact data of type `string` in its `chunk` parameter as</span>
+<span class="linenos">292</span>    <span class="c1">-- long as there is data available.</span>
+<span class="linenos">293</span>    <span class="c1">-- The callback function must completely consume the artifact data so</span>
+<span class="linenos">294</span>    <span class="c1">-- that SWUpdate can continue with the stream&#39;s next artifact after</span>
+<span class="linenos">295</span>    <span class="c1">-- the Lua Handler returns.</span>
+<span class="linenos">296</span>    <span class="c1">--</span>
+<span class="linenos">297</span>    <span class="c1">--- @param  self      img_type  This `img_type` instance</span>
+<span class="linenos">298</span>    <span class="c1">--- @param  callback  function  Callback `function(chunk) ... end` that is fed the current image artifact in chunks.</span>
+<span class="linenos">299</span>    <span class="c1">--- @return number              # 0 on success, -1 on error</span>
+<span class="linenos">300</span>    <span class="c1">--- @return string | nil        # nil on success, error message on failure</span>
+<span class="linenos">301</span>    <span class="p">[</span><span class="s1">&#39;read&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">callback</span><span class="p">)</span> <span class="kr">end</span><span class="p">,</span>
+<span class="linenos">302</span><span class="p">}</span>
+<span class="linenos">303</span>
+<span class="linenos">304</span>
+<span class="linenos">305</span><span class="c1">--- @class swupdate.handler</span>
+<span class="linenos">306</span><span class="c1">--- Chain-callable SWUpdate Handlers (Non-exhaustive).</span>
+<span class="linenos">307</span><span class="c1">--</span>
+<span class="linenos">308</span><span class="c1">-- Note: This list of built-in Handlers is non-exhaustive and</span>
+<span class="linenos">309</span><span class="c1">-- purely illustrative. At run-time, SWUpdate populates this</span>
+<span class="linenos">310</span><span class="c1">-- Table with the actually available Handlers according to its</span>
+<span class="linenos">311</span><span class="c1">-- compile-time configuration and Lua Handlers loaded.</span>
+<span class="linenos">312</span><span class="c1">--</span>
+<span class="linenos">313</span><span class="c1">--- @type table&lt;string, number&gt;</span>
+<span class="linenos">314</span><span class="n">swupdate</span><span class="p">.</span><span class="n">handler</span> <span class="o">=</span> <span class="p">{</span>
+<span class="linenos">315</span>    <span class="c1">--- Archive Handler (See: `handlers/archive_handler.c`).</span>
+<span class="linenos">316</span>    <span class="p">[</span><span class="s2">&quot;archive&quot;</span><span class="p">]</span>        <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">317</span>    <span class="c1">--- `tar` Archive Handler (See: `handlers/archive_handler.c`).</span>
+<span class="linenos">318</span>    <span class="p">[</span><span class="s2">&quot;tar&quot;</span><span class="p">]</span>            <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">319</span>    <span class="c1">--- Bootloader Handler (See: `handlers/boot_handler.c`).</span>
+<span class="linenos">320</span>    <span class="p">[</span><span class="s2">&quot;bootloader&quot;</span><span class="p">]</span>     <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">321</span>    <span class="c1">--- &quot;dummy&quot; Handler (See: `handlers/dummy_handler.c`).</span>
+<span class="linenos">322</span>    <span class="p">[</span><span class="s2">&quot;dummy&quot;</span><span class="p">]</span>          <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">323</span>    <span class="c1">--- Delta Handler (See: `handlers/delta_handler.c`).</span>
+<span class="linenos">324</span>    <span class="p">[</span><span class="s2">&quot;delta&quot;</span><span class="p">]</span>          <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">325</span>    <span class="c1">--- Disk Format Handler (See: `handlers/diskformat_handler.c`).</span>
+<span class="linenos">326</span>    <span class="p">[</span><span class="s2">&quot;diskformat&quot;</span><span class="p">]</span>     <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">327</span>    <span class="c1">--- Disk Partition Handler (See: `handlers/diskpart_handler.c`).</span>
+<span class="linenos">328</span>    <span class="p">[</span><span class="s2">&quot;diskpart&quot;</span><span class="p">]</span>       <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">329</span>    <span class="c1">--- Toggle Boot Flag Handler (See: `handlers/diskpart_handler.c`).</span>
+<span class="linenos">330</span>    <span class="p">[</span><span class="s2">&quot;toggleboot&quot;</span><span class="p">]</span>     <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">331</span>    <span class="c1">--- Flash Hamming1 Handler (See: `handlers/flash_hamming1_handler.c`).</span>
+<span class="linenos">332</span>    <span class="p">[</span><span class="s2">&quot;flash-hamming1&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">333</span>    <span class="c1">--- Flash Handler (See: `handlers/flash_handler.c`).</span>
+<span class="linenos">334</span>    <span class="p">[</span><span class="s2">&quot;flash&quot;</span><span class="p">]</span>          <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">335</span>    <span class="c1">--- Raw Image Handler (See: `handlers/raw_handler.c`).</span>
+<span class="linenos">336</span>    <span class="p">[</span><span class="s2">&quot;raw&quot;</span><span class="p">]</span>            <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">337</span>    <span class="c1">--- Raw File Handler (See: `handlers/raw_handler.c`).</span>
+<span class="linenos">338</span>    <span class="p">[</span><span class="s2">&quot;rawfile&quot;</span><span class="p">]</span>        <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">339</span>    <span class="c1">--- Raw Copy Handler (See: `handlers/raw_handler.c`).</span>
+<span class="linenos">340</span>    <span class="p">[</span><span class="s2">&quot;rawcopy&quot;</span><span class="p">]</span>        <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">341</span>    <span class="c1">--- rdiff Image Handler (See: `handlers/rdiff_handler.c`).</span>
+<span class="linenos">342</span>    <span class="p">[</span><span class="s2">&quot;rdiff_image&quot;</span><span class="p">]</span>    <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">343</span>    <span class="c1">--- rdiff File Handler (See: `handlers/rdiff_handler.c`).</span>
+<span class="linenos">344</span>    <span class="p">[</span><span class="s2">&quot;rdiff_file&quot;</span><span class="p">]</span>     <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">345</span>    <span class="c1">--- Readback Handler (See: `handlers/readback_handler.c`).</span>
+<span class="linenos">346</span>    <span class="p">[</span><span class="s2">&quot;readback&quot;</span><span class="p">]</span>       <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">347</span>    <span class="c1">--- Remote Handler (See: `handlers/remote_handler.c`).</span>
+<span class="linenos">348</span>    <span class="p">[</span><span class="s2">&quot;remote&quot;</span><span class="p">]</span>         <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">349</span>    <span class="c1">--- SSBL Handler (See: `handlers/ssbl_handler.c`).</span>
+<span class="linenos">350</span>    <span class="p">[</span><span class="s2">&quot;ssblswitch&quot;</span><span class="p">]</span>     <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">351</span>    <span class="c1">--- SWU Forward Handler (See: `handlers/swuforward_handler.c`).</span>
+<span class="linenos">352</span>    <span class="p">[</span><span class="s2">&quot;swuforward&quot;</span><span class="p">]</span>     <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">353</span>    <span class="c1">--- UBI Volume Handler (See: `handlers/ubivol_handler.c`).</span>
+<span class="linenos">354</span>    <span class="p">[</span><span class="s2">&quot;ubivol&quot;</span><span class="p">]</span>         <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">355</span>    <span class="c1">--- UBI Partition Handler (See: `handlers/ubivol_handler.c`).</span>
+<span class="linenos">356</span>    <span class="p">[</span><span class="s2">&quot;ubipartition&quot;</span><span class="p">]</span>   <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">357</span>    <span class="c1">--- UBI Swap Handler (See: `handlers/ubivol_handler.c`).</span>
+<span class="linenos">358</span>    <span class="p">[</span><span class="s2">&quot;ubiswap&quot;</span><span class="p">]</span>        <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">359</span>    <span class="c1">--- ucfw Handler (See: `handlers/ucfw_handler.c`).</span>
+<span class="linenos">360</span>    <span class="p">[</span><span class="s2">&quot;ucfw&quot;</span><span class="p">]</span>           <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">361</span>    <span class="c1">--- Unique UUID Handler (See: `handlers/uniqueuuid_handler.c`).</span>
+<span class="linenos">362</span>    <span class="p">[</span><span class="s2">&quot;uniqueuuid&quot;</span><span class="p">]</span>     <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+<span class="linenos">363</span><span class="p">}</span>
+<span class="linenos">364</span>
+<span class="linenos">365</span><span class="c1">--- Chain-call another Handler.</span>
+<span class="linenos">366</span><span class="c1">--</span>
+<span class="linenos">367</span><span class="c1">--- @param  handler  string    Chain-called Handler&#39;s name</span>
+<span class="linenos">368</span><span class="c1">--- @param  image    img_type  Lua equivalent of `struct img_type` as in `include/swupdate.h`</span>
+<span class="linenos">369</span><span class="c1">--- @return number             # 0 on success, 1 on failure</span>
+<span class="linenos">370</span><span class="c1">--- @return string | nil       # nil on success, error message on failure</span>
+<span class="linenos">371</span><span class="n">swupdate</span><span class="p">.</span><span class="n">call_handler</span> <span class="o">=</span> <span class="kr">function</span><span class="p">(</span><span class="n">handler</span><span class="p">,</span> <span class="n">image</span><span class="p">)</span> <span class="kr">end</span>
+<span class="linenos">372</span>
+<span class="linenos">373</span>
+<span class="linenos">374</span><span class="kr">return</span> <span class="n">swupdate</span>
 </pre></div>
 </div>
 </section>
@@ -1432,17 +1439,22 @@ is called twice.</p>
 If 0 or not set, the handler will try to find the
 size from the device.</p></td>
 </tr>
-<tr class="row-odd"><td><p>chain</p></td>
+<tr class="row-odd"><td><p>offset</p></td>
+<td><p>string</p></td>
+<td><p>Value in dec or hex with the offset to be set for
+the source file (to copy just a part).</p></td>
+</tr>
+<tr class="row-even"><td><p>chain</p></td>
 <td><p>string</p></td>
 <td><p>Handler to be called to install the data read
 from the “copyfrom” source.</p></td>
 </tr>
-<tr class="row-even"><td><p>recursive</p></td>
+<tr class="row-odd"><td><p>recursive</p></td>
 <td><p>string</p></td>
 <td><p>Recursive copy if copyfrom is a directory
 (“true” or “false”)</p></td>
 </tr>
-<tr class="row-odd"><td><p>create-
+<tr class="row-even"><td><p>create-
 destination</p></td>
 <td><p>string</p></td>
 <td><p>Create the destination path if it does not exist
@@ -1492,6 +1504,35 @@ not set, variables set in bootenv are overwritten.</p>
 </pre></div>
 </div>
 <p>In the example above, bootenv01key is not overwritten by a value in uEnv.txt because the flag “nooverride” is set.</p>
+</section>
+<section id="emmc-handler">
+<h2>eMMC handler<a class="headerlink" href="#emmc-handler" title="Link to this heading"></a></h2>
+<p>This is a script handler used to manage the eMMC boot partitions.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">emmc_boot</span></code> selects the eMMC hardware boot partition based
+on the device name. The number following <code class="docutils literal notranslate"><span class="pre">boot</span></code> in the device path
+is used to determine the boot partition to be selected:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">/dev/mmcblkXboot0</span></code> selects boot partition 0</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">/dev/mmcblkXboot1</span></code> selects boot partition 1</p></li>
+</ul>
+<p>The <code class="docutils literal notranslate"><span class="pre">emmc_boot_toggle</span></code> toggles the active eMMC hardware boot
+partition for the specified device.</p>
+<p>Example selecting boot partition 1:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">scripts</span><span class="p">:</span> <span class="p">(</span>
+<span class="p">{</span>
+   <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;emmc_boot&quot;</span><span class="p">;</span>
+   <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;/dev/mmcblk1boot1&quot;</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Example toggling the active boot partition:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">scripts</span><span class="p">:</span> <span class="p">(</span>
+<span class="p">{</span>
+   <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;emmc_boot_toggle&quot;</span><span class="p">;</span>
+   <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;/dev/mmcblk1&quot;</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
 </section>
 <section id="archive-handler">
 <h2>Archive handler<a class="headerlink" href="#archive-handler" title="Link to this heading"></a></h2>
@@ -1879,13 +1920,18 @@ the comparison.</p></td>
 that is called after reassembling
 the artifact.</p></td>
 </tr>
-<tr class="row-odd"><td><p>max-ranges</p></td>
+<tr class="row-odd"><td><p>zckfile</p></td>
+<td><p>string</p></td>
+<td><p>name of the external ZCK file. This is used only
+if URL is not present or it is set to “dynamic”</p></td>
+</tr>
+<tr class="row-even"><td><p>max-ranges</p></td>
 <td><p>string</p></td>
 <td><p>Max number of ranges that a server can
 accept. Default value (150) should be ok
 for most servers.</p></td>
 </tr>
-<tr class="row-even"><td><p>zckloglevel</p></td>
+<tr class="row-odd"><td><p>zckloglevel</p></td>
 <td><p>string</p></td>
 <td><p>this sets the log level of the zcklib.
 Logs are intercepted by SWupdate and
@@ -1893,7 +1939,7 @@ appear in SWUpdate’s log.
 Value is one of debug,info
 warn,error,none</p></td>
 </tr>
-<tr class="row-odd"><td><p>debug-chunks</p></td>
+<tr class="row-even"><td><p>debug-chunks</p></td>
 <td><p>string</p></td>
 <td><p>“true”, default is not set.
 This activates more verbose debugging
@@ -1901,7 +1947,7 @@ output and the list of all chunks is
 printed, and it reports if a chunk
 is downloaded  or copied from the source.</p></td>
 </tr>
-<tr class="row-even"><td><p>source-size</p></td>
+<tr class="row-odd"><td><p>source-size</p></td>
 <td><p>string</p></td>
 <td><p>This limits the index of the source
 It is helpful in case of filesystem in much
@@ -1927,6 +1973,50 @@ will try to find the effective size of fs.</p></td>
 <span class="p">}</span>
 </pre></div>
 </div>
+<p>It is not always possible to set the URL into sw-description. Hawkbit for example generates a URL when an
+artifact is uploaded, and URL is not available during build. The Hawkbit connector will send the URL to
+SWUpdate, that adds it to an own list. If the URL is not present as property, or it is set to “dynamic”,
+the handler asks the core for the URL for the “zckfile” property.
+Note that the URL is then not part of sw-description and for this reason not verified. Anyway, this is not a
+security issue, because all hashes related to the ZCK file are part of sw-description (as ZCK header),
+and each mismatch will stop the update.</p>
+<p>The steps to use Delta Update are:</p>
+<section id="hawkbit">
+<h3>Hawkbit<a class="headerlink" href="#hawkbit" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>create a distribution</p></li>
+<li><p>add a software module to the distribution</p></li>
+<li><p>in the “Upload”, adds both the SWU and the ZCK file. If you have multiple artifacts that will be
+installed as delta update, upload all required ZCK.</p></li>
+</ul>
+</section>
+<section id="sw-description">
+<h3>sw-description<a class="headerlink" href="#sw-description" title="Link to this heading"></a></h3>
+<p>Use the <cite>dynamic</cite> keyword to set the URL in the properties. SWUpdate will then check if there is
+a URL for the value of <cite>zckfile</cite>. Value of zckfile must be set to the filename of the ZCK file uploaded
+to the Hawkbit server. Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">images</span><span class="p">:</span> <span class="p">(</span>
+      <span class="p">{</span>
+              <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;software.zck.header&quot;</span><span class="p">;</span>
+              <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;delta&quot;</span><span class="p">;</span>
+
+              <span class="n">device</span> <span class="o">=</span> <span class="s2">&quot;/dev/sde4&quot;</span><span class="p">;</span>
+              <span class="n">properties</span><span class="p">:</span> <span class="p">{</span>
+                      <span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;dynamic&quot;</span><span class="p">;</span>
+                      <span class="n">chain</span> <span class="o">=</span> <span class="s2">&quot;raw&quot;</span><span class="p">;</span>
+                      <span class="n">source</span> <span class="o">=</span> <span class="s2">&quot;/dev/sde5&quot;</span><span class="p">;</span>
+                      <span class="n">zckloglevel</span> <span class="o">=</span> <span class="s2">&quot;info&quot;</span><span class="p">;</span>
+                      <span class="n">source</span><span class="o">-</span><span class="n">size</span> <span class="o">=</span> <span class="s2">&quot;detect&quot;</span><span class="p">;</span>
+                      <span class="n">zckfile</span> <span class="o">=</span> <span class="s2">&quot;software.rootfs.ext4.zck&quot;</span><span class="p">;</span>
+              <span class="p">};</span>
+      <span class="p">}</span>
+</pre></div>
+</div>
+<p>Hawkbit has also some DOS countermeasures that should be deactivated, else Hawkbit thinks to be under attack and does not
+deliver the required chunks.</p>
+<p>hawkbit.server.security.dos.filter.enabled=false
+hawkbit.server.security.dos.maxStatusEntriesPerAction=-1</p>
+</section>
 <section id="memory-issue-with-zchunk">
 <h3>Memory issue with zchunk<a class="headerlink" href="#memory-issue-with-zchunk" title="Link to this heading"></a></h3>
 <p>SWUpdate will create the header from the current version, often from a block partition. As default,
@@ -2071,7 +2161,7 @@ Example:</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2013-2025, Stefano Babic.</p>
+    <p>&#169; Copyright 2013-2026, Stefano Babic.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
