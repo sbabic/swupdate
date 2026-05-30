@@ -108,3 +108,100 @@ The encryption key can be imported to the PKCS#11 token by using ``pkcs11-tool``
 
         echo -n "390ad54490a4a5f53722291023c19e08ffb5c4677a59e958c96ffa6e641df040" |  xxd -p -r > swupdate-aes-key.bin
         pkcs11-tool --module /usr/lib/libsofthsm2.so --slot 0x42 --login --write-object swupdate-aes-key.bin  --id CAFEBABE --label swupdate-aes-key  --type secrkey --key-type AES:32
+
+Backing the PKCS#11 Token with a TPM2 (tpm2-pkcs11)
+----------------------------------------------------
+
+The `tpm2-pkcs11 <https://github.com/tpm2-software/tpm2-pkcs11>`_ project
+provides a PKCS#11 library that stores all key material inside the TPM2 chip.
+This means the AES image-decryption key never appears in plaintext outside the
+TPM at runtime.
+
+Prerequisites
+~~~~~~~~~~~~~
+
+The TPM 2 chip must support AES, which is optional.
+
+Install the runtime library and the management tool (package names vary by
+distribution):
+
+::
+
+        apt-get install libtpm2-pkcs11-tools libtpm2-pkcs11-1
+
+Setting up the TPM2-backed Token
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The recommended workflow is:
+
+1. Generate the AES key on a trusted offline build host.
+2. Use it to encrypt the update images with OpenSSL (see above).
+3. Determine the slot-id of the TPM-backed token.
+4. Import the key into the TPM-backed token on the target device.
+5. Delete the plaintext key file from the target.
+
+**Step 1: Initialize the persistent store**
+
+Run once; creates a primary key inside the TPM:
+
+::
+
+        tpm2_ptool init
+
+By default the store is created in ``~/.tpm2_pkcs11``.  For a system-wide
+deployment set the environment variable ``TPM2_PKCS11_STORE`` to a suitable
+path before running all ``tpm2_ptool`` commands, for example:
+
+::
+
+        export TPM2_PKCS11_STORE=/var/lib/tpm2_pkcs11
+        mkdir -p $TPM2_PKCS11_STORE
+        tpm2_ptool init --path=$TPM2_PKCS11_STORE
+
+**Step 2: Create a new PKCS#11 token:**
+
+::
+
+        tpm2_ptool addtoken --pid=1 --sopin=<sopin> --userpin=<userpin> --label=swupdate
+
+**Step 3: Determine the slot-id assigned to the token:**
+
+::
+
+        pkcs11-tool --module /usr/lib/libtpm2_pkcs11.so --list-slots
+
+The output lists all available slots with their slot IDs, for example::
+
+        Available slots:
+        Slot 0 (0x1): swupdate
+          token label        : swupdate
+          ...
+
+**Step 4: Import the AES image-encryption key into the TPM-backed token:**
+
+::
+
+        echo -n "390ad54490a4a5f53722291023c19e08ffb5c4677a59e958c96ffa6e641df040" | xxd -p -r > swupdate-aes-key.bin
+        pkcs11-tool --module /usr/lib/libtpm2_pkcs11.so --slot <slot-id> --login --pin <userpin> --write-object swupdate-aes-key.bin --id CAFEBABE --label swupdate-aes-key --type secrkey --key-type AES:32
+        rm swupdate-aes-key.bin
+
+**Step 5: Verify the key is accessible:**
+
+::
+
+        pkcs11-tool --module /usr/lib/libtpm2_pkcs11.so --slot <slot-id> --login --pin <userpin> --list-objects
+
+Configuring SWUpdate
+~~~~~~~~~~~~~~~~~~~~~
+
+Create the key file with a PKCS#11 URL pointing to the TPM-backed slot and
+append the IV as the second field (replace ``1`` with the actual slot ID
+determined above):
+
+::
+
+        pkcs11:slot-id=1;id=%CA%FE%BA%BE?pin-value=<userpin>&module-path=/usr/lib/libtpm2_pkcs11.so 65D793B87B6724BB27954C7664F15FF3
+
+Pass the key file to SWUpdate with the ``-K`` parameter as usual.  Because the
+decryption key is sealed inside the TPM, access is subject to the TPM's own
+authorization policy in addition to the PKCS#11 user PIN.
