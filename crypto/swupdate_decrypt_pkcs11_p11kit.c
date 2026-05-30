@@ -23,7 +23,7 @@ static CK_SLOT_ID find_slot(CK_FUNCTION_LIST_PTR module, P11KitUri *uri)
 	if (slot_id != (CK_SLOT_ID)-1)
 		return slot_id;
 
-	size_t slot_count;
+	CK_ULONG slot_count;
 	rv = module->C_GetSlotList(1, NULL_PTR, &slot_count);
 	if (rv != CKR_OK)
 		return (CK_SLOT_ID)-1;
