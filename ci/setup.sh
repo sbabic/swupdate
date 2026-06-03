@@ -28,6 +28,7 @@ $_SUDO apt-get -qq update && apt-get install --yes --no-install-recommends \
         gawk \
         gcc \
         git \
+	graphviz \
         gulp \
         libarchive-dev \
         libblkid-dev \
@@ -56,7 +57,10 @@ $_SUDO apt-get -qq update && apt-get install --yes --no-install-recommends \
         make \
         npm \
         python3 \
+	python3-sphinx \
+	python3-sphinx-rtd-theme \
 	softhsm2 \
+	sphinx-rtd-theme-common \
         uuid-dev \
 	xxd \
         zlib1g-dev \

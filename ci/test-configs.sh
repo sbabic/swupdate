@@ -23,3 +23,4 @@ done
 
 # Build doc
 make html
+
