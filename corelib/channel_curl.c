@@ -646,7 +646,7 @@ channel_op_res_t channel_set_options(channel_t *this, channel_data_t *channel_da
 	 * and set curl engine and types accordingly
 	 */
 	bool keyUri = channel_data->sslkey ? strncasecmp(channel_data->sslkey, "pkcs11:", 7) == 0 : false;
-	bool certUri = channel_data->sslkey ? strncasecmp(channel_data->sslcert, "pkcs11:", 7) == 0 : false;
+	bool certUri = channel_data->sslcert ? strncasecmp(channel_data->sslcert, "pkcs11:", 7) == 0 : false;
 
 	if (keyUri || certUri) {
 		if (curl_easy_setopt(channel_curl->handle, CURLOPT_SSLENGINE, "pkcs11") != CURLE_OK) {
