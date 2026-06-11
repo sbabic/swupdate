@@ -642,30 +642,38 @@ channel_op_res_t channel_set_options(channel_t *this, channel_data_t *channel_da
 		goto cleanup;
 	}
 
-	/* Check if sslkey or sslcert strings contains a pkcs11 URI
-	 * and set curl engine and types accordingly
+	/* Check if sslkey or sslcert strings contain a pkcs11 URI and set
+	 * curl engine/provider and types accordingly
+	 * curl >= 8.12.0 supports loading PKCS#11 keys/certs through
+	 * OpenSSL provider API ("PROV") which is the replacement for
+	 * deprecated ENGINE interface ("ENG") on OpenSSL 3.0+
 	 */
 	bool keyUri = channel_data->sslkey ? strncasecmp(channel_data->sslkey, "pkcs11:", 7) == 0 : false;
 	bool certUri = channel_data->sslcert ? strncasecmp(channel_data->sslcert, "pkcs11:", 7) == 0 : false;
 
 	if (keyUri || certUri) {
+#if LIBCURL_VERSION_NUM >= 0x080c00 /* 8.12.0 */
+		const char *pkcs11_type = "PROV";
+#else
+		const char *pkcs11_type = "ENG";
 		if (curl_easy_setopt(channel_curl->handle, CURLOPT_SSLENGINE, "pkcs11") != CURLE_OK) {
 			ERROR("Error %d setting CURLOPT_SSLENGINE", result);
 			result = CHANNEL_EINIT;
 			goto cleanup;
 		}
+#endif
 
 		if (keyUri) {
-			if (curl_easy_setopt(channel_curl->handle, CURLOPT_SSLKEYTYPE, "ENG") != CURLE_OK) {
-				ERROR("Error %d setting CURLOPT_SSLKEYTYPE", result);
+			if (curl_easy_setopt(channel_curl->handle, CURLOPT_SSLKEYTYPE, pkcs11_type) != CURLE_OK) {
+				ERROR("Error %d setting CURLOPT_SSLKEYTYPE to %s", result, pkcs11_type);
 				result = CHANNEL_EINIT;
 				goto cleanup;
 			}
 		}
 
 		if (certUri) {
-			if (curl_easy_setopt(channel_curl->handle, CURLOPT_SSLCERTTYPE, "ENG") != CURLE_OK) {
-				ERROR("Error %d setting CURLOPT_SSLCERTTYPE", result);
+			if (curl_easy_setopt(channel_curl->handle, CURLOPT_SSLCERTTYPE, pkcs11_type) != CURLE_OK) {
+				ERROR("Error %d setting CURLOPT_SSLCERTTYPE to %s", result, pkcs11_type);
 				result = CHANNEL_EINIT;
 				goto cleanup;
 			}
