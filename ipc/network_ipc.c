@@ -320,6 +320,11 @@ int ipc_send_data(int connfd, char *buf, int size)
 
 	while (len) {
 		ret = write(connfd, buf, (size_t)len);
+		if (ret < 0 && errno == EINTR)
+			continue;
+		/* return partially written length if any */
+		if (ret < 0 && errno == EAGAIN && len != size)
+			return size - len;
 		if (ret < 0)
 			return ret;
 		len -= ret;

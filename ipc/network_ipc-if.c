@@ -5,13 +5,15 @@
  * SPDX-License-Identifier:     LGPL-2.1-or-later
  */
 
+#include <errno.h>
+#include <fcntl.h>
+#include <inttypes.h>
+#include <poll.h>
+#include <pthread.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
-#include <signal.h>
-#include <pthread.h>
-#include <inttypes.h>
 #include <unistd.h>
 #include "network_ipc.h"
 #include "progress_ipc.h"
@@ -155,14 +157,15 @@ static int consume_progress_events(int *progressfd)
 static void *swupdate_async_thread(void *data)
 {
 	char *pbuf;
-	int size;
+	int size = 0, buf_offset = 0;
+	struct pollfd pfds[2];
 	sigset_t sigpipe_mask;
 	sigset_t saved_mask;
 	struct timespec zerotime = {0, 0};
 	struct async_lib *rq = (struct async_lib *)data;
 	int swupdate_result = FAILURE;
 	int progressfd = -1;
-	int ret;
+	int ret, old_flags;
 	int early_status = -1;
 
 	sigemptyset(&sigpipe_mask);
@@ -183,18 +186,47 @@ static void *swupdate_async_thread(void *data)
 		goto out;
 	}
 
+	/* make connfd non-blocking while we're writing image */
+	old_flags = fcntl(rq->connfd, F_GETFL);
+	if (old_flags < 0) {
+		fprintf(stderr, "Could not get connfd flags? %m\n");
+		goto out;
+	}
+	fcntl(rq->connfd, F_SETFL, old_flags | O_NONBLOCK);
+
 	/* Start writing the image until end */
 
 	do {
 		if (!rq->wr)
 			break;
+		if (size == buf_offset) {
+			buf_offset = 0;
+			rq->wr(&pbuf, &size);
+		}
 
-		rq->wr(&pbuf, &size);
 		if (size) {
-			if (swupdate_image_write(pbuf, size) != size) {
-				perror("swupdate_image_write failed");
-				swupdate_result = FAILURE;
+			pfds[0].fd = progressfd;
+			pfds[0].events = POLLIN;
+			pfds[1].fd = rq->connfd;
+			pfds[1].events = POLLOUT;
+			do {
+				ret = poll(pfds, 2, -1);
+			} while (ret < 0 && errno == EINTR);
+
+			if (ret < 0) {
+				fprintf(stderr, "poll failed: %m\n");
 				goto out;
+			}
+			if (pfds[1].revents & POLLOUT) {
+				ret = swupdate_image_write(pbuf + buf_offset,
+							   size - buf_offset);
+				if (ret < 0 && errno != EAGAIN) {
+					perror("swupdate_image_write failed");
+					swupdate_result = FAILURE;
+					goto out;
+				} else if (ret > 0) {
+					buf_offset += ret;
+				}
 			}
 		}
 		/* Consume progress events so that the pipe does not get full
@@ -214,7 +246,7 @@ static void *swupdate_async_thread(void *data)
 			/* interrupt the transfer */
 			break;
 		}
-	} while(size > 0);
+	} while (size > 0);
 
 	ipc_end(rq->connfd);
 
