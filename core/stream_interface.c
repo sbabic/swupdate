@@ -796,7 +796,7 @@ void *network_initializer(void *data)
 			}
 		} else {
 			inst.last_install = FAILURE;
-			notify(FAILURE, RECOVERY_ERROR, ERRORLEVEL, "Image invalid or corrupted. Not installing ...");
+			notify(FAILURE, RECOVERY_ERROR, ERRORLEVEL, "Error happened. Not installing ...");
 		}
 
 		swupdate_progress_end(inst.last_install);
