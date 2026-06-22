@@ -20,6 +20,8 @@
 #include <errno.h>
 #include <sys/stat.h>
 #include <assert.h>
+#include <grp.h>
+#include <pwd.h>
 #include "generated/autoconf.h"
 #include "bsdqueue.h"
 #include "util.h"
@@ -74,9 +76,30 @@ static int read_settings_file(config_t *cfg, const char *filename)
 static int get_run_as(void *elem, void *data)
 {
 	struct run_as *pid = (struct run_as *)data;
+	char tmp[SWUPDATE_GENERAL_STRING_SIZE] = "";
+	struct group *grp;
+	struct passwd *pwd;
 
 	GET_FIELD_INT(LIBCFG_PARSER, elem, "userid", (int *)&pid->userid);
 	GET_FIELD_INT(LIBCFG_PARSER, elem, "groupid", (int *)&pid->groupid);
+	if (!pid->groupid) {
+		GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "group", tmp);
+		if (tmp[0] != '\0') {
+			grp = getgrnam(tmp);
+			if (grp) {
+				pid->groupid = grp->gr_gid;
+			}
+		}
+	}
+	if (!pid->userid) {
+		GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "user", tmp);
+		if (tmp[0] != '\0') {
+			pwd = getpwnam(tmp);
+			if (pwd) {
+				pid->userid = pwd->pw_uid;
+			}
+		}
+	}
 
 	return 0;
 }
