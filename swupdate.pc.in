@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: 2026 SWUpdate contributors
+#
+# SPDX-License-Identifier: GPL-2.0-only
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: swupdate
+Description: SWUpdate IPC client library
+Version: @version@
+Libs: -L${libdir} -lswupdate
+Cflags: -I${includedir}

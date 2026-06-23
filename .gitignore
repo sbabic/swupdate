@@ -38,6 +38,7 @@ scripts/kconfig/zconf.tab.c
 #
 swupdate
 swupdate_unstripped*
+swupdate.pc
 lua_swupdate.so*
 tools/*_unstripped
 tools/swupdate-client

@@ -206,9 +206,12 @@ CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
 CFLAGS_KERNEL	=
 AFLAGS_KERNEL	=
 
-BINDIR ?= /usr/bin
-LIBDIR ?= /usr/lib
-INCLUDEDIR ?= /usr/include
+PREFIX ?= /usr
+EXEC_PREFIX ?= $(PREFIX)
+BINDIR ?= $(EXEC_PREFIX)/bin
+LIBDIR ?= $(EXEC_PREFIX)/lib
+INCLUDEDIR ?= $(PREFIX)/include
+PKGCONFIGDIR ?= $(LIBDIR)/pkgconfig
 
 # Use LINUXINCLUDE when you must reference the include/ directory.
 # Needed to be compatible with the O= option
@@ -380,6 +383,7 @@ ipc-lib 	:= $(patsubst %,%/built-in.o, $(ipc-y))
 ipc-dirs 	:= $(ipc-y)
 
 swupdate-ipc-lib 	:= libswupdate.so.${IPCLIB_VERSION}
+pkgconfig-files	:= swupdate.pc
 
 swupdate-dirs	:= $(objs-y) $(libs-y)
 swupdate-objs	:= $(patsubst %,%/built-in.o, $(objs-y))
@@ -454,6 +458,15 @@ lua_swupdate.so.0.1: $(bindings-libs) ${swupdate-ipc-lib}
 ${swupdate-ipc-lib}: $(ipc-lib)
 	$(call if_changed,shared,$(ipc-lib))
 
+swupdate.pc: $(srctree)/swupdate.pc.in FORCE
+	$(Q)sed \
+		-e 's|@prefix@|$(PREFIX)|g' \
+		-e 's|@exec_prefix@|$(EXEC_PREFIX)|g' \
+		-e 's|@libdir@|$(LIBDIR)|g' \
+		-e 's|@includedir@|$(INCLUDEDIR)|g' \
+		-e 's|@version@|$(KERNELVERSION)|g' \
+		$< > $@
+
 ifeq ($(SKIP_STRIP),y)
 quiet_cmd_strip = echo $@
 cmd_strip = cp $@_unstripped $@
@@ -474,10 +487,11 @@ ${tools-bins}: ${swupdate-ipc-lib} ${tools-objs} ${swupdate-libs} .tools-built-i
 	@mv $@ $@_unstripped
 	$(call cmd,strip)
 
-install: all
+install: all ${pkgconfig-files}
 	install -d ${DESTDIR}/${BINDIR}
 	install -d ${DESTDIR}/${INCLUDEDIR}
 	install -d ${DESTDIR}/${LIBDIR}
+	install -d ${DESTDIR}/${PKGCONFIGDIR}
 	install -m 755 swupdate ${DESTDIR}/${BINDIR}
 	for i in ${tools-bins};do \
 		install -m 755 $$i ${DESTDIR}/${BINDIR}; \
@@ -487,6 +501,9 @@ install: all
 	install -m 0644 $(srctree)/include/progress_ipc.h ${DESTDIR}/${INCLUDEDIR}
 	install -m 0755 $(objtree)/${swupdate-ipc-lib} ${DESTDIR}/${LIBDIR}
 	ln -sfr ${DESTDIR}/${LIBDIR}/${swupdate-ipc-lib} ${DESTDIR}/${LIBDIR}/libswupdate.so
+	for i in ${pkgconfig-files};do \
+		install -m 0644 $(objtree)/$$i ${DESTDIR}/${PKGCONFIGDIR}; \
+	done
 	if [ $(HAVE_LUA) = y ]; then \
 		install -d ${DESTDIR}/${LIBDIR}/lua/$(LUAVER); \
 		install -m 0755 ${lua_swupdate} $(DESTDIR)/${LIBDIR}/lua/$(LUAVER); \
@@ -536,7 +553,7 @@ $(ipc-dirs): scripts
 
 # Directories & files removed with 'make clean'
 CLEAN_DIRS  +=
-CLEAN_FILES += swupdate swupdate_unstripped* lua_swupdate* libswupdate* ${tools-bins} \
+CLEAN_FILES += swupdate swupdate_unstripped* lua_swupdate* libswupdate* ${pkgconfig-files} ${tools-bins} \
 	$(patsubst %,%_unstripped,$(tools-bins)) \
 	$(patsubst %,%.out,$(tools-bins)) \
 	$(patsubst %,%.map,$(tools-bins)) \
