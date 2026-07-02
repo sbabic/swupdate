@@ -83,6 +83,7 @@ struct swupdate_cfg {
 	char output[SWUPDATE_GENERAL_STRING_SIZE];
 	char output_swversions[SWUPDATE_GENERAL_STRING_SIZE];
 	char publickeyfname[SWUPDATE_GENERAL_STRING_SIZE];
+	char crlfname[SWUPDATE_GENERAL_STRING_SIZE];
 	char aeskeyfname[SWUPDATE_GENERAL_STRING_SIZE];
 	char mtdblacklist[SWUPDATE_GENERAL_STRING_SIZE];
 	char forced_signer_name[SWUPDATE_GENERAL_STRING_SIZE];

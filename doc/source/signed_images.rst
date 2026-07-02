@@ -307,6 +307,28 @@ it is not possible to disable the check at runtime.
 For RSA and CMS signing, the -k parameter (public key file) is mandatory and the program stops 
 if the public key is not passed. For CMS signing, CONFIG_SIGALG_CMS needs to be enabled.
 
+When using CMS with OpenSSL, revocation checking can be enabled by passing
+``--crl-path`` to SWUpdate. The file may contain one or more CRLs in PEM format,
+or a single CRL in DER format. If the signer certificate is revoked,
+verification fails.
+
+::
+
+        swupdate -i image.swu -k /etc/swupdate/ca-chain.pem \
+                 --crl-path /etc/swupdate/revocations.pem
+
+For a DER-encoded CRL, pass the binary file directly:
+
+::
+
+        swupdate -i image.swu -k /etc/swupdate/ca-chain.pem \
+                 --crl-path /etc/swupdate/revocations.der
+
+Revocation is only checked against the signer certificate. Revoking an
+intermediate CA in the trust chain would require the
+``X509_V_FLAG_CRL_CHECK_ALL`` verification flag, which SWUpdate does not
+currently set.
+
 For GPG signing, CONFIG_SIGALG_GPG needs to be enabled. The GPG key will
 need to be imported to the device's GnuPG home directory. To do this, the
 key will need to be exported:

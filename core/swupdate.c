@@ -100,6 +100,9 @@ static struct option long_options[] = {
 	{"cert-purpose", required_argument, NULL, '1'},
 #if defined(CONFIG_SIGALG_CMS)
 	{"forced-signer-name", required_argument, NULL, '2'},
+#if defined(CONFIG_SSL_IMPL_OPENSSL)
+	{"crl-path", required_argument, NULL, '9'},
+#endif
 #endif
 #ifdef CONFIG_SIGALG_GPG
 	{"gpg-home-dir", required_argument, NULL, '4'},
@@ -173,6 +176,9 @@ static void usage(char *programname)
 		"     --forced-signer-name <cn>  : set expected common name of signer certificate\n"
 #endif
 		"     --ca-path                  : path to the Certificate Authority (PEM)\n"
+#if defined(CONFIG_SIGALG_CMS) && defined(CONFIG_SSL_IMPL_OPENSSL)
+		"     --crl-path                 : path to the Certificate Revocation List (CRL, PEM or DER)\n"
+#endif
 #ifdef CONFIG_SIGALG_GPG
 		" For GnuPG only:\n"
 		"     --gpg-home-dir             : path where the GPG ring and keys are stored\n"
@@ -383,6 +389,8 @@ static int read_globals_settings(void *elem, void *data)
 				"public-key-file", sw->publickeyfname);
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
 				"ca-path", sw->publickeyfname);
+	GET_FIELD_STRING(LIBCFG_PARSER, elem,
+				"crl-path", sw->crlfname);
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
 				"aes-key-file", sw->aeskeyfname);
 	GET_FIELD_STRING(LIBCFG_PARSER, elem,
@@ -840,6 +848,11 @@ int main(int argc, char **argv)
 			strlcpy(swcfg.decrypt_provider,
 				optarg,
 				sizeof(swcfg.decrypt_provider));
+			break;
+		case '9':
+			if (optarg) strlcpy(swcfg.crlfname,
+					    optarg,
+					    sizeof(swcfg.crlfname));
 			break;
 #ifdef CONFIG_ENCRYPTED_IMAGES
 		case 'K':

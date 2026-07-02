@@ -155,6 +155,91 @@ static X509_STORE *load_cert_chain(const char *file)
 	return castore;
 }
 
+static void report_crl_err(unsigned long err, const char *crl_file)
+{
+	char err_buf[256] = {0};
+
+	ERR_error_string_n(err, err_buf, sizeof(err_buf));
+	ERROR("Malformed CRL in %s: %s", crl_file, err_buf);
+	ERR_clear_error();
+}
+
+static int add_crl_to_store(X509_STORE *castore, const char *crl_file)
+{
+	BIO *fp = BIO_new_file(crl_file, "rb");
+	if (!fp) {
+		TRACE("Unable to open CRL file %s", crl_file);
+		return 0;
+	}
+
+	int crl_count = 0;
+	X509_CRL *crl = NULL;
+	ERR_clear_error();
+	while ((crl = PEM_read_bio_X509_CRL(fp, NULL, NULL, NULL)) != NULL) {
+		crl_count++;
+		if (X509_STORE_add_crl(castore, crl) != 1) {
+			TRACE("Error adding CRL to store");
+			X509_CRL_free(crl);
+			BIO_free(fp);
+			return 0;
+		}
+
+		X509_CRL_free(crl);
+	}
+
+	unsigned long err = ERR_peek_last_error();
+	BIO_free(fp);
+
+	if (err) {
+		if (!(ERR_GET_LIB(err) == ERR_LIB_PEM &&
+		      ERR_GET_REASON(err) == PEM_R_NO_START_LINE)) {
+			report_crl_err(err, crl_file);
+			return 0;
+		}
+
+		ERR_clear_error();
+	}
+
+	if (crl_count == 0) {
+		fp = BIO_new_file(crl_file, "rb");
+		if (!fp) {
+			TRACE("Unable to reopen CRL file %s", crl_file);
+			return 0;
+		}
+
+		ERR_clear_error();
+		crl = d2i_X509_CRL_bio(fp, NULL);
+		err = ERR_peek_last_error();
+		BIO_free(fp);
+
+		if (!crl) {
+			if (err) {
+				report_crl_err(err, crl_file);
+			} else {
+				ERROR("No CRLs found in %s", crl_file);
+			}
+			return 0;
+		}
+
+		if (X509_STORE_add_crl(castore, crl) != 1) {
+			TRACE("Error adding CRL to store");
+			X509_CRL_free(crl);
+			return 0;
+		}
+
+		X509_CRL_free(crl);
+		crl_count = 1;
+		ERR_clear_error();
+	}
+
+	if (!X509_STORE_set_flags(castore, X509_V_FLAG_CRL_CHECK)) {
+		TRACE("Error setting CRL flags");
+		return 0;
+	}
+
+	return 1;
+}
+
 static inline int next_common_name(X509_NAME *subject, int i)
 {
 	return X509_NAME_get_index_by_NID(subject, NID_commonName, i);
@@ -317,6 +402,15 @@ static int openssl_cms_dgst_init(struct swupdate_cfg *sw, const char *keyfile)
 		ERROR("Error loading certificate chain from %s", keyfile);
 		ret = -EINVAL;
 		goto dgst_init_error;
+	}
+
+	if (strlen(sw->crlfname)) {
+		TRACE("Loading CRL from %s", sw->crlfname);
+		if (!add_crl_to_store(dgst->certs, sw->crlfname)) {
+			ERROR("Error loading CRL from %s", sw->crlfname);
+			ret = -EINVAL;
+			goto dgst_init_error;
+		}
 	}
 
 #ifndef CONFIG_CMS_IGNORE_CERTIFICATE_PURPOSE
