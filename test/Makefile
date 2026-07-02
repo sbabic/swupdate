@@ -25,6 +25,9 @@ tests-$(CONFIG_HASH_VERIFY) += test_hash
 ifeq ($(CONFIG_SIGALG_RAWRSA),y)
 tests-$(CONFIG_SIGNED_IMAGES) += test_verify
 endif
+ifeq ($(CONFIG_SSL_IMPL_OPENSSL),y)
+tests-$(CONFIG_SIGALG_CMS) += test_verify
+endif
 tests-$(CONFIG_SURICATTA_HAWKBIT) += test_json
 tests-$(CONFIG_SURICATTA_HAWKBIT) += test_server_hawkbit
 tests-$(CONFIG_MONGOOSE) += test_mongoose_upload
@@ -103,6 +106,12 @@ PREPARE_DATA:
 
 $(obj)/test_verify.o: PREPARE_DATA $(DATADIR)/signature $(DATADIR)/signing-pubkey.pem
 
+ifeq ($(CONFIG_SSL_IMPL_OPENSSL),y)
+ifeq ($(CONFIG_SIGALG_CMS),y)
+$(obj)/test_verify.o: $(DATADIR)/signature.cms $(DATADIR)/cms-ca.cert.pem $(DATADIR)/cms-ca.crl.pem $(DATADIR)/cms-ca.crl.der $(DATADIR)/cms-ca.crl.empty.pem
+endif
+endif
+
 .INTERMEDIATE: $(DATADIR)/signature
 $(DATADIR)/signature: $(DATADIR)/to-be-signed $(DATADIR)/signing-secret.pem
 	$(if $(Q),@echo "  SIGN    $@")
@@ -117,6 +126,40 @@ $(DATADIR)/signing-pubkey.pem: $(DATADIR)/signing-secret.pem
 $(DATADIR)/signing-secret.pem:
 	$(if $(Q),@echo "  GEN     $@")
 	$(Q)openssl genrsa -out $@ 2>/dev/null
+
+CMS_TEST_CA_DIR := $(DATADIR)/cms-test-ca
+CMS_TEST_CA_CONFIG := $(CMS_TEST_CA_DIR)/openssl.cnf
+
+$(DATADIR)/signature.cms $(DATADIR)/cms-ca.cert.pem $(DATADIR)/cms-ca.crl.pem $(DATADIR)/cms-ca.crl.der $(DATADIR)/cms-ca.crl.empty.pem &: $(DATADIR)/to-be-signed $(CMS_TEST_CA_CONFIG) | PREPARE_DATA
+	$(if $(Q),@echo "  GEN     CMS/CRL test data")
+	$(Q)mkdir -p $(CMS_TEST_CA_DIR)
+	$(Q)find $(CMS_TEST_CA_DIR) -mindepth 1 ! -name openssl.cnf -exec rm -rf {} +
+	$(Q)mkdir -p $(CMS_TEST_CA_DIR)/newcerts
+	$(Q)printf "1000\n" > $(CMS_TEST_CA_DIR)/serial
+	$(Q)printf "1000\n" > $(CMS_TEST_CA_DIR)/crlnumber
+	$(Q)touch $(CMS_TEST_CA_DIR)/index.txt
+	$(Q)openssl req -x509 -newkey rsa:2048 -nodes \
+		-keyout $(DATADIR)/cms-ca.key.pem -out $(DATADIR)/cms-ca.cert.pem \
+		-days 365 -sha256 -subj "/CN=SWUpdate Test CA" \
+		-addext "basicConstraints=critical,CA:true" \
+		-addext "keyUsage=critical,keyCertSign,cRLSign" > /dev/null 2>&1
+	$(Q)openssl req -new -newkey rsa:2048 -nodes \
+		-keyout $(DATADIR)/cms-signer.key.pem -out $(DATADIR)/cms-signer.csr.pem \
+		-subj "/CN=SWUpdate Test Signer" > /dev/null 2>&1
+	$(Q)openssl ca -batch -config $(CMS_TEST_CA_CONFIG) \
+		-in $(DATADIR)/cms-signer.csr.pem -out $(DATADIR)/cms-signer.cert.pem \
+		-days 365 > /dev/null 2>&1
+	$(Q)openssl cms -sign -in $(DATADIR)/to-be-signed -out $(DATADIR)/signature.cms \
+		-signer $(DATADIR)/cms-signer.cert.pem -inkey $(DATADIR)/cms-signer.key.pem \
+		-outform DER -nosmimecap -binary > /dev/null 2>&1
+	$(Q)openssl ca -gencrl -config $(CMS_TEST_CA_CONFIG) \
+		-out $(DATADIR)/cms-ca.crl.empty.pem > /dev/null 2>&1
+	$(Q)openssl ca -config $(CMS_TEST_CA_CONFIG) \
+		-revoke $(DATADIR)/cms-signer.cert.pem > /dev/null 2>&1
+	$(Q)openssl ca -gencrl -config $(CMS_TEST_CA_CONFIG) \
+		-out $(DATADIR)/cms-ca.crl.pem > /dev/null 2>&1
+	$(Q)openssl crl -in $(DATADIR)/cms-ca.crl.pem -out $(DATADIR)/cms-ca.crl.der \
+		-outform DER > /dev/null 2>&1
 
 ifeq ($(CONFIG_PKCS11),y)
 $(obj)/test_crypt_pkcs11.o: $(DATADIR)/softshm

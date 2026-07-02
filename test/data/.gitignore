@@ -1,0 +1,5 @@
+*.pem
+*.der
+*.cms
+cms-test-ca/*
+!cms-test-ca/openssl.cnf

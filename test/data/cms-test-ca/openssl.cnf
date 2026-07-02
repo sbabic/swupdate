@@ -1,0 +1,31 @@
+# SPDX-FileCopyrightText: 2026 Daniel Braunwarth <daniel.braunwarth@kuka.com>
+#
+# SPDX-License-Identifier: CC0-1.0
+
+[ ca ]
+default_ca = swupdate_test_ca
+[ swupdate_test_ca ]
+dir = test/data/cms-test-ca
+database = $dir/index.txt
+new_certs_dir = $dir/newcerts
+certificate = test/data/cms-ca.cert.pem
+private_key = test/data/cms-ca.key.pem
+serial = $dir/serial
+crlnumber = $dir/crlnumber
+default_md = sha256
+policy = policy_any
+x509_extensions = usr_cert
+copy_extensions = copy
+default_crl_days = 365
+[ policy_any ]
+commonName = supplied
+organizationName = optional
+organizationalUnitName = optional
+countryName = optional
+stateOrProvinceName = optional
+localityName = optional
+emailAddress = optional
+[ usr_cert ]
+basicConstraints = critical,CA:FALSE
+keyUsage = critical,digitalSignature
+extendedKeyUsage = emailProtection
