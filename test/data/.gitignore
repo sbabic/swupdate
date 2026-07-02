@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Daniel Braunwarth <daniel.braunwarth@kuka.com>
+#
+# SPDX-License-Identifier: CC0-1.0
+
 *.pem
 *.der
 *.cms

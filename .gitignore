@@ -129,6 +129,9 @@ web-app/swupdate-www.tar.gz
 !.gitlab-ci.yml
 !.github
 
+# Git
+!.gitignore
+
 # swupdateclient
 Pipfile
 Pipfile.lock
