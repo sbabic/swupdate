@@ -35,8 +35,9 @@ is determined by
 - ``/tmp/sockinstctrl``,
 
 in this order, and taken over from systemd or created by SWUpdate.
-This socket should, however, not be used directly but instead by the Client
-Library explained below.
+An example using the direct socket approach is in `tools/swupdate-ipc.c`.
+The recommended approach though is to use the
+:ref:`Client Library <client_library>`.
 
 The exchanged packets are described in network_ipc.h
 
@@ -75,6 +76,8 @@ changed to accept an opaque interface that will survive API changes. Compatibili
 layers could be added on-demand in the future due to API changes.
 
 
+.. _client_library:
+
 Client Library
 ==============
 
@@ -104,7 +107,7 @@ how upgrade is going on. It can be omitted if only the result is required.
 The terminated call-back is called when SWUpdate has finished with the result
 of the upgrade.
 
-Example about using this library is in the examples/client directory.
+An example using this library is in `tools/swupdate-client.c`.
 
 The `req` structure is casted to void to ensure API compatibility. A user
 should instantiate it as `struct swupdate_request`. This contains fields that can control
@@ -273,8 +276,6 @@ provided as ISO 8601 date and time string. (2021-10-14T13:42:37.000+00)
 			"time" : <time>
                      }
         }
-
-An example application can be found under tools/swupdate-gethawkbitstatus.c
 
 API to the integrated Webserver
 ===============================
