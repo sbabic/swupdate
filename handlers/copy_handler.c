@@ -104,9 +104,11 @@ static int copy_single_file(const char *path, off_t skipbytes, ssize_t size, str
 		if (S_ISREG(statbuf.st_mode)) {
 			size = statbuf.st_size;
 		}
-		else if (S_ISBLK(statbuf.st_mode) && (ioctl(fdin, BLKGETSIZE64, &size) < 0)) {
-			ERROR("Cannot get size of Block Device %s", path);
-			size = -1;
+		else if (S_ISBLK(statbuf.st_mode)) {
+			if (ioctl(fdin, BLKGETSIZE64, &size) < 0) {
+				ERROR("Cannot get size of Block Device %s", path);
+				size = -1;
+			}
 		} 
 #ifdef CONFIG_MTD
 		else if (S_ISCHR(statbuf.st_mode)) {
