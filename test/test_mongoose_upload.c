@@ -43,7 +43,7 @@ static void test_upload_ok_reply_format(void **state)
 
 	line = buf;
 	while (true) {
-		line_end = strstr(line, "\r\n");
+		line_end = (char *)strstr(line, "\r\n");
 		assert_non_null(line_end);
 		if (line_end == line) {
 			body = line_end + 2;
