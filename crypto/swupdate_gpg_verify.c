@@ -29,7 +29,7 @@ status_cb(void *opaque, const char *keyword, const char *value)
 
 #define MSGBUF_LEN 256
 
-static int gpg_dgst_init(struct swupdate_cfg *sw, const char *keyfile)
+static int gpg_dgst_init(struct swupdate_cfg *sw, __attribute__ ((__unused__)) const char *keyfile)
 {
 	struct gpg_digest *dgst;
 	int ret;
@@ -63,7 +63,7 @@ dgst_init_error:
 }
 
 static int gpg_verify_file(void *gpgdgst, const char *sigfile,
-                const char *file, const char *signer_name)
+                const char *file, __attribute__ ((__unused__)) const char *signer_name)
 {
 	struct gpg_digest *dgst = (struct gpg_digest *)gpgdgst;
 	gpgme_ctx_t ctx;
