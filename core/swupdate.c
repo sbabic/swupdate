@@ -265,7 +265,7 @@ static int parse_image_selector(const char *selector, struct swupdate_cfg *sw)
 	char *pos;
 
 	DEBUG("Parsing selector: %s", selector);
-	pos = strchr(selector, ',');
+	pos = (char *)strchr(selector, ',');
 	if (pos == NULL) {
 		ERROR("Incorrect select option format: %s", selector);
 		return -EINVAL;
