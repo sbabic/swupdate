@@ -425,7 +425,7 @@ The supported events are:
 | fail          | Failure by installing the new software                     |
 +---------------+------------------------------------------------------------+
 
-The `general server` has an own section inside the configuration file. As example:
+The `general server` has its own section inside the configuration file. All channel-specific options (SSL, proxy, rate limiting, and custom headers) are supported. As an example:
 
 ::
 
@@ -433,6 +433,16 @@ The `general server` has an own section inside the configuration file. As exampl
         {
 	        url 		= ....;
 	        logurl		= ;
+	        polldelay	= 30;
+	        nocheckcert	= false;
+	        retry		= 3;
+	        retrywait	= 10;
+	        max-download-speed = "512k";
+	        /*
+	        cafile		= "/etc/ssl/cafile";
+	        sslkey		= "/etc/ssl/sslkey";
+	        sslcert		= "/etc/ssl/sslcert";
+	        */
 	        logevent : (
 		        {event = "check"; format="#2,date,fw,hw,sp"},
 		        {event = "started"; format="#12,date,fw,hw,sp"},
@@ -440,6 +450,46 @@ The `general server` has an own section inside the configuration file. As exampl
 		        {event = "fail"; format="#14,date,fw,hw,sp"}
 	        );
         }
+
+The available configuration options for the ``gservice`` section are:
+
++----------------------------+---------+-------------------------------------------------------------+
+| Parameter                  | Type    | Description                                                 |
++============================+=========+=============================================================+
+| ``url``                    | string  | URL of the general suricatta server.                        |
++----------------------------+---------+-------------------------------------------------------------+
+| ``logurl``                 | string  | URL where log/progress events are sent (via PUT).           |
++----------------------------+---------+-------------------------------------------------------------+
+| ``polldelay``              | integer | Polling cycle in seconds.                                   |
++----------------------------+---------+-------------------------------------------------------------+
+| ``retry``                  | integer | Number of retries to connect to the server.                 |
++----------------------------+---------+-------------------------------------------------------------+
+| ``retrywait``              | integer | Time in seconds to wait between connection retries.         |
++----------------------------+---------+-------------------------------------------------------------+
+| ``nocheckcert``            | boolean | Skip SSL certificate validation if set to true.             |
++----------------------------+---------+-------------------------------------------------------------+
+| ``cafile``                 | string  | Path to the Certificate Authority (PEM) bundle file.        |
++----------------------------+---------+-------------------------------------------------------------+
+| ``sslkey``                 | string  | Path of the private key file for SSL connection.            |
++----------------------------+---------+-------------------------------------------------------------+
+| ``sslcert``                | string  | Path of the certificate file for SSL connection.            |
++----------------------------+---------+-------------------------------------------------------------+
+| ``sslkeypassword``         | string  | Password for the SSL private key.                           |
++----------------------------+---------+-------------------------------------------------------------+
+| ``ciphers``                | string  | Allowed ciphers suite list in CURL format.                  |
++----------------------------+---------+-------------------------------------------------------------+
+| ``proxy``                  | string  | HTTP proxy address to reach the server.                     |
++----------------------------+---------+-------------------------------------------------------------+
+| ``interface``              | string  | Network interface or IP address to bind communication to.   |
++----------------------------+---------+-------------------------------------------------------------+
+| ``max-download-speed``     | string  | Maximum download speed limit (e.g., "512k", "1M").          |
++----------------------------+---------+-------------------------------------------------------------+
+| ``api_key_header``         | string  | HTTP custom header name used for API Key authentication.    |
++----------------------------+---------+-------------------------------------------------------------+
+| ``api_key``                | string  | Custom API Key authentication value.                        |
++----------------------------+---------+-------------------------------------------------------------+
+| ``logevent``               | array   | Array of tables for defining event reporting formats.       |
++----------------------------+---------+-------------------------------------------------------------+
 
 
 `date` is a special field and it is interpreted as localtime in RFC 2822 format. Each
