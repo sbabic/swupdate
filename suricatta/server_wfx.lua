@@ -899,7 +899,7 @@ local function do_advance(self, silent, func, ...)
             )
         end
         local result = table.pack(trans:execute(...))
-        if message[result] then
+        if message[result[1]] then
             suricatta.notify.debug(string.format(message[result[1]], trans.from.name, trans.to.name))
         end
         if M.utils.table.contains({ M.transition.result.COMPLETED, M.transition.result.FAIL_YIELD }, result[1]) then
