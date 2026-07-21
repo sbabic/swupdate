@@ -67,9 +67,6 @@ static update_state_t read_state(char *key)
 		INFO("Key '%s' not found in Bootloader's environment.", key);
 		return STATE_NOT_AVAILABLE;
 	}
-	/* TODO It's a bit whacky just to cast this but as we're the only */
-	/*      ones touching the variable, it's maybe OK for a PoC now. */
-
 	update_state_t val = (update_state_t)*envval;
 	/* bootloader get env allocates space for the value */
 	free(envval);
