@@ -233,7 +233,7 @@ int main(int argc, char **argv)
 	int psplash_ok = 0;
 	unsigned int curstep = 0;
 	unsigned int percent = 0;
-	const int bar_len = 60;
+	enum { bar_len = 60 };
 	char bar[bar_len+1];
 	int opt_c = 0;
 	int opt_w = 0;
