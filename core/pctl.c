@@ -260,7 +260,7 @@ void start_subprocess(sourcetype type, const char *name,
 static int __run_cmd(const char *cmd, bgtask *fn, int *fdin)
 {
 	int ret = 0;
-	int const npipes = 4;
+	enum { npipes = 4 };
 	int pipes[npipes][2];
 	LOGLEVEL levels[4] = { TRACELEVEL, ERRORLEVEL, INFOLEVEL, WARNLEVEL };
 	pid_t process_id;
