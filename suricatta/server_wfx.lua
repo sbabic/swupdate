@@ -702,7 +702,7 @@ function M.job.status:send(chan, retry)
             )
             return false
         end
-        suricatta.notify.debug(("[%3s%%%%] %s"):format(self.progress, self.message))
+        suricatta.notify.debug("[%3s%%] %s", self.progress, self.message)
         suricatta.notify.progress(("[%3s%%] %s"):format(self.progress, self.message))
         if not M.utils.table.is_empty((data or {}).json_reply or {}) then
             self:set(data.json_reply)
@@ -900,7 +900,7 @@ local function do_advance(self, silent, func, ...)
         end
         local result = table.pack(trans:execute(...))
         if message[result[1]] then
-            suricatta.notify.debug(string.format(message[result[1]], trans.from.name, trans.to.name))
+            suricatta.notify.debug(message[result[1]], trans.from.name, trans.to.name)
         end
         if M.utils.table.contains({ M.transition.result.COMPLETED, M.transition.result.FAIL_YIELD }, result[1]) then
             return table.unpack(result)
