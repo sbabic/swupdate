@@ -74,7 +74,7 @@ quiet_cmd_linktestexe = LD      $(basename $@)
 						"$(SWLIBS)" \
 						"$(LDLIBS) cmocka"
 
-EXECUTE_TEST = echo "RUN $(subst $(obj)/,,$(var))"; LD_LIBRARY_PATH=$(objtree) CMOCKA_MESSAGE_OUTPUT=TAP SOFTHSM2_CONF=$(DATADIR)/token/softhsm.conf $(var)
+EXECUTE_TEST = echo "RUN $(subst $(obj)/,,$(var))" && LD_LIBRARY_PATH=$(objtree) CMOCKA_MESSAGE_OUTPUT=TAP SOFTHSM2_CONF=$(DATADIR)/token/softhsm.conf $(var)
 
 PHONY += default
 default:
@@ -83,7 +83,7 @@ default:
 PHONY += tests
 ifneq "$(tests-y)" ""
 tests: $(tests-objs) $(tests-lnk)
-	@+$(foreach var,$(TARGETS),$(EXECUTE_TEST);)
+	@+$(foreach var,$(TARGETS),$(EXECUTE_TEST) &&) true
 else
 tests:
 	@$(info nothing to test.)
