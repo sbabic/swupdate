@@ -80,7 +80,7 @@ static void do_concrete_hash(const char* algo, const char* input, const char* ex
 	assert_true(!error);
 
 	error = swupdate_HASH_final(dgst, result, &len);
-	assert_int_equal(error, 1);
+	assert_int_equal(error, 0);
 	assert_int_equal(len, strlen(expected_hex) / 2);
 
 	swupdate_HASH_cleanup(dgst);
