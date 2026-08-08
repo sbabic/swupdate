@@ -207,6 +207,10 @@ $(DATADIR)/softshm: $(DATADIR)/token/softhsm.conf PREPARE_DATA
 	$(Q)openssl enc -aes-256-cbc -in $(DATADIR)/token/original.data -out $(DATADIR)/token/encrypted.data -K $(TOKEN_AES_KEY) -iv $(TOKEN_AES_IV)
 	$(Q)echo -n "$(TOKEN_AES_IV)" | xxd -p -r > $(DATADIR)/token/encrypted.data.iv
 
+	$(if $(Q),@echo "  GEN      $(DATADIR)/token/small.data")
+	$(Q)printf "1.2.3\n" > $(DATADIR)/token/small.data
+	$(Q)openssl enc -aes-256-cbc -in $(DATADIR)/token/small.data -out $(DATADIR)/token/small.encrypted.data -K $(TOKEN_AES_KEY) -iv $(TOKEN_AES_IV)
+
 	$(if $(Q),@echo "  IMPORT   $(DATADIR)/token/aes.key")
 	$(Q)echo -n "$(TOKEN_AES_KEY)" | xxd -p -r > $(DATADIR)/token/aes.key
 	$(Q)softhsm2-util --init-token --slot 0 --label "TestToken" --so-pin 123456 --pin 1234

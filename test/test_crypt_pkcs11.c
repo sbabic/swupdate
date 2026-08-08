@@ -7,12 +7,17 @@
 #include <stdarg.h>
 #include <stddef.h>
 #include <setjmp.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/stat.h>
 #include <cmocka.h>
 #include <util.h>
 #include "swupdate_crypto.h"
 
 #define BUFFER_SIZE (AES_BLK_SIZE * 1024)
 #define TOKENDIR "test/data/token"
+
+static unsigned char small_data[AES_BLK_SIZE];
 
 static int read_file(const char *path, unsigned char *buffer, size_t *size)
 {
@@ -90,10 +95,69 @@ static void test_crypt_pkcs11_256(void **state)
 	assert_true(strncmp((const char *)decrypted_data, (const char *)original_data, original_data_len) == 0);
 }
 
+static size_t captured_len = 0;
+
+static int capture_output(void *out, const void *buf, size_t len)
+{
+	(void)out;
+	assert_true(captured_len + len <= sizeof(small_data));
+	memcpy(&small_data[captured_len], buf, len);
+	captured_len += len;
+	return 0;
+}
+
+/*
+ * Regression test: decrypting a file that fits into a single AES block
+ * must yield its plaintext. Files of 16 bytes or less (e.g. a version
+ * string) have their whole plaintext buffered inside the decrypt context
+ * until the final call, so the copy pipeline must not stop early.
+ */
+static void test_crypt_pkcs11_single_block(void **state)
+{
+	(void) state;
+	int err;
+
+	static const char *uri =
+		"pkcs11:token=TestToken;id=%A1%B2?pin-value=1234&module-path=/usr/lib/softhsm/libsofthsm2.so";
+
+	static const char version[] = "1.2.3\n";
+
+	err = set_aes_key(uri, "c1f390d21dd06118cbd333144a3318ca");
+	assert_true(err == 0);
+
+	struct stat sb;
+	err = stat(TOKENDIR "/small.encrypted.data", &sb);
+	assert_true(err == 0);
+	assert_true(sb.st_size == AES_BLK_SIZE);
+
+	unsigned long offs = 0;
+	int fdin = open(TOKENDIR "/small.encrypted.data", O_RDONLY);
+	assert_true(fdin >= 0);
+
+	struct swupdate_copy copy = {
+		.fdin = fdin,
+		.out = NULL,
+		.callback = capture_output,
+		.nbytes = sb.st_size,
+		.offs = &offs,
+		.encrypted = true,
+		.cipher = AES_CBC,
+	};
+
+	captured_len = 0;
+	err = copyfile(&copy);
+	close(fdin);
+	assert_true(err == 0);
+
+	assert_true(captured_len == sizeof(version) - 1);
+	assert_true(memcmp(small_data, version, captured_len) == 0);
+}
+
 int main(void)
 {
 	const struct CMUnitTest crypt_pkcs11_tests[] = {
-		cmocka_unit_test(test_crypt_pkcs11_256)
+		cmocka_unit_test(test_crypt_pkcs11_256),
+		cmocka_unit_test(test_crypt_pkcs11_single_block)
 	};
 	return cmocka_run_group_tests_name("crypt_pkcs11", crypt_pkcs11_tests, NULL, NULL);
 }

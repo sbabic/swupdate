@@ -302,29 +302,32 @@ static int decrypt_step(void *state, void *buffer, size_t size)
 	int ret;
 	int inlen;
 
-	if (s->outlen != 0) {
-		if ((int)size > s->outlen) {
-			size = s->outlen;
+	for (;;) {
+		if (s->outlen != 0) {
+			if ((int)size > s->outlen) {
+				size = s->outlen;
+			}
+			memcpy(buffer, s->output, size);
+			s->outlen -= size;
+			memmove(s->output, s->output + size, s->outlen);
+			return size;
 		}
-		memcpy(buffer, s->output, size);
-		s->outlen -= size;
-		memmove(s->output, s->output + size, s->outlen);
-		return size;
-	}
 
-	ret = s->upstream_step(s->upstream_state, s->input, sizeof s->input);
-	if (ret < 0) {
-		return ret;
-	}
+		if (s->eof) {
+			return 0;
+		}
 
-	inlen = ret;
+		ret = s->upstream_step(s->upstream_state, s->input, sizeof s->input);
+		if (ret < 0) {
+			return ret;
+		}
 
-	if (!s->eof) {
+		inlen = ret;
+
 		if (inlen != 0) {
 			ret = swupdate_DECRYPT_update(s->dcrypt,
 				s->output, &s->outlen, s->input, inlen);
-		}
-		if (inlen == 0) {
+		} else {
 			/*
 			 * Finalise the decryption. Further plaintext bytes may
 			 * be written at this stage.
@@ -339,18 +342,6 @@ static int decrypt_step(void *state, void *buffer, size_t size)
 			return ret;
 		}
 	}
-
-	if (s->outlen != 0) {
-		if ((int)size > s->outlen) {
-			size = s->outlen;
-		}
-		memcpy(buffer, s->output, size);
-		s->outlen -= size;
-		memmove(s->output, s->output + size, s->outlen);
-		return size;
-	}
-
-	return 0;
 }
 
 #if defined(CONFIG_GUNZIP) || defined(CONFIG_ZSTD) || defined(CONFIG_XZ) || defined(CONFIG_LZ4)
