@@ -161,11 +161,18 @@ static int extract_scripts(struct imglist *head)
 			.cipher = script->cipher,
 		};
 		ret = copyfile(&copy);
+
 		close(fdin);
 		close(fdout);
 
-		if (ret < 0)
+		/*
+		 * if the script was not successful extracted,
+		 * drop it to avoid to be called as POSTFAILURE
+		 */
+		if (ret < 0) {
+			unlink(script->extract_file);
 			return ret;
+		}
 	}
 	return 0;
 }
