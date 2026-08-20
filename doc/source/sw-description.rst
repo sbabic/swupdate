@@ -1509,12 +1509,12 @@ There are 4 main sections inside sw-description:
    +-------------+----------+------------+---------------------------------------+
    | name        | string   | images     | name that identifies the sw-component |
    |             |          | files      | it can be any string and it is        |
-   |             |          |            | compared with the entries in          |
+   |             |          | scripts    | compared with the entries in          |
    |             |          |            | sw-versions                           |
    +-------------+----------+------------+---------------------------------------+
    | version     | string   | images     | version for the sw-component          |
    |             |          | files      | it can be any string and it is        |
-   |             |          |            | compared with the entries in          |
+   |             |          | scripts    | compared with the entries in          |
    |             |          |            | sw-versions                           |
    +-------------+----------+------------+---------------------------------------+
    | description | string   |            | user-friendly description of the      |
@@ -1525,12 +1525,12 @@ There are 4 main sections inside sw-description:
    +-------------+----------+------------+---------------------------------------+
    | install-if\ | bool     | images     | flag                                  |
    | -different  |          | files      | if set, name and version are          |
-   |             |          |            | compared with the entries in          |
+   |             |          | scripts    | compared with the entries in          |
    |             |          |            | sw-versions                           |
    +-------------+----------+------------+---------------------------------------+
    | install-if\ | bool     | images     | flag                                  |
    | -higher     |          | files      | if set, name and version are          |
-   |             |          |            | compared with the entries in          |
+   |             |          | scripts    | compared with the entries in          |
    |             |          |            | sw-versions                           |
    +-------------+----------+------------+---------------------------------------+
    | install-if\ | bool     | images     | flag                                  |
