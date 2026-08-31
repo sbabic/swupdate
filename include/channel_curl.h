@@ -59,6 +59,7 @@ typedef struct {
 	char *sslkeypassword;
 	char *sslcert;
 	char *ciphers;
+	char *tls_group;	/* TLS key exchange groups */
 	char *proxy;
 	char *info;
 	char *auth_token;

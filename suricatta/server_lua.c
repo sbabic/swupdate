@@ -524,6 +524,7 @@ static void channel_push_options(lua_State *L, channel_data_t *channel_data)
 	push_to_table(L, "sslkeypassword",     channel_data->sslkeypassword);
 	push_to_table(L, "sslcert",            channel_data->sslcert);
 	push_to_table(L, "ciphers",            channel_data->ciphers);
+	push_to_table(L, "tls_group",          channel_data->tls_group);
 	if (channel_data->proxy && channel_data->proxy == USE_PROXY_ENV) {
 		push_to_table(L, "proxy",      "");
 	} else {
@@ -571,6 +572,7 @@ static void channel_set_options(lua_State *L, channel_data_t *channel_data)
 	get_from_table(L, "sslkeypassword",     channel_data->sslkeypassword, COPY_DEST);
 	get_from_table(L, "sslcert",            channel_data->sslcert, COPY_DEST);
 	get_from_table(L, "ciphers",            channel_data->ciphers, COPY_DEST);
+	get_from_table(L, "tls_group",          channel_data->tls_group, COPY_DEST);
 	get_from_table(L, "info",               channel_data->info, COPY_DEST);
 	get_from_table(L, "auth_token",         channel_data->auth_token, COPY_DEST);
 	get_from_table(L, "content_type",       channel_data->content_type, COPY_DEST);
@@ -627,6 +629,7 @@ static void channel_free_options(channel_data_t *channel_data)
 	free(channel_data->sslkeypassword);
 	free(channel_data->sslcert);
 	free(channel_data->ciphers);
+	free(channel_data->tls_group);
 	if (channel_data->proxy && channel_data->proxy != USE_PROXY_ENV) {
 		free(channel_data->proxy);
 	}

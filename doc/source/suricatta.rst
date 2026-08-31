@@ -478,6 +478,9 @@ The available configuration options for the ``gservice`` section are:
 +----------------------------+---------+-------------------------------------------------------------+
 | ``ciphers``                | string  | Allowed ciphers suite list in CURL format.                  |
 +----------------------------+---------+-------------------------------------------------------------+
+| ``tls_group``              | string  | Allowed TLS key exchange groups, colon separated. The       |
+|                            |         | handshake fails if the server supports none of them.        |
++----------------------------+---------+-------------------------------------------------------------+
 | ``proxy``                  | string  | HTTP proxy address to reach the server.                     |
 +----------------------------+---------+-------------------------------------------------------------+
 | ``interface``              | string  | Network interface or IP address to bind communication to.   |

@@ -235,6 +235,7 @@ suricatta.channel = {
     --- @field sslkey              string | nil   `CURLOPT_SSLKEY` - private key file for TLS and SSL client cert
     --- @field sslcert             string | nil   `CURLOPT_SSLCERT` - SSL client certificate
     --- @field ciphers             string | nil   `CURLOPT_SSL_CIPHER_LIST` - ciphers to use for TLS
+    --- @field tls_group           string | nil   `CURLOPT_SSL_EC_CURVES` - TLS key exchange groups to require
     --- @field proxy               string | nil   `CURLOPT_PROXY` - proxy to use
     --- @field info                string | nil   `swupdate_request`'s info field as in `include/network_ipc.h`
     --- @field auth_token          string | nil   String appended to Header

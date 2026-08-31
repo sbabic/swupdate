@@ -787,6 +787,30 @@ channel_op_res_t channel_set_options(channel_t *this, channel_data_t *channel_da
 		}
 	}
 
+	/*
+	 * Check if the TLS key exchange groups are specified, the
+	 * server is required to support one of them. Setting this fails the
+	 * handshake instead of falling back to another group, so it can be
+	 * used to enforce a group
+	 */
+	if (channel_data->tls_group) {
+#if LIBCURL_VERSION_NUM >= 0x074900 /* 7.73.0 */
+		if (curl_easy_setopt(channel_curl->handle,
+				      CURLOPT_SSL_EC_CURVES,
+				      channel_data->tls_group) != CURLE_OK) {
+			ERROR("tls_group set to %s, but not supported by the TLS backend",
+			      channel_data->tls_group);
+			result = CHANNEL_EINIT;
+			goto cleanup;
+		}
+#else
+		ERROR("tls_group set to %s but libcurl %s is too old, minimum 7.73.0 versio required",
+		      channel_data->tls_group, LIBCURL_VERSION);
+		result = CHANNEL_EINIT;
+		goto cleanup;
+#endif
+	}
+
 	if (channel_data->auth_token != NULL) {
 		if (((channel_curl->header = curl_slist_append(
 				channel_curl->header, channel_data->auth_token)) == NULL)) {
