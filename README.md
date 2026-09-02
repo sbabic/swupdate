@@ -1,7 +1,7 @@
 <!--
 SPDX-FileCopyrightText: 2013 Stefano Babic <stefano.babic@swupdate.org>
 
-SPDX-License-Identifier: GPL-2.0-only
+SPDX-License-Identifier: LicenseRef-GPL-2.0-only-WITH-generic-OpenSSL-exception
 -->
 
 <p align ="center"><img src=SWUpdate.svg width=200 height=200 /></p>

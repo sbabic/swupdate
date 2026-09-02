@@ -1,0 +1,13 @@
+LICENSE EXCEPTION FOR OPENSSL
+
+As a special exception, the copyright holders of this program give
+you permission to link this program with the OpenSSL library,
+or with modified versions of OpenSSL that use the same license
+as OpenSSL, provided that you comply with the GPL-2.0-only for
+the combined work based on this program and the license of OpenSSL
+for the OpenSSL library.
+
+If you modify this program, you may extend this exception to your
+version of the program, but you are not obligated to do so.
+If you do not wish to do so, delete this exception statement from
+your version.
