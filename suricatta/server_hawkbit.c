@@ -367,27 +367,35 @@ cleanup:
 
 static char *server_create_details(int numdetails, const char *details[])
 {
-	int i, ret;
-	char *prev = NULL;
-	char *next = NULL;
+	int i;
+	struct json_object *jarray = NULL;
+	struct json_object *jstr = NULL;
+	char *result = NULL;
 
 	/*
 	 * Note: NEVER call TRACE / ERROR inside this function
 	 * because it generates a recursion
 	 */
+
+	jarray = json_object_new_array_ext(numdetails);
+	if (!jarray)
+		return NULL;
+
 	for (i = 0; i < numdetails; i++) {
-		if (i == 0) {
-			ret = asprintf(&next, "\"%s\"", details[i]);
-		} else {
-			ret = asprintf(&next, "%s,\"%s\"", prev, details[i]);
-			free(prev);
-		}
-		if (ret == ENOMEM_ASPRINTF)
+		jstr = json_object_new_string(details[i]);
+		if (!jstr) {
+			json_object_put(jarray);
 			return NULL;
-		prev = next;
+		}
+		json_object_array_add(jarray, jstr);
 	}
 
-	return next;
+	const char *json_str = json_object_to_json_string(jarray);
+
+	result = json_str ? strdup(json_str) : NULL;
+
+	json_object_put(jarray);
+	return result;
 }
 
 server_op_res_t
@@ -421,7 +429,7 @@ server_send_deployment_reply(channel_t *channel,
 				"finished": "%s"
 			},
 			"execution": "%s",
-			"details" : [ %s ]
+			"details" : %s
 		}
 	}
 	);
@@ -436,7 +444,7 @@ server_send_deployment_reply(channel_t *channel,
 	if (ENOMEM_ASPRINTF ==
 	    asprintf(&json_reply_string, json_hawkbit_deployment_feedback,
 		     action_id, fdate, job_cnt_cur, job_cnt_max, finished,
-		     execution_status, detail ? detail : " ")) {
+		     execution_status, detail ? detail : "[]")) {
 		ERROR("hawkBit server reply cannot be sent because of OOM.");
 		result = SERVER_EINIT;
 		goto cleanup;
