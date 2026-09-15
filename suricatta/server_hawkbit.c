@@ -1273,7 +1273,7 @@ server_op_res_t server_process_update_artifact(int action_id,
 		      artifact->url);
 
 		channel_data_t channel_data = channel_data_defaults;
-		channel_data.url = 
+		channel_data.url =
 		    strdup(artifact->url);
 
 		static const char* const update_info = STRINGIFY(
@@ -2096,9 +2096,10 @@ static server_op_res_t server_stop(void)
 
 static server_op_res_t server_activation_ipc(ipc_message *msg)
 {
-	server_op_res_t result = SERVER_OK;
+	server_op_res_t result = SERVER_EERR;
 	update_state_t update_state = STATE_NOT_AVAILABLE;
 	struct json_object *json_root;
+	const char **details = NULL;
 
 	json_root = server_tokenize_msg(msg->data.procmsg.buf,
 					sizeof(msg->data.procmsg.buf));
@@ -2118,7 +2119,7 @@ static server_op_res_t server_activation_ipc(ipc_message *msg)
 
 	if (action_id <= 0) {
 		ERROR("No action_id passed into JSON message and no action:_id in env");
-		return SERVER_EERR;
+		goto cleanup;
 	}
 
 	json_data = json_get_path_key(
@@ -2126,7 +2127,7 @@ static server_op_res_t server_activation_ipc(ipc_message *msg)
 	if (json_data == NULL) {
 		ERROR("Got malformed JSON: Could not find field status");
 		DEBUG("Got JSON: %s", json_object_to_json_string(json_data));
-		return SERVER_EERR;
+		goto cleanup;
 	}
 	update_state = (unsigned int)*json_object_get_string(json_data);
 	DEBUG("Got action_id %d status %c", action_id, update_state);
@@ -2140,17 +2141,17 @@ static server_op_res_t server_activation_ipc(ipc_message *msg)
 	    !is_valid_state(update_state)) {
 		ERROR("Wrong values \"execution\" : %s, \"finished\" : %s , \"status\" : %c",
 		       	reply_execution, reply_result, update_state);
-		return  SERVER_EERR;
+		goto cleanup;
 	}
 
 	if (!json_data) {
 		ERROR("No details are passed, they are mandatory.");
-		return SERVER_EERR;
+		goto cleanup;
 	}
 	int numdetails = json_object_array_length(json_data);
-	const char **details = (const char **)malloc((numdetails + 1) * (sizeof (char *)));
-	if(!details)
-		return SERVER_EERR;
+	details = (const char **)malloc((numdetails + 1) * (sizeof (char *)));
+	if (!details)
+		goto cleanup;
 
 	if (!numdetails)
 		details[0] = "";
@@ -2214,6 +2215,7 @@ static server_op_res_t server_activation_ipc(ipc_message *msg)
 
 cleanup:
 	free(details);
+	json_object_put(json_root);
 
 	return result;
 }
@@ -2263,6 +2265,7 @@ static server_op_res_t server_configuration_ipc(ipc_message *msg)
 	}
 
 	pthread_mutex_unlock(&ipc_lock);
+	json_object_put(json_root);
 	return SERVER_OK;
 }
 
