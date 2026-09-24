@@ -959,6 +959,10 @@ server_op_res_t server_handle_initial_state(update_state_t stateovrrd)
 	channel_data_t channel_data = channel_data_defaults;
 	result = server_get_deployment_info(server_hawkbit.channel,
 						    &channel_data, &action_id);
+	if (channel_data.json_reply &&
+	    json_object_put(channel_data.json_reply) != JSON_OBJECT_FREED) {
+		ERROR("JSON object should be freed but was not.");
+	}
 
 	/*
 	 * Get action_id from env, if any
@@ -2167,6 +2171,10 @@ static server_op_res_t server_activation_ipc(ipc_message *msg)
 	int server_action_id;
 	result =
 	    server_get_deployment_info(server_hawkbit.channel, &channel_data, &server_action_id);
+	if (channel_data.json_reply &&
+	    json_object_put(channel_data.json_reply) != JSON_OBJECT_FREED) {
+		ERROR("JSON object should be freed but was not.");
+	}
 
         if (result != SERVER_OK && result != SERVER_UPDATE_AVAILABLE &&
             result != SERVER_NO_UPDATE_AVAILABLE &&
