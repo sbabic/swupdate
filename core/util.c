@@ -212,14 +212,18 @@ int swupdate_remove_directory(const char* path)
 
 	if (stat(dpath, &path_stat)) {
 		/* not exist, return ok */
-		if (errno == ENOENT)
-			return 0;
+		if (errno == ENOENT) {
+			ret = 0;
+			goto out;
+		}
 		ERROR("stat for path %s failed: %s", path, strerror(errno));
-		return -errno;
+		ret = -errno;
+		goto out;
 	}
 	if (!S_ISDIR(path_stat.st_mode)) {
 		ERROR("Tried to remove %s dir, but it is not a dir", path);
-		return -ENODEV;
+		ret = -ENODEV;
+		goto out;
 	}
 	ret = _is_mount_point(dpath, get_tmpdir());
 	if (ret < 0)
