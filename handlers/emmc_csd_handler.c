@@ -50,7 +50,12 @@ static int emmc_csd_set(struct img_type *img, void *data, bool toggle)
 	if (!script_data)
 		return -EINVAL;
 
-	if (script_data->scriptfn == PREINSTALL)
+	/*
+	 * Only commit the boot partition switch on a real POSTINSTALL pass.
+	 * This also skips POSTFAILURE, run after a failed update, so a
+	 * failed update never switches the active eMMC boot partition.
+	 */
+	if (script_data->scriptfn != POSTINSTALL)
 		return 0;
 	
 	strlcpy(tmpdev, img->device, sizeof(tmpdev));
