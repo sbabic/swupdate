@@ -559,6 +559,7 @@ static channel_op_res_t channel_set_content_type(channel_t *this,
 				ERROR("Setting channel header Content-type failed.");
 				result = CHANNEL_EINIT;
 		}
+		free(contenttype);
 	}
 
 	if (channel_data->accept_content_type)
@@ -572,6 +573,7 @@ static channel_op_res_t channel_set_content_type(channel_t *this,
 				ERROR("Setting channel header Accept failed.");
 				result = CHANNEL_EINIT;
 		}
+		free(accept);
 	}
 
 	return result;
