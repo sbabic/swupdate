@@ -511,6 +511,7 @@ void *network_thread (void *data)
 						sizeof(msg.data.status.desc) - 1);
 					msg.data.status.current = notification->status;
 					msg.data.status.error = notification->error;
+					free(notification);
 				}
 				pthread_mutex_unlock(&msglock);
 
