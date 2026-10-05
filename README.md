@@ -79,11 +79,12 @@ Examples using meta-swupdate with evaluation boards (Beaglebone, RPI3) are provi
 
 ## License
 
-SWUpdate is released under GPLv2. A library to control SWUpdate is part of the
+SWUpdate is released under GPLv2 with a generic OpenSSL exception. A library to control SWUpdate is part of the
 project and it is released under LGPLv2.1.
 License information for any file is either explicitly stated
-or defaults to GPL version 2.0. Extension written in Lua are subjected to
-Lua license (MIT).
+or defaults to GPL version 2.0. Regardless of license notices in individual files, the GPLv2 with generic OpenSSL
+exception is valid for the project as a whole.
+Extension written in Lua are subjected to Lua license (MIT).
 
 ## Community support
 
