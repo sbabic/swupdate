@@ -1465,6 +1465,26 @@ channel_op_res_t channel_get_file(channel_t *this, void *data)
 				goto cleanup_file;
 			}
 
+			/*
+			 * A byte offset cannot resume a Range request: libcurl
+			 * sends "Range: bytes=<offset>-" in place of the ranges
+			 * set with CURLOPT_RANGE, and for a multipart answer the
+			 * count is of body bytes, not of the resource. Fail the
+			 * transfer instead and leave it to the caller, which
+			 * knows what it has consumed, to request what is still
+			 * missing. A retry before any data arrived repeats the
+			 * request unchanged.
+			 */
+			if (channel_data->range && total_bytes_downloaded > 0) {
+				WARN("Range request interrupted after %llu bytes, not resuming it at a byte offset",
+				     total_bytes_downloaded);
+
+				if (result == CHANNEL_OK)
+					result = CHANNEL_EAGAIN;
+
+				goto cleanup_file;
+			}
+
 			DEBUG("Channel connection interrupted, trying resume "
 			      "after %llu bytes.",
 			      total_bytes_downloaded);
