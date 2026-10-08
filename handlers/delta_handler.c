@@ -43,6 +43,13 @@
 #include "swupdate_image.h"
 
 #define DEFAULT_MAX_RANGES	10	/* Apache has default = 200 */
+/*
+ * A chunk download that fails is requested again from the first chunk not
+ * yet written. Give up after this many failures in a row without a chunk
+ * written in between.
+ */
+#define DWL_MAX_RETRIES		5
+#define DWL_RETRY_DELAY_S	5
 #define BUFF_SIZE		16384
 
 const char *handlername = "delta";
@@ -115,6 +122,9 @@ struct hnd_priv {
 	size_t rangestart;		/* Value from Content-range header */
 	bool content_range_received;	/* Flag to indicate that last header is content-range */
 	bool error_in_parser;		/* Flag to report if an error occurred */
+	bool dwl_failed;		/* downloader answered RANGE_ERROR */
+	zckChunk *retry_chunk;		/* first unwritten chunk at last failure */
+	unsigned int dwl_retries;	/* failures in a row at retry_chunk */
 	multipart_parser *parser;	/* pointer to parser, allocated at any download */
 	/* Some nice statistics */
 	size_t bytes_to_be_reused;
@@ -555,6 +565,7 @@ static bool trigger_download(struct hnd_priv *priv)
 
 
 	priv->boundary[0] = '\0';
+	priv->dwl_failed = false;
 
 	range = zchunk_get_missing_range(tgt, priv->chunk, priv->max_ranges);
 	if (!range)
@@ -624,7 +635,8 @@ static bool read_and_validate_package(struct hnd_priv *priv)
 
 
 	if (answer->type == RANGE_ERROR) {
-	    ERROR("Transfer was unsuccessful, aborting...");
+	    /* reported by retry_network_chunks() if it gives up */
+	    priv->dwl_failed = true;
 	    priv->dwlrunning = false;
 	    dwl_cleanup(priv);
 	    return false;
@@ -746,6 +758,57 @@ static bool fill_buffers_list(struct hnd_priv *priv)
 }
 
 /*
+ * The downloader reported a failed transfer (the link dropped). Everything
+ * up to priv->chunk has been written, so drop the partial chunk and let the
+ * caller go on from priv->chunk: it copies any chunks from the source and
+ * requests the ranges still missing. A failure that is not the transfer's
+ * (bad hash, IPC) is not retried.
+ */
+static bool retry_network_chunks(zckChunk **dstChunk, struct hnd_priv *priv)
+{
+	/*
+	 * The error is logged only when the handler gives up, so that a drop
+	 * that is recovered does not show up as a failed transfer.
+	 */
+	if (!priv->dwl_failed)
+		return false;
+	if (priv->error_in_parser) {
+		ERROR("Transfer was unsuccessful, aborting...");
+		return false;
+	}
+
+	free(priv->current.buf);
+	priv->current.buf = NULL;
+	priv->current.nbytes = 0;
+	priv->dwl_failed = false;
+	priv->dwlstate = NOTRUNNING;
+
+	/* The drop came after the last chunk was written: nothing is missing */
+	if (!priv->chunk) {
+		*dstChunk = NULL;
+		return true;
+	}
+
+	if (priv->chunk != priv->retry_chunk) {
+		priv->retry_chunk = priv->chunk;
+		priv->dwl_retries = 0;
+	}
+	if (++priv->dwl_retries > DWL_MAX_RETRIES) {
+		ERROR("Transfer was unsuccessful, aborting...");
+		return false;
+	}
+
+	WARN("Chunk download interrupted, requesting the missing chunks again from chunk %ld in %d s (retry %u of %d)",
+	     (long)zck_get_chunk_number(priv->chunk),
+	     DWL_RETRY_DELAY_S, priv->dwl_retries, DWL_MAX_RETRIES);
+
+	sleep(DWL_RETRY_DELAY_S);
+
+	*dstChunk = priv->chunk;
+	return true;
+}
+
+/*
  * copy_network_chunk() retrieves chunks from network and triggers
  * a network transfer if no one is running.
  * It collects data in a buffer until the chunk is fully
@@ -767,7 +830,7 @@ static bool copy_network_chunks(zckChunk **dstChunk, struct hnd_priv *priv)
 			break;
 		case WAITING_FOR_HEADERS:
 			if (!read_and_validate_package(priv))
-				return false;
+				return retry_network_chunks(dstChunk, priv);
 			answer = priv->answer;
 			if (answer->type == RANGE_HEADERS) {
 				if (!parse_headers(priv)) {
@@ -801,7 +864,7 @@ static bool copy_network_chunks(zckChunk **dstChunk, struct hnd_priv *priv)
 			break;
 		case WAITING_FOR_DATA:
 			if (!read_and_validate_package(priv))
-				return false;
+				return retry_network_chunks(dstChunk, priv);
 			answer = priv->answer;
 			if (answer->type == RANGE_COMPLETED) {
 				priv->dwlstate = END_TRANSFER;
