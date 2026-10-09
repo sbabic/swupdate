@@ -63,12 +63,12 @@ dgst_init_error:
 }
 
 static int gpg_verify_file(void *gpgdgst, const char *sigfile,
-                const char *file, __attribute__ ((__unused__)) const char *signer_name)
+                const char *file, const char *signer_name)
 {
 	struct gpg_digest *dgst = (struct gpg_digest *)gpgdgst;
-	gpgme_ctx_t ctx;
+	gpgme_ctx_t ctx = NULL;
 	gpgme_error_t err;
-	gpgme_data_t image_sig, image;
+	gpgme_data_t image_sig = NULL, image = NULL;
 	FILE *fp_sig = NULL;
 	FILE *fp = NULL;
 	gpgme_signature_t sig;
@@ -78,6 +78,15 @@ static int gpg_verify_file(void *gpgdgst, const char *sigfile,
 	char msg[MSGBUF_LEN];
 	int r;
 	const char *tmp;
+
+	/*
+	 * The GPG backend does not check the signer name and accepts
+	 * any key in the keyring: report it instead of silently
+	 * ignoring the configuration.
+	 */
+	if (signer_name && signer_name[0] != '\0')
+		WARN("forced-signer-name '%s' is not supported with GPG and ignored",
+		     signer_name);
 
 	tmp = gpgme_check_version(NULL);
 	if (tmp == NULL) {
@@ -195,9 +204,12 @@ static int gpg_verify_file(void *gpgdgst, const char *sigfile,
 	status = -EBADMSG;
 
  out:
-	gpgme_data_release(image);
-	gpgme_data_release(image_sig);
-	gpgme_release(ctx);
+	if (image)
+		gpgme_data_release(image);
+	if (image_sig)
+		gpgme_data_release(image_sig);
+	if (ctx)
+		gpgme_release(ctx);
 
 	if (fp)
 		fclose(fp);
