@@ -233,10 +233,9 @@ static const char *json_get_deployment_update_action(json_object *json_reply)
 	json_object *json_deployment_update_action =
 	    json_get_path_key(json_reply,
 			      (const char *[]){"deployment", "update", NULL});
-	assert(json_object_get_type(json_deployment_update_action) ==
-	       json_type_string);
-	if (!json_object_get_string(json_deployment_update_action)) {
-		ERROR("Server delivered empty 'update', skipping..");
+	if (!json_object_is_type(json_deployment_update_action, json_type_string) ||
+	    !json_object_get_string(json_deployment_update_action)) {
+		ERROR("Server delivered empty or invalid 'update', skipping..");
 		return deployment_update_action.skip;
 	}
 
@@ -1165,14 +1164,17 @@ static server_op_res_t json_extract_artifact(struct array_list *json_data_artifa
 						    json_data_artifact_item));
 			return SERVER_EBADMSG;
 		}
-		assert(json_object_get_type(json_data_artifact_filename) ==
-		       json_type_string);
-		assert(json_object_get_type(json_data_artifact_sha1hash) ==
-		       json_type_string);
-		assert(json_object_get_type(json_data_artifact_size) ==
-		       json_type_int);
-		assert(json_object_get_type(json_data_artifact_url) ==
-		       json_type_string);
+		if (!json_object_is_type(json_data_artifact_filename, json_type_string) ||
+		    !json_object_is_type(json_data_artifact_sha1hash, json_type_string) ||
+		    !json_object_is_type(json_data_artifact_size, json_type_int) ||
+		    !json_object_is_type(json_data_artifact_url, json_type_string)) {
+			server_hawkbit_error(
+			    "Got malformed JSON: wrong type for 'filename', "
+			    "'hashes->sha1', 'size' or download URL.\n");
+			DEBUG("Got JSON: %s", json_object_to_json_string(
+						    json_data_artifact_item));
+			return SERVER_EBADMSG;
+		}
 
 		artifacts[json_data_artifact_count].url =
 		    strdup(json_object_get_string(json_data_artifact_url));
@@ -1187,6 +1189,11 @@ static server_op_res_t json_extract_artifact(struct array_list *json_data_artifa
 		 */
 		char **fnames;
 		fnames = string_split(artifacts[json_data_artifact_count].filename, '.');
+		if (!fnames) {
+			ERROR("OOM when checking filename '%s'",
+			      artifacts[json_data_artifact_count].filename);
+			return SERVER_EERR;
+		}
 		int cnt = count_string_array((const char **)fnames);
 		TRACE("Number of strings CNT %d", cnt);
 		if (cnt > 0) {
@@ -1203,7 +1210,8 @@ static server_op_res_t json_extract_artifact(struct array_list *json_data_artifa
 				rules[ARRAY_SIZE(rules) - 1].fn(&artifacts[json_data_artifact_count]);
 		} else {
 			/* No file without extension, rejected */
-			TRACE("File '%s' has no extension, skipping", fnames[cnt - 1]);
+			TRACE("File '%s' has no extension, skipping",
+			      artifacts[json_data_artifact_count].filename);
 			artifacts[json_data_artifact_count].skip = true;
 		}
 		free_string_array(fnames);
@@ -1469,7 +1477,12 @@ static server_op_res_t server_install_update(void)
 		goto cleanup;
 	}
 
-	assert(json_object_get_type(json_data_chunk) == json_type_array);
+	if (!json_object_is_type(json_data_chunk, json_type_array)) {
+		server_hawkbit_error("Got malformed JSON: deployment->chunks "
+		      "is not an array.");
+		result = SERVER_EBADMSG;
+		goto cleanup;
+	}
 	struct array_list *json_data_chunk_array =
 	    json_object_get_array(json_data_chunk);
 	int json_data_chunk_count = 0;
@@ -1503,12 +1516,14 @@ static server_op_res_t server_install_update(void)
 			result = SERVER_EBADMSG;
 			goto cleanup;
 		}
-		assert(json_object_get_type(json_data_chunk_part) ==
-		       json_type_string);
-		assert(json_object_get_type(json_data_chunk_name) ==
-		       json_type_string);
-		assert(json_object_get_type(json_data_chunk_version) ==
-		       json_type_string);
+		if (!json_object_is_type(json_data_chunk_part, json_type_string) ||
+		    !json_object_is_type(json_data_chunk_name, json_type_string) ||
+		    !json_object_is_type(json_data_chunk_version, json_type_string)) {
+			server_hawkbit_error("Got malformed JSON: 'part', 'version' "
+			      "and 'name' must be strings.");
+			result = SERVER_EBADMSG;
+			goto cleanup;
+		}
 		DEBUG("Processing Update Chunk '%s', version %s, part %s",
 		      json_object_get_string(json_data_chunk_name),
 		      json_object_get_string(json_data_chunk_version),
@@ -1516,8 +1531,8 @@ static server_op_res_t server_install_update(void)
 
 		json_object *json_data_chunk_artifacts = json_get_path_key(
 		    json_data_chunk_item, (const char *[]){"artifacts", NULL});
-		if (json_data_chunk_artifacts == NULL) {
-			server_hawkbit_error("Got malformed JSON: Could not find field "
+		if (!json_object_is_type(json_data_chunk_artifacts, json_type_array)) {
+			server_hawkbit_error("Got malformed JSON: Could not find array "
 			      "deployment->chunks->artifacts.");
 			DEBUG("Got JSON: %s", json_object_to_json_string(
 						    channel_data.json_reply));
@@ -1535,8 +1550,6 @@ static server_op_res_t server_install_update(void)
 			      "server.\n");
 			goto cleanup;
 		}
-		assert(json_object_get_type(json_data_chunk_artifacts) ==
-		       json_type_array);
 		/* reset flag, will be set if a cancel is detected */
 		server_hawkbit.cancelDuringUpdate = false;
 		result =
