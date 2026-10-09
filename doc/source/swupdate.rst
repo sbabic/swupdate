@@ -705,6 +705,11 @@ Mandatory arguments are marked with '\*':
 | --global-auth-file      | string   | \# Set authentication file if any          |
 |  <string>               |          | Default: none                              |
 +-------------------------+----------+--------------------------------------------+
+| --allowed-origin        | string   | Origin (scheme://host[:port]) allowed to   |
+|  <string>               |          | upload and restart from a browser. "*"     |
+|                         |          | disables the check. Default: the Origin    |
+|                         |          | must match the Host header.                |
++-------------------------+----------+--------------------------------------------+
 
 systemd Integration
 -------------------

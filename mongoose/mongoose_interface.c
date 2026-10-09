@@ -53,6 +53,7 @@ struct mongoose_options {
 	char *port;
 	char *global_auth_file;
 	char *auth_domain;
+	char *allowed_origin;
 #if MG_TLS
 	char *ssl_cert;
 	char *ssl_key;
@@ -80,6 +81,7 @@ static unsigned int watchdog_conn = 0;
 static struct mg_http_serve_opts s_http_server_opts;
 const char *global_auth_domain;
 const char *global_auth_file;
+static const char *allowed_origin;
 #if MG_TLS
 static bool ssl;
 static struct mg_tls_opts tls_opts;
@@ -476,6 +478,51 @@ static void mg_http_send_digest_auth_request(struct mg_connection *c, const char
 	c->is_draining = 1;
 }
 
+/*
+ * Protect requests changing the state of the device (upload, restart)
+ * against cross-site request forgery: a browser sends the Origin header
+ * with a POST, and it must match the Host the request was sent to.
+ * Clients that are not browsers (curl, scripts) do not send Origin and
+ * are not affected. Behind a reverse proxy changing Host, the expected
+ * origin can be set with allowed-origin ("*" disables the check).
+ */
+static bool mg_http_is_origin_allowed(struct mg_http_message *hm)
+{
+	struct mg_str *origin = mg_http_get_header(hm, "Origin");
+	struct mg_str *host;
+	size_t i;
+
+	if (allowed_origin && strcmp(allowed_origin, "*") == 0)
+		return true;
+
+	if (origin == NULL)
+		return true;
+
+	if (allowed_origin)
+		return mg_strcasecmp(*origin, mg_str(allowed_origin)) == 0;
+
+	/* Origin is scheme://host[:port], "null" for opaque origins */
+	host = mg_http_get_header(hm, "Host");
+	if (host == NULL)
+		return false;
+
+	for (i = 0; i + 3 <= origin->len; i++) {
+		if (memcmp(&origin->buf[i], "://", 3) == 0)
+			return mg_strcasecmp(mg_str_n(&origin->buf[i + 3],
+						      origin->len - i - 3),
+					     *host) == 0;
+	}
+
+	return false;
+}
+
+static void mg_http_send_origin_rejected(struct mg_connection *c)
+{
+	WARN("Cross-origin request rejected");
+	mg_http_reply(c, 403, "", "%s", "Cross-origin request not allowed\n");
+	c->is_draining = 1;
+}
+
 static void restart_handler(struct mg_connection *nc, void *ev_data)
 {
 	struct mg_http_message *hm = (struct mg_http_message *) ev_data;
@@ -819,6 +866,10 @@ static void ev_handler(struct mg_connection *nc, int ev, void *ev_data)
 			mg_http_send_digest_auth_request(nc, global_auth_domain, stale);
 		else if (mg_http_get_header(hm, "Sec-WebSocket-Key") != NULL)
 			websocket_handler(nc, ev_data);
+		else if ((mg_match(hm->uri, mg_str("#/restart"), NULL) ||
+			  mg_match(hm->uri, mg_str("#/upload"), NULL)) &&
+			 !mg_http_is_origin_allowed(hm))
+			mg_http_send_origin_rejected(nc);
 		else if (mg_match(hm->uri, mg_str("#/restart"), NULL))
 			restart_handler(nc, ev_data);
 	        else if (mg_match(hm->uri, mg_str("#/upload"), NULL)) {
@@ -836,6 +887,10 @@ static void ev_handler(struct mg_connection *nc, int ev, void *ev_data)
 				if (!mg_http_is_authorized(&hm, global_auth_domain, global_auth_file, &stale)) {
 					if (nc->pfn != NULL)
 						mg_http_send_digest_auth_request(nc, global_auth_domain, stale);
+					nc->pfn = NULL;
+					nc->pfn_data = NULL;
+				} else if (!mg_http_is_origin_allowed(&hm)) {
+					mg_http_send_origin_rejected(nc);
 					nc->pfn = NULL;
 					nc->pfn_data = NULL;
 				} else {
@@ -920,6 +975,10 @@ static int mongoose_settings(void *elem, void  __attribute__ ((__unused__)) *dat
 	if (strlen(tmp)) {
 		opts->auth_domain = strdup(tmp);
 	}
+	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, "allowed-origin", tmp);
+	if (strlen(tmp)) {
+		opts->allowed_origin = strdup(tmp);
+	}
 	GET_FIELD_BOOL(LIBCFG_PARSER, elem, "run-postupdate", &run_postupdate);
 
 	GET_FIELD_INT(LIBCFG_PARSER, elem, "timeout", (int *)&watchdog_conn);
@@ -940,6 +999,7 @@ static struct option long_options[] = {
 	{"timeout", required_argument, NULL, 't'},
 	{"auth-domain", required_argument, NULL, '0'},
 	{"global-auth-file", required_argument, NULL, '1'},
+	{"allowed-origin", required_argument, NULL, '2'},
 	{NULL, 0, NULL, 0}
 };
 
@@ -958,7 +1018,9 @@ void webserver_print_help(void)
 		"\t  -r, --document-root <path>     : path to document root directory (default: %s)\n"
 		"\t  -t, --timeout                  : timeout to check if connection is lost (default: check disabled)\n"
 		"\t  --auth-domain                  : set authentication domain if any (default: none)\n"
-		"\t  --global-auth-file             : set authentication file if any (default: none)\n",
+		"\t  --global-auth-file             : set authentication file if any (default: none)\n"
+		"\t  --allowed-origin <origin>      : origin allowed to upload / restart, \"*\" for any\n"
+		"\t                                   (default: same as Host)\n",
 		MG_PORT, MG_ROOT);
 }
 
@@ -1010,6 +1072,10 @@ int start_webserver(const char *cfgfname, int argc, char *argv[])
 			free(opts.global_auth_file);
 			opts.global_auth_file = strdup(optarg);
 			break;
+		case '2':
+			free(opts.allowed_origin);
+			opts.allowed_origin = strdup(optarg);
+			break;
 		case 'l':
 			opts.listing = true;
 			break;
@@ -1055,6 +1121,7 @@ int start_webserver(const char *cfgfname, int argc, char *argv[])
 		s_http_server_opts.fs = &fs_posix_no_list;
 	global_auth_file = opts.global_auth_file;
 	global_auth_domain = opts.auth_domain;
+	allowed_origin = opts.allowed_origin;
 
 #if MG_TLS
 	if (ssl) {
