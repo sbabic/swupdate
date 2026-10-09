@@ -110,6 +110,22 @@ static int verify_signer_cert(const struct mbedtls_digest *dgst,
 }
 
 /*
+ * The digest algorithm is chosen by the signer: accept only
+ * algorithms that are not considered weak (no MD5, SHA-1, SHA-224).
+ */
+static bool pkcs7_md_alg_allowed(mbedtls_md_type_t md_type)
+{
+	switch (md_type) {
+	case MBEDTLS_MD_SHA256:
+	case MBEDTLS_MD_SHA384:
+	case MBEDTLS_MD_SHA512:
+		return true;
+	default:
+		return false;
+	}
+}
+
+/*
  * Parse a DER AlgorithmIdentifier SEQUENCE, return the MD type.
  * Advances *p past the entire SEQUENCE on both success and failure.
  */
@@ -359,6 +375,10 @@ static int pkcs7_verify_with_signed_attrs(unsigned char *sigbuf, size_t sigbuf_l
 		mbedtls_md_type_t md_type = MBEDTLS_MD_NONE;
 		if (pkcs7_get_md_alg(&p, si_end, &md_type) != 0 ||
 				md_type == MBEDTLS_MD_NONE) {
+			p = (unsigned char *)si_end; continue;
+		}
+		if (!pkcs7_md_alg_allowed(md_type)) {
+			ERROR("SignerInfo digest algorithm not allowed");
 			p = (unsigned char *)si_end; continue;
 		}
 
@@ -688,6 +708,23 @@ static int mbedtls_pkcs7_verify_file(void *ctx, const char *sigfile,
 		ERROR("PKCS#7 blob does not contain signer information");
 		status = -EBADMSG;
 		goto out;
+	}
+
+	/*
+	 * mbedTLS verifies with the digest algorithm of SignedData,
+	 * that must be the same as in all SignerInfo
+	 */
+	{
+		mbedtls_md_type_t md_type;
+
+		if (mbedtls_oid_get_md_alg(
+				&pkcs7.MBEDTLS_PRIVATE(signed_data).MBEDTLS_PRIVATE(digest_alg_identifiers),
+				&md_type) != 0 ||
+				!pkcs7_md_alg_allowed(md_type)) {
+			ERROR("PKCS#7 digest algorithm not allowed");
+			status = -EBADMSG;
+			goto out;
+		}
 	}
 
 	/*
