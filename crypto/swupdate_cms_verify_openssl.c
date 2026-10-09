@@ -306,9 +306,12 @@ static int check_signer_name(CMS_ContentInfo *cms, const char *name)
 			if (CMS_SignerInfo_cert_cmp(si, crt) == 0) {
 				ret = check_common_name(
 					X509_get_subject_name(crt), name);
+				if (ret)
+					goto out_check_signer;
 			}
 		}
 	}
+out_check_signer:
 	sk_X509_pop_free(crts, X509_free);
 
 	return ret;
