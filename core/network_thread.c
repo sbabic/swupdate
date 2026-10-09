@@ -39,6 +39,13 @@
 #define NUM_CACHED_MESSAGES 100
 #define DEFAULT_INTERNAL_TIMEOUT 60
 
+/*
+ * Strings in IPC messages come from clients and are not
+ * guaranteed to be NUL-terminated: force termination of
+ * fixed-size char arrays before using them.
+ */
+#define IPC_TERMINATE_STR(s) ((s)[sizeof(s) - 1] = '\0')
+
 struct msg_elem {
 	RECOVERY_STATUS status;
 	int error;
@@ -432,6 +439,7 @@ void *network_thread (void *data)
 		if (msg.magic == IPC_MAGIC)  {
 			switch (msg.type) {
 			case POST_UPDATE:
+				IPC_TERMINATE_STR(msg.data.procmsg.buf);
 				if (postupdate(get_swupdate_cfg(),
 							   msg.data.procmsg.len > 0 ? msg.data.procmsg.buf : NULL) == 0) {
 					msg.type = ACK;
@@ -469,6 +477,9 @@ void *network_thread (void *data)
 			case REQ_INSTALL:
 				TRACE("Incoming network request: processing...");
 				if (instp->status == IDLE) {
+					IPC_TERMINATE_STR(msg.data.instmsg.req.info);
+					IPC_TERMINATE_STR(msg.data.instmsg.req.software_set);
+					IPC_TERMINATE_STR(msg.data.instmsg.req.running_mode);
 					instp->fd = ctrlconnfd;
 					instp->req = msg.data.instmsg.req;
 					if ((instp->req.apiversion == SWUPDATE_API_VERSION) &&
@@ -573,6 +584,8 @@ void *network_thread (void *data)
 
 				break;
 			case SET_AES_KEY:
+				IPC_TERMINATE_STR(msg.data.aeskeymsg.key_ascii);
+				IPC_TERMINATE_STR(msg.data.aeskeymsg.ivt_ascii);
 				if (IS_STR_EQUAL(msg.data.aeskeymsg.key_ascii, "pkcs11"))
 					msg.type = NACK;
 				else {
@@ -582,6 +595,10 @@ void *network_thread (void *data)
 				}
 				break;
 			case SET_VERSIONS_RANGE:
+				IPC_TERMINATE_STR(msg.data.versions.minimum_version);
+				IPC_TERMINATE_STR(msg.data.versions.maximum_version);
+				IPC_TERMINATE_STR(msg.data.versions.current_version);
+				IPC_TERMINATE_STR(msg.data.versions.update_type);
 				msg.type = ACK;
 				if (set_version_range(msg.data.versions.update_type,
 						  msg.data.versions.minimum_version,
@@ -615,11 +632,16 @@ void *network_thread (void *data)
 				msg.type = ACK;
 				break;
 			case SET_SWUPDATE_VARS:
+				IPC_TERMINATE_STR(msg.data.vars.varnamespace);
+				IPC_TERMINATE_STR(msg.data.vars.varname);
+				IPC_TERMINATE_STR(msg.data.vars.varvalue);
 				msg.type = swupdate_vars_set(msg.data.vars.varname,
 						  strlen(msg.data.vars.varvalue) ? msg.data.vars.varvalue : NULL,
 						  msg.data.vars.varnamespace) == 0 ? ACK : NACK;
 				break;
 			case GET_SWUPDATE_VARS:
+				IPC_TERMINATE_STR(msg.data.vars.varnamespace);
+				IPC_TERMINATE_STR(msg.data.vars.varname);
 				varvalue = swupdate_vars_get(msg.data.vars.varname,
 						  msg.data.vars.varnamespace);
 				memset(msg.data.vars.varvalue, 0, sizeof(msg.data.vars.varvalue));
@@ -633,11 +655,8 @@ void *network_thread (void *data)
 			case SET_DELTA_URL:
 				cfg = get_swupdate_cfg();
 
-				/*
-				 * check strings in IPC
-				 */
-				msg.data.dwl_url.filename[sizeof(msg.data.dwl_url.filename) - 1] = '\0';
-				msg.data.dwl_url.url[sizeof(msg.data.dwl_url.url) - 1] = '\0';
+				IPC_TERMINATE_STR(msg.data.dwl_url.filename);
+				IPC_TERMINATE_STR(msg.data.dwl_url.url);
 				/*
 				 * Check for mutex: there is currently no other users, one writer and one reader
 				 * for the list (the handler).
