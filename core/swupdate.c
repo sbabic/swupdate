@@ -1067,6 +1067,13 @@ int main(int argc, char **argv)
 	if (public_key_mandatory && !strlen(swcfg.publickeyfname)) {
 		fprintf(stderr,
 			 "Error: SWUpdate is built for signed images, provide a public key file.\n");
+#ifdef CONFIG_SIGALG_GPG
+		if (strlen(swcfg.gpg_home_directory) || strlen(swcfg.gpgme_protocol))
+			fprintf(stderr,
+				"Hint: GnuPG is configured but the verification provider is %s, "
+				"select it with --digest-provider GPG or digest-provider = \"GPG\".\n",
+				dgstlib);
+#endif
 		exit(EXIT_FAILURE);
 	}
 #ifdef CONFIG_SIGALG_GPG
