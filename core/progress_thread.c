@@ -65,7 +65,15 @@ struct swupdate_progress {
 	pthread_mutex_t lock;
 	bool step_running;
 };
-static struct swupdate_progress progress;
+/*
+ * Statically initialized: errors can be stored (via ERROR()) before
+ * progress_bar_thread() runs, e.g. while parsing the configuration file.
+ */
+static struct swupdate_progress progress = {
+	.conns = SIMPLEQ_HEAD_INITIALIZER(progress.conns),
+	.errs = SIMPLEQ_HEAD_INITIALIZER(progress.errs),
+	.lock = PTHREAD_MUTEX_INITIALIZER,
+};
 
 /*
  * This must be called after acquiring the mutex
@@ -404,10 +412,6 @@ void *progress_bar_thread (void __attribute__ ((__unused__)) *data)
 	struct swupdate_progress *pprog = &progress;
 	struct progress_conn *conn;
 	int err;
-
-	pthread_mutex_init(&pprog->lock, NULL);
-	SIMPLEQ_INIT(&pprog->conns);
-	SIMPLEQ_INIT(&pprog->errs);
 
 	/* Initialize and bind to UDS */
 	listen = listener_create(get_prog_socket(), SOCK_STREAM,
