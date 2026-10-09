@@ -1660,6 +1660,7 @@ static server_op_res_t server_send_target_data(void)
 	server_op_res_t result = SERVER_OK;
 	char *json_reply_string = NULL;
 	char *url = NULL;
+	bool snapshot_taken = false;
 
 	assert(channel != NULL);
 
@@ -1710,6 +1711,13 @@ static server_op_res_t server_send_target_data(void)
 		free(keyvalue);
 
 	}
+	/*
+	 * Data is collected: clear the flag now, under lock. If the IPC
+	 * thread changes the data while it is sent, it sets the flag
+	 * again and the new data is sent at next poll.
+	 */
+	server_hawkbit.has_to_send_configData = false;
+	snapshot_taken = true;
 	pthread_mutex_unlock(&ipc_lock);
 
 	TRACE("CONFIGDATA=%s", configData);
@@ -1762,10 +1770,13 @@ static server_op_res_t server_send_target_data(void)
 	channel_data_reply.method = CHANNEL_PUT;
 	result = map_channel_retcode(channel->put(channel, (void *)&channel_data_reply));
 
-	if (result == SERVER_OK)
-		server_hawkbit.has_to_send_configData = false;
-
 cleanup:
+	/* Data was not sent, retry later */
+	if (snapshot_taken && result != SERVER_OK) {
+		pthread_mutex_lock(&ipc_lock);
+		server_hawkbit.has_to_send_configData = true;
+		pthread_mutex_unlock(&ipc_lock);
+	}
 
 	free(configData);
 	if (url != NULL)
