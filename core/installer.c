@@ -40,9 +40,10 @@
  * 0 = do not skip the file, it must be installed
  * 1 = skip the file
  * 2 = install directly (stream to the handler)
- * -1= error found
+ * < 0 = error found (negative errno), the file in the
+ *       cpio archive does not match sw-description
  */
-swupdate_file_t check_if_required(struct imglist *list, struct filehdr *pfdh,
+int check_if_required(struct imglist *list, struct filehdr *pfdh,
 				const char *destdir,
 				struct img_type **pimg)
 {

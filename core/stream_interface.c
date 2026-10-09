@@ -257,10 +257,16 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 						  &software->scripts};
 
 			for (unsigned int i = 0; i < ARRAY_SIZE(list); i++) {
-				skip = check_if_required(list[i], &fdh,
+				int ret = check_if_required(list[i], &fdh,
 						get_tmpdir(),
 						&img);
 
+				if (ret < 0) {
+					ERROR("%s does not match sw-description, aborting",
+						fdh.filename);
+					return -1;
+				}
+				skip = (swupdate_file_t)ret;
 				if (skip != SKIP_FILE)
 					break;
 			}
