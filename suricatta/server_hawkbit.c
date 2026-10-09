@@ -1649,16 +1649,25 @@ static server_op_res_t server_send_target_data(void)
 	char *url = NULL;
 
 	assert(channel != NULL);
-	len = get_target_data_length(false);
+
+	/*
+	 * configdata can be changed by the IPC thread: hold the lock
+	 * while the buffer is sized and filled, else the list can grow
+	 * in between and strcat() overflows the buffer.
+	 */
+	pthread_mutex_lock(&ipc_lock);
+	len = get_target_data_length(true);
 
 	if (!len) {
 		server_hawkbit.has_to_send_configData = false;
+		pthread_mutex_unlock(&ipc_lock);
 		return SERVER_OK;
 	}
 
 	char *configData = (char *)(malloc(len + 16));
 	if (!configData) {
 		ERROR("OOM when sending ID data to server");
+		pthread_mutex_unlock(&ipc_lock);
 		return SERVER_EERR;
 	}
 	memset(configData, 0, len + 16);
@@ -1668,7 +1677,6 @@ static server_op_res_t server_send_target_data(void)
 	);
 
 	char *keyvalue = NULL;
-	pthread_mutex_lock(&ipc_lock);
 	LIST_FOREACH(entry, &server_hawkbit.configdata, next) {
 		char *key = dict_entry_get_key(entry);
 		char *value = dict_entry_get_value(entry);
