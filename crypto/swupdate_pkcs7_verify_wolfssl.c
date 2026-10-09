@@ -18,6 +18,7 @@
 #include "util.h"
 #include "swupdate_crypto.h"
 #include <wolfssl/openssl/pkcs7.h>
+#include <wolfssl/wolfcrypt/asn.h>
 
 #ifndef PKCS7_BINARY
 #define PKCS7_BINARY            0x80
@@ -214,6 +215,27 @@ dgst_init_error:
 	return ret;
 }
 
+/*
+ * The digest algorithm is chosen by the signer: accept only
+ * algorithms that are not considered weak (no MD5, SHA-1, SHA-224).
+ */
+static bool is_digest_allowed(int hash_oid)
+{
+	switch (hash_oid) {
+	case SHA256h:
+	case SHA384h:
+	case SHA512h:
+	case SHA3_256h:
+	case SHA3_384h:
+	case SHA3_512h:
+	case SHAKE128h:
+	case SHAKE256h:
+		return true;
+	default:
+		return false;
+	}
+}
+
 static int wolfssl_pkcs7_verify_file(void *ctx, const char *sigfile,
 		const char *file, const char *signer_name)
 {
@@ -258,6 +280,13 @@ static int wolfssl_pkcs7_verify_file(void *ctx, const char *sigfile,
 			NULL, PKCS7_BINARY)) {
 		ERR_print_errors_fp(stderr);
 		ERROR("Signature verification failed");
+		status = -EBADMSG;
+		goto out;
+	}
+
+	/* the digest algorithm of the signer is set by PKCS7_verify() */
+	if (!is_digest_allowed(pkcs7->pkcs7.hashOID)) {
+		ERROR("digest algorithm (OID sum %d) not allowed", pkcs7->pkcs7.hashOID);
 		status = -EBADMSG;
 		goto out;
 	}
