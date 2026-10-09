@@ -189,6 +189,16 @@ static size_t mg_get_line_len(const char *buf, size_t buf_len) {
 	return len == buf_len ? 0 : len + 1;
 }
 
+/*
+ * The length of the body is estimated by subtracting the multipart
+ * overhead: do not wrap around if the client sends wrong data.
+ */
+static void mg_http_multipart_sub_len(struct mg_http_multipart_stream *mp_stream,
+				      size_t n)
+{
+	mp_stream->len = (mp_stream->len > n) ? mp_stream->len - n : 0;
+}
+
 static int mg_http_multipart_process_boundary(struct mg_connection *c) {
 	size_t data_size;
 	const char *boundary, *block_begin;
@@ -198,11 +208,11 @@ static int mg_http_multipart_process_boundary(struct mg_connection *c) {
 	boundary = mg_strstr(mg_str_n((char *) io->buf, io->len), mp_stream->boundary);
 	block_begin = boundary + mp_stream->boundary.len + 2;
 	data_size = io->len - (block_begin - (char *) io->buf);
-	mp_stream->len -= ((2 * mp_stream->boundary.len) + 6);
+	mg_http_multipart_sub_len(mp_stream, (2 * mp_stream->boundary.len) + 6);
 
 	while (data_size > 0 &&
 		   (line_len = mg_get_line_len(block_begin, data_size)) != 0) {
-		mp_stream->len -= (line_len + 2);
+		mg_http_multipart_sub_len(mp_stream, line_len + 2);
 		if (line_len > sizeof(CONTENT_DISPOSITION) &&
 			strncasecmp(block_begin, CONTENT_DISPOSITION,
 						sizeof(CONTENT_DISPOSITION) - 1) == 0) {
@@ -211,6 +221,9 @@ static int mg_http_multipart_process_boundary(struct mg_connection *c) {
 			header.buf = (char*) (block_begin + sizeof(CONTENT_DISPOSITION) - 1);
 			header.len = line_len - sizeof(CONTENT_DISPOSITION) - 1;
 
+			/* A part can have more Content-Disposition headers, drop previous values */
+			free((void *) mp_stream->part.name.buf);
+			free((void *) mp_stream->part.filename.buf);
 			mp_stream->part.name = mg_strdup(mg_http_get_header_var(header, mg_str_n("name", 4)));
 			mp_stream->part.filename = mg_strdup(mg_http_get_header_var(header, mg_str_n("filename", 8)));
 

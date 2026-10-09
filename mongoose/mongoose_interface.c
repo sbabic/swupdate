@@ -699,6 +699,7 @@ static void upload_handler(struct mg_connection *nc, int ev, void *ev_data)
 			if (!mp->part.filename.buf) {
 				mg_http_reply(nc, 400, "", "%s", "filename not set in form\n");
 				nc->is_draining = 1;
+				free(fus);
 				break;
 			}
 			struct swupdate_request req;
@@ -764,7 +765,11 @@ static void upload_handler(struct mg_connection *nc, int ev, void *ev_data)
 
 			mp->num_data_consumed = written;
 			fus->len += written;
-			percent = (uint8_t)(100.0 * ((double)fus->len / (double)mp->len));
+			/* mp->len is estimated from Content-Length, it can be wrong */
+			if (mp->len == 0 || fus->len >= mp->len)
+				percent = 100;
+			else
+				percent = (uint8_t)(100.0 * ((double)fus->len / (double)mp->len));
 			if (percent != fus->percent) {
 				fus->percent = percent;
 				swupdate_download_update(fus->percent, mp->len);
