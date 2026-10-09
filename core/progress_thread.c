@@ -410,7 +410,9 @@ void *progress_bar_thread (void __attribute__ ((__unused__)) *data)
 	SIMPLEQ_INIT(&pprog->errs);
 
 	/* Initialize and bind to UDS */
-	listen = listener_create(get_prog_socket(), SOCK_STREAM);
+	listen = listener_create(get_prog_socket(), SOCK_STREAM,
+				S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH,
+				(gid_t)-1);
 	if (listen < 0 ) {
 		ERROR("Error creating IPC socket %s, exiting.", get_prog_socket());
 		exit(2);

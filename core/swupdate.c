@@ -23,6 +23,7 @@
 #include <pthread.h>
 #include <signal.h>
 #include <sys/wait.h>
+#include <grp.h>
 
 #include "bsdqueue.h"
 #include "cpiohdr.h"
@@ -311,6 +312,8 @@ static void swupdate_init(struct swupdate_cfg *sw)
 	sw->update_type = update_type;
 
 	sw->cert_purpose = CERT_PURPOSE_EMAIL_PROT;
+	sw->ctrl_socket_mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
+	sw->ctrl_socket_gid = (gid_t)-1;
 
 #ifdef CONFIG_MTD
 	mtd_init();
@@ -427,6 +430,41 @@ static int read_globals_settings(void *elem, void *data)
 		sw->cert_purpose = parse_cert_purpose(tmp);
 	GET_FIELD_STRING(LIBCFG_PARSER, elem, "forced-signer-name",
 				sw->forced_signer_name);
+
+	tmp[0] = '\0';
+	GET_FIELD_STRING(LIBCFG_PARSER, elem, "ctrl-socket-mode", tmp);
+	if (tmp[0] != '\0') {
+		char *endp;
+		unsigned long mode;
+
+		errno = 0;
+		mode = strtoul(tmp, &endp, 8);
+		if (errno || *endp != '\0' || mode > 07777) {
+			ERROR("Invalid ctrl-socket-mode '%s'", tmp);
+			exit(EXIT_FAILURE);
+		}
+		sw->ctrl_socket_mode = (mode_t)mode;
+	}
+	tmp[0] = '\0';
+	GET_FIELD_STRING(LIBCFG_PARSER, elem, "ctrl-socket-group", tmp);
+	if (tmp[0] != '\0') {
+		struct group *grp = getgrnam(tmp);
+
+		if (grp) {
+			sw->ctrl_socket_gid = grp->gr_gid;
+		} else {
+			char *endp;
+			unsigned long gid;
+
+			errno = 0;
+			gid = strtoul(tmp, &endp, 10);
+			if (errno || *endp != '\0' || gid >= (gid_t)-1) {
+				ERROR("Invalid ctrl-socket-group '%s'", tmp);
+				exit(EXIT_FAILURE);
+			}
+			sw->ctrl_socket_gid = (gid_t)gid;
+		}
+	}
 
 	char software_select[SWUPDATE_GENERAL_STRING_SIZE] = "";
 	GET_FIELD_STRING(LIBCFG_PARSER, elem, "select", software_select);

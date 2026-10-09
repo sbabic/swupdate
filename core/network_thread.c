@@ -396,7 +396,9 @@ void *network_thread (void *data)
 	subprocess_ipc_handler_thread_id = start_thread(subprocess_thread, NULL);
 
 	/* Initialize and bind to UDS */
-	ctrllisten = listener_create(get_ctrl_socket(), SOCK_STREAM);
+	cfg = get_swupdate_cfg();
+	ctrllisten = listener_create(get_ctrl_socket(), SOCK_STREAM,
+				     cfg->ctrl_socket_mode, cfg->ctrl_socket_gid);
 	if (ctrllisten < 0 ) {
 		ERROR("Error creating IPC control socket");
 		exit(2);

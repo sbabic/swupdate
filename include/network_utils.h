@@ -6,14 +6,19 @@
  */
 #pragma once
 
+#include <sys/types.h>
+
 /**
  * \brief create or attach to socket at path
  * 
  * \param path absolute path to socket file
  * \param type socket type of socket()
+ * \param mode permissions of the socket file
+ * \param gid group owner of the socket file, (gid_t)-1 to keep it
+ * \note mode and gid are not applied to sockets passed by systemd
  * \return fd on success, -1 on error
 */
-int listener_create(const char *path, int type);
+int listener_create(const char *path, int type, mode_t mode, gid_t gid);
 
 /**
  * \brief initialize unlink functionality for sockets

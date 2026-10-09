@@ -34,7 +34,7 @@ SIMPLEQ_HEAD(self_sockets, socket_meta);
 static struct self_sockets sockets_toclose;
 
 
-int listener_create(const char *path, int type)
+int listener_create(const char *path, int type, mode_t mode, gid_t gid)
 {
 	struct sockaddr_un servaddr;
 	int listenfd = -1;
@@ -72,7 +72,14 @@ int listener_create(const char *path, int type)
 			return -1;
 		}
 
-		if (chmod(path,  S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH) < 0)
+		if (gid != (gid_t)-1 && chown(path, (uid_t)-1, gid) < 0) {
+			ERROR("Cannot set group %u on socket %s, error %s",
+			      (unsigned int)gid, path, strerror(errno));
+			close(listenfd);
+			return -1;
+		}
+
+		if (chmod(path, mode) < 0)
 			WARN("chmod cannot be set on socket, error %s", strerror(errno));
 	}
 
