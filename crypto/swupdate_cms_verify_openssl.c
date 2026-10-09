@@ -317,6 +317,57 @@ out_check_signer:
 	return ret;
 }
 
+/*
+ * The digest algorithm is chosen by the signer: accept only
+ * algorithms that are not considered weak (no MD5, SHA-1, SHA-224).
+ * SHAKE is used by SLH-DSA-SHAKE signers (RFC 9814).
+ */
+static bool is_digest_allowed(int nid)
+{
+	switch (nid) {
+	case NID_sha256:
+	case NID_sha384:
+	case NID_sha512:
+#ifdef NID_sha3_256
+	case NID_sha3_256:
+	case NID_sha3_384:
+	case NID_sha3_512:
+	case NID_shake128:
+	case NID_shake256:
+#endif
+		return true;
+	default:
+		return false;
+	}
+}
+
+static int check_signer_digests(CMS_ContentInfo *cms)
+{
+	STACK_OF(CMS_SignerInfo) *infos = CMS_get0_SignerInfos(cms);
+	int i;
+
+	if (!infos || sk_CMS_SignerInfo_num(infos) <= 0)
+		return -EBADMSG;
+
+	for (i = 0; i < sk_CMS_SignerInfo_num(infos); ++i) {
+		CMS_SignerInfo *si = sk_CMS_SignerInfo_value(infos, i);
+		X509_ALGOR *digest = NULL;
+		int nid;
+
+		CMS_SignerInfo_get0_algs(si, NULL, NULL, &digest, NULL);
+		if (!digest)
+			return -EBADMSG;
+		nid = OBJ_obj2nid(digest->algorithm);
+		if (!is_digest_allowed(nid)) {
+			ERROR("digest algorithm %s of signer %d not allowed",
+			      OBJ_nid2sn(nid), i);
+			return -EBADMSG;
+		}
+	}
+
+	return 0;
+}
+
 #if defined(CONFIG_CMS_SKIP_UNKNOWN_SIGNERS) || defined(CONFIG_CMS_IGNORE_ADDITIONAL_CERTS)
 static int verify_signer_certs(CMS_ContentInfo* cms, X509_STORE* store)
 {
@@ -546,6 +597,11 @@ static int openssl_cms_verify_file(void  *ctx, const char *sigfile,
 	if (check_signer_name(cms, signer_name)) {
 		ERROR("failed to verify signer name");
 		status = -EFAULT;
+		goto out;
+	}
+
+	if (check_signer_digests(cms)) {
+		status = -EBADMSG;
 		goto out;
 	}
 
