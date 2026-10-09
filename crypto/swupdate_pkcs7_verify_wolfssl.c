@@ -13,6 +13,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <errno.h>
+#include <limits.h>
 #include "swupdate.h"
 #include "swupdate_wolfssl.h"
 #include "util.h"
@@ -110,7 +112,7 @@ static int check_common_name(X509_NAME *subject, const char *name)
 	while ((i = next_common_name(subject, i)) > -1) {
 		X509_NAME_ENTRY *e = X509_NAME_get_entry(subject, i);
 		ASN1_STRING *d = X509_NAME_ENTRY_get_data(e);
-		unsigned char *cn;
+		unsigned char *cn = NULL;
 		size_t len = strlen(name);
 		bool matches = (ASN1_STRING_to_UTF8(&cn, d) == (int)len)
 				&& (strncmp(name, (const char *)cn, len) == 0);
@@ -241,41 +243,58 @@ static int wolfssl_pkcs7_verify_file(void *ctx, const char *sigfile,
 {
 	struct wolfssl_digest *dgst = (struct wolfssl_digest *)ctx;
 	int status = -EFAULT;
-	WOLFSSL_PKCS7* pkcs7 =  (WOLFSSL_PKCS7 *)PKCS7_new();
+	WOLFSSL_PKCS7 *pkcs7 = NULL;
 	BIO *bio_mem = NULL;
-	BIO *content_bio = NULL;
+	unsigned char *sigbuf = NULL;
+	unsigned char *content = NULL;
+	size_t sigbuf_len = 0;
+	size_t content_len = 0;
+	int ret;
 
-	/* Open detached signature that needs to be checked */
-	BIO *sigfile_bio = BIO_new_file(sigfile, "rb");
-	if (!sigfile_bio) {
-		ERROR("%s cannot be opened", sigfile);
-		status = -EBADF;
+	pkcs7 = (WOLFSSL_PKCS7 *)PKCS7_new();
+	if (!pkcs7) {
+		ERROR("Cannot allocate PKCS#7 structure");
+		status = -ENOMEM;
 		goto out;
 	}
 
-	pkcs7->len = wolfSSL_BIO_get_len(sigfile_bio);
-	pkcs7->data = calloc(1, pkcs7->len);
-	BIO_read(sigfile_bio, pkcs7->data, pkcs7->len);
-	if (!pkcs7->data) {
+	/* Read detached signature that needs to be checked */
+	ret = read_file_into_buf(sigfile, &sigbuf, &sigbuf_len);
+	if (ret) {
+		status = ret;
+		goto out;
+	}
+	if (sigbuf_len == 0 || sigbuf_len > INT_MAX) {
 		ERROR("%s cannot be parsed as DER-encoded PKCS#7 signature blob", sigfile);
 		status = -EFAULT;
 		goto out;
 	}
+	/* pkcs7 owns the buffer, it is freed by PKCS7_free() */
+	pkcs7->data = sigbuf;
+	pkcs7->len = (int)sigbuf_len;
+	sigbuf = NULL;
 
-	/* Open the content file (data which was signed) */
-	content_bio = BIO_new_file(file, "rb");
-	if (!content_bio) {
-		ERROR("%s cannot be opened", file);
-		status = -EBADF;
+	/* Read the content file (data which was signed) */
+	ret = read_file_into_buf(file, &content, &content_len);
+	if (ret) {
+		status = ret;
 		goto out;
 	}
-	long content_len = wolfSSL_BIO_get_len(content_bio);
-	char *content = calloc(1, content_len);
-	BIO_read(content_bio, content, content_len);
-	bio_mem = BIO_new_mem_buf(content, content_len);
+	if (content_len > INT_MAX) {
+		ERROR("%s is too big", file);
+		status = -EFBIG;
+		goto out;
+	}
 
 	/* Then try to verify signature. The BIO* in parameter has to be a mem BIO.
            See https://github.com/wolfSSL/wolfssl/issues/6174. */
+	bio_mem = BIO_new_mem_buf(content, (int)content_len);
+	if (!bio_mem) {
+		ERROR("Cannot allocate memory BIO for %s", file);
+		status = -ENOMEM;
+		goto out;
+	}
+
 	if (!PKCS7_verify((PKCS7 *)pkcs7, NULL, dgst->certs, bio_mem,
 			NULL, PKCS7_BINARY)) {
 		ERR_print_errors_fp(stderr);
@@ -309,12 +328,8 @@ out:
 	if (bio_mem) {
 		BIO_free(bio_mem);
 	}
-	if (content_bio) {
-		BIO_free(content_bio);
-	}
-	if (sigfile_bio) {
-		BIO_free(sigfile_bio);
-	}
+	free(content);
+	free(sigbuf);
 	return status;
 }
 
