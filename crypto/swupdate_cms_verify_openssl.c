@@ -258,7 +258,7 @@ static int check_common_name(X509_NAME *subject, const char *name)
 	while ((i = next_common_name(subject, i)) > -1) {
 		X509_NAME_ENTRY *e = X509_NAME_get_entry(subject, i);
 		ASN1_STRING *d = X509_NAME_ENTRY_get_data(e);
-		unsigned char *cn;
+		unsigned char *cn = NULL;
 		size_t len = strlen(name);
 		bool matches = (ASN1_STRING_to_UTF8(&cn, d) == (int)len)
 				&& (strncmp(name, (const char *)cn, len) == 0);
