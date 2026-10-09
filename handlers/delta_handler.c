@@ -669,6 +669,7 @@ static bool parse_headers(struct hnd_priv *priv)
 	int cnt;
 
 	range_answer_t *answer = priv->answer;
+	bool ret = true;
 	answer->data[answer->len] = '\0';
 
 	/* Check for multipart */
@@ -689,13 +690,29 @@ static bool parse_headers(struct hnd_priv *priv)
 
 		if (!strncasecmp(header, "content-range", strlen("content-range")) &&
 		    !strncasecmp(value, "bytes", strlen("bytes"))) {
+			/* Content-Range: bytes <start>-<end>/<size> */
 			pair = string_split(boundary_string, '-');
-			priv->range_type = SINGLE_RANGE;
-			size_t start = strtoul(pair[0], NULL, 10);
-			size_t end = strtoul(pair[1], NULL, 10);
+			if (!pair || count_string_array((const char **)pair) != 2) {
+				ERROR("Malformed Content-Range: %s", boundary_string);
+				ret = false;
+			} else {
+				char *endp_start, *endp_end;
+				size_t start, end;
+
+				errno = 0;
+				start = strtoul(pair[0], &endp_start, 10);
+				end = strtoul(pair[1], &endp_end, 10);
+				if (errno || endp_start == pair[0] || *endp_start != '\0' ||
+				    endp_end == pair[1] || end < start) {
+					ERROR("Malformed Content-Range: %s", boundary_string);
+					ret = false;
+				} else {
+					priv->range_type = SINGLE_RANGE;
+					priv->rangestart = start;
+					priv->rangelen = end - start;
+				}
+			}
 			free_string_array(pair);
-			priv->rangestart = start;
-			priv->rangelen = end - start;
 		}
 		free(header);
 		free(value);
@@ -707,7 +724,7 @@ static bool parse_headers(struct hnd_priv *priv)
 		free(value);
 	}
 
-	return true;
+	return ret;
 }
 
 static bool search_boundary_in_body(struct hnd_priv *priv)
@@ -725,13 +742,18 @@ static bool search_boundary_in_body(struct hnd_priv *priv)
 		/* Body contains just one range, it is data, do nothing */
 		return true;
 	}
+	size_t blen = strlen(priv->boundary);
+
+	if (blen > answer->len)
+		return false;
+
 	s = answer->data;
-	for (i = 0; i < answer->len; i++, s++) {
-		if (!strncasecmp(s, priv->boundary, strlen(priv->boundary))) {
+	for (i = 0; i + blen <= answer->len; i++, s++) {
+		if (!strncasecmp(s, priv->boundary, blen)) {
 			DEBUG("Boundary found in body");
-			/* Reset buffer to start from here */
+			/* Reset buffer to start from here, areas overlap */
 			if (i != 0)
-				memcpy(answer->data, s, answer->len - i);
+				memmove(answer->data, s, answer->len - i);
 			answer->len -=i;
 			return true;
 		}

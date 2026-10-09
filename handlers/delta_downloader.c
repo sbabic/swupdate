@@ -18,6 +18,7 @@
  */
 
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -226,10 +227,25 @@ int start_delta_downloader(const char __attribute__ ((__unused__)) *fname,
 			exit (EXIT_FAILURE);
 		}
 
-		if ((req->urllen + req->rangelen) > ret) {
+		/* Socket closed by SWUpdate, nothing more to do */
+		if (ret == 0) {
+			TRACE("Connection closed, exiting");
+			exit (EXIT_SUCCESS);
+		}
+
+		/*
+		 * The request contains URL and range, both NUL-terminated:
+		 * check that they are fully contained in what was read
+		 */
+		if (ret < (ssize_t)offsetof(range_request_t, data) ||
+		    req->urllen > RANGE_PAYLOAD_SIZE - 2 ||
+		    req->rangelen > RANGE_PAYLOAD_SIZE - 2 - req->urllen ||
+		    offsetof(range_request_t, data) + req->urllen + req->rangelen + 2 > (size_t)ret) {
 			ERROR("Malformed data");
 			continue;
 		}
+		req->data[req->urllen] = '\0';
+		req->data[req->urllen + 1 + req->rangelen] = '\0';
 		dwltransfer.writefd = sw_sockfd;
 		dwltransfer.id = req->id;
 		dwltransfer.answer = answer;
