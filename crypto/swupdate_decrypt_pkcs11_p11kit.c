@@ -140,7 +140,11 @@ static void *pkcs11_DECRYPT_init(unsigned char *uri,
 		goto err_msg;
 
 	rv = dgst->module->C_Login(dgst->session, CKU_USER, (unsigned char *)pin, strnlen(pin, 32));
-	if (rv != CKR_OK)
+	/*
+	 * CKR_USER_ALREADY_LOGGED_IN is not an error: another session of the
+	 * same process has already logged into this token.
+	 */
+	if (rv != CKR_OK && rv != CKR_USER_ALREADY_LOGGED_IN)
 		goto err_msg;
 
 	CK_OBJECT_HANDLE key;
