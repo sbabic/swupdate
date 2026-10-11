@@ -93,6 +93,8 @@ static void test_crypt_pkcs11_256(void **state)
 	d_offset += len;
 
 	assert_true(strncmp((const char *)decrypted_data, (const char *)original_data, original_data_len) == 0);
+
+	swupdate_DECRYPT_cleanup(dgst);
 }
 
 static size_t captured_len = 0;
