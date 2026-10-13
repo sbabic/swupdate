@@ -1088,6 +1088,12 @@ extended attributes. File modes (such as chmod 0755/0600) are always preserved.
 The property `create-destination` can be set to the string `true` to have SWUpdate create
 the destination path before extraction.
 
+Entries are always extracted below the destination path: entries with an absolute
+path or with ".." are rejected. The handler also refuses to extract an entry through
+a symlink, either an existing one on the target or one created by the archive itself.
+If the archive must be extracted through symlinks (for example, a directory on the target
+is a symlink to another location), set the property `follow-symlinks` to the string `true`.
+
 ::
 
                 files: (

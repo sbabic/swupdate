@@ -317,7 +317,19 @@ static int install_archive_image(struct img_type *img,
 		img->fname, path,
 		img->preserve_attributes ? "preserving" : "ignoring");
 
-	tf.flags = 0;
+	/*
+	 * Entries are extracted relative to path: reject absolute
+	 * paths and "..", and do not follow symlinks unless explicitly
+	 * allowed, else an entry can be written outside of path.
+	 */
+	tf.flags = ARCHIVE_EXTRACT_SECURE_NODOTDOT;
+#ifdef ARCHIVE_EXTRACT_SECURE_NOABSOLUTEPATHS
+	tf.flags |= ARCHIVE_EXTRACT_SECURE_NOABSOLUTEPATHS;
+#endif
+	if (strtobool(dict_get_value(&img->properties, "follow-symlinks")))
+		WARN("Symlinks in the path of extracted entries are followed");
+	else
+		tf.flags |= ARCHIVE_EXTRACT_SECURE_SYMLINKS;
 	tf.exitval = -EFAULT;
 
 	if (img->preserve_attributes) {
