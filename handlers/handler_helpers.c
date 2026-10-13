@@ -109,6 +109,8 @@ int bgtask_handler(struct bgtask_handle *bg)
 	int ret = 0;
 	struct hnd_load_priv data_handle;
 	struct thread_handle hnd;
+	pthread_t copy_thread;
+	void *status;
 	char *cmd;
 
 	/*
@@ -134,12 +136,23 @@ int bgtask_handler(struct bgtask_handle *bg)
 	hnd.hndtransfer = &data_handle;
 	hnd.img = bg->img;
 	cmd = swupdate_strcat(3, bg->cmd, " ", bg->parms);
+	if (!cmd) {
+		close(data_handle.fifo[FIFO_THREAD_READ]);
+		close(data_handle.fifo[FIFO_HND_WRITE]);
+		return -ENOMEM;
+	}
+
+	/*
+	 * The copy thread gets EPIPE instead of a signal
+	 * if the command stops reading
+	 */
+	signal(SIGPIPE, SIG_IGN);
 
 	/*
 	 * Starts a backgroud task to fill in the
 	 * FIFO using copyimage
 	 */
-	start_thread(copyimage_thread, &hnd);
+	copy_thread = start_thread(copyimage_thread, &hnd);
 
 	/*
 	 * Start to write in the FIFO - vene if the bg process is not started.
@@ -149,6 +162,23 @@ int bgtask_handler(struct bgtask_handle *bg)
 
 	ret = run_system_cmd_with_fdin(cmd, data_handle.fifo);
 	free(cmd);
+
+	/*
+	 * The command has exited: close the read end so that the copy
+	 * thread does not block if not all data was consumed, and wait
+	 * for it. Its result contains the hash verification and must be
+	 * checked, the command has already received the whole artifact.
+	 */
+	close(data_handle.fifo[FIFO_THREAD_READ]);
+	if (pthread_join(copy_thread, &status)) {
+		ERROR("Cannot join copy thread");
+		return -EFAULT;
+	}
+	if (!ret && status) {
+		ERROR("Artifact %s was not transferred successfully", bg->img->fname);
+		ret = (int)(intptr_t)status;
+	}
+
 	return ret;
 }
 
