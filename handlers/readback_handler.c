@@ -6,6 +6,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
+#include <inttypes.h>
 #include <unistd.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -51,10 +53,10 @@ static int readback_postinst(struct img_type *img)
 	}
 
 	/* Get property: partition size */
-	unsigned int size = 0;
+	uint64_t size = 0;
 	char *value = dict_get_value(&img->properties, "size");
 	if (value) {
-		size = strtoul(value, NULL, 10);
+		size = strtoull(value, NULL, 10);
 	} else {
 		TRACE("Property size not found, use partition size");
 	}
@@ -82,7 +84,7 @@ static int readback_postinst(struct img_type *img)
 			close(fdin);
 			return -EFAULT;
 		}
-		TRACE("Partition size: %u", size);
+		TRACE("Partition size: %" PRIu64, size);
 	}
 
 	/* 
