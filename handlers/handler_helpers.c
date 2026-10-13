@@ -88,10 +88,14 @@ void *chain_handler_thread(void *data)
 	img->install_directly = true;
 	ret = install_single_image(img, false);
 
-	if (ret) {
+	if (ret)
 		ERROR("Chain handler return with Error");
-		close(img->fdin);
-	}
+
+	/*
+	 * The thread owns the read end: the writer gets EPIPE
+	 * if it goes on after the chained handler has finished
+	 */
+	close(img->fdin);
 
 	return (void *)ret;
 }

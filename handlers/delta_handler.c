@@ -1184,7 +1184,7 @@ static int install_delta(struct img_type *img,
 	ret = 0;
 
 	iter = zck_get_first_chunk(zckDst);
-	bool success;
+	bool success = true;
 	priv->tgt = zckDst;
 	priv->fdsrc = in_fd;
 	while (iter) {
@@ -1195,20 +1195,29 @@ static int install_delta(struct img_type *img,
 		}
 		if (!success) {
 			ERROR("Delta Update fails : aborting");
-			ret = -1;
-			goto cleanup;
+			break;
 		}
 	}
 
+	/*
+	 * Close the pipe in any case: the chained handler gets EOF and
+	 * terminates, it must be joined before priv is freed.
+	 */
 	close(priv->fdout);
+
+	void *status;
+	if (pthread_join(chain_handler_thread_id, &status)) {
+		ERROR("Cannot join chained handler thread");
+		ret = -1;
+		goto cleanup;
+	}
+	if (!success) {
+		ret = -1;
+		goto cleanup;
+	}
 
 	INFO("Total downloaded data : %ld bytes", priv->totaldwlbytes);
 
-	void *status;
-	ret = pthread_join(chain_handler_thread_id, &status);
-	if (ret) {
-		ERROR("return code from pthread_join() is %d", ret);
-	}
 	ret = (unsigned long)status;
 	TRACE("Chained handler returned %d", ret);
 

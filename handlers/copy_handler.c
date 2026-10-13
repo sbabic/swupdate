@@ -91,7 +91,7 @@ static int copy_single_file(const char *path, off_t skipbytes, ssize_t size, str
 
 	if (skipbytes > 0) {
 		if (lseek(fdin, skipbytes, SEEK_SET) < 0) {
-			ERROR("Source offset wrong, cannot be set: 0x%lx", skipbytes);
+			ERROR("Source offset wrong, cannot be set: 0x%llx", (unsigned long long)skipbytes);
 			close(fdin);
 			return -EINVAL;
 		}
@@ -105,11 +105,14 @@ static int copy_single_file(const char *path, off_t skipbytes, ssize_t size, str
 			size = statbuf.st_size;
 		}
 		else if (S_ISBLK(statbuf.st_mode)) {
-			if (ioctl(fdin, BLKGETSIZE64, &size) < 0) {
+			uint64_t devsize;
+
+			if (ioctl(fdin, BLKGETSIZE64, &devsize) < 0) {
 				ERROR("Cannot get size of Block Device %s", path);
 				size = -1;
-			}
-		} 
+			} else
+				size = devsize;
+		}
 #ifdef CONFIG_MTD
 		else if (S_ISCHR(statbuf.st_mode)) {
 			/* it is maybe a MTD device, just try */
@@ -133,7 +136,7 @@ static int copy_single_file(const char *path, off_t skipbytes, ssize_t size, str
 	}
 
 	if (size < 0) {
-		ERROR("Size cannot be detected for %s or it is before offset 0x%llx", path, skipbytes);
+		ERROR("Size cannot be detected for %s or it is before offset 0x%llx", path, (unsigned long long)skipbytes);
 		close(fdin);
 		return -ENODEV;
 	}
@@ -169,7 +172,7 @@ static int copy_single_file(const char *path, off_t skipbytes, ssize_t size, str
 		.offs = &offset,
 		.checksum = &checksum,
 	};
-	ret = copyfile(&copy);
+	int copyret = copyfile(&copy);
 
 	close(fdout);
 	void *status;
@@ -178,6 +181,10 @@ static int copy_single_file(const char *path, off_t skipbytes, ssize_t size, str
 		ERROR("return code from pthread_join() is %d", ret);
 	} else
 		ret = (unsigned long)status;
+	if (!ret && copyret) {
+		ERROR("Copying from %s failed", path);
+		ret = copyret;
+	}
 
 	close(fdin);
 
@@ -203,6 +210,8 @@ static int recurse_directory(const char *fpath, const struct stat *sb,
 		return FTW_CONTINUE;
 
 	dst = malloc(strlen(base_img->path) + strlen(relpath) + 1);
+	if (!dst)
+		return FTW_STOP;
 	strcpy(dst, base_img->path);
 	strcat(dst, relpath);
 
@@ -219,6 +228,11 @@ static int recurse_directory(const char *fpath, const struct stat *sb,
 		}
 		break;
 	case FTW_F:
+		/* devices, FIFOs and sockets cannot be copied */
+		if (!S_ISREG(sb->st_mode)) {
+			WARN("%s is not a regular file, skipping", fpath);
+			break;
+		}
 		memcpy(&cpyimg, base_img, sizeof(cpyimg));
 		strlcpy(cpyimg.path, dst, sizeof(cpyimg.path));
 
@@ -346,20 +360,17 @@ static int copy_image_file(struct img_type *img, void *data)
 	createdest = strtobool(dict_get_value(&img->properties, "create-destination"));
 
 	if (createdest) {
+		char *tmppath = NULL;
+
 		if (!strlen(base_img->path)) {
 			ERROR("Destination must be created, but no path set");
-			return -EINVAL;
-		}
-		char *tmppath = strdup(img->path);
-		if (!tmppath) {
+			ret = -EINVAL;
+		} else if (!(tmppath = strdup(img->path))) {
 			ERROR("OOM creating local image path");
-			return -ENOMEM;
-		}
-		ret = mkpath(recursive ? tmppath : dirname(tmppath), 0755);
-		if (ret < 0) {
+			ret = -ENOMEM;
+		} else if (mkpath(recursive ? tmppath : dirname(tmppath), 0755)) {
 			ERROR("I cannot create path %s: %s", tmppath,
 				strerror(errno));
-			free(tmppath);
 			ret = -EFAULT;
 		}
 		free(tmppath);
