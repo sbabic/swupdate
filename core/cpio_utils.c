@@ -697,12 +697,16 @@ int copyfile(struct swupdate_copy *args)
 			ivt = get_aes_ivt();
 
 		if (args->imgaes && strlen(args->imgaes)) {
-				if (!is_hex_str(args->imgaes) || ascii_to_bin(aesbuf, sizeof(aesbuf), args->imgaes)) {
+				/* AES-128, AES-192 and AES-256 keys are allowed */
+				size_t aeslen = strlen(args->imgaes) / 2;
+
+				if (!is_hex_str(args->imgaes) || aeslen > sizeof(aesbuf) ||
+				    ascii_to_bin(aesbuf, aeslen, args->imgaes)) {
 					ERROR("Invalid image aes-key");
 					return -EINVAL;
 				}
 				aes_key = aesbuf;
-				keylen = strlen(args->imgaes) / 2;
+				keylen = aeslen;
 		} else {
 			/*
 			 * Only fall back to the default decryption key if the requested cipher matches.
