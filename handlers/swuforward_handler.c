@@ -106,17 +106,22 @@ static int swu_forward_data(void *data, const void *buf, size_t len)
 	 * to the curl thread
 	 */
 	LIST_FOREACH(conn, &priv->conns, next) {
-		unsigned int nbytes = len;
+		const char *p = buf;
+		size_t nbytes = len;
 
 		while (nbytes) {
-			written = write(conn->fifo[1], buf, len);
+			written = write(conn->fifo[1], p, nbytes);
 
 			if (written < 0) {
+				if (errno == EINTR)
+					continue;
 				ERROR ("Cannot write to fifo %d", index);
 				return -EFAULT;
 			}
 			nbytes -= written;
+			p += written;
 		}
+		index++;
 	}
 
 	return 0;
@@ -282,6 +287,44 @@ static int initialize_backchannel(struct hnd_priv *priv)
 	return ret;
 }
 
+/*
+ * Close the FIFOs, so that the transfer threads get EOF,
+ * and wait for them. Returns FAILURE if a transfer failed.
+ */
+static int stop_transfers(struct hnd_priv *priv)
+{
+	struct curlconn *conn;
+	int ret = 0;
+
+	LIST_FOREACH(conn, &priv->conns, next) {
+		void *status;
+
+		if (conn->fifo[1] >= 0) {
+			close(conn->fifo[1]);
+			conn->fifo[1] = -1;
+		}
+		if (!conn->transfer_running) {
+			/* the thread closes the read end, but it was not started */
+			if (conn->fifo[0] >= 0) {
+				close(conn->fifo[0]);
+				conn->fifo[0] = -1;
+			}
+			ret = FAILURE;
+			continue;
+		}
+		if (pthread_join(conn->transfer_thread, &status)) {
+			ERROR("Cannot join transfer thread for %s", conn->url);
+			ret = FAILURE;
+			continue;
+		}
+		conn->transfer_running = false;
+		if (conn->exitval != SUCCESS)
+			ret = FAILURE;
+	}
+
+	return ret;
+}
+
 static int install_remote_swu(struct img_type *img,
 	void __attribute__ ((__unused__)) *data)
 {
@@ -356,6 +399,7 @@ static int install_remote_swu(struct img_type *img,
 		/*
 		 * Set parameters to each connection structure
 		 */
+		conn->fifo[0] = conn->fifo[1] = -1;
 		conn->url = url->value;
 		conn->total_bytes = img->size;
 		conn->SWUpdateStatus = IDLE;
@@ -369,6 +413,7 @@ static int install_remote_swu(struct img_type *img,
 		 */
 		if (pipe(conn->fifo) < 0) {
 			ERROR("Cannot create internal pipes, exit..");
+			conn->fifo[0] = conn->fifo[1] = -1;
 			ret = FAILURE;
 			goto handler_exit;
 		}
@@ -380,10 +425,10 @@ static int install_remote_swu(struct img_type *img,
 		if (thread_ret) {
 			ERROR("Code from pthread_create() is %d",
 				thread_ret);
-			conn->transfer_thread = 0;
 			ret = FAILURE;
 			goto handler_exit;
 		}
+		conn->transfer_running = true;
 	}
 
 	if (initialize_backchannel(&priv)) {
@@ -399,19 +444,7 @@ static int install_remote_swu(struct img_type *img,
 		goto handler_exit;
 	}
 
-	ret = 0;
-	LIST_FOREACH(conn, &priv.conns, next) {
-		void *status;
-		ret = pthread_join(conn->transfer_thread, &status);
-		close(conn->fifo[1]);
-		if (ret) {
-			ERROR("return code from pthread_join() is %d", ret);
-			ret = FAILURE;
-			goto handler_exit;
-		}
-		if (conn->exitval != SUCCESS)
-			ret = FAILURE;
-	}
+	ret = stop_transfers(&priv);
 
 	/*
 	 * Now check if remote updates were successful
@@ -421,6 +454,8 @@ static int install_remote_swu(struct img_type *img,
 	}
 
 handler_exit:
+	/* threads use conn, they must terminate before it is freed */
+	stop_transfers(&priv);
 	LIST_FOREACH_SAFE(conn, &priv.conns, next, tmp) {
 		LIST_REMOVE(conn, next);
 		swuforward_ws_free(conn);

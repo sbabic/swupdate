@@ -61,6 +61,7 @@ struct curlconn {
 	void *ws;		/* this is used by websockets module */
 	SWUPDATE_WS_CONNECTION connstatus;
 	pthread_t transfer_thread;
+	bool transfer_running;	/* transfer_thread must be joined */
 	int exitval;
 	LIST_ENTRY(curlconn) next;
 };
