@@ -25,8 +25,9 @@
 void check_field_string(const char *src, char *dst, const size_t max_len)
 {
 	assert(max_len>0);
-	size_t act_len = strnlen(src, SWUPDATE_GENERAL_STRING_SIZE);
-	if (act_len > max_len) {
+	size_t act_len = strnlen(src, max_len);
+	/* strncpy() does not terminate dst if src does not fit */
+	if (act_len >= max_len) {
 		((char*)dst)[max_len-1] = '\0';
 		WARN("Configuration Key '%s...' is > %u chars, cropping it.",
 			(char*)dst, (unsigned int)max_len - 1);

@@ -523,6 +523,7 @@ static void get_ivt_value(parsertype p, void *elem, char *ivt_ascii)
 			return;
 		}
 		strncpy(ivt_ascii, s, ivtlen);
+		ivt_ascii[ivtlen] = '\0';
 	}
 }
 
@@ -544,7 +545,7 @@ static void get_aes_value(parsertype p, void *elem, char *aes_ascii)
 			ERROR("Invalid aes-key length");
 			return;
 		}
-		get_field_string_with_size(p, elem, "aes-key", aes_ascii, keylen);
+		get_field_string_with_size(p, elem, "aes-key", aes_ascii, keylen + 1);
 	}
 }
 
