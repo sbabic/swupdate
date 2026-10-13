@@ -86,22 +86,29 @@ static int docker_install_image(struct img_type *img,
 	if (thread_ret) {
 		ERROR("Code from pthread_create() is %d",
 			thread_ret);
-			transfer_thread = 0;
+			close(priv.fifo[FIFO_THREAD_READ]);
+			close(priv.fifo[FIFO_HND_WRITE]);
 			ret = FAILURE;
 			goto handler_exit;
 	}
 
 	ret = copyimage(&priv, img, handler_transfer_data);
-	if (ret) {
-		ERROR("Transferring SWU image was not successful");
-		ret = FAILURE;
-		goto handler_exit;
+
+	/*
+	 * The transfer thread uses priv: close the FIFO so that it
+	 * terminates and wait for it in any case
+	 */
+	close(priv.fifo[FIFO_HND_WRITE]);
+	void *status;
+	if (pthread_join(transfer_thread, &status)) {
+		ERROR("Cannot join transfer thread");
+		return FAILURE;
 	}
 
-	void *status;
-	ret = pthread_join(transfer_thread, &status);
-
-	close(priv.fifo[FIFO_HND_WRITE]);
+	if (ret) {
+		ERROR("Transferring SWU image was not successful");
+		return FAILURE;
+	}
 
 	return priv.exit_status;
 
