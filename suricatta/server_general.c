@@ -204,7 +204,8 @@ static char *server_format_log(const char *event, struct dict *fmtevents,
 		else
 			field = dict_get_value(identify, token);
 
-		if (strlen(log) && strlen(log) < MAX_LOG_SIZE)
+		/* keep room for the terminating NUL */
+		if (strlen(log) && strlen(log) < MAX_LOG_SIZE - 1)
 			strcat(log,",");
 
 		if (!field) {
@@ -245,6 +246,7 @@ static void *server_progress_thread (void *data)
 
 	if (!prog) {
 		ERROR("Fatal Error: thread without data !");
+		pthread_exit((void *)SERVER_EINIT);
 	}
 	if (!prog->url || !strlen(prog->url)) {
 		INFO("No url for logging...no result sent");
@@ -569,7 +571,7 @@ static server_op_res_t server_install_update(void)
 
 cleanup:
 	free(channel_data.url);
-	if (!server_general.cached_file) {
+	if (server_general.cached_file) {
 		free(server_general.cached_file);
 		server_general.cached_file = NULL;
 	}
@@ -636,7 +638,7 @@ static server_op_res_t server_start(const char *fname, int argc, char *argv[])
 	/* reset to optind=1 to parse suricatta's argument vector */
 	optind = 1;
 	opterr = 0;
-	while ((choice = getopt_long(argc, argv, "u:l:r:w:p:2:a:nS:",
+	while ((choice = getopt_long(argc, argv, "u:l:r:w:p:2:a:n:S:",
 				     long_options, NULL)) != -1) {
 		switch (choice) {
 		case 'u':
