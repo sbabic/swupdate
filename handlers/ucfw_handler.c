@@ -125,10 +125,9 @@ struct handler_priv {
 
 #ifdef USE_GPIOD_API_V1
 static void free_gpios(struct handler_priv *priv) {
-	if (priv->prog.chip && (priv->prog.chip != priv->reset.chip)){
+	if (priv->prog.chip && (priv->prog.chip != priv->reset.chip))
 		gpiod_chip_close(priv->prog.chip);
-		priv->reset.chip = NULL;
-	}
+	priv->prog.chip = NULL;
 	if (priv->reset.chip) {
 		gpiod_chip_close(priv->reset.chip);
 		priv->reset.chip = NULL;
@@ -289,6 +288,7 @@ static int register_gpios(struct handler_priv *priv) {
 	gpiod_chip_close(chip);
 	if (!priv->reset.request) {
 		ERROR("Unable to request lines on chip '%s'", priv->reset.gpiodev);
+		ret  =-ENODEV;
 		goto freeprogconfig;
 	}
 
@@ -329,6 +329,9 @@ static int switch_mode(struct handler_priv *priv, int mode)
 
 	int ret = 0;
 
+	if (!priv->reset.request || !priv->prog.request)
+		return -ENODEV;
+
 	/*
 	 * A reset is always done
 	 */
@@ -368,8 +371,11 @@ static bool verify_chksum(char *buf, unsigned int *size)
 
 	if (len < 3)
 		return false;
-	while (buf[len - 1] == '\r' || (buf[len - 1] == '\n'))
+	while (len > 0 && (buf[len - 1] == '\r' || (buf[len - 1] == '\n')))
 			len--;
+	/* at least '$' and the checksum */
+	if (len < 3)
+		return false;
 	chksum = from_ascii(&buf[len - 2], 2, LG_16);
 	len -= 2;
 	for (i = 1; i < len; i++)
@@ -608,6 +614,11 @@ static int update_fw(void *data, const void *buffer, size_t size)
 
 	while (size > 0) {
 		c = buf[cnt++];
+		/* keep room for the terminating NUL */
+		if (priv->nbytes >= sizeof(priv->buf) - 1) {
+			ERROR("Record too long, missing newline ?");
+			return -EINVAL;
+		}
 		priv->buf[priv->nbytes++] = c;
 		size--;
 		if (c == '\n') {
@@ -638,7 +649,9 @@ static int finish_update(struct handler_priv *priv)
 {
 	int ret;
 
-	close(priv->fduart);
+	if (priv->fduart >= 0)
+		close(priv->fduart);
+	priv->fduart = -1;
 	ret = switch_mode(priv, MODE_NORMAL);
 	free_gpios(priv);
 	if (ret < 0) {
@@ -668,8 +681,10 @@ static int get_gpio_from_property(struct dict_list *prop, struct mode_setup *gpi
 			case 1:
 				errno = 0;
 				gpio->offset = strtoul(s,  NULL, 10);
-				if (errno == EINVAL)
+				if (errno == EINVAL) {
+					free(sstore);
 					return -EINVAL;
+				}
 				break;
 			case 2:
 				gpio->active_low = strtobool(s);
@@ -697,6 +712,7 @@ static int install_uc_firmware_image(struct img_type *img,
 	struct mode_setup *gpio;
 
 	memset(&hnd_data, 0, sizeof(hnd_data));
+	hnd_data.fduart = -1;
 	hnd_data.timeout = DEFAULT_TIMEOUT;
 
 	const char *properties_list[] = { "reset", "prog"};
@@ -714,7 +730,7 @@ static int install_uc_firmware_image(struct img_type *img,
 
 		gpio = (cnt == 0) ? &hnd_data.reset : &hnd_data.prog;
 
-		ret = get_gpio_from_property(properties, gpio) < 0;
+		ret = get_gpio_from_property(properties, gpio);
 		if (ret < 0) {
 			ERROR("Cannot extract GPIO from properties");
 			return ret;
