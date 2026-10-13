@@ -196,7 +196,11 @@ static int prepare_var_script(struct dict *dict, const char *script)
 
 		if (!key || !value)
 			continue;
-		snprintf(buf, sizeof(buf), "%s=%s\n", key, value);
+		if (snprintf(buf, sizeof(buf), "%s=%s\n", key, value) >= (int)sizeof(buf)) {
+			ERROR("Bootloader variable %s too long", key);
+			close(fd);
+			return -1;
+		}
 		if (write(fd, buf, strlen(buf)) != (ssize_t)strlen(buf)) {
 			  TRACE("Error saving temporary bootloader environment file");
 			  close(fd);
