@@ -137,7 +137,8 @@ static void lua_dump_table(lua_State *L, char *str, struct img_type *img, const 
 					lua_tostring(L, -1),
 					(lua_toboolean(L, -2) ? "true" : "false"));
 				if (img)
-					dict_insert_value(&img->properties, str,
+					dict_insert_value(&img->properties,
+						key ? key : lua_tostring(L, -1),
 						(lua_toboolean(L, -2) ? "true" : "false"));
 				break;
 			default:
