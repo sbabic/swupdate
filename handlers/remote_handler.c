@@ -76,7 +76,6 @@ static int RHmsg_get_ack(struct RHmsg *self, void *request)
 	zmq_pollitem_t zpoll;
 	char *string;
 	int newtimeout;
-	int len;
 
 	zpoll.socket = request;
 	zpoll.events = ZMQ_POLLIN;
@@ -106,11 +105,8 @@ static int RHmsg_get_ack(struct RHmsg *self, void *request)
 	/*
 	 * Check if the remote send a new timeout
 	 */
-	len = size;
-
-	if (strchr(string, ':'))
-		len = (strchr(string, ':') - string - 1);
-	if (strncmp(string, "ACK", len) != 0) {
+	/* the answer must be "ACK" or "ACK:<timeout>" */
+	if (strncmp(string, "ACK", 3) || (string[3] != '\0' && string[3] != ':')) {
 		ERROR("Remote Handler returns error, exiting");
 		free(string);
 		return -EFAULT;
@@ -170,7 +166,8 @@ static int install_remote_image(struct img_type *img,
 	connect_string = malloc(len);
 	if (!connect_string) {
 		ERROR("Not enough memory");
-		return -ENOMEM;
+		ret = -ENOMEM;
+		goto cleanup;
 	}
 	snprintf(connect_string, len, "ipc://%s%s", get_tmpdir(),
 			img->type_data);
@@ -190,9 +187,12 @@ static int install_remote_image(struct img_type *img,
 	snprintf(bufcmd, sizeof(bufcmd), "INIT:%lld", img->size);
 	RHset_command(&RHmessage, bufcmd);
 	RHset_payload(&RHmessage, NULL, 0);
-	RHmsg_send_cmd(&RHmessage, request);
-	if (RHmsg_get_ack(&RHmessage, request))
-		return -ENODEV;
+	if (RHmsg_send_cmd(&RHmessage, request) ||
+	    RHmsg_get_ack(&RHmessage, request)) {
+		ERROR("No ACK to INIT from %s", connect_string);
+		ret = -ENODEV;
+		goto cleanup;
+	}
 
 	ret = copyimage(request, img, forward_data);
 
