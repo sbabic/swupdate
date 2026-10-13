@@ -451,7 +451,7 @@ int mkpath(char *dir, mode_t mode)
 
 	if (mkdir(dir, mode) == -1) {
 		if (errno != EEXIST)
-			return 1;
+			return -errno;
 	}
 	return 0;
 }
