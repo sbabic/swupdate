@@ -5,6 +5,9 @@
  * SPDX-License-Identifier:     GPL-2.0-only
  */
 
+#include <fcntl.h>
+#include <libgen.h>
+#include <unistd.h>
 #include "bootloader.h"
 #include "grub.h"
 
@@ -202,7 +205,8 @@ static int grubenv_write(struct grubenv_t *grubenv)
 		goto cleanup;
 	}
 
-	buf = malloc(GRUBENV_SIZE);
+	/* +1: a block filled up to the end gets a terminating NUL by strncat() */
+	buf = malloc(GRUBENV_SIZE + 1);
 	if (!buf) {
 		ERROR("Not enough memory for environment");
 		ret = -ENOMEM;
@@ -244,6 +248,20 @@ static int grubenv_write(struct grubenv_t *grubenv)
 		goto cleanup;
 	}
 
+	/*
+	 * The new environment must be on the storage before it replaces
+	 * the old one, else a power cut can leave an empty grubenv
+	 */
+	ret = (fflush(fp) || fsync(fileno(fp))) ? -1 : 0;
+	if (fclose(fp))
+		ret = -1;
+	fp = NULL;
+	if (ret) {
+		ERROR("Failed to write file: %s: %s", GRUBENV_PATH_NEW,
+			strerror(errno));
+		goto cleanup;
+	}
+
 	/* rename grubenv.new into grubenv */
 	if (rename(GRUBENV_PATH_NEW, GRUBENV_PATH)) {
 		ERROR("Failed to move environment: %s into %s",
@@ -251,6 +269,13 @@ static int grubenv_write(struct grubenv_t *grubenv)
 		ret = -1;
 		goto cleanup;
 	}
+
+	/* make the rename persistent */
+	int dirfd = open(dirname(strdupa(GRUBENV_PATH)), O_RDONLY | O_DIRECTORY);
+	if (dirfd < 0 || fsync(dirfd))
+		WARN("Cannot sync directory of %s", GRUBENV_PATH);
+	if (dirfd >= 0)
+		close(dirfd);
 
 	ret = 0;
 
