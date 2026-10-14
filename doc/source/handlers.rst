@@ -1471,8 +1471,18 @@ The resulting header file must be packed inside the SWU.
    |             |             | if URL is not present or it is set to "dynamic"    |
    +-------------+-------------+----------------------------------------------------+
    | max-ranges  | string      | Max number of ranges that a server can             |
-   |             |             | accept. Default value (150) should be ok           |
+   |             |             | accept. Default value (10) should be ok            |
    |             |             | for most servers.                                  |
+   +-------------+-------------+----------------------------------------------------+
+   | max-retries | string      | If the download of chunks fails, the missing       |
+   |             |             | chunks are requested again. The handler gives up   |
+   |             |             | after max-retries failures in a row without any    |
+   |             |             | chunk written in between. Default is 5, 0 disables |
+   |             |             | retries. An HTTP error that does not change with a |
+   |             |             | new request (4xx except 408 and 429, or a server   |
+   |             |             | that ignores the range) is never retried.          |
+   +-------------+-------------+----------------------------------------------------+
+   | retry-delay | string      | Seconds to wait before a retry, default is 5.      |
    +-------------+-------------+----------------------------------------------------+
    | zckloglevel | string      | this sets the log level of the zcklib.             |
    |             |             | Logs are intercepted by SWupdate and               |

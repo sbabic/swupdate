@@ -33,5 +33,6 @@ typedef struct {
 	request_type type;
 	size_t len;
 	uint32_t crc;
+	long http_code; /* HTTP status of the request, set with RANGE_ERROR */
 	char data[RANGE_PAYLOAD_SIZE]; /* Payload */
 } range_answer_t;

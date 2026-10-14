@@ -26,6 +26,7 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <limits.h>
 #include <string.h>
 #include <handler.h>
 #include <signal.h>
@@ -46,10 +47,11 @@
 /*
  * A chunk download that fails is requested again from the first chunk not
  * yet written. Give up after this many failures in a row without a chunk
- * written in between.
+ * written in between. Both can be set with the properties max-retries and
+ * retry-delay.
  */
-#define DWL_MAX_RETRIES		5
-#define DWL_RETRY_DELAY_S	5
+#define DEFAULT_DWL_MAX_RETRIES		5
+#define DEFAULT_DWL_RETRY_DELAY_S	5
 #define BUFF_SIZE		16384
 
 const char *handlername = "delta";
@@ -103,6 +105,8 @@ struct hnd_priv {
 	bool detectsrcsize;		/* if set, try to compute size of filesystem in srcdev */
 	size_t srcsize;			/* Size of source */
 	unsigned long max_ranges;	/* Max allowed ranges (configured via sw-description) */
+	unsigned int max_retries;	/* Max retries without progress (configured via sw-description) */
+	unsigned int retry_delay;	/* Seconds before a retry (configured via sw-description) */
 	/* Data to be transferred to chain handler */
 	struct img_type img;
 	int fdout;
@@ -123,6 +127,7 @@ struct hnd_priv {
 	bool content_range_received;	/* Flag to indicate that last header is content-range */
 	bool error_in_parser;		/* Flag to report if an error occurred */
 	bool dwl_failed;		/* downloader answered RANGE_ERROR */
+	long dwl_http_code;		/* HTTP status reported with RANGE_ERROR */
 	zckChunk *retry_chunk;		/* first unwritten chunk at last failure */
 	unsigned int dwl_retries;	/* failures in a row at retry_chunk */
 	multipart_parser *parser;	/* pointer to parser, allocated at any download */
@@ -310,6 +315,31 @@ static size_t get_total_size(zckCtx *zck, struct hnd_priv *priv) {
 /*
  * Get attributes from sw-description
  */
+/*
+ * Read an unsigned property, def is used if it is not set
+ */
+static int get_uint_property(struct img_type *img, const char *name,
+			     unsigned int def, unsigned int *value)
+{
+	const char *s = dict_get_value(&img->properties, name);
+	char *endp;
+	unsigned long v;
+
+	*value = def;
+	if (!s)
+		return 0;
+
+	errno = 0;
+	v = strtoul(s, &endp, 10);
+	if (errno || endp == s || *endp != '\0' || v > UINT_MAX || strchr(s, '-')) {
+		ERROR("Wrong value for %s: %s", name, s);
+		return -EINVAL;
+	}
+	*value = v;
+
+	return 0;
+}
+
 static int delta_retrieve_attributes(struct img_type *img, struct hnd_priv *priv) {
 	if (!priv)
 		return -EINVAL;
@@ -348,6 +378,10 @@ static int delta_retrieve_attributes(struct img_type *img, struct hnd_priv *priv
 		priv->max_ranges = strtoul(dict_get_value(&img->properties, "max-ranges"), NULL, 10);
 	if (errno || priv->max_ranges == 0)
 		priv->max_ranges = DEFAULT_MAX_RANGES;
+
+	if (get_uint_property(img, "max-retries", DEFAULT_DWL_MAX_RETRIES, &priv->max_retries) ||
+	    get_uint_property(img, "retry-delay", DEFAULT_DWL_RETRY_DELAY_S, &priv->retry_delay))
+		return -EINVAL;
 
 	char *srcsize;
 	srcsize = dict_get_value(&img->properties, "source-size");
@@ -658,6 +692,7 @@ static bool read_and_validate_package(struct hnd_priv *priv)
 	if (answer->type == RANGE_ERROR) {
 	    /* reported by retry_network_chunks() if it gives up */
 	    priv->dwl_failed = true;
+	    priv->dwl_http_code = answer->http_code;
 	    priv->dwlrunning = false;
 	    dwl_cleanup(priv);
 	    return false;
@@ -825,6 +860,19 @@ static bool retry_network_chunks(zckChunk **dstChunk, struct hnd_priv *priv)
 	priv->dwl_failed = false;
 	priv->dwlstate = NOTRUNNING;
 
+	/*
+	 * A client error or a server ignoring the range does not change
+	 * with a new request. 408 and 429 are temporary.
+	 */
+	if ((priv->dwl_http_code >= 400 && priv->dwl_http_code < 500 &&
+	     priv->dwl_http_code != 408 && priv->dwl_http_code != 429) ||
+	    (priv->dwl_http_code >= 200 && priv->dwl_http_code < 300 &&
+	     priv->dwl_http_code != 206)) {
+		ERROR("Server answered with HTTP status %ld, aborting...",
+		      priv->dwl_http_code);
+		return false;
+	}
+
 	/* The drop came after the last chunk was written: nothing is missing */
 	if (!priv->chunk) {
 		*dstChunk = NULL;
@@ -835,16 +883,16 @@ static bool retry_network_chunks(zckChunk **dstChunk, struct hnd_priv *priv)
 		priv->retry_chunk = priv->chunk;
 		priv->dwl_retries = 0;
 	}
-	if (++priv->dwl_retries > DWL_MAX_RETRIES) {
+	if (++priv->dwl_retries > priv->max_retries) {
 		ERROR("Transfer was unsuccessful, aborting...");
 		return false;
 	}
 
-	WARN("Chunk download interrupted, requesting the missing chunks again from chunk %ld in %d s (retry %u of %d)",
+	WARN("Chunk download interrupted, requesting the missing chunks again from chunk %ld in %u s (retry %u of %u)",
 	     (long)zck_get_chunk_number(priv->chunk),
-	     DWL_RETRY_DELAY_S, priv->dwl_retries, DWL_MAX_RETRIES);
+	     priv->retry_delay, priv->dwl_retries, priv->max_retries);
 
-	sleep(DWL_RETRY_DELAY_S);
+	sleep(priv->retry_delay);
 
 	*dstChunk = priv->chunk;
 	return true;

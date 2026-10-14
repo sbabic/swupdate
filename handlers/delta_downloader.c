@@ -276,6 +276,7 @@ int start_delta_downloader(const char __attribute__ ((__unused__)) *fname,
 		answer->id = req->id;
 		answer->type = (result == CHANNEL_OK) ? RANGE_COMPLETED : RANGE_ERROR;
 		answer->len = 0;
+		answer->http_code = channel_data.http_response_code;
 		if (write(sw_sockfd, answer, sizeof(*answer)) != sizeof(*answer)) {
 			ERROR("Answer cannot be sent back, maybe deadlock !!");
 		}
