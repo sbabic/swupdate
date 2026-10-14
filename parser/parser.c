@@ -43,7 +43,8 @@ static bool path_append(const char **nodes, const char *field)
 
 	count = count_string_array(nodes);
 
-	if (count >= MAX_PARSED_NODES)
+	/* keep room for field and the terminator */
+	if (count >= MAX_PARSED_NODES - 1)
 		return false;
 
 	nodes[count++] = field;
@@ -128,14 +129,26 @@ static void *find_node_and_path(parsertype p, void *root, const char *field,
 	return NULL;
 }
 
+/*
+ * Max number of links followed one inside the other, it stops
+ * links pointing (also indirectly) to the section they are in
+ */
+#define MAX_FOLLOWED_LINKS	10
+
 static int parser_follow_link(parsertype p, void *cfg, void *elem,
 				const char **nodes, struct swupdate_cfg *swcfg,
 				parse_element fn, lua_State *L)
 {
+	static unsigned int depth;
 	const char *ref;
 	void *link;
 	const char **linknodes;
 	int result = 0;
+
+	if (depth >= MAX_FOLLOWED_LINKS) {
+		ERROR("Too many nested links, maybe a loop ?");
+		return -1;
+	}
 
 	ref = get_field_string(p, elem, "ref");
 	linknodes = (const char **)calloc(MAX_PARSED_NODES, sizeof(*nodes));
@@ -152,7 +165,9 @@ static int parser_follow_link(parsertype p, void *cfg, void *elem,
 
 	link = find_root(p, cfg, linknodes);
 	if (link) {
+		depth++;
 		result = fn(p, cfg, link, linknodes, swcfg, L);
+		depth--;
 	}
 	free(linknodes);
 	return result;
@@ -407,7 +422,7 @@ static int is_image_higher(struct swver *sw_ver_list,
 static int is_image_with_same_hash(struct img_type *img)
 {
 	int fdout;
-	void *dgst;	/* use a private context for HASH */
+	void *dgst = NULL;	/* use a private context for HASH */
 	uint8_t buffer[16384];
 	ssize_t len;
 	long long nbytes;
@@ -466,6 +481,10 @@ static int is_image_with_same_hash(struct img_type *img)
 			ERROR("Failure in stream %d: %s", fdout, strerror(errno));
 			goto out;
 		}
+		if (len == 0) {
+			/* the device is smaller than the image: it is different */
+			goto out;
+		}
 		if (swupdate_HASH_update(dgst, buffer, len) < 0) {
 			ERROR("Cannot update the hash");
 			goto out;
@@ -486,6 +505,8 @@ static int is_image_with_same_hash(struct img_type *img)
 	ret = 1;
 
 out:
+	if (dgst)
+		swupdate_HASH_cleanup(dgst);
 	close(fdout);
 
 	return ret;
@@ -904,7 +925,7 @@ static int _parse_vars(parsertype p, void *cfg, void *setting, const char **node
 			continue;
 
 		if (exist_field_string(p, elem, "ref")) {
-			err = parser_follow_link(p, cfg, elem, nodes, swcfg, _parse_bootloader, L);
+			err = parser_follow_link(p, cfg, elem, nodes, swcfg, _parse_vars, L);
 			if (err)
 				return err;
 			continue;
@@ -1232,8 +1253,10 @@ int parse_cfg(struct swupdate_cfg *swcfg, const char *filename, char **error)
 		return -1;
 	}
 
-	if (!get_common_fields(p, &cfg, swcfg))
+	if (!get_common_fields(p, &cfg, swcfg)) {
+		config_destroy(&cfg);
 		return -1;
+	}
 
 	ret = parser(p, &cfg, swcfg);
 

@@ -344,16 +344,17 @@ bool set_find_path(const char **nodes, const char *newpath)
 			if (first) {
 				count = 0;
 			}
-			paths[allocstr] = strdup(token);
-			nodes[count++] = paths[allocstr++];
-			paths[allocstr] = NULL;
-			nodes[count] = NULL;
-			if (count >= MAX_PARSED_NODES) {
-				ERROR("Big depth in link, giving up..."); 
+			/* nodes has MAX_PARSED_NODES entries including the terminator */
+			if (count >= MAX_PARSED_NODES - 1) {
+				ERROR("Big depth in link, giving up...");
 				free_string_array(paths);
 				free(ref);
 				return false;
 			}
+			paths[allocstr] = strdup(token);
+			nodes[count++] = paths[allocstr++];
+			paths[allocstr] = NULL;
+			nodes[count] = NULL;
 		}
 		token = strtok_r(NULL, "/", &saveptr);
 		first = false;
