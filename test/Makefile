@@ -37,6 +37,7 @@ tests-y += test_cpio_utils
 tests-y += test_stream_interface
 tests-y += test_installer
 tests-y += test_handlers
+tests-y += test_network_thread
 tests-y += test_network_ipc_if
 tests-$(CONFIG_CFI) += test_flash_handler
 
