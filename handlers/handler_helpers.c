@@ -33,6 +33,12 @@ static void *copyimage_thread(void *p)
 	struct hnd_load_priv *priv = hnd->hndtransfer;
 	int ret = 0;
 
+	/*
+	 * Started with start_thread(): signal it, else
+	 * wait_threads_ready() blocks forever later
+	 */
+	thread_ready();
+
 	ret = copyimage(priv, hnd->img, handler_transfer_data);
 
 	if (ret) {

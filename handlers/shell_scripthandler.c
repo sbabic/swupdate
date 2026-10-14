@@ -28,20 +28,24 @@ static int execute_shell_script(struct img_type *img, const char *fnname)
 {
 	int ret;
 	const char* tmp = get_tmpdirscripts();
+	char *shellscript;
 
-	char shellscript[MAX_IMAGE_FNAME + strlen(tmp) +
-        strlen("postinst") + 2];
-
-	snprintf(shellscript, sizeof(shellscript),
-		"%s%s", tmp, img->fname);
+	if (asprintf(&shellscript, "%s%s", tmp, img->fname) == ENOMEM_ASPRINTF)
+		return -ENOMEM;
 	if (chmod(shellscript, S_IRUSR | S_IWUSR | S_IXUSR)) {
 		ERROR("Execution bit cannot be set for %s", shellscript);
+		free(shellscript);
 		return -1;
 	}
-	snprintf(shellscript, sizeof(shellscript),
-		 "%s%s %s %s", tmp, img->fname, fnname, img->type_data);
+	free(shellscript);
+
+	/* data can fill its buffer: do not cut the command */
+	if (asprintf(&shellscript, "%s%s %s %s", tmp, img->fname, fnname,
+		     img->type_data) == ENOMEM_ASPRINTF)
+		return -ENOMEM;
 
 	ret = run_system_cmd(shellscript);
+	free(shellscript);
 
 	return ret;
 }

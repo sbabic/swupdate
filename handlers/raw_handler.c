@@ -234,6 +234,9 @@ static int install_raw_file(struct img_type *img,
 cleanup:
 	if (fdout > 0)
 		close(fdout);
+	/* do not leave a partial file next to the original one */
+	if (ret && fdout >= 0 && strcmp(tmp_path, path))
+		unlink(tmp_path);
 
 	if (use_mount) {
 		/*
