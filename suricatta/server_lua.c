@@ -141,6 +141,7 @@ typedef struct {
 	pthread_t *thread_offloader;
 	struct messageq_head_t progress_msgq;
 	pthread_mutex_t *progress_msgq_lock;
+	pthread_cond_t *progress_msgq_cond;	/* signaled when a message is queued */
 	bool drain_progress_msgq;
 	int lua_check_cancel_func;
 	int fdout;
@@ -226,6 +227,12 @@ typedef struct {
  * @param copy_dest  Whether or not to duplicate dest's value
  */
 #define COPY_DEST true
+/* Duplicate a string from the Lua stack, NULL if it is not a string */
+static inline char *lua_dupstring(lua_State *L, int idx)
+{
+	const char *s = lua_tostring(L, idx);
+	return s ? strdup(s) : NULL;
+}
 #define get_from_table_3(L, name, dest) ({ \
 	lua_getfield(L, -1, name); \
 	if (!lua_isnil(L, -1)) { \
@@ -241,9 +248,9 @@ typedef struct {
 		 __builtin_choose_expr(__builtin_types_compatible_p( \
 			typeof(dest), channel_body_t), lua_tointeger(L, -1), \
 		 __builtin_choose_expr(__builtin_types_compatible_p( \
-			typeof(dest), char*         ), strdup(lua_tostring(L, -1)), \
+			typeof(dest), char*         ), lua_dupstring(L, -1), \
 		 __builtin_choose_expr(__builtin_types_compatible_p( \
-			typeof(dest), const char*   ), strdup(lua_tostring(L, -1)), \
+			typeof(dest), const char*   ), lua_dupstring(L, -1), \
 		 (void)0))))))) \
 		); \
 	} \
@@ -287,7 +294,7 @@ static int json_push_to_table(lua_State *L, json_object *jsobj)
 		lua_pushboolean(L, json_object_get_boolean(jsobj));
 		break;
 	case json_type_double:
-		lua_pushnumber(L, json_object_get_int(jsobj));
+		lua_pushnumber(L, json_object_get_double(jsobj));
 		break;
 	case json_type_int:
 		lua_pushinteger(L, json_object_get_int(jsobj));
@@ -326,6 +333,16 @@ static int json_to_table_callback(json_object *jsobj, int flags,
 				  const char *jsobj_key, size_t *jsobj_index, void *userarg)
 {
 	lua_State *L = (lua_State *)userarg;
+
+	/*
+	 * Each nesting level keeps a key and a table on the stack:
+	 * Lua does not check the stack size, a deep JSON from the
+	 * server would write beyond it.
+	 */
+	if (flags != JSON_C_VISIT_SECOND && !lua_checkstack(L, 3)) {
+		ERROR("JSON too deeply nested");
+		return JSON_C_VISIT_RETURN_ERROR;
+	}
 
 	if (!jsobj_key && !jsobj_index) {
 		/* Neither array nor object, can be root node. */
@@ -880,6 +897,12 @@ static int ipc_wait_for_complete_cb(ipc_message *msg)
 }
 
 
+/* Cleanup handler: release the progress queue mutex on cancellation */
+static void progress_msgq_unlock(void *lock)
+{
+	(void)pthread_mutex_unlock((pthread_mutex_t *)lock);
+}
+
 /**
  * @brief Thread offloading collected progress messages to the server.
  *
@@ -899,9 +922,17 @@ static void *progress_offloader_thread(void *data)
 	while (true) {
 		(void)pthread_mutex_lock(thread_data->progress_msgq_lock);
 		if (STAILQ_EMPTY(&thread_data->progress_msgq)) {
-			(void)pthread_mutex_unlock(thread_data->progress_msgq_lock);
-			/* Accept cancellation on empty progress message queue. */
-			(void)pthread_testcancel();
+			/*
+			 * Wait until a message is queued. pthread_cond_wait() is
+			 * the cancellation point on an empty progress message
+			 * queue: if cancelled, it returns with the mutex locked,
+			 * the cleanup handler releases it.
+			 */
+			pthread_cleanup_push(progress_msgq_unlock, thread_data->progress_msgq_lock);
+			while (STAILQ_EMPTY(&thread_data->progress_msgq))
+				(void)pthread_cond_wait(thread_data->progress_msgq_cond,
+							thread_data->progress_msgq_lock);
+			pthread_cleanup_pop(1);
 		} else {
 			(void)pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
 			struct msgq_data_t *qitem = STAILQ_FIRST(
@@ -1002,9 +1033,14 @@ static void *progress_collector_thread(void *data)
 		message.cur_image[sizeof(message.cur_image) - 1] = '\0';
 
 		struct msgq_data_t *qentry = malloc(sizeof(struct msgq_data_t));
+		if (!qentry) {
+			ERROR("Cannot allocate progress message, dropped.");
+			continue;
+		}
 		(void)memcpy(&qentry->entry, &message, sizeof(struct progress_msg));
 		(void)pthread_mutex_lock(thread_data->progress_msgq_lock);
 		STAILQ_INSERT_TAIL(&thread_data->progress_msgq, qentry, entries);
+		(void)pthread_cond_signal(thread_data->progress_msgq_cond);
 		(void)pthread_mutex_unlock(thread_data->progress_msgq_lock);
 	}
 
@@ -1071,6 +1107,11 @@ static void do_install(lua_State *L, int fdout)
 		goto error;
 	}
 	udchannel *udc = (udchannel *)lua_touserdata(L, -1);
+	if (!udc || !udc->channel || !udc->channel_data) {
+		ERROR("Called install/download on a closed channel.");
+		lua_pop(L, 3 + 1);
+		goto error;
+	}
 	(void)memcpy(&channel_data, udc->channel_data, sizeof(*udc->channel_data));
 	lua_pop(L, 3);
 	channel_set_options(L, &channel_data);
@@ -1099,6 +1140,7 @@ static void do_install(lua_State *L, int fdout)
 
 	/* Setup progress message handling threads and Lua callback function. */
 	pthread_mutex_t _progress_msgq_lock;
+	pthread_cond_t _progress_msgq_cond;
 	pthread_t _thread_progress_collector;
 	pthread_t _thread_progress_offloader;
 	if (push_registered_lua_func(L, SURICATTA_FUNC_CALLBACK_PROGRESS)) {
@@ -1114,6 +1156,12 @@ static void do_install(lua_State *L, int fdout)
 			goto error;
 		}
 		callback_data.progress_msgq_lock = &_progress_msgq_lock;
+		if (pthread_cond_init(&_progress_msgq_cond, NULL)) {
+			ERROR("Error creating progress message queue condition.");
+			lua_pop(L, 1);
+			goto error;
+		}
+		callback_data.progress_msgq_cond = &_progress_msgq_cond;
 
 		/* Spawn threads handling progress notification to server. */
 		if ((pthread_create(&_thread_progress_collector, NULL,
@@ -1193,6 +1241,11 @@ error:
 	lua_newtable(L);
 	lua_newtable(L);
 done:
+	if (callback_data.progress_msgq_cond) {
+		if (pthread_cond_destroy(callback_data.progress_msgq_cond) != 0) {
+			ERROR("Condition deallocation for progress message queue failed!");
+		}
+	}
 	if (callback_data.progress_msgq_lock) {
 		if (pthread_mutex_destroy(callback_data.progress_msgq_lock) != 0) {
 			ERROR("Mutex deallocation for progress message queue failed!");
@@ -1315,8 +1368,12 @@ static int lua_channel_close(lua_State *L)
 	udchannel *udc = (udchannel *)lua_touserdata(L, lua_upvalueindex(1));
 	if (!udc->channel && !udc->channel_data) {
 		ERROR("Called CLOSE operation on a closed channel.");
+		return 0;
 	}
 	do_channel_close(udc->channel, udc->channel_data);
+	/* get, put and close share udc: a later call must see it closed */
+	udc->channel = NULL;
+	udc->channel_data = NULL;
 	return 0;
 }
 
@@ -2033,6 +2090,10 @@ static server_op_res_t server_ipc(ipc_message *msg)
 	push_to_table(gL, "GET_STATUS", CMD_GET_STATUS);
 	/* CMD_ENABLE is handled directly in suricatta/suricatta.c */
 	lua_settable(gL, -3);
+	/* len and buf come from an IPC client */
+	if (msg->data.procmsg.len >= sizeof(msg->data.procmsg.buf))
+		msg->data.procmsg.len = sizeof(msg->data.procmsg.buf) - 1;
+	msg->data.procmsg.buf[msg->data.procmsg.len] = '\0';
 	lua_pushstring(gL, "msg");
 	lua_pushlstring(gL, (char *)msg->data.procmsg.buf, msg->data.procmsg.len);
 	lua_settable(gL, -3);
@@ -2060,7 +2121,7 @@ static server_op_res_t server_ipc(ipc_message *msg)
 		(void)strncpy(msg->data.procmsg.buf, lua_tolstring(gL, -1, &len),
 			      sizeof(msg->data.procmsg.buf) - 1);
 		msg->data.procmsg.buf[sizeof(msg->data.procmsg.buf)-1] = '\0';
-		msg->data.procmsg.len = (unsigned int)len;
+		msg->data.procmsg.len = (unsigned int)min(len, sizeof(msg->data.procmsg.buf) - 1);
 		lua_pop(gL, 1);
 	}
 	return result;
