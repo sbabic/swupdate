@@ -34,6 +34,7 @@ tests-$(CONFIG_MONGOOSE) += test_mongoose_upload
 tests-y += test_util
 tests-y += test_parser
 tests-y += test_cpio_utils
+tests-y += test_stream_interface
 tests-y += test_network_ipc_if
 tests-$(CONFIG_CFI) += test_flash_handler
 
