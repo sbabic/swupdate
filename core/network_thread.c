@@ -450,6 +450,10 @@ void *network_thread (void *data)
 				}
 				break;
 			case SWUPDATE_SUBPROCESS:
+				/* buf and len are forwarded to the subprocess */
+				IPC_TERMINATE_STR(msg.data.procmsg.buf);
+				if (msg.data.procmsg.len >= sizeof(msg.data.procmsg.buf))
+					msg.data.procmsg.len = sizeof(msg.data.procmsg.buf) - 1;
 				subprocess_msg = (struct subprocess_msg_elem*)malloc(
 						sizeof(struct subprocess_msg_elem));
 				if (subprocess_msg == NULL) {
