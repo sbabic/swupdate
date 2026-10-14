@@ -361,18 +361,22 @@ int update_installed_image_version(struct swver *sw_ver_list,
 	if (!sw_ver_list)
 		return false;
 
+	/*
+	 * A component has name and version: an image without them
+	 * does not change the list (e.g. does not empty the version)
+	 */
+	if (!strlen(img->id.name) || !strlen(img->id.version))
+		return false;
+
 	LIST_FOREACH(swver, sw_ver_list, next) {
 		/*
 		 * If component is already installed, update the version
 		 */
 		if (!strncmp(img->id.name, swver->name, sizeof(img->id.name))) {
-			strncpy(swver->version, img->id.version, sizeof(img->id.version));
+			strlcpy(swver->version, img->id.version, sizeof(swver->version));
 			return true;
 		}
 	}
-
-	if (!strlen(img->id.version))
-		return false;
 
 	/*
 	 * No previous version of this component is installed. Create a new entry.
