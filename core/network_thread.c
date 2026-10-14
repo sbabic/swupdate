@@ -21,6 +21,8 @@
 #include <netinet/in.h>
 #include <pthread.h>
 #include <signal.h>
+#include <poll.h>
+#include <sys/time.h>
 
 #include "bsdqueue.h"
 #include "util.h"
@@ -38,6 +40,18 @@
 
 #define NUM_CACHED_MESSAGES 100
 #define DEFAULT_INTERNAL_TIMEOUT 60
+
+/*
+ * Requests are served one after the other: a client must send its
+ * request within this time, else it blocks all other clients.
+ */
+#define IPC_REQUEST_TIMEOUT_S	5
+
+/*
+ * A notify client that does not read for this time is removed,
+ * else it blocks every thread that sends a notification.
+ */
+#define NOTIFY_SEND_TIMEOUT_MS	1000
 
 /*
  * Strings in IPC messages come from clients and are not
@@ -138,7 +152,16 @@ static int write_notify_msg(ipc_message *msg, int sockfd)
 	buf = msg;
 	count = sizeof(*msg);
 	while (count > 0) {
-		n = send(sockfd, buf, count, MSG_NOSIGNAL);
+		n = send(sockfd, buf, count, MSG_NOSIGNAL | MSG_DONTWAIT);
+		if (n < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+			struct pollfd pfd = { .fd = sockfd, .events = POLLOUT };
+
+			if (poll(&pfd, 1, NOTIFY_SEND_TIMEOUT_MS) > 0)
+				continue;
+			fprintf(stderr, "Error: A status client is not reading, removing it.\n");
+			ret = -1;
+			break;
+		}
 		if (n <= 0) {
 			/*
 			 * We can't use the notify methods for error logging here as it will cause a deadlock.
@@ -425,7 +448,18 @@ void *network_thread (void *data)
 		if (fcntl(ctrlconnfd, F_SETFD, FD_CLOEXEC) < 0)
 			WARN("Could not set %d as cloexec: %s", ctrlconnfd, strerror(errno));
 
+		struct timeval tv = { .tv_sec = IPC_REQUEST_TIMEOUT_S };
+		if (setsockopt(ctrlconnfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0)
+			WARN("Could not set timeout on IPC connection: %s", strerror(errno));
+
 		nread = read(ctrlconnfd, (void *)&msg, sizeof(msg));
+
+		/*
+		 * The connection can be used later to stream the SWU:
+		 * the timeout is just for the request
+		 */
+		tv.tv_sec = 0;
+		(void)setsockopt(ctrlconnfd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
 
 		if (nread != sizeof(msg)) {
 			TRACE("IPC message too short: fragmentation not supported (read %d bytes, expected %zu bytes)",
