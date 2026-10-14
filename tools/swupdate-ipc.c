@@ -269,8 +269,9 @@ static int dwlurl(cmd_t  __attribute__((__unused__)) *cmd, int argc, char *argv[
 		fprintf(stderr, "url is mandatory, skipping..\n");
 		exit(1);
 	}
+	/* snprintf() returns the length that the string would have */
 	len = snprintf(buf, size, "{ \"url\": \"%s\"", url);
-	if (len == size) {
+	if (len >= size) {
 		fprintf(stderr, "URL is too long : %s\n", url);
 		exit(1);
 	}
@@ -280,7 +281,7 @@ static int dwlurl(cmd_t  __attribute__((__unused__)) *cmd, int argc, char *argv[
 	} else {
 		len += snprintf(buf + len, size - len, "}");
 	}
-	if (len == size) {
+	if (len >= size) {
 		fprintf(stderr, "URL + credentials too long, not supported\n");
 		exit(1);
 	}
@@ -338,17 +339,22 @@ static int sendtohawkbit(cmd_t *cmd, int argc, char *argv[]) {
 			break;
 		}
 
+		if (written < 0 || (size_t)written >= size) {
+			fprintf(stderr, "Parameters too long, not supported\n");
+			return 1;
+		}
 		buf += written;
 		size -= written;
-
-		if (size <= 0)
-			break;
 	}
 
 	if (i > 5)
 		written = snprintf(buf, size, "]}");
 	else
 		written = snprintf(buf, size, "}");
+	if (written < 0 || (size_t)written >= size) {
+		fprintf(stderr, "Parameters too long, not supported\n");
+		return 1;
+	}
 
 	fprintf(stdout, "Sending: '%s'", msg.data.procmsg.buf);
 	msg.data.procmsg.len = strnlen(msg.data.procmsg.buf, sizeof(msg.data.procmsg.buf));
