@@ -82,8 +82,10 @@ default:
 
 PHONY += tests
 ifneq "$(tests-y)" ""
+# run all tests, fail if any of them failed
 tests: $(tests-objs) $(tests-lnk)
-	@+$(foreach var,$(TARGETS),$(EXECUTE_TEST);)
+	@+failed=""; $(foreach var,$(TARGETS),$(EXECUTE_TEST) || failed="$$failed $(subst $(obj)/,,$(var))";) \
+	if [ -n "$$failed" ]; then echo "FAILED:$$failed"; exit 1; fi
 else
 tests:
 	@$(info nothing to test.)
