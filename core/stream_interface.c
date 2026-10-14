@@ -20,6 +20,7 @@
 #include <ctype.h>
 #include <fcntl.h>
 #include <dirent.h>
+#include <libgen.h>
 #include <sys/select.h>
 #include <sys/mman.h>
 #include <sys/reboot.h>
@@ -122,7 +123,7 @@ static int extract_file_to_tmp(int fd, const char *fname, unsigned long *poffs,
 	}
 	if (!is_filename_valid(fdh.filename)) {
 		ERROR("%s is an invalid filename, aborting", fdh.filename);
-		return -1;
+		goto err;
 	}
 
 	TRACE("Found file");
@@ -491,7 +492,7 @@ static int save_stream(int fdin, struct swupdate_cfg *software)
 			goto no_copy_output;
 		}
 
-		if (get_cpiohdr(buf, &fdh) < 0) {
+		if (get_cpiohdr(buf, &fdh) < 0 || fdh.namesize >= sizeof(fdh.filename)) {
 			ERROR("CPIO Header corrupted, cannot be parsed");
 			ret = -EINVAL;
 			goto no_copy_output;
@@ -565,14 +566,15 @@ static int save_stream(int fdin, struct swupdate_cfg *software)
 
 	fdout = openfileoutput(software->output);
 	/*
-	 * Try to create directory if file cannot be opened
+	 * Try to create the directory if file cannot be opened
 	 */
 	if (fdout < 0) {
-		if (mkpath(software->output, 0755))
-			return -1;
+		ret = -1;
+		if (mkpath(dirname(strdupa(software->output)), 0755))
+			goto no_copy_output;
 		fdout = openfileoutput(software->output);
 		if (fdout < 0)
-			return -1;
+			goto no_copy_output;
 	}
 
 	ret = cpfiles(tmpfd, fdout, 0);
