@@ -352,8 +352,19 @@ struct DecompressState {
 	void *upstream_state;
 	void *impl_state;
 	uint8_t input[BUFF_SIZE];
-	bool eof;
+	bool eof;		/* no more input */
+	bool stream_end;	/* the compressed stream is complete */
 };
+
+/*
+ * The input ended, but the decompressor reports neither more data nor
+ * the end of the compressed stream: the artifact is truncated.
+ */
+static int truncated_stream(const char *format)
+{
+	ERROR("%s: compressed data is truncated", format);
+	return -EINVAL;
+}
 #endif
 
 #ifdef CONFIG_GUNZIP
@@ -370,10 +381,13 @@ static int gunzip_step(void *state, void *buffer, size_t size)
 	int ret;
 	int outlen = 0;
 
+	if (ds->stream_end)
+		return 0;
+
 	s->strm.next_out = buffer;
 	s->strm.avail_out = size;
 	while (outlen == 0) {
-		if (s->strm.avail_in == 0) {
+		if (s->strm.avail_in == 0 && !ds->eof) {
 			ret = ds->upstream_step(ds->upstream_state, ds->input, sizeof ds->input);
 			if (ret < 0) {
 				return ret;
@@ -383,20 +397,20 @@ static int gunzip_step(void *state, void *buffer, size_t size)
 			s->strm.avail_in = ret;
 			s->strm.next_in = ds->input;
 		}
-		if (ds->eof) {
-			break;
-		}
 
+		/* at the end of input, inflate() can still flush data */
 		ret = inflate(&s->strm, Z_NO_FLUSH);
 		outlen = size - s->strm.avail_out;
 		if (ret == Z_STREAM_END) {
-			ds->eof = true;
+			ds->stream_end = true;
 			break;
 		}
 		if (ret != Z_OK && ret != Z_BUF_ERROR) {
 			ERROR("inflate failed (returned %d)", ret);
 			return -1;
 		}
+		if (ds->eof && outlen == 0)
+			return truncated_stream("gzip");
 	}
 	return outlen;
 }
@@ -414,36 +428,37 @@ static int xz_step(void* state, void* buffer, size_t size)
 	struct XzState *s = (struct XzState *)ds->impl_state;
 	lzma_ret ret;
 	int outlen = 0;
-	lzma_action action = LZMA_RUN;
+
+	if (ds->stream_end)
+		return 0;
 
 	s->strm.next_out = buffer;
 	s->strm.avail_out = size;
 
 	while (outlen == 0) {
-		if (s->strm.avail_in == 0) {
-			ret = ds->upstream_step(ds->upstream_state, ds->input, sizeof ds->input);
-			if (ret < 0) {
-				return ret;
-			} else if (ret == 0) {
+		if (s->strm.avail_in == 0 && !ds->eof) {
+			int len = ds->upstream_step(ds->upstream_state, ds->input, sizeof ds->input);
+			if (len < 0) {
+				return len;
+			} else if (len == 0) {
 				ds->eof = true;
 			}
-			s->strm.avail_in = ret;
+			s->strm.avail_in = len;
 			s->strm.next_in = ds->input;
 		}
-		if (ds->eof) {
-			break;
-		}
 
-		ret = lzma_code(&s->strm, action);
+		ret = lzma_code(&s->strm, ds->eof ? LZMA_FINISH : LZMA_RUN);
 		outlen = size - s->strm.avail_out;
 		if (ret == LZMA_STREAM_END) {
-			ds->eof = true;
+			ds->stream_end = true;
 			break;
 		}
 		if (ret != LZMA_OK && ret != LZMA_BUF_ERROR) {
 			ERROR("xz failed (returned %d)", ret);
 			return -1;
 		}
+		if (ds->eof && outlen == 0)
+			return truncated_stream("xz");
 	}
 	return outlen;
 }
@@ -455,6 +470,7 @@ static int xz_step(void* state, void* buffer, size_t size)
 struct ZstdState {
 	ZSTD_DStream* dctx;
 	ZSTD_inBuffer input_view;
+	bool frame_done;	/* last frame completely decoded */
 };
 
 static int zstd_step(void* state, void* buffer, size_t size)
@@ -466,7 +482,7 @@ static int zstd_step(void* state, void* buffer, size_t size)
 	ZSTD_outBuffer output = { buffer, size, 0 };
 
 	do {
-		if (s->input_view.pos == s->input_view.size) {
+		if (s->input_view.pos == s->input_view.size && !ds->eof) {
 			ret = ds->upstream_step(ds->upstream_state, ds->input, sizeof ds->input);
 			if (ret < 0) {
 				return ret;
@@ -477,7 +493,12 @@ static int zstd_step(void* state, void* buffer, size_t size)
 			s->input_view.pos = 0;
 		}
 
+		/* at the end of input, this flushes data still buffered */
 		do {
+			/* nothing to flush, do not wait for a next frame */
+			if (ds->eof && s->frame_done)
+				break;
+
 			decompress_ret = ZSTD_decompressStream(s->dctx, &output, &s->input_view);
 
 			if (ZSTD_isError(decompress_ret)) {
@@ -485,12 +506,17 @@ static int zstd_step(void* state, void* buffer, size_t size)
 				      ZSTD_getErrorName(decompress_ret));
 				return -1;
 			}
+			/* 0: a frame is complete, more frames can follow */
+			s->frame_done = (decompress_ret == 0);
 
 			if (output.pos == output.size) {
 				break;
 			}
 		} while (s->input_view.pos < s->input_view.size);
 	} while (output.pos == 0 && !ds->eof);
+
+	if (output.pos == 0 && ds->eof && !s->frame_done)
+		return truncated_stream("zstd");
 
 	return output.pos;
 }
@@ -514,14 +540,16 @@ static int lz4_step(void *state, void *buffer, size_t size)
 	size_t produced = 0;
 	int ret;
 
+	if (ds->stream_end)
+		return 0;
+
 	do {
-		if (s->input_pos == s->input_size) {
+		if (s->input_pos == s->input_size && !ds->eof) {
 			ret = ds->upstream_step(ds->upstream_state, ds->input, sizeof ds->input);
 			if (ret < 0) {
 				return ret;
 			} else if (ret == 0) {
 				ds->eof = true;
-				break;
 			}
 			s->input_src = ds->input;
 			s->input_size = ret;
@@ -533,6 +561,7 @@ static int lz4_step(void *state, void *buffer, size_t size)
 		size_t old_produced = produced;
 		size_t old_in_pos = s->input_pos;
 
+		/* at the end of input, this flushes data still buffered */
 		decompress_ret = LZ4F_decompress(s->dctx,
 						 (uint8_t *)buffer + produced, &out_len,
 						 s->input_src + s->input_pos, &in_len,
@@ -545,16 +574,18 @@ static int lz4_step(void *state, void *buffer, size_t size)
 		produced += out_len;
 		s->input_pos += in_len;
 
+		if (decompress_ret == 0) {
+			ds->stream_end = true;
+			break;
+		}
+
 		if (old_produced == produced && old_in_pos == s->input_pos) {
+			if (ds->eof)
+				return truncated_stream("lz4");
 			ERROR("LZ4F_decompress made no progress");
 			return -1;
 		}
-
-		if (decompress_ret == 0) {
-			ds->eof = true;
-			break;
-		}
-	} while (produced == 0 && !ds->eof);
+	} while (produced == 0);
 
 	return produced;
 }
@@ -700,7 +731,9 @@ int copyfile(struct swupdate_copy *args)
 				/* AES-128, AES-192 and AES-256 keys are allowed */
 				size_t aeslen = strlen(args->imgaes) / 2;
 
-				if (!is_hex_str(args->imgaes) || aeslen > sizeof(aesbuf) ||
+				if (!is_hex_str(args->imgaes) ||
+				    (aeslen != AES_128_KEY_LEN && aeslen != AES_192_KEY_LEN &&
+				     aeslen != AES_256_KEY_LEN) ||
 				    ascii_to_bin(aesbuf, aeslen, args->imgaes)) {
 					ERROR("Invalid image aes-key");
 					return -EINVAL;
