@@ -112,7 +112,7 @@ static bool ssbl_retrieve_property(struct img_type *img, const char *name,
 			break;
 		case STRING_TYPE:
 			p = (char *)((size_t)&admins[num] + offset);
-			strncpy(p, property->value, MAX_VOLNAME);
+			strlcpy(p, property->value, MAX_VOLNAME);
 			break;
 		}
 		num++;

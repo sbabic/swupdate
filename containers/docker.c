@@ -146,18 +146,14 @@ static server_op_res_t docker_send_request(docker_services_t service, char *url,
 		channel_data.request_body = (char *)setup;
 
 	ch_response = channel->put(channel, &channel_data);
-
-	if ((result = map_channel_retcode(ch_response)) !=
-	    SERVER_OK) {
-		channel->close(channel);
-		free(channel);
-		return SERVER_EERR;
-	}
+	result = map_channel_retcode(ch_response);
 
 	channel->close(channel);
 	free(channel);
+	if (channel_data.json_reply)
+		json_object_put(channel_data.json_reply);
 
-	return result;
+	return result == SERVER_OK ? SERVER_OK : SERVER_EERR;
 }
 
 static server_op_res_t docker_simple_post(docker_services_t service, const char *name, const char *setup)
@@ -202,23 +198,25 @@ server_op_res_t docker_image_load(int fd, size_t len)
 
 	channel = docker_prepare_channel(&channel_data);
 	if (!channel) {
+		dict_drop_db(&httpheaders_to_send);
 		return SERVER_EERR;
 	}
 	ch_response = channel->put_file(channel, &channel_data);
-
-	if ((result = map_channel_retcode(ch_response)) !=
-	    SERVER_OK) {
-		channel->close(channel);
-		free(channel);
-		return SERVER_EERR;
-	}
+	result = map_channel_retcode(ch_response);
 
 	dict_drop_db(&httpheaders_to_send);
 
 	channel->close(channel);
 	free(channel);
 
-	return evaluate_docker_answer(channel_data.json_reply);
+	if (result == SERVER_OK)
+		result = evaluate_docker_answer(channel_data.json_reply);
+	else
+		result = SERVER_EERR;
+	if (channel_data.json_reply)
+		json_object_put(channel_data.json_reply);
+
+	return result;
 }
 
 docker_fn docker_fn_lookup(docker_services_t service) {
