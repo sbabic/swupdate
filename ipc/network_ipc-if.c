@@ -330,13 +330,28 @@ int swupdate_image_write(char *buf, int size)
  * Set via IPC the AES key for decryption
  * key is passed as ASCII string
  */
+/*
+ * Send a command and check the answer: a NACK is an error
+ */
+static int send_cmd_checked(ipc_message *msg)
+{
+	int ret = ipc_send_cmd(msg);
+
+	if (ret)
+		return ret;
+	return msg->type == ACK ? 0 : -EINVAL;
+}
+
 int swupdate_set_aes(char *key, char *ivt)
 {
 	ipc_message msg;
+	size_t keylen;
 
 	if (!key || !ivt)
 		return -EINVAL;
-	if (strlen(key) != 64 && strlen(ivt) != 32)
+	/* AES-128, AES-192 or AES-256 key in hex, 128 bit IVT */
+	keylen = strlen(key);
+	if ((keylen != 32 && keylen != 48 && keylen != 64) || strlen(ivt) != 32)
 		return -EINVAL;
 
 	memset(&msg, 0, sizeof(msg));
@@ -350,7 +365,7 @@ int swupdate_set_aes(char *key, char *ivt)
 	strncpy(msg.data.aeskeymsg.key_ascii, key, sizeof(msg.data.aeskeymsg.key_ascii) - 1);
 	strncpy(msg.data.aeskeymsg.ivt_ascii, ivt, sizeof(msg.data.aeskeymsg.ivt_ascii) - 1);
 
-	return ipc_send_cmd(&msg);
+	return send_cmd_checked(&msg);
 }
 
 /*
@@ -391,7 +406,7 @@ int swupdate_set_version_range_type(const char *updatetype,
 			updatetype,
 			sizeof(msg.data.versions.update_type) - 1);
 	}
-	return ipc_send_cmd(&msg);
+	return send_cmd_checked(&msg);
 }
 
 int swupdate_set_version_range(const char *minversion,
@@ -420,7 +435,7 @@ int swupdate_dwl_url (const char *artifact_name, const char *url)
 		url,
 		sizeof(msg.data.dwl_url.url) - 1);
 
-	return ipc_send_cmd(&msg);
+	return send_cmd_checked(&msg);
 }
 
 void swupdate_prepare_req(struct swupdate_request *req) {

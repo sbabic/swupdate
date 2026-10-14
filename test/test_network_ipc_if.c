@@ -19,6 +19,8 @@ int __wrap_ipc_send_cmd(ipc_message *msg);
 int __wrap_ipc_send_cmd(ipc_message *msg)
 {
 	last_msg = *msg;
+	/* answer as SWUpdate does */
+	msg->type = ACK;
 	return 0;
 }
 
