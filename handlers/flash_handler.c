@@ -424,7 +424,7 @@ static int flash_write(void *out, const void *buf, size_t len)
 				return -EIO;
 			}
 			ret = read(priv->fdout, read_modify_buf, rdlen);
-			if (ret < 0) {
+			if (ret != rdlen) {
 				ERROR("Cannot read back from mtd%d", priv->mtdnum);
 				free(read_modify_buf);
 				return -EIO;
@@ -440,6 +440,8 @@ static int flash_write(void *out, const void *buf, size_t len)
 			memcpy(&read_modify_buf[rdlen], buf, len);
 			pbuf = (const unsigned char**)&read_modify_buf;
 			len += rdlen;
+			/* the data read back is written again */
+			priv->imglen += rdlen;
 			priv->first_run = false;
 		}
 	}
@@ -582,7 +584,8 @@ static int flash_write_image(int mtdnum, struct img_type *img)
 			priv.page_len;
 		data_len = pages * priv.mtd->min_io_size;
 	}
-	if (data_len > priv.mtd->size - img->seek) {
+	if (img->seek > (unsigned long long)priv.mtd->size ||
+	    data_len > priv.mtd->size - img->seek) {
 		ERROR("Image %s does not fit into mtd%d", img->fname, mtdnum);
 		return -ENOSPC;
 	}

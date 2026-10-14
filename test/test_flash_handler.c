@@ -125,17 +125,49 @@ int __wrap_close(int fd)
 	return __real_close(fd);
 }
 
+/* Position on /dev/mtdX for read() */
+static off_t mtd_pos;
+
 off_t __real_lseek(int fd, off_t offset, int whence);
 off_t __wrap_lseek(int fd, off_t offset, int whence);
 off_t __wrap_lseek(int fd, off_t offset, int whence)
 {
 	if (fd == MTD_FD) {
-		/* __swupdate_copy() executes lseek() on /dev/mtdX. */
-		assert_int_equal(image.seek, offset);
+		/*
+		 * __swupdate_copy() executes lseek() on /dev/mtdX, the
+		 * handler too to read back data before an unaligned offset.
+		 */
 		assert_int_equal(SEEK_SET, whence);
+		assert_true(offset >= 0 && offset <= (off_t)mtd_ubi_info_s.mtd.size);
+		mtd_pos = offset;
 		return offset;
 	}
 	return __real_lseek(fd, offset, whence);
+}
+
+ssize_t __real_read(int fd, void *buf, size_t count);
+ssize_t __wrap_read(int fd, void *buf, size_t count);
+ssize_t __wrap_read(int fd, void *buf, size_t count)
+{
+	if (fd == MTD_FD) {
+		assert_true(mtd_pos + count <= mtd_ubi_info_s.mtd.size);
+		memcpy(buf, flash_memory + mtd_pos, count);
+		mtd_pos += count;
+		return count;
+	}
+	return __real_read(fd, buf, count);
+}
+
+/* read() with _FORTIFY_SOURCE */
+ssize_t __real___read_chk(int fd, void *buf, size_t count, size_t buflen);
+ssize_t __wrap___read_chk(int fd, void *buf, size_t count, size_t buflen);
+ssize_t __wrap___read_chk(int fd, void *buf, size_t count, size_t buflen)
+{
+	if (fd == MTD_FD) {
+		assert_true(count <= buflen);
+		return __wrap_read(fd, buf, count);
+	}
+	return __real___read_chk(fd, buf, count, buflen);
 }
 
 int __wrap_ioctl(int fd, unsigned long request, ...);
@@ -1616,6 +1648,53 @@ static void test_multiple_callbacks(void **state)
 	run_flash_test(state, 0);
 }
 
+/*
+ * The offset is not aligned to an erase block: the data from the
+ * start of the block to the offset must be kept.
+ */
+static void test_seek_unaligned(void **state)
+{
+	image.seek = 2 * 16 + 5;
+	image.size = 48;
+	mtd_ubi_info_s.mtd.size = 1024;
+	mtd_ubi_info_s.mtd.eb_size = 16;
+	mtd_ubi_info_s.mtd.min_io_size = 8;
+	test_init();
+
+	copy_flash_state();
+	/* 32..36 keep the old content, 85..87 is padding of the last page */
+	memcpy(expected_flash_memory + image.seek, image_buf, image.size);
+	memset(expected_flash_memory + 85, FLASH_EMPTY_BYTE, 96 - 85);
+	for (int i = 2; i <= 5; i++)
+		clear_bit(expected_locked_blocks, i);
+	clear_bit(expected_written_pages, 11);
+
+	run_flash_test(state, 0);
+}
+
+static void test_seek_unaligned_multiple_callbacks(void **state)
+{
+	/* flash_write() is typically executed with (len <= 16 * 1024) */
+	image.seek = 8 * 1024 + 100;
+	image.size = 40 * 1024;
+	mtd_ubi_info_s.mtd.size = 128 * 1024;
+	mtd_ubi_info_s.mtd.eb_size = 8 * 1024;
+	mtd_ubi_info_s.mtd.min_io_size = 1024;
+	test_init();
+
+	copy_flash_state();
+	memcpy(expected_flash_memory + image.seek, image_buf, image.size);
+	/* padding up to the end of the page, then erased up to the end of the block */
+	memset(expected_flash_memory + image.seek + image.size, FLASH_EMPTY_BYTE,
+	       7 * 8 * 1024 - (image.seek + image.size));
+	for (int i = 1; i <= 6; i++)
+		clear_bit(expected_locked_blocks, i);
+	for (int i = 49; i <= 55; i++)
+		clear_bit(expected_written_pages, i);
+
+	run_flash_test(state, 0);
+}
+
 #define TEST(name) \
 	cmocka_unit_test_setup_teardown(test_##name, test_setup, test_teardown)
 
@@ -1632,6 +1711,8 @@ int main(void)
 		TEST(skip_write_page_empty_bytes),
 		TEST(padding_more_than_page),
 		TEST(seek),
+		TEST(seek_unaligned),
+		TEST(seek_unaligned_multiple_callbacks),
 		TEST(not_enough_flash),
 		TEST(invalid_mtd_device),
 		TEST(invalid_image_size),
