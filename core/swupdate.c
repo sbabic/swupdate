@@ -1127,6 +1127,14 @@ int main(int argc, char **argv)
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = sigchld_handler;
 	sigaction(SIGCHLD, &sa, NULL);
+
+	/*
+	 * Writing to a pipe or socket whose reader is gone (a handler's
+	 * thread or command, a closed connection) must return EPIPE
+	 * to the writer instead of terminating SWUpdate. Programs
+	 * started by SWUpdate get the default behavior back.
+	 */
+	signal(SIGPIPE, SIG_IGN);
 #ifdef CONFIG_UBIATTACH
 	if (strlen(swcfg.mtdblacklist))
 		mtd_set_ubiblacklist(swcfg.mtdblacklist);

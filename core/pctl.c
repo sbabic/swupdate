@@ -120,6 +120,20 @@ void wait_threads_ready(void)
 }
 
 /*
+ * SWUpdate ignores SIGPIPE: restore the default for
+ * the programs it starts, as if started from a shell
+ */
+static void reset_sigpipe(void)
+{
+	sigset_t set;
+
+	signal(SIGPIPE, SIG_DFL);
+	sigemptyset(&set);
+	sigaddset(&set, SIGPIPE);
+	sigprocmask(SIG_UNBLOCK, &set, NULL);
+}
+
+/*
  * spawn_process forks and start a new process
  * under a new user
  */
@@ -199,6 +213,7 @@ static int spawn_process(struct swupdate_task *task,
 	if (start)
 		return (*start)(cfgname, ac, av);
 	else {
+		reset_sigpipe();
 		if (execvp(cmdline, av) == -1) {
 			INFO("Spawning process %s failed: %s", av[0], strerror(errno));
 			return -1;
@@ -346,6 +361,7 @@ static int __run_cmd(const char *cmd, bgtask *fn, int *fdin)
 			close(fdin[1]);
 
 		if (!execute_function) {
+			reset_sigpipe();
 			ret = execl("/bin/sh", "sh", "-c", cmd, (char *)NULL);
 			if (ret) {
 				ERROR("Process %s cannot be started: %s", cmd, strerror(errno));
