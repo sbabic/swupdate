@@ -100,6 +100,7 @@ static size_t wrdata_callback(char *buffer, size_t size, size_t nmemb, void *dat
 		answer->type = RANGE_DATA;
 		answer->len = min(nbytes, RANGE_PAYLOAD_SIZE);
 		memcpy(answer->data, buffer, answer->len);
+		buffer += answer->len;
 		answer->crc = crc32(0, (unsigned char *)answer->data, answer->len);
 		ret = copy_write(&dwl->writefd, answer, sizeof(range_answer_t));
 		if (ret < 0) {
@@ -131,8 +132,9 @@ static size_t delta_callback_headers(char *buffer, size_t size, size_t nitems, v
 	answer->type = RANGE_HEADERS;
 	answer->len = min(size * nitems , RANGE_PAYLOAD_SIZE - 2);
 	memcpy(answer->data, buffer, answer->len);
-	answer->len++;
+	/* len includes the terminator */
 	answer->data[answer->len] = '\0';
+	answer->len++;
 
 	ret = write(dwl->writefd, answer, sizeof(range_answer_t));
 	if (ret != sizeof(range_answer_t)) {

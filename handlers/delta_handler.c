@@ -606,33 +606,54 @@ static void dwl_cleanup(struct hnd_priv *priv)
 	priv->parser = NULL;
 }
 
+/*
+ * An answer is larger than PIPE_BUF and can be received in more parts:
+ * read exactly one answer.
+ */
+static bool read_answer(int fd, range_answer_t *answer)
+{
+	char *buf = (char *)answer;
+	size_t nbytes = sizeof(*answer);
+
+	while (nbytes > 0) {
+		ssize_t ret = read(fd, buf, nbytes);
+
+		if (ret < 0) {
+			if (errno == EINTR)
+				continue;
+			ERROR("Cannot read from downloader: %s", strerror(errno));
+			return false;
+		}
+		if (ret == 0) {
+			ERROR("Downloader closed the connection");
+			return false;
+		}
+		buf += ret;
+		nbytes -= ret;
+	}
+
+	return true;
+}
+
 static bool read_and_validate_package(struct hnd_priv *priv)
 {
-	ssize_t nbytes = sizeof(range_answer_t);
-	range_answer_t *answer;
-	int count = -1;
+	range_answer_t *answer = priv->answer;
 	uint32_t crc;
 
-	do {
-		count++;
-		if (count == 1)
-			DEBUG("id does not match in IPC, skipping..");
-
-		char *buf = (char *)priv->answer;
-		do {
-			ssize_t ret;
-			ret = read(priv->pipetodwl, buf, sizeof(range_answer_t));
-			if (ret < 0)
-				return false;
-			buf += ret;
-			nbytes -= ret;
-		} while (nbytes > 0);
-		answer = priv->answer;
-
-		if (nbytes < 0)
+	for (;;) {
+		if (!read_answer(priv->pipetodwl, answer))
 			return false;
-	} while (answer->id != priv->reqid);
+		if (answer->id == priv->reqid)
+			break;
+		DEBUG("id does not match in IPC, skipping..");
+	}
 
+	/* parse_headers() terminates the payload */
+	if (answer->len > RANGE_PAYLOAD_SIZE ||
+	    (answer->type == RANGE_HEADERS && answer->len >= RANGE_PAYLOAD_SIZE)) {
+		ERROR("Wrong length %zu in answer from downloader", answer->len);
+		return false;
+	}
 
 	if (answer->type == RANGE_ERROR) {
 	    /* reported by retry_network_chunks() if it gives up */
@@ -646,7 +667,6 @@ static bool read_and_validate_package(struct hnd_priv *priv)
 		crc = crc32(0, (unsigned char *)answer->data, answer->len);
 		if (crc != answer->crc) {
 			ERROR("Corrupted package received !");
-			exit(1);
 			return false;
 		}
 	}
