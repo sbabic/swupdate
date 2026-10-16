@@ -685,6 +685,8 @@ static int _parse_partitions(parsertype p, void *cfg, void *setting, const char 
 
 		add_properties(p, elem, partition);
 
+		set_img_globals(partition, swcfg);
+
 		skip = run_embscript(p, elem, partition, L, swcfg->embscript);
 		if (skip < 0) {
 			free_image(partition);

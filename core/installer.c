@@ -311,6 +311,15 @@ int install_single_image(struct img_type *img, bool dry_run)
 	swupdate_progress_inc_step(img->fname, hnd->desc);
 
 	/*
+	 * Pre- and postinstall Lua functions run in the
+	 * Lua state created by the parser
+	 */
+	if ((strlen(img->lua_fcn_pre) || strlen(img->lua_fcn_post)) && !img->L) {
+		ERROR("Lua function set for %s, but no Lua state available", hnd->desc);
+		return -EINVAL;
+	}
+
+	/*
 	 * Run a preinstall Lua function, if any
 	 */
 	if (strlen(img->lua_fcn_pre)) {
