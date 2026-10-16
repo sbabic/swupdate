@@ -8,6 +8,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -22,6 +23,40 @@
 #define MODNAME_PSS	"mbedtlsRSAPSS"
 
 static swupdate_dgst_lib	libs;
+
+/*
+ * mbedtls_md_file() is not public anymore since mbedTLS 4.0
+ */
+static int md_file(const mbedtls_md_info_t *md_info, const char *path,
+		unsigned char *output)
+{
+	mbedtls_md_context_t ctx;
+	unsigned char buf[4096];
+	size_t n;
+	FILE *f;
+	int error;
+
+	f = fopen(path, "rb");
+	if (!f) {
+		ERROR("%s cannot be opened", path);
+		return -ENOENT;
+	}
+
+	mbedtls_md_init(&ctx);
+	error = mbedtls_md_setup(&ctx, md_info, 0);
+	if (!error)
+		error = mbedtls_md_starts(&ctx);
+	while (!error && (n = fread(buf, 1, sizeof(buf), f)) > 0)
+		error = mbedtls_md_update(&ctx, buf, n);
+	if (!error && ferror(f))
+		error = -EIO;
+	if (!error)
+		error = mbedtls_md_finish(&ctx, output);
+
+	mbedtls_md_free(&ctx);
+	fclose(f);
+	return error;
+}
 
 static int mbedtls_rsa_verify_file(void *ctx, const char *sigfile,
 		const char *file, const char *signer_name)
@@ -53,9 +88,9 @@ static int mbedtls_rsa_verify_file(void *ctx, const char *sigfile,
 
 	assert(mbedtls_md_get_size(md_info) == sizeof(hash_computed));
 
-	error = mbedtls_md_file(md_info, file, hash_computed);
+	error = md_file(md_info, file, hash_computed);
 	if (error) {
-		ERROR("mbedtls_md_file: %d", error);
+		ERROR("md_file: %d", error);
 		return error;
 	}
 

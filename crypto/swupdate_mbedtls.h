@@ -25,6 +25,7 @@
 
 struct mbedtls_digest {
 	mbedtls_md_context_t mbedtls_md_context;
+	const mbedtls_md_info_t *mbedtls_md_info;
 	mbedtls_pk_context mbedtls_pk_context;
 #if defined(CONFIG_SIGALG_CMS) && MBEDTLS_VERSION_NUMBER >= 0x03040000
 	mbedtls_x509_crt trusted_certs;

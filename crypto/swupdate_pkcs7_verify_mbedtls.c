@@ -126,6 +126,41 @@ static bool pkcs7_md_alg_allowed(mbedtls_md_type_t md_type)
 }
 
 /*
+ * mbedtls_oid_get_md_alg() is not public anymore since mbedTLS 4.0.
+ * Weak algorithms are mapped too, so that pkcs7_md_alg_allowed()
+ * reports them.
+ */
+static const struct {
+	const char *oid;
+	size_t oid_len;
+	mbedtls_md_type_t type;
+} md_oids[] = {
+#define MD_OID(oid, type) { oid, MBEDTLS_OID_SIZE(oid), type }
+	MD_OID(MBEDTLS_OID_DIGEST_ALG_MD5, MBEDTLS_MD_MD5),
+	MD_OID(MBEDTLS_OID_DIGEST_ALG_SHA1, MBEDTLS_MD_SHA1),
+	MD_OID(MBEDTLS_OID_DIGEST_ALG_SHA224, MBEDTLS_MD_SHA224),
+	MD_OID(MBEDTLS_OID_DIGEST_ALG_SHA256, MBEDTLS_MD_SHA256),
+	MD_OID(MBEDTLS_OID_DIGEST_ALG_SHA384, MBEDTLS_MD_SHA384),
+	MD_OID(MBEDTLS_OID_DIGEST_ALG_SHA512, MBEDTLS_MD_SHA512),
+#undef MD_OID
+};
+
+static int pkcs7_oid_get_md_alg(const mbedtls_asn1_buf *oid,
+		mbedtls_md_type_t *md_type)
+{
+	unsigned int i;
+
+	for (i = 0; i < ARRAY_SIZE(md_oids); i++) {
+		if (oid->len == md_oids[i].oid_len &&
+				!memcmp(oid->p, md_oids[i].oid, oid->len)) {
+			*md_type = md_oids[i].type;
+			return 0;
+		}
+	}
+	return -ENOENT;
+}
+
+/*
  * Parse a DER AlgorithmIdentifier SEQUENCE, return the MD type.
  * Advances *p past the entire SEQUENCE on both success and failure.
  */
@@ -148,7 +183,7 @@ static int pkcs7_get_md_alg(unsigned char **p, const unsigned char *end,
 		return ret;
 	}
 	oid.p = *p;
-	ret = mbedtls_oid_get_md_alg(&oid, md_type);
+	ret = pkcs7_oid_get_md_alg(&oid, md_type);
 	*p = (unsigned char *)seq_end;
 	return ret;
 }
@@ -717,7 +752,7 @@ static int mbedtls_pkcs7_verify_file(void *ctx, const char *sigfile,
 	{
 		mbedtls_md_type_t md_type;
 
-		if (mbedtls_oid_get_md_alg(
+		if (pkcs7_oid_get_md_alg(
 				&pkcs7.MBEDTLS_PRIVATE(signed_data).MBEDTLS_PRIVATE(digest_alg_identifiers),
 				&md_type) != 0 ||
 				!pkcs7_md_alg_allowed(md_type)) {
