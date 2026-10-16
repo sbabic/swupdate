@@ -45,6 +45,11 @@ static void *mbedtls_HASH_init(const char *algo)
 	struct mbedtls_digest *dgst;
 	int error;
 
+	if (swupdate_mbedtls_psa_init()) {
+		ERROR("psa_crypto_init failed");
+		return NULL;
+	}
+
 	const mbedtls_md_info_t *info = md_info_from_name(algo);
 	if (!info) {
 		ERROR("unsupported hash algorithm \"%s\"", algo);

@@ -67,16 +67,23 @@ static int mbedtls_rsa_verify_file(void *ctx, const char *sigfile,
 	int error;
 	uint8_t hash_computed[32];
 	const mbedtls_md_info_t *md_info;
+	bool pss = get_dgstlib() && !strcmp(get_dgstlib(), MODNAME_PSS);
+#if MBEDTLS_VERSION_NUMBER >= 0x04000000
+	/* PSS uses MGF1 with the same hash and accepts any salt length */
+	mbedtls_pk_sigalg_t sigalg = pss ? MBEDTLS_PK_SIGALG_RSA_PSS :
+		MBEDTLS_PK_SIGALG_RSA_PKCS1V15;
+#else
 	mbedtls_pk_type_t pk_type = MBEDTLS_PK_RSA;
 	void *pss_options = NULL;
 	mbedtls_pk_rsassa_pss_options options = {
 		.mgf1_hash_id = MBEDTLS_MD_SHA256,
 		.expected_salt_len = MBEDTLS_RSA_SALT_LEN_ANY
 	};
-	if (get_dgstlib() && !strcmp(get_dgstlib(), MODNAME_PSS)) {
+	if (pss) {
 		pk_type = MBEDTLS_PK_RSASSA_PSS;
 		pss_options = &options;
 	}
+#endif
 
 	(void)signer_name;
 
@@ -100,7 +107,11 @@ static int mbedtls_rsa_verify_file(void *ctx, const char *sigfile,
 	}
 
 	int ret = mbedtls_pk_verify_ext(
+#if MBEDTLS_VERSION_NUMBER >= 0x04000000
+		sigalg,
+#else
 		pk_type, pss_options,
+#endif
 		&dgst->mbedtls_pk_context, mbedtls_md_get_type(md_info),
 		hash_computed, sizeof(hash_computed),
 		sigbuf, sigbuf_len);
@@ -118,6 +129,12 @@ static int mbedtls_rsa_dgst_init(struct swupdate_cfg *sw, const char *keyfile)
 	}
 
 #ifdef CONFIG_SIGNED_IMAGES
+	if (swupdate_mbedtls_psa_init()) {
+		ERROR("psa_crypto_init failed");
+		free(dgst);
+		return -EFAULT;
+	}
+
 	mbedtls_pk_init(&dgst->mbedtls_pk_context);
 
 	int error = mbedtls_pk_parse_public_keyfile(&dgst->mbedtls_pk_context, keyfile);

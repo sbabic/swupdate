@@ -12,6 +12,139 @@
 
 static swupdate_decrypt_lib mbedtls;
 
+#if MBEDTLS_VERSION_NUMBER >= 0x04000000
+static void *mbedtls_DECRYPT_init(unsigned char *key, char keylen, unsigned char *iv, cipher_t cipher)
+{
+	struct mbedtls_digest *dgst;
+	psa_key_attributes_t attributes = PSA_KEY_ATTRIBUTES_INIT;
+	psa_status_t status;
+
+	/* only AES-CBC is supported */
+	(void)cipher;
+
+	if ((key == NULL) || (iv == NULL)) {
+		ERROR("no key or iv provided for decryption!");
+		return NULL;
+	}
+
+	switch (keylen) {
+	case AES_128_KEY_LEN:
+	case AES_192_KEY_LEN:
+	case AES_256_KEY_LEN:
+		break;
+	default:
+		return NULL;
+	}
+
+	if (swupdate_mbedtls_psa_init()) {
+		ERROR("psa_crypto_init failed");
+		return NULL;
+	}
+
+	dgst = calloc(1, sizeof(*dgst));
+	if (!dgst) {
+		return NULL;
+	}
+
+	dgst->psa_cipher_operation = psa_cipher_operation_init();
+	dgst->psa_key_id = PSA_KEY_ID_NULL;
+
+	psa_set_key_usage_flags(&attributes, PSA_KEY_USAGE_DECRYPT);
+	psa_set_key_algorithm(&attributes, PSA_ALG_CBC_PKCS7);
+	psa_set_key_type(&attributes, PSA_KEY_TYPE_AES);
+	psa_set_key_bits(&attributes, keylen * 8);
+
+	status = psa_import_key(&attributes, key, keylen, &dgst->psa_key_id);
+	psa_reset_key_attributes(&attributes);
+	if (status != PSA_SUCCESS) {
+		ERROR("psa_import_key: %d", (int)status);
+		goto fail;
+	}
+
+	status = psa_cipher_decrypt_setup(&dgst->psa_cipher_operation,
+			dgst->psa_key_id, PSA_ALG_CBC_PKCS7);
+	if (status != PSA_SUCCESS) {
+		ERROR("psa_cipher_decrypt_setup: %d", (int)status);
+		goto fail;
+	}
+
+	status = psa_cipher_set_iv(&dgst->psa_cipher_operation, iv, AES_BLK_SIZE);
+	if (status != PSA_SUCCESS) {
+		ERROR("psa_cipher_set_iv: %d", (int)status);
+		goto fail;
+	}
+
+	return dgst;
+
+fail:
+	psa_cipher_abort(&dgst->psa_cipher_operation);
+	psa_destroy_key(dgst->psa_key_id);
+	free(dgst);
+	return NULL;
+}
+
+/*
+ * As with the other backends, buf can hold inlen + AES_BLK_SIZE bytes
+ */
+static int mbedtls_DECRYPT_update(void *ctx, unsigned char *buf,
+				int *outlen, const unsigned char *cryptbuf, int inlen)
+{
+	struct mbedtls_digest *dgst = (struct mbedtls_digest *)ctx;
+	psa_status_t status;
+	size_t olen = 0;
+
+	if (!dgst || inlen < 0) {
+		return -EINVAL;
+	}
+
+	status = psa_cipher_update(&dgst->psa_cipher_operation, cryptbuf, inlen,
+			buf, (size_t)inlen + AES_BLK_SIZE, &olen);
+	if (status != PSA_SUCCESS) {
+		ERROR("psa_cipher_update: %d", (int)status);
+		return -EFAULT;
+	}
+	*outlen = olen;
+
+	return 0;
+}
+
+static int mbedtls_DECRYPT_final(void *ctx, unsigned char *buf,
+				int *outlen)
+{
+	struct mbedtls_digest *dgst = (struct mbedtls_digest *)ctx;
+	psa_status_t status;
+	size_t olen = 0;
+
+	if (!dgst) {
+		return -EINVAL;
+	}
+
+	status = psa_cipher_finish(&dgst->psa_cipher_operation, buf,
+			AES_BLK_SIZE, &olen);
+	if (status != PSA_SUCCESS) {
+#ifndef CONFIG_ENCRYPTED_IMAGES_HARDEN_LOGGING
+		ERROR("psa_cipher_finish: %d", (int)status);
+#endif
+		return -EFAULT;
+	}
+	*outlen = olen;
+
+	return 0;
+}
+
+static void mbedtls_DECRYPT_cleanup(void *ctx)
+{
+	struct mbedtls_digest *dgst = (struct mbedtls_digest *)ctx;
+
+	if (!dgst) {
+		return;
+	}
+
+	psa_cipher_abort(&dgst->psa_cipher_operation);
+	psa_destroy_key(dgst->psa_key_id);
+	free(dgst);
+}
+#else
 static void *mbedtls_DECRYPT_init(unsigned char *key, char keylen, unsigned char *iv, cipher_t cipher)
 {
 	struct mbedtls_digest *dgst;
@@ -149,6 +282,8 @@ static void mbedtls_DECRYPT_cleanup(void *ctx)
 	mbedtls_cipher_free(&dgst->mbedtls_cipher_context);
 	free(dgst);
 }
+
+#endif
 
 __attribute__((constructor))
 static void mbedtls_probe(void)

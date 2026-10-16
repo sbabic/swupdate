@@ -650,12 +650,10 @@ static int mbedtls_pkcs7_dgst_init(struct swupdate_cfg *sw, const char *keyfile)
 		return -ENOMEM;
 	}
 
-#if defined(MBEDTLS_USE_PSA_CRYPTO)
-	if (psa_crypto_init() != PSA_SUCCESS) {
+	if (swupdate_mbedtls_psa_init()) {
 		free(dgst);
 		return -EFAULT;
 	}
-#endif
 	mbedtls_x509_crt_init(&dgst->trusted_certs);
 	dgst->cert_purpose = sw->cert_purpose;
 	error = mbedtls_x509_crt_parse_file(&dgst->trusted_certs, keyfile);
