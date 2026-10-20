@@ -1212,6 +1212,23 @@ local function prepare_logs(log, maxlength, delimiter)
     return details
 end
 
+--- Helper function to close the progress reporting channel, if any.
+local function close_progress_channel()
+    if M.channel.progress then
+        M.channel.progress.close()
+        M.channel.progress = nil
+    end
+end
+
+--- Helper function to open the progress reporting channel.
+local function open_progress_channel()
+    close_progress_channel()
+    M.channel.progress = M.channel(M.channel.main.options)
+    if not M.channel.progress then
+        suricatta.notify.warn("Cannot initialize progress reporting channel, won't send progress.")
+    end
+end
+
 --- @class job_status
 --- @field [1]        job.workflow.transition  This `job.workflow.transition` instance
 --- @field [2]        job                      This `job` instance
@@ -1333,10 +1350,7 @@ M.job.workflow.dispatch:set(
             return M.transition.result.FAIL_YIELD
         end
 
-        M.channel.progress = M.channel(M.utils.table.merge({ noprogress = true }, M.channel.main.options))
-        if not M.channel.progress then
-            suricatta.notify.warn("Cannot initialize progress reporting channel, won't send progress.")
-        end
+        open_progress_channel()
 
         suricatta.notify.debug(
             "%s Version '%s' (Type: %s).",
@@ -1368,6 +1382,7 @@ M.job.workflow.dispatch:set(
             if not res then
                 local msg = ("Error downloading artifact %d/%d."):format(count, #job.definition.artifacts)
                 suricatta.notify.error(msg)
+                close_progress_channel()
                 return job.workflow:fail(
                     job,
                     msg,
@@ -1386,10 +1401,7 @@ M.job.workflow.dispatch:set(
             }
         end
 
-        if M.channel.progress then
-            M.channel.progress.close()
-            M.channel.progress = nil
-        end
+        close_progress_channel()
 
         sync_job_status { self, job, message = "Finished." }
 
@@ -1522,10 +1534,7 @@ M.job.workflow.dispatch:set(
             return M.transition.result.FAIL_YIELD
         end
 
-        M.channel.progress = M.channel(M.utils.table.merge({ noprogress = true }, M.channel.main.options))
-        if not M.channel.progress then
-            suricatta.notify.warn("Cannot initialize progress reporting channel, won't send progress.")
-        end
+        open_progress_channel()
 
         suricatta.notify.progress(
             M.utils.string.escape([[{ "reboot-mode" : "no-reboot"}]]),
@@ -1569,6 +1578,7 @@ M.job.workflow.dispatch:set(
             if not res then
                 local msg = ("Error installing artifact %d/%d."):format(count, #job.definition.artifacts)
                 suricatta.notify.error(msg)
+                close_progress_channel()
                 return job.workflow:fail(
                     job,
                     msg,
@@ -1587,10 +1597,7 @@ M.job.workflow.dispatch:set(
             }
         end
 
-        if M.channel.progress then
-            M.channel.progress.close()
-            M.channel.progress = nil
-        end
+        close_progress_channel()
 
         sync_job_status { self, job, message = "Finished." }
 
