@@ -263,18 +263,18 @@ end
 --- @return boolean                          # `true`, or, in case of error, `false`
 --- @return ...                              # Return values of `callback(...)`
 function M.utils.do_retry(times, pause, callback, ...)
-    local ret
+    local ret = {}
     times, pause = times or 1, pause or 1
     for try = 1, times do
         ret = table.pack(callback(...))
         if ret[1] == true then
-            return table.unpack(ret)
+            return table.unpack(ret, 1, ret.n)
         end
         suricatta.notify.warn("Retry attempt %d/%d failed, sleeping %s seconds.", try, times, pause)
         suricatta.sleep(pause)
     end
     suricatta.notify.error("All %d retry attempts failed.", times)
-    return table.unpack(ret)
+    return table.unpack(ret, 1, ret.n)
 end
 
 --- Validate a JSON document against its schema.
@@ -899,7 +899,7 @@ local function do_advance(self, silent, func, ...)
             suricatta.notify.debug(message[result[1]], trans.from.name, trans.to.name)
         end
         if M.utils.table.contains({ M.transition.result.COMPLETED, M.transition.result.FAIL_YIELD }, result[1]) then
-            return table.unpack(result)
+            return table.unpack(result, 1, result.n)
         end
     end
     suricatta.notify.debug("No (further) transition to execute found.")
