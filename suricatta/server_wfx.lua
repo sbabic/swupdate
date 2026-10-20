@@ -175,15 +175,12 @@ function M.utils.table.merge(tab, ovr)
     return tab
 end
 
---- Check if a Table contains `value`.
+--- Check if a (flat) Array Table contains `value`.
 --
---- @param  tab    table  Table to check for `value`
+--- @param  tab    table  Flat array table to check for `value`
 --- @param  value  any    Value to check for presence in `tab`
 --- @return boolean       # `true` if `tab` contains `value`, `false` otherwise
 function M.utils.table.contains(tab, value)
-    if tab[value] then
-        return true
-    end
     for _, v in ipairs(tab) do
         if v == value then
             return true
