@@ -2149,9 +2149,9 @@ function M.suricatta_funcs.server_start(defaults, argv, fconfig)
             configuration.retry_sleep = tonumber(arg) or configuration.retry_sleep
         elseif opt == "c" then
             -- Legacy support for suricatta hawkBit's -c encoding
-            if arg:lower() == "ok" or arg == suricatta.pstate.TESTING then
+            if arg:lower() == "ok" or arg == string.char(suricatta.pstate.TESTING) then
                 configuration.pstate = suricatta.pstate.TESTING
-            elseif arg:lower() == "failed" or arg == suricatta.pstate.FAILED then
+            elseif arg:lower() == "failed" or arg == string.char(suricatta.pstate.FAILED) then
                 configuration.pstate = suricatta.pstate.FAILED
             else
                 io.stderr:write(("ERROR: Invalid argument: -%s %s\n"):format(opt, arg))
