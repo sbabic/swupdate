@@ -111,7 +111,9 @@ typedef enum {
  * the server interface and the callback functions are stored.
  */
 #define SURICATTA_FUNC_NULL -1
-static int func_registry[SURICATTA_FUNC_LAST] = { SURICATTA_FUNC_NULL };
+#define MAP(x) [SURICATTA_FUNC_ ## x] = SURICATTA_FUNC_NULL,
+static int func_registry[SURICATTA_FUNC_LAST] = { SURICATTA_FUNCS };
+#undef MAP
 
 
 /*
@@ -1774,6 +1776,10 @@ static void suricatta_lua_destroy(void)
 {
 	if (!gL) {
 		return;
+	}
+	for (int i = 0; i < SURICATTA_FUNC_LAST; i++) {
+		luaL_unref(gL, LUA_REGISTRYINDEX, func_registry[i]);
+		func_registry[i] = SURICATTA_FUNC_NULL;
 	}
 	lua_close(gL);
 	gL = NULL;
