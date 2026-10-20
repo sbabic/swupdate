@@ -1823,7 +1823,7 @@ M.job.workflow.dispatch:set(
             suricatta.pstate[M.device.pstate] or "N/A"
         )
         suricatta.notify.error(msg)
-        sync_job_status { self, job, msg }
+        sync_job_status { self, job, message = msg }
         return M.transition.result.FAIL_YIELD
     end
 )
