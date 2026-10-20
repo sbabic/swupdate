@@ -1418,7 +1418,7 @@ M.job.workflow.dispatch:set(
             return job.workflow:fail(job, "wfx sync has failed, terminating update.")
         end
         -- Called as progress reporting callback transition.
-        if not M.channel.progress or not message.source == suricatta.ipc.sourcetype.SOURCE_SURICATTA then
+        if not M.channel.progress or message.source ~= suricatta.ipc.sourcetype.SOURCE_SURICATTA then
             return M.transition.result.FAIL_YIELD
         end
         if message.status == suricatta.ipc.RECOVERY_STATUS.DOWNLOAD then
@@ -1619,7 +1619,7 @@ M.job.workflow.dispatch:set(
             return job.workflow:fail(job, "wfx sync has failed, terminating update.")
         end
 
-        if not M.channel.progress or not message.source == suricatta.ipc.sourcetype.SOURCE_SURICATTA then
+        if not M.channel.progress or message.source ~= suricatta.ipc.sourcetype.SOURCE_SURICATTA then
             return M.transition.result.FAIL_YIELD
         end
 
