@@ -564,6 +564,18 @@ static void channel_push_options(lua_State *L, channel_data_t *channel_data)
 	push_to_table(L, "nocheckanswer",      channel_data->nocheckanswer);
 	push_to_table(L, "nofollow",           channel_data->nofollow);
 	push_to_table(L, "max_download_speed", channel_data->max_download_speed);
+	lua_pushstring(L, "headers_to_send");
+	lua_newtable(L);
+	if (channel_data->headers_to_send &&
+	    !LIST_EMPTY(channel_data->headers_to_send)) {
+		struct dict_entry *entry;
+		LIST_FOREACH(entry, channel_data->headers_to_send, next) {
+			lua_pushstring(L, dict_entry_get_key(entry));
+			lua_pushstring(L, dict_entry_get_value(entry));
+			lua_settable(L, -3);
+		}
+	}
+	lua_settable(L, -3);
 }
 
 
