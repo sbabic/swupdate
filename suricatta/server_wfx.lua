@@ -403,12 +403,26 @@ end
 
 --- Test string for POSIX Portable Filename Character Set compliance.
 --
--- Test whether `str` contains non-portable characters.
+-- Note: The POSIX Portable Filename Character Set matches the set of
+-- "unreserved characters" in RFC 3986 Section 2.3 without `~`.
 --
 --- @param  str      string  string to check
 --- @return boolean          # Whether `str` contains non-portable characters
 local function has_posix_nonportable_chars(str)
     return string.match(str, "[^A-Za-z0-9%._-]") ~= nil
+end
+
+--- Test string for Device ID Character Set compliance.
+--
+-- In addition to the POSIX Portable Filename Character Set, a device ID may
+-- contain `:`, `@`, and `/` as makes sense in device management ID schemes.
+-- Unencoded, all of them are valid in an URI query component (RFC 3986 Section 3.4),
+-- in an HTTP field value (RFC 9110 Section 5.5), and within a JSON string.
+--
+--- @param  str      string  string to check
+--- @return boolean          # Whether `str` contains characters invalid in a device ID
+local function has_invalid_device_id_chars(str)
+    return string.match(str, "[^A-Za-z0-9%._:@/-]") ~= nil
 end
 
 -- ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
@@ -2182,8 +2196,12 @@ function M.suricatta_funcs.server_start(defaults, argv, fconfig)
         suricatta.notify.error("Mandatory parameter missing/mis-typed: URL")
         return suricatta.status.EINIT
     end
-    if not configuration.id or type(configuration.id) ~= "string" then
+    if not configuration.id or type(configuration.id) ~= "string" or #configuration.id == 0 then
         suricatta.notify.error("Mandatory parameter missing/mis-typed: Device ID")
+        return suricatta.status.EINIT
+    end
+    if has_invalid_device_id_chars(configuration.id) then
+        suricatta.notify.error("Device ID must consist of 0-9A-Za-z./:@_- characters only")
         return suricatta.status.EINIT
     end
     M.device.id = configuration.id
