@@ -1331,7 +1331,7 @@ M.job.workflow.dispatch:set(
             table.concat(job.definition.type, ":")
         )
 
-        for count, artifact in pairs(job.definition.artifacts) do
+        for count, artifact in ipairs(job.definition.artifacts) do
             local source_uri = M.utils.string.escape(artifact.uri, { ['"'] = '"', ["\\"] = "" })
             local target_uri = ("%s%s_%d.swu"):format(suricatta.get_tmpdir(), job.id, count)
             suricatta.notify.debug(
@@ -1490,7 +1490,7 @@ M.job.workflow.dispatch:set(
                 return f ~= nil and io.close(f)
             end
             -- Check that all to be installed artifact files are downloaded.
-            for count, _ in pairs(job.definition.artifacts) do
+            for count, _ in ipairs(job.definition.artifacts) do
                 local file = ("%s%s_%d.swu"):format(suricatta.get_tmpdir(), job.id, count)
                 if not file_exists(file) then
                     local msg = ("Artifact %d/%d not downloaded to '%s'.."):format(
@@ -1525,7 +1525,7 @@ M.job.workflow.dispatch:set(
             table.concat(job.definition.type, ":")
         )
 
-        for count, artifact in pairs(job.definition.artifacts) do
+        for count, artifact in ipairs(job.definition.artifacts) do
             local source_uri = M.utils.string.escape(artifact.uri, { ['"'] = '"', ["\\"] = "" })
             if job.workflow.transitions[M.state.dau.DOWNLOAD] then
                 source_uri = ("file://%s%s_%d.swu"):format(suricatta.get_tmpdir(), job.id, count)
