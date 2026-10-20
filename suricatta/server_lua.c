@@ -169,26 +169,28 @@ typedef struct {
 	 (void)0)))(L, name) \
 	); \
 	(__builtin_choose_expr(__builtin_types_compatible_p( \
-		typeof(value), bool          ), lua_pushboolean, \
+		typeof(value), bool              ), lua_pushboolean, \
 	 __builtin_choose_expr(__builtin_types_compatible_p( \
-		typeof(value), unsigned int  ), lua_pushinteger, \
+		typeof(value), unsigned int      ), lua_pushinteger, \
 	 __builtin_choose_expr(__builtin_types_compatible_p( \
-		typeof(value), int           ), lua_pushinteger, \
+		typeof(value), int               ), lua_pushinteger, \
 	 __builtin_choose_expr(__builtin_types_compatible_p( \
-		typeof(value), long long     ), lua_pushinteger, \
+		typeof(value), long long         ), lua_pushinteger, \
 	 __builtin_choose_expr(__builtin_types_compatible_p( \
-		typeof(value), long          ), lua_pushinteger, \
+		typeof(value), unsigned long long), lua_pushinteger, \
 	 __builtin_choose_expr(__builtin_types_compatible_p( \
-		typeof(value), double        ), lua_pushnumber, \
+		typeof(value), long              ), lua_pushinteger, \
+	 __builtin_choose_expr(__builtin_types_compatible_p( \
+		typeof(value), double            ), lua_pushnumber, \
 	 __builtin_choose_expr(__builtin_types_compatible_p( \
 		typeof(value), channel_body_t), lua_pushinteger, \
 	 __builtin_choose_expr(__builtin_types_compatible_p( \
-		typeof(value), char[]         ), lua_pushstring, \
+		typeof(value), char[]            ), lua_pushstring, \
 	 __builtin_choose_expr(__builtin_types_compatible_p( \
-		typeof(value), char*         ), lua_pushstring, \
+		typeof(value), char*             ), lua_pushstring, \
 	 __builtin_choose_expr(__builtin_types_compatible_p( \
-		typeof(value), const char*   ), lua_pushstring, \
-	 (void)0))))))))))(L, value) \
+		typeof(value), const char*       ), lua_pushstring, \
+	 (void)0)))))))))))(L, value) \
 	); \
 	lua_settable(L, -3); \
 })
@@ -958,6 +960,7 @@ static void *progress_offloader_thread(void *data)
 			push_to_table(thread_data->L, "apiversion",  message->apiversion);
 			push_to_table(thread_data->L, "status",      message->status);
 			push_to_table(thread_data->L, "dwl_percent", message->dwl_percent);
+			push_to_table(thread_data->L, "dwl_kbytes",  message->dwl_bytes / 1024);
 			push_to_table(thread_data->L, "nsteps",      message->nsteps);
 			push_to_table(thread_data->L, "cur_step",    message->cur_step);
 			push_to_table(thread_data->L, "cur_percent", message->cur_percent);
@@ -1659,6 +1662,7 @@ static int suricatta_lua_module(lua_State *L)
 	push_to_table(L, "NONE",  BOOTLOADER_NONE);
 	push_to_table(L, "GRUB",  BOOTLOADER_GRUB);
 	push_to_table(L, "UBOOT", BOOTLOADER_UBOOT);
+	push_to_table(L, "CBOOT", BOOTLOADER_CBOOT);
 	lua_settable(L, -3);
 	lua_pushstring(L, "env");
 	lua_newtable(L);
@@ -1685,7 +1689,7 @@ static int suricatta_lua_module(lua_State *L)
 	push_to_table(L, "SUCCESS", SUCCESS);
 	push_to_table(L, "FAILURE", FAILURE);
 	push_to_table(L, "DOWNLOAD", DOWNLOAD);
-	push_to_table(L, "DONE", SUBPROCESS);
+	push_to_table(L, "DONE", DONE);
 	push_to_table(L, "SUBPROCESS", SUBPROCESS);
 	push_to_table(L, "PROGRESS", PROGRESS);
 	lua_settable(L, -3);
@@ -1693,6 +1697,7 @@ static int suricatta_lua_module(lua_State *L)
 	lua_newtable(L);
 	push_to_table(L, "CAUSE_NONE", CAUSE_NONE);
 	push_to_table(L, "CAUSE_REBOOT_MODE", CAUSE_REBOOT_MODE);
+	push_to_table(L, "CAUSE_DRY_RUN_MODE", CAUSE_DRY_RUN_MODE);
 	lua_settable(L, -3);
 	lua_settable(L, -3);
 
