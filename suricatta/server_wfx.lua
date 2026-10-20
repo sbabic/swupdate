@@ -1346,7 +1346,7 @@ M.job.workflow.dispatch:set(
                 source_uri
             )
             local res, _, updatelog, response = suricatta.download({ channel = M.channel.main, url = source_uri }, target_uri)
-            if response ~= {} then
+            if not M.utils.table.is_empty(response) then
                 suricatta.notify.trace("Got HTTP response code %d from server.", response.http_response_code)
                 if response.received_headers then
                     for k, v in pairs(response.received_headers) do
@@ -1545,7 +1545,7 @@ M.job.workflow.dispatch:set(
                 url = source_uri, 
                 dry_run = job.definition:is_dry_run()
             })
-            if response ~= {} then
+            if not M.utils.table.is_empty(response) then
                 suricatta.notify.trace("Got HTTP response code %d from server.", response.http_response_code)
                 if response.received_headers then
                     for k, v in pairs(response.received_headers) do
