@@ -46,11 +46,15 @@ int swupdate_vars_initialize(struct uboot_ctx **ctx, const char *namespace)
 		return -EINVAL;
 	}
 
-	*ctx = libuboot_get_namespace(*ctx, namespace);
-	if (!*ctx) {
+	/*
+	 * On error, keep the list in ctx: the caller releases it
+	 */
+	struct uboot_ctx *nsctx = libuboot_get_namespace(*ctx, namespace);
+	if (!nsctx) {
 		ERROR("Cannot get namespace %s from %s", namespace, get_fwenv_config());
 		return -EINVAL;
 	}
+	*ctx = nsctx;
 
 	if (libuboot_open(*ctx) < 0) {
 		WARN("Cannot read environment, maybe still empty ?");
@@ -106,8 +110,12 @@ static int __swupdate_vars_set(const char *name, const char *value, const char *
 
 	ret = swupdate_vars_initialize(&ctx, namespace);
 	if (!ret) {
-		libuboot_set_env(ctx, name, value);
-		ret = libuboot_env_store(ctx);
+		ret = libuboot_set_env(ctx, name, value);
+		if (ret)
+			ERROR("Cannot %s variable %s: %s", value ? "set" : "unset",
+			      name, strerror(-ret));
+		else
+			ret = libuboot_env_store(ctx);
 	}
 
 	libuboot_cleanup(ctx);
@@ -153,8 +161,12 @@ int swupdate_vars_apply_list(const char *filename, const char *namespace)
 	}
 	ret = swupdate_vars_initialize(&ctx, namespace);
 	if (!ret) {
-		libuboot_load_file(ctx, filename);
-		ret = libuboot_env_store(ctx);
+		ret = libuboot_load_file(ctx, filename);
+		if (ret)
+			ERROR("Cannot apply %s to the variables: %s", filename,
+			      strerror(-ret));
+		else
+			ret = libuboot_env_store(ctx);
 	}
 
 	libuboot_cleanup(ctx);

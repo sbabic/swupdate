@@ -135,7 +135,7 @@ static int do_apply_list(const char *filename)
 
 	char *line = NULL;
 	size_t length = 0;
-	int result = 0;
+	int result = 0, ret;
 	if (libcboot.open(BOOTINFO_O_RDWR, &ctx) < 0) {
 		ERROR("libcboot.open returns with error");
 		fclose(file);
@@ -145,10 +145,12 @@ static int do_apply_list(const char *filename)
 		char *key = strtok(line, "=");
 		char *value = strtok(NULL, "\t\n");
 		if (key != NULL) {
-			result = libcboot.set_env(ctx, key, value);
-			if (result < 0) {
+			ret = libcboot.set_env(ctx, key, value);
+			if (ret < 0) {
 				ERROR("Error %s boot var %s(%s)", value ? "storing" : "deleting",
 					key, value ? value : "");
+				/* report the failure, a later line must not hide it */
+				result = ret;
 			}
 		}
 	}

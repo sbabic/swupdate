@@ -40,7 +40,7 @@ static struct {
 static int bootloader_initialize(struct uboot_ctx **ctx)
 {
 	int ret;
-	const char *namespace = NULL;
+	char *namespace;
 
 	ret = libuboot_read_config_ext(ctx, get_fwenv_config());
 	if (ret) {
@@ -48,10 +48,20 @@ static int bootloader_initialize(struct uboot_ctx **ctx)
 		return -EINVAL;
 	}
 
-	namespace = libuboot_namespace_from_dt();
+	/* the namespace is allocated by libubootenv */
+	namespace = (char *)libuboot_namespace_from_dt();
+	if (namespace) {
+		struct uboot_ctx *nsctx = libuboot_get_namespace(*ctx, namespace);
 
-	if (namespace)
-		*ctx = libuboot_get_namespace(*ctx, namespace);
+		if (!nsctx) {
+			ERROR("Namespace %s from device tree not found in %s",
+			      namespace, get_fwenv_config());
+			free(namespace);
+			return -ENOENT;
+		}
+		*ctx = nsctx;
+		free(namespace);
+	}
 
 	if (libuboot.open(*ctx) < 0) {
 		WARN("Cannot read environment, using default");
@@ -71,8 +81,12 @@ static int do_env_set(const char *name, const char *value)
 
 	ret = bootloader_initialize(&ctx);
 	if (!ret) {
-		libuboot.set_env(ctx, name, value);
-		ret = libuboot.env_store(ctx);
+		ret = libuboot.set_env(ctx, name, value);
+		if (ret)
+			ERROR("Cannot %s %s: %s", value ? "set" : "unset", name,
+			      strerror(-ret));
+		else
+			ret = libuboot.env_store(ctx);
 	}
 
 	libuboot.close(ctx);
@@ -93,8 +107,12 @@ static int do_apply_list(const char *filename)
 
 	ret = bootloader_initialize(&ctx);
 	if (!ret) {
-		libuboot.load_file(ctx, filename);
-		ret = libuboot.env_store(ctx);
+		ret = libuboot.load_file(ctx, filename);
+		if (ret)
+			ERROR("Cannot apply %s to the environment: %s", filename,
+			      strerror(-ret));
+		else
+			ret = libuboot.env_store(ctx);
 	}
 
 	libuboot.close(ctx);
