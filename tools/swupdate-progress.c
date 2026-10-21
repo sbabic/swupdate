@@ -197,7 +197,8 @@ static void reboot_device(const char* reboot_script)
 	if (reboot_script) {
 		/* A user might not expect the program to continue running ... */
 		if (system(reboot_script) >= 0)
-			while (true);
+			while (true)
+				pause();
 	} else {
 		sleep(5);
 		sync();
