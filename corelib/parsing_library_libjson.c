@@ -151,7 +151,7 @@ static void get_value_json(json_object *e, const char *path, void *dest, field_t
 		*(int *)dest = json_object_get_int(e);
 		break;
 	case TYPE_INT64:
-		*(long long *)dest = json_object_get_int(e);
+		*(long long *)dest = json_object_get_int64(e);
 		break;
 	case TYPE_DOUBLE:
 		*(double *)dest = json_object_get_double(e);

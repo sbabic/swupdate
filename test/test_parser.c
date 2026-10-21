@@ -683,6 +683,33 @@ static void test_parser_partitions(void **state)
 	}
 }
 
+static void test_parser_large_numbers(void **state)
+{
+	(void)state;
+	/* values above 4 GiB need 64 bit, also in JSON */
+	static const struct swd t = {
+		.cfg = "images: ( { filename = \"big.img\"; device = \"/dev/a\";"
+		       "            offset = 6442450944L; size = 5000000000L; } );"
+		       " partitions: ( { name = \"data\"; device = \"mtd4\"; size = 3221225472L; } );",
+		.json = "\"images\": [ { \"filename\": \"big.img\", \"device\": \"/dev/a\","
+			"              \"offset\": 6442450944, \"size\": 5000000000 } ],"
+			" \"partitions\": [ { \"name\": \"data\", \"device\": \"mtd4\", \"size\": 3221225472 } ]",
+	};
+
+	FOR_EACH_FORMAT(f) {
+		sw_init();
+		assert_int_equal(parse_swd(&t, f), 0);
+		struct img_type *img = find_image(&sw.images, "big.img");
+		assert_non_null(img);
+		assert_true(img->seek == 6442450944LL);
+		assert_true(img->size == 5000000000LL);
+		struct img_type *part = LIST_FIRST(&sw.images);
+		assert_true(part->is_partitioner);
+		assert_true(part->partsize == 3221225472LL);
+		sw_free();
+	}
+}
+
 static void test_parser_string_size(void **state)
 {
 	(void)state;
@@ -885,6 +912,7 @@ int main(void)
 		cmocka_unit_test(test_parser_links),
 		cmocka_unit_test(test_parser_bootenv_vars),
 		cmocka_unit_test(test_parser_partitions),
+		cmocka_unit_test(test_parser_large_numbers),
 		cmocka_unit_test(test_parser_string_size),
 #ifdef CONFIG_HW_COMPATIBILITY
 		cmocka_unit_test(test_parser_hw_compatibility),
