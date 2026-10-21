@@ -89,6 +89,45 @@ static void test_source_out_of_range(void **state)
 	assert_string_equal(get_source_string(9999),                     "UNKNOWN");
 }
 
+static void test_util_substring(void **state)
+{
+	(void)state;
+	char *s;
+
+	s = substring("abcdef", 0, 3);
+	assert_string_equal(s, "abc");
+	free(s);
+	s = substring("abcdef", 2, 3);
+	assert_string_equal(s, "cde");
+	free(s);
+	/* the length is limited to the end of the string */
+	s = substring("abcdef", 4, 10);
+	assert_string_equal(s, "ef");
+	free(s);
+	s = substring("abcdef", 6, 1);
+	assert_string_equal(s, "");
+	free(s);
+	assert_null(substring("abcdef", 7, 1));
+	assert_null(substring("abcdef", -1, 1));
+}
+
+static void test_util_compare_versions(void **state)
+{
+	(void)state;
+	/* numbering schema: up to 4 fields, missing fields are 0 */
+	assert_int_equal(compare_versions("1.2.3.4", "1.2.3.4"), 0);
+	assert_int_equal(compare_versions("1.2", "1.2.0.0"), 0);
+	assert_int_equal(compare_versions("1.2.3", "1.2.10"), -1);
+	assert_int_equal(compare_versions("2.0", "1.65535.65535.65535"), 1);
+	/* fields after the 4th are not considered, see documentation */
+	assert_int_equal(compare_versions("1.2.3.4", "1.2.3.4.5"), 0);
+	/* semantic versions */
+	assert_int_equal(compare_versions("1.2.3-rc1", "1.2.3"), -1);
+	assert_int_equal(compare_versions("1.10.0+build", "1.9.0"), 1);
+	/* anything else is compared as string */
+	assert_true(compare_versions("abc", "abd") < 0);
+}
+
 static void test_level_known(void **state)
 {
 	(void)state;
@@ -119,7 +158,9 @@ int main(void)
 	    cmocka_unit_test(test_status_out_of_range),
 	    cmocka_unit_test(test_util_ustrtoull),
 	    cmocka_unit_test(test_util_size_delimiter_match),
-	    cmocka_unit_test(test_util_is_filename_valid)
+	    cmocka_unit_test(test_util_is_filename_valid),
+	    cmocka_unit_test(test_util_substring),
+	    cmocka_unit_test(test_util_compare_versions)
 	};
 	error_count += cmocka_run_group_tests_name("util", util_tests,
 						   util_setup, util_teardown);

@@ -345,10 +345,13 @@ char *swupdate_strcat(int n, ...)
  */
 char *substring(const char *src, int first, int len) {
 	char *s;
-	if (len > strlen(src))
-		len = strlen(src);
-	if (first > len)
+	size_t srclen = strlen(src);
+
+	if (first < 0 || len < 0 || (size_t)first > srclen)
 		return NULL;
+	/* do not read past the end of src */
+	if ((size_t)len > srclen - first)
+		len = srclen - first;
 	s = malloc(len + 1);
 	if (!s)
 		return NULL;

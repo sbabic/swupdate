@@ -23,6 +23,7 @@ static pthread_mutex_t install_file_mutex;
 static char buf[16 * 1024];
 static int fd = STDIN_FILENO;
 static int end_status = EXIT_SUCCESS;
+static bool update_done;
 static pthread_cond_t cv_end = PTHREAD_COND_INITIALIZER;
 /*
  * this is the callback to get a new chunk of the
@@ -65,6 +66,7 @@ static int endupdate(RECOVERY_STATUS status)
 	}
 
 	pthread_mutex_lock(&install_file_mutex);
+	update_done = true;
 	pthread_cond_signal(&cv_end);
 	pthread_mutex_unlock(&install_file_mutex);
 
@@ -83,6 +85,7 @@ int install_from_file(const char *filename, bool check)
 
 	/* May be set non-zero by end() function on failure */
 	end_status = EXIT_SUCCESS;
+	update_done = false;
 
 	struct swupdate_request req;
 	swupdate_prepare_req(&req);
@@ -108,8 +111,9 @@ int install_from_file(const char *filename, bool check)
 	}
 
 
-	/* Now block */
-	pthread_cond_wait(&cv_end, &install_file_mutex);
+	/* Now block, a wakeup can be spurious */
+	while (!update_done)
+		pthread_cond_wait(&cv_end, &install_file_mutex);
 
 out:
 	pthread_mutex_unlock(&install_file_mutex);

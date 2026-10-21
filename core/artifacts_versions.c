@@ -165,7 +165,7 @@ static bool version_to_number(const char *version_string, __u64 *version_number)
 		}
 		version = (version << 16) | fld;
 	}
-	if (count > 4) {
+	if (*ver != NULL) {
 		DEBUG("Version %s had more than 4 numbers, trailing numbers will be ignored",
 		      version_string);
 	} else if (count > 0) {
