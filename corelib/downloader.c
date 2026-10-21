@@ -121,8 +121,9 @@ static server_op_res_t download_server_ipc(int fd)
 	ipc_message msg;
 	server_op_res_t result = SERVER_OK;
 	int ret;
-	struct json_object *json_root;
+	struct json_object *json_root = NULL;
 	json_object *json_data;
+	char *url = NULL, *auth = NULL;
 
 
 	ret = read(fd, &msg, sizeof(msg));
@@ -143,7 +144,7 @@ static server_op_res_t download_server_ipc(int fd)
 			result = SERVER_EERR;
 			break;
 		}
-		channel_options.url = strdup(json_object_get_string(json_data));
+		url = strdup(json_object_get_string(json_data));
 
 		/*
 		 * check for authentication
@@ -153,13 +154,20 @@ static server_op_res_t download_server_ipc(int fd)
 			/*
 			 * Credentials are in the curl format, user:password, see CURLOPT_USERPWD
 			 */
-			channel_options.auth = strdup(json_object_get_string(json_data));
+			auth = strdup(json_object_get_string(json_data));
+		}
+		if (!url || (json_data && !auth)) {
+			ERROR("OOM handling download request");
+			result = SERVER_EERR;
 		}
 		break;
 	default:
 		result = SERVER_EERR;
 		break;
 	}
+
+	if (json_root)
+		json_object_put(json_root);
 
 	msg.data.procmsg.len = 0;
 	if (result == SERVER_EERR) {
@@ -175,19 +183,26 @@ static server_op_res_t download_server_ipc(int fd)
 	}
 
 	if (result == SERVER_OK) {
-		RECOVERY_STATUS update_result = download_from_url(&channel_options);
+		/*
+		 * Use a copy of the configured options: the URL and the
+		 * credentials of the request are valid for this download
+		 * only, the configured credentials are kept for the next
+		 * requests.
+		 */
+		channel_data_t request = channel_options;
+		RECOVERY_STATUS update_result;
 
-		if (channel_options.url != NULL) {
-			free(channel_options.url);
-		}
-		if (channel_options.auth != NULL) {
-			free(channel_options.auth);
-		}
-		channel_options.url = NULL;
-		channel_options.auth = NULL;
+		request.url = url;
+		if (auth)
+			request.auth = auth;
+		update_result = download_from_url(&request);
 
 		result = update_result == SUCCESS ? SERVER_OK : SERVER_EERR;
 	}
+
+	free(url);
+	free(auth);
+
 	/* Send ipc back */
 	return result;
 }
