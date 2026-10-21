@@ -63,6 +63,16 @@ struct notify_ipc_msg {
 static struct sockaddr_un notify_client;
 static struct sockaddr_un notify_server;
 static int notifyfd = -1;
+
+/*
+ * Users allowed to send notifications to the main process,
+ * in addition to root and to the user of SWUpdate itself:
+ * these are the users the subprocesses run as.
+ */
+#define MAX_NOTIFY_UIDS	16
+static uid_t notify_uids[MAX_NOTIFY_UIDS];
+static unsigned int notify_nuids;
+static pthread_mutex_t notify_uids_lock = PTHREAD_MUTEX_INITIALIZER;
 static bool console_priority_prefix = false;
 static bool console_ansi_colors = false;
 
@@ -256,7 +266,7 @@ void notify(RECOVERY_STATUS status, int error, int level, const char *msg)
  */
 static void console_notifier (RECOVERY_STATUS status, int error, int level, const char *msg)
 {
-	char current[80];
+	char current[80] = "";
 	char color[32];
 	switch(status) {
 	case IDLE:
@@ -289,6 +299,8 @@ static void console_notifier (RECOVERY_STATUS status, int error, int level, cons
 		return;
 	case DONE:
 		strncpy(current, "SWUPDATE done : ", sizeof(current));
+		break;
+	default:
 		break;
 	}
 
@@ -450,6 +462,88 @@ static void addr_init(struct sockaddr_un *addr, const char *path)
 #endif
 }
 
+void notify_allow_uid(uid_t uid)
+{
+	unsigned int i;
+
+	pthread_mutex_lock(&notify_uids_lock);
+	for (i = 0; i < notify_nuids; i++)
+		if (notify_uids[i] == uid)
+			break;
+	if (i == notify_nuids) {
+		if (notify_nuids < MAX_NOTIFY_UIDS)
+			notify_uids[notify_nuids++] = uid;
+		else
+			fprintf(stderr, "Too many users for notifications, %u not added\n",
+				(unsigned int)uid);
+	}
+	pthread_mutex_unlock(&notify_uids_lock);
+}
+
+#if defined(__linux__)
+static bool notify_uid_allowed(uid_t uid)
+{
+	unsigned int i;
+	bool allowed = false;
+
+	if (uid == 0 || uid == getuid())
+		return true;
+
+	pthread_mutex_lock(&notify_uids_lock);
+	for (i = 0; i < notify_nuids; i++)
+		if (notify_uids[i] == uid)
+			allowed = true;
+	pthread_mutex_unlock(&notify_uids_lock);
+
+	return allowed;
+}
+
+/*
+ * The socket is an abstract socket: it has no permissions and
+ * every local user can send to it. Accept only messages from
+ * SWUpdate's own processes, checked by the credentials of the
+ * sender that the kernel passes with each message.
+ */
+static ssize_t notify_recv(int fd, struct notify_ipc_msg *msg)
+{
+	struct iovec iov = { .iov_base = msg, .iov_len = sizeof(*msg) };
+	union {
+		char buf[CMSG_SPACE(sizeof(struct ucred))];
+		struct cmsghdr align;
+	} control;
+	struct msghdr mh = {
+		.msg_iov = &iov,
+		.msg_iovlen = 1,
+		.msg_control = control.buf,
+		.msg_controllen = sizeof(control.buf),
+	};
+	struct cmsghdr *cmsg;
+	struct ucred *cred = NULL;
+	ssize_t len;
+
+	len = recvmsg(fd, &mh, 0);
+	if (len <= 0)
+		return len;
+
+	for (cmsg = CMSG_FIRSTHDR(&mh); cmsg; cmsg = CMSG_NXTHDR(&mh, cmsg)) {
+		if (cmsg->cmsg_level == SOL_SOCKET &&
+		    cmsg->cmsg_type == SCM_CREDENTIALS &&
+		    cmsg->cmsg_len == CMSG_LEN(sizeof(struct ucred)))
+			cred = (struct ucred *)CMSG_DATA(cmsg);
+	}
+
+	if (!cred || !notify_uid_allowed(cred->uid))
+		return 0;
+
+	return len;
+}
+#else
+static ssize_t notify_recv(int fd, struct notify_ipc_msg *msg)
+{
+	return recvfrom(fd, msg, sizeof(*msg), 0, NULL, NULL);
+}
+#endif
+
 /*
  * Notifier thread: it runs in the context of the main
  * process.
@@ -459,7 +553,7 @@ static void addr_init(struct sockaddr_un *addr, const char *path)
 static void *notifier_thread (void __attribute__ ((__unused__)) *data)
 {
 	int serverfd;
-	int len;
+	ssize_t len;
 	int attempt = 0;
 	struct notify_ipc_msg msg;
 
@@ -477,6 +571,14 @@ static void *notifier_thread (void __attribute__ ((__unused__)) *data)
 #if defined(__FreeBSD__)
 	set_socket_bufsize(serverfd, SO_SNDBUF, sizeof(struct notify_ipc_msg));
 	set_socket_bufsize(serverfd, SO_RCVBUF, sizeof(struct notify_ipc_msg));
+#endif
+#if defined(__linux__)
+	int one = 1;
+	if (setsockopt(serverfd, SOL_SOCKET, SO_PASSCRED, &one, sizeof(one)) < 0) {
+		fprintf(stderr, "Error setting SO_PASSCRED on notifier socket: %s, exiting.\n",
+			strerror(errno));
+		exit(2);
+	}
 #endif
 
 	int len_socket_name = strlen(&notify_server.sun_path[1]);
@@ -512,13 +614,13 @@ static void *notifier_thread (void __attribute__ ((__unused__)) *data)
 
 	thread_ready();
 	do {
-		len =  recvfrom(serverfd, &msg, sizeof(msg), 0, NULL, NULL);
+		len = notify_recv(serverfd, &msg);
 		/*
 		 * Force msg.buf to be Null Terminated
 		 */
 		msg.buf [sizeof(msg.buf) - 1] = '\0';
 
-		if (len > 0) {
+		if (len == sizeof(msg)) {
 			notify(msg.status, msg.error, msg.level, msg.buf);
 		}
 

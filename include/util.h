@@ -135,6 +135,7 @@ typedef void (*notifier) (RECOVERY_STATUS status, int error, int level, const ch
 void notify(RECOVERY_STATUS status, int error, int level, const char *msg);
 void notify_init(void);
 void notifier_set_color(int level, char *col);
+void notify_allow_uid(uid_t uid);
 
 #define __FILENAME__ (__builtin_strrchr(__FILE__, '/') ? __builtin_strrchr(__FILE__, '/') + 1 : __FILE__)
 #define swupdate_notify(status, format, level, arg...) do { \

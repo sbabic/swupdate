@@ -156,6 +156,12 @@ static int spawn_process(struct swupdate_task *task,
 		return -1;
 	}
 
+	/*
+	 * The child sends its notifications as run_as_userid,
+	 * allow it before it is started
+	 */
+	notify_allow_uid(run_as_userid);
+
 	process_id = fork();
 	if (process_id < 0) {
 		ERROR("fork fails : %s", strerror(errno));
