@@ -119,8 +119,9 @@ static int __ipc_get_status(int connfd, ipc_message *msg, unsigned int timeout_m
 		 */
 		msg->magic = 0;
 
-		tv.tv_sec = 0;
-		tv.tv_usec = timeout_ms * 1000;
+		/* tv_usec must be less than one second, else EINVAL on some OSes */
+		tv.tv_sec = timeout_ms / 1000;
+		tv.tv_usec = (timeout_ms % 1000) * 1000;
 		if ((select(connfd + 1, &fds, NULL, NULL, &tv) <= 0) ||
 			!FD_ISSET(connfd, &fds))
 			return -ETIMEDOUT;
@@ -190,8 +191,9 @@ static int __ipc_start_notify(int connfd, ipc_message *msg, unsigned int timeout
 		 */
 		msg->magic = 0;
 
-		tv.tv_sec = 0;
-		tv.tv_usec = timeout_ms * 1000;
+		/* tv_usec must be less than one second, else EINVAL on some OSes */
+		tv.tv_sec = timeout_ms / 1000;
+		tv.tv_usec = (timeout_ms % 1000) * 1000;
 		if ((select(connfd + 1, &fds, NULL, NULL, &tv) <= 0) ||
 		!FD_ISSET(connfd, &fds))
 			return -ETIMEDOUT;
