@@ -51,12 +51,19 @@ int btrfs_mkfs(const char *device_name, const char __attribute__ ((__unused__)) 
 #else
 	char *cmd;
 
-	if (asprintf(&cmd, "%s %s %s\n", argv[0], argv[1], argv[2]) == -1) {
+	if (strchr(device_name, '\'')) {
+		ERROR("Invalid device name %s", device_name);
+		return -EINVAL;
+	}
+
+	/* the device is passed to the shell, quote it */
+	if (asprintf(&cmd, "%s %s '%s'", argv[0], argv[1], argv[2]) == -1) {
 		ERROR("Error allocating memory");
 		return -ENOMEM;
 	}
 
 	ret = run_system_cmd(cmd);
+	free(cmd);
 
 #endif
 	return ret;
