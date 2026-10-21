@@ -963,8 +963,9 @@ static int l_set_bootenv(lua_State *L) {
 	const char *name = luaL_checkstring(L, 1);
 	const char *value = luaL_checkstring(L, 2);
 
+	/* a C function returns the number of its results */
 	if (!bootenv)
-		return -1;
+		return luaL_error(L, "no bootloader environment available");
 
 	if (name && strlen(name))
 		dict_set_value(bootenv, name, value ? value : "");
