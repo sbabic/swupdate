@@ -32,6 +32,7 @@ struct socket_meta {
 static pthread_mutex_t sockets_toclose_lock = PTHREAD_MUTEX_INITIALIZER;
 SIMPLEQ_HEAD(self_sockets, socket_meta);
 static struct self_sockets sockets_toclose;
+static pid_t sockets_owner;
 
 
 int listener_create(const char *path, int type, mode_t mode, gid_t gid)
@@ -112,6 +113,13 @@ int register_socket_unlink(const char* path){
 
 static void unlink_sockets(void)
 {
+	/*
+	 * Child processes inherit the atexit() handler: they must not
+	 * remove the sockets of the main process
+	 */
+	if (getpid() != sockets_owner)
+		return;
+
 	pthread_mutex_lock(&sockets_toclose_lock);
 	while(!SIMPLEQ_EMPTY(&sockets_toclose)) {
 			struct socket_meta *socketm;
@@ -127,5 +135,6 @@ static void unlink_sockets(void)
 
 int init_socket_unlink_handler(void){
     SIMPLEQ_INIT(&sockets_toclose);
+    sockets_owner = getpid();
     return atexit(unlink_sockets);
 }
