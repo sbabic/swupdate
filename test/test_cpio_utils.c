@@ -96,8 +96,17 @@ static int input_fd(const void *buf, size_t len)
 	return fd;
 }
 
+/*
+ * Without hash verification the hash stays empty, that is not
+ * verified by copyfile()
+ */
 static void sha256(const void *buf, size_t len, unsigned char *hash)
 {
+#ifndef CONFIG_HASH_VERIFY
+	(void)buf;
+	(void)len;
+	memset(hash, 0, SHA256_HASH_LENGTH);
+#else
 	unsigned char md[64];
 	unsigned int mdlen = 0;
 	void *dgst = swupdate_HASH_init(SHA_DEFAULT);
@@ -108,6 +117,7 @@ static void sha256(const void *buf, size_t len, unsigned char *hash)
 	assert_int_equal(mdlen, SHA256_HASH_LENGTH);
 	swupdate_HASH_cleanup(dgst);
 	memcpy(hash, md, SHA256_HASH_LENGTH);
+#endif
 }
 
 static uint32_t sum(const unsigned char *buf, size_t len)
@@ -304,11 +314,15 @@ static void test_copyfile_errors(void **state)
 	unsigned char hash[SHA256_HASH_LENGTH];
 	struct sink s = { 0 };
 
+#ifdef CONFIG_HASH_VERIFY
 	/* wrong hash */
 	sha256(data, DATA_SIZE, hash);
 	hash[0] ^= 1;
 	assert_int_equal(copy(data, DATA_SIZE, DATA_SIZE, COMPRESSED_FALSE, hash, &s, NULL), -EFAULT);
 	sink_free(&s);
+#else
+	(void)hash;
+#endif
 
 	/* the stream ends before nbytes */
 	assert_true(copy(data, 1000, 2000, COMPRESSED_FALSE, NULL, &s, NULL) < 0);
@@ -385,12 +399,14 @@ static void test_copyfile_skip(void **state)
 	assert_int_equal(s.calls, 0);
 	close(fd);
 
+#ifdef CONFIG_HASH_VERIFY
 	fd = input_fd(data, DATA_SIZE);
 	args.fdin = fd;
 	offs = 0;
 	hash[1] ^= 1;
 	assert_int_equal(copyfile(&args), -EFAULT);
 	close(fd);
+#endif
 }
 
 static void test_copyfile_seek(void **state)

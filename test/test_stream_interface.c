@@ -34,12 +34,18 @@
 
 #if !defined(CONFIG_SIGNED_IMAGES) && !defined(CONFIG_ENCRYPTED_SW_DESCRIPTION)
 #define TEST_STREAM
+/* the SWUs in the tests install files with the rawfile handler */
+#if defined(CONFIG_RAW)
+#define TEST_SWU
+#endif
 #endif
 
 #ifdef TEST_STREAM
 
 static char tmpdir[] = "/tmp/swupdate-test-stream-XXXXXX";
+#ifdef TEST_SWU
 static struct swupdate_cfg sw;
+#endif
 
 /*
  * Building a SWU
@@ -61,6 +67,7 @@ static void swu_put(struct swu *s, const void *data, size_t len)
 	s->len += len;
 }
 
+#ifdef TEST_SWU
 static void swu_pad(struct swu *s)
 {
 	static const unsigned char zero[4];
@@ -100,6 +107,8 @@ static void swu_trailer(struct swu *s)
 		swu_put(s, zero, 512 - s->len % 512);
 }
 
+#endif
+
 static void swu_free(struct swu *s)
 {
 	free(s->buf);
@@ -120,8 +129,15 @@ static int swu_fd(const struct swu *s)
 	return fd;
 }
 
+#ifdef TEST_SWU
+/* empty if SWUpdate is built without hash verification */
 static void hash_ascii(const void *data, size_t len, char *out)
 {
+#ifndef CONFIG_HASH_VERIFY
+	(void)data;
+	(void)len;
+	out[0] = '\0';
+#else
 	unsigned char md[64];
 	unsigned int mdlen = 0;
 	void *dgst = swupdate_HASH_init(SHA_DEFAULT);
@@ -131,6 +147,7 @@ static void hash_ascii(const void *data, size_t len, char *out)
 	assert_int_equal(swupdate_HASH_final(dgst, md, &mdlen), 0);
 	swupdate_HASH_cleanup(dgst);
 	hash_to_ascii(md, out);
+#endif
 }
 
 /*
@@ -166,6 +183,8 @@ static void sw_free(void)
 	cleanup_files(&sw);
 }
 
+#endif
+
 static char *path_in_tmp(const char *name)
 {
 	static char path[256];
@@ -187,6 +206,7 @@ static bool file_equal(const char *path, const void *data, size_t len)
 	return ret;
 }
 
+#ifdef TEST_SWU
 /*
  * A SWU with an image extracted to TMPDIR and one streamed to its
  * destination by the rawfile handler.
@@ -194,19 +214,32 @@ static bool file_equal(const char *path, const void *data, size_t len)
 static const char copied[] = "this artifact is copied into TMPDIR";
 static const char streamed[] = "this artifact is streamed to the handler";
 
+/* sha256 attribute, not set without hash (SWUpdate rejects it then) */
+static void hash_attr(char *attr, size_t size, const char *hash)
+{
+	if (strlen(hash))
+		snprintf(attr, size, "sha256 = \"%s\";", hash);
+	else
+		attr[0] = '\0';
+}
+
 static void make_desc(char *desc, size_t size, const char *copied_hash,
 		      const char *streamed_hash, const char *extra)
 {
+	char hcopied[80], hstreamed[80];
+
+	hash_attr(hcopied, sizeof(hcopied), copied_hash);
+	hash_attr(hstreamed, sizeof(hstreamed), streamed_hash);
 	snprintf(desc, size,
 		 "software = { version = \"1.0\"; hardware-compatibility = [ \"1.0\" ];\n"
 		 " files: (\n"
-		 "  { filename = \"copied.bin\"; path = \"%s/copied.out\"; sha256 = \"%s\"; },\n"
-		 "  { filename = \"streamed.bin\"; path = \"%s/streamed.out\"; sha256 = \"%s\";"
+		 "  { filename = \"copied.bin\"; path = \"%s/copied.out\"; %s },\n"
+		 "  { filename = \"streamed.bin\"; path = \"%s/streamed.out\"; %s"
 		 " installed-directly = true; }\n"
 		 " );\n"
 		 " %s\n"
 		 "};\n",
-		 tmpdir, copied_hash, tmpdir, streamed_hash, extra ? extra : "");
+		 tmpdir, hcopied, tmpdir, hstreamed, extra ? extra : "");
 }
 
 struct swu_options {
@@ -225,7 +258,7 @@ static void make_swu(struct swu *s, const struct swu_options *o)
 
 	hash_ascii(copied, sizeof(copied), hcopied);
 	hash_ascii(streamed, sizeof(streamed), hstreamed);
-	if (o->wrong_hash)
+	if (o->wrong_hash && strlen(hcopied))
 		hcopied[0] = hcopied[0] == '0' ? '1' : '0';
 	make_desc(desc, sizeof(desc), hcopied, hstreamed, o->extra_desc);
 
@@ -296,7 +329,9 @@ static void test_stream_errors(void **state)
 	static const struct swu_options cases[] = {
 		{ .desc_not_first = true },
 		{ .skip_copied = true },
+#ifdef CONFIG_HASH_VERIFY
 		{ .wrong_hash = true },
+#endif
 		{ .wrong_chksum = true },
 		/* also a skipped file must have the right checksum */
 		{ .wrong_chksum = true, .unknown_file = "notused.bin" },
@@ -326,7 +361,7 @@ static void test_stream_size_mismatch(void **state)
 	hash_ascii(copied, sizeof(copied), h1);
 	hash_ascii(streamed, sizeof(streamed), h2);
 	make_desc(desc, sizeof(desc), h1, h2, NULL);
-	char *p = strstr(desc, "sha256");
+	char *p = strstr(desc, "path");
 	assert_non_null(p);
 	memmove(p + 12, p, strlen(p) + 1);
 	memcpy(p, "size = 1234;", 12);
@@ -387,6 +422,8 @@ static void test_stream_dry_run(void **state)
 	sw_free();
 }
 
+#endif
+
 static void test_stream_cpfiles(void **state)
 {
 	(void)state;
@@ -427,6 +464,7 @@ static void test_stream_cpfiles(void **state)
 	swu_free(&s);
 }
 
+#ifdef TEST_SWU
 static void test_stream_save(void **state)
 {
 	(void)state;
@@ -478,6 +516,8 @@ static void test_stream_save(void **state)
 	swu_free(&s);
 }
 
+#endif
+
 static int stream_group_setup(void **state)
 {
 	(void)state;
@@ -499,6 +539,7 @@ static int stream_group_teardown(void **state)
 int main(void)
 {
 	static const struct CMUnitTest tests[] = {
+#ifdef TEST_SWU
 		cmocka_unit_test(test_stream_extract),
 		cmocka_unit_test(test_stream_unknown_file),
 		cmocka_unit_test(test_stream_errors),
@@ -508,8 +549,11 @@ int main(void)
 #endif
 		cmocka_unit_test(test_stream_max_size),
 		cmocka_unit_test(test_stream_dry_run),
+#endif
 		cmocka_unit_test(test_stream_cpfiles),
+#ifdef TEST_SWU
 		cmocka_unit_test(test_stream_save),
+#endif
 	};
 	return cmocka_run_group_tests_name("stream_interface", tests, stream_group_setup,
 					   stream_group_teardown);

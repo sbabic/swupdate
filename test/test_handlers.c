@@ -68,13 +68,20 @@ static bool file_equal(const char *p, const void *data, size_t len)
 	return ret;
 }
 
-static bool exists(const char *p)
+/* not used if no handler using it is built */
+static bool __attribute__ ((__unused__)) exists(const char *p)
 {
 	return access(p, F_OK) == 0;
 }
 
+/* the hash stays empty (not verified) without hash verification */
 static void sha256(const void *buf, size_t len, unsigned char *hash)
 {
+#ifndef CONFIG_HASH_VERIFY
+	(void)buf;
+	(void)len;
+	memset(hash, 0, SHA256_HASH_LENGTH);
+#else
 	unsigned char md[64];
 	unsigned int mdlen = 0;
 	void *dgst = swupdate_HASH_init(SHA_DEFAULT);
@@ -84,6 +91,7 @@ static void sha256(const void *buf, size_t len, unsigned char *hash)
 	assert_int_equal(swupdate_HASH_final(dgst, md, &mdlen), 0);
 	swupdate_HASH_cleanup(dgst);
 	memcpy(hash, md, SHA256_HASH_LENGTH);
+#endif
 }
 
 /*
@@ -128,7 +136,7 @@ static int run_image_handler(struct img_type *img)
 	return install_single_image(img, false);
 }
 
-static int run_script_handler(struct img_type *img, script_fn fn)
+static int __attribute__ ((__unused__)) run_script_handler(struct img_type *img, script_fn fn)
 {
 	struct installer_handler *hnd = find_handler(img);
 	struct script_handler_data data = { .scriptfn = fn };
@@ -171,12 +179,14 @@ static void test_handler_raw(void **state)
 	assert_true(file_equal(path("device"), expected, sizeof(expected)));
 	free_img(img);
 
+#ifdef CONFIG_HASH_VERIFY
 	/* wrong hash */
 	img = new_image("raw", payload, sizeof(payload));
 	strlcpy(img->device, path("device"), sizeof(img->device));
 	img->sha256[0] ^= 1;
 	assert_int_not_equal(run_image_handler(img), 0);
 	free_img(img);
+#endif
 
 	/* the device does not exist */
 	img = new_image("raw", payload, sizeof(payload));
@@ -243,6 +253,7 @@ static void test_handler_rawfile_atomic(void **state)
 	assert_false(exists(path("atomic.out.tmp")));
 	free_img(img);
 
+#ifdef CONFIG_HASH_VERIFY
 	/* on error, the old file is kept and the temporary file removed */
 	write_file(path("atomic.out"), "old", 3);
 	img = new_image("rawfile", payload, sizeof(payload));
@@ -253,6 +264,7 @@ static void test_handler_rawfile_atomic(void **state)
 	assert_true(file_equal(path("atomic.out"), "old", 3));
 	assert_false(exists(path("atomic.out.tmp")));
 	free_img(img);
+#endif
 	unlink(path("atomic.out"));
 }
 #endif
@@ -269,10 +281,12 @@ static void test_handler_dummy(void **state)
 	assert_int_equal(run_image_handler(img), 0);
 	free_img(img);
 
+#ifdef CONFIG_HASH_VERIFY
 	img = new_image("dummy", payload, sizeof(payload));
 	img->sha256[0] ^= 1;
 	assert_int_not_equal(run_image_handler(img), 0);
 	free_img(img);
+#endif
 }
 
 /*
@@ -292,6 +306,7 @@ static void test_handler_executor(void **state)
 	assert_true(file_equal(path("exec.out"), payload, sizeof(payload)));
 	free_img(img);
 
+#ifdef CONFIG_HASH_VERIFY
 	/* wrong hash: the command gets the data, but the install fails */
 	img = new_image("executor", payload, sizeof(payload));
 	set_prop(img, "cmd", "/bin/sh");
@@ -299,6 +314,7 @@ static void test_handler_executor(void **state)
 	img->sha256[0] ^= 1;
 	assert_int_not_equal(run_image_handler(img), 0);
 	free_img(img);
+#endif
 	unlink(path("exec.out"));
 
 	/* the result of the command */
@@ -338,7 +354,7 @@ static void test_handler_executor(void **state)
 /*
  * readback: verifies the hash of a device after the installation
  */
-#ifdef CONFIG_READBACKHANDLER
+#if defined(CONFIG_READBACKHANDLER) && defined(CONFIG_HASH_VERIFY)
 static void test_handler_readback(void **state)
 {
 	(void)state;
@@ -712,7 +728,7 @@ int main(void)
 #endif
 		cmocka_unit_test(test_handler_dummy),
 		cmocka_unit_test(test_handler_executor),
-#ifdef CONFIG_READBACKHANDLER
+#if defined(CONFIG_READBACKHANDLER) && defined(CONFIG_HASH_VERIFY)
 		cmocka_unit_test(test_handler_readback),
 #endif
 #ifdef CONFIG_SHELLSCRIPTHANDLER

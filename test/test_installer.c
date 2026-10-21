@@ -450,6 +450,7 @@ static void test_installer_errors(void **state)
 	assert_string_equal(calls, "");
 	sw_free();
 
+#ifdef CONFIG_HASH_VERIFY
 	/* the script does not match its hash: it is not left to be executed */
 	sw_init();
 	img = add_script("script.sh", "#!/bin/sh\n");
@@ -458,6 +459,7 @@ static void test_installer_errors(void **state)
 	assert_string_equal(calls, "");
 	assert_false(tmp_exists("scripts/script.sh"));
 	sw_free();
+#endif
 }
 
 static void test_installer_same_location(void **state)
