@@ -1250,8 +1250,10 @@ int main(int argc, char **argv)
 
 	LIST_FOREACH(proc, &swcfg.extprocs, next) {
 		dwlav = splitargs(proc->exec, &dwlac);
-
-		dwlav[dwlac] = NULL;
+		if (!dwlav) {
+			ERROR("No command for process \"%s\", skipped", proc->name);
+			continue;
+		}
 
 		uid_t uid;
 		gid_t gid;

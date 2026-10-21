@@ -17,6 +17,7 @@
 #endif
 #include <errno.h>
 #include <string.h>
+#include <grp.h>
 #include <pthread.h>
 #include <network_ipc.h>
 #include <pctl.h>
@@ -156,7 +157,12 @@ static int spawn_process(struct swupdate_task *task,
 	}
 
 	process_id = fork();
-
+	if (process_id < 0) {
+		ERROR("fork fails : %s", strerror(errno));
+		close(sockfd[0]);
+		close(sockfd[1]);
+		return -1;
+	}
 
 	/*
 	 * We need just one bidirectional pipe
@@ -180,14 +186,23 @@ static int spawn_process(struct swupdate_task *task,
 
 	/* process is running as root, drop privileges */
 	if (getuid() == 0) {
+		/*
+		 * Do not keep the supplementary groups of root
+		 * when running as another user
+		 */
+		if (run_as_userid != 0 && setgroups(1, &run_as_groupid) != 0) {
+			ERROR("setgroups: Unable to drop supplementary groups: %s", strerror(errno));
+			exit(EXIT_FAILURE);
+		}
+
 		if (setgid(run_as_groupid) != 0) {
 			ERROR("setgid: Unable to drop group privileges: %s", strerror(errno));
-			return -1;
+			exit(EXIT_FAILURE);
 		}
 
 		if (setuid(run_as_userid) != 0) {
 			ERROR("setuid: Unable to drop user privileges: %s", strerror(errno));
-			return -1;
+			exit(EXIT_FAILURE);
 		}
 	}
 
@@ -210,16 +225,17 @@ static int spawn_process(struct swupdate_task *task,
 	WARN("Cannot track if parent dies on non-Linux OSes, sorry...");
 #endif
 
+	/*
+	 * The child must never return: it would go on
+	 * running the code of the main process
+	 */
 	if (start)
-		return (*start)(cfgname, ac, av);
-	else {
-		reset_sigpipe();
-		if (execvp(cmdline, av) == -1) {
-			INFO("Spawning process %s failed: %s", av[0], strerror(errno));
-			return -1;
-		}
-		return 0;
-	}
+		exit((*start)(cfgname, ac, av) == 0 ? EXIT_SUCCESS : EXIT_FAILURE);
+
+	reset_sigpipe();
+	execvp(cmdline, av);
+	ERROR("Spawning process %s failed: %s", av[0], strerror(errno));
+	exit(EXIT_FAILURE);
 }
 
 static void start_swupdate_subprocess(sourcetype type, const char *name,
@@ -229,6 +245,11 @@ static void start_swupdate_subprocess(sourcetype type, const char *name,
 			swupdate_process start,
 			const char *cmdline)
 {
+	if (nprocs >= MAX_PROCESSES) {
+		ERROR("Too many processes, %s cannot be started, exiting process...", name);
+		exit(1);
+	}
+
 	procs[nprocs].name = name;
 	procs[nprocs].type = type;
 	if (spawn_process(&procs[nprocs], run_as_userid, run_as_groupid, cfgfile, argc, argv, start, cmdline) < 0) {
@@ -331,22 +352,35 @@ static int __run_cmd(const char *cmd, bgtask *fn, int *fdin)
 	}
 
 	process_id = fork();
-	/* Child process, this runs the shell command */
+	if (process_id < 0) {
+		ERROR("fork fails : %s", strerror(errno));
+		for (i = 0; i < npipes; i++) {
+			close(pipes[i][PIPE_READ]);
+			close(pipes[i][PIPE_WRITE]);
+		}
+		return -EFAULT;
+	}
+
+	/*
+	 * Child process, this runs the shell command.
+	 * It leaves with _exit(): the atexit() handlers
+	 * belong to the main process.
+	 */
 	if (process_id == 0) {
 		if (dup2(pipes[0][PIPE_WRITE], STDOUT_FILENO) < 0)
-			exit(errno);
+			_exit(errno);
 		if (dup2(pipes[1][PIPE_WRITE], STDERR_FILENO) < 0)
-			exit(errno);
+			_exit(errno);
 		if (fdin && (dup2(fdin[0], STDIN_FILENO) < 0))
-			exit(errno);
+			_exit(errno);
 
 		/* posix sh cannot use fd >= 10, so dup these to lower
 		 * numbers for convenience */
 		if (dup2(pipes[2][PIPE_WRITE], 3) < 0)
-			exit(errno);
+			_exit(errno);
 		setenv("SWUPDATE_INFO_FD", "3", 1);
 		if (dup2(pipes[3][PIPE_WRITE], 4) < 0)
-			exit(errno);
+			_exit(errno);
 		setenv("SWUPDATE_WARN_FD", "4", 1);
 
 		/* close all pipes, not used anymore */
@@ -362,14 +396,14 @@ static int __run_cmd(const char *cmd, bgtask *fn, int *fdin)
 
 		if (!execute_function) {
 			reset_sigpipe();
-			ret = execl("/bin/sh", "sh", "-c", cmd, (char *)NULL);
-			if (ret) {
-				ERROR("Process %s cannot be started: %s", cmd, strerror(errno));
-				exit(1);
-			}
+			execl("/bin/sh", "sh", "-c", cmd, (char *)NULL);
+			ERROR("Process %s cannot be started: %s", cmd, strerror(errno));
+			_exit(1);
 		} else {
 			ret = fn->exec(fn->argc, fn->argv);
-			exit(ret);
+			fflush(stdout);
+			fflush(stderr);
+			_exit(ret);
 		}
 	} else {
 		int fds[npipes];
@@ -405,8 +439,8 @@ static int __run_cmd(const char *cmd, bgtask *fn, int *fdin)
 			w = waitpid(process_id, &wstatus, WNOHANG);
 			if (w == -1) {
 				ERROR("Error from waitpid() !!");
-				close(pipes[0][PIPE_READ]);
-				close(pipes[1][PIPE_READ]);
+				for (i = 0; i < npipes; i++)
+					close(pipes[i][PIPE_READ]);
 				return -EFAULT;
 			}
 
@@ -449,6 +483,12 @@ static int __run_cmd(const char *cmd, bgtask *fn, int *fdin)
 					break;
 				case 1:
 					ERROR("%s", buf[i]);
+					break;
+				case 2:
+					INFO("%s", buf[i]);
+					break;
+				case 3:
+					WARN("%s", buf[i]);
 					break;
 				}
 			}
