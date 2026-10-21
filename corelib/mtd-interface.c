@@ -28,31 +28,55 @@ static char mtd_ubi_blacklist[100] = { 0 };
  */
 #define EMPTY_BYTE	0xFF
 
+/*
+ * Return the information about an MTD device, NULL if MTD is not
+ * available, the device does not exist or it was not scanned
+ */
+struct mtd_ubi_info *mtd_get_ubi_info(int mtdnum)
+{
+	struct flash_description *flash = get_flash_info();
+
+	if (!flash->libmtd || !flash->mtd_info)
+		return NULL;
+	if (mtdnum < 0 || mtdnum < flash->mtd.lowest_mtd_num ||
+	    mtdnum > flash->mtd.highest_mtd_num)
+		return NULL;
+	if (!mtd_dev_present(flash->libmtd, mtdnum))
+		return NULL;
+	/* no information could be read from the device */
+	if (!flash->mtd_info[mtdnum].mtd.eb_size ||
+	    !flash->mtd_info[mtdnum].mtd.min_io_size)
+		return NULL;
+
+	return &flash->mtd_info[mtdnum];
+}
+
 int flash_erase_sector(int mtdnum, off_t start, size_t size)
 {
 	int fd;
 	char mtd_device[80];
 	struct mtd_dev_info *mtd;
+	struct mtd_ubi_info *info;
 	int noskipbad = 0;
 	int ret = 0;
-	unsigned int eb, eb_start, i, eb_end, end;
+	unsigned int i;
+	long long eb, eb_start, eb_end, end;
 	uint8_t *buf;
 	struct flash_description *flash = get_flash_info();
 
-	if  (!mtd_dev_present(flash->libmtd, mtdnum)) {
-			ERROR("MTD %d does not exist", mtdnum);
-			return -ENODEV;
+	info = mtd_get_ubi_info(mtdnum);
+	if (!info) {
+		ERROR("MTD %d does not exist", mtdnum);
+		return -ENODEV;
 	}
-	mtd = &flash->mtd_info[mtdnum].mtd;
+	mtd = &info->mtd;
 	snprintf(mtd_device, sizeof(mtd_device), "/dev/mtd%d", mtdnum);
 
-	eb_start = start;
-	size = size ? size : mtd->size;
-	if (!mtd->eb_size)
-		return -EINVAL;
+	if (!size)
+		size = mtd->size;
 
-	end = start + size;
-	eb_start /= mtd->eb_size;
+	end = (long long)start + size;
+	eb_start = start / mtd->eb_size;
 	eb_end = end / mtd->eb_size;
 	if (end % mtd->eb_size)
 		eb_end++;
@@ -98,8 +122,9 @@ int flash_erase_sector(int mtdnum, off_t start, size_t size)
 		if (mtd_is_locked(mtd, fd, eb) > 0) {
 			if (mtd_unlock(mtd, fd, eb) != 0) {
 				if (errno != EOPNOTSUPP) {
-					TRACE("%s: MTD unlock failure", mtd_device);
-					continue;
+					ERROR("%s: MTD unlock failure", mtd_device);
+					ret = -EIO;
+					goto erase_out;
 				}
 			}
 		}
@@ -154,6 +179,10 @@ int flash_erase(int mtdnum)
 void mtd_init(void)
 {
 	struct flash_description *flash = get_flash_info();
+
+	/* called again for each update, do not leak the previous handle */
+	if (flash->libmtd)
+		libmtd_close(flash->libmtd);
 	flash->libmtd = libmtd_open();
 	if (flash->libmtd == NULL) {
 		if (errno == 0)
@@ -207,6 +236,9 @@ int get_mtd_from_name(const char *s)
 	struct mtd_dev_info *info;
 	int i;
 
+	if (!flash->mtd_info || flash->mtd.lowest_mtd_num < 0)
+		return -1;
+
 	for (i = flash->mtd.lowest_mtd_num;
 	     i <= flash->mtd.highest_mtd_num; i++) {
 		info = &flash->mtd_info[i].mtd;
@@ -236,6 +268,12 @@ void ubi_init(void)
 	struct flash_description *nand = get_flash_info();
 	int err;
 	libubi_t libubi;
+
+	/* called again for each update, do not leak the previous handle */
+	if (nand->libubi) {
+		libubi_close(nand->libubi);
+		nand->libubi = NULL;
+	}
 
 	libubi = libubi_open();
 	if (!libubi) {
@@ -333,9 +371,10 @@ static void scan_for_ubi_devices(void)
 			continue;
 		}
 		mtd = dev_info.mtd_num;
-		mtd_info = &flash->mtd_info[mtd];
-		if (mtd < 0 || flash->mtd_info[mtd].skipubi)
+		if (mtd < flash->mtd.lowest_mtd_num || mtd > flash->mtd.highest_mtd_num ||
+		    flash->mtd_info[mtd].skipubi)
 			continue;
+		mtd_info = &flash->mtd_info[mtd];
 		memcpy(&mtd_info->dev_info, &dev_info, sizeof(struct ubi_dev_info));
 
 		scan_ubi_volumes(mtd_info);
@@ -463,21 +502,18 @@ int scan_mtd_devices (void)
 			break;
 		}
 
-		token = strtok_r(list, " ", &saveptr);
-		if (token) {
-			errno = 0;
-			index = strtoul(token, NULL, 10);
-			if (errno == 0) {
-				ubi_insert_list(index, flash, black);
+		for (token = strtok_r(list, " ", &saveptr); token;
+		     token = strtok_r(NULL, " ", &saveptr)) {
+			char *end;
 
-				while ((token = strtok_r(NULL, " ", &saveptr))) {
-					errno = 0;
-					index = strtoul(token, NULL, 10);
-					if (errno != 0)
-						break;
-					ubi_insert_list(index, flash, black);
-				}
+			errno = 0;
+			index = strtoul(token, &end, 10);
+			if (errno || end == token || *end != '\0') {
+				WARN("Invalid MTD number \"%s\" in UBI %s list, ignored",
+				     token, black ? "black" : "white");
+				continue;
 			}
+			ubi_insert_list(index, flash, black);
 		}
 	}
 

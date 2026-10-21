@@ -172,7 +172,6 @@ static int ssbl_swap(struct img_type *img, void *data)
 	struct proplist *entry;
 	int iter, ret;
 	int fd;
-	struct flash_description *flash = get_flash_info();
 	char mtd_device[80];
 
 	if (!data)
@@ -208,8 +207,7 @@ static int ssbl_swap(struct img_type *img, void *data)
 		/* Allow device to be specified by name OR number */
 			pssbl->mtdnum = get_mtd_from_name(pssbl->device);
 		}
-		if (pssbl->mtdnum < 0 || !mtd_dev_present(flash->libmtd,
-							  pssbl->mtdnum)) {
+		if (!mtd_get_ubi_info(pssbl->mtdnum)) {
 			ERROR("%s does not exist: partitioning not possible",
 			pssbl->device);
 			return -ENODEV;

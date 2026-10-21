@@ -42,6 +42,9 @@ static struct ubi_part *search_volume_global(const char *str)
 	struct ubi_part *ubivol;
 	int i;
 
+	if (!flash->mtd_info || mtd_info->lowest_mtd_num < 0)
+		return NULL;
+
 	for (i = mtd_info->lowest_mtd_num; i <= mtd_info->highest_mtd_num; i++) {
 		mtd_ubi_info = &flash->mtd_info[i];
 		ubivol = search_volume(str, &mtd_ubi_info->ubi_partitions);
@@ -54,7 +57,6 @@ static struct ubi_part *search_volume_global(const char *str)
 /* search for a UBI volume by name on a specified MTD partition */
 static struct ubi_part *search_volume_local(char *device, const char *volname)
 {
-	struct flash_description *flash = get_flash_info();
 	int mtdnum;
 	struct mtd_ubi_info *mtd_ubi_info;
 
@@ -62,11 +64,11 @@ static struct ubi_part *search_volume_local(char *device, const char *volname)
 	if (mtdnum < 0) {
 		mtdnum = get_mtd_from_name(device);
 	}
-	if (mtdnum < 0 || !mtd_dev_present(flash->libmtd, mtdnum)) {
+	mtd_ubi_info = mtd_get_ubi_info(mtdnum);
+	if (!mtd_ubi_info) {
 		ERROR("%s does not exist", device);
 		return NULL;
 	}
-	mtd_ubi_info = &flash->mtd_info[mtdnum];
 
 	return search_volume(volname, &mtd_ubi_info->ubi_partitions);
 }
@@ -313,7 +315,6 @@ static int resize_volume(struct img_type *cfg, long long size)
 	int req_vol_id = UBI_VOL_NUM_AUTO;
 	char node[64];
 	int err;
-	struct flash_description *flash = get_flash_info();
 
 	/* determine the requested volume type */
 	if (!strcmp(cfg->type_data, "static"))
@@ -330,13 +331,12 @@ static int resize_volume(struct img_type *cfg, long long size)
 		/* Allow device to be specified by name OR number */
 		mtdnum = get_mtd_from_name(cfg->device);
 	}
-	if (mtdnum < 0 || !mtd_dev_present(flash->libmtd, mtdnum)) {
+	mtd_info = mtd_get_ubi_info(mtdnum);
+	if (!mtd_info) {
 		ERROR("%s does not exist: partitioning not possible",
 			cfg->device);
 		return -ENODEV;
 	}
-
-	mtd_info = &nandubi->mtd_info[mtdnum];
 
 	/*
 	 * Search for volume with the same name

@@ -49,6 +49,7 @@ void mtd_set_ubiblacklist(char *mtdlist);
 void ubi_init(void);
 int scan_mtd_devices (void);
 void mtd_cleanup (void);
+struct mtd_ubi_info *mtd_get_ubi_info(int mtdnum);
 int get_mtd_from_device(char *s);
 int get_mtd_from_name(const char *s);
 long long get_mtd_size(int mtdnum);

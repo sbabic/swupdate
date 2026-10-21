@@ -533,7 +533,13 @@ static int flash_write_image(int mtdnum, struct img_type *img)
 	int ret;
 	long long data_len;
 	struct flash_description *flash = get_flash_info();
-	priv.mtd = &flash->mtd_info[mtdnum].mtd;
+	struct mtd_ubi_info *info = mtd_get_ubi_info(mtdnum);
+
+	if (!info) {
+		ERROR("MTD %d does not exist", mtdnum);
+		return -ENODEV;
+	}
+	priv.mtd = &info->mtd;
 	assert((priv.mtd->eb_size % priv.mtd->min_io_size) == 0);
 	priv.libmtd = flash->libmtd;
 	priv.is_nand = isNand(flash, mtdnum);
@@ -558,11 +564,6 @@ static int flash_write_image(int mtdnum, struct img_type *img)
 	if (priv.write_oob) {
 		int pages_per_eb = priv.mtd->eb_size / priv.mtd->min_io_size;
 		priv.filebuf_size = pages_per_eb * priv.page_len;
-	}
-
-	if (!mtd_dev_present(flash->libmtd, mtdnum)) {
-		ERROR("MTD %d does not exist", mtdnum);
-		return -ENODEV;
 	}
 
 	priv.imglen = get_output_size(img, true);
