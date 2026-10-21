@@ -246,18 +246,18 @@ static int add_crl_to_store(X509_STORE *castore, const char *crl_file,
 	return 1;
 }
 
-static inline int next_common_name(X509_NAME *subject, int i)
+static inline int next_common_name(const X509_NAME *subject, int i)
 {
 	return X509_NAME_get_index_by_NID(subject, NID_commonName, i);
 }
 
-static int check_common_name(X509_NAME *subject, const char *name)
+static int check_common_name(const X509_NAME *subject, const char *name)
 {
 	int i = -1, ret = 1;
 
 	while ((i = next_common_name(subject, i)) > -1) {
-		X509_NAME_ENTRY *e = X509_NAME_get_entry(subject, i);
-		ASN1_STRING *d = X509_NAME_ENTRY_get_data(e);
+		const X509_NAME_ENTRY *e = X509_NAME_get_entry(subject, i);
+		const ASN1_STRING *d = X509_NAME_ENTRY_get_data(e);
 		unsigned char *cn = NULL;
 		size_t len = strlen(name);
 		bool matches = (ASN1_STRING_to_UTF8(&cn, d) == (int)len)

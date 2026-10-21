@@ -64,7 +64,7 @@ static void *openssl_CMS_DECRYPT_init(unsigned char *key,
 		goto err;
 	}
 	dgst->pkey = pkey;
-	BIO_reset(tbio);
+	(void)BIO_reset(tbio);
 
 	/*
 	 * Cert is optional, but helps OpenSSL find the right key faster in
