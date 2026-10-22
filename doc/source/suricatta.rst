@@ -703,6 +703,11 @@ body content type and whether to parse it or not:
 * ``JSON`` means the server's JSON reply is parsed into a Lua table and available
   as ``json_reply``.
 
+  JSON integers are Lua integers with Lua 5.3 and later, with the full 64-bit
+  range. Lua 5.1, 5.2 and LuaJIT have no integer type: there, JSON integers are
+  Lua numbers (doubles), exact up to 2^53. A larger value is rounded, and a
+  warning is printed.
+
 
 The ``suricatta.channel.method`` "enum" table defines the HTTP method to use for
 a request issued with the ``put(options)`` function, i.e., `POST`, `PATCH`, or `PUT` as

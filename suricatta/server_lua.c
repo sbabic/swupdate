@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
+#include <inttypes.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <pthread.h>
@@ -311,9 +312,23 @@ static int json_push_to_table(lua_State *L, json_object *jsobj)
 	case json_type_double:
 		lua_pushnumber(L, json_object_get_double(jsobj));
 		break;
-	case json_type_int:
-		lua_pushinteger(L, json_object_get_int(jsobj));
+	case json_type_int: {
+		int64_t value = json_object_get_int64(jsobj);
+#if !defined(LUA_VERSION_NUM) || LUA_VERSION_NUM < 503
+		/*
+		 * Lua < 5.3 has no integer type, numbers are doubles and exact
+		 * up to 2^53. Its lua_Integer is ptrdiff_t, 32 bit on 32-bit
+		 * targets, and would truncate a 64-bit value.
+		 */
+		if (value > (1LL << 53) || value < -(1LL << 53))
+			WARN("JSON integer %" PRId64 " is rounded: Lua < 5.3 holds integers"
+			     " exactly up to 2^53 only", value);
+		lua_pushnumber(L, (lua_Number)value);
+#else
+		lua_pushinteger(L, value);
+#endif
 		break;
+	}
 	case json_type_null:
 		/* Lua has no notion of 'null', mimic it by an empty Table. */
 		lua_createtable(L, 0, 0);

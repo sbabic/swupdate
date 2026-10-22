@@ -181,7 +181,7 @@ suricatta.server.register = function(function_p, purpose) end
 --- @class suricatta.channel_operation_result
 --- @field http_response_code  number | nil
 --- @field format              suricatta.channel.content | nil
---- @field json_reply          table | nil   Table if `format` was `suricatta.channel.content.JSON`
+--- @field json_reply          table | nil   Table if `format` was `suricatta.channel.content.JSON`; JSON integers are 64-bit integers with Lua >= 5.3, numbers exact up to 2^53 before
 --- @field raw_reply           string | nil  String if `format` was `suricatta.channel.content.RAW`
 --- @field received_headers    table<string, string> | nil
 
