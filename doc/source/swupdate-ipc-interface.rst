@@ -135,7 +135,7 @@ This fills the request structure with default values. After that, the user can f
 other fields as:
 
         - *sourcetype* : one of SOURCE_UNKNOWN, SOURCE_WEBSERVER,
-	  SOURCE_SURICATTA, SOURCE_DOWNLOADER, SOURCE_LOCAL
+	  SOURCE_SURICATTA, SOURCE_DOWNLOADER, SOURCE_LOCAL, SOURCE_CHUNKS_DOWNLOADER
         - *dry_run* : one of RUN_DEFAULT (set from command line), RUN_DRYRUN, RUN_INSTALL.
         - *info, len* : a variable length data that can be forwarded to the progress
           interface. The installer in SWUpdate does not evaluate it.
@@ -357,7 +357,10 @@ This event is sent when the internal SWUpdate status change. Following status ar
         RUN
         SUCCESS
         FAILURE
+        DOWNLOAD
         DONE
+        SUBPROCESS
+        PROGRESS
 
 
 Example:
@@ -390,6 +393,7 @@ The field `source` can have one of the following values:
         SURICATTA
         DOWNLOADER
         LOCAL
+        CHUNKS_DOWNLOADER
 
 Info Event
 ------------
