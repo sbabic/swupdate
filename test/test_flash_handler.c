@@ -97,7 +97,7 @@ void *__wrap_malloc(size_t size)
 	return impl_malloc(size);
 }
 
-int __real_open(const char *pathname, int flags);
+int __real_open(const char *pathname, int flags, ...);
 static int default_open(const char *pathname, int flags)
 {
 	int ret;
