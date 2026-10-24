@@ -442,4 +442,35 @@ suricatta.ipc.progress_cause = {
 --- @field json      table                       If `msg` is JSON, JSON as Lua Table
 
 
+--- SWUpdate variables, stored by libubootenv.
+--
+-- Variables live in a namespace of the libubootenv configuration
+-- (`fwenv-config-location`), by default the one set as `namespace-vars`.
+--
+--- @class suricatta.vars
+suricatta.vars = {}
+
+--- Get a variable.
+--
+--- @param  name       string        Name of the variable
+--- @param  namespace  string | nil  Namespace, default `namespace-vars`
+--- @return string | nil             # Value, nil if not set or on error
+suricatta.vars.get = function(name, namespace) end
+
+--- Set a variable.
+--
+--- @param  name       string        Name of the variable
+--- @param  value      string        Value of the variable
+--- @param  namespace  string | nil  Namespace, default `namespace-vars`
+--- @return boolean | nil            # True on success, nil on error
+suricatta.vars.set = function(name, value, namespace) end
+
+--- Drop a variable.
+--
+--- @param  name       string        Name of the variable
+--- @param  namespace  string | nil  Namespace, default `namespace-vars`
+--- @return boolean | nil            # True on success, nil on error
+suricatta.vars.unset = function(name, namespace) end
+
+
 return suricatta

@@ -33,6 +33,7 @@
 #include <bootloader.h>
 #include <swupdate_settings.h>
 #include <swupdate_dict.h>
+#include <swupdate_vars.h>
 #include "server_utils.h"
 #include "suricatta/server.h"
 #ifdef CONFIG_MENDER_ARTIFACT
@@ -1730,6 +1731,61 @@ static int lua_bootloader_env_unset(lua_State *L)
 }
 
 /**
+ * @brief Get a SWUpdate variable.
+ *
+ * SWUpdate variables are stored by libubootenv, in a namespace of its
+ * configuration (see "namespace-vars" and "fwenv-config-location").
+ *
+ * @param  [Lua] Name of the variable.
+ * @param  [Lua] Namespace (optional, default: "namespace-vars").
+ * @return [Lua] Value of the variable, or nil if not set or on error.
+ */
+static int lua_vars_get(lua_State *L)
+{
+	char *value = swupdate_vars_get(luaL_checkstring(L, 1), luaL_optstring(L, 2, NULL));
+
+	if (value) {
+		lua_pushstring(L, value);
+		free(value);
+	} else {
+		lua_pushnil(L);
+	}
+	return 1;
+}
+
+/**
+ * @brief Set a SWUpdate variable.
+ *
+ * @param  [Lua] Name of the variable.
+ * @param  [Lua] Value of the variable.
+ * @param  [Lua] Namespace (optional, default: "namespace-vars").
+ * @return [Lua] True, or, in case of error, nil.
+ */
+static int lua_vars_set(lua_State *L)
+{
+	swupdate_vars_set(luaL_checkstring(L, 1), luaL_checkstring(L, 2),
+			  luaL_optstring(L, 3, NULL)) == 0
+		? lua_pushboolean(L, true)
+		: lua_pushnil(L);
+	return 1;
+}
+
+/**
+ * @brief Drop a SWUpdate variable.
+ *
+ * @param  [Lua] Name of the variable.
+ * @param  [Lua] Namespace (optional, default: "namespace-vars").
+ * @return [Lua] True, or, in case of error, nil.
+ */
+static int lua_vars_unset(lua_State *L)
+{
+	swupdate_vars_unset(luaL_checkstring(L, 1), luaL_optstring(L, 2, NULL)) == 0
+		? lua_pushboolean(L, true)
+		: lua_pushnil(L);
+	return 1;
+}
+
+/**
  * @brief Set multiple bootloader environment variables from local file.
  *
  * @param  [Lua] Path to local file in format `<variable>=<value>`.
@@ -1853,6 +1909,17 @@ static int suricatta_lua_module(lua_State *L)
 	lua_newtable(L);
 	luaL_setfuncs(L, lua_funcs_bootloader_env, 0);
 	lua_settable(L, -3);
+	lua_settable(L, -3);
+
+	luaL_Reg lua_funcs_vars[] = {
+		{ "get",   lua_vars_get   },
+		{ "set",   lua_vars_set   },
+		{ "unset", lua_vars_unset },
+		{ NULL, NULL }
+	};
+	lua_pushstring(L, "vars");
+	lua_newtable(L);
+	luaL_setfuncs(L, lua_funcs_vars, 0);
 	lua_settable(L, -3);
 
 	lua_pushstring(L, "ipc");
