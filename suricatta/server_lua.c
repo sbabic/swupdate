@@ -35,6 +35,9 @@
 #include <swupdate_dict.h>
 #include "server_utils.h"
 #include "suricatta/server.h"
+#ifdef CONFIG_MENDER_ARTIFACT
+#include <mender_artifact.h>
+#endif
 
 
 #if defined(CONFIG_EMBEDDED_SURICATTA_LUA)
@@ -147,6 +150,10 @@ typedef struct {
 	bool drain_progress_msgq;
 	int lua_check_cancel_func;
 	int fdout;
+#ifdef CONFIG_MENDER_ARTIFACT
+	struct mender_artifact *unwrap;	/* unwraps the download, if set */
+	int ipcfd;			/* installer stream for the unwrapped payload */
+#endif
 } callback_data_t;
 
 
@@ -877,6 +884,20 @@ static size_t check_cancel_callback(char *streamdata, size_t size, size_t nmemb,
 		}
 	}
 
+#ifdef CONFIG_MENDER_ARTIFACT
+	if (callback_data->unwrap) {
+		/* An error page is no artifact, the channel reports the HTTP error. */
+		if (channel_data->http_response_code >= 400) {
+			return size * nmemb;
+		}
+		if (mender_artifact_feed(callback_data->unwrap, streamdata,
+					 size * nmemb) != 0) {
+			return 0;
+		}
+		return size * nmemb;
+	}
+#endif
+
 	if (callback_data->fdout != -1) {
 		if (copy_write(&callback_data->fdout, streamdata, size * nmemb) != 0) {
 			return 0;
@@ -885,6 +906,118 @@ static size_t check_cancel_callback(char *streamdata, size_t size, size_t nmemb,
 
 	return size * nmemb;
 }
+
+
+#ifdef CONFIG_MENDER_ARTIFACT
+/**
+ * @brief Write the payload of an unwrapped artifact to its destination.
+ *
+ * The destination is the file of suricatta.download(), or the installer
+ * for suricatta.install().
+ */
+static int unwrap_payload_callback(void *priv, const void *buf, size_t len)
+{
+	callback_data_t *callback_data = (callback_data_t *)priv;
+
+	if (callback_data->fdout != -1) {
+		return copy_write(&callback_data->fdout, buf, len) != 0 ? -EIO : 0;
+	}
+	if (ipc_send_data(callback_data->ipcfd, (char *)buf, (int)len) < 0) {
+		ERROR("Writing into SWUpdate IPC stream failed.");
+		return -EIO;
+	}
+	return 0;
+}
+
+
+/**
+ * @brief Set up unwrapping of the download, if requested.
+ *
+ * The operation Table on stack top may have the field
+ *   unwrap = { format = "mender", payload_type = "swu", device_type = "..." }
+ * payload_type defaults to "swu", device_type is not checked if not given.
+ *
+ * @return 0 if not requested, 1 if set up, -1 on error.
+ */
+static int unwrap_setup(lua_State *L, callback_data_t *callback_data)
+{
+	struct mender_artifact_cfg cfg = {
+		.payload_type = "swu",
+		.payload = unwrap_payload_callback,
+		.priv = callback_data,
+	};
+	const char *format;
+	int ret = -1;
+
+	lua_getfield(L, -1, "unwrap");
+	if (lua_isnil(L, -1)) {
+		lua_pop(L, 1);
+		return 0;
+	}
+	if (!lua_istable(L, -1)) {
+		ERROR("Field 'unwrap' must be a Table.");
+		goto out;
+	}
+	lua_getfield(L, -1, "format");
+	format = lua_tostring(L, -1);
+	if (!format || strcmp(format, "mender") != 0) {
+		ERROR("Unknown unwrap format '%s'.", format ? format : "");
+		lua_pop(L, 1);
+		goto out;
+	}
+	lua_pop(L, 1);
+	lua_getfield(L, -1, "payload_type");
+	if (lua_type(L, -1) == LUA_TSTRING) {
+		cfg.payload_type = lua_tostring(L, -1);
+	}
+	lua_getfield(L, -2, "device_type");
+	if (lua_type(L, -1) == LUA_TSTRING) {
+		cfg.device_type = lua_tostring(L, -1);
+	}
+	/* The strings are copied. */
+	callback_data->unwrap = mender_artifact_new(&cfg);
+	lua_pop(L, 2);
+	if (!callback_data->unwrap) {
+		ERROR("Cannot set up the Mender Artifact unwrapper.");
+		goto out;
+	}
+	ret = 1;
+out:
+	lua_pop(L, 1);
+	return ret;
+}
+
+
+/**
+ * @brief Open the installer stream for the unwrapped payload.
+ *
+ * Done here as the channel cannot send the download as it is.
+ */
+static int unwrap_ipc_start(channel_data_t *channel_data)
+{
+	struct swupdate_request req;
+	int fd = -1;
+
+	swupdate_prepare_req(&req);
+	req.dry_run = channel_data->dry_run;
+	req.source = channel_data->source;
+	if (channel_data->info) {
+		strncpy(req.info, channel_data->info, sizeof(req.info) - 1);
+		req.len = strlen(req.info);
+	}
+	for (int retries = 3; retries >= 0; retries--) {
+		fd = ipc_inst_start_ext(&req, sizeof(req));
+		if (fd > 0) {
+			break;
+		}
+		sleep(1);
+	}
+	if (fd < 0) {
+		ERROR("Cannot open SWUpdate IPC stream: %s", strerror(errno));
+	}
+	return fd;
+}
+#endif
 
 
 /**
@@ -1104,7 +1237,13 @@ static void join_progress_threads(pthread_t *thread, const char *thread_name)
 static void do_install(lua_State *L, int fdout)
 {
 	__attribute__((cleanup(channel_free_options))) channel_data_t channel_data = { 0 };
-	callback_data_t callback_data = { .L = L, .fdout = fdout };
+	callback_data_t callback_data = {
+		.L = L,
+		.fdout = fdout,
+#ifdef CONFIG_MENDER_ARTIFACT
+		.ipcfd = -1,
+#endif
+	};
 
 	lua_getfield(L, -1, "channel");
 	if (!lua_istable(L, -1) || (lua_getmetatable(L, -1) == 0)) {
@@ -1133,10 +1272,28 @@ static void do_install(lua_State *L, int fdout)
 	lua_pop(L, 3);
 	channel_set_options(L, &channel_data);
 	get_from_table(L, "drain_messages", callback_data.drain_progress_msgq);
+#ifdef CONFIG_MENDER_ARTIFACT
+	if (unwrap_setup(L, &callback_data) < 0) {
+		lua_pop(L, 1);
+		goto error;
+	}
+#endif
 	lua_pop(L, 1);
 
 	channel_data.noipc = fdout == -1 ? false : true;
 	channel_data.user = (void *)&callback_data;
+#ifdef CONFIG_MENDER_ARTIFACT
+	if (callback_data.unwrap) {
+		/* Only the payload goes to the installer, sent from here. */
+		channel_data.noipc = true;
+		if (fdout == -1) {
+			callback_data.ipcfd = unwrap_ipc_start(&channel_data);
+			if (callback_data.ipcfd < 0) {
+				goto error;
+			}
+		}
+	}
+#endif
 
 	/* Global Lua state lock to synchronize the Lua callbacks functions. */
 	pthread_mutex_t _lua_lock;
@@ -1203,6 +1360,23 @@ static void do_install(lua_State *L, int fdout)
 	/* Perform the operation.... */
 	server_op_res_t result = map_channel_retcode(
 	    udc->channel->get_file(udc->channel, (void *)&channel_data));
+#ifdef CONFIG_MENDER_ARTIFACT
+	if (callback_data.unwrap) {
+		/*
+		 * The end of the payload is sent only if the whole artifact
+		 * is valid, else the installer gets a truncated SWU and fails.
+		 */
+		if (result == SERVER_OK &&
+		    mender_artifact_finish(callback_data.unwrap) != 0) {
+			ERROR("Invalid Mender Artifact, update discarded.");
+			result = SERVER_EERR;
+		}
+		if (callback_data.ipcfd >= 0) {
+			(void)close(callback_data.ipcfd);
+			callback_data.ipcfd = -1;
+		}
+	}
+#endif
 	RECOVERY_STATUS iresult = (RECOVERY_STATUS)ipc_wait_for_complete(
 	    ipc_wait_for_complete_cb);
 
@@ -1238,6 +1412,11 @@ static void do_install(lua_State *L, int fdout)
 
 	lua_newtable(L);
 	push_to_table(L, "http_response_code", channel_data.http_response_code);
+#ifdef CONFIG_MENDER_ARTIFACT
+	if (callback_data.unwrap && mender_artifact_name(callback_data.unwrap)) {
+		push_to_table(L, "artifact_name", mender_artifact_name(callback_data.unwrap));
+	}
+#endif
 	lua_pushstring(L, "received_headers");
 	lua_newtable(L);
 	if (!LIST_EMPTY(channel_data.received_headers)) {
@@ -1258,6 +1437,12 @@ error:
 	lua_newtable(L);
 	lua_newtable(L);
 done:
+#ifdef CONFIG_MENDER_ARTIFACT
+	if (callback_data.ipcfd >= 0) {
+		(void)close(callback_data.ipcfd);
+	}
+	mender_artifact_free(callback_data.unwrap);
+#endif
 	if (callback_data.progress_msgq_cond) {
 		if (pthread_cond_destroy(callback_data.progress_msgq_cond) != 0) {
 			ERROR("Condition deallocation for progress message queue failed!");

@@ -275,7 +275,18 @@ suricatta.channel = {
 --- @class suricatta.operation_channel
 --- @field channel          suricatta.open_channel           Channel table as returned by `suricatta.channel.open()`
 --- @field drain_messages   boolean  | nil                   Whether to flush all progress messages or only those while in-flight operation (default)
+--- @field unwrap           suricatta.unwrap | nil           Take the payload out of a container while downloading (`CONFIG_MENDER_ARTIFACT`)
 --- @field ∈                suricatta.channel.options | nil  Channel options to override for this operation
+
+--- Unwrapping of a container while it is downloaded.
+--
+-- The download is a container, only its payload (the SWU) is installed or stored.
+-- The end of the payload is passed on only if the whole container is valid.
+--
+--- @class suricatta.unwrap
+--- @field format        string        Container format, "mender" for a Mender Artifact (version 3)
+--- @field payload_type  string | nil  Required payload type, default "swu"
+--- @field device_type   string | nil  Device type that must be in the artifact's `artifact_depends`
 
 --- Channel HTTP response table.
 --
@@ -284,6 +295,7 @@ suricatta.channel = {
 --- @class suricatta.channel_operation_response
 --- @field http_response_code  number | nil
 --- @field received_headers    table<string, string> | nil
+--- @field artifact_name       string | nil  Name of an unwrapped Mender Artifact
 
 
 --- Install an update artifact from remote server or local file.
