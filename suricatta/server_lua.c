@@ -39,6 +39,9 @@
 #ifdef CONFIG_MENDER_ARTIFACT
 #include <mender_artifact.h>
 #endif
+#ifdef CONFIG_SSL_IMPL_OPENSSL
+void suricatta_lua_crypto_register(lua_State *L);
+#endif
 
 
 #if defined(CONFIG_EMBEDDED_SURICATTA_LUA)
@@ -2033,6 +2036,10 @@ static int suricatta_lua_module(lua_State *L)
 	lua_newtable(L);
 	luaL_setfuncs(L, lua_funcs_notify, 0);
 	lua_settable(L, -3);
+
+#ifdef CONFIG_SSL_IMPL_OPENSSL
+	suricatta_lua_crypto_register(L);
+#endif
 
 	return 1;
 }

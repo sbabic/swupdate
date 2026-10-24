@@ -7,6 +7,9 @@ obj-$(CONFIG_SURICATTA) += server_hawkbit.o
 endif
 ifneq ($(CONFIG_SURICATTA_LUA),)
 obj-$(CONFIG_SURICATTA) += server_lua.o
+ifneq ($(CONFIG_SSL_IMPL_OPENSSL),)
+obj-$(CONFIG_SURICATTA) += server_lua_crypto.o
+endif
 endif
 ifneq ($(CONFIG_SURICATTA_GENERAL),)
 obj-$(CONFIG_SURICATTA_GENERAL) += server_general.o

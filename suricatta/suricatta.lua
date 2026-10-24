@@ -473,4 +473,40 @@ suricatta.vars.set = function(name, value, namespace) end
 suricatta.vars.unset = function(name, namespace) end
 
 
+--- Keys and signatures, if SWUpdate is built with OpenSSL.
+--
+-- For servers that authenticate a device by a signed request.
+-- Key types are "rsa", "ec" (P-256) and "ed25519".
+--
+--- @class suricatta.crypto
+suricatta.crypto = {}
+
+--- Generate a private key and store it in PEM format with mode 0600.
+--
+--- @param  path  string        Key file
+--- @param  type  string        "rsa", "ec" or "ed25519"
+--- @param  bits  number | nil  RSA key size, default 3072
+--- @return boolean | nil       # True on success, nil on error
+--- @return string | nil        # Error message
+suricatta.crypto.genkey = function(path, type, bits) end
+
+--- Get the public key of a private key file.
+--
+--- @param  path  string   Key file
+--- @return string | nil   # Public key in PEM format, nil on error
+--- @return string | nil   # Error message
+suricatta.crypto.pubkey = function(path) end
+
+--- Sign data with a private key.
+--
+-- RSA (PKCS#1 v1.5) and ECDSA (ASN.1) sign the SHA-256 digest of `data`,
+-- Ed25519 signs `data`.
+--
+--- @param  path  string   Key file
+--- @param  data  string   Data to sign
+--- @return string | nil   # Base64 encoded signature, nil on error
+--- @return string | nil   # Error message
+suricatta.crypto.sign = function(path, data) end
+
+
 return suricatta
