@@ -465,6 +465,22 @@ config LZ4
 	bool "LZ4 compression support"
 	depends on HAVE_LZ4
 
+comment "Formats"
+
+config MENDER_ARTIFACT
+	bool "Mender Artifact support"
+	depends on HASH_VERIFY
+	help
+	  Unwrap a Mender Artifact (format version 3) while it is
+	  streamed, and pass the payload file (the SWU) on. Needed to
+	  get updates from a Mender server. The checksums from the
+	  manifest are verified; manifest.sig is not, the SWU carries
+	  its own signature. A compressed header or payload needs the
+	  matching compressor above.
+
+comment "Mender Artifact support needs hash verification"
+	depends on !HASH_VERIFY
+
 comment "Parsers"
 source "parser/Kconfig"
 

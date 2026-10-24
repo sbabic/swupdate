@@ -31,6 +31,7 @@ endif
 tests-$(CONFIG_SURICATTA_HAWKBIT) += test_json
 tests-$(CONFIG_SURICATTA_HAWKBIT) += test_server_hawkbit
 tests-$(CONFIG_MONGOOSE) += test_mongoose_upload
+tests-$(CONFIG_MENDER_ARTIFACT) += test_mender_artifact
 tests-y += test_util
 tests-y += test_parser
 tests-y += test_cpio_utils
