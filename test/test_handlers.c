@@ -633,6 +633,8 @@ static void test_handler_archive(void **state)
 	char target[64];
 	ssize_t l;
 
+	/* a handler waiting for its extracting thread must not hang the test */
+	alarm(60);
 	mkdir(path("extract"), 0755);
 	assert_int_equal(extract_tar(ok, ARRAY_SIZE(ok), path("extract"), NULL, NULL), 0);
 	assert_true(file_equal(path("extract/dir/file"), "content", 7));
@@ -657,6 +659,30 @@ static void test_handler_archive(void **state)
 	unlink(path("extract/dir/file"));
 	rmdir(path("extract/dir"));
 	rmdir(path("extract"));
+	alarm(0);
+}
+
+/*
+ * The extracting thread stops at once on data that is not an archive,
+ * while the handler still writes more than a pipe holds: the handler
+ * fails, it neither waits nor is killed.
+ */
+static void test_handler_archive_invalid(void **state)
+{
+	(void)state;
+	static unsigned char junk[256 * 1024];
+	struct img_type *img;
+
+	for (size_t i = 0; i < sizeof(junk); i++)
+		junk[i] = (unsigned char)(i * 7 + 3);
+	alarm(60);
+	mkdir(path("extract"), 0755);
+	img = new_image("archive", junk, sizeof(junk));
+	strlcpy(img->path, path("extract"), sizeof(img->path));
+	assert_int_not_equal(run_image_handler(img), 0);
+	free_img(img);
+	rmdir(path("extract"));
+	alarm(0);
 }
 
 static void test_handler_archive_outside(void **state)
@@ -671,6 +697,7 @@ static void test_handler_archive_outside(void **state)
 		{ "out/escaped", "escaped", NULL },
 	};
 
+	alarm(60);
 	mkdir(path("extract"), 0755);
 	mkdir(path("outside"), 0755);
 	snprintf(abs, sizeof(abs), "%s", path("outside/escaped"));
@@ -696,6 +723,7 @@ static void test_handler_archive_outside(void **state)
 	unlink(path("extract/out"));
 	rmdir(path("extract"));
 	rmdir(path("outside"));
+	alarm(0);
 }
 #endif
 
@@ -704,7 +732,7 @@ static int handlers_group_setup(void **state)
 	(void)state;
 	if (!mkdtemp(tmpdir))
 		return -1;
-	/* the archive handler uses a FIFO in TMPDIR */
+	/* keep what the handlers write in TMPDIR (scripts) in the test directory */
 	setenv("TMPDIR", tmpdir, 1);
 	if (mkdir(path("scripts"), 0700))
 		return -1;
@@ -741,6 +769,7 @@ int main(void)
 #ifdef CONFIG_ARCHIVE
 		cmocka_unit_test(test_handler_archive),
 		cmocka_unit_test(test_handler_archive_outside),
+		cmocka_unit_test(test_handler_archive_invalid),
 #endif
 	};
 	return cmocka_run_group_tests_name("handlers", tests, handlers_group_setup,

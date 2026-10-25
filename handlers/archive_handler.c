@@ -24,7 +24,6 @@
 #include "handler.h"
 #include "util.h"
 
-#define FIFO_FILE_NAME "archivfifo"
 
 /* Just to turn on during development */
 static int debug = 0;
@@ -36,6 +35,7 @@ pthread_t extract_thread;
 
 struct extract_data {
 	int flags;
+	int fd;		/* read end of the pipe, closed by the thread */
 	int exitval;
 };
 
@@ -92,7 +92,6 @@ extract(void *p)
 	struct extract_data *data = (struct extract_data *)p;
 	flags = data->flags;
 	int exitval = -EFAULT;
-	char *FIFO = NULL;
 
 #ifdef CONFIG_LOCALE
 	/*
@@ -139,15 +138,8 @@ extract(void *p)
 	 * Enabling bzip2 is more expensive because the libbz2 library
 	 * isn't very well factored.
 	 */
-	if  (asprintf(&FIFO, "%s%s", get_tmpdir(), FIFO_FILE_NAME) ==
-		ENOMEM_ASPRINTF) {
-		ERROR("Path too long: %s", get_tmpdir());
-		exitval = -ENOMEM;
-		goto out;
-	}
-
-	if ((r = archive_read_open_filename(a, FIFO, 4096))) {
-		ERROR("archive_read_open_filename(): %s %d: %s",
+	if ((r = archive_read_open_fd(a, data->fd, 4096))) {
+		ERROR("archive_read_open_fd(): %s %d: %s",
 		    archive_error_string(a), r, strerror(archive_errno(a)));
 		goto out;
 	}
@@ -213,7 +205,11 @@ out:
 		archive_read_free(a);
 	}
 
-	free(FIFO);
+	/*
+	 * libarchive does not close the descriptor. After an error, the
+	 * writer gets EPIPE instead of waiting for a reader.
+	 */
+	close(data->fd);
 
 #ifdef CONFIG_LOCALE
 	if (archive_locale != 0) {
@@ -239,18 +235,11 @@ static int install_archive_image(struct img_type *img,
 	int is_mounted = 0;
 	int exitval = -EFAULT;
 	char *DATADST_DIR = NULL;
-	char *FIFO = NULL;
+	int pipefd[2] = { -1, -1 };
 
 	if (strlen(img->path) == 0) {
 		ERROR("Missing path attribute");
 		return -EINVAL;
-	}
-
-	if ((asprintf(&FIFO, "%s%s", get_tmpdir(), FIFO_FILE_NAME) ==
-		ENOMEM_ASPRINTF)) {
-		ERROR("Path too long: %s", get_tmpdir());
-		exitval = -ENOMEM;
-		goto out;
 	}
 
 	pthread_attr_init(&attr);
@@ -277,13 +266,6 @@ static int install_archive_image(struct img_type *img,
 			ERROR("Path too long: %s", img->path);
 			goto out;
 		}
-	}
-
-	unlink(FIFO);
-	ret = mkfifo(FIFO, 0600);
-	if (ret) {
-		ERROR("FIFO cannot be created in archive handler");
-		goto out;
 	}
 
 	if (!getcwd(pwd, sizeof(pwd))) {
@@ -338,18 +320,25 @@ static int install_archive_image(struct img_type *img,
 				ARCHIVE_EXTRACT_FFLAGS | ARCHIVE_EXTRACT_XATTR;
 	}
 
+	/*
+	 * The archive is streamed to the extracting thread through a pipe:
+	 * if one side stops, the other gets EOF or EPIPE, and it is not
+	 * inherited by processes started meanwhile.
+	 */
+	if (pipe2(pipefd, O_CLOEXEC)) {
+		ERROR("Cannot create a pipe in archive handler: %s", strerror(errno));
+		goto out;
+	}
+	fdout = pipefd[1];
+	tf.fd = pipefd[0];
+
 	thread_ret = pthread_create(&extract_thread, &attr, extract, &tf);
 	if (thread_ret) {
 		ERROR("Code from pthread_create() is %d",
 			 thread_ret);
 		goto out;
 	}
-
-	fdout = open(FIFO, O_WRONLY);
-	if (fdout < 0) {
-		ERROR("Failed to open FIFO %s", FIFO);
-		goto out;
-	}
+	pipefd[0] = -1;	/* closed by the thread */
 
 	ret = copyimage(&fdout, img, NULL);
 	if (ret < 0) {
@@ -360,10 +349,13 @@ static int install_archive_image(struct img_type *img,
 	exitval = 0;
 
 out:
+	if (pipefd[0] >= 0)
+		close(pipefd[0]);
+	/* the thread gets EOF */
 	if (fdout >= 0) {
 		ret = close(fdout);
 		if (ret) {
-			ERROR("failed to close FIFO %s", FIFO);
+			ERROR("failed to close the pipe to the archive: %s", strerror(errno));
 		}
 	}
 
@@ -388,15 +380,11 @@ out:
 		}
 	}
 
-	if (FIFO)
-		unlink(FIFO);
-
 	if (is_mounted) {
 		swupdate_temporary_umount(DATADST_DIR);
 	}
 
 	sync();
-	free(FIFO);
 
 	return exitval;
 }
