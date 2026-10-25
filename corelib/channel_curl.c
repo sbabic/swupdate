@@ -1003,21 +1003,39 @@ static size_t read_callback(char *ptr, size_t size, size_t nmemb, void *data)
 	return n;
 }
 
+#define REPLY_EXCERPT_LEN	256
+
 static void channel_log_reply(channel_op_res_t result, channel_data_t *channel_data,
 			      output_data_t *chunk)
 {
 	if (result != CHANNEL_OK) {
-		ERROR("Channel operation returned HTTP error code %ld.",
-			channel_data->http_response_code);
-		switch (channel_data->http_response_code) {
-			case 403:
-			case 404:
-			case 500:
-				DEBUG("The error message is: '%s'", chunk ? chunk->memory : "N/A");
-				break;
-			default:
-				break;
+		char excerpt[REPLY_EXCERPT_LEN + 1];
+		size_t i, len = 0;
+
+		/*
+		 * The body of an error reply often says why, show its start
+		 * on the same line; control characters (as in an HTML page)
+		 * become spaces.
+		 */
+		if (chunk && chunk->memory) {
+			len = min(chunk->size, (size_t)REPLY_EXCERPT_LEN);
+			for (i = 0; i < len; i++) {
+				unsigned char c = (unsigned char)chunk->memory[i];
+
+				excerpt[i] = (c < 0x20 || c == 0x7f) ? ' ' : (char)c;
+			}
 		}
+		excerpt[len] = '\0';
+
+		if (len)
+			ERROR("Channel operation returned HTTP error code %ld: %s%s",
+			      channel_data->http_response_code, excerpt,
+			      chunk->size > len ? "..." : "");
+		else
+			ERROR("Channel operation returned HTTP error code %ld.",
+			      channel_data->http_response_code);
+		if (chunk && chunk->size > len)
+			DEBUG("The error message is: '%s'", chunk->memory);
 		return;
 	}
 	if (channel_data->debug) {
