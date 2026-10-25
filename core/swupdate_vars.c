@@ -93,8 +93,16 @@ char *swupdate_vars_get(const char *name, const char *namespace)
 			strlcpy(msg.data.vars.varnamespace, namespace, sizeof(msg.data.vars.varnamespace));
 		strlcpy(msg.data.vars.varname, name, sizeof(msg.data.vars.varname));
 
-		if (ipc_send_cmd(&msg) || msg.type == NACK) {
+		if (ipc_send_cmd(&msg)) {
 			WARN("Failed to get variable %s", name);
+			return NULL;
+		}
+		/*
+		 * NACK: the variable is not set, or it cannot be read; the
+		 * main process reports the latter.
+		 */
+		if (msg.type == NACK) {
+			TRACE("Variable %s is not set", name);
 			return NULL;
 		}
 		return strdup (msg.data.vars.varvalue);
