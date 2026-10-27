@@ -25,6 +25,7 @@
 
 #include <lua.h>
 #include <lauxlib.h>
+#include <lua_compat.h>
 
 #include <openssl/bio.h>
 #include <openssl/err.h>
