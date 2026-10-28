@@ -103,7 +103,7 @@ struct hnd_priv {
 	struct chain_handler_data chain_handler_data;
 	zck_log_type zckloglevel;	/* if found, set log level for ZCK to this */
 	bool detectsrcsize;		/* if set, try to compute size of filesystem in srcdev */
-	size_t srcsize;			/* Size of source */
+	unsigned long long srcsize;	/* Size of source */
 	unsigned long max_ranges;	/* Max allowed ranges (configured via sw-description) */
 	unsigned int max_retries;	/* Max retries without progress (configured via sw-description) */
 	unsigned int retry_delay;	/* Seconds before a retry (configured via sw-description) */
@@ -536,12 +536,12 @@ static void zck_log_toswupdate(const char *function, zck_log_type lt,
  * If maxbytes has been set, it acts as a limit for the input data.
  * If not (i.e. maxbytes==0), all the file/dev available data is used.
  */
-static bool create_zckindex(zckCtx *zck, int fd, size_t maxbytes)
+static bool create_zckindex(zckCtx *zck, int fd, unsigned long long maxbytes)
 {
 	size_t bufsize = BUFF_SIZE;
 	char *buf = malloc(BUFF_SIZE);
 	ssize_t n = 0;
-	size_t count = 0;
+	unsigned long long count = 0;
 	bool rstatus = true;
 
 	if (!buf) {
@@ -1116,7 +1116,8 @@ static int install_delta(struct img_type *img,
 						       filesystem, vfs.f_frsize,
 						       (unsigned long long)vfs.f_blocks,
 						       (unsigned long long)vfs.f_frsize * vfs.f_blocks);
-						priv->srcsize = vfs.f_frsize * vfs.f_blocks;
+						priv->srcsize = (unsigned long long)vfs.f_frsize *
+								vfs.f_blocks;
 					}
 					swupdate_temporary_umount(DATADST_DIR);
 			}
