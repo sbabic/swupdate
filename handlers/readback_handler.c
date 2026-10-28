@@ -103,7 +103,7 @@ static int readback_postinst(struct img_type *img)
 	 * the copyfile() function, because we only want it to verify the hash of
 	 * the input device.
 	 */
-	unsigned long offset_out = 0;
+	uint64_t offset_out = 0;
 	struct swupdate_copy copy = {
 		.fdin = fdin,
 		.nbytes = size,

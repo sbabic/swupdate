@@ -83,9 +83,9 @@ struct swupdate_copy {
 	writeimage callback;
 	void *out;
 	/* amount of data to copy */
-	size_t nbytes;
+	uint64_t nbytes;
 	/* pointer to offset within source, must be set for fd */
-	unsigned long *offs;
+	uint64_t *offs;
 	/* absolute offset to seek in output (*out) if non-zero */
 	unsigned long long seek;
 	/* skip callback: only verify input */

@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <stdint.h>
 #include <sys/types.h>
 #include <stdbool.h>
 #include "bsdqueue.h"
@@ -78,7 +79,7 @@ struct img_type {
 
 	long long partsize;
 	int fdin;	/* Used for streaming file */
-	off_t offset;	/* offset in cpio file */
+	uint64_t offset;	/* offset in cpio file */
 	long long size;
 	unsigned int checksum;
 	unsigned char sha256[SHA256_HASH_LENGTH];	/* SHA-256 is 32 byte */

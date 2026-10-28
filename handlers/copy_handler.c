@@ -70,7 +70,7 @@ static int copy_single_file(const char *path, off_t skipbytes, ssize_t size, str
 	struct chain_handler_data priv;
 	uint32_t checksum;
 	int pipes[2];
-	unsigned long offset = 0;
+	uint64_t offset = 0;
 	pthread_t chain_handler_thread_id;
 
 	/*

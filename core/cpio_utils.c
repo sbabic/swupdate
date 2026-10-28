@@ -66,7 +66,7 @@ int get_cpiohdr(unsigned char *buf, struct filehdr *fhdr)
 	return 0;
 }
 
-static int _fill_buffer(int fd, unsigned char *buf, unsigned int nbytes, unsigned long *offs,
+static int _fill_buffer(int fd, unsigned char *buf, unsigned int nbytes, uint64_t *offs,
 	uint32_t *checksum, void *dgst)
 {
 	ssize_t len;
@@ -104,7 +104,7 @@ static int _fill_buffer(int fd, unsigned char *buf, unsigned int nbytes, unsigne
 
 int fill_buffer(int fd, unsigned char *buf, unsigned int nbytes)
 {
-	unsigned long offs = 0;
+	uint64_t offs = 0;
 	return _fill_buffer(fd, buf, nbytes, &offs, NULL, NULL);
 }
 
@@ -240,8 +240,8 @@ struct InputState
 	input_type_t source;
 	unsigned char *inbuf;
 	size_t pos;
-	size_t nbytes;
-	unsigned long *offs;
+	uint64_t nbytes;
+	uint64_t *offs;
 	void *dgst;	/* use a private context for HASH */
 	uint32_t checksum;
 };
@@ -263,7 +263,7 @@ static int input_step(void *state, void *buffer, size_t size)
 		}
 		if (ret == 0) {
 			if (s->nbytes > 0) {
-				ERROR("Early EOF in stream %d: %zu bytes missing",
+				ERROR("Early EOF in stream %d: %" PRIu64 " bytes missing",
 				      s->fdin, s->nbytes);
 				return -ENODATA;
 			}
@@ -957,7 +957,7 @@ int copyimage(void *out, struct img_type *img, writeimage callback)
 		.out = out,
 		.callback = callback,
 		.nbytes = img->size,
-		.offs = (unsigned long*)&img->offset,
+		.offs = &img->offset,
 		.seek = img->seek,
 		.skip_file = 0,
 		.compressed = img->compressed,
@@ -971,7 +971,7 @@ int copyimage(void *out, struct img_type *img, writeimage callback)
 	return copyfile(&copy);
 }
 
-int extract_cpio_header(int fd, struct filehdr *fhdr, unsigned long *offset)
+int extract_cpio_header(int fd, struct filehdr *fhdr, uint64_t *offset)
 {
 	unsigned char buf[sizeof(fhdr->filename)];
 	int ret;
@@ -1009,9 +1009,12 @@ int extract_cpio_header(int fd, struct filehdr *fhdr, unsigned long *offset)
 	return 0;
 }
 
-int extract_img_from_cpio(int fd, unsigned long offset, struct filehdr *fdh)
+int extract_img_from_cpio(int fd, uint64_t offset, struct filehdr *fdh)
 {
-
+	if ((uint64_t)(off_t)offset != offset) {
+		ERROR("CPIO offset %" PRIu64 " too large for this system", offset);
+		return -EFBIG;
+	}
 	if (lseek(fd, offset, SEEK_SET) < 0) {
 		ERROR("CPIO file corrupted : %s",
 		strerror(errno));

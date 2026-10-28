@@ -51,15 +51,15 @@ struct new_ascii_header
 
 struct filehdr {
 	unsigned long format;
-	unsigned long size;
+	uint64_t size;
 	unsigned long namesize;
 	unsigned long chksum;
 	char filename[MAX_IMAGE_FNAME];
 };
 
 int get_cpiohdr(unsigned char *buf, struct filehdr *fhdr);
-int extract_cpio_header(int fd, struct filehdr *fhdr, unsigned long *offset);
-int extract_img_from_cpio(int fd, unsigned long offset, struct filehdr *fdh);
+int extract_cpio_header(int fd, struct filehdr *fhdr, uint64_t *offset);
+int extract_img_from_cpio(int fd, uint64_t offset, struct filehdr *fdh);
 void extract_padding(int fd);
 bool swupdate_verify_chksum(const uint32_t chk1, struct filehdr *fhdr);
 int fill_buffer(int fd, unsigned char *buf, unsigned int nbytes);

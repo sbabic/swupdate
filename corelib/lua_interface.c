@@ -691,7 +691,7 @@ static void table2image(lua_State* L, struct img_type *img) {
 
 		lua_getfield(L, -1, "_private");
 		lua_getfield(L, -1, "offset");
-		img->offset = (off_t)luaL_checknumber(L, -1);
+		img->offset = (uint64_t)luaL_checknumber(L, -1);
 		if (is_type(L, LUA_TYPE_HANDLER)) {
 			lua_pop(L, 1);
 			lua_getfield(L, -1, "istream_fd");

@@ -5,6 +5,7 @@
  * SPDX-License-Identifier:     GPL-2.0-only
  */
 
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -84,7 +85,7 @@ pthread_cond_t stream_cond = PTHREAD_COND_INITIALIZER;
 
 static struct installer inst;
 
-static int extract_file_to_tmp(int fd, const char *fname, unsigned long *poffs,
+static int extract_file_to_tmp(int fd, const char *fname, uint64_t *poffs,
 			       bool encrypted, int max_size)
 {
 	char output_file[MAX_IMAGE_FNAME];
@@ -117,7 +118,7 @@ static int extract_file_to_tmp(int fd, const char *fname, unsigned long *poffs,
 		goto err;
 	}
 	if (max_size && fdh.size >= max_size) {
-		ERROR("%s size (%ld) exceeds configured max of %d, aborting",
+		ERROR("%s size (%" PRIu64 ") exceeds configured max of %d, aborting",
 			fdh.filename, fdh.size, max_size);
 		goto err;
 	}
@@ -128,7 +129,7 @@ static int extract_file_to_tmp(int fd, const char *fname, unsigned long *poffs,
 
 	TRACE("Found file");
 	TRACE("\tfilename %s", fdh.filename);
-	TRACE("\tsize %u", (unsigned int)fdh.size);
+	TRACE("\tsize %" PRIu64, fdh.size);
 
 	fdout = openfileoutput(output_file);
 	if (fdout < 0)
@@ -180,7 +181,7 @@ static bool update_transaction_state(struct swupdate_cfg *software, update_state
 static int extract_files(int fd, struct swupdate_cfg *software)
 {
 	int status = STREAM_WAIT_DESCRIPTION;
-	unsigned long offset;
+	uint64_t offset;
 	struct filehdr fdh;
 	swupdate_file_t skip;
 	uint32_t checksum;
@@ -278,7 +279,7 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 
 			TRACE("Found file");
 			TRACE("\tfilename %s", fdh.filename);
-			TRACE("\tsize %u %s", (unsigned int)fdh.size,
+			TRACE("\tsize %" PRIu64 " %s", fdh.size,
 				(skip == SKIP_FILE ? "Not required: skipping" : "required"));
 
 			fdout = -1;
@@ -443,8 +444,8 @@ static int save_stream(int fdin, struct swupdate_cfg *software)
 	int tmpfd = -1;
 	char tmpfilename[MAX_IMAGE_FNAME];
 	struct filehdr fdh;
-	unsigned int tmpsize;
-	unsigned long offset;
+	uint64_t tmpsize;
+	uint64_t offset;
 	char output_file[MAX_IMAGE_FNAME];
 	const char* TMPDIR = get_tmpdir();
 	bool encrypted_sw_desc = false;
@@ -517,9 +518,14 @@ static int save_stream(int fdin, struct swupdate_cfg *software)
 		 * sense to check after having copied everything once in tmpfd...
 		 */
 		if (software->swdesc_max_size && fdh.size >= software->swdesc_max_size) {
-			ERROR("sw-description size (%ld) exceeds configured max of %d, aborting",
+			ERROR("sw-description size (%" PRIu64 ") exceeds configured max of %d, aborting",
 				fdh.size, software->swdesc_max_size);
 			ret = -EINVAL;
+			goto no_copy_output;
+		}
+		if ((size_t)tmpsize != tmpsize) {
+			ERROR("CPIO entry size (%" PRIu64 ") too large, aborting", fdh.size);
+			ret = -EFBIG;
 			goto no_copy_output;
 		}
 

@@ -137,7 +137,7 @@ static int copy(const unsigned char *in, size_t inlen, size_t nbytes,
 		enum compression_type compressed, unsigned char *hash,
 		struct sink *s, uint32_t *checksum)
 {
-	unsigned long offs = 0;
+	uint64_t offs = 0;
 	int fd = input_fd(in, inlen);
 	struct swupdate_copy args = {
 		.fdin = fd,
@@ -204,7 +204,7 @@ static void test_cpio_extract_header(void **state)
 	(void)state;
 	unsigned char buf[1024];
 	struct filehdr fhdr;
-	unsigned long offset;
+	uint64_t offset;
 	size_t len;
 	int fd;
 
@@ -346,7 +346,7 @@ static void test_copyfile_padding(void **state)
 {
 	(void)state;
 	unsigned char in[16] = "12345678901234";
-	unsigned long offs = 0;
+	uint64_t offs = 0;
 	struct sink s = { 0 };
 	int fd = input_fd(in, sizeof(in));
 	struct swupdate_copy args = {
@@ -363,11 +363,31 @@ static void test_copyfile_padding(void **state)
 	sink_free(&s);
 }
 
+static void test_copyfile_offset_above_4g(void **state)
+{
+	(void)state;
+	unsigned char in[16] = "12345678901234";
+	/* the offset in the SWU is not limited to 32 bits, also on 32-bit systems */
+	uint64_t offs = 0xFFFFFFFCULL;
+	struct sink s = { 0 };
+	int fd = input_fd(in, sizeof(in));
+	struct swupdate_copy args = {
+		.fdin = fd, .out = &s, .callback = sink_write,
+		.nbytes = 5, .offs = &offs,
+	};
+
+	assert_int_equal(copyfile(&args), 0);
+	assert_int_equal(s.len, 5);
+	assert_true(offs == 0x100000004ULL);
+	close(fd);
+	sink_free(&s);
+}
+
 static void test_copyfile_memory(void **state)
 {
 	(void)state;
 	unsigned char hash[SHA256_HASH_LENGTH];
-	unsigned long offs = 0;
+	uint64_t offs = 0;
 	struct sink s = { 0 };
 	struct swupdate_copy args = {
 		.fdin = -1, .inbuf = data, .out = &s, .callback = sink_write,
@@ -385,7 +405,7 @@ static void test_copyfile_skip(void **state)
 {
 	(void)state;
 	unsigned char hash[SHA256_HASH_LENGTH];
-	unsigned long offs = 0;
+	uint64_t offs = 0;
 	struct sink s = { 0 };
 	int fd = input_fd(data, DATA_SIZE);
 	struct swupdate_copy args = {
@@ -414,7 +434,7 @@ static void test_copyfile_seek(void **state)
 	(void)state;
 	char path[128];
 	unsigned char out[64];
-	unsigned long offs = 0;
+	uint64_t offs = 0;
 	int fdin = input_fd("payload", 7);
 	int fdout;
 
@@ -689,7 +709,7 @@ static int copy_encrypted(const unsigned char *in, size_t len, const char *key,
 			  const char *ivt, enum compression_type compressed,
 			  unsigned char *hash, struct sink *s)
 {
-	unsigned long offs = 0;
+	uint64_t offs = 0;
 	int fd = input_fd(in, len);
 	struct swupdate_copy args = {
 		.fdin = fd, .out = s, .callback = sink_write,
@@ -812,6 +832,7 @@ int main(void)
 		cmocka_unit_test(test_copyfile_plain),
 		cmocka_unit_test(test_copyfile_errors),
 		cmocka_unit_test(test_copyfile_padding),
+		cmocka_unit_test(test_copyfile_offset_above_4g),
 		cmocka_unit_test(test_copyfile_memory),
 		cmocka_unit_test(test_copyfile_skip),
 		cmocka_unit_test(test_copyfile_seek),

@@ -132,7 +132,7 @@ static void test_crypt_pkcs11_single_block(void **state)
 	assert_true(err == 0);
 	assert_true(sb.st_size == AES_BLK_SIZE);
 
-	unsigned long offs = 0;
+	uint64_t offs = 0;
 	int fdin = open(TOKENDIR "/small.encrypted.data", O_RDONLY);
 	assert_true(fdin >= 0);
 

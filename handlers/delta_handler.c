@@ -980,7 +980,7 @@ static bool copy_network_chunks(zckChunk **dstChunk, struct hnd_priv *priv)
  */
 static bool copy_existing_chunks(zckChunk **dstChunk, struct hnd_priv *priv)
 {
-	unsigned long offset = 0;
+	uint64_t offset = 0;
 	uint32_t checksum;
 	int ret;
 	unsigned char hash[SHA256_HASH_LENGTH];

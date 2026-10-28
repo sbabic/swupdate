@@ -5,6 +5,7 @@
  * SPDX-License-Identifier:     GPL-2.0-only
  */
 
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -59,13 +60,13 @@ int check_if_required(struct imglist *list, struct filehdr *pfdh,
 		if (strcmp(pfdh->filename, img->fname) == 0) {
 			skip = COPY_FILE;
 			img->provided = 1;
-			if (img->size && img->size != (unsigned int)pfdh->size) {
-				ERROR("Size in sw-description %llu does not match size in cpio %u",
-					img->size, (unsigned int)pfdh->size);
+			if (img->size && (uint64_t)img->size != pfdh->size) {
+				ERROR("Size in sw-description %lld does not match size in cpio %" PRIu64,
+					img->size, pfdh->size);
 				return -EINVAL;
 
 			}
-			img->size = (unsigned int)pfdh->size;
+			img->size = pfdh->size;
 
 			if (snprintf(img->extract_file,
 				     sizeof(img->extract_file), "%s%s",
@@ -110,7 +111,7 @@ static int extract_scripts(struct imglist *head)
 	LIST_FOREACH(script, head, next) {
 		int fdin;
 		char *tmpfile;
-		unsigned long offset = 0;
+		uint64_t offset = 0;
 		uint32_t checksum;
 
 		if (!script->fname[0] && (script->provided == 0)) {
