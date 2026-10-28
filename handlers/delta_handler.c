@@ -172,7 +172,7 @@ static int network_process_data(multipart_parser* p, const char *at, size_t leng
 			free(sha);
 
 			if (priv->debugchunks)
-				TRACE("Copying chunk %ld from NETWORK, size %ld",
+				TRACE("Copying chunk %zd from NETWORK, size %zu",
 					zck_get_chunk_number(priv->chunk),
 					priv->current.chunksize);
 			if (priv->current.chunksize != 0) {
@@ -211,7 +211,7 @@ static int network_process_data(multipart_parser* p, const char *at, size_t leng
 			size_t current_chunk_size = zck_get_chunk_comp_size(priv->chunk);
 			priv->current.buf = (unsigned char *)malloc(current_chunk_size);
 			if (!priv->current.buf) {
-				ERROR("OOM allocating new chunk %lu!", current_chunk_size);
+				ERROR("OOM allocating new chunk %zu!", current_chunk_size);
 				priv->error_in_parser = true;
 				return -ENOMEM;
 			}
@@ -288,7 +288,7 @@ static size_t get_total_size(zckCtx *zck, struct hnd_priv *priv) {
 		);
 	while (iter) {
 		if (priv->debugchunks)
-			TRACE("%12lu %s %s %12lu %12lu %12lu %12lu",
+			TRACE("%12zd %s %s %12zd %12zd %12zu %12zd",
 				zck_get_chunk_number(iter),
 				zck_get_chunk_valid(iter) ? "SRC" : "DST",
 				zck_get_chunk_digest_uncompressed(iter),
@@ -306,8 +306,8 @@ static size_t get_total_size(zckCtx *zck, struct hnd_priv *priv) {
 		iter = zck_get_next_chunk(iter);
 	}
 
-	INFO("Total bytes to be reused     : %12lu\n", priv->bytes_to_be_reused);
-	INFO("Total bytes to be downloaded : %12lu\n", priv->bytes_to_download);
+	INFO("Total bytes to be reused     : %12zu\n", priv->bytes_to_be_reused);
+	INFO("Total bytes to be downloaded : %12zu\n", priv->bytes_to_download);
 
 	return pos;
 }
@@ -995,11 +995,11 @@ static bool copy_existing_chunks(zckChunk **dstChunk, struct hnd_priv *priv)
 			continue;
 		}
 		if (!sha) {
-			ERROR("Cannot get hash for chunk %ld", zck_get_chunk_number(chunk));
+			ERROR("Cannot get hash for chunk %zd", zck_get_chunk_number(chunk));
 			return false;
 		}
 		if (lseek(priv->fdsrc, start, SEEK_SET) < 0) {
-			ERROR("Seeking source file at %lu", start);
+			ERROR("Seeking source file at %zu", start);
 			free(sha);
 			return false;
 		}
@@ -1007,7 +1007,7 @@ static bool copy_existing_chunks(zckChunk **dstChunk, struct hnd_priv *priv)
 		ascii_to_hash(hash, sha);
 
 		if (priv->debugchunks)
-			TRACE("Copying chunk %ld from SRC %ld, start %ld size %ld",
+			TRACE("Copying chunk %zd from SRC %zd, start %zu size %zu",
 				zck_get_chunk_number(*dstChunk),
 				zck_get_chunk_number(chunk),
 				start,
@@ -1112,8 +1112,10 @@ static int install_delta(struct img_type *img,
 			if (DATADST_DIR) {
 					struct statvfs vfs;
 					if (!statvfs(DATADST_DIR, &vfs)) {
-						TRACE("Detected filesystem %s, block size : %lu, %lu blocks =  %lu size",
-						       filesystem, vfs.f_frsize, vfs.f_blocks, vfs.f_frsize * vfs.f_blocks);
+						TRACE("Detected filesystem %s, block size : %lu, %llu blocks =  %llu size",
+						       filesystem, vfs.f_frsize,
+						       (unsigned long long)vfs.f_blocks,
+						       (unsigned long long)vfs.f_frsize * vfs.f_blocks);
 						priv->srcsize = vfs.f_frsize * vfs.f_blocks;
 					}
 					swupdate_temporary_umount(DATADST_DIR);
@@ -1222,7 +1224,7 @@ static int install_delta(struct img_type *img,
 	}
 
 	size_t uncompressed_size = get_total_size(zckDst, priv);
-	INFO("Size of artifact to be installed : %lu", uncompressed_size);
+	INFO("Size of artifact to be installed : %zu", uncompressed_size);
 
 	/*
 	 * Everything checked: now starts to combine
@@ -1284,7 +1286,7 @@ static int install_delta(struct img_type *img,
 		goto cleanup;
 	}
 
-	INFO("Total downloaded data : %ld bytes", priv->totaldwlbytes);
+	INFO("Total downloaded data : %zu bytes", priv->totaldwlbytes);
 
 	ret = (unsigned long)status;
 	TRACE("Chained handler returned %d", ret);
