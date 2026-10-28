@@ -55,11 +55,15 @@ int get_cpiohdr(unsigned char *buf, struct filehdr *fhdr)
 		fhdr->format = CPIO_NEWASCII;
 	else if (!strncmp(cpiohdr->c_magic, "070702", 6))
 		fhdr->format = CPIO_CRCASCII;
+	else if (!strncmp(cpiohdr->c_magic, "070704", 6))
+		fhdr->format = CPIO_CRCASCII_LARGE;
 	else {
 		ERROR("CPIO Format not recognized: magic not found");
 		return -EINVAL;
 	}
 	fhdr->size = FROM_HEX(cpiohdr->c_filesize);
+	if (fhdr->format == CPIO_CRCASCII_LARGE)
+		fhdr->size |= (uint64_t)FROM_HEX(cpiohdr->c_rdev_maj) << 32;
 	fhdr->namesize = FROM_HEX(cpiohdr->c_namesize);
 	fhdr->chksum = FROM_HEX(cpiohdr->c_chksum);
 

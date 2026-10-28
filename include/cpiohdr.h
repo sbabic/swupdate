@@ -28,6 +28,12 @@
 
 #define CPIO_NEWASCII 070701
 #define CPIO_CRCASCII 070702
+/*
+ * SWUpdate extension of the New CRC format for files of 4 GiB and more:
+ * c_rdev_maj, unused for regular files, has the upper 32 bits of the size.
+ * 070703 is not used: it is the "newcx" format proposed for initramfs.
+ */
+#define CPIO_CRCASCII_LARGE 070704
 
 #define NPAD_BYTES(o) ((4 - (o % 4)) % 4)
 

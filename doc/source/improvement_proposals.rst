@@ -104,17 +104,6 @@ mismatch.
 * Request for Support : Sponsor
 * Priority : Medium
 
-Support files bigger than 4GB
------------------------------
-
-SWUpdate currently uses CPIO to pack updates in the 'newc' and 'crc' formats.
-These formats limit single files to 4GB - 1byte in size, which could become a
-problem as update size grows.
-
-* Status: Wait
-* Request for Support : Sponsor
-* Priority : High
-
 Fetcher and interfaces
 ======================
 

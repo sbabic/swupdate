@@ -158,16 +158,17 @@ static int copy(const unsigned char *in, size_t inlen, size_t nbytes,
 /*
  * cpio headers
  */
+/* the upper 32 bits of filesize go into c_rdev_maj, as for 070704 */
 static size_t make_cpio_entry(unsigned char *buf, const char *magic, const char *name,
-			      size_t filesize, uint32_t chksum)
+			      uint64_t filesize, uint32_t chksum)
 {
 	size_t namesize = strlen(name) + 1;
 	int len;
 
 	len = sprintf((char *)buf,
-		      "%s%08X%08X%08X%08X%08X%08X%08zX%08X%08X%08X%08X%08zX%08X",
-		      magic, 1, 0100644, 0, 0, 1, 0, filesize, 0, 0, 0, 0,
-		      namesize, chksum);
+		      "%s%08X%08X%08X%08X%08X%08X%08X%08X%08X%08X%08X%08zX%08X",
+		      magic, 1, 0100644, 0, 0, 1, 0, (uint32_t)filesize, 0, 0,
+		      (uint32_t)(filesize >> 32), 0, namesize, chksum);
 	memcpy(buf + len, name, namesize);
 	len += namesize;
 	/* header + name are padded to 4 bytes */
@@ -192,6 +193,25 @@ static void test_cpio_header(void **state)
 	assert_int_equal(get_cpiohdr(buf, &fhdr), 0);
 	assert_int_equal(fhdr.format, CPIO_CRCASCII);
 	assert_int_equal(fhdr.chksum, 0xabcdef);
+
+	/* 070704: the upper 32 bits of the size are in c_rdev_maj */
+	make_cpio_entry(buf, "070704", "image", 0x123456789ULL, 0xabcdef);
+	assert_int_equal(get_cpiohdr(buf, &fhdr), 0);
+	assert_int_equal(fhdr.format, CPIO_CRCASCII_LARGE);
+	assert_true(fhdr.size == 0x123456789ULL);
+	assert_int_equal(fhdr.chksum, 0xabcdef);
+	make_cpio_entry(buf, "070704", "image", 0xFFFFFFFFFFFFFFFFULL, 0);
+	assert_int_equal(get_cpiohdr(buf, &fhdr), 0);
+	assert_true(fhdr.size == 0xFFFFFFFFFFFFFFFFULL);
+
+	/* 070701 and 070702 ignore c_rdev_maj */
+	make_cpio_entry(buf, "070702", "image", 0x123456789ULL, 0);
+	assert_int_equal(get_cpiohdr(buf, &fhdr), 0);
+	assert_true(fhdr.size == 0x23456789);
+
+	/* 070703 is newcx, not supported */
+	make_cpio_entry(buf, "070703", "image", 10, 0);
+	assert_int_equal(get_cpiohdr(buf, &fhdr), -EINVAL);
 
 	/* old binary and odc formats are not supported */
 	make_cpio_entry(buf, "070707", "image", 10, 0);
@@ -266,6 +286,10 @@ static void test_cpio_verify_chksum(void **state)
 	(void)state;
 	struct filehdr fhdr = { .format = CPIO_CRCASCII, .chksum = 1234 };
 
+	assert_true(swupdate_verify_chksum(1234, &fhdr));
+	assert_false(swupdate_verify_chksum(1235, &fhdr));
+	/* the large file format has the checksum of the crc format */
+	fhdr.format = CPIO_CRCASCII_LARGE;
 	assert_true(swupdate_verify_chksum(1234, &fhdr));
 	assert_false(swupdate_verify_chksum(1235, &fhdr));
 	/* the newc format has no checksum */

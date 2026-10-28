@@ -871,6 +871,29 @@ on cpio's checksum facility, in particular for artifacts marked
 For both cpio formats, the New ASCII as well as the New CRC format, the
 cpio file size is limited to 32 Bit, i.e., 4 GB.
 
+For files of 4 GB and more, SWUpdate supports an extension of the New CRC
+format, with header magic number ``070704``. The header is the same as for
+the New CRC format, but the field ``rdevmajor``, which is unused for regular
+files, holds the upper 32 bits of the file size. ``070703`` is not used, it
+is the magic of the "newcx" format proposed for the Linux initramfs. Only the entries of these
+files use the extension, all others remain in the New CRC format.
+swugenerator_ writes it automatically for files of 4 GB and more,
+``cpio -H crc`` cannot create such files.
+
+Older versions of SWUpdate do not recognize the header and stop the update
+when they reach the file. ``cpio -i`` extracts the other files and skips it.
+
+SWUpdate handles the size of a file in 64 bits, a single file is limited
+only by the storage it is installed to. On 32-bit systems:
+
+- the integrated web server does not accept a SWU of 4 GB and more: the
+  size in the HTTP header ``Content-Length`` must fit into 32 bits, and a
+  larger upload is refused. Suricatta, ``swupdate-client`` and the other
+  clients of the IPC interface stream the SWU without this limit.
+- installing from a local file (``swupdate -i``) of 2 GB and more, and an
+  ``offset`` of 2 GB and more, require SWUpdate to be built with large
+  file support (``-D_FILE_OFFSET_BITS=64`` in the CFLAGS).
+
 
 Building a single image
 =======================
