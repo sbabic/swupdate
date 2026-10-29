@@ -289,32 +289,27 @@ static int check_common_name(const X509_NAME *subject, const char *name)
 static int check_signer_name(CMS_ContentInfo *cms, const char *name)
 {
 	STACK_OF(CMS_SignerInfo) *infos = CMS_get0_SignerInfos(cms);
-	STACK_OF(X509) *crts;
-	int i, ret = 1;
+	int i, ret;
 
 	if ((name == NULL) || (name[0] == '\0'))
 		return 0;
 
-	crts = CMS_get1_certs(cms);
 	for (i = 0; i < sk_CMS_SignerInfo_num(infos); ++i) {
 		CMS_SignerInfo *si = sk_CMS_SignerInfo_value(infos, i);
-		int j;
+		X509 *signer = NULL;
 
-		for (j = 0; j < sk_X509_num(crts); ++j) {
-			X509 *crt = sk_X509_value(crts, j);
-
-			if (CMS_SignerInfo_cert_cmp(si, crt) == 0) {
-				ret = check_common_name(
-					X509_get_subject_name(crt), name);
-				if (ret)
-					goto out_check_signer;
-			}
+		CMS_SignerInfo_get0_algs(si, NULL, &signer, NULL, NULL);
+		if (!signer) {
+			ERROR("no certificate for signer %d", i);
+			return 1;
 		}
-	}
-out_check_signer:
-	sk_X509_pop_free(crts, X509_free);
 
-	return ret;
+		ret = check_common_name(X509_get_subject_name(signer), name);
+		if (ret)
+			return ret;
+	}
+
+	return 0;
 }
 
 /*
