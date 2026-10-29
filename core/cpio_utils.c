@@ -453,6 +453,11 @@ static int xz_step(void* state, void* buffer, size_t size)
 			ds->stream_end = true;
 			break;
 		}
+		if (ret == LZMA_MEMLIMIT_ERROR) {
+			ERROR("xz: the stream needs more memory than CONFIG_XZ_MEMLIMIT (%d MiB)",
+			      CONFIG_XZ_MEMLIMIT);
+			return -1;
+		}
 		if (ret != LZMA_OK && ret != LZMA_BUF_ERROR) {
 			ERROR("xz failed (returned %d)", ret);
 			return -1;
@@ -780,7 +785,7 @@ int copyfile(struct swupdate_copy *args)
 #endif
 #ifdef CONFIG_XZ
 		if (args->compressed == COMPRESSED_XZ) {
-			if (lzma_stream_decoder(&xz_state.strm, UINT32_MAX,
+			if (lzma_stream_decoder(&xz_state.strm, XZ_MEMLIMIT,
 						0) != LZMA_OK) {
 				ERROR("(lzma_stream_decoder failed");
 				ret = -EFAULT;

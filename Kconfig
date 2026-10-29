@@ -457,6 +457,20 @@ config XZ
 	bool "XZ compression support"
 	depends on HAVE_XZ
 
+config XZ_MEMLIMIT
+	int "Memory limit of the xz decompressor (MiB)"
+	depends on XZ
+	default 128
+	range 1 4096
+	help
+	  Memory the xz decompressor may use, mostly for the LZMA2
+	  dictionary of the stream. A stream that needs more is refused
+	  when its header is read. The dictionary fills up while the
+	  data is decompressed, before the hash of the artifact can be
+	  checked at its end: without a limit, a small stream can use
+	  up to 4 GiB of memory. xz -9 and -9e need about 65 MiB, zstd
+	  accepts by default windows up to 128 MiB.
+
 config ZSTD
 	bool "Zstd compression support"
 	depends on HAVE_ZSTD

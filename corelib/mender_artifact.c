@@ -517,7 +517,7 @@ static int decomp_init(struct decomp *d, enum comp type)
 #ifdef CONFIG_XZ
 	case COMP_XZ:
 		d->x = (lzma_stream)LZMA_STREAM_INIT;
-		if (lzma_stream_decoder(&d->x, UINT64_MAX, LZMA_CONCATENATED) != LZMA_OK)
+		if (lzma_stream_decoder(&d->x, XZ_MEMLIMIT, LZMA_CONCATENATED) != LZMA_OK)
 			return -ENOMEM;
 		break;
 #endif
@@ -610,6 +610,11 @@ static int decomp_xz(struct decomp *d, const uint8_t *in, size_t len,
 		}
 		if (r == LZMA_BUF_ERROR && !produced)
 			return action == LZMA_FINISH ? -EINVAL : 0;
+		if (r == LZMA_MEMLIMIT_ERROR) {
+			ERROR("xz: the stream needs more memory than CONFIG_XZ_MEMLIMIT (%d MiB)",
+			      CONFIG_XZ_MEMLIMIT);
+			return -EINVAL;
+		}
 		if (r != LZMA_OK) {
 			ERROR("xz: decompression error %d", r);
 			return -EINVAL;

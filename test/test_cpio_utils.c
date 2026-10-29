@@ -552,6 +552,60 @@ static void test_copyfile_gzip(void **state)
 #endif
 
 #ifdef CONFIG_XZ
+/*
+ * Raises the LZMA2 dictionary in the first block header of an xz stream to
+ * 1 GiB: the data still decodes, but the decoder fills a dictionary of that
+ * size. A limit of UINT32_MAX accepts it, CONFIG_XZ_MEMLIMIT must not.
+ */
+static void xz_huge_dictionary(uint8_t *x, size_t len)
+{
+	size_t start = 12;	/* after the stream header */
+	size_t hsize, i;
+	uint8_t flags;
+	uint32_t crc;
+
+	assert_true(len > start + 1);
+	hsize = ((size_t)x[start] + 1) * 4;
+	assert_true(len > start + hsize);
+	flags = x[start + 1];
+	i = start + 2;
+	/* compressed and uncompressed size, if present, are VLIs */
+	if (flags & 0x40)
+		while (x[i++] & 0x80)
+			;
+	if (flags & 0x80)
+		while (x[i++] & 0x80)
+			;
+	/* the first filter: LZMA2 (0x21) with one byte of properties */
+	assert_int_equal(x[i], 0x21);
+	assert_int_equal(x[i + 1], 1);
+	x[i + 2] = 36;	/* 2 << (36 / 2 + 11) = 1 GiB */
+	crc = lzma_crc32(x + start, hsize - 4, 0);
+	x[start + hsize - 4] = crc & 0xff;
+	x[start + hsize - 3] = (crc >> 8) & 0xff;
+	x[start + hsize - 2] = (crc >> 16) & 0xff;
+	x[start + hsize - 1] = crc >> 24;
+}
+
+static void test_copyfile_xz_memlimit(void **state)
+{
+	(void)state;
+	size_t cap = lzma_stream_buffer_bound(DATA_SIZE);
+	unsigned char *c = malloc(cap);
+	size_t clen = 0;
+	struct sink s = { 0 };
+
+	assert_non_null(c);
+	assert_int_equal(lzma_easy_buffer_encode(6, LZMA_CHECK_CRC64, NULL, data, DATA_SIZE,
+						 c, &clen, cap), LZMA_OK);
+	xz_huge_dictionary(c, clen);
+	/* refused before anything is decompressed */
+	assert_true(copy(c, clen, clen, COMPRESSED_XZ, NULL, &s, NULL) < 0);
+	assert_int_equal(s.len, 0);
+	sink_free(&s);
+	free(c);
+}
+
 static void test_copyfile_xz(void **state)
 {
 	(void)state;
@@ -768,6 +822,7 @@ int main(void)
 #endif
 #ifdef CONFIG_XZ
 		cmocka_unit_test(test_copyfile_xz),
+		cmocka_unit_test(test_copyfile_xz_memlimit),
 #endif
 #ifdef CONFIG_ZSTD
 		cmocka_unit_test(test_copyfile_zstd),

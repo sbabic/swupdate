@@ -37,7 +37,8 @@
 
 #define PAYLOAD_SIZE	(200 * 1024 + 11)	/* more than one decompression buffer */
 
-enum comp { C_NONE, C_GZ, C_XZ, C_ZSTD };
+/* C_XZ_HUGE_DICT: xz with a 1 GiB dictionary in the block header */
+enum comp { C_NONE, C_GZ, C_XZ, C_ZSTD, C_XZ_HUGE_DICT };
 
 static const struct {
 	enum comp c;
@@ -174,6 +175,43 @@ static void tar_end(struct mbuf *b)
 	mb_add(b, zero, sizeof(zero));
 }
 
+#ifdef CONFIG_XZ
+/*
+ * Raises the LZMA2 dictionary in the first block header of an xz stream to
+ * 1 GiB: the data still decodes, but the decoder fills a dictionary of that
+ * size. A limit of UINT32_MAX accepts it, CONFIG_XZ_MEMLIMIT must not.
+ */
+static void xz_huge_dictionary(uint8_t *x, size_t len)
+{
+	size_t start = 12;	/* after the stream header */
+	size_t hsize, i;
+	uint8_t flags;
+	uint32_t crc;
+
+	assert_true(len > start + 1);
+	hsize = ((size_t)x[start] + 1) * 4;
+	assert_true(len > start + hsize);
+	flags = x[start + 1];
+	i = start + 2;
+	/* compressed and uncompressed size, if present, are VLIs */
+	if (flags & 0x40)
+		while (x[i++] & 0x80)
+			;
+	if (flags & 0x80)
+		while (x[i++] & 0x80)
+			;
+	/* the first filter: LZMA2 (0x21) with one byte of properties */
+	assert_int_equal(x[i], 0x21);
+	assert_int_equal(x[i + 1], 1);
+	x[i + 2] = 36;	/* 2 << (36 / 2 + 11) = 1 GiB */
+	crc = lzma_crc32(x + start, hsize - 4, 0);
+	x[start + hsize - 4] = crc & 0xff;
+	x[start + hsize - 3] = (crc >> 8) & 0xff;
+	x[start + hsize - 2] = (crc >> 16) & 0xff;
+	x[start + hsize - 1] = crc >> 24;
+}
+#endif
+
 static void compress_buf(enum comp c, const struct mbuf *in, struct mbuf *out)
 {
 	size_t cap = in->len + in->len / 2 + 1024;
@@ -206,9 +244,12 @@ static void compress_buf(enum comp c, const struct mbuf *in, struct mbuf *out)
 #endif
 #ifdef CONFIG_XZ
 	case C_XZ:
+	case C_XZ_HUGE_DICT:
 		assert_int_equal(lzma_easy_buffer_encode(1, LZMA_CHECK_CRC64, NULL,
 							 in->p, in->len, out->p,
 							 &out->len, cap), LZMA_OK);
+		if (c == C_XZ_HUGE_DICT)
+			xz_huge_dictionary(out->p, out->len);
 		break;
 #endif
 #ifdef CONFIG_ZSTD
@@ -510,6 +551,26 @@ static void test_compressed(void **state)
 		}
 	}
 }
+
+#ifdef CONFIG_XZ
+/* a dictionary above CONFIG_XZ_MEMLIMIT is refused, in header and payload */
+static void test_xz_memlimit(void **state)
+{
+	struct opts h = { .hcomp = C_XZ_HUGE_DICT, .suffix_h = ".xz" };
+	struct opts d = { .dcomp = C_XZ_HUGE_DICT, .suffix_d = ".xz" };
+	struct sink s = { 0 };
+
+	(void)state;
+	assert_true(run(&h, "swu", NULL, &s) < 0);
+	mb_free(&s.out);
+
+	memset(&s, 0, sizeof(s));
+	assert_true(run(&d, "swu", NULL, &s) < 0);
+	/* before any data of the payload is decompressed */
+	assert_int_equal(s.out.len, 0);
+	mb_free(&s.out);
+}
+#endif
 
 static void test_small_payload(void **state)
 {
@@ -851,6 +912,9 @@ int main(void)
 		cmocka_unit_test(test_plain),
 		cmocka_unit_test(test_compressed),
 		cmocka_unit_test(test_small_payload),
+#ifdef CONFIG_XZ
+		cmocka_unit_test(test_xz_memlimit),
+#endif
 		cmocka_unit_test(test_checksums),
 		cmocka_unit_test(test_compatibility),
 		cmocka_unit_test(test_version),

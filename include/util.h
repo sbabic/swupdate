@@ -67,6 +67,11 @@ enum compression_type {
   COMPRESSED_LZ4,
 };
 
+#ifdef CONFIG_XZ
+/* memory the xz decompressor may use, see CONFIG_XZ_MEMLIMIT */
+#define XZ_MEMLIMIT	((uint64_t)CONFIG_XZ_MEMLIMIT * 1024 * 1024)
+#endif
+
 typedef int (*writeimage) (void *out, const void *buf, size_t len);
 
 struct swupdate_copy {
