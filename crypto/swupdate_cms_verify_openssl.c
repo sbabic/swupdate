@@ -594,12 +594,6 @@ static int openssl_cms_verify_file(void  *ctx, const char *sigfile,
 		goto out;
 	}
 
-	if (check_signer_name(cms, signer_name)) {
-		ERROR("failed to verify signer name");
-		status = -EFAULT;
-		goto out;
-	}
-
 	if (check_signer_digests(cms)) {
 		status = -EBADMSG;
 		goto out;
@@ -619,6 +613,13 @@ static int openssl_cms_verify_file(void  *ctx, const char *sigfile,
 		ERR_print_errors_fp(stderr);
 		ERROR("Signature verification failed");
 		status = -EBADMSG;
+		goto out;
+	}
+
+	/* check signer name _after_ signature is verified */
+	if (check_signer_name(cms, signer_name)) {
+		ERROR("failed to verify signer name");
+		status = -EFAULT;
 		goto out;
 	}
 
