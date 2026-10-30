@@ -168,14 +168,16 @@ zck_range *zchunk_get_missing_range(zckCtx *zck, zckChunk *first, int max_ranges
 	}
 
 	for(zckChunk *chk = first ? first : zck_get_first_chunk(zck); chk; chk = zck_get_next_chunk(chk)) {
-		if (zck_get_chunk_valid(chk))
+		if (zck_get_chunk_valid(chk)) {
+			/* the next missing chunk cannot be merged, it opens a new range */
+			if (max_ranges >= 0 && range->count >= max_ranges)
+				break;
 			continue;
-		if(!range_add(range, chk)) {
+		}
+		if (!range_add(range, chk)) {
 			zchunk_range_free(&range);
 			return NULL;
 		}
-		if(max_ranges >= 0 && range->count >= max_ranges)
-			break;
 	}
 	return range;
 }
