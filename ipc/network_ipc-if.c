@@ -222,8 +222,12 @@ static void *swupdate_async_thread(void *data)
 							   size - buf_offset);
 				if (ret < 0 && errno != EAGAIN) {
 					perror("swupdate_image_write failed");
-					swupdate_result = FAILURE;
-					goto out;
+					/*
+					 * The daemon probably aborted and closed the socket:
+					 * fetch its progress and status messages to report the cause.
+					 */
+					early_status = FAILURE;
+					break;
 				} else if (ret > 0) {
 					buf_offset += ret;
 				}
@@ -256,8 +260,10 @@ static void *swupdate_async_thread(void *data)
 
 	if (early_status >= 0) {
 		swupdate_result = early_status;
-		close(progressfd);
-		progressfd = -1;
+		if (progressfd >= 0) {
+			close(progressfd);
+			progressfd = -1;
+		}
 
 	} else {
 		/* Wait until the end of the installation and get the final result */
