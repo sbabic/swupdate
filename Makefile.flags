@@ -116,7 +116,11 @@ LDFLAGS_swupdate += -Wl,-E
 ifeq ($(shell $(PKG_CONFIG) $(PKG_CONFIG_FLAGS) --exists ${CONFIG_LUAPKG}; echo $$?), 0)
 $(eval $(call pkg_check_modules, LUABUILD, ${CONFIG_LUAPKG}))
 else ifeq ($(shell $(PKG_CONFIG) $(PKG_CONFIG_FLAGS) --exists lua; echo $$?), 0)
+# Distributions without versioned names, but it may be another Lua
 $(eval $(call pkg_check_modules, LUABUILD, lua))
+$(warning CONFIG_LUAPKG=${CONFIG_LUAPKG} not found by $(PKG_CONFIG), using lua $(LUABUILD_VERSION))
+else
+$(error CONFIG_LUAPKG=${CONFIG_LUAPKG} not found by $(PKG_CONFIG), and no lua package: install the Lua development package or set CONFIG_LUAPKG)
 endif
 KBUILD_CFLAGS += $(LUABUILD_CFLAGS)
 KBUILD_LIBS += $(LUABUILD_LIBS)
