@@ -656,11 +656,11 @@ void *network_thread (void *data)
 				}
 				msg.type = ACK;
 				memset(msg.data.revisions.boardname, 0, sizeof(msg.data.revisions.boardname));
-				strncpy(msg.data.revisions.boardname, cfg->hw.boardname,
-					sizeof(msg.data.revisions.boardname) - 1);
+				strlcpy(msg.data.revisions.boardname, cfg->hw.boardname,
+					sizeof(msg.data.revisions.boardname));
 				memset(msg.data.revisions.revision, 0, sizeof(msg.data.revisions.revision));
-				strncpy(msg.data.revisions.revision, cfg->hw.revision,
-					sizeof(msg.data.revisions.revision) - 1);
+				strlcpy(msg.data.revisions.revision, cfg->hw.revision,
+					sizeof(msg.data.revisions.revision));
 				break;
 			case SET_UPDATE_STATE:
 				value = *(update_state_t *)msg.data.msg;

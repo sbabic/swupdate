@@ -82,7 +82,7 @@ extract(void *p)
 {
 #ifdef CONFIG_LOCALE
 	locale_t archive_locale;
-	locale_t old_locale;
+	locale_t old_locale = (locale_t)0;
 #endif
 	struct archive *a;
 	struct archive *ext = NULL;
