@@ -94,6 +94,12 @@ config SURICATTA_GENERAL
 	  The server uses HTTP return codes to detect if an update
 	  is available. See documentation for more details.
 
+config SURICATTA_THINGSBOARD
+	bool "ThingsBoard support"
+	help
+	  Support for the OTA updates of ThingsBoard
+	  (https://thingsboard.io) through its HTTP device API.
+
 endmenu
 
 comment "Suricatta Lua module support needs Lua"

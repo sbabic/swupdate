@@ -23,7 +23,8 @@ and a switchback had to be performed.
 Suricatta is designed to be extensible in terms of the servers supported
 as described in Section `The Suricatta Interface`_. Currently,
 support for the `hawkBit`_ server is implemented via the `hawkBit Direct
-Device Integration API`_ alongside a simple general purpose HTTP server.
+Device Integration API`_ alongside a simple general purpose HTTP server and
+the OTA updates of ThingsBoard.
 The support for suricatta modules written in Lua is not a particular server
 support implementation but rather an option for writing such in Lua instead
 of C.
@@ -516,6 +517,67 @@ with the events set as above, the formatted text in case of "success" will be:
 
         Formatted log: #13,Mon, 17 Sep 2018 10:55:18 CEST,1.0,ipse,333
 
+
+Support for ThingsBoard
+-----------------------
+
+`ThingsBoard <https://thingsboard.io>`_ is an IoT platform with its own OTA
+updates: a package is uploaded as firmware or software and assigned to a device
+or to a device profile. The ``thingsboard`` server implements the device side
+through the HTTP device API, the device is authenticated with its access token.
+
+The server polls the shared attributes ``fw_title`` and ``fw_version`` (or
+``sw_title`` and ``sw_version`` for software packages), which ThingsBoard sets
+when a package is assigned. When they differ from the package running on the
+device, the package is downloaded and installed: as a SWU, it is streamed into
+the installer. A package stored outside ThingsBoard (``fw_url``) is downloaded
+from its URL.
+
+The progress is reported as telemetry, as ThingsBoard expects:
+
++---------------+-------------------------------------------------------------+
+| fw_state      | When                                                        |
++===============+=============================================================+
+| DOWNLOADING   | the download and the installation start                     |
++---------------+-------------------------------------------------------------+
+| DOWNLOADED    | the SWU is installed                                        |
++---------------+-------------------------------------------------------------+
+| UPDATING      | the update is completed after a reboot (update state        |
+|               | INSTALLED)                                                  |
++---------------+-------------------------------------------------------------+
+| UPDATED       | the update is completed, with ``current_fw_title`` and      |
+|               | ``current_fw_version``                                      |
++---------------+-------------------------------------------------------------+
+| FAILED        | the update failed, ``fw_error`` has the reason              |
++---------------+-------------------------------------------------------------+
+
+The package running on the device is stored in SWUpdate's persistent
+variables (``thingsboard_fw_title`` and ``thingsboard_fw_version``), so
+``namespace-vars`` must be set in the ``globals`` section: without it, no
+update is installed, because the device would install the same package after
+each reboot. Until a package is installed, the device takes the package from the
+``title`` and ``version`` settings. A package that failed is not installed
+again until another one is assigned.
+
+When the update state is stored in the bootloader (see `Introduction`_ and
+the ``ustate`` variable), the result is reported after the reboot:
+UPDATED if the state is TESTING, FAILED if it is FAILED. The state is reset to
+OK afterwards. Without update state, the update is reported as UPDATED when the
+installation and the post-update command succeed.
+
+The setup is in the ``thingsboard`` section of the configuration file, see
+``examples/configuration/swupdate.cfg``, or on the command line:
+
+::
+
+        swupdate -u "--server thingsboard -u https://thingsboard.example.com -k <access token>"
+
+ThingsBoard limits by default the size of a package uploaded through its
+API: either the limit is raised on the server, or the SWU is stored outside
+ThingsBoard and assigned by URL.
+
+The access token is part of the URLs of the HTTP device API: at the TRACE log
+level, the URLs and then the token are in the log.
 
 Support for Suricatta Modules in Lua
 ------------------------------------

@@ -14,4 +14,4 @@ endif
 ifneq ($(CONFIG_SURICATTA_GENERAL),)
 obj-$(CONFIG_SURICATTA_GENERAL) += server_general.o
 endif
-
+obj-$(CONFIG_SURICATTA_THINGSBOARD) += server_thingsboard.o
