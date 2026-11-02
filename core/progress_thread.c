@@ -451,8 +451,13 @@ void *progress_bar_thread (void __attribute__ ((__unused__)) *data)
 	do {
 		/* Wait until a client connects or closes its socket */
 		if (poll(pprog->conns, pprog->nconns, -1) < 0) {
-			if (errno != EINTR)
-				TRACE("Poll returns: %s", strerror(errno));
+			int serrno = errno;
+			if (serrno == EINTR)
+				continue;
+			TRACE("Poll returns: %s", strerror(serrno));
+			/* Out of resources, give the system time instead of spinning */
+			if (serrno == ENOMEM)
+				sleep(1);
 			continue;
 		}
 
