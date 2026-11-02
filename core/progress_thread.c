@@ -479,7 +479,11 @@ void *progress_bar_thread (void __attribute__ ((__unused__)) *data)
 			if (errno == EINTR)
 				continue;
 			else {
-				TRACE("Accept returns: %s", strerror(errno));
+				int serrno = errno;
+				TRACE("Accept returns: %s", strerror(serrno));
+				/* Out of resources, give the system time instead of spinning */
+				if (serrno == EMFILE || serrno == ENFILE || serrno == ENOBUFS || serrno == ENOMEM)
+					sleep(1);
 				continue;
 			}
 		}
