@@ -147,6 +147,32 @@ int read_settings_user_id(swupdate_cfg_handle *handle, const char *module, uid_t
 }
 
 
+int read_settings_selinux_context(swupdate_cfg_handle *handle, const char *module,
+				  const char **context)
+{
+	config_setting_t *elem, *setting;
+
+	*context = NULL;
+	elem = find_settings_node(&handle->cfg, module);
+	if (!elem)
+		return 0;
+
+	setting = config_setting_get_member(elem, "selinux-context");
+	if (!setting)
+		return 0;
+
+	if (config_setting_type(setting) != CONFIG_TYPE_STRING) {
+		ERROR("%s.selinux-context must be a string", module);
+		return -EINVAL;
+	}
+
+	*context = config_setting_get_string(setting);
+	if (!(*context)[0])
+		*context = NULL;
+
+	return 0;
+}
+
 /*
  * Callback to be used to put a section of configuration
  * into a dictionary

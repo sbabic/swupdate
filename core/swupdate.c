@@ -1199,8 +1199,12 @@ int main(int argc, char **argv)
 	if (opt_w) {
 		uid_t uid;
 		gid_t gid;
+		const char *context;
+
+		if (read_settings_selinux_context(&handle, "webserver", &context))
+			exit(EXIT_FAILURE);
 		read_settings_user_id(&handle, "webserver", &uid, &gid);
-		start_subprocess(SOURCE_WEBSERVER, "webserver", uid, gid,
+		start_subprocess(SOURCE_WEBSERVER, "webserver", uid, gid, context,
 				 cfgfname, ac, av,
 				 start_webserver);
 		freeargs(av);
@@ -1211,8 +1215,12 @@ int main(int argc, char **argv)
 	if (opt_u) {
 		uid_t uid;
 		gid_t gid;
+		const char *context;
+
+		if (read_settings_selinux_context(&handle, "suricatta", &context))
+			exit(EXIT_FAILURE);
 		read_settings_user_id(&handle, "suricatta", &uid, &gid);
-		start_subprocess(SOURCE_SURICATTA, "suricatta", uid, gid,
+		start_subprocess(SOURCE_SURICATTA, "suricatta", uid, gid, context,
 				 cfgfname, argcount,
 				 argvalues, start_suricatta);
 
@@ -1224,8 +1232,12 @@ int main(int argc, char **argv)
 	if (opt_d) {
 		uid_t uid;
 		gid_t gid;
+		const char *context;
+
+		if (read_settings_selinux_context(&handle, "download", &context))
+			exit(EXIT_FAILURE);
 		read_settings_user_id(&handle, "download", &uid, &gid);
-		start_subprocess(SOURCE_DOWNLOADER, "download", uid, gid,
+		start_subprocess(SOURCE_DOWNLOADER, "download", uid, gid, context,
 				 cfgfname, dwlac,
 				 dwlav, start_download_server);
 		freeargs(dwlav);
@@ -1235,10 +1247,14 @@ int main(int argc, char **argv)
 	{
 		uid_t uid;
 		gid_t gid;
+		const char *context;
+
+		if (read_settings_selinux_context(&handle, "download", &context))
+			exit(EXIT_FAILURE);
 		read_settings_user_id(&handle, "download", &uid, &gid);
-		start_subprocess(SOURCE_CHUNKS_DOWNLOADER, "chunks_downloader", uid, gid,
-				cfgfname, 0, NULL,
-				start_delta_downloader);
+		start_subprocess(SOURCE_CHUNKS_DOWNLOADER, "chunks_downloader", uid, gid, context,
+				 cfgfname, 0, NULL,
+				 start_delta_downloader);
 	}
 #endif
 

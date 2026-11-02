@@ -27,6 +27,10 @@
 #include <parselib.h>
 #include <swupdate_settings.h>
 
+#ifdef CONFIG_SELINUX
+#include <selinux/selinux.h>
+#endif
+
 #ifndef WAIT_ANY
 #define WAIT_ANY (-1)
 #endif
@@ -140,6 +144,7 @@ static void reset_sigpipe(void)
  */
 static int spawn_process(struct swupdate_task *task,
 			uid_t run_as_userid, gid_t run_as_groupid,
+			const char *selinux_context,
 			const char *cfgname,
 			int ac, char **av,
 			swupdate_process start,
@@ -212,6 +217,27 @@ static int spawn_process(struct swupdate_task *task,
 		}
 	}
 
+	/* Apply the requested SELinux context before starting the child process */
+	if (selinux_context && selinux_context[0]) {
+#ifdef CONFIG_SELINUX
+		if (is_selinux_enabled() <= 0) {
+			WARN("Ignoring SELinux context for %s: SELinux is not enabled",
+			     task->name);
+		} else if (security_check_context(selinux_context) < 0) {
+			ERROR("Cannot validate SELinux context %s for %s: %s",
+			      selinux_context, task->name, strerror(errno));
+			exit(EXIT_FAILURE);
+		} else if (setcon(selinux_context) < 0) {
+			ERROR("Cannot set SELinux context %s for %s: %s",
+			      selinux_context, task->name, strerror(errno));
+			exit(EXIT_FAILURE);
+		}
+#else
+		WARN("Ignoring SELinux context for %s: without SELinux support",
+		     task->name);
+#endif
+	}
+
 	/* Save new pid */
 	pid = getpid();
 
@@ -246,6 +272,7 @@ static int spawn_process(struct swupdate_task *task,
 
 static void start_swupdate_subprocess(sourcetype type, const char *name,
 			uid_t run_as_userid, gid_t run_as_groupid,
+			const char *selinux_context,
 			const char* cfgfile,
 			int argc, char **argv,
 			swupdate_process start,
@@ -258,7 +285,8 @@ static void start_swupdate_subprocess(sourcetype type, const char *name,
 
 	procs[nprocs].name = name;
 	procs[nprocs].type = type;
-	if (spawn_process(&procs[nprocs], run_as_userid, run_as_groupid, cfgfile, argc, argv, start, cmdline) < 0) {
+	if (spawn_process(&procs[nprocs], run_as_userid, run_as_groupid,
+			  selinux_context, cfgfile, argc, argv, start, cmdline) < 0) {
 		ERROR("Spawning %s failed, exiting process...", name);
 		exit(1);
 	}
@@ -274,17 +302,20 @@ void start_subprocess_from_file(sourcetype type, const char *name,
 			int argc, char **argv,
 			const char *cmdline)
 {
-	start_swupdate_subprocess(type, name, run_as_userid, run_as_groupid, cfgfile, argc, argv, NULL, cmdline);
+	start_swupdate_subprocess(type, name, run_as_userid, run_as_groupid,
+				  NULL, cfgfile, argc, argv, NULL, cmdline);
 }
 
 void start_subprocess(sourcetype type, const char *name,
 			uid_t run_as_userid, gid_t run_as_groupid,
+			const char *selinux_context,
 			const char *cfgfile,
 			int argc, char **argv,
 			swupdate_process start)
 {
 
-	start_swupdate_subprocess(type, name, run_as_userid, run_as_groupid, cfgfile, argc, argv, start, NULL);
+	start_swupdate_subprocess(type, name, run_as_userid, run_as_groupid,
+				  selinux_context, cfgfile, argc, argv, start, NULL);
 }
 
 /*

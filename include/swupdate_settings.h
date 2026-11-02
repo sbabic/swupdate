@@ -23,4 +23,6 @@ int swupdate_cfg_read_file(swupdate_cfg_handle *handle, const char *filename);
 void swupdate_cfg_destroy(swupdate_cfg_handle *handle);
 int read_module_settings(swupdate_cfg_handle *handle, const char *module, settings_callback fcn, void *data);
 int read_settings_user_id(swupdate_cfg_handle *handle, const char *module, uid_t *userid, gid_t *groupid);
+int read_settings_selinux_context(swupdate_cfg_handle *handle, const char *module,
+				  const char **context);
 int settings_into_dict(void *settings, void *data);

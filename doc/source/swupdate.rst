@@ -236,6 +236,44 @@ To configure the options:
 
 	make menuconfig
 
+SELinux subprocess contexts
+---------------------------
+
+The network-facing subprocesses can run in separate SELinux contexts so
+that the policy can confine them independently of the main update process.
+This support is optional and disabled by default. Enable ``CONFIG_SELINUX``
+(requires ``libselinux``) and set contexts in ``swupdate.cfg`` for Suricatta,
+the web server and downloaders::
+
+    suricatta : {
+        selinux-context = "system_u:system_r:swupdate_suricatta_t:s0";
+    };
+
+    webserver : {
+        selinux-context = "system_u:system_r:swupdate_webserver_t:s0";
+    };
+
+    download : {
+        selinux-context = "system_u:system_r:swupdate_download_t:s0";
+    };
+
+Both the downloader and the delta chunks downloader use ``download``.
+Omitted or empty settings preserve the inherited context. A setting that is
+not a string stops startup.
+If built without SELinux support or SELinux is not enabled at runtime, a
+requested context is ignored with a warning. Otherwise, a context that cannot
+be validated or applied prevents the child from starting.
+
+Contexts are applied in the forked child before the built-in subprocess
+starts, while the child still has a single thread. Replace these example
+contexts with ones defined by your SELinux policy, which must permit the
+context changes.
+
+This setting only applies to built-in subprocesses. External programs
+started from the ``processes`` section cannot be assigned a context with
+``selinux-context``; support for setting their execution context would
+require ``setexeccon()`` before ``exec``.
+
 Building
 --------
 

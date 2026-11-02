@@ -35,6 +35,7 @@ typedef server_op_res_t(*server_ipc_fn)(int fd);
 
 void start_subprocess(sourcetype type, const char *name,
 			uid_t run_as_userid, gid_t run_as_groupid,
+			const char *selinux_context,
 			const char *cfgfile,
 			int argc, char **argv,
 			swupdate_process start);

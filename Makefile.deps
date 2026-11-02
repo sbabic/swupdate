@@ -90,6 +90,14 @@ export HAVE_LIBSYSTEMD = n
 endif
 endif
 
+ifeq ($(HAVE_LIBSELINUX),)
+ifeq ($(HAVE_LINUX),y)
+export HAVE_LIBSELINUX = y
+else
+export HAVE_LIBSELINUX = n
+endif
+endif
+
 ifeq ($(HAVE_LIBCRYPTO),)
 export HAVE_LIBCRYPTO = y
 endif

@@ -97,6 +97,10 @@ config HAVE_LIBSYSTEMD
 	bool
 	option env="HAVE_LIBSYSTEMD"
 
+config HAVE_LIBSELINUX
+	bool
+	option env="HAVE_LIBSELINUX"
+
 config HAVE_LIBCRYPTO
 	bool
 	option env="HAVE_LIBCRYPTO"
@@ -160,6 +164,19 @@ config SYSTEMD
 
 comment "systemd support needs libsystemd"
 	depends on !HAVE_LIBSYSTEMD && HAVE_LINUX
+
+config SELINUX
+	bool "enable SELinux subprocess contexts"
+	depends on HAVE_LINUX && HAVE_LIBSELINUX
+	default n
+	help
+	  Allow Suricatta, web-server and downloaders to use
+	  contexts specified by selinux-context in their configuration
+	  sections.
+	  Requires libselinux and a policy permitting the transitions.
+
+comment "SELinux support needs libselinux"
+	depends on !HAVE_LIBSELINUX && HAVE_LINUX
 
 config DEFAULT_CONFIG_FILE
 	string "File with default settings"

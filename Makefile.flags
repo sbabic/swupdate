@@ -151,6 +151,10 @@ endif
 # libconfig is always compiled
 LDLIBS += config
 
+ifeq ($(CONFIG_SELINUX),y)
+LDLIBS += selinux
+endif
+
 # libarchive
 ifeq ($(CONFIG_ARCHIVE),y)
 LDLIBS += archive
