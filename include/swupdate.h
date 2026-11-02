@@ -96,6 +96,8 @@ struct swupdate_cfg {
 	int cert_purpose;
 	mode_t ctrl_socket_mode;
 	gid_t ctrl_socket_gid;
+	mode_t progress_socket_mode;
+	gid_t progress_socket_gid;
 	bool no_transaction_marker;
 	bool no_state_marker;
 	swupdate_reboot_t reboot_enabled;

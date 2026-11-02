@@ -21,6 +21,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -28,6 +29,7 @@
 #include "pctl.h"
 #include "progress.h"
 #include "progress_ipc.h"
+#include "swupdate.h"
 #include "util.h"
 
 static char tmpdir[] = "/tmp/swupdate-test-progthr-XXXXXX";
@@ -167,14 +169,31 @@ static void test_progthr_drop_while_logging(void **state)
 	pthread_join(logger, NULL);
 }
 
+/* the socket gets the configured permissions */
+static void test_progthr_socket_mode(void **state)
+{
+	struct stat st;
+
+	(void)state;
+	assert_int_equal(stat(get_prog_socket(), &st), 0);
+	assert_int_equal(st.st_mode & 07777, 0600);
+}
+
 static int progthr_group_setup(void **state)
 {
+	struct swupdate_cfg *cfg;
+
 	(void)state;
 	if (!mkdtemp(tmpdir))
 		return -1;
 	/* the progress socket is created in TMPDIR */
 	setenv("TMPDIR", tmpdir, 1);
 	unsetenv("RUNTIME_DIRECTORY");
+
+	/* configuration as set up by SWUpdate at startup */
+	cfg = get_swupdate_cfg();
+	cfg->progress_socket_mode = 0600;
+	cfg->progress_socket_gid = (gid_t)-1;
 
 	/* as at startup: notifiers and the sockets to remove at exit */
 	notify_init();
@@ -202,6 +221,7 @@ int main(void)
 		cmocka_unit_test(test_progthr_ack_failure),
 		cmocka_unit_test(test_progthr_message),
 		cmocka_unit_test(test_progthr_drop_while_logging),
+		cmocka_unit_test(test_progthr_socket_mode),
 	};
 	return cmocka_run_group_tests_name("progress_thread", tests, progthr_group_setup,
 					   progthr_group_teardown);

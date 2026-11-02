@@ -314,6 +314,8 @@ static void swupdate_init(struct swupdate_cfg *sw)
 	sw->cert_purpose = CERT_PURPOSE_EMAIL_PROT;
 	sw->ctrl_socket_mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
 	sw->ctrl_socket_gid = (gid_t)-1;
+	sw->progress_socket_mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
+	sw->progress_socket_gid = (gid_t)-1;
 
 #ifdef CONFIG_MTD
 	mtd_init();
@@ -334,6 +336,49 @@ static int parse_cert_purpose(const char *text)
 
 	ERROR("unknown certificate purpose '%s'\n", text);
 	exit(EXIT_FAILURE);
+}
+
+/*
+ * Read mode (octal) and group (name or numeric id) of a socket
+ * from the globals section, the defaults are kept if not set
+ */
+static void read_socket_permissions(void *elem, const char *mode_field, const char *group_field,
+				    mode_t *mode, gid_t *gid)
+{
+	char tmp[SWUPDATE_GENERAL_STRING_SIZE] = "";
+
+	GET_FIELD_STRING(LIBCFG_PARSER, elem, mode_field, tmp);
+	if (tmp[0] != '\0') {
+		char *endp;
+		unsigned long value;
+
+		errno = 0;
+		value = strtoul(tmp, &endp, 8);
+		if (errno || *endp != '\0' || value > 07777) {
+			ERROR("Invalid %s '%s'", mode_field, tmp);
+			exit(EXIT_FAILURE);
+		}
+		*mode = (mode_t)value;
+	}
+	GET_FIELD_STRING_RESET(LIBCFG_PARSER, elem, group_field, tmp);
+	if (tmp[0] != '\0') {
+		struct group *grp = getgrnam(tmp);
+
+		if (grp) {
+			*gid = grp->gr_gid;
+		} else {
+			char *endp;
+			unsigned long value;
+
+			errno = 0;
+			value = strtoul(tmp, &endp, 10);
+			if (errno || *endp != '\0' || value >= (gid_t)-1) {
+				ERROR("Invalid %s '%s'", group_field, tmp);
+				exit(EXIT_FAILURE);
+			}
+			*gid = (gid_t)value;
+		}
+	}
 }
 
 static void read_updatetype_settings(void *elem, struct swupdate_type_cfg *typecfg)
@@ -431,40 +476,10 @@ static int read_globals_settings(void *elem, void *data)
 	GET_FIELD_STRING(LIBCFG_PARSER, elem, "forced-signer-name",
 				sw->forced_signer_name);
 
-	tmp[0] = '\0';
-	GET_FIELD_STRING(LIBCFG_PARSER, elem, "ctrl-socket-mode", tmp);
-	if (tmp[0] != '\0') {
-		char *endp;
-		unsigned long mode;
-
-		errno = 0;
-		mode = strtoul(tmp, &endp, 8);
-		if (errno || *endp != '\0' || mode > 07777) {
-			ERROR("Invalid ctrl-socket-mode '%s'", tmp);
-			exit(EXIT_FAILURE);
-		}
-		sw->ctrl_socket_mode = (mode_t)mode;
-	}
-	tmp[0] = '\0';
-	GET_FIELD_STRING(LIBCFG_PARSER, elem, "ctrl-socket-group", tmp);
-	if (tmp[0] != '\0') {
-		struct group *grp = getgrnam(tmp);
-
-		if (grp) {
-			sw->ctrl_socket_gid = grp->gr_gid;
-		} else {
-			char *endp;
-			unsigned long gid;
-
-			errno = 0;
-			gid = strtoul(tmp, &endp, 10);
-			if (errno || *endp != '\0' || gid >= (gid_t)-1) {
-				ERROR("Invalid ctrl-socket-group '%s'", tmp);
-				exit(EXIT_FAILURE);
-			}
-			sw->ctrl_socket_gid = (gid_t)gid;
-		}
-	}
+	read_socket_permissions(elem, "ctrl-socket-mode", "ctrl-socket-group",
+				&sw->ctrl_socket_mode, &sw->ctrl_socket_gid);
+	read_socket_permissions(elem, "progress-socket-mode", "progress-socket-group",
+				&sw->progress_socket_mode, &sw->progress_socket_gid);
 
 	char software_select[SWUPDATE_GENERAL_STRING_SIZE] = "";
 	GET_FIELD_STRING(LIBCFG_PARSER, elem, "select", software_select);
