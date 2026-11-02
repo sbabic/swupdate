@@ -53,7 +53,7 @@ tests-lnk  = $(addsuffix .lnk, $(TARGETS))
 targets   += $(addsuffix .o,   $(tests-y))
 
 ifneq ($(CONFIG_EXTRA_LDFLAGS),)
-EXTRA_LDFLAGS += $($(STRIP) $(subst ",,$(CONFIG_EXTRA_LDFLAGS)))#"))
+EXTRA_LDFLAGS += $(strip $(subst ",,$(CONFIG_EXTRA_LDFLAGS)))#"))
 endif
 ifneq ($(CONFIG_EMBEDDED_SURICATTA_LUA),)
 # Strip quotes from filename
