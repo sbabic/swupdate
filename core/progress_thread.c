@@ -62,6 +62,7 @@ struct swupdate_progress {
 	const handler *curhnd;
 	struct connections conns;
 	struct errors_list errs;
+	/* no logging while held, an ERROR() locks it via the progress notifier */
 	pthread_mutex_t lock;
 	bool step_running;
 };
@@ -380,21 +381,14 @@ static int progress_send_connect_ack(int connfd)
 	while (remaining_bytes > 0) {
 		n = send(connfd, buf, remaining_bytes, MSG_NOSIGNAL);
 		if (n < 0) {
-			if (EINTR == errno) {
+			if (EINTR == errno)
 				continue;
-			} else if (EPIPE == errno || ECONNRESET == errno) {
-				TRACE("progress_send_connect_ack: closed by peer (%d)", errno);
-				ret = -1;
-				break;
-			} else {
-				ERROR("progress_send_connect_ack: send error %d", errno);
-				ret = -1;
-				break;
-			}
+			/* The caller logs it, this runs with the lock held */
+			ret = -errno;
+			break;
 		} else if (0 == n) {
 			/* Should not happen */
-			ERROR("progress_send_connect_ack: send returned zero");
-			ret = -1;
+			ret = -EIO;
 			break;
 		}
 		remaining_bytes -= (size_t)n;
@@ -450,13 +444,17 @@ void *progress_bar_thread (void __attribute__ ((__unused__)) *data)
 		pthread_mutex_lock(&pprog->lock);
 		/* Send an ACK to the client to indicate that it is duly registered */
 		err = progress_send_connect_ack(connfd);
+		if (!err)
+			SIMPLEQ_INSERT_TAIL(&pprog->conns, conn, next);
+		pthread_mutex_unlock(&pprog->lock);
 		if (err) {
-			ERROR("progress_bar_thread: Could not send progress ACK");
+			/* A client that closed before the ACK is not an error */
+			if (err == -EPIPE || err == -ECONNRESET)
+				TRACE("Progress client closed before the ACK");
+			else
+				ERROR("Could not register progress client: %s", strerror(-err));
 			close(conn->sockfd);
 			free(conn);
-		} else {
-			SIMPLEQ_INSERT_TAIL(&pprog->conns, conn, next);
 		}
-		pthread_mutex_unlock(&pprog->lock);
 	} while(1);
 }
