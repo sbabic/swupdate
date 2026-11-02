@@ -98,6 +98,7 @@ struct swupdate_cfg {
 	gid_t ctrl_socket_gid;
 	mode_t progress_socket_mode;
 	gid_t progress_socket_gid;
+	int progress_max_clients;
 	bool no_transaction_marker;
 	bool no_state_marker;
 	swupdate_reboot_t reboot_enabled;

@@ -34,6 +34,9 @@
 
 static char tmpdir[] = "/tmp/swupdate-test-progthr-XXXXXX";
 
+/* the limit of connected clients configured for the tests */
+#define PROGTHR_MAX_CLIENTS	8
+
 static long elapsed_ms(struct timespec *start)
 {
 	struct timespec now;
@@ -169,6 +172,32 @@ static void test_progthr_drop_while_logging(void **state)
 	pthread_join(logger, NULL);
 }
 
+/* a connection is closed without an ACK once the configured number of clients is connected */
+static void test_progthr_client_limit(void **state)
+{
+	struct timespec start;
+	int clients[PROGTHR_MAX_CLIENTS];
+	unsigned int i;
+
+	(void)state;
+	for (i = 0; i < ARRAY_SIZE(clients); i++) {
+		clients[i] = progress_ipc_connect(false);
+		assert_true(clients[i] >= 0);
+	}
+	assert_int_equal(progress_ipc_connect(false), -1);
+
+	/* a slot is free again as soon as a client leaves */
+	close(clients[0]);
+	clock_gettime(CLOCK_MONOTONIC, &start);
+	do {
+		clients[0] = progress_ipc_connect(false);
+	} while (clients[0] < 0 && elapsed_ms(&start) < 5000);
+	assert_true(clients[0] >= 0);
+
+	for (i = 0; i < ARRAY_SIZE(clients); i++)
+		close(clients[i]);
+}
+
 /* the socket gets the configured permissions */
 static void test_progthr_socket_mode(void **state)
 {
@@ -194,6 +223,7 @@ static int progthr_group_setup(void **state)
 	cfg = get_swupdate_cfg();
 	cfg->progress_socket_mode = 0600;
 	cfg->progress_socket_gid = (gid_t)-1;
+	cfg->progress_max_clients = PROGTHR_MAX_CLIENTS;
 
 	/* as at startup: notifiers and the sockets to remove at exit */
 	notify_init();
@@ -221,6 +251,7 @@ int main(void)
 		cmocka_unit_test(test_progthr_ack_failure),
 		cmocka_unit_test(test_progthr_message),
 		cmocka_unit_test(test_progthr_drop_while_logging),
+		cmocka_unit_test(test_progthr_client_limit),
 		cmocka_unit_test(test_progthr_socket_mode),
 	};
 	return cmocka_run_group_tests_name("progress_thread", tests, progthr_group_setup,

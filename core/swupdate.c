@@ -480,6 +480,7 @@ static int read_globals_settings(void *elem, void *data)
 				&sw->ctrl_socket_mode, &sw->ctrl_socket_gid);
 	read_socket_permissions(elem, "progress-socket-mode", "progress-socket-group",
 				&sw->progress_socket_mode, &sw->progress_socket_gid);
+	GET_FIELD_INT(LIBCFG_PARSER, elem, "progress-max-clients", &sw->progress_max_clients);
 
 	char software_select[SWUPDATE_GENERAL_STRING_SIZE] = "";
 	GET_FIELD_STRING(LIBCFG_PARSER, elem, "select", software_select);

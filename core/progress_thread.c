@@ -410,6 +410,15 @@ static int progress_send_connect_ack(int connfd)
 }
 
 /*
+ * conns[0] is the listening socket, so nconns is one more than the clients
+ */
+static bool progress_limit_reached(struct swupdate_progress *pprog, struct swupdate_cfg *cfg)
+{
+	return cfg->progress_max_clients > 0 &&
+	       pprog->nconns > (unsigned int)cfg->progress_max_clients;
+}
+
+/*
  * Only this thread modifies the conns array or closes a client socket
  */
 void *progress_bar_thread (void __attribute__ ((__unused__)) *data)
@@ -478,6 +487,12 @@ void *progress_bar_thread (void __attribute__ ((__unused__)) *data)
 		if (fcntl(connfd, F_SETFD, FD_CLOEXEC) < 0)
 			WARN("Could not set %d as cloexec: %s", connfd, strerror(errno));
 
+		/* Limit exceeded, already warned when it was reached */
+		if (progress_limit_reached(pprog, cfg)) {
+			close(connfd);
+			continue;
+		}
+
 		/*
 		 * Send an ACK to the client to indicate that it is duly registered,
 		 * then add it without events: only POLLHUP and POLLERR are reported
@@ -494,6 +509,8 @@ void *progress_bar_thread (void __attribute__ ((__unused__)) *data)
 			else
 				ERROR("Could not register progress client: %s", strerror(-err));
 			close(connfd);
+		} else if (progress_limit_reached(pprog, cfg)) {
+			WARN("Progress client limit of %d reached", cfg->progress_max_clients);
 		}
 	} while(1);
 }
