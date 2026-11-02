@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
+#include <poll.h>
 #include <sys/ioctl.h>
 #include <fcntl.h>
 #include <sys/types.h>
@@ -35,13 +36,6 @@
 #include <systemd/sd-daemon.h>
 #endif
 
-struct progress_conn {
-	SIMPLEQ_ENTRY(progress_conn) next;
-	int sockfd;
-};
-
-SIMPLEQ_HEAD(connections, progress_conn);
-
 /*
  * Collect errors during an update session
  */
@@ -60,7 +54,8 @@ struct swupdate_progress {
 	struct progress_msg msg;
 	char *current_image;
 	const handler *curhnd;
-	struct connections conns;
+	struct pollfd *conns; /* [0] is the listening socket, then the clients */
+	unsigned int nconns;
 	struct errors_list errs;
 	/* no logging while held, an ERROR() locks it via the progress notifier */
 	pthread_mutex_t lock;
@@ -71,7 +66,6 @@ struct swupdate_progress {
  * progress_bar_thread() runs, e.g. while parsing the configuration file.
  */
 static struct swupdate_progress progress = {
-	.conns = SIMPLEQ_HEAD_INITIALIZER(progress.conns),
 	.errs = SIMPLEQ_HEAD_INITIALIZER(progress.errs),
 	.lock = PTHREAD_MUTEX_INITIALIZER,
 };
@@ -155,6 +149,23 @@ static void create_json_with_errors(void)
 /*
  * This must be called after acquiring the mutex
  * for the progress structure
+ */
+static int progress_add_conn(struct swupdate_progress *pprog, int fd, short events)
+{
+	struct pollfd *tmp = realloc(pprog->conns, (pprog->nconns + 1) * sizeof(*tmp));
+	if (!tmp)
+		return -ENOMEM;
+	tmp[pprog->nconns].fd = fd;
+	tmp[pprog->nconns].events = events;
+	tmp[pprog->nconns].revents = 0;
+	pprog->nconns++;
+	pprog->conns = tmp;
+	return 0;
+}
+
+/*
+ * This must be called after acquiring the mutex
+ * for the progress structure
  * It is assumed that the listeners are reading
  * the events and consume the messages. To avoid deadlocks,
  * SWUpdate will try to send the message without blocking,
@@ -164,12 +175,12 @@ static void create_json_with_errors(void)
  * and listeners cannot be scheduled at time. The delay just
  * slow down the update when happens. If the message cannot be
  * sent after retries, SWUpdate will consider the listener
- * dead and removes it from the list.
+ * dead and shuts down its socket.
  */
 static void send_progress_msg(void)
 {
-	struct progress_conn *conn, *tmp;
 	struct swupdate_progress *pprog = &progress;
+	unsigned int client;
 	void *buf;
 	size_t count;
 	ssize_t n;
@@ -177,7 +188,9 @@ static void send_progress_msg(void)
 	const int maxAttempts = 5;
 
 	pprog->msg.apiversion = PROGRESS_API_VERSION;
-	SIMPLEQ_FOREACH_SAFE(conn, &pprog->conns, next, tmp) {
+	for (client = 1; client < pprog->nconns; client++) {
+		int fd = pprog->conns[client].fd;
+
 		buf = &pprog->msg;
 		count = sizeof(pprog->msg);
 		errno = 0;
@@ -185,17 +198,15 @@ static void send_progress_msg(void)
 		while (count > 0) {
 			int attempt = 0;
 			do {
-				n = send(conn->sockfd, buf, count, MSG_NOSIGNAL | MSG_DONTWAIT);
+				n = send(fd, buf, count, MSG_NOSIGNAL | MSG_DONTWAIT);
 				attempt++;
 				tryagain = n <= 0 && (errno == EWOULDBLOCK || errno == EAGAIN);
 				if (tryagain)
 					sleep(1);
 			} while (tryagain && attempt < maxAttempts);
 			if (n <= 0) {
-				close(conn->sockfd);
-				SIMPLEQ_REMOVE(&pprog->conns, conn,
-					       	progress_conn, next);
-				free(conn);
+				/* The progress thread is woken up by this and drops it */
+				shutdown(fd, SHUT_RDWR);
 				break;
 			}
 			count -= (size_t)n;
@@ -398,13 +409,16 @@ static int progress_send_connect_ack(int connfd)
 	return ret;
 }
 
+/*
+ * Only this thread modifies the conns array or closes a client socket
+ */
 void *progress_bar_thread (void __attribute__ ((__unused__)) *data)
 {
 	int listen, connfd;
 	socklen_t clilen;
 	struct sockaddr_un cliaddr;
 	struct swupdate_progress *pprog = &progress;
-	struct progress_conn *conn;
+	unsigned int client;
 	int err;
 
 	/* Initialize and bind to UDS */
@@ -416,8 +430,41 @@ void *progress_bar_thread (void __attribute__ ((__unused__)) *data)
 		exit(2);
 	}
 
+	pthread_mutex_lock(&pprog->lock);
+	err = progress_add_conn(pprog, listen, POLLIN);
+	pthread_mutex_unlock(&pprog->lock);
+	if (err) {
+		ERROR("Out of memory, exiting.");
+		exit(2);
+	}
+
 	thread_ready();
 	do {
+		/* Wait until a client connects or closes its socket */
+		if (poll(pprog->conns, pprog->nconns, -1) < 0) {
+			if (errno != EINTR)
+				TRACE("Poll returns: %s", strerror(errno));
+			continue;
+		}
+
+		/*
+		 * Drop the clients that closed their socket. A client that only
+		 * shut down its write half is kept. Walk backwards, as dropping
+		 * moves the last entry into the hole.
+		 */
+		pthread_mutex_lock(&pprog->lock);
+		for (client = pprog->nconns - 1; client >= 1; client--) {
+			if (pprog->conns[client].revents) {
+				close(pprog->conns[client].fd);
+				pprog->conns[client] = pprog->conns[--pprog->nconns];
+			}
+		}
+		pthread_mutex_unlock(&pprog->lock);
+
+		/* No new connection, continue polling */
+		if (!(pprog->conns[0].revents & POLLIN))
+			continue;
+
 		clilen = sizeof(cliaddr);
 		if ( (connfd = accept(listen, (struct sockaddr *) &cliaddr, &clilen)) < 0) {
 			if (errno == EINTR)
@@ -432,20 +479,13 @@ void *progress_bar_thread (void __attribute__ ((__unused__)) *data)
 			WARN("Could not set %d as cloexec: %s", connfd, strerror(errno));
 
 		/*
-		 * Save the new connection to be handled by the progress thread
+		 * Send an ACK to the client to indicate that it is duly registered,
+		 * then add it without events: only POLLHUP and POLLERR are reported
 		 */
-		conn = (struct progress_conn *)calloc(1, sizeof(*conn));
-		if (!conn) {
-			ERROR("Out of memory, skipping...");
-			close(connfd);
-			continue;
-		}
-		conn->sockfd = connfd;
 		pthread_mutex_lock(&pprog->lock);
-		/* Send an ACK to the client to indicate that it is duly registered */
 		err = progress_send_connect_ack(connfd);
 		if (!err)
-			SIMPLEQ_INSERT_TAIL(&pprog->conns, conn, next);
+			err = progress_add_conn(pprog, connfd, 0);
 		pthread_mutex_unlock(&pprog->lock);
 		if (err) {
 			/* A client that closed before the ACK is not an error */
@@ -453,8 +493,7 @@ void *progress_bar_thread (void __attribute__ ((__unused__)) *data)
 				TRACE("Progress client closed before the ACK");
 			else
 				ERROR("Could not register progress client: %s", strerror(-err));
-			close(conn->sockfd);
-			free(conn);
+			close(connfd);
 		}
 	} while(1);
 }
