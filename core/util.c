@@ -122,6 +122,7 @@ static int countargc(char *args, char **argv)
 /*
  * Directory for the files extracted from the SWU: TMPDIR if set, else
  * /run/swupdate if usable (as for the IPC sockets), else /tmp.
+ * It should be private to SWUpdate, see check_tmpdir().
  */
 const char* get_tmpdir(void)
 {
@@ -147,6 +148,35 @@ const char* get_tmpdir(void)
 		TMPDIR = (char*)"/tmp/";
 	}
 	return TMPDIR;
+}
+
+/*
+ * SWUpdate runs as root and creates files in TMPDIR with fixed names,
+ * for example sw-description. If other users can write into it, they
+ * can put a symlink or a file of their own there in advance and so
+ * make SWUpdate overwrite another file, or change sw-description after
+ * its signature was verified.
+ */
+void check_tmpdir(void)
+{
+	const char *tmpdir = get_tmpdir();
+	struct stat st;
+
+	if (stat(tmpdir, &st) < 0) {
+		WARN("Temporary directory %s cannot be accessed: %s",
+		     tmpdir, strerror(errno));
+		return;
+	}
+	if (!S_ISDIR(st.st_mode)) {
+		WARN("Temporary directory %s is not a directory", tmpdir);
+		return;
+	}
+	if ((st.st_mode & (S_IWGRP | S_IWOTH)) || st.st_uid != geteuid()) {
+		WARN("Temporary directory %s is not private to SWUpdate: other users "
+		     "can tamper with the extracted files. Set TMPDIR to a directory "
+		     "writable only by SWUpdate, for example %s.",
+		     tmpdir, RUNTIME_TMPDIR);
+	}
 }
 
 const char* get_tmpdirscripts(void)

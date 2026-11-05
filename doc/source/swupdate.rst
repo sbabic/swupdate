@@ -183,7 +183,8 @@ The feature can be set on image basis, that means that a user can
 decide which partial images should be streamed. If not streamed (see
 installed-directly flag), files are temporary extracted into the directory
 pointed to by the environment variable ``TMPDIR``, with ``/run/swupdate`` and
-then ``/tmp`` as fall-back if ``TMPDIR`` is not set.
+then ``/tmp`` as fall-back if ``TMPDIR`` is not set. The directory must not be
+writable by other users, see :ref:`private_tmpdir`.
 Of course, by streaming it is not possible to make checks on the whole delivered
 software before installing.
 The temporary copy is done only when updated from network. When the image

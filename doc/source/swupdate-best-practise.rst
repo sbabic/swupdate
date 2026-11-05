@@ -160,6 +160,40 @@ Note that `swupdate.sh` sources the files in sorted order, so it is possible to 
 with a configuration file whose filename is loaded at the end. Preferred style is to use SystemV like
 names, for example `10-webserver`, `11-suricatta`, and so on.
 
+.. _private_tmpdir:
+
+Use a private temporary directory
+=================================
+
+SWUpdate extracts sw-description, its signature, scripts and the artifacts that are not
+installed directly into a temporary directory, with fixed names. This directory is taken
+from the environment variable `TMPDIR`. If it is not set, SWUpdate uses `/run/swupdate` if
+it exists and is writable, and falls back to `/tmp` otherwise.
+
+The directory must be private to SWUpdate: owned by the user SWUpdate runs as (usually
+root), and not writable by other users, for example mode 0700. `/tmp` is not suitable: any
+local user can create files there in advance. A symlink with the name of a file that
+SWUpdate extracts makes SWUpdate, running as root, overwrite the file the symlink points
+to; a file owned by the user lets them change sw-description after its signature was
+verified. The kernel settings `fs.protected_symlinks` and `fs.protected_regular` block
+part of this, but they are not enabled by default on every system.
+
+With systemd, the directory can be created by the unit:
+
+::
+
+        [Service]
+        RuntimeDirectory=swupdate
+        RuntimeDirectoryMode=0700
+        Environment=TMPDIR=/run/swupdate
+
+Without systemd, create it in the init script before starting SWUpdate and export
+`TMPDIR`. SWUpdate warns at startup if the temporary directory is writable by other users
+or owned by another user.
+
+Keep in mind that `/run` is usually a tmpfs with a limited size: artifacts that are not
+installed directly are copied there, see "Use installed-directly when possible".
+
 Write sw-description
 ====================
 

@@ -348,6 +348,7 @@ int read_file_into_buf(const char *filename, unsigned char **buffer, size_t *len
 
 const char* get_tmpdir(void);
 const char* get_tmpdirscripts(void);
+void check_tmpdir(void);
 
 void swupdate_create_directory(const char* path);
 int swupdate_remove_directory(const char* path);

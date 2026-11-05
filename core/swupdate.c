@@ -1180,6 +1180,8 @@ int main(int argc, char **argv)
 		}
 	}
 
+	check_tmpdir();
+
 	if (opt_e) {
 		if (parse_image_selector(software_select, &swcfg)) {
 			fprintf(stderr, "Error: Incorrect select option format.\n");
