@@ -1408,9 +1408,29 @@ bool check_same_file(int fd1, int fd2) {
     return (stat1.st_dev == stat2.st_dev) && (stat1.st_ino == stat2.st_ino);
 }
 
+/*
+ * A file name from the SWU must stay below the directory it is
+ * extracted to: no absolute path and no ".." component, also not
+ * at the end ("foo/..")
+ */
 bool is_filename_valid (const char *file_name)
 {
-	return file_name != NULL && file_name[0] != '/' && strstr(file_name, "../") == NULL;
+	const char *p;
+
+	if (file_name == NULL || file_name[0] == '/')
+		return false;
+
+	for (p = file_name; *p; ) {
+		size_t len = strcspn(p, "/");
+
+		if (len == 2 && p[0] == '.' && p[1] == '.')
+			return false;
+		p += len;
+		if (*p == '/')
+			p++;
+	}
+
+	return true;
 }
 #define ENUM_STRING(x)        [x] = #x
 const char *get_status_string(unsigned int status)

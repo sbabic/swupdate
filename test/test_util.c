@@ -48,6 +48,15 @@ static void test_util_is_filename_valid(void **state)
 	assert_false(is_filename_valid("/c.swu"));
 	assert_false(is_filename_valid("../b.swu"));
 	assert_false(is_filename_valid("sub/../e.swu"));
+	assert_false(is_filename_valid(".."));
+	assert_false(is_filename_valid("foo/.."));
+	assert_false(is_filename_valid("foo/bar/.."));
+	assert_false(is_filename_valid("foo//.."));
+	assert_false(is_filename_valid(NULL));
+	/* only a ".." component is rejected, not dots in a name */
+	assert_true(is_filename_valid("..swu"));
+	assert_true(is_filename_valid("a..b/c.."));
+	assert_true(is_filename_valid("./x.swu"));
 }
 
 static void test_status_known_values(void **state)
