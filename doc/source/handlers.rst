@@ -583,7 +583,8 @@ a possible setup using a remote handler could be:
 
 The connection is instantiated using the socket ``test_remote`` (according
 to the "data" field's value) in the directory pointed to by the environment
-variable ``TMPDIR`` with ``/tmp`` as fall-back if ``TMPDIR`` is not set.
+variable ``TMPDIR`` with ``/run/swupdate`` and then ``/tmp`` as fall-back if
+``TMPDIR`` is not set.
 If ``connect()`` fails, the  remote handler signals that the update is not
 successful. Each zeromq message  from SWUpdate is a multi-part message split
 into two frames:

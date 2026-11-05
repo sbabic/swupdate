@@ -37,6 +37,7 @@
 #define SHA256_HASH_LENGTH	32
 
 /* These are fixed path to temporary files */
+#define RUNTIME_TMPDIR		"/run/swupdate"
 #define SCRIPTS_DIR_SUFFIX	"scripts/"
 #define DATADST_DIR_SUFFIX	"datadst/"
 #define BOOT_SCRIPT_SUFFIX	"boot-script"

@@ -119,20 +119,27 @@ static int countargc(char *args, char **argv)
 	return count;
 }
 
+/*
+ * Directory for the files extracted from the SWU: TMPDIR if set, else
+ * /run/swupdate if usable (as for the IPC sockets), else /tmp.
+ */
 const char* get_tmpdir(void)
 {
 	if (TMPDIR != NULL) {
 		return TMPDIR;
 	}
 
-	char *env_tmpdir = getenv("TMPDIR");
-	if (env_tmpdir == NULL) {
-		TMPDIR = (char*)"/tmp/";
+	const char *env_tmpdir = getenv("TMPDIR");
+	if (env_tmpdir == NULL || env_tmpdir[0] == '\0') {
+		if (access(RUNTIME_TMPDIR, W_OK) == 0)
+			TMPDIR = (char*)RUNTIME_TMPDIR "/";
+		else
+			TMPDIR = (char*)"/tmp/";
 		return TMPDIR;
 	}
 
-	if (env_tmpdir[strlen(env_tmpdir)] == '/') {
-		TMPDIR = env_tmpdir;
+	if (env_tmpdir[strlen(env_tmpdir) - 1] == '/') {
+		TMPDIR = (char*)env_tmpdir;
 		return TMPDIR;
 	}
 

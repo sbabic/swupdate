@@ -373,8 +373,8 @@ config NOCLEANUP
 	default n
 	help
 	  After each run, temporary files are removed from the directory
-	  pointed to by the environment variable TMPDIR (/tmp as fallback
-	  if unset) to restart in a clean state. For debugging purposes, it
+	  pointed to by the environment variable TMPDIR (/run/swupdate or
+	  /tmp as fallback if unset) to restart in a clean state. For debugging purposes, it
 	  helps to check the consistency of the files extracted by SWUpdate.
 	  For production, answer N.
 
