@@ -84,6 +84,26 @@ static int check_missing_hash(struct imglist *list)
 }
 #endif
 
+/*
+ * The filename of an entry is joined to the temporary directory to
+ * extract the file and to remove it after the update: it must stay
+ * below that directory, as the names in the CPIO archive.
+ */
+static int check_filenames(struct imglist *list)
+{
+	struct img_type *image;
+
+	LIST_FOREACH(image, list, next) {
+		if (image->fname[0] && !is_filename_valid(image->fname)) {
+			ERROR("Invalid filename %s in %s", image->fname,
+			      SW_DESCRIPTION_FILENAME);
+			return -EINVAL;
+		}
+	}
+
+	return 0;
+}
+
 static int check_handler(struct img_type *item, unsigned int mask, const char *desc)
 {
 	struct installer_handler *hnd;
@@ -195,6 +215,9 @@ int parse(struct swupdate_cfg *sw, const char *descfile)
 	ret |= check_handler_list(&sw->images, PARTITION_HANDLER, IS_PARTITION,
 					"partitions");
 	if (ret)
+		return -EINVAL;
+
+	if (check_filenames(&sw->images) || check_filenames(&sw->scripts))
 		return -EINVAL;
 
 	/*

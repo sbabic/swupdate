@@ -283,6 +283,39 @@ static void test_parser_errors(void **state)
 	}
 }
 
+/*
+ * The filename comes from sw-description: cleanup_files() must not
+ * remove a file outside the temporary directory, even if the parser
+ * accepted the name. Enough ".." reach "/", then the test directory.
+ */
+static void test_parser_cleanup_outside_tmpdir(void **state)
+{
+	(void)state;
+	static const struct swd escape = {
+		.cfg = "images: ( { filename = \"../../../../../../../../..%s/victim\";"
+		       " device = \"/dev/a\"; } );",
+		.json = "\"images\": [ { \"filename\": \"../../../../../../../../..%s/victim\","
+			" \"device\": \"/dev/a\" } ]",
+	};
+	char victim[128];
+	int fd;
+
+	snprintf(victim, sizeof(victim), "%s/victim", tmpdir);
+
+	FOR_EACH_FORMAT(f) {
+		fd = open(victim, O_CREAT | O_WRONLY | O_TRUNC, 0600);
+		assert_true(fd >= 0);
+		close(fd);
+
+		sw_init();
+		assert_int_equal(parse_swd(&escape, f), 0);
+		sw_free();
+
+		assert_int_equal(access(victim, F_OK), 0);
+	}
+	unlink(victim);
+}
+
 static void test_parser_common_fields(void **state)
 {
 	(void)state;
@@ -902,6 +935,7 @@ int main(void)
 	static const struct CMUnitTest tests[] = {
 		cmocka_unit_test(test_parser_minimal),
 		cmocka_unit_test(test_parser_errors),
+		cmocka_unit_test(test_parser_cleanup_outside_tmpdir),
 		cmocka_unit_test(test_parser_common_fields),
 		cmocka_unit_test(test_parser_default_types),
 		cmocka_unit_test(test_parser_attributes),

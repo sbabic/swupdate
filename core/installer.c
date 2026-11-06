@@ -550,7 +550,8 @@ static void cleaup_img_entry(struct img_type *img)
 	char *fn;
 	const char *tmp[] = { get_tmpdirscripts(), get_tmpdir() };
 
-	if (img->fname[0]) {
+	/* the name comes from sw-description: never remove outside tmp */
+	if (img->fname[0] && is_filename_valid(img->fname)) {
 		for (unsigned int i = 0; i < ARRAY_SIZE(tmp); i++) {
 			if (asprintf(&fn, "%s%s", tmp[i], img->fname) == ENOMEM_ASPRINTF) {
 				ERROR("Path too long: %s%s", tmp[i], img->fname);
@@ -577,13 +578,15 @@ void cleanup_files(struct swupdate_cfg *software) {
 	struct imglist *list[] = {&software->scripts};
 
 	LIST_FOREACH_SAFE(img, &software->images, next, img_tmp) {
-		if (img->fname[0]) {
+		/* the name comes from sw-description: never remove outside TMPDIR */
+		if (img->fname[0] && is_filename_valid(img->fname)) {
 			if (asprintf(&fn, "%s%s", TMPDIR,
 				     img->fname) == ENOMEM_ASPRINTF) {
 				ERROR("Path too long: %s%s", TMPDIR, img->fname);
+			} else {
+				remove_sw_file(fn);
+				free(fn);
 			}
-			remove_sw_file(fn);
-			free(fn);
 		}
 		LIST_REMOVE(img, next);
 		free_image(img);
