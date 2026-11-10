@@ -1387,17 +1387,21 @@ static int diskpart(struct img_type *img,
 			part->partno--;
 
 		/*
-		 * Insert the partition in the list sorted by partno
+		 * Insert the partition in the list sorted by partno, whatever
+		 * the order of the properties: insert it after the last one
+		 * with a lower or equal partno, or at the head if none.
 		 */
-		struct partition_data *p = LIST_FIRST(&priv.listparts);
-		if (!p)
-			LIST_INSERT_HEAD(&priv.listparts, part, next);
-		else {
-			while (LIST_NEXT(p, next) &&
-					LIST_NEXT(p, next)->partno < part->partno)
-				p = LIST_NEXT(p, next);
-			LIST_INSERT_BEFORE(p, part, next);
+		struct partition_data *p, *last = NULL;
+
+		LIST_FOREACH(p, &priv.listparts, next) {
+			if (p->partno > part->partno)
+				break;
+			last = p;
 		}
+		if (last)
+			LIST_INSERT_AFTER(last, part, next);
+		else
+			LIST_INSERT_HEAD(&priv.listparts, part, next);
 	}
 
 	if (hybrid && !diskpart_is_gpt(img)) {
