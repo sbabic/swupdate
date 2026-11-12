@@ -364,3 +364,17 @@ SWUpdate will need need to be configured with the following parameters:
 
         GnuPG Home directory: gpg-home-dir in swupdate.cfg
         GPGME Protocol: gpgme-protocol in swupdate.cfg: openpgp or cms
+
+With ``gpgme-protocol = "cms"``, a signature is accepted only if gpgsm
+reports full validity for the signer certificate. The root CA of the
+signing chain must be imported and listed in ``trustlist.txt`` in the
+GnuPG home directory:
+
+::
+
+        gpgsm --import <root CA certificate>
+        echo "<root CA SHA-1 fingerprint> S" >> <gpg-home-dir>/trustlist.txt
+
+Set ``no-allow-mark-trusted`` in ``<gpg-home-dir>/gpg-agent.conf`` so that
+gpg-agent never adds a root CA to ``trustlist.txt`` on request of a
+client.
