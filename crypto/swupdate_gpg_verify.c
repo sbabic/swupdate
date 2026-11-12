@@ -29,6 +29,36 @@ status_cb(void *opaque, const char *keyword, const char *value)
 
 #define MSGBUF_LEN 256
 
+static bool sig_is_acceptable(gpgme_signature_t sig, gpgme_protocol_t protocol)
+{
+	if (sig->status != GPG_ERR_NO_ERROR) {
+		TRACE("gpg: signature %s rejected: %s", sig->fpr,
+		      gpgme_strerror(sig->status));
+		return false;
+	}
+
+	if (sig->summary & GPGME_SIGSUM_RED) {
+		TRACE("gpg: signature %s rejected: summary 0x%x",
+		      sig->fpr, sig->summary);
+		return false;
+	}
+
+	/*
+	 * gpgsm reports a good status for a signature whose certificate
+	 * chain does not end at a trusted root, e.g. a self-signed
+	 * certificate embedded in the signature itself. Only the validity
+	 * tells the two apart.
+	 */
+	if (protocol == GPGME_PROTOCOL_CMS &&
+	    sig->validity < GPGME_VALIDITY_FULL) {
+		TRACE("gpg: signature %s rejected: certificate not trusted (%s)",
+		      sig->fpr, gpgme_strerror(sig->validity_reason));
+		return false;
+	}
+
+	return true;
+}
+
 static int gpg_dgst_init(struct swupdate_cfg *sw, const char *keyfile)
 {
 	struct gpg_digest *dgst;
@@ -184,7 +214,7 @@ static int gpg_verify_file(void *gpgdgst, const char *sigfile,
 
 	if (result) {
 		for (sig = result->signatures; sig; sig = sig->next) {
-			if (sig->status == GPG_ERR_NO_ERROR) {
+			if (sig_is_acceptable(sig, protocol)) {
 				TRACE("Verified OK");
 				status = 0;
 				goto out;
