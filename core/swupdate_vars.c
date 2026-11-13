@@ -182,6 +182,19 @@ int swupdate_vars_apply_list(const char *filename, const char *namespace)
 	return ret;
 }
 
+bool swupdate_vars_namespace_exists(const char *namespace)
+{
+	struct uboot_ctx *ctx = NULL;
+	bool exists = false;
+
+	if (!libuboot_read_config_ext(&ctx, get_fwenv_config()))
+		exists = libuboot_get_namespace(ctx, namespace) != NULL;
+
+	libuboot_exit(ctx);
+
+	return exists;
+}
+
 bool swupdate_set_default_namespace(const char *namespace)
 {
 	if (namespace_default)

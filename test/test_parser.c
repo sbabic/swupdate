@@ -66,6 +66,7 @@ static void sw_init(void)
 	LIST_INIT(&sw.hardware);
 	LIST_INIT(&sw.scripts);
 	LIST_INIT(&sw.bootloader);
+	LIST_INIT(&sw.bootenv_namespaces);
 	LIST_INIT(&sw.vars);
 	LIST_INIT(&sw.extprocs);
 	LIST_INIT(&sw.swupdate_types);
@@ -658,6 +659,25 @@ static void test_parser_bootenv_vars(void **state)
 		.cfg = "bootenv: ( { value = \"1\"; } );",
 		.json = "\"bootenv\": [ { \"value\": \"1\" } ]",
 	};
+	static const struct swd ns_single = {
+		.cfg = "bootenv: ( { name = \"a\"; value = \"1\"; },"
+		       " { name = \"x\"; value = \"2\"; namespace = \"fwu\"; },"
+		       " { name = \"y\"; namespace = \"fwu\"; } );",
+		.json = "\"bootenv\": [ { \"name\": \"a\", \"value\": \"1\" },"
+			" { \"name\": \"x\", \"value\": \"2\", \"namespace\": \"fwu\" },"
+			" { \"name\": \"y\", \"namespace\": \"fwu\" } ]",
+	};
+	static const struct swd ns_multi = {
+		.cfg = "bootenv: ( { name = \"x\"; value = \"1\"; namespace = \"fwu\"; },"
+		       " { name = \"a\"; value = \"2\"; },"
+		       " { name = \"y\"; value = \"3\"; namespace = \"app\"; },"
+		       " { name = \"z\"; value = \"4\"; namespace = \"fwu\"; } );",
+		.json = "\"bootenv\": [ { \"name\": \"x\", \"value\": \"1\", \"namespace\": \"fwu\" },"
+			" { \"name\": \"a\", \"value\": \"2\" },"
+			" { \"name\": \"y\", \"value\": \"3\", \"namespace\": \"app\" },"
+			" { \"name\": \"z\", \"value\": \"4\", \"namespace\": \"fwu\" } ]",
+	};
+	struct bootenv_namespace *ns;
 
 	FOR_EACH_FORMAT(f) {
 		sw_init();
@@ -670,6 +690,37 @@ static void test_parser_bootenv_vars(void **state)
 		/* a link in vars adds vars, not bootloader variables */
 		assert_dict_value(&sw.vars, "w", "y");
 		assert_null(dict_get_value(&sw.bootloader, "w"));
+		assert_true(LIST_EMPTY(&sw.bootenv_namespaces));
+		sw_free();
+
+		sw_init();
+		assert_int_equal(parse_swd(&ns_single, f), 0);
+		assert_dict_value(&sw.bootloader, "a", "1");
+		assert_null(dict_get_value(&sw.bootloader, "x"));
+		ns = LIST_FIRST(&sw.bootenv_namespaces);
+		assert_non_null(ns);
+		assert_string_equal(ns->name, "fwu");
+		assert_dict_value(&ns->vars, "x", "2");
+		assert_dict_value(&ns->vars, "y", "");
+		assert_null(LIST_NEXT(ns, next));
+		sw_free();
+
+		/* namespaces keep the order in which they first appear */
+		sw_init();
+		assert_int_equal(parse_swd(&ns_multi, f), 0);
+		assert_dict_value(&sw.bootloader, "a", "2");
+		assert_null(dict_get_value(&sw.bootloader, "x"));
+		ns = LIST_FIRST(&sw.bootenv_namespaces);
+		assert_non_null(ns);
+		assert_string_equal(ns->name, "fwu");
+		assert_dict_value(&ns->vars, "x", "1");
+		assert_dict_value(&ns->vars, "z", "4");
+		assert_null(dict_get_value(&ns->vars, "y"));
+		ns = LIST_NEXT(ns, next);
+		assert_non_null(ns);
+		assert_string_equal(ns->name, "app");
+		assert_dict_value(&ns->vars, "y", "3");
+		assert_null(LIST_NEXT(ns, next));
 		sw_free();
 
 		sw_init();

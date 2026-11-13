@@ -304,6 +304,7 @@ static void swupdate_init(struct swupdate_cfg *sw)
 	LIST_INIT(&sw->hardware);
 	LIST_INIT(&sw->scripts);
 	LIST_INIT(&sw->bootloader);
+	LIST_INIT(&sw->bootenv_namespaces);
 	LIST_INIT(&sw->extprocs);
 	LIST_INIT(&sw->swupdate_types);
 	LIST_INIT(&sw->external_urls);

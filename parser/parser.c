@@ -834,11 +834,42 @@ static int parse_scripts(parsertype p, void *cfg, struct swupdate_cfg *swcfg, lu
 	return _parse_scripts(p, cfg, setting, nodes, swcfg, L);
 }
 
+static struct dict *get_bootenv_namespace(struct swupdate_cfg *swcfg, const char *name)
+{
+	struct bootenv_namespace *ns;
+
+	/* Entries are read backwards, move it first to keep the file order */
+	LIST_FOREACH(ns, &swcfg->bootenv_namespaces, next) {
+		if (!strcmp(ns->name, name)) {
+			LIST_REMOVE(ns, next);
+			LIST_INSERT_HEAD(&swcfg->bootenv_namespaces, ns, next);
+			return &ns->vars;
+		}
+	}
+
+	ns = calloc(1, sizeof(*ns));
+	if (!ns)
+		return NULL;
+
+	ns->name = strdup(name);
+	if (!ns->name) {
+		free(ns);
+		return NULL;
+	}
+
+	LIST_INIT(&ns->vars);
+	LIST_INSERT_HEAD(&swcfg->bootenv_namespaces, ns, next);
+
+	return &ns->vars;
+}
+
 static int _parse_bootloader(parsertype p, void *cfg, void *setting, const char **nodes, struct swupdate_cfg *swcfg, lua_State *L)
 {
 	void *elem;
 	int count, i, skip, err;
 	struct img_type dummy;
+	char namespace[SWUPDATE_GENERAL_STRING_SIZE];
+	struct dict *vars;
 
 	if (setting == NULL) {
 		return 0;
@@ -875,15 +906,26 @@ static int _parse_bootloader(parsertype p, void *cfg, void *setting, const char 
 		 */
 		GET_FIELD_STRING(p, elem, "name", dummy.id.name);
 		GET_FIELD_STRING(p, elem, "value", dummy.id.version);
+		GET_FIELD_STRING_RESET(p, elem, "namespace", namespace);
 		skip = run_embscript(p, elem, &dummy, L, swcfg->embscript);
 		if (skip < 0) {
 			return -1;
 		}
 		if (!skip) {
-			dict_set_value(&swcfg->bootloader, dummy.id.name, dummy.id.version);
-			TRACE("Bootloader var: %s = %s",
+			vars = &swcfg->bootloader;
+			if (strlen(namespace)) {
+				vars = get_bootenv_namespace(swcfg, namespace);
+				if (!vars) {
+					ERROR("No memory for namespace %s", namespace);
+					return -ENOMEM;
+				}
+			}
+			dict_set_value(vars, dummy.id.name, dummy.id.version);
+			TRACE("Bootloader var: %s = %s%s%s",
 				dummy.id.name,
-				dict_get_value(&swcfg->bootloader, dummy.id.name));
+				dict_get_value(vars, dummy.id.name),
+				strlen(namespace) ? ", namespace " : "",
+				namespace);
 		}
 	}
 
@@ -1224,7 +1266,8 @@ static int parser(parsertype p, void *cfg, struct swupdate_cfg *swcfg)
 
 	if (LIST_EMPTY(&swcfg->images) &&
 	    LIST_EMPTY(&swcfg->scripts) &&
-	    LIST_EMPTY(&swcfg->bootloader)) {
+	    LIST_EMPTY(&swcfg->bootloader) &&
+	    LIST_EMPTY(&swcfg->bootenv_namespaces)) {
 		ERROR("Found nothing to install");
 		return -1;
 	}

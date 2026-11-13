@@ -17,6 +17,7 @@
 #include "progress.h"
 #include "handler.h"
 #include "swupdate_crypto.h"
+#include "swupdate_vars.h"
 
 static parser_fn parsers[] = {
 	parse_cfg,
@@ -232,6 +233,25 @@ int parse(struct swupdate_cfg *sw, const char *descfile)
 		ERROR("bootloader support absent but %s has bootloader section!",
 		      SW_DESCRIPTION_FILENAME);
 		return -EINVAL;
+	}
+
+	/*
+	 * The namespaces are stored after the images are installed, check
+	 * them before installing anything
+	 */
+	const char *fwenv_config = get_fwenv_config();
+	if (!LIST_EMPTY(&sw->bootenv_namespaces) && !fwenv_config) {
+		ERROR("No libubootenv configuration for bootenv namespaces");
+		return -EINVAL;
+	}
+
+	struct bootenv_namespace *ns;
+	LIST_FOREACH(ns, &sw->bootenv_namespaces, next) {
+		if (!swupdate_vars_namespace_exists(ns->name)) {
+			ERROR("Namespace %s not found in %s", ns->name,
+			      fwenv_config);
+			return -EINVAL;
+		}
 	}
 
 #ifdef CONFIG_SIGNED_IMAGES

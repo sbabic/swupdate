@@ -72,6 +72,15 @@ struct swupdate_parms {
 	struct swupdate_type_cfg *type;
 };
 
+/* bootenv variables stored in a libubootenv namespace other than the default */
+struct bootenv_namespace {
+	char *name;
+	struct dict vars;
+	LIST_ENTRY(bootenv_namespace) next;
+};
+
+LIST_HEAD(bootenv_namespaces, bootenv_namespace);
+
 struct swupdate_cfg {
 	char name[SWUPDATE_GENERAL_STRING_SIZE];
 	char description[SWUPDATE_UPDATE_DESCRIPTION_STRING_SIZE];
@@ -109,6 +118,7 @@ struct swupdate_cfg {
 	struct imglist images;
 	struct imglist scripts;
 	struct dict bootloader;
+	struct bootenv_namespaces bootenv_namespaces;
 	struct dict vars;
 	struct dict accepted_set;
 	struct dict external_urls;

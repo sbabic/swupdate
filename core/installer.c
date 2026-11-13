@@ -260,6 +260,25 @@ static int update_swupdate_vars(struct swupdate_cfg *cfg, const char *script)
 	return ret;
 }
 
+static int update_bootenv_namespaces(struct swupdate_cfg *cfg, const char *script)
+{
+	struct bootenv_namespace *ns;
+	int ret;
+
+	LIST_FOREACH(ns, &cfg->bootenv_namespaces, next) {
+		ret = prepare_var_script(&ns->vars, script);
+		if (ret)
+			return ret;
+
+		if ((ret = swupdate_vars_apply_list(script, ns->name)) < 0) {
+			ERROR("Error %d updating namespace %s", ret, ns->name);
+			return ret;
+		}
+	}
+
+	return 0;
+}
+
 int run_prepost_scripts(struct imglist *list, script_fn type)
 {
 	int ret;
@@ -525,6 +544,17 @@ int install_images(struct swupdate_cfg *sw)
 	}
 
 	/*
+	 * Stored last, so that a namespace is updated only if the bootloader
+	 * environment has been stored
+	 */
+	if (!LIST_EMPTY(&sw->bootenv_namespaces)) {
+		ret = update_bootenv_namespaces(sw, script);
+		if (ret) {
+			return ret;
+		}
+	}
+
+	/*
 	 * Should we generate a list with installed software?
 	 */
 	if (strlen(sw->output_swversions)) {
@@ -574,6 +604,8 @@ void cleanup_files(struct swupdate_cfg *software) {
 	struct img_type *img_tmp;
 	struct hw_type *hw;
 	struct hw_type *hw_tmp;
+	struct bootenv_namespace *ns;
+	struct bootenv_namespace *ns_tmp;
 	const char* TMPDIR = get_tmpdir();
 	struct imglist *list[] = {&software->scripts};
 
@@ -606,6 +638,13 @@ void cleanup_files(struct swupdate_cfg *software) {
 	 */
 	dict_drop_db(&software->bootloader);
 	dict_drop_db(&software->vars);
+
+	LIST_FOREACH_SAFE(ns, &software->bootenv_namespaces, next, ns_tmp) {
+		LIST_REMOVE(ns, next);
+		dict_drop_db(&ns->vars);
+		free(ns->name);
+		free(ns);
+	}
 
 	/*
 	 * Drop per update URLs

@@ -1015,6 +1015,47 @@ that must be changed:
 SWUpdate will internally generate a script that will be passed to the
 bootloader handler for adjusting the environment.
 
+The optional attribute *namespace* stores a variable in another namespace of
+the `libubootenv` configuration instead of the bootloader environment, for
+example in the Arm FWU metadata:
+
+::
+
+	bootenv: (
+		{
+			name = "bootcount";
+			value = "0";
+		},
+		{
+			name = "active_index";
+			value = "1";
+			namespace = "fwu";
+		},
+		{
+			name = "previous_active_index";
+			value = "0";
+			namespace = "fwu";
+		},
+		{
+			name = "bank1_state";
+			value = "valid";
+			namespace = "fwu";
+		}
+	)
+
+The namespace must be defined in the `libubootenv` configuration, set by
+*fwenv-config-location* in swupdate.cfg. See the `libubootenv documentation
+<https://github.com/sbabic/libubootenv/blob/master/docs/fw_env_config.md>`_
+for its format. An update with a namespace that is not defined is rejected
+before installing anything.
+
+Each namespace is stored once, after the bootloader environment and in the
+order in which it first appears. If a namespace cannot be stored, for example
+because the FWU metadata rejects a value, the update fails but the bootloader
+environment is already stored. The update state is always stored in the
+bootloader environment. Variables set with a file of type *bootloader* always
+go to the bootloader environment.
+
 For backward compatibility with previously built `.swu` images, the
 "uboot" group name is still supported as an alias. However, its usage
 is deprecated.
