@@ -259,7 +259,10 @@ static int multipart_data_end(multipart_parser* p)
 	free(priv->current.buf);
 	priv->current.buf = NULL;
 	priv->content_range_received = true;
-	copy_existing_chunks(&priv->chunk, priv);
+	if (!copy_existing_chunks(&priv->chunk, priv)) {
+		priv->error_in_parser = true;
+		return -EFAULT;
+	}
 	return 0;
 }
 
@@ -831,7 +834,7 @@ static bool fill_buffers_list(struct hnd_priv *priv)
 
 	multipart_parser_execute(priv->parser, answer->data, answer->len);
 
-	return true;
+	return !priv->error_in_parser;
 }
 
 /*
