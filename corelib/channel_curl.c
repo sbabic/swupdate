@@ -1102,8 +1102,7 @@ static channel_op_res_t parse_reply(channel_data_t *channel_data, output_data_t 
 	}
 
 	if (channel_data->debug) {
-		/* If reply is not \0 terminated, impose an upper bound. */
-		TRACE("Got channel reply: %s", strndupa(chunk->memory, chunk->size));
+		TRACE("Got channel reply: %s", chunk->memory);
 	}
 	return CHANNEL_OK;
 }
