@@ -1175,7 +1175,11 @@ static int install_delta(struct img_type *img,
 		goto cleanup;
 	}
 
+	/* "offset" is for the chained handler, the header starts at 0 */
+	unsigned long long seek = img->seek;
+	img->seek = 0;
 	ret = copyimage(&mem_fd, img, NULL /* default write callback */);
+	img->seek = seek;
 
 	if (ret != 0) {
 		ERROR("Error %d copying zchunk header, aborting.", ret);
