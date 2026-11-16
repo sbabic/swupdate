@@ -1185,6 +1185,7 @@ static int install_delta(struct img_type *img,
 		ERROR("Error %d copying zchunk header, aborting.", ret);
 		goto cleanup;
 	}
+	ret = -1;
 
 	if (lseek(mem_fd, 0, SEEK_SET) < 0) {
 		ERROR("Seeking start of memory file");
