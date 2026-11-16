@@ -33,6 +33,7 @@
 #include <zck.h>
 #include <zlib.h>
 #include <util.h>
+#include <swupdate_crypto.h>
 #include <pctl.h>
 #include <pthread.h>
 #include <fs_interface.h>
@@ -141,6 +142,27 @@ struct hnd_priv {
 
 static bool copy_existing_chunks(zckChunk **dstChunk, struct hnd_priv *priv);
 
+static int verify_chunk_hash(const unsigned char *buf, size_t len,
+			     const unsigned char *expected)
+{
+	unsigned char md[64];
+	unsigned int md_len = 0;
+	void *dgst;
+	int ret;
+
+	dgst = swupdate_HASH_init(SHA_DEFAULT);
+	if (!dgst)
+		return -EFAULT;
+	ret = swupdate_HASH_update(dgst, buf, len);
+	if (ret >= 0)
+		ret = swupdate_HASH_final(dgst, md, &md_len);
+	swupdate_HASH_cleanup(dgst);
+	if (ret < 0 || md_len != SHA256_HASH_LENGTH ||
+	    swupdate_HASH_compare(expected, md))
+		return -EFAULT;
+	return 0;
+}
+
 /*
  * Callbacks for multipart parsing.
  */
@@ -176,14 +198,21 @@ static int network_process_data(multipart_parser* p, const char *at, size_t leng
 					zck_get_chunk_number(priv->chunk),
 					priv->current.chunksize);
 			if (priv->current.chunksize != 0) {
-				struct swupdate_copy copy = {
-					.inbuf = priv->current.buf,
-					.out = &priv->fdout,
-					.nbytes = priv->current.chunksize,
-					.compressed = COMPRESSED_ZSTD,
-					.hash = hash,
-				};
-				ret = copyfile(&copy);
+				ret = verify_chunk_hash(priv->current.buf,
+							priv->current.chunksize, hash);
+				if (ret)
+					ERROR("Chunk %zd: hash mismatch",
+					      zck_get_chunk_number(priv->chunk));
+				else {
+					struct swupdate_copy copy = {
+						.inbuf = priv->current.buf,
+						.out = &priv->fdout,
+						.nbytes = priv->current.chunksize,
+						.compressed = COMPRESSED_ZSTD,
+						.hash = hash,
+					};
+					ret = copyfile(&copy);
+				}
 			} else
 				ret = 0; /* skipping, nothing to be copied */
 			/* Buffer can be discarged */
