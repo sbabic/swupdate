@@ -249,6 +249,7 @@ int start_suricatta(const char *cfgfname, int argc, char *argv[])
 	sigset_t saved_mask;
 	int choice = 0;
 	char **serverargv;
+	bool repolled = false;
 
 	sigemptyset(&sigpipe_mask);
 	sigaddset(&sigpipe_mask, SIGPIPE);
@@ -343,6 +344,8 @@ int start_suricatta(const char *cfgfname, int argc, char *argv[])
 
 	TRACE("Server initialized, entering suricatta main loop.");
 	while (true) {
+		bool repoll = false;
+
 		if (enable || trigger) {
 			trigger = false;
 			switch (server->has_pending_action(&action_id)) {
@@ -351,7 +354,16 @@ int start_suricatta(const char *cfgfname, int argc, char *argv[])
 				server->install_update();
 				break;
 			case SERVER_ID_REQUESTED:
-				server->send_target_data();
+				/*
+				 * Poll again at once when the target data went
+				 * through, so that a deployment already waiting
+				 * on the server is not delayed by a whole polling
+				 * interval. Only on success and only once in a
+				 * row: a failing send (server unreachable) must
+				 * not spin, see commit ae6ef036.
+				 */
+				if (server->send_target_data() == SERVER_OK && !repolled)
+					repoll = true;
 				trigger = true;
 				break;
 			case SERVER_EINIT:
@@ -361,6 +373,12 @@ int start_suricatta(const char *cfgfname, int argc, char *argv[])
 				DEBUG("No pending action to process.");
 				break;
 			}
+		}
+
+		repolled = repoll;
+		if (repoll) {
+			TRACE("Target data sent, polling server again at once.");
+			continue;
 		}
 
 		for (int wait_seconds = server->get_polling_interval();
