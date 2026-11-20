@@ -1453,6 +1453,62 @@ Example:
 The example sets a version for the installed image. Generally, this is detected at runtime
 reading from the target.
 
+Pre- and postinstall functions
+------------------------------
+
+Each entry in images and files can call a Lua function before and after the artifact
+is installed, with the "preinstall" and "postinstall" attributes. While "hook" runs when
+sw-description is parsed, these functions run when the artifact is installed: directly
+from the stream if "installed-directly" is set, else after the SWU was received.
+
+The functions receive the same image table as a hook and must return the same two values.
+If the preinstall function returns false (or does not exist), the artifact is not installed
+and the update fails. If the postinstall function returns false, the update fails, but
+the artifact was already installed. Unlike a hook, these functions cannot skip an artifact:
+returning nil instead of the image table is an error, and the update fails.
+
+The functions must be available when the artifact is installed. Put them into the
+embedded-script of sw-description: it is loaded before any artifact is installed.
+All functions run in the same Lua state for the whole update, so they can share
+variables. This allows checks that SWUpdate does not do itself, for example that an
+artifact is installed only after another one:
+
+::
+
+        software = {
+                version = "1.0";
+                embedded-script = "
+        installed = {}
+        function mark(image)
+                installed[image.filename] = true
+                return true, image
+        end
+        function need_rootfs(image)
+                if not installed[\"rootfs.ext4\"] then
+                        swupdate.error(\"application.tar requires rootfs.ext4\")
+                        return false, image
+                end
+                return true, image
+        end";
+                images: (
+                        {
+                                filename = "rootfs.ext4";
+                                device = "/dev/mmcblk0p2";
+                                installed-directly = true;
+                                postinstall = "mark";
+                        }
+                );
+                files: (
+                        {
+                                filename = "application.tar";
+                                type = "archive";
+                                path = "/opt/app";
+                                installed-directly = true;
+                                preinstall = "need_rootfs";
+                        }
+                );
+        }
+
 .. _sw-description-attribute-reference:
 
 Attribute reference
@@ -1619,6 +1675,16 @@ There are 4 main sections inside sw-description:
    +-------------+----------+------------+---------------------------------------+
    | hook        | string   | images     | The name of the function (Lua) to be  |
    |             |          | files      | called when the entry is parsed.      |
+   +-------------+----------+------------+---------------------------------------+
+   | preinstall  | string   | images     | The name of the function (Lua) to be  |
+   |             |          | files      | called before the artifact is         |
+   |             |          |            | installed. If it fails, the artifact  |
+   |             |          |            | is not installed and the update fails.|
+   +-------------+----------+------------+---------------------------------------+
+   | postinstall | string   | images     | The name of the function (Lua) to be  |
+   |             |          | files      | called after the artifact is          |
+   |             |          |            | installed. If it fails, the update    |
+   |             |          |            | fails.                                |
    +-------------+----------+------------+---------------------------------------+
    | mtdname     | string   | images     | name of the MTD to update. Used only  |
    |             |          |            | by the flash handler to identify the  |
