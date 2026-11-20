@@ -30,6 +30,7 @@
 #include "cpiohdr.h"
 #include "handler.h"
 #include "installer.h"
+#include "lua_util.h"
 #include "swupdate.h"
 #include "swupdate_crypto.h"
 #include "swupdate_dict.h"
@@ -353,6 +354,92 @@ static void test_installer_single_image(void **state)
 	sw_free();
 }
 
+#ifdef CONFIG_LUA
+/*
+ * install_single_image() with pre- and postinstall Lua functions
+ */
+static const char lua_hooks[] =
+	"function hook_ok(image)\n"
+	"	return true, image\n"
+	"end\n"
+	"function hook_fail(image)\n"
+	"	return false, image\n"
+	"end\n"
+	"function hook_noimage(image)\n"
+	"	return true\n"
+	"end\n";
+
+static void test_installer_lua_hooks(void **state)
+{
+	(void)state;
+	struct img_type *img;
+	lua_State *L;
+
+	sw_init();
+	L = lua_session_init(&sw.bootloader);
+	assert_non_null(L);
+	assert_int_equal(lua_load_buffer(L, lua_hooks), 0);
+	img = add_image("hook.bin", "hook image data");
+	img->size = strlen("hook image data");
+	img->L = L;
+
+	/* both functions succeed: the artifact is installed */
+	strlcpy(img->lua_fcn_pre, "hook_ok", sizeof(img->lua_fcn_pre));
+	strlcpy(img->lua_fcn_post, "hook_ok", sizeof(img->lua_fcn_post));
+	img->fdin = open(tmp_path("hook.bin"), O_RDONLY);
+	assert_int_equal(install_single_image(img, false), 0);
+	assert_string_equal(calls, "IMG:hook.bin;");
+	close(img->fdin);
+
+	/* preinstall fails: the handler is not called */
+	calls[0] = '\0';
+	strlcpy(img->lua_fcn_pre, "hook_fail", sizeof(img->lua_fcn_pre));
+	img->fdin = open(tmp_path("hook.bin"), O_RDONLY);
+	assert_int_equal(install_single_image(img, false), -1);
+	assert_string_equal(calls, "");
+	close(img->fdin);
+
+	/* a missing preinstall function fails in the same way */
+	strlcpy(img->lua_fcn_pre, "no_such_function", sizeof(img->lua_fcn_pre));
+	img->fdin = open(tmp_path("hook.bin"), O_RDONLY);
+	assert_int_equal(install_single_image(img, false), -1);
+	assert_string_equal(calls, "");
+	close(img->fdin);
+
+	/* preinstall returns no image: it cannot skip, it is an error */
+	strlcpy(img->lua_fcn_pre, "hook_noimage", sizeof(img->lua_fcn_pre));
+	img->fdin = open(tmp_path("hook.bin"), O_RDONLY);
+	assert_int_equal(install_single_image(img, false), -1);
+	assert_string_equal(calls, "");
+	close(img->fdin);
+
+	/* postinstall fails: the artifact was installed, the update fails */
+	strlcpy(img->lua_fcn_pre, "hook_ok", sizeof(img->lua_fcn_pre));
+	strlcpy(img->lua_fcn_post, "hook_fail", sizeof(img->lua_fcn_post));
+	img->fdin = open(tmp_path("hook.bin"), O_RDONLY);
+	assert_int_equal(install_single_image(img, false), -1);
+	assert_string_equal(calls, "IMG:hook.bin;");
+	close(img->fdin);
+
+	/* postinstall returns no image: the update fails, too */
+	calls[0] = '\0';
+	strlcpy(img->lua_fcn_post, "hook_noimage", sizeof(img->lua_fcn_post));
+	img->fdin = open(tmp_path("hook.bin"), O_RDONLY);
+	assert_int_equal(install_single_image(img, false), -1);
+	assert_string_equal(calls, "IMG:hook.bin;");
+	close(img->fdin);
+
+	/* functions set, but no Lua state */
+	calls[0] = '\0';
+	img->L = NULL;
+	assert_int_equal(install_single_image(img, false), -EINVAL);
+	assert_string_equal(calls, "");
+
+	lua_exit(L);
+	sw_free();
+}
+#endif
+
 /*
  * install_images()
  */
@@ -537,6 +624,7 @@ static int installer_group_teardown(void **state)
 {
 	(void)state;
 	unlink(tmp_path("single.bin"));
+	unlink(tmp_path("hook.bin"));
 	rmdir(tmp_path("scripts"));
 	return rmdir(tmpdir);
 }
@@ -547,6 +635,9 @@ int main(void)
 		cmocka_unit_test(test_installer_check_if_required),
 		cmocka_unit_test(test_installer_versions),
 		cmocka_unit_test(test_installer_single_image),
+#ifdef CONFIG_LUA
+		cmocka_unit_test(test_installer_lua_hooks),
+#endif
 		cmocka_unit_test(test_installer_install_images),
 		cmocka_unit_test(test_installer_dry_run),
 		cmocka_unit_test(test_installer_errors),

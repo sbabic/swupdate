@@ -340,14 +340,21 @@ int install_single_image(struct img_type *img, bool dry_run)
 	}
 
 	/*
-	 * Run a preinstall Lua function, if any
+	 * Run a preinstall Lua function, if any: if it fails,
+	 * the artifact is not installed and the update fails.
+	 * lua_parser_fn() returns 1 if the function returns no
+	 * image: skipping is not possible here (a streamed artifact
+	 * must be read), so this is an error, too.
 	 */
 	if (strlen(img->lua_fcn_pre)) {
 		ret = lua_parser_fn(img->L, img->lua_fcn_pre, img);
 		if (ret) {
-			TRACE("Pre-install function %s for %s fails !",
-			      img->lua_fcn_pre,
-			      hnd->desc);
+			ERROR("Pre-install function %s for %s fails%s, %s is not installed",
+			      img->lua_fcn_pre, hnd->desc,
+			      ret > 0 ? " (no image returned)" : "",
+			      img->fname);
+			ret = -1;
+			goto out;
 		}
 	}
 
@@ -363,10 +370,12 @@ int install_single_image(struct img_type *img, bool dry_run)
 				TRACE("Post-install function %s for %s fails !",
 				      img->lua_fcn_post,
 				      hnd->desc);
+				ret = -1;
 			}
 		}
 	}
 
+out:
 	swupdate_progress_step_completed();
 
 	return ret;
