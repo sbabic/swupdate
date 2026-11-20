@@ -301,7 +301,12 @@ static int extract_files(int fd, struct swupdate_cfg *software)
 				fdout = openfileoutput(img->extract_file);
 				if (fdout < 0)
 					return -1;
-				if (!img_check_free_space(img, fdout)) {
+				/*
+				 * The file is copied as it is in the SWU, still
+				 * compressed or encrypted: check the space for
+				 * that, not for its decompressed-size.
+				 */
+				if (!check_free_space(fdout, fdh.size, img->fname)) {
 					close(fdout);
 					return -1;
 				}

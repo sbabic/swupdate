@@ -378,6 +378,42 @@ static void test_stream_size_mismatch(void **state)
 	sw_free();
 }
 
+static void test_stream_tmpdir_space(void **state)
+{
+	(void)state;
+	char desc[2048], h1[65], h2[65];
+	static const char attrs[] =
+		"compressed = \"zstd\"; "
+		"properties = { decompressed-size = \"1152921504606846976\"; }; ";
+	struct swu s = { 0 };
+	int fd;
+
+	/*
+	 * An image copied to TMPDIR is stored there as it is in the SWU:
+	 * the free space is checked for that size, not for the
+	 * decompressed-size of the image (1 EiB here).
+	 */
+	hash_ascii(copied, sizeof(copied), h1);
+	hash_ascii(streamed, sizeof(streamed), h2);
+	make_desc(desc, sizeof(desc), h1, h2, NULL);
+	char *p = strstr(desc, "path");
+	assert_non_null(p);
+	memmove(p + strlen(attrs), p, strlen(p) + 1);
+	memcpy(p, attrs, strlen(attrs));
+
+	sw_init();
+	swu_add(&s, "sw-description", desc, strlen(desc), false);
+	swu_add(&s, "copied.bin", copied, sizeof(copied), false);
+	swu_add(&s, "streamed.bin", streamed, sizeof(streamed), false);
+	swu_trailer(&s);
+	fd = swu_fd(&s);
+	assert_int_equal(extract_files(fd, &sw), 0);
+	close(fd);
+	swu_free(&s);
+	assert_true(file_equal(path_in_tmp("copied.bin"), copied, sizeof(copied)));
+	sw_free();
+}
+
 #ifdef CONFIG_HW_COMPATIBILITY
 static void test_stream_hw_incompatible(void **state)
 {
@@ -544,6 +580,7 @@ int main(void)
 		cmocka_unit_test(test_stream_unknown_file),
 		cmocka_unit_test(test_stream_errors),
 		cmocka_unit_test(test_stream_size_mismatch),
+		cmocka_unit_test(test_stream_tmpdir_space),
 #ifdef CONFIG_HW_COMPATIBILITY
 		cmocka_unit_test(test_stream_hw_incompatible),
 #endif

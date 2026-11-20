@@ -1358,7 +1358,7 @@ long long get_output_size(struct img_type *img, bool strict)
 	return bytes;
 }
 
-static bool check_free_space(int fd, long long size, char *fname)
+bool check_free_space(int fd, long long size, const char *fname)
 {
 	/* This needs OS-specific implementation because linux's statfs
 	 * f_bsize is optimal IO size vs. statvfs f_bsize fs block size,
