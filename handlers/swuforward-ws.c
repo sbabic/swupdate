@@ -42,6 +42,10 @@ static void swupdate_web_answer(struct wsconn *ws, void *in, size_t len)
 	struct json_object *json_root;
 
 	json_tokenizer = json_tokener_new();
+	if (!json_tokenizer) {
+		ERROR("OOM when parsing answer from %s", ws->conn->url);
+		return;
+	}
 
 	do {
 		json_root = json_tokener_parse_ex(
