@@ -70,6 +70,7 @@ static void swupdate_web_answer(struct wsconn *ws, void *in, size_t len)
 			const char *text = json_get_value(json_root, "text");
 			TRACE("%s : %s", ws->conn->url, text);
 		}
+		json_object_put(json_root);
 	}
 	json_tokener_free(json_tokenizer);
 }
