@@ -124,6 +124,24 @@ static int swu_forward_data(void *data, const void *buf, size_t len)
 		index++;
 	}
 
+	/*
+	 * Read the messages sent by the remote boards during the
+	 * transfer, without waiting: they are shown while they come
+	 * and they do not pile up until the end of the transfer.
+	 */
+	LIST_FOREACH(conn, &priv->conns, next) {
+		if (conn->connstatus != WS_ESTABLISHED)
+			continue;
+		if (swuforward_ws_getanswer(conn, -1) < 0) {
+			ERROR("Cannot read messages from %s", conn->url);
+			return -EFAULT;
+		}
+		if (conn->SWUpdateStatus == FAILURE) {
+			ERROR("Update on %s failed during the transfer", conn->url);
+			return -EFAULT;
+		}
+	}
+
 	return 0;
 }
 

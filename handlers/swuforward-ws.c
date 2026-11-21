@@ -279,6 +279,10 @@ int swuforward_ws_connect(struct curlconn *conn) {
 	return 0;
 }
 
+/*
+ * Service the websocket: a negative timeout returns at once
+ * if there is nothing to do.
+ */
 int swuforward_ws_getanswer(struct curlconn *conn, int timeout) {
 	struct wsconn *ws;
 	if (!conn || !conn->ws)
