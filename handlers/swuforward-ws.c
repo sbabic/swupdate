@@ -31,7 +31,16 @@ struct wsconn {
 	struct lws_context_creation_info info;
 	json_object *json_reply;
 	struct curlconn	*conn;	/* Back pointer to main structure */
+	char *rxbuf;		/* message being reassembled */
+	size_t rxlen;
+	bool rxdrop;		/* drop the rest of the current message */
 };
+
+/*
+ * Upper limit for a message from the remote board,
+ * SWUpdate's Webserver sends small JSON objects
+ */
+#define MAX_WS_MSG_SIZE		(64 * 1024)
 
 #define TEXTRANGE_TO_STR(f)	(f.first == NULL ? NULL : substring(f.first, 0, f.afterLast - f.first))
 
@@ -47,11 +56,12 @@ static void swupdate_web_answer(struct wsconn *ws, void *in, size_t len)
 		return;
 	}
 
-	do {
-		json_root = json_tokener_parse_ex(
-			json_tokenizer, in, len);
-	} while ((json_res = json_tokener_get_error(json_tokenizer)) ==
-		json_tokener_continue);
+	/*
+	 * The message is complete: a json_tokener_continue
+	 * means truncated data and it is an error, too
+	 */
+	json_root = json_tokener_parse_ex(json_tokenizer, in, len);
+	json_res = json_tokener_get_error(json_tokenizer);
 	if (json_res != json_tokener_success) {
 		ERROR("Error while parsing answer from %s returned JSON data: %s",
 			ws ? ws->conn->url : "", json_tokener_error_desc(json_res));
@@ -75,6 +85,46 @@ static void swupdate_web_answer(struct wsconn *ws, void *in, size_t len)
 	json_tokener_free(json_tokenizer);
 }
 
+/*
+ * libwebsockets delivers a message in several chunks
+ * if it is fragmented or if it is split between two reads
+ * from the socket. Collect the chunks, the function returns
+ * true when the message is complete in ws->rxbuf.
+ * A message that cannot be stored is dropped up to its end.
+ */
+static bool ws_collect_message(struct wsconn *ws, struct lws *wsi,
+				void *in, size_t len)
+{
+	bool last = lws_is_final_fragment(wsi) &&
+			!lws_remaining_packet_payload(wsi);
+	char *buf;
+
+	if (ws->rxdrop)
+		goto drop;
+
+	if (ws->rxlen + len > MAX_WS_MSG_SIZE) {
+		ERROR("Message from %s too long, dropped", ws->conn->url);
+		goto drop;
+	}
+
+	buf = realloc(ws->rxbuf, ws->rxlen + len + 1);
+	if (!buf) {
+		ERROR("OOM when receiving message from %s", ws->conn->url);
+		goto drop;
+	}
+	ws->rxbuf = buf;
+	memcpy(ws->rxbuf + ws->rxlen, in, len);
+	ws->rxlen += len;
+	ws->rxbuf[ws->rxlen] = '\0';
+
+	return last;
+
+drop:
+	ws->rxlen = 0;
+	ws->rxdrop = !last;
+	return false;
+}
+
 static int callback_ws_swupdate(struct lws *wsi, enum lws_callback_reasons reason,
 				      void *user, void *in, size_t len)
 {
@@ -94,6 +144,11 @@ static int callback_ws_swupdate(struct lws *wsi, enum lws_callback_reasons reaso
 		break;
 
 	case LWS_CALLBACK_CLIENT_RECEIVE:
+		if (!ws_collect_message(ws, wsi, in, len))
+			break;
+		in = ws->rxbuf;
+		len = ws->rxlen;
+		ws->rxlen = 0;
 		/*
 		 * If it is not connected to SWUpdate's Webserver
 		 * call a custom Lua function that should be loaded
@@ -239,6 +294,7 @@ void swuforward_ws_free(struct curlconn *conn) {
 
 	if (ws) {
 		lws_context_destroy(ws->context);
+		free(ws->rxbuf);
 		free(ws);
 	}
 }
