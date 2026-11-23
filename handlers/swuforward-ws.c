@@ -34,6 +34,9 @@ struct wsconn {
 	char *rxbuf;		/* message being reassembled */
 	size_t rxlen;
 	bool rxdrop;		/* drop the rest of the current message */
+#if LWS_LIBRARY_VERSION_NUMBER >= 4001000
+	lws_sorted_usec_list_t sul_wakeup;	/* ends lws_service() */
+#endif
 };
 
 /*
@@ -279,6 +282,13 @@ int swuforward_ws_connect(struct curlconn *conn) {
 	return 0;
 }
 
+#if LWS_LIBRARY_VERSION_NUMBER >= 4001000
+static void ws_wakeup(lws_sorted_usec_list_t *sul)
+{
+	(void)sul;
+}
+#endif
+
 /*
  * Service the websocket: a negative timeout returns at once
  * if there is nothing to do.
@@ -288,6 +298,15 @@ int swuforward_ws_getanswer(struct curlconn *conn, int timeout) {
 	if (!conn || !conn->ws)
 		return -EFAULT;
 	ws = conn->ws;
+#if LWS_LIBRARY_VERSION_NUMBER >= 4001000
+	/*
+	 * lws_service() ignores its timeout since lws 3.2 and sleeps
+	 * until the next lws event: schedule one to return in time.
+	 */
+	if (timeout > 0)
+		lws_sul_schedule(ws->context, 0, &ws->sul_wakeup, ws_wakeup,
+				 (lws_usec_t)timeout * LWS_US_PER_MS);
+#endif
 	return lws_service(ws->context, timeout);
 }
 
