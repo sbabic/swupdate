@@ -147,6 +147,7 @@ static int callback_ws_swupdate(struct lws *wsi, enum lws_callback_reasons reaso
 		break;
 
 	case LWS_CALLBACK_CLIENT_RECEIVE:
+		ws->conn->gotMsg = true;
 		if (!ws_collect_message(ws, wsi, in, len))
 			break;
 		in = ws->rxbuf;

@@ -691,6 +691,17 @@ The handler evaluates the return value, and stops when one of SUCCESS or FAILURE
 If no parser-function is passed, the handler will run the internal parser used to connect
 remote SWUpdate systems, and expects to see a JSON message sent by the Mongoose Webserver.
 
+The handler waits until each remote system reports a success or a failure. The update
+fails if a remote system does not send any message during 15 minutes. The ``timeout``
+property sets this time in seconds, 0 waits forever:
+
+::
+
+	properties: {
+		url = ["http://192.168.178.41:8080"];
+		timeout = "600";
+	};
+
 rdiff handler
 -------------
 

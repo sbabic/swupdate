@@ -27,7 +27,9 @@
  * asking for the status. It is supposed that the boards go on
  * until they report a success or failure.
  * Following timeout is introduced in case boards answer, but they do not
- * go out for some reasons from the running state.
+ * go out for some reasons from the running state: the update fails if a
+ * board does not send any message during this time. It can be changed
+ * with the "timeout" property (in seconds, 0 to wait forever).
  */
 #define TIMEOUT_GET_ANSWER_SEC		900	/* 15 minutes */
 #define POLLING_TIME_REQ_STATUS		50	/* in mSec */
@@ -56,6 +58,7 @@ struct curlconn {
 	const char *fnparser;	/* Parser for the answer via ws */
 	lua_State *L;		/* Required if fnparser is set */
 	bool gotMsg;		/* set if the remote board has sent a new msg */
+	time_t lastMsg;		/* when the last message was received */
 	RECOVERY_STATUS SWUpdateStatus;	/* final status of update */
 	channel_op_res_t response;
 	void *ws;		/* this is used by websockets module */

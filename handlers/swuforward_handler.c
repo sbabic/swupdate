@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
+#include <time.h>
 #include <handler.h>
 #include <pthread.h>
 #include <util.h>
@@ -45,6 +46,7 @@ void swuforward_handler(void);
  */
 struct hnd_priv {
 	unsigned int maxwaitms;	/* maximum time in CURL wait */
+	unsigned long timeout;	/* max time without message from a board, s */
 	struct listconns conns;	/* list of connections */
 };
 
@@ -244,11 +246,24 @@ curl_thread_exit:
 	pthread_exit(NULL);
 }
 
+static time_t monotonic_seconds(void)
+{
+	struct timespec now;
+
+	clock_gettime(CLOCK_MONOTONIC, &now);
+	return now.tv_sec;
+}
+
 static int retrieve_msgs(struct hnd_priv *priv) {
 	struct curlconn *conn;
 	int ret;
 	int result = 0;
 	bool finished = false;
+
+	LIST_FOREACH(conn, &priv->conns, next) {
+		conn->gotMsg = false;
+		conn->lastMsg = monotonic_seconds();
+	}
 
 	while (!finished) {
 		finished = true;
@@ -261,9 +276,28 @@ static int retrieve_msgs(struct hnd_priv *priv) {
 					conn->SWUpdateStatus = FAILURE;
 					break;
 				}
+				if (conn->gotMsg) {
+					conn->gotMsg = false;
+					conn->lastMsg = monotonic_seconds();
+				} else if (priv->timeout &&
+					   monotonic_seconds() - conn->lastMsg >
+					   (time_t)priv->timeout) {
+					ERROR("No message from %s for %lu seconds, giving up",
+					      conn->url, priv->timeout);
+					conn->SWUpdateStatus = FAILURE;
+					continue;
+				}
 				finished = false;
 			}
 		}
+	}
+
+	LIST_FOREACH(conn, &priv->conns, next) {
+		if (conn->connstatus != WS_ESTABLISHED &&
+		    conn->SWUpdateStatus != SUCCESS &&
+		    conn->SWUpdateStatus != FAILURE)
+			ERROR("Connection to %s lost before the end of the update",
+			      conn->url);
 	}
 
 	/*
@@ -352,6 +386,7 @@ static int install_remote_swu(struct img_type *img,
 	struct dict_list_elem *url;
 	struct dict_list *urls;
 	const char *fn_parse_answer = NULL;
+	const char *timeout;
 	pthread_attr_t attr;
 	int thread_ret = -1;
 
@@ -384,6 +419,22 @@ static int install_remote_swu(struct img_type *img,
 	 * answer form the Webserver
 	 */
 	fn_parse_answer = dict_get_value(&img->properties, "parser-function");
+
+	/*
+	 * Maximum time without any message from a board
+	 */
+	priv.timeout = TIMEOUT_GET_ANSWER_SEC;
+	timeout = dict_get_value(&img->properties, "timeout");
+	if (timeout) {
+		char *end;
+
+		errno = 0;
+		priv.timeout = strtoul(timeout, &end, 10);
+		if (errno || end == timeout || *end != '\0') {
+			ERROR("Wrong timeout for SWU forwarder: %s", timeout);
+			return -EINVAL;
+		}
+	}
 	if (fn_parse_answer && !img->L) {
 		ERROR("Custom parser requires to enable Lua, exiting..");
 		ret = FAILURE;
