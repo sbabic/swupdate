@@ -612,6 +612,11 @@ no_copy_output:
 	return ret;
 }
 
+static void unlock_mutex(void *mutex)
+{
+	pthread_mutex_unlock((pthread_mutex_t *)mutex);
+}
+
 void *network_initializer(void *data)
 {
 	int ret;
@@ -619,6 +624,14 @@ void *network_initializer(void *data)
 	struct swupdate_request *req;
 	struct swupdate_parms parms;
 	bool do_reboot = true;
+
+	/*
+	 * The thread is cancelled on SIGTERM. It must not be cancelled
+	 * while it holds a lock (notify(), progress, stream_mutex) or
+	 * during an installation: it can be cancelled only when it
+	 * waits for a request.
+	 */
+	pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
 
 	/* No installation in progress */
 	memset(&inst, 0, sizeof(inst));
@@ -635,11 +648,20 @@ void *network_initializer(void *data)
 	while (1) {
 		ret = 0;
 
-		/* wait for someone to issue an install request */
+		/*
+		 * wait for someone to issue an install request.
+		 * This is the only cancellation point of the thread:
+		 * a pending cancellation request is acted upon here.
+		 */
 		pthread_mutex_lock(&stream_mutex);
+		pthread_cleanup_push(unlock_mutex, &stream_mutex);
+		pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+		pthread_testcancel();
 		while (stream_wkup != true) {
 			pthread_cond_wait(&stream_cond, &stream_mutex);
 		}
+		pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
+		pthread_cleanup_pop(0);
 		stream_wkup = false;
 		inst.status = RUN;
 		pthread_mutex_unlock(&stream_mutex);

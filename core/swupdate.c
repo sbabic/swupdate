@@ -1311,7 +1311,9 @@ int main(int argc, char **argv)
 	/*
 	 * Install a handler for SIGTERM that cancels
 	 * the network_daemon thread to allow atexit()
-	 * registered functions to run.
+	 * registered functions to run. The thread is
+	 * cancelled only when it waits for a request:
+	 * a running installation is completed first.
 	 */
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = sigterm_handler;
